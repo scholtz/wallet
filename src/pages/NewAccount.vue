@@ -1,9 +1,9 @@
 <template>
   <main-layout>
-    <h1>New wallet</h1>
+    <h1>New account</h1>
 
-    <button v-if="!w" class="btn btn-primary" @click="createWallet">
-      Create wallet
+    <button v-if="!w" class="btn btn-primary" @click="createAccount">
+      Create account
     </button>
     <div v-else>
       <div v-if="!this.s">
@@ -23,7 +23,7 @@
           class="btn btn-primary m-1"
           @click="confirmCreate"
         >
-          Create wallet
+          Create account
         </button>
         <button
           v-if="this.s"
@@ -42,7 +42,7 @@
           picture. Next step will be to confirm some of the words from this
           phrase and we will save it to the encrypted storage in your browser.
           It is safe to store this mnomenic and use this address without storing
-          it to the wallet. Make sure never to lose the mnomenic phrase.
+          it to the account. Make sure never to lose the mnomenic phrase.
         </p>
 
         <textarea class="form-control my-1" v-model="w" />
@@ -51,7 +51,7 @@
         <button v-if="this.s" class="btn btn-primary m-1" @click="makeRandom">
           Start the challange
         </button>
-        <button v-if="this.s" class="btn btn-light m-1" @click="createWallet">
+        <button v-if="this.s" class="btn btn-light m-1" @click="createAccount">
           Create new
         </button>
         <button v-if="this.s" class="btn btn-light m-1" @click="this.s = false">
@@ -73,6 +73,8 @@
 </template><script>
 import MainLayout from "../layouts/Main.vue";
 import algosdk from "algosdk";
+import { mapActions } from "vuex";
+
 export default {
   data() {
     return {
@@ -89,7 +91,10 @@ export default {
   },
   mounted() {},
   methods: {
-    createWallet() {
+    ...mapActions({
+      addPrivateAccount: "wallet/addPrivateAccount",
+    }),
+    createAccount() {
       let account = algosdk.generateAccount();
       this.a = account.addr;
       this.w = algosdk.secretKeyToMnemonic(account.sk);
@@ -103,6 +108,7 @@ export default {
       const words = this.w.split(" ");
       if (words[this.r - 1] == this.guess) {
         console.log("success");
+        this.addPrivateAccount({ mn: this.w });
       } else {
         console.log("error");
       }

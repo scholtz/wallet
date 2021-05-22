@@ -20,13 +20,17 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item active">
-            <v-link class="nav-link" href="/add-wallet">List my wallets</v-link>
+            <v-link class="nav-link" href="/add-account"
+              >List my accounts</v-link
+            >
           </li>
           <li class="nav-item active">
-            <v-link class="nav-link" href="/new-wallet">New wallet</v-link>
+            <v-link class="nav-link" href="/new-account">New account</v-link>
           </li>
           <li class="nav-item active">
-            <v-link class="nav-link" href="/watch-wallet">Watch wallet</v-link>
+            <v-link class="nav-link" href="/watch-account"
+              >Watch account</v-link
+            >
           </li>
           <li class="nav-item active">
             <v-link class="nav-link" href="/settings">Settings</v-link>

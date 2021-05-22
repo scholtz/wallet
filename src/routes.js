@@ -1,6 +1,6 @@
 export default {
   "/": "Home",
   "/about": "About",
-  "/new-wallet": "NewWallet",
+  "/new-account": "NewAccount",
   "*": "404",
 };
