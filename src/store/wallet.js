@@ -4,8 +4,10 @@ import CryptoJS from "crypto-js";
 import cryptoRandomString from "crypto-random-string";
 
 const state = () => ({
+  name: "w2",
   isOpen: false,
-  pass: "",
+  time: 2000000000000,
+  pass: "U2FsdGVkX1/P98d6R7QllvTWEyp77oEiZ1kkr6NOcNQ=",
   privateAccounts: [],
   publicAccounts: [],
 });
@@ -20,21 +22,84 @@ const mutations = {
   setPublicAccount(state, accts) {
     state.publicAccounts = accts;
   },
-  setIsOpen(state, isOpen) {
+  logout(state) {
+    state.pass = "";
+    state.time = 0;
+    state.isOpen = false;
+  },
+  prolong(state) {
+    state.time = new Date();
+  },
+  setIsOpen(state, { name, pass }) {
     state.isOpen = true;
-    state.pass = isOpen;
+    state.name = name;
+    if (!localStorage.getItem("rs1"))
+      localStorage.setItem(
+        "rs1",
+        cryptoRandomString({ length: 30, type: "alphanumeric" })
+      );
+    if (!localStorage.getItem("rs2"))
+      localStorage.setItem(
+        "rs2",
+        cryptoRandomString({ length: 30, type: "alphanumeric" })
+      );
+    const dataencoded = CryptoJS.AES.encrypt(pass, localStorage.getItem("rs1"));
+
+    state.pass = dataencoded.toString();
+    console.log("state.pass", state.pass, pass);
+    state.time = new Date();
   },
 };
 const actions = {
+  async logout({ commit }) {
+    await commit("logout");
+  },
+  async prolong({ commit }) {
+    await commit("prolong");
+  },
   async addPrivateAccount({ dispatch, commit }, { mn }) {
     const secret = algosdk.mnemonicToSecretKey(mn);
     await commit("addPrivateAccount", secret);
     await dispatch("saveWallet");
   },
   async saveWallet() {
-    console.log("saved ", this.state);
+    const encryptedPass = this.state.wallet.pass;
+    const decryptedData = await CryptoJS.AES.decrypt(
+      encryptedPass,
+      localStorage.getItem("rs1")
+    );
+    const pass = decryptedData.toString(CryptoJS.enc.Utf8);
+
+    console.log(
+      "pass ",
+      encryptedPass,
+      decryptedData,
+      this.state.wallet.pass,
+      pass,
+      localStorage.getItem("rs1")
+    );
+    if (!pass) {
+      alert("Error in storing wallet");
+    }
+
+    if (!this.state.wallet.name) {
+      alert("Wallet not found");
+    }
+
+    const db = new Dexie("AWallet");
+    db.version(1).stores({ wallets: "++id,name,data" });
+    const walletRecord = await db.wallets.get({ name: this.state.wallet.name });
+    console.log("walletRecord ", walletRecord);
+    if (!walletRecord.id) {
+      alert("Error in wallet record update");
+    }
+
+    const data = JSON.stringify(this.state.wallet);
+    const dataencoded = CryptoJS.AES.encrypt(data, pass);
+    walletRecord.data = dataencoded.toString();
+    await db.wallets.update(walletRecord.id, walletRecord);
   },
-  async openWallet({ commit, dispatch }, { name, pass }) {
+  async openWallet({ commit }, { name, pass }) {
     const db = new Dexie("AWallet");
 
     db.version(1).stores({ wallets: "++id,name,data" });
@@ -45,8 +110,7 @@ const actions = {
       const json = JSON.parse(decryptedData.toString(CryptoJS.enc.Utf8));
       await commit("setPrivateAccount", json.privateAccounts);
       await commit("setPublicAccount", json.publicAccounts);
-      await commit("setIsOpen", pass);
-      await dispatch("saveWallet");
+      await commit("setIsOpen", { name, pass });
     } catch (e) {
       alert("Wrong password");
     }

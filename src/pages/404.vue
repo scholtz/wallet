@@ -1,14 +1,14 @@
 <template>
-  <main-layout>
+  <PublicLayout>
     <p>Page not found.</p>
-  </main-layout>
+  </PublicLayout>
 </template>
 
 <script>
-import MainLayout from "../layouts/Main.vue";
+import PublicLayout from "../layouts/Public.vue";
 export default {
   components: {
-    MainLayout,
+    PublicLayout,
   },
 };
 </script>
