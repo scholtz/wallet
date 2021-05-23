@@ -13,7 +13,11 @@
         >
           Import account
         </button>
-        <button v-if="!w" class="btn btn-primary m-1" @click="createAccount">
+        <button
+          v-if="!w"
+          class="btn btn-primary m-1"
+          @click="page = 'multisigaccount'"
+        >
           Create multisign account
         </button>
       </div>
@@ -21,6 +25,60 @@
         <p>Write down 25 word mnomenic phrase</p>
         <textarea class="form-control my-1" v-model="w" />
 
+        <button class="btn btn-primary m-1" @click="importAccountClick">
+          Create account
+        </button>
+        <button class="btn btn-light m-1" @click="page = 'new'">Go back</button>
+      </div>
+      <div v-if="page == 'multisigaccount'">
+        <p>
+          Multisignature account can process transactions only if N accounts
+          listed at the account creation sign the transaction.
+        </p>
+        <p>Select existing accounts in your wallet:</p>
+        <select
+          class="select form-control"
+          multiple
+          rows="20"
+          v-model="multisigaccts"
+          style="min-height: 150px"
+        >
+          <option
+            v-for="option in $store.state.wallet.privateAccounts"
+            :key="option.addr"
+          >
+            {{ option.addr }}
+          </option>
+        </select>
+        <p class="my-2">Add your friends accounts - one account per line:</p>
+        <textarea
+          class="form-control my-1"
+          v-model="friendaccounts"
+          style="min-height: 150px"
+        />
+
+        <p class="my-2">
+          Select how many accounts are required to sign the transaction ({{
+            multisignum
+          }}/{{ countAccounts() }}):
+        </p>
+        <input
+          type="range"
+          class="form-range"
+          min="1"
+          :max="countAccounts()"
+          v-model="multisignum"
+          id="customRange2"
+        />
+
+        <input
+          type="number"
+          class="form-control"
+          min="1"
+          :max="countAccounts()"
+          v-model="multisignum"
+          id="customRange2"
+        />
         <button class="btn btn-primary m-1" @click="importAccountClick">
           Create account
         </button>
@@ -106,6 +164,9 @@ export default {
       s: false,
       challange: false,
       page: "new",
+      multisignum: 2,
+      multisigaccts: [],
+      friendaccounts: "",
     };
   },
   components: {
@@ -149,6 +210,16 @@ export default {
           that.$router.push({ name: "Accounts" });
         }
       });
+    },
+    countAccounts() {
+      const accounts = this.friendaccounts.split("\n");
+      let ret = this.multisigaccts.length;
+      for (let index in accounts) {
+        if (accounts[index].length == 58) {
+          ret++;
+        }
+      }
+      return ret;
     },
   },
 };
