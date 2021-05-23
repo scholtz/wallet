@@ -2,82 +2,92 @@
   <main-layout>
     <div class="container-fluid">
       <h1>New account</h1>
+      <div v-if="page == 'new'">
+        <button v-if="!w" class="btn btn-primary m-1" @click="createAccount">
+          Create basic account
+        </button>
+        <button
+          v-if="!w"
+          class="btn btn-primary m-1"
+          @click="page = 'importaccount'"
+        >
+          Import account
+        </button>
+        <button v-if="!w" class="btn btn-primary m-1" @click="createAccount">
+          Create multisign account
+        </button>
+      </div>
+      <div v-if="page == 'importaccount'">
+        <p>Write down 25 word mnomenic phrase</p>
+        <textarea class="form-control my-1" v-model="w" />
 
-      <button v-if="!w" class="btn btn-primary" @click="createAccount">
-        Create basic account
-      </button>
-      <div v-else>
-        <div v-if="!this.s">
-          <p>
-            In order to create account, make sure to backup mnomenic phrase. Is
-            it safe to show the phrase now?
-          </p>
-          <button v-if="!this.s" class="btn btn-primary" @click="this.s = true">
-            Show mnomenic
-          </button>
-        </div>
-        <div v-if="this.s && this.challange">
-          <p>What is word at position n. {{ r }}?</p>
-          <input class="form-control" v-model="guess" />
-          <button
-            v-if="this.s"
-            class="btn btn-primary m-1"
-            @click="confirmCreate"
-          >
-            Create account
-          </button>
-          <button
-            v-if="this.s"
-            class="btn btn-primary m-1"
-            @click="
-              this.challange = false;
-              this.s = false;
-            "
-          >
-            Go back
-          </button>
-        </div>
-        <div v-if="this.s && !this.challange">
-          <p>
-            Write the mnomenic words in displayed order down, copy or take a
-            picture. Next step will be to confirm some of the words from this
-            phrase and we will save it to the encrypted storage in your browser.
-            It is safe to store this mnomenic and use this address without
-            storing it to the account. Make sure never to lose the mnomenic
-            phrase.
-          </p>
+        <button class="btn btn-primary m-1" @click="importAccountClick">
+          Create account
+        </button>
+        <button class="btn btn-light m-1" @click="page = 'new'">Go back</button>
+      </div>
+      <div v-if="!this.s && page == 'newaccount'">
+        <p>
+          In order to create account, make sure to backup mnomenic phrase. Is it
+          safe to show the phrase now?
+        </p>
+        <button v-if="!this.s" class="btn btn-primary" @click="this.s = true">
+          Show mnomenic
+        </button>
+      </div>
+      <div v-if="this.s && this.challange">
+        <p>What is word at position n. {{ r }}?</p>
+        <input class="form-control" v-model="guess" />
+        <button
+          v-if="this.s"
+          class="btn btn-primary m-1"
+          @click="confirmCreate"
+        >
+          Create account
+        </button>
+        <button
+          v-if="this.s"
+          class="btn btn-primary m-1"
+          @click="
+            this.challange = false;
+            this.s = false;
+          "
+        >
+          Go back
+        </button>
+      </div>
+      <div v-if="this.s && !this.challange && page == 'newaccount'">
+        <p>
+          Write the mnomenic words in displayed order down, copy or take a
+          picture. Next step will be to confirm some of the words from this
+          phrase and we will save it to the encrypted storage in your browser.
+          It is safe to store this mnomenic and use this address without storing
+          it to the account. Make sure never to lose the mnomenic phrase.
+        </p>
 
-          <textarea class="form-control my-1" v-model="w" />
-          <input class="form-control my-1" v-model="a" />
+        <textarea class="form-control my-1" v-model="w" />
+        <input class="form-control my-1" v-model="a" />
 
-          <button v-if="this.s" class="btn btn-primary m-1" @click="makeRandom">
-            Start the challange
-          </button>
-          <button
-            v-if="this.s"
-            class="btn btn-light m-1"
-            @click="createAccount"
-          >
-            Create new
-          </button>
-          <button
-            v-if="this.s"
-            class="btn btn-light m-1"
-            @click="this.s = false"
-          >
-            Hide mnomenic
-          </button>
-          <button
-            v-if="this.s"
-            class="btn btn-light m-1"
-            @click="
-              this.s = false;
-              this.w = '';
-            "
-          >
-            Drop phrase
-          </button>
-        </div>
+        <button v-if="this.s" class="btn btn-primary m-1" @click="makeRandom">
+          Start the challange
+        </button>
+        <button v-if="this.s" class="btn btn-light m-1" @click="createAccount">
+          Create new
+        </button>
+        <button v-if="this.s" class="btn btn-light m-1" @click="this.s = false">
+          Hide mnomenic
+        </button>
+        <button
+          v-if="this.s"
+          class="btn btn-light m-1"
+          @click="
+            this.s = false;
+            this.w = '';
+            this.page = 'new';
+          "
+        >
+          Drop phrase
+        </button>
       </div>
     </div>
   </main-layout>
@@ -95,6 +105,7 @@ export default {
       guess: "",
       s: false,
       challange: false,
+      page: "new",
     };
   },
   components: {
@@ -106,6 +117,8 @@ export default {
       addPrivateAccount: "wallet/addPrivateAccount",
     }),
     createAccount() {
+      console.log("this", this);
+      this.page = "newaccount";
       let account = algosdk.generateAccount();
       this.a = account.addr;
       this.w = algosdk.secretKeyToMnemonic(account.sk);
@@ -117,13 +130,25 @@ export default {
       this.r = 1;
     },
     confirmCreate() {
+      const that = this;
       const words = this.w.split(" ");
       if (words[this.r - 1] == this.guess.trim()) {
-        console.log("success");
-        this.addPrivateAccount({ mn: this.w });
+        this.addPrivateAccount({ mn: this.w }).then((r) => {
+          if (r) {
+            that.$router.push({ name: "Accounts" });
+          }
+        });
       } else {
         console.log("error");
       }
+    },
+    importAccountClick() {
+      const that = this;
+      this.addPrivateAccount({ mn: this.w }).then((r) => {
+        if (r) {
+          that.$router.push({ name: "Accounts" });
+        }
+      });
     },
   },
 };

@@ -22,7 +22,7 @@
     "page": "^1.11.6",
     "register-service-worker": "^1.7.1",
     "vue": "^3.0.0",
-    "vue-router": "^3.5.1",
+    "vue-router": "^4.0.8",
     "vuex": "^4.0.0"
   },
   "devDependencies": {

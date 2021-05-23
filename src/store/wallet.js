@@ -46,7 +46,7 @@ const mutations = {
     const dataencoded = CryptoJS.AES.encrypt(pass, localStorage.getItem("rs1"));
 
     state.pass = dataencoded.toString();
-    console.log("state.pass", state.pass, pass);
+
     state.time = new Date();
   },
 };
@@ -58,9 +58,16 @@ const actions = {
     await commit("prolong");
   },
   async addPrivateAccount({ dispatch, commit }, { mn }) {
-    const secret = algosdk.mnemonicToSecretKey(mn);
-    await commit("addPrivateAccount", secret);
-    await dispatch("saveWallet");
+    try {
+      const secret = algosdk.mnemonicToSecretKey(mn);
+
+      await commit("addPrivateAccount", secret);
+      await dispatch("saveWallet");
+      return true;
+    } catch (e) {
+      console.log("error", e);
+      alert("Account has not been created");
+    }
   },
   async saveWallet() {
     const encryptedPass = this.state.wallet.pass;
@@ -70,14 +77,6 @@ const actions = {
     );
     const pass = decryptedData.toString(CryptoJS.enc.Utf8);
 
-    console.log(
-      "pass ",
-      encryptedPass,
-      decryptedData,
-      this.state.wallet.pass,
-      pass,
-      localStorage.getItem("rs1")
-    );
     if (!pass) {
       alert("Error in storing wallet");
     }
@@ -89,7 +88,7 @@ const actions = {
     const db = new Dexie("AWallet");
     db.version(1).stores({ wallets: "++id,name,data" });
     const walletRecord = await db.wallets.get({ name: this.state.wallet.name });
-    console.log("walletRecord ", walletRecord);
+
     if (!walletRecord.id) {
       alert("Error in wallet record update");
     }
@@ -120,7 +119,6 @@ const actions = {
     db.version(1).stores({ wallets: "++id,name,data" });
 
     if ((await db.wallets.toArray()).map((v) => v.name).includes(name)) {
-      console.log("exists");
       alert("Wallet with the same name already exists");
       return false;
     }
@@ -132,9 +130,6 @@ const actions = {
       .add({ name, data: dataencoded.toString() })
       .then(function() {
         return true;
-      })
-      .then(function(wallets) {
-        console.log("My young friends: ", wallets, db.wallets);
       })
       .catch(function(e) {
         alert("Error: " + (e.stack || e));
