@@ -8,7 +8,7 @@ const DefaultComponent = markRaw({
 });
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap";
-import './registerServiceWorker'
+import "./registerServiceWorker";
 
 const SimpleRouterApp = {
   data: () => ({

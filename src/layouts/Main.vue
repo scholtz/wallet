@@ -1,10 +1,13 @@
 <template>
-  <div class="container-fluid">
+  <div class="d-flex flex-column h-100">
     <Navbar />
     <div v-if="$store.state.wallet.isOpen">
       <slot></slot>
     </div>
-    <div v-else><login /></div>
+    <div v-else class="d-flex flex-column flex-grow-1">
+      <Login />
+    </div>
+    <div>Footer</div>
   </div>
 </template>
 
@@ -18,9 +21,3 @@ export default {
   },
 };
 </script>
-<style>
-body {
-  margin: 0;
-  padding: 0;
-}
-</style>
