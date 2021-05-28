@@ -22,6 +22,16 @@
           <li class="nav-item active" v-if="$store.state.wallet.isOpen">
             <v-link class="nav-link" href="/accounts">List my accounts</v-link>
           </li>
+          <li
+            class="nav-item active"
+            v-if="$store.state.wallet.lastActiveAccountName"
+          >
+            <v-link
+              class="nav-link"
+              :href="'/account/' + $store.state.wallet.lastActiveAccount"
+              >{{ $store.state.wallet.lastActiveAccountName }}</v-link
+            >
+          </li>
           <li class="nav-item active" v-if="$store.state.wallet.isOpen">
             <v-link class="nav-link" href="/new-account">New account</v-link>
           </li>

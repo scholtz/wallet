@@ -13,11 +13,20 @@ const state = () => ({
   publicAccounts: [],
   algodHost: [],
   lastPayTo: "",
+  lastActiveAccount: "",
+  lastActiveAccountName: "",
 });
 
 const mutations = {
   lastPayTo(state, addr) {
     state.lastPayTo = addr;
+  },
+  lastActiveAccount(state, addr) {
+    const current = state.privateAccounts.find((a) => a.addr == addr);
+    if (current) {
+      state.lastActiveAccount = addr;
+      state.lastActiveAccountName = current.name;
+    }
   },
   addPrivateAccount(state, { name, secret }) {
     secret.name = name;
@@ -87,8 +96,13 @@ const mutations = {
   },
 };
 const actions = {
-  async lastPayTo({ commit }, { addr }) {
+  async lastPayTo({ commit, dispatch }, { addr }) {
     commit("lastPayTo", addr);
+    await dispatch("saveWallet");
+  },
+  async lastActiveAccount({ commit, dispatch }, { addr }) {
+    commit("lastActiveAccount", addr);
+    await dispatch("saveWallet");
   },
   async getSK({ store }, { addr }) {
     console.log("store", store, this.state);
@@ -187,7 +201,7 @@ const actions = {
     const dataencoded = CryptoJS.AES.encrypt(data, pass);
     walletRecord.data = dataencoded.toString();
     await db.wallets.update(walletRecord.id, walletRecord);
-    console.log("saved");
+    //console.log("saved", this.state.wallet);
   },
   async openWallet({ commit }, { name, pass }) {
     const db = new Dexie("AWallet");
@@ -201,6 +215,8 @@ const actions = {
       await commit("setPrivateAccounts", json.privateAccounts);
       await commit("setPublicAccount", json.publicAccounts);
       await commit("setMultisigAccount", json.multisigAccounts);
+      await commit("lastPayTo", json.lastPayTo);
+      await commit("lastActiveAccount", json.lastActiveAccount);
       await commit("setIsOpen", { name, pass });
     } catch (e) {
       alert("Wrong password");

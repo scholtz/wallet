@@ -2,6 +2,7 @@ import { createWebHistory, createRouter } from "vue-router";
 import Home from "@/pages/Home.vue";
 import About from "@/pages/About.vue";
 import Accounts from "@/pages/Accounts.vue";
+import AccountOverview from "@/pages/AccountOverview.vue";
 import NewAccount from "@/pages/NewAccount.vue";
 import NotFound from "@/pages/404.vue";
 import FAQ from "@/pages/FAQ.vue";
@@ -23,6 +24,11 @@ const routes = [
     path: "/accounts",
     name: "Accounts",
     component: Accounts,
+  },
+  {
+    path: "/account/:account",
+    name: "AccountOverview",
+    component: AccountOverview,
   },
   {
     path: "/accounts/pay/:account",

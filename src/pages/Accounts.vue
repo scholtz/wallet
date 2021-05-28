@@ -14,11 +14,13 @@
       <Column field="addr" header="Address"></Column>
       <Column field="amount" header="Amount">
         <template #body="slotProps">
-          {{
-            $filters.formatCurrency(
-              slotProps.data[slotProps.column.props.field]
-            )
-          }}
+          <div class="text-end">
+            {{
+              $filters.formatCurrency(
+                slotProps.data[slotProps.column.props.field]
+              )
+            }}
+          </div>
         </template>
       </Column>
       <Column field="reward-base" header="reward-base"></Column>
@@ -50,7 +52,13 @@ export default {
       selection: null,
     };
   },
-
+  watch: {
+    selection() {
+      if (this.selection && this.selection.addr) {
+        this.lastActiveAccount({ addr: this.selection.addr });
+      }
+    },
+  },
   computed: {
     accounts() {
       return this.$store.state.wallet.privateAccounts;
@@ -71,6 +79,7 @@ export default {
     ...mapActions({
       accountInformation: "algod/accountInformation",
       updateAccount: "wallet/updateAccount",
+      lastActiveAccount: "wallet/lastActiveAccount",
     }),
     updateBalance() {
       console.log("updating");
