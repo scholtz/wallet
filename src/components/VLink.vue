@@ -1,11 +1,14 @@
 <template>
-  <router-link :to="href">
+  <RouterLink :to="href">
     <slot></slot>
-  </router-link>
+  </RouterLink>
 </template>
 
 <script>
+import { RouterLink } from "vue-router";
+
 export default {
+  components: [RouterLink],
   props: {
     href: {
       type: String,

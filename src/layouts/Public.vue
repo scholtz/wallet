@@ -1,7 +1,9 @@
 <template>
   <div class="d-flex flex-column h-100">
     <Navbar />
-    <slot></slot>
+    <div class="container-fluid d-flex flex-column flex-grow-1">
+      <slot></slot>
+    </div>
     <Footer />
   </div>
 </template>

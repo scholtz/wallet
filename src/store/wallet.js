@@ -12,18 +12,32 @@ const state = () => ({
   multisigAccounts: [],
   publicAccounts: [],
   algodHost: [],
+  lastPayTo: "",
 });
 
 const mutations = {
+  lastPayTo(state, addr) {
+    state.lastPayTo = addr;
+  },
   addPrivateAccount(state, { name, secret }) {
     secret.name = name;
     state.privateAccounts.push(secret);
+  },
+  setPrivateAccount(state, { info }) {
+    const acc = state.privateAccounts.find((x) => x.addr == info.address);
+    console.log("setPrivateAccount", acc);
+    if (acc) {
+      for (let index in info) {
+        acc[index] = info[index];
+      }
+      console.log("updated acc ", acc.addr, state.privateAccounts);
+    }
   },
   addMultiAccount(state, { addr, params, name }) {
     const multsigaddr = { addr, name, params };
     state.multisigAccounts.push(multsigaddr);
   },
-  setPrivateAccount(state, accts) {
+  setPrivateAccounts(state, accts) {
     if (accts) {
       state.privateAccounts = accts;
     } else {
@@ -73,6 +87,32 @@ const mutations = {
   },
 };
 const actions = {
+  async lastPayTo({ commit }, { addr }) {
+    commit("lastPayTo", addr);
+  },
+  async getSK({ store }, { addr }) {
+    console.log("store", store, this.state);
+    const address = this.state.wallet.privateAccounts.find(
+      (a) => a.addr == addr
+    );
+    console.log(
+      "store",
+      store,
+      this.state,
+      this.state.wallet.privateAccounts,
+      address
+    );
+    if (address) {
+      const ret = Uint8Array.from(Object.values(address.sk));
+      console.log(
+        "ret, address.sk",
+        ret,
+        address.sk,
+        Object.values(address.sk)
+      );
+      return ret;
+    }
+  },
   async logout({ commit }) {
     await commit("logout");
   },
@@ -111,6 +151,14 @@ const actions = {
       alert("Account has not been created");
     }
   },
+  async updateAccount({ dispatch, commit }, { info }) {
+    console.log("updateAccount", info);
+    if (!info) {
+      return false;
+    }
+    await commit("setPrivateAccount", { info });
+    await dispatch("saveWallet");
+  },
   async saveWallet() {
     const encryptedPass = this.state.wallet.pass;
     const decryptedData = await CryptoJS.AES.decrypt(
@@ -128,7 +176,7 @@ const actions = {
     }
 
     const db = new Dexie("AWallet");
-    db.version(1).stores({ wallets: "++id,name,data" });
+    db.version(2).stores({ wallets: "++id,name,addr,data" });
     const walletRecord = await db.wallets.get({ name: this.state.wallet.name });
 
     if (!walletRecord.id) {
@@ -144,13 +192,13 @@ const actions = {
   async openWallet({ commit }, { name, pass }) {
     const db = new Dexie("AWallet");
 
-    db.version(1).stores({ wallets: "++id,name,data" });
+    db.version(2).stores({ wallets: "++id,name,addr,data" });
     const walletRecord = await db.wallets.get({ name });
     const encryptedData = walletRecord.data;
     try {
       const decryptedData = CryptoJS.AES.decrypt(encryptedData, pass);
       const json = JSON.parse(decryptedData.toString(CryptoJS.enc.Utf8));
-      await commit("setPrivateAccount", json.privateAccounts);
+      await commit("setPrivateAccounts", json.privateAccounts);
       await commit("setPublicAccount", json.publicAccounts);
       await commit("setMultisigAccount", json.multisigAccounts);
       await commit("setIsOpen", { name, pass });
@@ -164,7 +212,7 @@ const actions = {
       return false;
     }
     const db = new Dexie("AWallet");
-    db.version(1).stores({ wallets: "++id,name,data" });
+    db.version(2).stores({ wallets: "++id,name,addr,data" });
 
     if ((await db.wallets.toArray()).map((v) => v.name).includes(name)) {
       alert("Wallet with the same name already exists");
@@ -199,8 +247,9 @@ const actions = {
         "rs2",
         cryptoRandomString({ length: 30, type: "alphanumeric" })
       );
-    db.version(1).stores({ wallets: "++id,name,data" });
+    db.version(2).stores({ wallets: "++id,name,addr,data" });
     //db.wallets.clear();
+    //db.wallets.drop();
     try {
       const w = await db.wallets.toArray();
       return w.map((v) => v.name);

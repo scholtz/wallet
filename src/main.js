@@ -1,5 +1,7 @@
 import { createApp } from "vue"; //h, markRaw
 import App from "./App.vue";
+import PrimeVue from "primevue/config";
+
 //import page from "page";
 //import routes from "./routes";
 import store from "./store";
@@ -9,9 +11,21 @@ const DefaultComponent = markRaw({
   render: () => h("div", "Loading…"),
 });
 /**/
-import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
 import "./registerServiceWorker";
+
+import DataTable from "primevue/datatable";
+import Column from "primevue/column";
+import InputText from "primevue/inputtext";
+import Dialog from "primevue/dialog";
+import Toast from "primevue/toast";
+import ToastService from "primevue/toastservice";
+import "primevue/resources/themes/saga-blue/theme.css";
+
+import "primevue/resources/primevue.min.css";
+import "primeicons/primeicons.css";
+
 /*
 const SimpleRouterApp = {
   data: () => ({
@@ -33,7 +47,36 @@ const SimpleRouterApp = {
     page();
   },
 };/**/
-createApp(App)
-  .use(store)
-  .use(router)
-  .mount("#app");
+
+const myApp = createApp(App);
+myApp.use(store);
+myApp.use(router);
+myApp.use(PrimeVue);
+myApp.use(ToastService);
+myApp.component("DataTable", DataTable);
+myApp.component("Column", Column);
+myApp.component("InputText", InputText);
+myApp.component("Dialog", Dialog);
+myApp.component("Toast", Toast);
+
+myApp.config.globalProperties.$filters = {
+  formatCurrency(
+    value,
+    language = "sk-SK",
+    currency = "ALG",
+    minimumFractionDigits = 6
+  ) {
+    const formatter = new Intl.NumberFormat(language, {
+      style: "currency",
+      currency,
+      minimumFractionDigits,
+    });
+    if (Number.isInteger(parseInt(value))) {
+      return formatter.format(value / 1000000);
+    } else {
+      return value;
+    }
+  },
+};
+
+myApp.mount("#app");

@@ -25,10 +25,13 @@
         <p>Write down 25 word mnomenic phrase</p>
         <textarea class="form-control my-1" v-model="w" />
 
+        <p>Internal account name</p>
+        <input v-model="name" class="form-control" />
+
         <button class="btn btn-primary m-1" @click="importAccountClick">
           Create account
         </button>
-        <button class="btn btn-light m-1" @click="page = 'new'">Go back</button>
+        <button class="btn btn-light m-1" @click="reset">Go back</button>
       </div>
       <div v-if="page == 'multisigaccount'">
         <p>
@@ -79,10 +82,14 @@
           v-model="multisignum"
           id="customRange2"
         />
-        <button class="btn btn-primary m-1" @click="importAccountClick">
+
+        <p>Internal account name</p>
+        <input v-model="name" class="form-control" />
+
+        <button class="btn btn-primary m-1" @click="createMultisignClick">
           Create account
         </button>
-        <button class="btn btn-light m-1" @click="page = 'new'">Go back</button>
+        <button class="btn btn-light m-1" @click="reset">Go back</button>
       </div>
       <div v-if="!this.s && page == 'newaccount'">
         <p>
@@ -96,6 +103,8 @@
       <div v-if="this.s && this.challange">
         <p>What is word at position n. {{ r }}?</p>
         <input class="form-control" v-model="guess" />
+        <p>Internal account name</p>
+        <input v-model="name" class="form-control" />
         <button
           v-if="this.s"
           class="btn btn-primary m-1"
@@ -135,15 +144,7 @@
         <button v-if="this.s" class="btn btn-light m-1" @click="this.s = false">
           Hide mnomenic
         </button>
-        <button
-          v-if="this.s"
-          class="btn btn-light m-1"
-          @click="
-            this.s = false;
-            this.w = '';
-            this.page = 'new';
-          "
-        >
+        <button v-if="this.s" class="btn btn-light m-1" @click="reset">
           Drop phrase
         </button>
       </div>
@@ -167,16 +168,28 @@ export default {
       multisignum: 2,
       multisigaccts: [],
       friendaccounts: "",
+      name: "",
     };
   },
   components: {
     MainLayout,
   },
-  mounted() {},
+  mounted() {
+    this.reset();
+  },
   methods: {
     ...mapActions({
       addPrivateAccount: "wallet/addPrivateAccount",
+      addMultiAccount: "wallet/addMultiAccount",
+      prolong: "wallet/prolong",
     }),
+    reset() {
+      this.name = "";
+      this.page = "new";
+      this.s = false;
+      this.w = "";
+      this.prolong();
+    },
     createAccount() {
       console.log("this", this);
       this.page = "newaccount";
@@ -194,7 +207,7 @@ export default {
       const that = this;
       const words = this.w.split(" ");
       if (words[this.r - 1] == this.guess.trim()) {
-        this.addPrivateAccount({ mn: this.w }).then((r) => {
+        this.addPrivateAccount({ mn: this.w, name: this.name }).then((r) => {
           if (r) {
             that.$router.push({ name: "Accounts" });
           }
@@ -203,9 +216,26 @@ export default {
         console.log("error");
       }
     },
+    createMultisignClick() {
+      const accounts = this.friendaccounts.split("\n");
+      let accts = Array.from(this.multisigaccts);
+
+      for (let index in accounts) {
+        if (accounts[index].length == 58) {
+          accts.push(accounts[index]);
+        }
+      }
+      const mparams = {
+        version: 1,
+        threshold: this.multisignum,
+        addrs: accts,
+      };
+      console.log("mparams", mparams, this.multisigaccts, accts);
+      this.addMultiAccount({ params: mparams, name: this.name });
+    },
     importAccountClick() {
       const that = this;
-      this.addPrivateAccount({ mn: this.w }).then((r) => {
+      this.addPrivateAccount({ mn: this.w, name: this.name }).then((r) => {
         if (r) {
           that.$router.push({ name: "Accounts" });
         }

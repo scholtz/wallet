@@ -98,9 +98,15 @@ export default {
       this.openWallet({ name: this.wallet, pass: this.pass });
       e.preventDefault();
     },
-    createWalletClick(e) {
-      this.createWallet({ name: this.newname, pass: this.pass });
+    async createWalletClick(e) {
       e.preventDefault();
+      const created = await this.createWallet({
+        name: this.newname,
+        pass: this.pass,
+      });
+      if (created) {
+        this.$router.push("/accounts");
+      }
     },
   },
 };

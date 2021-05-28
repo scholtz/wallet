@@ -18,6 +18,7 @@ export default {
     };
   },
   mounted() {
+    this.setTime();
     setInterval(
       function () {
         this.setTime();

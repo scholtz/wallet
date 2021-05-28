@@ -20,6 +20,8 @@
     "dexie": "^3.0.3",
     "moment": "^2.29.1",
     "page": "^1.11.6",
+    "primeicons": "^4.1.0",
+    "primevue": "^3.5.0",
     "register-service-worker": "^1.7.1",
     "vue": "^3.0.0",
     "vue-router": "^4.0.8",
