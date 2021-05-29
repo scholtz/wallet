@@ -29,7 +29,30 @@
       <input type="password" class="form-control my-2" v-model="passw3" />
       <input type="submit" class="btn btn-light my-2" value="Update password" />
     </form>
-  </main-layout>
+    <h2>Backup wallet</h2>
+    <p>You can backup wallet and import to other computer.</p>
+    <p>
+      <a v-if="!b64wallet" @click="makeBackupDataClick" class="btn btn-light">
+        Create backup
+      </a>
+      <a
+        v-if="b64wallet"
+        :href="'data:image/png;base64,' + b64wallet"
+        :download="downloadableWalletName"
+        target="_blank"
+        class="btn btn-primary"
+      >
+        Download
+      </a>
+      <a
+        v-if="b64wallet"
+        @click="destroyWalletClick"
+        class="btn btn-danger mx-2"
+      >
+        Delete the wallet
+      </a>
+    </p></main-layout
+  >
 </template>
 
 <script>
@@ -44,6 +67,7 @@ export default {
       passw1: "",
       passw2: "",
       passw3: "",
+      b64wallet: "",
     };
   },
   watch: {
@@ -71,6 +95,14 @@ export default {
     },
   },
   computed: {
+    downloadableWalletName() {
+      return (
+        this.$store.state.wallet.name.replace(" ", "") +
+        ".algow." +
+        new Date().toISOString().slice(0, 10) +
+        ".dat"
+      );
+    },
     strengthClass() {
       if (!this.passw2) return "";
       const ret = passwordStrength(this.passw2);
@@ -93,6 +125,8 @@ export default {
     ...mapActions({
       setHosts: "config/setHosts",
       changePassword: "wallet/changePassword",
+      backupWallet: "wallet/backupWallet",
+      destroyWallet: "wallet/destroyWallet",
     }),
     changePasswordClick(e) {
       e.preventDefault();
@@ -104,6 +138,12 @@ export default {
       if (result) {
         alert("Password has been updated");
       }
+    },
+    async makeBackupDataClick() {
+      this.b64wallet = await this.backupWallet();
+    },
+    async destroyWalletClick() {
+      await this.destroyWallet();
     },
   },
 };

@@ -23,6 +23,7 @@
             class="form-control my-2"
           />
           <input type="submit" class="btn btn-primary" value="Create wallet" />
+          <a href="/import-wallet" class="btn btn-light mx-2">Import wallet</a>
           <button
             class="btn btn-light mx-2"
             @click="this.newWalletForm = false"

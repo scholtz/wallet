@@ -253,6 +253,8 @@ const actions = {
     const encryptedData = walletRecord.data;
     try {
       const decryptedData = CryptoJS.AES.decrypt(encryptedData, pass);
+      console.log("decryptedData", decryptedData);
+      console.log("decryptedData", decryptedData.toString(CryptoJS.enc.Utf8));
       const json = JSON.parse(decryptedData.toString(CryptoJS.enc.Utf8));
       console.log("json", json);
       await commit("setPrivateAccounts", json.privateAccounts);
@@ -264,6 +266,7 @@ const actions = {
       return true;
     } catch (e) {
       alert("Wrong password");
+      console.log("wrong password", e);
     }
   },
   async createWallet({ dispatch, commit }, { name, pass }) {
@@ -317,6 +320,64 @@ const actions = {
       console.log("no wallet exists yet");
       return [];
     }
+  },
+  async backupWallet() {
+    try {
+      const name = this.state.wallet.name;
+      if (!name) {
+        alert("Wallet name not found");
+        return;
+      }
+      const db = new Dexie("AWallet");
+      db.version(2).stores({ wallets: "++id,name,addr,data" });
+      const walletRecord = await db.wallets.get({ name });
+      //console.log("walletRecord.data", walletRecord.data);
+      return btoa(walletRecord.data);
+    } catch (e) {
+      alert("Error occured: " + e);
+      console.log("error", e);
+    }
+  },
+  async destroyWallet({ commit }) {
+    const name = this.state.wallet.name;
+    if (!name) {
+      alert("Wallet name not found");
+      return;
+    }
+    if (
+      confirm(
+        "Are you sure you want to destroy the wallet with name " +
+          name +
+          " and all private keys within it?"
+      )
+    ) {
+      const db = new Dexie("AWallet");
+      db.version(2).stores({ wallets: "++id,name,addr,data" });
+      const walletRecord = await db.wallets.get({ name });
+      await db.wallets.delete(walletRecord.id);
+      commit("logout");
+    }
+  },
+  async importWallet({ commit }, { name, data }) {
+    if (!name) {
+      alert("Wallet name not found");
+      return;
+    }
+    if (!data) {
+      alert("Wallet data not found");
+      return;
+    }
+    const db = new Dexie("AWallet");
+    db.version(2).stores({ wallets: "++id,name,addr,data" });
+    const walletRecord = await db.wallets.get({ name });
+    if (walletRecord) {
+      alert("Wallet with the same name already exists");
+      return;
+    }
+    await db.wallets.add({ name, data });
+    localStorage.setItem("lastUsedWallet", name);
+    console.log("ok", commit);
+    return true;
   },
 };
 export default {
