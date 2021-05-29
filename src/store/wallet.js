@@ -15,9 +15,13 @@ const state = () => ({
   lastPayTo: "",
   lastActiveAccount: "",
   lastActiveAccountName: "",
+  transaction: {},
 });
 
 const mutations = {
+  setTransaction(state, transaction) {
+    state.transaction = transaction;
+  },
   lastPayTo(state, addr) {
     state.lastPayTo = addr;
   },
@@ -34,12 +38,10 @@ const mutations = {
   },
   setPrivateAccount(state, { info }) {
     const acc = state.privateAccounts.find((x) => x.addr == info.address);
-    console.log("setPrivateAccount", acc);
     if (acc) {
       for (let index in info) {
         acc[index] = info[index];
       }
-      console.log("updated acc ", acc.addr, state.privateAccounts);
     }
   },
   addMultiAccount(state, { addr, params, name }) {
@@ -101,6 +103,9 @@ const mutations = {
   },
 };
 const actions = {
+  async setTransaction({ commit }, { transaction }) {
+    commit("setTransaction", transaction);
+  },
   async lastPayTo({ commit, dispatch }, { addr }) {
     commit("lastPayTo", addr);
     await dispatch("saveWallet");
@@ -109,28 +114,15 @@ const actions = {
     commit("lastActiveAccount", addr);
     await dispatch("saveWallet");
   },
-  async getSK({ store }, { addr }) {
-    console.log("store", store, this.state);
+  async getSK({ x }, { addr }) {
     const address = this.state.wallet.privateAccounts.find(
       (a) => a.addr == addr
     );
-    console.log(
-      "store",
-      store,
-      this.state,
-      this.state.wallet.privateAccounts,
-      address
-    );
     if (address) {
       const ret = Uint8Array.from(Object.values(address.sk));
-      console.log(
-        "ret, address.sk",
-        ret,
-        address.sk,
-        Object.values(address.sk)
-      );
       return ret;
     }
+    console.log(x);
   },
   async logout({ commit }) {
     await commit("logout");
@@ -171,7 +163,6 @@ const actions = {
     }
   },
   async updateAccount({ dispatch, commit }, { info }) {
-    console.log("updateAccount", info);
     if (!info) {
       return false;
     }
@@ -227,22 +218,20 @@ const actions = {
     ) {
       return false; // check not to empty the wallet
     }
-    console.log(
-      "saving this.state.wallet.privateAccounts",
-      this.state.wallet.privateAccounts
-    );
     const db = new Dexie("AWallet");
     db.version(2).stores({ wallets: "++id,name,addr,data" });
     const walletRecord = await db.wallets.get({ name: this.state.wallet.name });
-
-    if (!walletRecord.id) {
+    if (!walletRecord) return;
+    if (!walletRecord || !walletRecord.id) {
       alert("Error in wallet record update");
     }
 
     const data = JSON.stringify(this.state.wallet);
     const dataencoded = CryptoJS.AES.encrypt(data, pass);
-    walletRecord.data = dataencoded.toString();
-    await db.wallets.update(walletRecord.id, walletRecord);
+    if (walletRecord && dataencoded) {
+      walletRecord.data = dataencoded.toString();
+      await db.wallets.update(walletRecord.id, walletRecord);
+    }
     //console.log("saved", this.state.wallet);
   },
   async openWallet({ commit }, { name, pass }) {
@@ -253,10 +242,7 @@ const actions = {
     const encryptedData = walletRecord.data;
     try {
       const decryptedData = CryptoJS.AES.decrypt(encryptedData, pass);
-      console.log("decryptedData", decryptedData);
-      console.log("decryptedData", decryptedData.toString(CryptoJS.enc.Utf8));
       const json = JSON.parse(decryptedData.toString(CryptoJS.enc.Utf8));
-      console.log("json", json);
       await commit("setPrivateAccounts", json.privateAccounts);
       await commit("setPublicAccount", json.publicAccounts);
       await commit("setMultisigAccount", json.multisigAccounts);
@@ -281,20 +267,17 @@ const actions = {
       alert("Wallet with the same name already exists");
       return false;
     }
-    console.log("a");
     const data = JSON.stringify(this.state.wallet);
     const dataencoded = CryptoJS.AES.encrypt(data, pass);
 
     db.wallets
       .add({ name, data: dataencoded.toString() })
       .then(function() {
-        console.log("ok");
         return true;
       })
       .catch(function(e) {
         alert("Error: " + (e.stack || e));
       });
-    console.log("saving");
     await dispatch("saveWallet");
     await commit("setIsOpen", { name, pass });
   },

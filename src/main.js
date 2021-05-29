@@ -15,6 +15,7 @@ import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./registerServiceWorker";
 
+import moment from "moment";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import InputText from "primevue/inputtext";
@@ -76,6 +77,31 @@ myApp.config.globalProperties.$filters = {
     } else {
       return value;
     }
+  },
+  formatDateTime(
+    value,
+    separator,
+    showSeconds = true,
+    locale = "cs",
+    alwaysShowDate = false
+  ) {
+    if (moment.locale() !== locale) moment.locale(locale);
+    if (!value) return "";
+    const valueMoment = moment.unix(value);
+    if (!valueMoment.isValid()) return value;
+    const separatorString = separator ? ` ${separator} ` : " ";
+    if (
+      valueMoment > moment().startOf("day") &&
+      valueMoment < moment().endOf("day") &&
+      !alwaysShowDate
+    ) {
+      return valueMoment.format(showSeconds ? "LTS" : "LT");
+    }
+    return (
+      valueMoment.format("L") +
+      separatorString +
+      valueMoment.format(showSeconds ? "LTS" : "LT")
+    );
   },
 };
 

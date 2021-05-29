@@ -111,7 +111,6 @@ export default {
     this.wallet = localStorage.getItem("lastUsedWallet");
 
     this.newWalletForm = this.wallets.length == 0;
-    console.log("wallets", this.wallets, this.wallets.length);
   },
   methods: {
     ...mapActions({

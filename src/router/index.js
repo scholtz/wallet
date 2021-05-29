@@ -4,6 +4,7 @@ import About from "@/pages/About.vue";
 import ImportWallet from "@/pages/ImportWallet.vue";
 import Accounts from "@/pages/Accounts.vue";
 import AccountOverview from "@/pages/AccountOverview.vue";
+import TransactionDetail from "@/pages/TransactionDetail.vue";
 import NewAccount from "@/pages/NewAccount.vue";
 import NotFound from "@/pages/404.vue";
 import FAQ from "@/pages/FAQ.vue";
@@ -35,6 +36,11 @@ const routes = [
     path: "/account/:account",
     name: "AccountOverview",
     component: AccountOverview,
+  },
+  {
+    path: "/transaction/:id",
+    name: "TransactionDetail",
+    component: TransactionDetail,
   },
   {
     path: "/accounts/pay/:account",

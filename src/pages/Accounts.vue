@@ -8,10 +8,11 @@
       responsiveLayout="scroll"
       selectionMode="single"
       v-model:selection="selection"
+      :paginator="true"
+      :rows="20"
     >
       <template #empty> No records found </template>
       <Column field="name" header="Account name" :sortable="true"></Column>
-      <Column field="addr" header="Address" :sortable="true"></Column>
       <Column field="amount" header="Amount" :sortable="true">
         <template #body="slotProps">
           <div class="text-end">
@@ -23,11 +24,7 @@
           </div>
         </template>
       </Column>
-      <Column
-        field="reward-base"
-        header="reward-base"
-        :sortable="true"
-      ></Column>
+      <Column field="addr" header="Address" :sortable="true"></Column>
 
       <Column>
         <template #body="slotProps">
@@ -57,9 +54,10 @@ export default {
     };
   },
   watch: {
-    selection() {
+    async selection() {
       if (this.selection && this.selection.addr) {
-        this.lastActiveAccount({ addr: this.selection.addr });
+        await this.lastActiveAccount({ addr: this.selection.addr });
+        this.$router.push("/account/" + this.selection.addr);
       }
     },
   },

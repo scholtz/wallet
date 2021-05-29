@@ -4,7 +4,11 @@
       Account overview - {{ this.$store.state.wallet.lastActiveAccountName }}
     </h1>
     <p>
-      {{ $route.params.account }}
+      <router-link
+        :to="'/accounts/pay/' + $route.params.account"
+        class="btn btn-light btn-xs"
+        >Make new payment</router-link
+      >
     </p>
     <table class="table" v-if="account">
       <tr>
@@ -80,11 +84,46 @@
       responsiveLayout="scroll"
       selectionMode="single"
       v-model:selection="selection"
+      :paginator="true"
+      :rows="20"
     >
-      <template #empty> No records found </template>
-      <Column field="name" header="Account name"></Column>
-      <Column field="addr" header="Address"></Column>
-      <Column field="amount" header="Amount">
+      <template #empty> No transactions found </template>
+      <Column field="tx-type" header="Type" :sortable="true"></Column>
+      <Column field="round-time" header="Time" :sortable="true">
+        <template #body="slotProps">
+          {{
+            $filters.formatDateTime(
+              slotProps.data[slotProps.column.props.field]
+            )
+          }}
+        </template>
+      </Column>
+      <Column
+        field="payment-transaction.amount"
+        header="Amount"
+        :sortable="true"
+      >
+        <template #body="slotProps">
+          <div class="text-end">
+            {{
+              $filters.formatCurrency(
+                slotProps.data["payment-transaction"]["amount"]
+              )
+            }}
+          </div>
+        </template></Column
+      >
+      <Column field="sender" header="Sender" :sortable="true"></Column>
+      <Column
+        field="payment-transaction.receiver"
+        header="Receiver"
+        :sortable="true"
+      ></Column>
+      <Column
+        field="receiver-rewards"
+        header="Receiver rewards"
+        :sortable="true"
+      >
         <template #body="slotProps">
           <div class="text-end">
             {{
@@ -93,18 +132,20 @@
               )
             }}
           </div>
-        </template>
-      </Column>
-      <Column field="reward-base" header="reward-base"></Column>
-
-      <Column>
-        <template #body="slotProps">
-          <router-link
-            :to="'/accounts/pay/' + slotProps.data.addr"
-            class="btn btn-light btn-xs"
-            >Pay</router-link
-          >
-        </template>
+        </template></Column
+      >
+      <Column field="fee" header="fee" :sortable="true"
+        ><template #body="slotProps">
+          <div class="text-end">
+            {{
+              $filters.formatCurrency(
+                slotProps.data[slotProps.column.props.field]
+              )
+            }}
+          </div>
+        </template></Column
+      >
+      <Column field="confirmed-round" header="Confirmed round" :sortable="true">
       </Column>
     </DataTable>
   </MainLayout>
@@ -135,34 +176,26 @@ export default {
     },
   },
   watch: {
-    account() {
-      console.log("this.account", this.account, this.lastActiveAccountAddr);
-      if (
-        this.account &&
-        this.account.addr &&
-        this.account.addr != this.lastActiveAccountAddr
-      ) {
-        this.lastActiveAccount({ addr: this.account.addr });
+    async selection() {
+      await this.setTransaction({ transaction: this.selection });
+      console.log("this.selection", this.selection);
+      if (this.selection.id) {
+        this.$router.push("/transaction/" + this.selection.id);
       }
     },
   },
   mounted() {
-    console.log(
-      "account",
-      this.$route.params.account,
-      this.$store.state.wallet.privateAccounts,
-      this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.$route.params.account
-      )
-    );
+    this.reloadAccount();
   },
   methods: {
     ...mapActions({
       accountInformation: "algod/accountInformation",
       updateAccount: "wallet/updateAccount",
       lastActiveAccount: "wallet/lastActiveAccount",
+      searchForTransactions: "indexer/searchForTransactions",
+      setTransaction: "wallet/setTransaction",
     }),
-    reloadAccount() {
+    async reloadAccount() {
       this.accountInformation({
         addr: this.$route.params.account,
       }).then((info) => {
@@ -171,6 +204,13 @@ export default {
           this.updateAccount({ info });
         }
       });
+      const searchData = await this.searchForTransactions({
+        addr: this.$route.params.account,
+      });
+      if (searchData) {
+        this.transactions = searchData.transactions;
+      }
+      console.log("this.transactions", this.transactions);
     },
   },
 };
