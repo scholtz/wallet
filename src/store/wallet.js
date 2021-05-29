@@ -71,6 +71,11 @@ const mutations = {
     state.pass = "";
     state.time = 0;
     state.isOpen = false;
+    state.privateAccounts = [];
+    state.multisigAccounts = [];
+    state.publicAccounts = [];
+    state.lastActiveAccount = "";
+    state.lastActiveAccountName = "";
   },
   prolong(state) {
     state.time = new Date();
@@ -173,6 +178,33 @@ const actions = {
     await commit("setPrivateAccount", { info });
     await dispatch("saveWallet");
   },
+  async changePassword({ dispatch }, { passw1, passw2, passw3 }) {
+    if (passw2 != passw3) {
+      alert("Passwords does not match");
+      return;
+    }
+    const name = this.state.wallet.name;
+    if (!name) {
+      alert("Wallet name not found");
+      return;
+    }
+
+    const check = await dispatch("openWallet", { name, pass: passw1 });
+    if (!check) {
+      alert("Password is incorrect");
+      return;
+    }
+
+    const db = new Dexie("AWallet");
+    db.version(2).stores({ wallets: "++id,name,addr,data" });
+    const walletRecord = await db.wallets.get({ name: this.state.wallet.name });
+
+    const data = JSON.stringify(this.state.wallet);
+    const dataencoded = CryptoJS.AES.encrypt(data, passw2);
+    walletRecord.data = dataencoded.toString();
+    await db.wallets.update(walletRecord.id, walletRecord);
+    return true;
+  },
   async saveWallet() {
     const encryptedPass = this.state.wallet.pass;
     const decryptedData = await CryptoJS.AES.decrypt(
@@ -189,6 +221,16 @@ const actions = {
       alert("Wallet not found");
     }
 
+    if (
+      !this.state.wallet.privateAccounts ||
+      this.state.wallet.privateAccounts.length == 0
+    ) {
+      return false; // check not to empty the wallet
+    }
+    console.log(
+      "saving this.state.wallet.privateAccounts",
+      this.state.wallet.privateAccounts
+    );
     const db = new Dexie("AWallet");
     db.version(2).stores({ wallets: "++id,name,addr,data" });
     const walletRecord = await db.wallets.get({ name: this.state.wallet.name });
@@ -212,12 +254,14 @@ const actions = {
     try {
       const decryptedData = CryptoJS.AES.decrypt(encryptedData, pass);
       const json = JSON.parse(decryptedData.toString(CryptoJS.enc.Utf8));
+      console.log("json", json);
       await commit("setPrivateAccounts", json.privateAccounts);
       await commit("setPublicAccount", json.publicAccounts);
       await commit("setMultisigAccount", json.multisigAccounts);
       await commit("lastPayTo", json.lastPayTo);
       await commit("lastActiveAccount", json.lastActiveAccount);
       await commit("setIsOpen", { name, pass });
+      return true;
     } catch (e) {
       alert("Wrong password");
     }

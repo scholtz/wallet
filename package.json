@@ -13,6 +13,7 @@
     "algosdk": "^1.9.1",
     "axios": "^0.21.1",
     "bootstrap": "^5.0.1",
+    "check-password-strength": "^2.0.3",
     "core-js": "^3.6.5",
     "crypto-js": "^4.0.0",
     "crypto-random-string": "^4.0.0",

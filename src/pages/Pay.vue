@@ -1,7 +1,9 @@
 <template>
   <main-layout>
     <form @submit="previewPaymentClick" v-if="page == 'design'">
-      <h1>Make payment</h1>
+      <h1>
+        Make payment - from {{ this.$store.state.wallet.lastActiveAccountName }}
+      </h1>
       <p>Selected account: {{ $route.params.account }}</p>
       <div class="row">
         <div class="col-12">
@@ -119,6 +121,14 @@
         value="Go back"
         @click="this.page = 'design'"
       />
+      <p v-if="!tx && processing" class="alert alert-primary my-2">
+        <span
+          class="spinner-grow spinner-grow-sm"
+          role="status"
+          aria-hidden="true"
+        ></span>
+        Sending payment to to the network
+      </p>
       <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
         <span
           class="spinner-grow spinner-grow-sm"
@@ -174,12 +184,14 @@ export default {
   },
   mounted() {
     this.payto = this.$store.state.wallet.lastPayTo;
+    this.lastActiveAccount({ addr: this.$route.params.account });
   },
   methods: {
     ...mapActions({
       prolong: "wallet/prolong",
       makePayment: "algod/makePayment",
       waitForConfirmation: "algod/waitForConfirmation",
+      lastActiveAccount: "wallet/lastActiveAccount",
     }),
     previewPaymentClick(e) {
       this.page = "review";
@@ -205,6 +217,12 @@ export default {
           txId: this.tx,
           timeout: 4,
         });
+        if (!confirmation) {
+          this.processing = false;
+          this.error =
+            "Payment has probably not reached the network. Are you offline? Please check you account";
+          return;
+        }
         if (confirmation["confirmed-round"]) {
           this.processing = false;
           this.confirmedRound = confirmation["confirmed-round"];

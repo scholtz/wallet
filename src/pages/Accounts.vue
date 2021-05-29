@@ -10,9 +10,9 @@
       v-model:selection="selection"
     >
       <template #empty> No records found </template>
-      <Column field="name" header="Account name"></Column>
-      <Column field="addr" header="Address"></Column>
-      <Column field="amount" header="Amount">
+      <Column field="name" header="Account name" :sortable="true"></Column>
+      <Column field="addr" header="Address" :sortable="true"></Column>
+      <Column field="amount" header="Amount" :sortable="true">
         <template #body="slotProps">
           <div class="text-end">
             {{
@@ -23,7 +23,11 @@
           </div>
         </template>
       </Column>
-      <Column field="reward-base" header="reward-base"></Column>
+      <Column
+        field="reward-base"
+        header="reward-base"
+        :sortable="true"
+      ></Column>
 
       <Column>
         <template #body="slotProps">
@@ -69,10 +73,6 @@ export default {
     MainLayout,
   },
   mounted() {
-    console.log("accountInformation", this.$store.state.wallet);
-    this.accountInformation({
-      addr: "K7PPBDZEC6IJMWN2BAIIBNUPLK5BM6G6MVQR3UQUZ5G72VI2F5SAA6NCTE",
-    });
     this.updateBalance();
   },
   methods: {

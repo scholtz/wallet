@@ -10,7 +10,12 @@
             id="newwallet-name"
             class="form-control my-2"
           />
-          <label for="newwallet-pass">Wallet password</label>
+          <label for="newwallet-pass"
+            >Wallet password
+            <span v-if="strength" :class="strengthClass">{{
+              strength
+            }}</span></label
+          >
           <input
             v-model="pass"
             id="newwallet-pass"
@@ -29,6 +34,11 @@
             Your wallet will be stored in your browser. Wallet password is
             required to open wallet and see the accounts within the wallet and
             for signing transactions.
+          </p>
+          <p class="my-2">
+            We recommend setting password of length more then 12 characters,
+            using lower case letter, uppercase letter, number and special
+            character.
           </p>
         </form>
       </div>
@@ -68,6 +78,8 @@
 </template>
 <script>
 import { mapActions } from "vuex";
+import { passwordStrength } from "check-password-strength";
+
 export default {
   data() {
     return {
@@ -77,6 +89,21 @@ export default {
       wallet: "",
       wallets: [],
     };
+  },
+  computed: {
+    strengthClass() {
+      if (!this.pass) return "";
+      const ret = passwordStrength(this.pass);
+      if (ret.id <= 0) return "badge bg-danger";
+      if (ret.id <= 1) return "badge bg-warning text-dark";
+      return "badge bg-success";
+    },
+    strength() {
+      if (!this.pass) return "";
+      const ret = passwordStrength(this.pass);
+      console.log("ret", ret);
+      return "Strength: " + ret.value;
+    },
   },
   async mounted() {
     this.wallets = await this.getWallets();
@@ -91,12 +118,21 @@ export default {
       createWallet: "wallet/createWallet",
       openWallet: "wallet/openWallet",
     }),
-    auth(e) {
-      console.log("auth");
-      console.log("this.wallet", this.wallet);
-      localStorage.setItem("lastUsedWallet", this.wallet);
-      this.openWallet({ name: this.wallet, pass: this.pass });
+    async auth(e) {
       e.preventDefault();
+      localStorage.setItem("lastUsedWallet", this.wallet);
+      await this.openWallet({ name: this.wallet, pass: this.pass });
+      if (
+        this.$store.state.wallet.lastActiveAccount &&
+        this.$store.state.wallet.lastActiveAccountName
+      ) {
+        const redirectTo =
+          "/account/" + this.$store.state.wallet.lastActiveAccount;
+        this.$router.push(redirectTo);
+        console.log("to", redirectTo);
+      } else {
+        this.$router.push("/accounts");
+      }
     },
     async createWalletClick(e) {
       e.preventDefault();
@@ -105,7 +141,16 @@ export default {
         pass: this.pass,
       });
       if (created) {
-        this.$router.push("/accounts");
+        if (
+          this.$store.state.wallet.lastActiveAccount &&
+          this.$store.state.wallet.lastActiveAccountName
+        ) {
+          this.$router.push(
+            "/account/" + this.$store.state.wallet.lastActiveAccount
+          );
+        } else {
+          this.$router.push("/accounts");
+        }
       }
     },
   },
