@@ -8,9 +8,52 @@
         <button class="btn btn-primary my-2" @click="subpage = 'proposal'">
           Create proposal
         </button>
-        <button class="btn btn-primary m-2">Sign proposal</button>
+        <button class="btn btn-primary m-2" @click="subpage = 'sign'">
+          Sign &amp; sned proposal
+        </button>
       </div>
+      <div class="row" v-if="subpage == 'sign'">
+        <div class="col-12">
+          <p>Please enter signature from your friend here:</p>
+          <textarea
+            class="form-control my-2"
+            v-model="rawSignedTxnInput"
+            rows="8"
+          ></textarea>
 
+          <label>Sign with</label>
+          <select class="form-control" v-model="signMultisigWith" multiple>
+            <option
+              v-for="option in accountsFromMultisig"
+              :key="option.addr"
+              :value="option.addr"
+            >
+              {{ option.name + "  - " + option.addr }}
+            </option>
+          </select>
+          <button
+            class="btn btn-primary my-2"
+            @click="signMultisig"
+            :disabled="signMultisigWith.length == 0"
+          >
+            Sign
+          </button>
+          <p v-if="rawSignedTxn">Send this data to other signators:</p>
+          <textarea
+            class="form-control my-2"
+            v-if="rawSignedTxn"
+            v-model="rawSignedTxn"
+            rows="8"
+          ></textarea>
+          <button
+            class="btn btn-primary my-2"
+            @click="signMultisig"
+            :disabled="signMultisigWith.length == 0"
+          >
+            Sign
+          </button>
+        </div>
+      </div>
       <div class="row" v-if="showDesignScreen">
         <div class="col-12">
           <ul class="nav nav-tabs">
@@ -85,6 +128,13 @@
             value="Preview payment"
           />
           <input
+            v-if="isMultisig"
+            class="btn btn-light m-2"
+            value="Cancel"
+            @click="subpage = ''"
+          />
+          <input
+            v-if="!isMultisig"
             class="btn btn-light m-2"
             value="Cancel"
             @click="$router.push('/accounts')"
@@ -187,11 +237,12 @@
         >
           Sign
         </button>
+        <p v-if="rawSignedTxn">Send this data to other signators:</p>
         <textarea
           class="form-control my-2"
           v-if="rawSignedTxn"
           v-model="rawSignedTxn"
-          rows="5"
+          rows="8"
         ></textarea>
       </div>
       <p v-if="error" class="alert alert-danger my-2">Error: {{ error }}</p>
@@ -277,6 +328,7 @@ export default {
       this.page = "review";
       this.signMultisigWith = [];
       this.rawSignedTxn = "";
+      this.rawSignedTxnInput = "";
     },
     previewPaymentClick(e) {
       this.page = "review";
@@ -345,13 +397,17 @@ export default {
           console.log("rawSignedTxn", rawSignedTxn);
         }
       }
+      this.rawSignedTxn = rawSignedTxn;
+      this.rawSignedTxnInput = rawSignedTxn;
+      /*
       var reader = new FileReader();
       reader.readAsDataURL(new Blob(rawSignedTxn));
+      const that = this;
       reader.onloadend = function () {
         var base64 = reader.result.split(",")[1];
-        this.rawSignedTxn = base64;
-        console.log("rawSignedTxn", rawSignedTxn);
-      };
+        that.rawSignedTxn = base64;
+        console.log("rawSignedTxn", that.rawSignedTxn);
+      };/**/
     },
     async payPaymentClick(e) {
       e.preventDefault();
