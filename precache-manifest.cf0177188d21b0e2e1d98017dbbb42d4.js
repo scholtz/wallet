@@ -24,12 +24,12 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/img/primeicons.25954ab5.svg"
   },
   {
-    "revision": "a745b72b20fa25200c5dc9177374c833",
+    "revision": "ee8198e5c8f2caaa4623785ead40f9bf",
     "url": "/index.html"
   },
   {
-    "revision": "a159823e8a4e5879db5a",
-    "url": "/js/app.10831e9b.js"
+    "revision": "4014fa84cbed44a923d3",
+    "url": "/js/app.1947f7b0.js"
   },
   {
     "revision": "05f351e3d5cb23a520ea",
