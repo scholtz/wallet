@@ -9,8 +9,6 @@ const state = () => ({
   time: 2000000000000,
   pass: "U2FsdGVkX1/P98d6R7QllvTWEyp77oEiZ1kkr6NOcNQ=",
   privateAccounts: [],
-  multisigAccounts: [],
-  publicAccounts: [],
   algodHost: [],
   lastPayTo: "",
   lastActiveAccount: "",
@@ -36,6 +34,10 @@ const mutations = {
     secret.name = name;
     state.privateAccounts.push(secret);
   },
+  addPublicAccount(state, { name, addr }) {
+    const acc = { name, addr };
+    state.privateAccounts.push(acc);
+  },
   setPrivateAccount(state, { info }) {
     const acc = state.privateAccounts.find((x) => x.addr == info.address);
     if (acc) {
@@ -46,7 +48,7 @@ const mutations = {
   },
   addMultiAccount(state, { addr, params, name }) {
     const multsigaddr = { addr, name, params };
-    state.multisigAccounts.push(multsigaddr);
+    state.privateAccounts.push(multsigaddr);
   },
   setPrivateAccounts(state, accts) {
     if (accts) {
@@ -55,27 +57,11 @@ const mutations = {
       state.privateAccounts = [];
     }
   },
-  setPublicAccount(state, accts) {
-    if (accts) {
-      state.publicAccounts = accts;
-    } else {
-      state.publicAccounts = [];
-    }
-  },
-  setMultisigAccount(state, accts) {
-    if (accts) {
-      state.multisigAccounts = accts;
-    } else {
-      state.multisigAccounts = [];
-    }
-  },
   logout(state) {
     state.pass = "";
     state.time = 0;
     state.isOpen = false;
     state.privateAccounts = [];
-    state.multisigAccounts = [];
-    state.publicAccounts = [];
     state.lastActiveAccount = "";
     state.lastActiveAccountName = "";
   },
@@ -139,6 +125,20 @@ const actions = {
       const secret = algosdk.mnemonicToSecretKey(mn);
 
       await commit("addPrivateAccount", { name, secret });
+      await dispatch("saveWallet");
+      return true;
+    } catch (e) {
+      console.log("error", e);
+      alert("Account has not been created");
+    }
+  },
+  async addPublicAccount({ dispatch, commit }, { name, addr }) {
+    if (!name) {
+      alert("Plase set account name");
+      return false;
+    }
+    try {
+      await commit("addPublicAccount", { name, addr });
       await dispatch("saveWallet");
       return true;
     } catch (e) {
@@ -244,8 +244,6 @@ const actions = {
       const decryptedData = CryptoJS.AES.decrypt(encryptedData, pass);
       const json = JSON.parse(decryptedData.toString(CryptoJS.enc.Utf8));
       await commit("setPrivateAccounts", json.privateAccounts);
-      await commit("setPublicAccount", json.publicAccounts);
-      await commit("setMultisigAccount", json.multisigAccounts);
       await commit("lastPayTo", json.lastPayTo);
       await commit("lastActiveAccount", json.lastActiveAccount);
       await commit("setIsOpen", { name, pass });

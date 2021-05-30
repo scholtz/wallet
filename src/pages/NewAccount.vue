@@ -20,6 +20,13 @@
         >
           Create multisign account
         </button>
+        <button
+          v-if="!w"
+          class="btn btn-primary m-1"
+          @click="page = 'watchaccount'"
+        >
+          Watch account
+        </button>
       </div>
       <div v-if="page == 'importaccount'">
         <p>Write down 25 word mnomenic phrase</p>
@@ -30,6 +37,17 @@
 
         <button class="btn btn-primary m-1" @click="importAccountClick">
           Create account
+        </button>
+        <button class="btn btn-light m-1" @click="reset">Go back</button>
+      </div>
+      <div v-if="page == 'watchaccount'">
+        <p>Internal account name</p>
+        <input v-model="name" class="form-control my-2" />
+        <p>Address</p>
+        <input v-model="addr" class="form-control my-2" />
+
+        <button class="btn btn-primary my-1" @click="watchAccountClick">
+          Watch account
         </button>
         <button class="btn btn-light m-1" @click="reset">Go back</button>
       </div>
@@ -49,8 +67,9 @@
           <option
             v-for="option in $store.state.wallet.privateAccounts"
             :key="option.addr"
+            :value="option.addr"
           >
-            {{ option.addr }}
+            {{ option.name }} - {{ option.addr }}
           </option>
         </select>
         <p class="my-2">Add your friends accounts - one account per line:</p>
@@ -169,6 +188,7 @@ export default {
       multisigaccts: [],
       friendaccounts: "",
       name: "",
+      addr: "",
     };
   },
   components: {
@@ -181,6 +201,7 @@ export default {
     ...mapActions({
       addPrivateAccount: "wallet/addPrivateAccount",
       addMultiAccount: "wallet/addMultiAccount",
+      addPublicAccount: "wallet/addPublicAccount",
       prolong: "wallet/prolong",
     }),
     reset() {
@@ -188,6 +209,7 @@ export default {
       this.page = "new";
       this.s = false;
       this.w = "";
+      this.addr = "";
       this.prolong();
     },
     createAccount() {
@@ -241,6 +263,15 @@ export default {
         }
       });
     },
+    watchAccountClick() {
+      const that = this;
+      this.addPublicAccount({ name: this.name, addr: this.addr }).then((r) => {
+        if (r) {
+          that.$router.push({ name: "Accounts" });
+        }
+      });
+    },
+
     countAccounts() {
       const accounts = this.friendaccounts.split("\n");
       let ret = this.multisigaccts.length;

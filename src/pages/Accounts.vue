@@ -1,7 +1,6 @@
 <template>
   <main-layout>
     <h1>Accounts overview</h1>
-    <h2>Basic accounts</h2>
 
     <DataTable
       :value="accounts"
@@ -26,9 +25,24 @@
       </Column>
       <Column field="addr" header="Address" :sortable="true"></Column>
 
+      <Column header="Type" :sortable="true">
+        <template #body="slotProps">
+          <div class="badge bg-primary" v-if="slotProps.data.sk">
+            Basic account
+          </div>
+          <div
+            class="badge bg-warning text-dark"
+            v-else-if="slotProps.data.params"
+          >
+            Multisignature account
+          </div>
+          <div class="badge bg-info text-dark" v-else>Public account</div>
+        </template>
+      </Column>
       <Column>
         <template #body="slotProps">
           <router-link
+            v-if="slotProps.data.sk || slotProps.data.params"
             :to="'/accounts/pay/' + slotProps.data.addr"
             class="btn btn-light btn-xs"
             >Pay</router-link

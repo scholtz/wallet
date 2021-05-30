@@ -18,6 +18,19 @@ const actions = {
       console.log("error", error, dispatch);
     }
   },
+  async getTransactionParams() {
+    try {
+      const url = new URL(this.state.config.algod);
+      let algodclient = new algosdk.Algodv2(
+        this.state.config.algodToken,
+        this.state.config.algod,
+        url.port
+      );
+      return await algodclient.getTransactionParams().do();
+    } catch (error) {
+      console.log("error", error);
+    }
+  },
   async makePayment({ dispatch }, { payTo, payFrom, amount, note, fee }) {
     try {
       const url = new URL(this.state.config.algod);

@@ -3,7 +3,7 @@
     <h1>
       Account overview - {{ this.$store.state.wallet.lastActiveAccountName }}
     </h1>
-    <p>
+    <p v-if="account.sk || account.params">
       <router-link
         :to="'/accounts/pay/' + $route.params.account"
         class="btn btn-light btn-xs"
@@ -14,6 +14,16 @@
       <tr>
         <th>Name:</th>
         <td>{{ account["name"] }}</td>
+      </tr>
+      <tr>
+        <th>Type:</th>
+        <td>
+          <div class="badge bg-primary" v-if="account.sk">Basic account</div>
+          <div class="badge bg-warning text-dark" v-else-if="account.params">
+            Multisignature account
+          </div>
+          <div class="badge bg-info text-dark" v-else>Public account</div>
+        </td>
       </tr>
       <tr>
         <th>Address:</th>
@@ -66,6 +76,14 @@
       <tr>
         <th>status:</th>
         <td>{{ account["status"] }}</td>
+      </tr>
+      <tr v-if="account.params">
+        <th>Multisignature threshold:</th>
+        <td>{{ account.params.threshold }}</td>
+      </tr>
+      <tr v-if="account.params">
+        <th>Multisignature addresses:</th>
+        <td>{{ account.params.addrs }}</td>
       </tr>
       <tr>
         <th></th>
