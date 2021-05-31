@@ -35,14 +35,15 @@ const actions = {
     try {
       const url = new URL(this.state.config.algod);
 
-      const enc = new TextEncoder();
-      const noteEnc = enc.encode(note);
-
       const algodclient = new algosdk.Algodv2(
         this.state.config.algodToken,
         this.state.config.algod,
         url.port
       );
+
+      const enc = new TextEncoder();
+      const noteEnc = enc.encode(note);
+
       const sk = await dispatch(
         "wallet/getSK",
         { addr: payFrom },
@@ -86,6 +87,19 @@ const actions = {
     } catch (error) {
       console.log("error", error, dispatch);
     }
+  },
+  async sendRawTransaction({ dispatch }, { signedTxn }) {
+    const url = new URL(this.state.config.algod);
+
+    const algodclient = new algosdk.Algodv2(
+      this.state.config.algodToken,
+      this.state.config.algod,
+      url.port
+    );
+
+    const ret = await algodclient.sendRawTransaction(signedTxn).do();
+    console.log("sent to network", dispatch);
+    return ret;
   },
   async waitForConfirmation({ dispatch }, { txId, timeout }) {
     try {

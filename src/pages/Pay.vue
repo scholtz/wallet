@@ -9,7 +9,7 @@
           Create proposal
         </button>
         <button class="btn btn-primary m-2" @click="subpage = 'sign'">
-          Sign &amp; sned proposal
+          Sign &amp; send proposal
         </button>
       </div>
       <div class="row" v-if="subpage == 'sign'">
@@ -20,37 +20,8 @@
             v-model="rawSignedTxnInput"
             rows="8"
           ></textarea>
-
-          <label>Sign with</label>
-          <select class="form-control" v-model="signMultisigWith" multiple>
-            <option
-              v-for="option in accountsFromMultisig"
-              :key="option.addr"
-              :value="option.addr"
-            >
-              {{ option.name + "  - " + option.addr }}
-            </option>
-          </select>
-          <button
-            class="btn btn-primary my-2"
-            @click="signMultisig"
-            :disabled="signMultisigWith.length == 0"
-          >
-            Sign
-          </button>
-          <p v-if="rawSignedTxn">Send this data to other signators:</p>
-          <textarea
-            class="form-control my-2"
-            v-if="rawSignedTxn"
-            v-model="rawSignedTxn"
-            rows="8"
-          ></textarea>
-          <button
-            class="btn btn-primary my-2"
-            @click="signMultisig"
-            :disabled="signMultisigWith.length == 0"
-          >
-            Sign
+          <button class="btn btn-primary my-2" @click="loadMultisig">
+            Load multisignature data
           </button>
         </div>
       </div>
@@ -145,7 +116,7 @@
     <form @submit="payPaymentClick" v-if="page == 'review'">
       <h1>Review payment</h1>
       <p>Please review your payment</p>
-      <table class="table">
+      <table class="table" v-if="!multisigDecoded.txn">
         <tr>
           <th>From account:</th>
           <td>{{ $route.params.account }}</td>
@@ -171,6 +142,70 @@
           <td>{{ $filters.formatCurrency(amountLong + feeLong) }}</td>
         </tr>
       </table>
+
+      <div v-if="multisigDecoded.txn">
+        <h2>Transaction details</h2>
+        <table class="table">
+          <tr>
+            <th>type</th>
+            <td>{{ multisigDecoded.txn.type }}</td>
+          </tr>
+          <tr>
+            <th>name</th>
+            <td>{{ multisigDecoded.txn.name }}</td>
+          </tr>
+          <tr>
+            <th>Amount</th>
+            <td>{{ multisigDecoded.txn.amount }}</td>
+          </tr>
+          <tr>
+            <th>Fee</th>
+            <td>{{ multisigDecoded.txn.fee }}</td>
+          </tr>
+          <tr>
+            <th>FirstRound</th>
+            <td>{{ multisigDecoded.txn.firstRound }}</td>
+          </tr>
+          <tr>
+            <th>LastRound</th>
+            <td>{{ multisigDecoded.txn.lastRound }}</td>
+          </tr>
+          <tr>
+            <th>genesisID</th>
+            <td>{{ multisigDecoded.txn.genesisID }}</td>
+          </tr>
+          <tr>
+            <th>note</th>
+            <td>{{ multisigDecoded.txn.note }}</td>
+          </tr>
+          <tr>
+            <th>tag</th>
+            <td>{{ multisigDecoded.txn.tag }}</td>
+          </tr>
+          <tr>
+            <th>to</th>
+            <td>{{ encodeAddress(multisigDecoded.txn.to.publicKey) }}</td>
+          </tr>
+        </table>
+
+        <h2>Signatures</h2>
+        <table class="table">
+          <tr v-for="sig in multisigDecoded.msig.subsig" :key="sig">
+            <th>
+              <span v-if="sig.s" class="badge bg-success">{{
+                encodeAddress(sig.pk)
+              }}</span>
+              <span v-if="!sig.s" class="badge bg-danger">{{
+                encodeAddress(sig.pk)
+              }}</span>
+            </th>
+            <td>
+              <span v-if="sig.s" class="badge bg-success">Signed</span
+              ><span v-if="!sig.s" class="badge bg-danger">Not signed</span>
+            </td>
+          </tr>
+        </table>
+      </div>
       <input
         v-if="!isMultisig"
         class="btn btn-primary"
@@ -189,36 +224,53 @@
         value="Go back"
         @click="this.page = 'design'"
       />
-      <p v-if="!tx && processing" class="alert alert-primary my-2">
-        <span
-          class="spinner-grow spinner-grow-sm"
-          role="status"
-          aria-hidden="true"
-        ></span>
-        Sending payment to to the network
-      </p>
-      <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
-        <span
-          class="spinner-grow spinner-grow-sm"
-          role="status"
-          aria-hidden="true"
-        ></span>
-        Payment sent to the network. Tx: {{ tx }}. Waiting for network
-        confirmation.
-      </p>
-      <p v-if="confirmedRound" class="alert alert-success my-2">
-        Confirmation has been received. Your payment is in the block
-        <b>{{ confirmedRound }}</b
-        >. Transaction: {{ tx }}.
-      </p>
       <textarea
         class="form-control my-2"
         v-if="txn"
         v-model="txn"
         rows="5"
       ></textarea>
+      <div v-if="isMultisig && multisigDecoded.txn">
+        <label>Sign with</label>
+        <select class="form-control" v-model="signMultisigWith" multiple>
+          <option
+            v-for="option in accountsFromMultisig"
+            :key="option.addr"
+            :value="option.addr"
+          >
+            {{ option.name + "  - " + option.addr }}
+          </option>
+        </select>
+        <button
+          class="btn btn-primary my-2"
+          @click="signMultisig"
+          :disabled="signMultisigWith.length == 0"
+        >
+          Sign
+        </button>
+        <p v-if="rawSignedTxn">Send this data to other signators:</p>
+        <textarea
+          class="form-control my-2"
+          v-if="rawSignedTxn"
+          v-model="rawSignedTxn"
+          rows="8"
+        ></textarea>
+        <button
+          class="btn btn-primary m-2"
+          @click="sendMultisig"
+          :disabled="!rawSignedTxn && !rawSignedTxnInput"
+        >
+          Send to the network
+        </button>
+      </div>
       <div
-        v-if="txn && accountsFromMultisig && accountsFromMultisig.length > 0"
+        v-if="
+          isMultisig &&
+          !multisigDecoded.txn &&
+          txn &&
+          accountsFromMultisig &&
+          accountsFromMultisig.length > 0
+        "
       >
         <label>Sign with</label>
         <select class="form-control" v-model="signMultisigWith" multiple>
@@ -245,6 +297,29 @@
           rows="8"
         ></textarea>
       </div>
+
+      <p v-if="!tx && processing" class="alert alert-primary my-2">
+        <span
+          class="spinner-grow spinner-grow-sm"
+          role="status"
+          aria-hidden="true"
+        ></span>
+        Sending payment to to the network
+      </p>
+      <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
+        <span
+          class="spinner-grow spinner-grow-sm"
+          role="status"
+          aria-hidden="true"
+        ></span>
+        Payment sent to the network. Tx: {{ tx }}. Waiting for network
+        confirmation.
+      </p>
+      <p v-if="confirmedRound" class="alert alert-success my-2">
+        Confirmation has been received. Your payment is in the block
+        <b>{{ confirmedRound }}</b
+        >. Transaction: {{ tx }}.
+      </p>
       <p v-if="error" class="alert alert-danger my-2">Error: {{ error }}</p>
     </form>
   </main-layout>
@@ -274,7 +349,9 @@ export default {
       subpage: "",
       txn: null,
       rawSignedTxn: null,
+      rawSignedTxnInput: null,
       signMultisigWith: [],
+      multisigDecoded: {},
     };
   },
   computed: {
@@ -318,6 +395,7 @@ export default {
       waitForConfirmation: "algod/waitForConfirmation",
       lastActiveAccount: "wallet/lastActiveAccount",
       getTransactionParams: "algod/getTransactionParams",
+      sendRawTransaction: "algod/sendRawTransaction",
       getSK: "wallet/getSK",
     }),
     reset() {
@@ -336,6 +414,7 @@ export default {
       e.preventDefault();
     },
     async payMultisig() {
+      this.prolong();
       const multsigaddr = this.$route.params.account;
       const payTo = this.payto;
       const amount = this.amountLong;
@@ -356,20 +435,29 @@ export default {
       );
       //let txId = txn.txID().toString();
     },
-    async signMultisig() {
+    async signMultisig(e) {
+      this.prolong();
+      e.preventDefault();
       let rawSignedTxn = null;
+      if (this.rawSignedTxnInput) {
+        rawSignedTxn = this._base64ToArrayBuffer(this.rawSignedTxnInput);
+      }
+      console.log("this.signMultisigWith", this.signMultisigWith);
       const selected = Object.values(this.signMultisigWith);
       for (const acc in this.accountsFromMultisig) {
         if (!selected.includes(this.accountsFromMultisig[acc].addr)) {
           continue;
         }
+
         if (rawSignedTxn == null) {
           const sk = await this.getSK({
             addr: this.accountsFromMultisig[acc].addr,
           });
           console.log(
             "before signMultisigTransaction",
+            algosdk,
             this.txn,
+            this.account,
             this.account.params,
             sk
           );
@@ -397,8 +485,9 @@ export default {
           console.log("rawSignedTxn", rawSignedTxn);
         }
       }
-      this.rawSignedTxn = rawSignedTxn;
-      this.rawSignedTxnInput = rawSignedTxn;
+      this.rawSignedTxn = this._arrayBufferToBase64(rawSignedTxn);
+      console.log("this.rawSignedTxn", this.rawSignedTxn);
+      this.rawSignedTxnInput = this.rawSignedTxn;
       /*
       var reader = new FileReader();
       reader.readAsDataURL(new Blob(rawSignedTxn));
@@ -409,7 +498,26 @@ export default {
         console.log("rawSignedTxn", that.rawSignedTxn);
       };/**/
     },
+    _arrayBufferToBase64(buffer) {
+      var binary = "";
+      var bytes = new Uint8Array(buffer);
+      var len = bytes.byteLength;
+      for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    },
+    _base64ToArrayBuffer(base64) {
+      var binary_string = window.atob(base64);
+      var len = binary_string.length;
+      var bytes = new Uint8Array(len);
+      for (var i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
+      }
+      return bytes.buffer;
+    },
     async payPaymentClick(e) {
+      this.prolong();
       e.preventDefault();
       try {
         if (this.isMultisig) return this.payMultisig();
@@ -443,6 +551,53 @@ export default {
         console.log("confirmation", this.tx, this.confirmation);
       } catch (exc) {
         this.error = exc;
+      }
+    },
+    loadMultisig(e) {
+      this.prolong();
+      e.preventDefault();
+      this.multisigDecoded = algosdk.decodeSignedTransaction(
+        this._base64ToArrayBuffer(this.rawSignedTxnInput)
+      );
+      this.page = "review";
+      console.log("this.multisigDecoded", this.multisigDecoded);
+    },
+    encodeAddress(a) {
+      return algosdk.encodeAddress(a);
+    },
+    async sendMultisig(e) {
+      this.prolong();
+      this.error = "";
+
+      this.processing = true;
+      try {
+        e.preventDefault();
+        const signedTxn = this._base64ToArrayBuffer(this.rawSignedTxn);
+        console.log("signedTxn tosend", signedTxn, this.rawSignedTxn);
+        const transaction = await this.sendRawTransaction({ signedTxn });
+        console.log("transaction", transaction);
+        this.tx = transaction.txId;
+        const confirmation = await this.waitForConfirmation({
+          txId: this.tx,
+          timeout: 4,
+        });
+        if (!confirmation) {
+          this.processing = false;
+          this.error =
+            "Payment has probably not reached the network. Are you offline? Please check you account";
+          return;
+        }
+        if (confirmation["confirmed-round"]) {
+          this.processing = false;
+          this.confirmedRound = confirmation["confirmed-round"];
+        }
+        if (confirmation["pool-error"]) {
+          this.processing = false;
+          this.error = confirmation["pool-error"];
+        }
+      } catch (e) {
+        this.processing = false;
+        this.error = e;
       }
     },
   },

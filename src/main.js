@@ -21,6 +21,8 @@ import Column from "primevue/column";
 import InputText from "primevue/inputtext";
 import Dialog from "primevue/dialog";
 import Toast from "primevue/toast";
+import Accordion from "primevue/accordion";
+import AccordionTab from "primevue/accordiontab";
 import ToastService from "primevue/toastservice";
 import "primevue/resources/themes/saga-blue/theme.css";
 
@@ -59,6 +61,8 @@ myApp.component("Column", Column);
 myApp.component("InputText", InputText);
 myApp.component("Dialog", Dialog);
 myApp.component("Toast", Toast);
+myApp.component("Accordion", Accordion);
+myApp.component("AccordionTab", AccordionTab);
 
 myApp.config.globalProperties.$filters = {
   formatCurrency(
