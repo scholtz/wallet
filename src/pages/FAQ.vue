@@ -1,5 +1,6 @@
 <template>
   <PublicLayout>
+    <h1>FAQ</h1>
     <Accordion :activeIndex="0">
       <AccordionTab header="About the wallet">
         <p>

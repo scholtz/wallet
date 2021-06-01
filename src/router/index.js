@@ -1,5 +1,5 @@
 import { createWebHistory, createRouter } from "vue-router";
-import About from "@/pages/About.vue";
+import Privacy from "@/pages/Privacy.vue";
 import ImportWallet from "@/pages/ImportWallet.vue";
 import Accounts from "@/pages/Accounts.vue";
 import AccountOverview from "@/pages/AccountOverview.vue";
@@ -17,9 +17,9 @@ const routes = [
     component: Accounts,
   },
   {
-    path: "/about",
-    name: "About",
-    component: About,
+    path: "/privacy-policy",
+    name: "Privacy",
+    component: Privacy,
   },
   {
     path: "/import-wallet",

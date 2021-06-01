@@ -28,6 +28,7 @@ import "primevue/resources/themes/saga-blue/theme.css";
 
 import "primevue/resources/primevue.min.css";
 import "primeicons/primeicons.css";
+import i18n from './i18n'
 
 /*
 const SimpleRouterApp = {
@@ -51,7 +52,7 @@ const SimpleRouterApp = {
   },
 };/**/
 
-const myApp = createApp(App);
+const myApp = createApp(App).use(i18n);
 myApp.use(store);
 myApp.use(router);
 myApp.use(PrimeVue);

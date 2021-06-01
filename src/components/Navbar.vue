@@ -42,7 +42,9 @@
             <v-link class="nav-link" href="/faq">FAQ</v-link>
           </li>
           <li class="nav-item active">
-            <v-link class="nav-link" href="/about">About</v-link>
+            <v-link class="nav-link" href="/privacy-policy"
+              >Privacy policy</v-link
+            >
           </li>
           <li class="nav-item active" v-if="$store.state.wallet.isOpen">
             <v-link class="nav-link" href="/" @click="logoutClick"

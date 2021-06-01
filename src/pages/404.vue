@@ -1,6 +1,9 @@
 <template>
   <PublicLayout>
-    <p>Page not found.</p>
+    <h1>{{ $t("404.header") }}</h1>
+    <p>
+      {{ $t("404.text") }}
+    </p>
   </PublicLayout>
 </template>
 

@@ -5,7 +5,8 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/locales/**/*.json\""
   },
   "dependencies": {
     "@popperjs/core": "^2.9.2",
@@ -26,11 +27,12 @@
     "primevue": "^3.5.0",
     "register-service-worker": "^1.7.1",
     "vue": "^3.0.0",
-    "vue-i18n": "^8.24.4",
+    "vue-i18n": "^9.1.0",
     "vue-router": "^4.0.8",
     "vuex": "^4.0.0"
   },
   "devDependencies": {
+    "@intlify/vue-i18n-loader": "^2.1.0",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-pwa": "^4.5.13",
@@ -38,7 +40,8 @@
     "@vue/compiler-sfc": "^3.0.0",
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^7.0.0"
+    "eslint-plugin-vue": "^7.0.0",
+    "vue-cli-plugin-i18n": "~2.1.1"
   },
   "eslintConfig": {
     "root": true,
