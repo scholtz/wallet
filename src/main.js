@@ -28,7 +28,7 @@ import "primevue/resources/themes/saga-blue/theme.css";
 
 import "primevue/resources/primevue.min.css";
 import "primeicons/primeicons.css";
-import i18n from './i18n'
+import i18n from "./i18n";
 
 /*
 const SimpleRouterApp = {
@@ -68,19 +68,34 @@ myApp.component("AccordionTab", AccordionTab);
 myApp.config.globalProperties.$filters = {
   formatCurrency(
     value,
-    language = "sk-SK",
     currency = "ALG",
-    minimumFractionDigits = 6
+    minimumFractionDigits = 6,
+    multiply = true,
+    language = "sk-SK"
   ) {
-    const formatter = new Intl.NumberFormat(language, {
-      style: "currency",
-      currency,
-      minimumFractionDigits,
-    });
-    if (Number.isInteger(parseInt(value))) {
-      return formatter.format(value / 1000000);
+    if (multiply) {
+      value = value / Math.pow(10, minimumFractionDigits);
+    }
+    if (currency.length == 3) {
+      const formatter = new Intl.NumberFormat(language, {
+        style: "currency",
+        currency,
+        minimumFractionDigits,
+      });
+      if (Number.isInteger(parseInt(value))) {
+        return formatter.format();
+      } else {
+        return value;
+      }
     } else {
-      return value;
+      const formatter = new Intl.NumberFormat(language, {
+        minimumFractionDigits,
+      });
+      if (Number.isInteger(parseInt(value))) {
+        return formatter.format(value);
+      } else {
+        return value;
+      }
     }
   },
   formatDateTime(
