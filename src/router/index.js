@@ -9,6 +9,12 @@ import NotFound from "@/pages/404.vue";
 import FAQ from "@/pages/FAQ.vue";
 import Pay from "@/pages/Pay.vue";
 import Settings from "@/pages/Settings.vue";
+import Asset from "@/pages/AssetList.vue";
+import AssetCreate from "@/pages/Asset/Create.vue";
+import AssetDestroy from "@/pages/Asset/Destroy.vue";
+import AssetFreeze from "@/pages/Asset/Freeze.vue";
+import AssetModify from "@/pages/Asset/Modify.vue";
+import AssetRevoke from "@/pages/Asset/Revoke.vue";
 
 const routes = [
   {
@@ -25,6 +31,36 @@ const routes = [
     path: "/import-wallet",
     name: "ImportWallet",
     component: ImportWallet,
+  },
+  {
+    path: "/asset",
+    name: "Asset",
+    component: Asset,
+  },
+  {
+    path: "/asset/create",
+    name: "AssetCreate",
+    component: AssetCreate,
+  },
+  {
+    path: "/asset/destroy/:assetId",
+    name: "AssetDestroy",
+    component: AssetDestroy,
+  },
+  {
+    path: "/asset/freeze/:assetId",
+    name: "AssetFreeze",
+    component: AssetFreeze,
+  },
+  {
+    path: "/asset/modify/:assetId",
+    name: "AssetModify",
+    component: AssetModify,
+  },
+  {
+    path: "/asset/revoke/:assetId",
+    name: "AssetRevoke",
+    component: AssetRevoke,
   },
   {
     path: "/accounts",

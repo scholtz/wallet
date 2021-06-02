@@ -1,40 +1,45 @@
 <template>
   <MainLayout>
     <h1>
-      Account overview - {{ this.$store.state.wallet.lastActiveAccountName }}
+      {{ $t("acc_overview.title") }} -
+      {{ this.$store.state.wallet.lastActiveAccountName }}
     </h1>
-    <p v-if="account.sk || account.params">
+    <p v-if="account && (account.sk || account.params)">
       <router-link
         :to="'/accounts/pay/' + $route.params.account"
         class="btn btn-light btn-xs"
-        >Make new payment</router-link
+        >{{ $t("acc_overview.pay") }}</router-link
       >
     </p>
     <table class="table" v-if="account">
       <tr>
-        <th>Name:</th>
+        <th>{{ $t("acc_overview.name") }}:</th>
         <td>{{ account["name"] }}</td>
       </tr>
       <tr>
-        <th>Type:</th>
+        <th>{{ $t("acc_overview.type") }}:</th>
         <td>
-          <div class="badge bg-primary" v-if="account.sk">Basic account</div>
-          <div class="badge bg-warning text-dark" v-else-if="account.params">
-            Multisignature account
+          <div class="badge bg-primary" v-if="account.sk">
+            {{ $t("acc_type.basic_account") }}
           </div>
-          <div class="badge bg-info text-dark" v-else>Public account</div>
+          <div class="badge bg-warning text-dark" v-else-if="account.params">
+            {{ $t("acc_type.multisig_account") }}
+          </div>
+          <div class="badge bg-info text-dark" v-else>
+            {{ $t("acc_type.public_account") }}
+          </div>
         </td>
       </tr>
       <tr>
-        <th>Address:</th>
+        <th>{{ $t("acc_overview.address") }}:</th>
         <td>{{ account.address }}</td>
       </tr>
       <tr>
-        <th>amount:</th>
+        <th>{{ $t("acc_overview.amount") }}:</th>
         <td>{{ $filters.formatCurrency(account.amount) }}</td>
       </tr>
       <tr>
-        <th>amount-without-pending-rewards:</th>
+        <th>{{ $t("acc_overview.amount_without_pending") }}:</th>
         <td>
           {{
             $filters.formatCurrency(account["amount-without-pending-rewards"])
@@ -42,60 +47,82 @@
         </td>
       </tr>
       <tr>
-        <th>rewards:</th>
+        <th>{{ $t("acc_overview.rewards") }}:</th>
         <td>{{ $filters.formatCurrency(account["rewards"]) }}</td>
       </tr>
       <tr>
-        <th>pending-rewards:</th>
+        <th>{{ $t("acc_overview.pending_rewards") }}:</th>
         <td>{{ $filters.formatCurrency(account["pending-rewards"]) }}</td>
       </tr>
       <tr>
-        <th>reward-base:</th>
+        <th>{{ $t("acc_overview.reward_base") }}:</th>
         <td>{{ account["reward-base"] }}</td>
       </tr>
       <tr>
-        <th>round:</th>
+        <th>{{ $t("acc_overview.round") }}:</th>
         <td>{{ account["round"] }}</td>
       </tr>
       <tr>
-        <th>apps-local-state:</th>
+        <th>{{ $t("acc_overview.apps_local_state") }}:</th>
         <td>{{ account["apps-local-state"] }}</td>
       </tr>
       <tr>
-        <th>apps-total-schema:</th>
+        <th>{{ $t("acc_overview.apps_total_schema") }}:</th>
         <td>{{ account["apps-total-schema"] }}</td>
       </tr>
-      <tr>
-        <th>assets:</th>
-        <td>{{ account["assets"] }}</td>
+      <tr v-if="account['assets'] && account['assets'].length > 0">
+        <th>{{ $t("acc_overview.assets") }}:</th>
+        <td>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ASA Amount</th>
+                <th>ASA ID</th>
+                <th>IsFrozen</th>
+                <th>Creator</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="asset in account['assets']" :key="asset['asset-id']">
+                <td>
+                  {{ asset["amount"] }}
+                  {{ getAssetName(asset["asset-id"]) }}
+                </td>
+                <td>{{ asset["asset-id"] }}</td>
+                <td>{{ asset["is-frozen"] }}</td>
+                <td>{{ asset["creator"] }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
       </tr>
       <tr>
-        <th>created-apps:</th>
+        <th>{{ $t("acc_overview.created_apps") }}:</th>
         <td>{{ account["created-apps"] }}</td>
       </tr>
       <tr>
-        <th>status:</th>
+        <th>{{ $t("acc_overview.status") }}:</th>
         <td>{{ account["status"] }}</td>
       </tr>
       <tr v-if="account.params">
-        <th>Multisignature threshold:</th>
+        <th>{{ $t("acc_overview.multisignature_threshold") }}:</th>
         <td>{{ account.params.threshold }}</td>
       </tr>
       <tr v-if="account.params">
-        <th>Multisignature addresses:</th>
+        <th>{{ $t("acc_overview.multisignature_addresses") }}:</th>
         <td>{{ account.params.addrs }}</td>
       </tr>
       <tr>
         <th></th>
         <td>
           <button class="btn btn-light btn-xs" @click="reloadAccount">
-            Refresh
+            {{ $t("acc_overview.refresh") }}
           </button>
         </td>
       </tr>
     </table>
 
-    <h2>Transactions</h2>
+    <h2>{{ $t("acc_overview.transactions") }}</h2>
 
     <DataTable
       :value="transactions"
@@ -105,24 +132,40 @@
       :paginator="true"
       :rows="20"
     >
-      <template #empty> No transactions found </template>
-      <Column field="tx-type" header="Type" :sortable="true"></Column>
-      <Column field="round-time" header="Time" :sortable="true">
+      <template #empty> {{ $t("acc_overview.no_transactions") }} </template>
+      <Column
+        field="tx-type"
+        :header="$t('acc_overview.type')"
+        :sortable="true"
+      ></Column>
+      <Column
+        field="round-time"
+        :header="$t('acc_overview.time')"
+        :sortable="true"
+      >
         <template #body="slotProps">
-          {{
-            $filters.formatDateTime(
-              slotProps.data[slotProps.column.props.field]
-            )
-          }}
+          <div v-if="slotProps.column.props.field in slotProps.data">
+            {{
+              $filters.formatDateTime(
+                slotProps.data[slotProps.column.props.field]
+              )
+            }}
+          </div>
         </template>
       </Column>
       <Column
         field="payment-transaction.amount"
-        header="Amount"
+        :header="$t('acc_overview.tr_amount')"
         :sortable="true"
       >
         <template #body="slotProps">
-          <div class="text-end">
+          <div
+            class="text-end"
+            v-if="
+              'payment-transaction' in slotProps.data &&
+              'amount' in slotProps.data['payment-transaction']
+            "
+          >
             {{
               $filters.formatCurrency(
                 slotProps.data["payment-transaction"]["amount"]
@@ -131,19 +174,26 @@
           </div>
         </template></Column
       >
-      <Column field="sender" header="Sender" :sortable="true"></Column>
+      <Column
+        field="sender"
+        :header="$t('acc_overview.sender')"
+        :sortable="true"
+      ></Column>
       <Column
         field="payment-transaction.receiver"
-        header="Receiver"
+        :header="$t('acc_overview.receiver')"
         :sortable="true"
       ></Column>
       <Column
         field="receiver-rewards"
-        header="Receiver rewards"
+        :header="$t('acc_overview.receiver_rewards')"
         :sortable="true"
       >
         <template #body="slotProps">
-          <div class="text-end">
+          <div
+            class="text-end"
+            v-if="slotProps.column.props.field in slotProps.data"
+          >
             {{
               $filters.formatCurrency(
                 slotProps.data[slotProps.column.props.field]
@@ -152,9 +202,12 @@
           </div>
         </template></Column
       >
-      <Column field="fee" header="fee" :sortable="true"
+      <Column field="fee" :header="$t('acc_overview.fee')" :sortable="true"
         ><template #body="slotProps">
-          <div class="text-end">
+          <div
+            class="text-end"
+            v-if="slotProps.column.props.field in slotProps.data"
+          >
             {{
               $filters.formatCurrency(
                 slotProps.data[slotProps.column.props.field]
@@ -163,7 +216,11 @@
           </div>
         </template></Column
       >
-      <Column field="confirmed-round" header="Confirmed round" :sortable="true">
+      <Column
+        field="confirmed-round"
+        :header="$t('acc_overview.confirmed_round')"
+        :sortable="true"
+      >
       </Column>
     </DataTable>
   </MainLayout>
@@ -181,6 +238,8 @@ export default {
     return {
       transactions: [],
       selection: null,
+      assets: [],
+      asset: "",
     };
   },
   computed: {
@@ -201,9 +260,13 @@ export default {
         this.$router.push("/transaction/" + this.selection.id);
       }
     },
+    account() {
+      this.makeAssets();
+    },
   },
-  mounted() {
-    this.reloadAccount();
+  async mounted() {
+    await this.reloadAccount();
+    await this.makeAssets();
   },
   methods: {
     ...mapActions({
@@ -212,9 +275,52 @@ export default {
       lastActiveAccount: "wallet/lastActiveAccount",
       searchForTransactions: "indexer/searchForTransactions",
       setTransaction: "wallet/setTransaction",
+      getAsset: "indexer/getAsset",
     }),
+
+    async makeAssets() {
+      this.assets = [];
+      if (this.account && this.account.amount > 0) {
+        this.assets.push({
+          "asset-id": "",
+          amount: this.account.amount,
+          name: "ALG",
+          decimals: 6,
+          "unit-name": "",
+        });
+      }
+      if (this.account) {
+        for (let index in this.account.assets) {
+          const asset = await this.getAsset({
+            assetIndex: this.account.assets[index]["asset-id"],
+          });
+          this.assets.push({
+            "asset-id": this.account.assets[index]["asset-id"],
+            amount: this.account.assets[index]["amount"],
+            name: asset["name"],
+            decimals: asset["decimals"],
+            "unit-name": asset["unit-name"],
+          });
+        }
+      }
+      console.log("this.assets", this.assets);
+    },
+    getAssetSync(id) {
+      console.log(
+        "this.$store.state.indexer.assets",
+        this.$store.state.indexer.assets
+      );
+      const ret = this.$store.state.indexer.assets.find(
+        (a) => a["asset-id"] == id
+      );
+      return ret;
+    },
+    getAssetName(id) {
+      const asset = this.getAssetSync(id);
+      if (asset) return asset["name"];
+    },
     async reloadAccount() {
-      this.accountInformation({
+      await this.accountInformation({
         addr: this.$route.params.account,
       }).then((info) => {
         if (info) {
@@ -233,3 +339,8 @@ export default {
   },
 };
 </script>
+<style>
+th {
+  vertical-align: top;
+}
+</style>

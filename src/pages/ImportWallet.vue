@@ -2,16 +2,16 @@
   <PublicLayout
     ><div class="d-flex align-items-center justify-content-center h-100">
       <div class="card w-25">
-        <div class="card-header">Import wallet</div>
+        <div class="card-header">{{ $t("import.title") }}</div>
         <div class="card-body">
           <form @submit="createWalletClick">
-            <label for="newwallet-name">Wallet name</label>
+            <label for="newwallet-name">{{ $t("import.wallet_name") }}</label>
             <input
               v-model="name"
               id="newwallet-name"
               class="form-control my-2"
             />
-            <label for="newwallet-file">Wallet file</label>
+            <label for="newwallet-file">{{ $t("import.wallet_file") }}</label>
             <input
               id="newwallet-file"
               type="file"
@@ -22,15 +22,14 @@
             <input
               type="submit"
               class="btn btn-primary"
-              value="Import wallet"
+              :value="$t('import.import_wallet_button')"
               :disabled="!name || !file"
             />
-            <a href="/" class="btn btn-light mx-2">Go home</a>
+            <a href="/" class="btn btn-light mx-2">{{
+              $t("global.go_home")
+            }}</a>
             <p class="my-2">
-              You can import previously exported wallets. Wallet password stays
-              within the exported file, so you can access it after the import
-              with the same password as before. You can change the password
-              after login from the settings page.
+              {{ $t("import.help") }}
             </p>
           </form>
         </div>

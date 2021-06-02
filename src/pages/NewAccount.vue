@@ -1,62 +1,65 @@
 <template>
   <main-layout>
     <div class="container-fluid">
-      <h1>New account</h1>
+      <h1>{{ $t("newacc.title") }}</h1>
       <div v-if="page == 'new'">
         <button v-if="!w" class="btn btn-primary m-1" @click="createAccount">
-          Create basic account
+          {{ $t("newacc.create_basic") }}
         </button>
         <button
           v-if="!w"
           class="btn btn-primary m-1"
           @click="page = 'importaccount'"
         >
-          Import account
+          {{ $t("newacc.import_account") }}
         </button>
         <button
           v-if="!w"
           class="btn btn-primary m-1"
           @click="page = 'multisigaccount'"
         >
-          Create multisign account
+          {{ $t("newacc.create_multisign_account") }}
         </button>
         <button
           v-if="!w"
           class="btn btn-primary m-1"
           @click="page = 'watchaccount'"
         >
-          Watch account
+          {{ $t("newacc.watch_account") }}
         </button>
       </div>
       <div v-if="page == 'importaccount'">
-        <p>Write down 25 word mnomenic phrase</p>
+        <p>{{ $t("newacc.write_mnemonic") }}</p>
         <textarea class="form-control my-1" v-model="w" />
 
-        <p>Internal account name</p>
+        <p>{{ $t("newacc.name") }}</p>
         <input v-model="name" class="form-control" />
 
         <button class="btn btn-primary m-1" @click="importAccountClick">
-          Create account
+          {{ $t("newacc.create_account") }}
         </button>
-        <button class="btn btn-light m-1" @click="reset">Go back</button>
+        <button class="btn btn-light m-1" @click="reset">
+          {{ $t("global.go_back") }}
+        </button>
       </div>
       <div v-if="page == 'watchaccount'">
-        <p>Internal account name</p>
+        <p>{{ $t("newacc.name") }}</p>
         <input v-model="name" class="form-control my-2" />
-        <p>Address</p>
+        <p>{{ $t("newacc.address") }}</p>
         <input v-model="addr" class="form-control my-2" />
 
         <button class="btn btn-primary my-1" @click="watchAccountClick">
-          Watch account
+          {{ $t("newacc.watch_account") }}
         </button>
-        <button class="btn btn-light m-1" @click="reset">Go back</button>
+        <button class="btn btn-light m-1" @click="reset">
+          {{ $t("global.go_back") }}
+        </button>
       </div>
       <div v-if="page == 'multisigaccount'">
         <p>
-          Multisignature account can process transactions only if N accounts
-          listed at the account creation sign the transaction.
+          {{ $t("newacc.multisig_help") }}
         </p>
-        <p>Select existing accounts in your wallet:</p>
+        <p>{{ $t("newacc.select_account_from_list") }}:</p>
         <select
           class="select form-control"
           multiple
@@ -72,7 +75,7 @@
             {{ option.name }} - {{ option.addr }}
           </option>
         </select>
-        <p class="my-2">Add your friends accounts - one account per line:</p>
+        <p class="my-2">{{ $t("newacc.add_other_accounts") }}:</p>
         <textarea
           class="form-control my-1"
           v-model="friendaccounts"
@@ -80,9 +83,9 @@
         />
 
         <p class="my-2">
-          Select how many accounts are required to sign the transaction ({{
-            multisignum
-          }}/{{ countAccounts() }}):
+          {{ $t("newacc.trashold_help") }} ({{ multisignum }}/{{
+            countAccounts()
+          }}):
         </p>
         <input
           type="range"
@@ -102,34 +105,35 @@
           id="customRange2"
         />
 
-        <p>Internal account name</p>
+        <p>{{ $t("newacc.name") }}</p>
         <input v-model="name" class="form-control" />
 
         <button class="btn btn-primary m-1" @click="createMultisignClick">
-          Create account
+          {{ $t("newacc.create_account") }}
         </button>
-        <button class="btn btn-light m-1" @click="reset">Go back</button>
+        <button class="btn btn-light m-1" @click="reset">
+          {{ $t("global.go_back") }}
+        </button>
       </div>
       <div v-if="!this.s && page == 'newaccount'">
         <p>
-          In order to create account, make sure to backup mnomenic phrase. Is it
-          safe to show the phrase now?
+          {{ $t("newacc.create_account_help") }}
         </p>
         <button v-if="!this.s" class="btn btn-primary" @click="this.s = true">
-          Show mnomenic
+          {{ $t("newacc.show_mnemonic") }}
         </button>
       </div>
       <div v-if="this.s && this.challange">
-        <p>What is word at position n. {{ r }}?</p>
+        <p>{{ $t("newacc.start_challange") }} {{ r }}?</p>
         <input class="form-control" v-model="guess" />
-        <p>Internal account name</p>
+        <p>{{ $t("newacc.name") }}</p>
         <input v-model="name" class="form-control" />
         <button
           v-if="this.s"
           class="btn btn-primary m-1"
           @click="confirmCreate"
         >
-          Create account
+          {{ $t("newacc.create_account") }}
         </button>
         <button
           v-if="this.s"
@@ -139,32 +143,28 @@
             this.s = false;
           "
         >
-          Go back
+          {{ $t("global.go_back") }}
         </button>
       </div>
       <div v-if="this.s && !this.challange && page == 'newaccount'">
         <p>
-          Write the mnomenic words in displayed order down, copy or take a
-          picture. Next step will be to confirm some of the words from this
-          phrase and we will save it to the encrypted storage in your browser.
-          It is safe to store this mnomenic and use this address without storing
-          it to the account. Make sure never to lose the mnomenic phrase.
+          {{ $t("newacc.mnemonic_help") }}
         </p>
 
         <textarea class="form-control my-1" v-model="w" />
         <input class="form-control my-1" v-model="a" />
 
         <button v-if="this.s" class="btn btn-primary m-1" @click="makeRandom">
-          Start the challange
+          {{ $t("newacc.start_challange") }}
         </button>
         <button v-if="this.s" class="btn btn-light m-1" @click="createAccount">
-          Create new
+          {{ $t("newacc.create_new") }}
         </button>
         <button v-if="this.s" class="btn btn-light m-1" @click="this.s = false">
-          Hide mnomenic
+          {{ $t("newacc.hide_mnemonic") }}
         </button>
         <button v-if="this.s" class="btn btn-light m-1" @click="reset">
-          Drop phrase
+          {{ $t("newacc.drop_phrase") }}
         </button>
       </div>
     </div>

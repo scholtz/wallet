@@ -101,6 +101,64 @@ const actions = {
     console.log("sent to network", dispatch);
     return ret;
   },
+  async makeAssetCreateTxnWithSuggestedParams({ dispatch }, { asset }) {
+    const url = new URL(this.state.config.algod);
+
+    let algodclient = new algosdk.Algodv2(
+      this.state.config.algodToken,
+      this.state.config.algod,
+      url.port
+    );
+    const sk = await dispatch(
+      "wallet/getSK",
+      { addr: asset.addr },
+      {
+        root: true,
+      }
+    );
+    let params = await algodclient.getTransactionParams().do();
+    if (!asset.manager) asset.manager = asset.addr;
+
+    const enc = new TextEncoder();
+    const noteEnc = enc.encode(asset.note);
+    console.log("sending", [
+      asset.addr,
+      noteEnc,
+      parseInt(asset.totalIssuance),
+      parseInt(asset.decimals),
+      asset.defaultFrozen,
+      asset.manager ? asset.manager : undefined,
+      asset.reserve ? asset.reserve : undefined,
+      asset.freeze ? asset.freeze : undefined,
+      asset.clawback ? asset.clawback : undefined,
+      asset.unitName,
+      asset.assetName,
+      asset.assetURL,
+      asset.assetMetadataHash,
+      params,
+    ]);
+    const txn = algosdk.makeAssetCreateTxnWithSuggestedParams(
+      asset.addr,
+      noteEnc,
+      parseInt(asset.totalIssuance),
+      parseInt(asset.decimals),
+      asset.defaultFrozen,
+      asset.manager ? asset.manager : undefined,
+      asset.reserve ? asset.reserve : undefined,
+      asset.freeze ? asset.freeze : undefined,
+      asset.clawback ? asset.clawback : undefined,
+      asset.unitName,
+      asset.assetName,
+      asset.assetURL,
+      asset.assetMetadataHash,
+      params
+    );
+
+    let rawSignedTxn = txn.signTxn(sk);
+    const ret = await algodclient.sendRawTransaction(rawSignedTxn).do();
+    console.log("sent to network", ret);
+    return ret;
+  },
   async waitForConfirmation({ dispatch }, { txId, timeout }) {
     try {
       console.log("txId, timeout", { txId, timeout });

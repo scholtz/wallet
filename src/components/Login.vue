@@ -1,17 +1,17 @@
 <template>
   <div class="d-flex align-items-center justify-content-center h-100">
     <div class="card w-25" v-if="newWalletForm">
-      <div class="card-header">New wallet</div>
+      <div class="card-header">{{ $t("login.new_wallet") }}</div>
       <div class="card-body">
         <form @submit="createWalletClick">
-          <label for="newwallet-name">Wallet name</label>
+          <label for="newwallet-name">{{ $t("login.new_wallet_name") }}</label>
           <input
             v-model="newname"
             id="newwallet-name"
             class="form-control my-2"
           />
           <label for="newwallet-pass"
-            >Wallet password
+            >{{ $t("login.new_wallet_pass") }}
             <span v-if="strength" :class="strengthClass">{{
               strength
             }}</span></label
@@ -22,46 +22,52 @@
             type="password"
             class="form-control my-2"
           />
-          <input type="submit" class="btn btn-primary" value="Create wallet" />
-          <a href="/import-wallet" class="btn btn-light mx-2">Import wallet</a>
+          <input
+            type="submit"
+            class="btn btn-primary"
+            :value="$t('login.new_wallet_button_create')"
+          />
+          <a href="/import-wallet" class="btn btn-light mx-2">{{
+            $t("login.new_wallet_button_import")
+          }}</a>
           <button
             class="btn btn-light mx-2"
             @click="this.newWalletForm = false"
             v-if="this.wallets.length > 0"
           >
-            Go back
+            {{ $t("global.go_back") }}
           </button>
           <p class="my-2">
-            Your wallet will be stored in your browser. Wallet password is
-            required to open wallet and see the accounts within the wallet and
-            for signing transactions.
+            {{ $t("login.new_wallet_help1") }}
           </p>
           <p class="my-2">
-            We recommend setting password of length more then 12 characters,
-            using lower case letter, uppercase letter, number and special
-            character.
+            {{ $t("login.new_wallet_help2") }}
           </p>
         </form>
       </div>
     </div>
     <div class="card w-25" v-if="!newWalletForm">
-      <div class="card-header">Open wallet</div>
+      <div class="card-header">{{ $t("login.open_wallet") }}</div>
       <div class="card-body">
         <form @submit="auth">
-          <label for="wallet-select">Select wallet</label>
+          <label for="wallet-select">{{ $t("login.select_wallet") }}</label>
           <select class="form-control my-2" id="wallet-select" v-model="wallet">
             <option v-for="option in wallets" :key="option">
               {{ option }}
             </option>
           </select>
-          <label for="wallet-pass">Wallet password</label>
+          <label for="wallet-pass">{{ $t("login.wallet_password") }}</label>
           <input
             v-model="pass"
             type="password"
             id="wallet-pass"
             class="form-control my-2"
           />
-          <input type="submit" class="btn btn-primary" value="Open wallet" />
+          <input
+            type="submit"
+            class="btn btn-primary"
+            :value="$t('login.new_wallet_button_open')"
+          />
           <button
             class="btn btn-light mx-2"
             @click="
@@ -70,7 +76,7 @@
               pass = '';
             "
           >
-            New wallet
+            {{ $t("login.new_wallet") }}
           </button>
         </form>
       </div>
@@ -103,7 +109,7 @@ export default {
       if (!this.pass) return "";
       const ret = passwordStrength(this.pass);
       console.log("ret", ret);
-      return "Strength: " + ret.value;
+      return this.$t("login.strength") + ": " + ret.value;
     },
   },
   async mounted() {

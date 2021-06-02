@@ -1,43 +1,31 @@
   
 <template>
   <PublicLayout>
-    <h1>Privacy policy</h1>
+    <h1>{{ $t("privacy.title") }}</h1>
     <Accordion :activeIndex="0">
-      <AccordionTab header="What private information about me do you collect?">
+      <AccordionTab :header="$t('privacy.q1')">
         <p>
-          None. Besides IP address and browser which is stored in logs for every
-          internet service. We do not collect any form of private information
-          such as your name, email or address.
+          {{ $t("privacy.a1") }}
         </p>
       </AccordionTab>
-      <AccordionTab header="What do you store in cookies?">
+      <AccordionTab :header="$t('privacy.q2')">
         <p>
-          Nothing. We do not use cookies. We use persistant local storage called
-          indexdb for starage of your wallet.
+          {{ $t("privacy.a2") }}
         </p>
       </AccordionTab>
-      <AccordionTab header="How do you collect analytics information?">
+      <AccordionTab :header="$t('privacy.q3')">
         <p>
-          We do not. We do not use any form of analytics service eg google
-          analytics, so that you can feel safer. The web is purly html with
-          javascript, and we do know your IP address only when you request the
-          server. Depending on your settings and your algod server or indexer,
-          the selected server also may know your IP address.
+          {{ $t("privacy.a3") }}
         </p>
       </AccordionTab>
-      <AccordionTab header="Does use of this service affect commercials I see?">
+      <AccordionTab :header="$t('privacy.q4')">
         <p>
-          No. Commercial servers do not have any information from us about any
-          usage. Only way how for example google may know you are using this
-          service is that you access this site from google search.
+          {{ $t("privacy.a4") }}
         </p>
       </AccordionTab>
-      <AccordionTab header="Who provides this service?">
+      <AccordionTab :header="$t('privacy.q5')">
         <p>
-          Scholtz &amp; Company, jsa has created this service. If this is
-          running in official website provided by Scholtz &amp; Co, the company
-          is also service provider. The company is not liable for any service,
-          nor any errors in the application.
+          {{ $t("privacy.a5") }}
         </p>
       </AccordionTab>
     </Accordion>

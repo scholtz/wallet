@@ -2,9 +2,11 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
       <v-link class="navbar-brand" href="/" v-if="$store.state.config.LOGO"
-        ><img :src="$store.state.config.LOGO" alt="A Wallet" />
+        ><img :src="$store.state.config.LOGO" :alt="$t('navbar.logo')" />
       </v-link>
-      <v-link class="navbar-brand" href="/" v-else>A Wallet</v-link>
+      <v-link class="navbar-brand" href="/" v-else>{{
+        $t("navbar.logo")
+      }}</v-link>
 
       <button
         class="navbar-toggler"
@@ -13,14 +15,16 @@
         data-bs-target="#navbarSupportedContent"
         aria-controls="navbarSupportedContent"
         aria-expanded="false"
-        aria-label="Toggle navigation"
+        :aria-label="$t('navbar.toggle_nav')"
       >
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item active" v-if="$store.state.wallet.isOpen">
-            <v-link class="nav-link" href="/accounts">List my accounts</v-link>
+            <v-link class="nav-link" href="/accounts">{{
+              $t("navbar.list_accounts")
+            }}</v-link>
           </li>
           <li
             class="nav-item active"
@@ -33,23 +37,32 @@
             >
           </li>
           <li class="nav-item active" v-if="$store.state.wallet.isOpen">
-            <v-link class="nav-link" href="/new-account">New account</v-link>
+            <v-link class="nav-link" href="/new-account">{{
+              $t("navbar.new_account")
+            }}</v-link>
           </li>
           <li class="nav-item active" v-if="$store.state.wallet.isOpen">
-            <v-link class="nav-link" href="/settings">Settings</v-link>
-          </li>
-          <li class="nav-item active">
-            <v-link class="nav-link" href="/faq">FAQ</v-link>
-          </li>
-          <li class="nav-item active">
-            <v-link class="nav-link" href="/privacy-policy"
-              >Privacy policy</v-link
-            >
+            <v-link class="nav-link" href="/asset">{{
+              $t("navbar.asset")
+            }}</v-link>
           </li>
           <li class="nav-item active" v-if="$store.state.wallet.isOpen">
-            <v-link class="nav-link" href="/" @click="logoutClick"
-              >Logout</v-link
-            >
+            <v-link class="nav-link" href="/settings">{{
+              $t("navbar.settings")
+            }}</v-link>
+          </li>
+          <li class="nav-item active">
+            <v-link class="nav-link" href="/faq">{{ $t("navbar.faq") }}</v-link>
+          </li>
+          <li class="nav-item active">
+            <v-link class="nav-link" href="/privacy-policy">{{
+              $t("navbar.privacy_policy")
+            }}</v-link>
+          </li>
+          <li class="nav-item active" v-if="$store.state.wallet.isOpen">
+            <v-link class="nav-link" href="/" @click="logoutClick">{{
+              $t("navbar.logout")
+            }}</v-link>
           </li>
         </ul>
       </div>

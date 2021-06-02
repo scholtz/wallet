@@ -4,7 +4,7 @@
       {{ t }}
     </a>
     <div v-if="this.$store.state.wallet.isOpen" class="text-center">
-      Algo Wallet
+      {{ $t("footer.text") }}
     </div>
   </footer>
 </template>

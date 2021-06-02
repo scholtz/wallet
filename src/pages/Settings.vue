@@ -1,39 +1,43 @@
 <template>
   <main-layout>
-    <h1>Settings</h1>
-    <h2>Server</h2>
-    <label for="env">Environment</label>
+    <h1>{{ $t("settings.title") }}</h1>
+    <h2>{{ $t("settings.server") }}</h2>
+    <label for="env">{{ $t("settings.environment") }}</label>
     <select id="env" v-model="env" class="form-control">
-      <option value="mainnet">Mainnet</option>
-      <option value="testnet">Testnet</option>
-      <option value="sandbox">Sandbox</option>
+      <option value="mainnet">{{ $t("settings.mainnet") }}</option>
+      <option value="testnet">{{ $t("settings.testnet") }}</option>
+      <option value="sandbox">{{ $t("settings.sandbox") }}</option>
     </select>
-    <p>AlgoD host: {{ $store.state.config.algod }}</p>
-    <p>AlgoD Token: {{ $store.state.config.algodToken }}</p>
-    <p>KMD host: {{ $store.state.config.kmd }}</p>
-    <p>KMD Token: {{ $store.state.config.kmdToken }}</p>
-    <p>Indexer host: {{ $store.state.config.indexer }}</p>
-    <p>Indexer Token: {{ $store.state.config.indexerToken }}</p>
-    <h2>Wallet password</h2>
+    <p>AlgoD {{ $t("settings.host") }}: {{ $store.state.config.algod }}</p>
+    <p>
+      AlgoD {{ $t("settings.token") }}: {{ $store.state.config.algodToken }}
+    </p>
+    <p>KMD {{ $t("settings.host") }}: {{ $store.state.config.kmd }}</p>
+    <p>KMD {{ $t("settings.token") }}: {{ $store.state.config.kmdToken }}</p>
+    <p>Indexer {{ $t("settings.host") }}: {{ $store.state.config.indexer }}</p>
+    <p>
+      Indexer {{ $t("settings.token") }}: {{ $store.state.config.indexerToken }}
+    </p>
+    <h2>{{ $t("settings.pass") }}</h2>
     <form @submit="changePasswordClick">
-      <label>Old password</label>
+      <label>{{ $t("settings.oldpass") }}</label>
       <input type="password" class="form-control my-2" v-model="passw1" />
       <label
-        >New password
+        >{{ $t("settings.newpass") }}
         <span v-if="strength" :class="strengthClass">{{
           strength
         }}</span></label
       >
       <input type="password" class="form-control my-2" v-model="passw2" />
-      <label>New password - repeat</label>
+      <label>{{ $t("settings.repeatpass") }}</label>
       <input type="password" class="form-control my-2" v-model="passw3" />
       <input type="submit" class="btn btn-light my-2" value="Update password" />
     </form>
-    <h2>Backup wallet</h2>
-    <p>You can backup wallet and import to other computer.</p>
+    <h2>{{ $t("settings.backup") }}</h2>
+    <p>{{ $t("settings.backup_help") }}</p>
     <p>
       <a v-if="!b64wallet" @click="makeBackupDataClick" class="btn btn-light">
-        Create backup
+        {{ $t("settings.create_backup") }}
       </a>
       <a
         v-if="b64wallet"
@@ -42,14 +46,14 @@
         target="_blank"
         class="btn btn-primary"
       >
-        Download
+        {{ $t("settings.download") }}
       </a>
       <a
         v-if="b64wallet"
         @click="destroyWalletClick"
         class="btn btn-danger mx-2"
       >
-        Delete the wallet
+        {{ $t("settings.delete") }}
       </a>
     </p></main-layout
   >
@@ -74,10 +78,18 @@ export default {
     env() {
       console.log("this.env", this.env);
       if (this.env == "mainnet") {
-        this.setHosts({ algod: "?", kmd: "?", indexer: "?" });
+        this.setHosts({
+          algod: "https://algoexplorerapi.io",
+          kmd: "?",
+          indexer: "https://algoexplorerapi.io/idx2",
+        });
       }
       if (this.env == "testnet") {
-        this.setHosts({ algod: "?", kmd: "?", indexer: "?" });
+        this.setHosts({
+          algod: "https://testnet.algoexplorerapi.io",
+          kmd: "?",
+          indexer: "https://testnet.algoexplorerapi.io/idx2",
+        });
       }
       if (this.env == "sandbox") {
         this.setHosts({
@@ -113,8 +125,7 @@ export default {
     strength() {
       if (!this.passw2) return "";
       const ret = passwordStrength(this.passw2);
-      console.log("ret", ret);
-      return "Strength: " + ret.value;
+      return this.$t("strength") + ": " + ret.value;
     },
   },
   components: {
@@ -136,7 +147,7 @@ export default {
         passw3: this.passw3,
       });
       if (result) {
-        alert("Password has been updated");
+        alert(this.$t("settings.updated_password"));
       }
     },
     async makeBackupDataClick() {

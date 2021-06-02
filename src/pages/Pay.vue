@@ -1,27 +1,27 @@
 <template>
   <main-layout>
     <form @submit="previewPaymentClick" v-if="page == 'design'">
-      <h1>Make payment - from {{ account.name }}</h1>
-      <p>Selected account: {{ account.addr }}</p>
+      <h1>{{ $t("pay.title") }} {{ account.name }}</h1>
+      <p>{{ $t("pay.selected_account") }}: {{ account.addr }}</p>
       <div v-if="isMultisig && !subpage">
-        <h2>Multisignature account</h2>
+        <h2>{{ $t("pay.multisig_account") }}</h2>
         <button class="btn btn-primary my-2" @click="subpage = 'proposal'">
-          Create proposal
+          {{ $t("pay.create_proposal") }}
         </button>
         <button class="btn btn-primary m-2" @click="subpage = 'sign'">
-          Sign &amp; send proposal
+          {{ $t("pay.sign_proposal") }}
         </button>
       </div>
       <div class="row" v-if="subpage == 'sign'">
         <div class="col-12">
-          <p>Please enter signature from your friend here:</p>
+          <p>{{ $t("pay.signature_from_friend") }}:</p>
           <textarea
             class="form-control my-2"
             v-model="rawSignedTxnInput"
             rows="8"
           ></textarea>
           <button class="btn btn-primary my-2" @click="loadMultisig">
-            Load multisignature data
+            {{ $t("pay.load_multisig_data") }}
           </button>
         </div>
       </div>
@@ -34,7 +34,8 @@
                 :class="genericaccount ? '' : 'active'"
                 @click="genericaccount = false"
                 href="#"
-                >Pay to wallet account</a
+              >
+                {{ $t("pay.pay_to_wallet") }}</a
               >
             </li>
             <li class="nav-item">
@@ -43,7 +44,7 @@
                 :class="genericaccount ? 'active' : ''"
                 @click="genericaccount = true"
                 href="#"
-                >Pay to other account</a
+                >{{ $t("pay.pay_to_other") }}</a
               >
             </li>
           </ul>
@@ -64,11 +65,26 @@
             </option>
           </select>
           <p v-if="genericaccount">
-            It is better to store tha account to which you are sending money in
-            the address book
+            {{ $t("pay.store_other_help") }}
           </p>
 
-          <label for="payamount">Amount</label>
+          <label for="asset">{{ $t("pay.asset") }}</label>
+          <select id="asset" class="form-control" v-model="asset">
+            <option
+              v-for="asset in assets"
+              :key="asset['asset-id']"
+              :value="asset['asset-id']"
+            >
+              {{ asset["name"] }} ({{
+                $filters.formatCurrency(
+                  asset["amount"],
+                  asset["name"],
+                  asset["decimals"]
+                )
+              }})
+            </option>
+          </select>
+          <label for="payamount">{{ $t("pay.amount") }}</label>
           <input
             v-model="payamount"
             id="payamount"
@@ -89,7 +105,7 @@
             class="form-control"
           />
 
-          <label for="paynote">Note</label>
+          <label for="paynote">{{ $t("pay.note") }}</label>
           <input v-model="paynote" id="paynote" class="form-control" />
 
           <input
@@ -114,81 +130,81 @@
       </div>
     </form>
     <form @submit="payPaymentClick" v-if="page == 'review'">
-      <h1>Review payment</h1>
-      <p>Please review your payment</p>
+      <h1>{{ $t("pay.review_payment") }}</h1>
+      <p>{{ $t("pay.review_payment_help") }}</p>
       <table class="table" v-if="!multisigDecoded.txn">
         <tr>
-          <th>From account:</th>
+          <th>{{ $t("pay.from_account") }}:</th>
           <td>{{ $route.params.account }}</td>
         </tr>
         <tr>
-          <th>Pay to account:</th>
+          <th>{{ $t("pay.pay_to") }}:</th>
           <td>{{ payto }}</td>
         </tr>
         <tr>
-          <th>Note:</th>
+          <th>{{ $t("pay.note") }}:</th>
           <td>{{ paynote }}</td>
         </tr>
         <tr>
-          <th>Amount:</th>
+          <th>{{ $t("pay.amount") }}:</th>
           <td>{{ $filters.formatCurrency(amountLong) }}</td>
         </tr>
         <tr>
-          <th>Fee:</th>
+          <th>{{ $t("pay.fee") }}:</th>
           <td>{{ $filters.formatCurrency(feeLong) }}</td>
         </tr>
         <tr>
-          <th>Total:</th>
+          <th>{{ $t("pay.total") }}:</th>
           <td>{{ $filters.formatCurrency(amountLong + feeLong) }}</td>
         </tr>
       </table>
 
       <div v-if="multisigDecoded.txn">
-        <h2>Transaction details</h2>
+        <h2>{{ $t("pay.transaction_details") }}</h2>
         <table class="table">
           <tr>
-            <th>type</th>
+            <th>{{ $t("pay.type") }}</th>
             <td>{{ multisigDecoded.txn.type }}</td>
           </tr>
           <tr>
-            <th>name</th>
+            <th>{{ $t("pay.name") }}</th>
             <td>{{ multisigDecoded.txn.name }}</td>
           </tr>
           <tr>
-            <th>Amount</th>
+            <th>{{ $t("pay.amount") }}</th>
             <td>{{ multisigDecoded.txn.amount }}</td>
           </tr>
           <tr>
-            <th>Fee</th>
+            <th>{{ $t("pay.fee") }}</th>
             <td>{{ multisigDecoded.txn.fee }}</td>
           </tr>
           <tr>
-            <th>FirstRound</th>
+            <th>{{ $t("pay.first_round") }}</th>
             <td>{{ multisigDecoded.txn.firstRound }}</td>
           </tr>
           <tr>
-            <th>LastRound</th>
+            <th>{{ $t("pay.last_round") }}</th>
             <td>{{ multisigDecoded.txn.lastRound }}</td>
           </tr>
           <tr>
-            <th>genesisID</th>
+            <th>{{ $t("pay.genesis") }}</th>
             <td>{{ multisigDecoded.txn.genesisID }}</td>
           </tr>
           <tr>
-            <th>note</th>
+            <th>{{ $t("pay.note") }}</th>
             <td>{{ multisigDecoded.txn.note }}</td>
           </tr>
           <tr>
-            <th>tag</th>
+            <th>{{ $t("pay.tag") }}</th>
             <td>{{ multisigDecoded.txn.tag }}</td>
           </tr>
           <tr>
-            <th>to</th>
+            <th>{{ $t("pay.to_account") }}</th>
             <td>{{ encodeAddress(multisigDecoded.txn.to.publicKey) }}</td>
           </tr>
         </table>
 
-        <h2>Signatures</h2>
+        <h2>{{ $t("pay.signatures") }}</h2>
         <table class="table">
           <tr v-for="sig in multisigDecoded.msig.subsig" :key="sig">
             <th>
@@ -200,8 +216,12 @@
               }}</span>
             </th>
             <td>
-              <span v-if="sig.s" class="badge bg-success">Signed</span
-              ><span v-if="!sig.s" class="badge bg-danger">Not signed</span>
+              <span v-if="sig.s" class="badge bg-success">{{
+                $t("pay.signed")
+              }}</span
+              ><span v-if="!sig.s" class="badge bg-danger">{{
+                $t("pay.not_signed")
+              }}</span>
             </td>
           </tr>
         </table>
@@ -231,7 +251,7 @@
         rows="5"
       ></textarea>
       <div v-if="isMultisig && multisigDecoded.txn">
-        <label>Sign with</label>
+        <label>{{ $t("pay.sign_with") }}</label>
         <select class="form-control" v-model="signMultisigWith" multiple>
           <option
             v-for="option in accountsFromMultisig"
@@ -246,9 +266,9 @@
           @click="signMultisig"
           :disabled="signMultisigWith.length == 0"
         >
-          Sign
+          {{ $t("pay.sign") }}
         </button>
-        <p v-if="rawSignedTxn">Send this data to other signators:</p>
+        <p v-if="rawSignedTxn">{{ $t("pay.send_to_other_signators") }}:</p>
         <textarea
           class="form-control my-2"
           v-if="rawSignedTxn"
@@ -260,7 +280,7 @@
           @click="sendMultisig"
           :disabled="!rawSignedTxn && !rawSignedTxnInput"
         >
-          Send to the network
+          {{ $t("pay.send_to_network") }}
         </button>
       </div>
       <div
@@ -272,7 +292,7 @@
           accountsFromMultisig.length > 0
         "
       >
-        <label>Sign with</label>
+        <label>{{ $t("pay.sign_with") }}</label>
         <select class="form-control" v-model="signMultisigWith" multiple>
           <option
             v-for="option in accountsFromMultisig"
@@ -287,9 +307,9 @@
           @click="signMultisig"
           :disabled="signMultisigWith.length == 0"
         >
-          Sign
+          {{ $t("pay.sign") }}
         </button>
-        <p v-if="rawSignedTxn">Send this data to other signators:</p>
+        <p v-if="rawSignedTxn">{{ $t("pay.send_to_other_signators") }}:</p>
         <textarea
           class="form-control my-2"
           v-if="rawSignedTxn"
@@ -304,7 +324,7 @@
           role="status"
           aria-hidden="true"
         ></span>
-        Sending payment to to the network
+        {{ $t("pay.state_sending") }}
       </p>
       <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
         <span
@@ -312,15 +332,16 @@
           role="status"
           aria-hidden="true"
         ></span>
-        Payment sent to the network. Tx: {{ tx }}. Waiting for network
-        confirmation.
+        {{ $t("pay.state_sent") }}: {{ tx }}.
+        {{ $t("pay.state_waiting_confirm") }}
       </p>
       <p v-if="confirmedRound" class="alert alert-success my-2">
-        Confirmation has been received. Your payment is in the block
-        <b>{{ confirmedRound }}</b
-        >. Transaction: {{ tx }}.
+        {{ $t("pay.state_confirmed") }} <b>{{ confirmedRound }}</b
+        >. {{ $t("pay.transaction") }}: {{ tx }}.
       </p>
-      <p v-if="error" class="alert alert-danger my-2">Error: {{ error }}</p>
+      <p v-if="error" class="alert alert-danger my-2">
+        {{ $t("pay.error") }}: {{ error }}
+      </p>
     </form>
   </main-layout>
 </template>
@@ -352,6 +373,8 @@ export default {
       rawSignedTxnInput: null,
       signMultisigWith: [],
       multisigDecoded: {},
+      assets: [],
+      asset: "",
     };
   },
   computed: {
@@ -384,9 +407,16 @@ export default {
       );
     },
   },
-  mounted() {
+  watch: {
+    account() {
+      this.makeAssets();
+    },
+  },
+  async mounted() {
     this.payto = this.$store.state.wallet.lastPayTo;
     this.lastActiveAccount({ addr: this.$route.params.account });
+    console.log("account", this.account);
+    await this.makeAssets();
   },
   methods: {
     ...mapActions({
@@ -397,7 +427,36 @@ export default {
       getTransactionParams: "algod/getTransactionParams",
       sendRawTransaction: "algod/sendRawTransaction",
       getSK: "wallet/getSK",
+      getAsset: "indexer/getAsset",
     }),
+    async makeAssets() {
+      this.assets = [];
+      if (this.account && this.account.amount > 0) {
+        this.assets.push({
+          "asset-id": "",
+          amount: this.account.amount,
+          name: "ALG",
+          decimals: 6,
+          "unit-name": "",
+        });
+      }
+      if (this.account) {
+        for (let index in this.account.assets) {
+          const asset = await this.getAsset({
+            assetIndex: this.account.assets[index]["asset-id"],
+          });
+          console.log("asset", asset);
+          this.assets.push({
+            "asset-id": this.account.assets[index]["asset-id"],
+            amount: this.account.assets[index]["amount"],
+            name: asset["name"],
+            decimals: asset["decimals"],
+            "unit-name": asset["unit-name"],
+          });
+        }
+      }
+      console.log("this.assets", this.assets);
+    },
     reset() {
       this.subpage = "";
       this.error = "";
@@ -536,8 +595,8 @@ export default {
         });
         if (!confirmation) {
           this.processing = false;
-          this.error =
-            "Payment has probably not reached the network. Are you offline? Please check you account";
+          this.error = this.$t("state_error_not_sent");
+          //            "Payment has probably not reached the network. Are you offline? Please check you account";
           return;
         }
         if (confirmation["confirmed-round"]) {
@@ -583,8 +642,8 @@ export default {
         });
         if (!confirmation) {
           this.processing = false;
-          this.error =
-            "Payment has probably not reached the network. Are you offline? Please check you account";
+          this.error = this.$t("state_error_not_sent");
+          // "Payment has probably not reached the network. Are you offline? Please check you account";
           return;
         }
         if (confirmation["confirmed-round"]) {

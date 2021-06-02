@@ -1,57 +1,210 @@
 <template>
   <MainLayout>
-    <h1>Transaction detail</h1>
+    <h1>{{ $t("transaction.title") }}</h1>
     <table class="table" v-if="transaction">
       <tr>
-        <th>ID:</th>
+        <th>{{ $t("transaction.tr_id") }}:</th>
         <td>{{ transaction["id"] }}</td>
       </tr>
       <tr>
-        <th>tx-type:</th>
+        <th>{{ $t("transaction.tr_id") }}:</th>
+        <td>{{ $filters.formatDateTime(transaction["round-time"]) }}</td>
+      </tr>
+      <tr>
+        <th>{{ $t("transaction.tr_type") }}:</th>
         <td>{{ transaction["tx-type"] }}</td>
       </tr>
       <tr>
-        <th>close-rewards:</th>
+        <th>{{ $t("transaction.created_asset") }}:</th>
+        <td>{{ transaction["created-asset-index"] }}</td>
+      </tr>
+      <tr v-if="transaction['asset-config-transaction']">
+        <th>{{ $t("transaction.asset_name") }}:</th>
+        <td>{{ transaction["asset-config-transaction"]["params"]["name"] }}</td>
+      </tr>
+      <tr v-if="transaction['asset-config-transaction']">
+        <th>{{ $t("transaction.asset_creator") }}:</th>
+        <td>
+          <router-link
+            v-if="
+              transaction['asset-config-transaction'] &&
+              transaction['asset-config-transaction']['params'] &&
+              transaction['asset-config-transaction']['params']['creator']
+            "
+            :to="
+              '/account/' +
+              transaction['asset-config-transaction']['params']['creator']
+            "
+            class="btn btn-xs btn-light"
+            >{{
+              transaction["asset-config-transaction"]["params"]["creator"]
+            }}</router-link
+          >
+        </td>
+      </tr>
+      <tr v-if="transaction['asset-config-transaction']">
+        <th>{{ $t("transaction.asset_manager") }}:</th>
+        <td>
+          <router-link
+            v-if="
+              transaction['asset-config-transaction'] &&
+              transaction['asset-config-transaction']['params'] &&
+              transaction['asset-config-transaction']['params']['manager']
+            "
+            :to="
+              '/account/' +
+              transaction['asset-config-transaction']['params']['manager']
+            "
+            class="btn btn-xs btn-light"
+            >{{
+              transaction["asset-config-transaction"]["params"]["manager"]
+            }}</router-link
+          >
+        </td>
+      </tr>
+      <tr v-if="transaction['asset-config-transaction']">
+        <th>{{ $t("transaction.asset_reserve") }}:</th>
+        <td>
+          <router-link
+            v-if="
+              transaction['asset-config-transaction'] &&
+              transaction['asset-config-transaction']['params'] &&
+              transaction['asset-config-transaction']['params']['reserve']
+            "
+            :to="
+              '/account/' +
+              transaction['asset-config-transaction']['params']['reserve']
+            "
+            class="btn btn-xs btn-light"
+            >{{
+              transaction["asset-config-transaction"]["params"]["reserve"]
+            }}</router-link
+          >
+        </td>
+      </tr>
+      <tr v-if="transaction['asset-config-transaction']">
+        <th>{{ $t("transaction.asset_freeze") }}:</th>
+        <td>
+          <router-link
+            v-if="
+              transaction['asset-config-transaction'] &&
+              transaction['asset-config-transaction']['params'] &&
+              transaction['asset-config-transaction']['params']['freeze']
+            "
+            :to="
+              '/account/' +
+              transaction['asset-config-transaction']['params']['freeze']
+            "
+            class="btn btn-xs btn-light"
+            >{{
+              transaction["asset-config-transaction"]["params"]["freeze"]
+            }}</router-link
+          >
+        </td>
+      </tr>
+      <tr v-if="transaction['asset-config-transaction']">
+        <th>{{ $t("transaction.asset_clawback") }}:</th>
+        <td>
+          <router-link
+            v-if="
+              transaction['asset-config-transaction'] &&
+              transaction['asset-config-transaction']['params'] &&
+              transaction['asset-config-transaction']['params']['clawback']
+            "
+            :to="
+              '/account/' +
+              transaction['asset-config-transaction']['params']['clawback']
+            "
+            class="btn btn-xs btn-light"
+            >{{
+              transaction["asset-config-transaction"]["params"]["clawback"]
+            }}</router-link
+          >
+        </td>
+      </tr>
+      <tr v-if="transaction['asset-config-transaction']">
+        <th>{{ $t("transaction.asset_unitName") }}:</th>
+        <td>
+          {{ transaction["asset-config-transaction"]["params"]["unit-name"] }}
+        </td>
+      </tr>
+      <tr v-if="transaction['asset-config-transaction']">
+        <th>{{ $t("transaction.asset_total") }}:</th>
+        <td>
+          {{ transaction["asset-config-transaction"]["params"]["total"] }}
+          {{ transaction["asset-config-transaction"]["params"]["unit-name"] }}
+        </td>
+      </tr>
+      <tr v-if="transaction['asset-config-transaction']">
+        <th>{{ $t("transaction.asset_decimals") }}:</th>
+        <td>
+          {{ transaction["asset-config-transaction"]["params"]["decimals"] }}
+        </td>
+      </tr>
+      <tr v-if="transaction['asset-config-transaction']">
+        <th>{{ $t("transaction.asset_defaultfrozen") }}:</th>
+        <td>
+          {{
+            transaction["asset-config-transaction"]["params"]["default-frozen"]
+          }}
+        </td>
+      </tr>
+      <tr v-if="transaction['asset-config-transaction']">
+        <th>{{ $t("transaction.asset_url") }}:</th>
+        <td>
+          {{ transaction["asset-config-transaction"]["params"]["url"] }}
+        </td>
+      </tr>
+      <tr v-if="transaction['asset-config-transaction']">
+        <th>{{ $t("transaction.asset_metadata") }}:</th>
+        <td>
+          {{
+            transaction["asset-config-transaction"]["params"]["metadata-hash"]
+          }}
+        </td>
+      </tr>
+      <tr>
+        <th>{{ $t("transaction.tr_close_rewards") }}:</th>
         <td>{{ $filters.formatCurrency(transaction["close-rewards"]) }}</td>
       </tr>
       <tr>
-        <th>closing-amount:</th>
+        <th>{{ $t("transaction.closing_amount") }}:</th>
         <td>{{ $filters.formatCurrency(transaction["closing-amount"]) }}</td>
       </tr>
       <tr>
-        <th>confirmed-round:</th>
+        <th>{{ $t("transaction.confirmed_round") }}:</th>
         <td>{{ transaction["confirmed-round"] }}</td>
       </tr>
       <tr>
-        <th>fee:</th>
+        <th>{{ $t("transaction.fee") }}:</th>
         <td>{{ $filters.formatCurrency(transaction["fee"]) }}</td>
       </tr>
       <tr>
-        <th>first-valid:</th>
+        <th>{{ $t("transaction.first_valid") }}:</th>
         <td>{{ transaction["first-valid"] }}</td>
       </tr>
       <tr>
-        <th>genesis-id:</th>
+        <th>{{ $t("transaction.genesis_id") }}:</th>
         <td>{{ transaction["genesis-id"] }}</td>
       </tr>
       <tr>
-        <th>genesis-hash:</th>
+        <th>{{ $t("transaction.genesis_hash") }}:</th>
         <td>{{ transaction["genesis-hash"] }}</td>
       </tr>
       <tr>
-        <th>intra-round-offset:</th>
+        <th>{{ $t("transaction.intra_round") }}:</th>
         <td>{{ transaction["intra-round-offset"] }}</td>
       </tr>
       <tr>
-        <th>last-valid:</th>
+        <th>{{ $t("transaction.last_valid") }}:</th>
         <td>{{ transaction["last-valid"] }}</td>
       </tr>
-      <tr>
-        <th>payment-transaction:</th>
+      <tr v-if="transaction['payment-transaction']">
+        <th>{{ $t("transaction.amount") }}:</th>
         <td>{{ transaction["payment-transaction"]["amount"] }}</td>
       </tr>
-      <tr>
-        <th>close-amount:</th>
+      <tr v-if="transaction['payment-transaction']">
+        <th>{{ $t("transaction.close_amount") }}:</th>
         <td>
           {{
             $filters.formatCurrency(
@@ -60,8 +213,8 @@
           }}
         </td>
       </tr>
-      <tr>
-        <th>receiver:</th>
+      <tr v-if="transaction['payment-transaction']">
+        <th>{{ $t("transaction.receiver") }}:</th>
         <td>
           <router-link
             :to="'/account/' + transaction['payment-transaction']['receiver']"
@@ -71,15 +224,11 @@
         </td>
       </tr>
       <tr>
-        <th>receiver-rewards:</th>
+        <th>{{ $t("transaction.receiver_rewards") }}:</th>
         <td>{{ $filters.formatCurrency(transaction["receiver-rewards"]) }}</td>
       </tr>
       <tr>
-        <th>round-time:</th>
-        <td>{{ $filters.formatDateTime(transaction["round-time"]) }}</td>
-      </tr>
-      <tr>
-        <th>sender:</th>
+        <th>{{ $t("transaction.sender") }}:</th>
         <td>
           <router-link
             :to="'/account/' + transaction['sender']"
@@ -89,11 +238,11 @@
         </td>
       </tr>
       <tr>
-        <th>sender-rewards:</th>
+        <th>{{ $t("transaction.sender_rewards") }}:</th>
         <td>{{ $filters.formatCurrency(transaction["sender-rewards"]) }}</td>
       </tr>
       <tr>
-        <th>signature:</th>
+        <th>{{ $t("transaction.signature") }}:</th>
         <td>{{ transaction["signature"]["sig"] }}</td>
       </tr>
     </table>

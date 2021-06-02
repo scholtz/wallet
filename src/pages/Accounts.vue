@@ -1,6 +1,6 @@
 <template>
   <main-layout>
-    <h1>Accounts overview</h1>
+    <h1>{{ $t("accounts.title") }}</h1>
 
     <DataTable
       :value="accounts"
@@ -10,33 +10,47 @@
       :paginator="true"
       :rows="20"
     >
-      <template #empty> No records found </template>
-      <Column field="name" header="Account name" :sortable="true"></Column>
-      <Column field="amount" header="Amount" :sortable="true">
+      <template #empty> {{ $t("accounts.no_accounts") }} </template>
+      <Column
+        field="name"
+        :header="$t('accounts.account_name')"
+        :sortable="true"
+      ></Column>
+      <Column field="amount" :header="$t('accounts.amount')" :sortable="true">
         <template #body="slotProps">
-          <div class="text-end">
+          <div
+            class="text-end"
+            v-if="slotProps.column.props.field in slotProps.data"
+          >
             {{
               $filters.formatCurrency(
                 slotProps.data[slotProps.column.props.field]
               )
             }}
           </div>
+          <div v-else>-</div>
         </template>
       </Column>
-      <Column field="addr" header="Address" :sortable="true"></Column>
+      <Column
+        field="addr"
+        :header="$t('accounts.address')"
+        :sortable="true"
+      ></Column>
 
       <Column header="Type" :sortable="true">
         <template #body="slotProps">
           <div class="badge bg-primary" v-if="slotProps.data.sk">
-            Basic account
+            {{ $t("acc_type.basic_account") }}
           </div>
           <div
             class="badge bg-warning text-dark"
             v-else-if="slotProps.data.params"
           >
-            Multisignature account
+            {{ $t("acc_type.multisig_account") }}
           </div>
-          <div class="badge bg-info text-dark" v-else>Public account</div>
+          <div class="badge bg-info text-dark" v-else>
+            {{ $t("acc_type.public_account") }}
+          </div>
         </template>
       </Column>
       <Column>
@@ -45,7 +59,7 @@
             v-if="slotProps.data.sk || slotProps.data.params"
             :to="'/accounts/pay/' + slotProps.data.addr"
             class="btn btn-light btn-xs"
-            >Pay</router-link
+            >{{ $t("accounts.pay") }}</router-link
           >
         </template>
       </Column>
