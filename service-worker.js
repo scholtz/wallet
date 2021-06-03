@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/precache-manifest.d1a3b70aea9d474ea9156a98a4794dc6.js"
+  "/precache-manifest.19b23702e4d33d31bf7e9edbfbabd311.js"
 );
 
 workbox.core.setCacheNameDetails({prefix: "wallet"});
