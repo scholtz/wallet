@@ -27,4 +27,4 @@ jobs:
           host: ${{ secrets.HOST }}
           user: ${{ secrets.GHLOGIN }}
           port: ${{ secrets.HOSTPORT }}
-          key: ${{ secrets.GHPASS }}
+          key: ${{ secrets.SSHKEY }}
