@@ -22,8 +22,7 @@ jobs:
         uses: fifsky/ssh-action@master
         with:
           command: |
-            cd /srv/www/vhosts/scholtz.sk
-            wallet.sh
+            /srv/www/vhosts/scholtz.sk/wallet.sh
           host: ${{ secrets.HOST }}
           user: ${{ secrets.GHLOGIN }}
           port: ${{ secrets.HOSTPORT }}
