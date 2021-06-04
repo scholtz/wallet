@@ -25,9 +25,9 @@
               :value="$t('import.import_wallet_button')"
               :disabled="!name || !file"
             />
-            <a href="/" class="btn btn-light mx-2">{{
+            <router-link to="/" class="btn btn-light mx-2">{{
               $t("global.go_home")
-            }}</a>
+            }}</router-link>
             <p class="my-2">
               {{ $t("import.help") }}
             </p>

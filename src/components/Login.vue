@@ -27,9 +27,9 @@
             class="btn btn-primary"
             :value="$t('login.new_wallet_button_create')"
           />
-          <a href="/import-wallet" class="btn btn-light mx-2">{{
+          <router-link to="/import-wallet" class="btn btn-light mx-2">{{
             $t("login.new_wallet_button_import")
-          }}</a>
+          }}</router-link>
           <button
             class="btn btn-light mx-2"
             @click="this.newWalletForm = false"
