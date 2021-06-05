@@ -31,6 +31,7 @@
     "new_account":"New account",
     "settings":"Settings",
     "asset":"Asset",
+    "asset_create":"Create NTF",
     "faq":"FAQ",
     "privacy_policy":"Privacy policy",
     "logout":"Logout"
@@ -103,7 +104,7 @@
     "wallet_file":"Wallet file",
     "import_wallet_button":"Import wallet",
     "help":"You can import previously exported wallets. Wallet password stays within the exported file, so you can access it after the import with the same password as before. You can change the password after login from the settings page."
-    
+
   },
   "acc_type":{
     "basic_account":"Basic account",
@@ -222,6 +223,27 @@
     "q5":"Who provides this service?",
     "a5":"Scholtz &amp; Company, jsa has created this service. If this is running in official website provided by Scholtz &amp; Co, the company is also service provider. The company is not liable for any service, nor any errors in the application."
   },
+"assetcreate":{
+  "title":"New NTF / ASA",
+  "show_advanced":"Show advanced form",
+  "assetName":"Friendly name",
+  "creator":"Creator address",
+  "hide_advanced":"Hide advanced form",
+  "creator_not_found":"Create address or import address first",
+  "default_fronzen":"Frozen : User accounts will need to be unfrozen before transacting",
+  "decimals":"Decimals: integer number of decimals for asset unit calculation",
+  "totalIssuance":"Total number of this asset available for circulation",
+  "unitName":"Used to display asset units to user",
+  "assetURL":"Optional string pointing to a URL relating to the asset",
+  "assetMetadataHash":"Optional hash commitment of some sort relating to the asset. 32 character length.",
+  "manager":"Manager can modify manager, reserve, freeze, and clawback account for the asset.",
+  "reserve":"Reserve address: Specified address is considered the asset reserve (it has no special privileges, this is only informational)",
+  "freeze":"Freeze address: Specified address can freeze or unfreeze user asset holdings",
+  "clawback":"Clawback address: Specified address can revoke user asset holdings and send them to other addresses",
+  "note":"Note set in the create transaction",
+  "create_button":"Create NFT / ASA"
+},
+
   "faq":{
     "title":"Frequently asked questions",
     "q1":"About the wallet",

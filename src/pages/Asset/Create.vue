@@ -9,19 +9,20 @@
           @click="advanced = true"
           v-if="!advanced"
         >
-          Show advanced form
+        {{ $t("assetcreate.show_advanced") }}
+
         </button>
         <button
           class="btn btn-light btn-xs"
           @click="advanced = false"
           v-if="advanced"
         >
-          Hide advanced form
+          {{ $t("assetcreate.hide_advanced") }}
         </button>
       </h1>
 
       <label for="assetName" class="m-1"
-        >{{ $t("assetcreate.assetName") }} Friendly name of the asset</label
+        >{{ $t("assetcreate.assetName") }}</label
       >
       <input
         v-model="asset.assetName"
@@ -29,12 +30,10 @@
         class="form-control m-1"
       />
       <label for="addr " class="m-1"
-        >{{ $t("assetcreate.addr") }} Asset creation specific parameters // The
-        following parameters are asset specific // Throughout the example these
-        will be re-used. // We will also change the manager later in the example
+        >{{ $t("assetcreate.creator") }}
       </label>
-
-      <select class="select form-control m-1" v-model="asset.addr">
+      <div v-if="accountsWithPrivateKey || accountsWithPrivateKey.length == 0" class="alert alert-danger">{{$t('assetcreate.creator_not_found')}}</div>
+      <select v-if="accountsWithPrivateKey && accountsWithPrivateKey.length > 0" class="select form-control m-1" v-model="asset.addr">
         <option
           v-for="option in accountsWithPrivateKey"
           :key="option.addr"
@@ -51,13 +50,11 @@
           id="defaultFrozen"
         />
         <label class="form-check-label" for="defaultFrozen">
-          {{ $t("assetcreate.default_fronzen") }} Whether user accounts will
-          need to be unfrozen before transacting
+          {{ $t("assetcreate.default_fronzen") }}
         </label>
       </div>
       <label for="decimals" class="m-1" v-if="advanced"
-        >{{ $t("assetcreate.decimals") }} integer number of decimals for asset
-        unit calculation</label
+        >{{ $t("assetcreate.decimals") }} </label
       >
       <input
         v-if="advanced"
@@ -69,8 +66,7 @@
         step="1"
       />
       <label for="totalIssuance" class="m-1"
-        >{{ $t("assetcreate.totalIssuance") }} total number of this asset
-        available for circulation</label
+        >{{ $t("assetcreate.totalIssuance") }} </label
       >
       <input
         v-model="asset.totalIssuance"
@@ -81,8 +77,7 @@
         step="1"
       />
       <label for="unitName" class="m-1" v-if="advanced"
-        >{{ $t("assetcreate.unitName") }} Used to display asset units to
-        user</label
+        >{{ $t("assetcreate.unitName") }} </label
       >
       <input
         v-model="asset.unitName"
@@ -91,8 +86,7 @@
         v-if="advanced"
       />
       <label for="assetURL" class="m-1" v-if="advanced"
-        >{{ $t("assetcreate.assetURL") }} Optional string pointing to a URL
-        relating to the asset</label
+        >{{ $t("assetcreate.assetURL") }} </label
       >
       <input
         v-model="asset.assetURL"
@@ -101,8 +95,7 @@
         v-if="advanced"
       />
       <label for="assetMetadataHash" class="m-1" v-if="advanced"
-        >{{ $t("assetcreate.assetMetadataHash") }} Optional hash commitment of
-        some sort relating to the asset. 32 character length.</label
+        >{{ $t("assetcreate.assetMetadataHash") }} </label
       >
       <input
         v-if="advanced"
@@ -112,10 +105,7 @@
       />
 
       <label for="manager " class="m-1" v-if="advanced"
-        >{{ $t("assetcreate.manager") }} The following parameters are the only
-        ones // that can be changed, and they have to be changed // by the
-        current manager // Specified address can change reserve, freeze,
-        clawback, and manager
+        >{{ $t("assetcreate.manager") }}
       </label>
       <select
         class="select form-control m-1"
@@ -131,8 +121,7 @@
         </option>
       </select>
       <label for="reserve " class="m-1" v-if="advanced"
-        >{{ $t("assetcreate.reserve") }} Specified address is considered the
-        asset reserve (it has no special privileges, this is only informational)
+        >{{ $t("assetcreate.reserve") }}
       </label>
       <select
         class="select form-control m-1"
@@ -148,8 +137,7 @@
         </option>
       </select>
       <label for="freeze " class="m-1" v-if="advanced"
-        >{{ $t("assetcreate.freeze") }} Specified address can freeze or unfreeze
-        user asset holdings
+        >{{ $t("assetcreate.freeze") }}
       </label>
       <select
         class="select form-control m-1"
@@ -165,8 +153,7 @@
         </option>
       </select>
       <label for="clawback " class="m-1" v-if="advanced"
-        >{{ $t("assetcreate.clawback") }} Specified address can revoke user
-        asset holdings and send them to other addresses
+        >{{ $t("assetcreate.clawback") }}
       </label>
       <select
         class="select form-control m-1"
@@ -182,7 +169,7 @@
         </option>
       </select>
       <label for="note" class="m-1" v-if="advanced"
-        >{{ $t("assetcreate.note") }} Note set in the create transaction</label
+        >{{ $t("assetcreate.note") }} </label
       >
       <input
         v-model="asset.note"

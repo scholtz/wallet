@@ -42,8 +42,8 @@
             }}</v-link>
           </li>
           <li class="nav-item active" v-if="$store.state.wallet.isOpen">
-            <v-link class="nav-link" href="/asset">{{
-              $t("navbar.asset")
+            <v-link class="nav-link" href="/asset/create">{{
+              $t("navbar.asset_create")
             }}</v-link>
           </li>
           <li class="nav-item active" v-if="$store.state.wallet.isOpen">

@@ -205,7 +205,8 @@ const actions = {
     const pass = decryptedData.toString(CryptoJS.enc.Utf8);
 
     if (!pass) {
-      alert("Error in storing wallet");
+      // password not yet initialized
+      return false
     }
 
     if (!this.state.wallet.name) {
