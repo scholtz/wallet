@@ -16,7 +16,7 @@
     "bootstrap": "^5.0.1",
     "buffer": "^6.0.3",
     "check-password-strength": "^2.0.3",
-    "core-js": "^3.6.5",
+    "core-js": "^3.14.0",
     "crypto-js": "^4.0.0",
     "crypto-random-string": "^4.0.0",
     "cryptojs": "^2.5.3",
@@ -25,11 +25,12 @@
     "page": "^1.11.6",
     "primeicons": "^4.1.0",
     "primevue": "^3.5.0",
+    "qrcode-vue3": "^1.4.14",
     "register-service-worker": "^1.7.1",
     "vue": "^3.0.11",
     "vue-i18n": "^9.1.0",
     "vue-router": "^4.0.8",
-    "vuex": "^4.0.0"
+    "vuex": "^4.0.1"
   },
   "devDependencies": {
     "@intlify/vue-i18n-loader": "^2.1.0",
@@ -40,9 +41,9 @@
     "@vue/compiler-sfc": "^3.0.0",
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^7.0.0",
-    "vue-cli-plugin-i18n": "~2.1.1",
-    "vue": "^3.0.11"
+    "eslint-plugin-vue": "^7.10.0",
+    "vue": "^3.0.11",
+    "vue-cli-plugin-i18n": "~2.1.1"
   },
   "eslintConfig": {
     "root": true,

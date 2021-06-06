@@ -4,6 +4,7 @@
       {{ $t("acc_overview.title") }} -
       {{ this.$store.state.wallet.lastActiveAccountName }}
     </h1>
+
     <p v-if="account && (account.sk || account.params)">
       <router-link
         :to="'/accounts/pay/' + $route.params.account"
@@ -15,6 +16,15 @@
       <tr>
         <th>{{ $t("acc_overview.name") }}:</th>
         <td>{{ account["name"] }}</td>
+        <td rowspan="15" class="text-end">
+          <QRCodeVue3
+            :width="400"
+            :height="400"
+            :value="account.addr"
+            :qrOptions="{ errorCorrectionLevel: 'H' }"
+            image="http://localhost:8080/img/algorand-algo-logo-96.png"
+          />
+        </td>
       </tr>
       <tr>
         <th>{{ $t("acc_overview.type") }}:</th>
@@ -230,9 +240,11 @@
 import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
 
+import QRCodeVue3 from "qrcode-vue3";
 export default {
   components: {
     MainLayout,
+    QRCodeVue3,
   },
   data() {
     return {
@@ -340,7 +352,8 @@ export default {
 };
 </script>
 <style>
-th {
+th,
+td {
   vertical-align: top;
 }
 </style>
