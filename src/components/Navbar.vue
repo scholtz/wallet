@@ -63,6 +63,11 @@
               $t("navbar.privacy_policy")
             }}</v-link>
           </li>
+          <select class="" v-model="$i18n.locale" @change="languageUpdated">
+            <option v-for="(lang, i) in langs" :key="`Lang${i}`" :value="lang">
+              {{ lang }}
+            </option>
+          </select>
           <li class="nav-item active" v-if="$store.state.wallet.isOpen">
             <v-link class="nav-link" href="/" @click="logoutClick">{{
               $t("navbar.logout")
@@ -80,12 +85,20 @@ export default {
   components: {
     VLink,
   },
+  data() {
+    return {
+      langs: ["en", "sk", "cs"],
+    };
+  },
   methods: {
     ...mapActions({
       logout: "wallet/logout",
     }),
     logoutClick() {
       this.logout();
+    },
+    languageUpdated() {
+      localStorage.setItem("lang", this.$i18n.locale);
     },
   },
 };

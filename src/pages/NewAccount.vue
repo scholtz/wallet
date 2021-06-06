@@ -124,7 +124,7 @@
         </button>
       </div>
       <div v-if="this.s && this.challenge">
-        <p>{{ $t("newacc.start_challenge") }} {{ r }}?</p>
+        <p>{{ $t("newacc.position_question") }} {{ r }}?</p>
         <input class="form-control" v-model="guess" />
         <p>{{ $t("newacc.name") }}</p>
         <input v-model="name" class="form-control" />
