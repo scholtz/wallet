@@ -33,15 +33,6 @@ const actions = {
     let response = null;
     try {
       let shown = false;
-      if (this.state.user.authJWT) {
-        axios.defaults.headers.common.Authorization =
-          "Bearer " + this.state.user.authJWT;
-      } else {
-        if (localStorage.getItem("jwt")) {
-          axios.defaults.headers.common.Authorization =
-            "Bearer " + localStorage.getItem("jwt");
-        }
-      }
 
       var lang = getLang();
 
@@ -124,15 +115,6 @@ const actions = {
     let response = null;
     try {
       let shown = false;
-      if (this.state.user.authJWT) {
-        axios.defaults.headers.common.Authorization =
-          "Bearer " + this.state.user.authJWT;
-      } else {
-        if (localStorage.getItem("jwt")) {
-          axios.defaults.headers.common.Authorization =
-            "Bearer " + localStorage.getItem("jwt");
-        }
-      }
 
       var lang = getLang();
 
@@ -339,15 +321,6 @@ const actions = {
       }
       if (body) {
         fd = body;
-      }
-      if (this.state.user.authJWT) {
-        axios.defaults.headers.common.Authorization =
-          "Bearer " + this.state.user.authJWT;
-      } else {
-        if (localStorage.getItem("jwt")) {
-          axios.defaults.headers.common.Authorization =
-            "Bearer " + localStorage.getItem("jwt");
-        }
       }
       var lang = getLang();
       if (lang) {

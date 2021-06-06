@@ -76,27 +76,24 @@ myApp.config.globalProperties.$filters = {
     if (multiply) {
       value = value / Math.pow(10, minimumFractionDigits);
     }
+    const formatter = new Intl.NumberFormat(language, {
+      minimumFractionDigits,
+    });
+    return formatter.format(value) + " " + currency;
+    /*
     if (currency.length == 3) {
       const formatter = new Intl.NumberFormat(language, {
         style: "currency",
         currency,
         minimumFractionDigits,
+        maximumFractionDigits: minimumFractionDigits,
       });
-      if (Number.isInteger(parseInt(value))) {
-        return formatter.format();
-      } else {
-        return value;
-      }
+      const ret = formatter.format();
+      console.log("currency", currency, minimumFractionDigits, value, ret);
+
+      return ret;
     } else {
-      const formatter = new Intl.NumberFormat(language, {
-        minimumFractionDigits,
-      });
-      if (Number.isInteger(parseInt(value))) {
-        return formatter.format(value);
-      } else {
-        return value;
-      }
-    }
+    }*/
   },
   formatDateTime(
     value,

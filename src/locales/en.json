@@ -93,7 +93,7 @@
     "show_mnemonic":"Show mnemonic",
     "position_question":"What is word at position n.",
     "mnemonic_help":"Write the mnemonic words in displayed order down, copy or take a picture. Next step will be to confirm some of the words from this phrase and we will save it to the encrypted storage in your browser. It is safe to store this mnomenic and use this address without storing it to the account. Make sure never to lose the mnomenic phrase.",
-    "start_challange":"Start the challange",
+    "start_challenge":"Start the challenge",
     "create_new":"Create new",
     "hide_mnemonic":"Hide mnemonic",
     "drop_phrase":"Drop phrase"

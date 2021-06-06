@@ -123,8 +123,8 @@
           {{ $t("newacc.show_mnemonic") }}
         </button>
       </div>
-      <div v-if="this.s && this.challange">
-        <p>{{ $t("newacc.start_challange") }} {{ r }}?</p>
+      <div v-if="this.s && this.challenge">
+        <p>{{ $t("newacc.start_challenge") }} {{ r }}?</p>
         <input class="form-control" v-model="guess" />
         <p>{{ $t("newacc.name") }}</p>
         <input v-model="name" class="form-control" />
@@ -139,14 +139,14 @@
           v-if="this.s"
           class="btn btn-primary m-1"
           @click="
-            this.challange = false;
+            this.challenge = false;
             this.s = false;
           "
         >
           {{ $t("global.go_back") }}
         </button>
       </div>
-      <div v-if="this.s && !this.challange && page == 'newaccount'">
+      <div v-if="this.s && !this.challenge && page == 'newaccount'">
         <p>
           {{ $t("newacc.mnemonic_help") }}
         </p>
@@ -155,7 +155,7 @@
         <input class="form-control my-1" v-model="a" />
 
         <button v-if="this.s" class="btn btn-primary m-1" @click="makeRandom">
-          {{ $t("newacc.start_challange") }}
+          {{ $t("newacc.start_challenge") }}
         </button>
         <button v-if="this.s" class="btn btn-light m-1" @click="createAccount">
           {{ $t("newacc.create_new") }}
@@ -182,7 +182,7 @@ export default {
       w: "",
       guess: "",
       s: false,
-      challange: false,
+      challenge: false,
       page: "new",
       multisignum: 2,
       multisigaccts: [],
@@ -221,7 +221,7 @@ export default {
     },
     makeRandom() {
       this.guess = "";
-      this.challange = true;
+      this.challenge = true;
       //this.r = Math.floor(Math.random() * 25) + 1;
       this.r = 1;
     },

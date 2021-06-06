@@ -9,8 +9,7 @@
           @click="advanced = true"
           v-if="!advanced"
         >
-        {{ $t("assetcreate.show_advanced") }}
-
+          {{ $t("assetcreate.show_advanced") }}
         </button>
         <button
           class="btn btn-light btn-xs"
@@ -21,19 +20,23 @@
         </button>
       </h1>
 
-      <label for="assetName" class="m-1"
-        >{{ $t("assetcreate.assetName") }}</label
-      >
+      <label for="assetName" class="m-1">{{
+        $t("assetcreate.assetName")
+      }}</label>
       <input
         v-model="asset.assetName"
         id="assetName"
         class="form-control m-1"
       />
-      <label for="addr " class="m-1"
-        >{{ $t("assetcreate.creator") }}
-      </label>
-      <div v-if="accountsWithPrivateKey || accountsWithPrivateKey.length == 0" class="alert alert-danger">{{$t('assetcreate.creator_not_found')}}</div>
-      <select v-if="accountsWithPrivateKey && accountsWithPrivateKey.length > 0" class="select form-control m-1" v-model="asset.addr">
+      <label for="addr " class="m-1">{{ $t("assetcreate.creator") }} </label>
+      <div v-if="!hasPrivate" class="alert alert-danger">
+        {{ $t("assetcreate.creator_not_found") }}
+      </div>
+      <select
+        v-if="hasPrivate"
+        class="select form-control m-1"
+        v-model="asset.addr"
+      >
         <option
           v-for="option in accountsWithPrivateKey"
           :key="option.addr"
@@ -54,8 +57,8 @@
         </label>
       </div>
       <label for="decimals" class="m-1" v-if="advanced"
-        >{{ $t("assetcreate.decimals") }} </label
-      >
+        >{{ $t("assetcreate.decimals") }}
+      </label>
       <input
         v-if="advanced"
         v-model="asset.decimals"
@@ -66,8 +69,8 @@
         step="1"
       />
       <label for="totalIssuance" class="m-1"
-        >{{ $t("assetcreate.totalIssuance") }} </label
-      >
+        >{{ $t("assetcreate.totalIssuance") }}
+      </label>
       <input
         v-model="asset.totalIssuance"
         id="totalIssuance"
@@ -77,8 +80,8 @@
         step="1"
       />
       <label for="unitName" class="m-1" v-if="advanced"
-        >{{ $t("assetcreate.unitName") }} </label
-      >
+        >{{ $t("assetcreate.unitName") }}
+      </label>
       <input
         v-model="asset.unitName"
         id="unitName"
@@ -86,8 +89,8 @@
         v-if="advanced"
       />
       <label for="assetURL" class="m-1" v-if="advanced"
-        >{{ $t("assetcreate.assetURL") }} </label
-      >
+        >{{ $t("assetcreate.assetURL") }}
+      </label>
       <input
         v-model="asset.assetURL"
         id="assetURL"
@@ -95,8 +98,8 @@
         v-if="advanced"
       />
       <label for="assetMetadataHash" class="m-1" v-if="advanced"
-        >{{ $t("assetcreate.assetMetadataHash") }} </label
-      >
+        >{{ $t("assetcreate.assetMetadataHash") }}
+      </label>
       <input
         v-if="advanced"
         v-model="asset.assetMetadataHash"
@@ -169,8 +172,8 @@
         </option>
       </select>
       <label for="note" class="m-1" v-if="advanced"
-        >{{ $t("assetcreate.note") }} </label
-      >
+        >{{ $t("assetcreate.note") }}
+      </label>
       <input
         v-model="asset.note"
         id="note"
@@ -216,6 +219,11 @@ export default {
   computed: {
     accountsWithPrivateKey() {
       return this.$store.state.wallet.privateAccounts.filter((a) => !!a.sk);
+    },
+    hasPrivate() {
+      return (
+        this.accountsWithPrivateKey && this.accountsWithPrivateKey.length > 0
+      );
     },
   },
   mounted() {

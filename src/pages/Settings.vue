@@ -104,6 +104,7 @@ export default {
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         });
       }
+      localStorage.setItem("env", this.env);
     },
   },
   computed: {
@@ -131,7 +132,12 @@ export default {
   components: {
     MainLayout,
   },
-  mounted() {},
+  mounted() {
+    const newEnv = localStorage.getItem("env");
+    if (newEnv) {
+      this.env = newEnv;
+    }
+  },
   methods: {
     ...mapActions({
       setHosts: "config/setHosts",
