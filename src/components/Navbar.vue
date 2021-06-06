@@ -2,7 +2,11 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
       <v-link class="navbar-brand" href="/" v-if="$store.state.config.LOGO"
-        ><img :src="$store.state.config.LOGO" :alt="$t('navbar.logo')" />
+        ><img
+          :src="$store.state.config.LOGO"
+          height="30"
+          :alt="$t('navbar.logo')"
+        />
       </v-link>
       <v-link class="navbar-brand" href="/" v-else>{{
         $t("navbar.logo")

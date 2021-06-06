@@ -1,5 +1,5 @@
 const state = () => ({
-  LOGO: "",
+  LOGO: "/img/logo.svg",
   algod: "http://localhost:4001",
   kmd: "http://localhost:4002",
   indexer: "http://localhost:8980",
