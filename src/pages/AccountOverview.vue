@@ -8,10 +8,23 @@
     <p v-if="account && (account.sk || account.params)">
       <router-link
         :to="'/accounts/pay/' + $route.params.account"
-        class="btn btn-light btn-xs"
+        class="btn btn-light btn-xs my-2"
         >{{ $t("acc_overview.pay") }}</router-link
       >
+      <router-link
+        :to="'/receive-payment/' + $route.params.account"
+        class="btn btn-light btn-xs m-2"
+        >{{ $t("acc_overview.receive_payment") }}</router-link
+      >
     </p>
+    <p v-else>
+      <router-link
+        :to="'/receive-payment/' + $route.params.account"
+        class="btn btn-light btn-xs m-2"
+        >{{ $t("acc_overview.receive_payment") }}</router-link
+      >
+    </p>
+
     <table class="table" v-if="account">
       <tr>
         <th>{{ $t("acc_overview.name") }}:</th>

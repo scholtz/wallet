@@ -8,6 +8,7 @@ import NewAccount from "@/pages/NewAccount.vue";
 import NotFound from "@/pages/404.vue";
 import FAQ from "@/pages/FAQ.vue";
 import Pay from "@/pages/Pay.vue";
+import ReceivePayment from "@/pages/ReceivePayment.vue";
 import Settings from "@/pages/Settings.vue";
 import Asset from "@/pages/AssetList.vue";
 import AssetCreate from "@/pages/Asset/Create.vue";
@@ -46,6 +47,11 @@ const routes = [
     path: "/asset/destroy/:assetId",
     name: "AssetDestroy",
     component: AssetDestroy,
+  },
+  {
+    path: "/receive-payment/:account",
+    name: "receive-payment",
+    component: ReceivePayment,
   },
   {
     path: "/asset/freeze/:assetId",

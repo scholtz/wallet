@@ -36,9 +36,16 @@
     "privacy_policy":"Privacy policy",
     "logout":"Logout"
   },
+  "receive":{
+    "title":"Receive payment",
+    "address":"Receive payment to address",
+    "amount":"Amount",
+    "note":"Note"
+  },
   "acc_overview":{
     "title":"Account overview",
     "pay":"Make new payment",
+    "receive_payment":"Receive payment",
     "name":"Name",
 
     "address":"Address",
