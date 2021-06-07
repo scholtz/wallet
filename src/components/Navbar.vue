@@ -61,11 +61,38 @@
               $t("navbar.privacy_policy")
             }}</v-link>
           </li>
-          <select class="" v-model="$i18n.locale" @change="languageUpdated">
-            <option v-for="(lang, i) in langs" :key="`Lang${i}`" :value="lang">
-              {{ lang }}
-            </option>
-          </select>
+          <Dropdown
+            v-if="!$store.state.wallet.isOpen"
+            v-model="$i18n.locale"
+            :options="langs"
+            @change="languageUpdated"
+            style="min-width: 100px"
+          >
+            <template #value="slotProps">
+              <div v-if="slotProps.value" class="border-dark">
+                <img
+                  :alt="slotProps.value"
+                  class="border-dark"
+                  :src="'/flags/3x2/' + slotProps.value + '.svg'"
+                  height="15"
+                />
+                <span class="m-1">{{ slotProps.value }}</span>
+              </div>
+              <span v-else>
+                {{ slotProps.placeholder }}
+              </span>
+            </template>
+            <template #option="slotProps">
+              <div class="border-dark">
+                <img
+                  :alt="slotProps.option"
+                  :src="'/flags/3x2/' + slotProps.option + '.svg'"
+                  height="15"
+                />
+                <span class="m-1">{{ slotProps.option }}</span>
+              </div>
+            </template>
+          </Dropdown>
           <li class="nav-item active" v-if="$store.state.wallet.isOpen">
             <v-link class="nav-link" href="/" @click="logoutClick">{{
               $t("navbar.logout")
@@ -79,6 +106,7 @@
 <script>
 import { mapActions } from "vuex";
 import VLink from "../components/VLink.vue";
+
 export default {
   components: {
     VLink,

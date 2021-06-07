@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 341.3">
+<rect fill="#D80027" width="512" height="341.3"/>
+<g>
+	<rect y="170.7" fill="#6DA544" width="211.5" height="85.3"/>
+	<rect x="300.5" y="170.7" fill="#6DA544" width="211.5" height="85.3"/>
+</g>
+<polygon fill="#0052B4" points="0,0 0,0 0,85.3 211.5,85.3 211.5,0 300.5,0 300.5,85.3 512,85.3 512,0 512,0 "/>
+<g>
+	<rect x="300.5" y="85.3" fill="#FFFFFF" width="211.5" height="85.3"/>
+	<rect y="85.3" fill="#FFFFFF" width="211.5" height="85.3"/>
+</g>
+<g>
+	<polygon fill="#FFDA44" points="300.5,341.3 211.5,341.3 211.5,256 0,256 0,341.3 0,341.3 512,341.3 512,341.3 512,256 300.5,256 	"/>
+	<polygon fill="#FFDA44" points="105.7,8.6 114.3,34.8 141.8,34.8 119.5,51 128.1,77.2 105.7,61 83.4,77.2 91.9,51 69.6,34.8
+		97.2,34.8 	"/>
+</g>
+</svg>

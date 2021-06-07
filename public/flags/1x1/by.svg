@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="3.414 0 341.3 341.3">
+<rect x="0.6" y="0.2" fill="#75AF2B" width="511.4" height="341"/>
+<polyline fill="#D32424" points="0,230 512,230 512,0.2 512,0.2 0,0.2 0,0.2 "/>
+<polygon fill="#FFFFFF" points="100.1,230 100.1,215.1 100.1,0.2 0,0.2 0,341.1 511.4,341.1 511.4,341.1 100.1,341.1 "/>
+<polygon fill="#D32424" points="51.6,218 13.6,170.3 51.6,123.4 89.6,170.3"/>
+<polygon fill="#D32424" points="51.6,113.4 13.6,65.7 51.6,18.8 89.6,65.7"/>
+<polygon fill="#D32424" points="51.6,322.6 13.6,274.9 51.6,228 89.6,274.9"/>
+</svg>

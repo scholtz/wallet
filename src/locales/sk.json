@@ -22,7 +22,9 @@
   },
   "global":{
     "go_back":"Naspäť",
-    "go_home":"Domov"
+    "go_home":"Domov",
+    "copy_address":"Skopírovať adresu",
+    "copied_to_clipboard":"Skopírované"
   },
   "navbar":{
     "logo":"A Wallet",
@@ -157,6 +159,7 @@
     "state_confirmed":"Potvrdenie bolo prijaté. Vaša platba je v bloku č.",
     "transaction":"Transakcia",
     "error":"Chyba",
+    "asset":"Aktívum",
     "state_error_not_sent":"Platba pravdepodobne nedorazila do siete. Máte prístup k internetu? Skontroolujte si stav na účte."
   },
   "settings":{
@@ -168,6 +171,7 @@
     "sandbox":"Sandbox",
     "host":"hostiteľ",
     "token":"token",
+    "language":"Jazyk",
     "pass":"Heslo k peňaženke",
     "oldpass":"Staré heslo",
     "newpass":"Nové heslo",

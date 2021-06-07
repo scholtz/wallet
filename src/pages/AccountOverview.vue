@@ -31,6 +31,7 @@
         <td>{{ account["name"] }}</td>
         <td rowspan="15" class="text-end">
           <QRCodeVue3
+            class="d-md-none d-lg-block"
             :width="400"
             :height="400"
             :value="account.addr"
@@ -55,7 +56,16 @@
       </tr>
       <tr>
         <th>{{ $t("acc_overview.address") }}:</th>
-        <td>{{ account.address }}</td>
+        <td>
+          <button
+            class="btn btn-xs btn-light m-1"
+            :title="$t('global.copy_address')"
+            @click="copyToClipboard(account.address)"
+          >
+            <i class="pi pi-copy"></i>
+          </button>
+          {{ account.address }}
+        </td>
       </tr>
       <tr>
         <th>{{ $t("acc_overview.amount") }}:</th>
@@ -201,11 +211,13 @@
         field="sender"
         :header="$t('acc_overview.sender')"
         :sortable="true"
+        styleClass="not-show-at-start"
       ></Column>
       <Column
         field="payment-transaction.receiver"
         :header="$t('acc_overview.receiver')"
         :sortable="true"
+        styleClass="not-show-at-start"
       ></Column>
       <Column
         field="receiver-rewards"
@@ -252,6 +264,8 @@
 <script>
 import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
+import { PrimeIcons } from "primevue/api";
+import copy from "copy-to-clipboard";
 
 import QRCodeVue3 from "qrcode-vue3";
 export default {
@@ -265,6 +279,7 @@ export default {
       selection: null,
       assets: [],
       asset: "",
+      icons: [PrimeIcons.COPY],
     };
   },
   computed: {
@@ -361,12 +376,11 @@ export default {
       }
       console.log("this.transactions", this.transactions);
     },
+    copyToClipboard(text) {
+      if (copy(text)) {
+        alert(this.$t("global.copied_to_clipboard"));
+      }
+    },
   },
 };
 </script>
-<style>
-th,
-td {
-  vertical-align: top;
-}
-</style>

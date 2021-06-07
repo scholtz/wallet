@@ -22,7 +22,9 @@
   },
   "global":{
     "go_back":"Go back",
-    "go_home":"Go home"
+    "go_home":"Go home",
+    "copy_address":"Copy address",
+    "copied_to_clipboard":"Copied to clipboard"
   },
   "navbar":{
     "logo":"A Wallet",
@@ -158,6 +160,7 @@
     "state_confirmed":"Confirmation has been received. Your payment is in the block",
     "transaction":"Transaction",
     "error":"Error",
+    "asset":"Asset",
     "state_error_not_sent":"Payment has probably not reached the network. Are you offline? Please check you account"
   },
   "settings":{
@@ -169,6 +172,7 @@
     "sandbox":"Sandbox",
     "host":"host",
     "token":"token",
+    "language":"Language",
     "pass":"Wallet password",
     "oldpass":"Old password",
     "newpass":"New password",

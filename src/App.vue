@@ -16,3 +16,10 @@ export default {
   },
 };
 </script>
+
+<style>
+th,
+td {
+  vertical-align: top;
+}
+</style>

@@ -18,6 +18,39 @@
     <p>
       Indexer {{ $t("settings.token") }}: {{ $store.state.config.indexerToken }}
     </p>
+    <h2>{{ $t("settings.language") }}</h2>
+
+    <Dropdown
+      v-model="$i18n.locale"
+      :options="langs"
+      @change="languageUpdated"
+      style="min-width: 100px"
+    >
+      <template #value="slotProps">
+        <div v-if="slotProps.value" class="border-dark">
+          <img
+            :alt="slotProps.value"
+            class="border-dark"
+            :src="'/flags/3x2/' + slotProps.value + '.svg'"
+            height="15"
+          />
+          <span class="m-1">{{ slotProps.value }}</span>
+        </div>
+        <span v-else>
+          {{ slotProps.placeholder }}
+        </span>
+      </template>
+      <template #option="slotProps">
+        <div class="border-dark">
+          <img
+            :alt="slotProps.option"
+            :src="'/flags/3x2/' + slotProps.option + '.svg'"
+            height="15"
+          />
+          <span class="m-1">{{ slotProps.option }}</span>
+        </div>
+      </template>
+    </Dropdown>
     <h2>{{ $t("settings.pass") }}</h2>
     <form @submit="changePasswordClick">
       <label>{{ $t("settings.oldpass") }}</label>
@@ -72,6 +105,8 @@ export default {
       passw2: "",
       passw3: "",
       b64wallet: "",
+
+      langs: ["en", "sk", "cs"],
     };
   },
   watch: {
@@ -161,6 +196,9 @@ export default {
     },
     async destroyWalletClick() {
       await this.destroyWallet();
+    },
+    languageUpdated() {
+      localStorage.setItem("lang", this.$i18n.locale);
     },
   },
 };
