@@ -1,24 +1,18 @@
-# wallet
+**Open source algo wallet**
 
-## Project setup
-```
-npm install
-```
+The project was not funded by Algorand, please donate to the following address to keep the project evolving: P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U 
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+Currently working features:
+- Creating wallet / Export wallet / Import wallet / Destroying wallet
+- Creating account, Creating multisign account, Adding public account
+- Account overview
+- Transaction overview
+- Sending algo payment, Signing and sending multisig payments
+- Multilanguage support
 
-### Compiles and minifies for production
-```
-npm run build
-```
+Source code: https://github.com/scholtz/wallet
+Running at: https://www.a-wallet.net/
 
-### Lints and fixes files
-```
-npm run lint
-```
+Technology stack: Vue3, JsAlgoSDK, CICD to pure HTML+JS
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+If anybody want to contribute please create a PR request
