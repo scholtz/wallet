@@ -1,11 +1,31 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
+    "revision": "5271d3890484d12eac012a35c888b513",
+    "url": "/android-chrome-192x192.png"
+  },
+  {
+    "revision": "f2274240a066ab066ec744dd94cf1f0b",
+    "url": "/android-chrome-512x512.png"
+  },
+  {
+    "revision": "7237d4bc96dd9e8abab472231c698451",
+    "url": "/apple-touch-icon.png"
+  },
+  {
     "revision": "025a16576fdee5216978",
     "url": "/css/app.05b48347.css"
   },
   {
     "revision": "adb205c53760993ebc8e",
     "url": "/css/chunk-vendors.1a096024.css"
+  },
+  {
+    "revision": "9af3e7d0cd486107d1f9a3a9ee7b0d0a",
+    "url": "/favicon-16x16.png"
+  },
+  {
+    "revision": "343c07dc14b2402160e97782e9bf7301",
+    "url": "/favicon-32x32.png"
   },
   {
     "revision": "4c050a1c61e0767fc82d081655422539",
@@ -2100,12 +2120,36 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/img/algorand-algo-logo.svg"
   },
   {
+    "revision": "5271d3890484d12eac012a35c888b513",
+    "url": "/img/android-chrome-192x192.png"
+  },
+  {
+    "revision": "f2274240a066ab066ec744dd94cf1f0b",
+    "url": "/img/android-chrome-512x512.png"
+  },
+  {
+    "revision": "7237d4bc96dd9e8abab472231c698451",
+    "url": "/img/apple-touch-icon.png"
+  },
+  {
     "revision": "c7a33805ffda0d32bd2a9904c8b02750",
     "url": "/img/color.c7a33805.png"
   },
   {
     "revision": "819a2d0a530747f04483264a5e110893",
     "url": "/img/countries_flags.svg"
+  },
+  {
+    "revision": "9af3e7d0cd486107d1f9a3a9ee7b0d0a",
+    "url": "/img/favicon-16x16.png"
+  },
+  {
+    "revision": "343c07dc14b2402160e97782e9bf7301",
+    "url": "/img/favicon-32x32.png"
+  },
+  {
+    "revision": "a7811efaf7b44232a918b2e6197def56",
+    "url": "/img/favicon_io.zip"
   },
   {
     "revision": "b583f638e5de5e82f2b6f7f1181b605b",
@@ -2128,7 +2172,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/js/chunk-vendors.0755ee4d.js"
   },
   {
-    "revision": "370cccf954319930797fd3f5168bd5cf",
+    "revision": "c909cc48e05f2526f9f2d6b5313b48ab",
     "url": "/manifest.json"
   },
   {
