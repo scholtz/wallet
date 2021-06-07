@@ -1,6 +1,6 @@
 <template>
-  <div class="d-flex align-items-center justify-content-center h-100">
-    <div class="card w-25" v-if="newWalletForm">
+  <div class="d-flex align-items-center justify-content-center h-100 m-2">
+    <div class="card col-12" v-if="newWalletForm">
       <div class="card-header">{{ $t("login.new_wallet") }}</div>
       <div class="card-body">
         <form @submit="createWalletClick">
@@ -46,7 +46,7 @@
         </form>
       </div>
     </div>
-    <div class="card w-25" v-if="!newWalletForm">
+    <div class="card col-12 col-md-6 col-lg-4" v-if="!newWalletForm">
       <div class="card-header">{{ $t("login.open_wallet") }}</div>
       <div class="card-body">
         <form @submit="auth">

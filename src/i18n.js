@@ -12,7 +12,6 @@ function loadLocaleMessages() {
     true,
     /[A-Za-z0-9-_,\s]+\.json$/i
   );
-  console.log("locales", locales);
   const messages = {};
   locales.keys().forEach((key) => {
     const matched = key.match(/([A-Za-z0-9-_]+)\./i);
@@ -21,13 +20,38 @@ function loadLocaleMessages() {
       messages[locale] = locales(key).default;
     }
   });
-  console.log("messages", messages);
   return messages;
 }
 
+function defaultLanguage() {
+  let lang = localStorage.getItem("lang");
+  if (lang) {
+    return lang;
+  }
+  var userLang = navigator.language || navigator.userLanguage;
+  if (userLang.length >= 2 && userLang.substring(0, 2) == "sk") {
+    lang = "sk";
+    localStorage.setItem("lang", lang);
+    return lang;
+  }
+  if (userLang.length >= 2 && userLang.substring(0, 2) == "cs") {
+    lang = "cs";
+    localStorage.setItem("lang", lang);
+    return lang;
+  }
+  if (userLang.length >= 2 && userLang.substring(0, 2) == "en") {
+    lang = "en";
+    localStorage.setItem("lang", lang);
+    return lang;
+  }
+
+  lang = process.env.VUE_APP_I18N_LOCALE || "sk";
+  localStorage.setItem("lang", lang);
+  return lang;
+}
 export default createI18n({
   legacy: false,
-  locale: process.env.VUE_APP_I18N_LOCALE || "en",
+  locale: defaultLanguage(),
   fallbackLocale: process.env.VUE_APP_I18N_FALLBACK_LOCALE || "en",
   globalInjection: true,
   messages: loadLocaleMessages(),
