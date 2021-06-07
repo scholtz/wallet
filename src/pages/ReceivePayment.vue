@@ -29,7 +29,7 @@
       :height="400"
       :value="qrcode"
       :qrOptions="{ errorCorrectionLevel: 'H' }"
-      image="http://localhost:8080/img/algorand-algo-logo-96.png"
+      image="/img/algorand-algo-logo-96.png"
     />
     <code>{{ qrcode }}</code>
   </main-layout>

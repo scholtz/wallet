@@ -18,7 +18,7 @@
     "select_wallet":"Vybrať peňaženku",
     "wallet_password":"Heslo do peňaženky",
     "strength":"Sila hesla",
-    "new_wallet_button_open":"Vytvoriť peňaženku"
+    "new_wallet_button_open":"Otvoriť peňaženku"
   },
   "global":{
     "go_back":"Naspäť",
