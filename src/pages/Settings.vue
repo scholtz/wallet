@@ -100,7 +100,7 @@ import { passwordStrength } from "check-password-strength";
 export default {
   data() {
     return {
-      env: "sandbox",
+      env: "mainnet",
       passw1: "",
       passw2: "",
       passw3: "",

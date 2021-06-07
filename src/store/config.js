@@ -1,8 +1,8 @@
 const state = () => ({
   LOGO: "/img/logo.svg",
-  algod: "http://localhost:4001",
-  kmd: "http://localhost:4002",
-  indexer: "http://localhost:8980",
+  algod: "https://algoexplorerapi.io",
+  kmd: "",
+  indexer: "https://algoexplorerapi.io/idx2",
   algodToken:
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   kmdToken: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
