@@ -2072,12 +2072,20 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/fonts/primeicons.b0f5d02f.eot"
   },
   {
-    "revision": "d96735a31799f94ae7d54eccb4891697",
-    "url": "/img/algorand-algo-logo – kópia.png"
-  },
-  {
     "revision": "a50b78c26a4bdf711736175375a36482",
     "url": "/img/algorand-algo-logo – kópia.xcf"
+  },
+  {
+    "revision": "87d0d37ea490d740892c89fa8b69b571",
+    "url": "/img/algorand-algo-logo-192.png"
+  },
+  {
+    "revision": "0483155786c812b40c76a9bd5742082d",
+    "url": "/img/algorand-algo-logo-512.png"
+  },
+  {
+    "revision": "cea70c4174f08bfd618f84160adbae5b",
+    "url": "/img/algorand-algo-logo-512.xcf"
   },
   {
     "revision": "84280a5a02b43480862c5a72464d4da8",
@@ -2120,7 +2128,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/js/chunk-vendors.0755ee4d.js"
   },
   {
-    "revision": "8fb32a16f9e1ba73c17383e7af528910",
+    "revision": "370cccf954319930797fd3f5168bd5cf",
     "url": "/manifest.json"
   },
   {
