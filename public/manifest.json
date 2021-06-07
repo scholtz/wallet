@@ -1,26 +1,26 @@
 {
-  "name": "algo-wallet",
-  "short_name": "algo-wallet",
+  "name": "Algo Wallet",
+  "short_name": "a-wallet",
   "theme_color": "#4DBA87",
   "icons": [
     {
-      "src": "./img/icons/android-chrome-192x192.png",
+      "src": "./img/algorand-algo-logo-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "./img/icons/android-chrome-512x512.png",
+      "src": "./img/algorand-algo-logo-512.png",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "./img/icons/android-chrome-maskable-192x192.png",
+      "src": "./img/algorand-algo-logo-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "./img/icons/android-chrome-maskable-512x512.png",
+      "src": "./img/algorand-algo-logo-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
