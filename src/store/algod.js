@@ -31,7 +31,10 @@ const actions = {
       console.log("error", error);
     }
   },
-  async makePayment({ dispatch }, { payTo, payFrom, amount, note, fee }) {
+  async makePayment(
+    { dispatch },
+    { payTo, payFrom, amount, noteEnc, fee, asset }
+  ) {
     try {
       const url = new URL(this.state.config.algod);
 
@@ -41,9 +44,6 @@ const actions = {
         url.port
       );
 
-      const enc = new TextEncoder();
-      const noteEnc = enc.encode(note);
-
       const sk = await dispatch(
         "wallet/getSK",
         { addr: payFrom },
@@ -51,6 +51,10 @@ const actions = {
           root: true,
         }
       );
+      let assetId = undefined;
+      if (asset) {
+        assetId = asset;
+      }
       let params = await algodclient.getTransactionParams().do();
       params.fee = fee;
       params.flatFee = true;
@@ -58,7 +62,7 @@ const actions = {
         payFrom,
         payTo,
         amount,
-        undefined,
+        assetId,
         noteEnc,
         params,
       });
@@ -66,7 +70,7 @@ const actions = {
         payFrom,
         payTo,
         amount,
-        undefined,
+        assetId,
         noteEnc,
         params
       );
@@ -87,6 +91,16 @@ const actions = {
     } catch (error) {
       console.log("error", error, dispatch);
     }
+  },
+
+  _base64ToArrayBuffer(base64) {
+    var binary_string = window.atob(base64);
+    var len = binary_string.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {
+      bytes[i] = binary_string.charCodeAt(i);
+    }
+    return bytes.buffer;
   },
   async sendRawTransaction({ dispatch }, { signedTxn }) {
     const url = new URL(this.state.config.algod);

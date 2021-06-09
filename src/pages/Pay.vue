@@ -383,6 +383,7 @@ export default {
       fee: 0.001,
       payto: "",
       paynote: "",
+      paynoteB64: false,
       page: "design",
       tx: "",
       processing: false,
@@ -610,15 +611,41 @@ export default {
         const amount = this.amountLong;
         const note = this.paynote;
         const fee = this.feeLong;
-        console.log("sending payment", { payTo, payFrom, amount, note, fee });
-        this.tx = await this.makePayment({ payTo, payFrom, amount, note, fee });
+
+        const enc = new TextEncoder();
+        let noteEnc = enc.encode(note);
+        if (this.paynoteB64) {
+          try {
+            noteEnc = Uint8Array.from(this._base64ToArrayBuffer(this.paynote));
+            if (!noteEnc) {
+              noteEnc = enc.encode(note);
+            }
+          } catch (e) {
+            console.log("Error converting b64 to array");
+          }
+        }
+
+        console.log("sending payment", {
+          payTo,
+          payFrom,
+          amount,
+          noteEnc,
+          fee,
+        });
+        this.tx = await this.makePayment({
+          payTo,
+          payFrom,
+          amount,
+          noteEnc,
+          fee,
+        });
         const confirmation = await this.waitForConfirmation({
           txId: this.tx,
           timeout: 4,
         });
         if (!confirmation) {
           this.processing = false;
-          this.error = this.$t("state_error_not_sent");
+          this.error = this.$t("pay.state_error_not_sent");
           //            "Payment has probably not reached the network. Are you offline? Please check you account";
           return;
         }
@@ -665,7 +692,7 @@ export default {
         });
         if (!confirmation) {
           this.processing = false;
-          this.error = this.$t("state_error_not_sent");
+          this.error = this.$t("pay.state_error_not_sent");
           // "Payment has probably not reached the network. Are you offline? Please check you account";
           return;
         }

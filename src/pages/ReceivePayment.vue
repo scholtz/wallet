@@ -239,43 +239,6 @@ export default {
       }
       return bytes.buffer;
     },
-    async payPaymentClick(e) {
-      this.prolong();
-      e.preventDefault();
-      try {
-        if (this.isMultisig) return this.payMultisig();
-        this.reset();
-        this.prolong();
-        const payTo = this.payto;
-        const payFrom = this.$route.params.account;
-        const amount = this.amountLong;
-        const note = this.paynote;
-        const fee = this.feeLong;
-        console.log("sending payment", { payTo, payFrom, amount, note, fee });
-        this.tx = await this.makePayment({ payTo, payFrom, amount, note, fee });
-        const confirmation = await this.waitForConfirmation({
-          txId: this.tx,
-          timeout: 4,
-        });
-        if (!confirmation) {
-          this.processing = false;
-          this.error = this.$t("state_error_not_sent");
-          //            "Payment has probably not reached the network. Are you offline? Please check you account";
-          return;
-        }
-        if (confirmation["confirmed-round"]) {
-          this.processing = false;
-          this.confirmedRound = confirmation["confirmed-round"];
-        }
-        if (confirmation["pool-error"]) {
-          this.processing = false;
-          this.error = confirmation["pool-error"];
-        }
-        console.log("confirmation", this.tx, this.confirmation);
-      } catch (exc) {
-        this.error = exc;
-      }
-    },
     loadMultisig(e) {
       this.prolong();
       e.preventDefault();
@@ -306,7 +269,7 @@ export default {
         });
         if (!confirmation) {
           this.processing = false;
-          this.error = this.$t("state_error_not_sent");
+          this.error = this.$t("pay.state_error_not_sent");
           // "Payment has probably not reached the network. Are you offline? Please check you account";
           return;
         }
