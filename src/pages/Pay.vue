@@ -64,10 +64,17 @@
               {{ option.name + "  - " + option.addr }}
             </option>
           </select>
-          <p v-if="genericaccount">
-            {{ $t("pay.store_other_help") }}
-          </p>
-
+          <div v-if="genericaccount">
+            <button @click="toggleCamera" class="btn btn-primary btn-xs m-2">
+              Toggle camera
+            </button>
+            <p>
+              {{ $t("pay.store_other_help") }}
+            </p>
+            <div v-if="scan">
+              <qrcode-stream @decode="onDecodeQR" />
+            </div>
+          </div>
           <label for="asset">{{ $t("pay.asset") }}</label>
           <select id="asset" class="form-control" v-model="asset">
             <option
@@ -107,6 +114,18 @@
 
           <label for="paynote">{{ $t("pay.note") }}</label>
           <input v-model="paynote" id="paynote" class="form-control" />
+
+          <div class="form-check m-1">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              v-model="paynoteB64"
+              id="paynoteB64"
+            />
+            <label class="form-check-label" for="paynoteB64">
+              {{ $t("pay.note_is_b64") }}
+            </label>
+          </div>
 
           <input
             :disabled="isNotValid"
@@ -347,11 +366,14 @@
 </template>
 
 <script>
+import { QrcodeStream } from "vue-qrcode-reader";
+
 import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
 export default {
   components: {
+    QrcodeStream,
     MainLayout,
   },
   data() {
@@ -375,6 +397,7 @@ export default {
       multisigDecoded: {},
       assets: [],
       asset: "",
+      scan: false,
     };
   },
   computed: {
@@ -657,6 +680,114 @@ export default {
       } catch (e) {
         this.processing = false;
         this.error = e;
+      }
+    },
+    toggleCamera(e) {
+      e.preventDefault();
+      this.scan = !this.scan;
+      console.log("camera", this.scan);
+    },
+    test(e) {
+      e.preventDefault();
+      const tests = [
+        "015LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U",
+        "algorand://025LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?&note=123",
+        "algorand://035LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?&note=234&&",
+        "algorand://045LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?xnote=345&fee=3&amount=1000&decimal-power=3&asset=456",
+        "algorand://046LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?note=SGVsbG8=&noteB64=1&fee=0.001&amount=1",
+      ];
+      for (let index in tests) {
+        console.log("testing", tests[index]);
+        this.onDecodeQR(tests[index]);
+        console.log(
+          "result",
+          tests[index],
+          this.payTo,
+          this.paynote,
+          this.paynoteB64,
+          this.payamount,
+          this.fee,
+          this.asset
+        );
+      }
+    },
+    onDecodeQR(result) {
+      if (this.scan && result) {
+        if (result.startsWith("algorand://")) {
+          // parse according to https://github.com/emg110/algorand-qrcode
+          result = result.replace("algorand://", "");
+          const qIndex = result.indexOf("?");
+          if (qIndex < 0) {
+            this.payTo = result;
+          } else {
+            this.payTo = result.substring(0, qIndex);
+
+            const params = result.substring(qIndex + 1);
+            const paramsArr = params.split("&");
+
+            let note = undefined;
+            let noteB64 = undefined;
+            let amount = undefined;
+            let decimals = undefined;
+            let asset = undefined;
+            let fee = undefined;
+
+            for (const index in paramsArr) {
+              const eqIndex = paramsArr[index].indexOf("=");
+              if (eqIndex > 0) {
+                // valid parameter names starts with letters
+                const paramName = paramsArr[index].substring(0, eqIndex);
+                const paramValue = paramsArr[index].substring(eqIndex + 1);
+                switch (paramName) {
+                  case "note":
+                  case "xnote":
+                  case "label":
+                    note = paramValue;
+                    break;
+                  case "noteB64":
+                    noteB64 = paramValue;
+                    break;
+                  case "amount":
+                    amount = paramValue;
+                    break;
+                  case "decimals":
+                  case "decimal-power":
+                    decimals = paramValue;
+                    break;
+                  case "asset":
+                    asset = paramValue;
+                    break;
+                  case "fee":
+                    fee = paramValue;
+                    break;
+                }
+              }
+            }
+
+            this.paynote = note;
+            this.paynoteB64 = !!noteB64;
+            if (decimals !== undefined) {
+              if (amount) {
+                this.payamount = amount / Math.pow(10, decimals);
+              }
+              if (fee) {
+                this.fee = fee / Math.pow(10, decimals);
+              }
+            } else {
+              if (amount) {
+                this.payamount = amount;
+              }
+              if (fee) {
+                this.fee = fee;
+              }
+            }
+            if (asset) {
+              this.asset = asset;
+            }
+          }
+        } else {
+          this.payTo = result;
+        }
       }
     },
   },
