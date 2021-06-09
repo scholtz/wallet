@@ -122,6 +122,8 @@
   },
   "pay":{
     "title":"Make payment - from",
+    "toggle_camera":"Toggle camera",
+    "note_is_b64":"Note is Base64 encoded. If enabled you can post base64 input in the note field and send it as raw data to network.",
     "selected_account":"Selected account",
     "multisig_account":"Multisignature account",
     "create_proposal":"Create proposal",

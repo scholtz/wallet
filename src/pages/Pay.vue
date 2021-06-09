@@ -66,7 +66,7 @@
           </select>
           <div v-if="genericaccount">
             <button @click="toggleCamera" class="btn btn-primary btn-xs m-2">
-              Toggle camera
+              {{ $t("pay.toggle_camera") }}
             </button>
             <p>
               {{ $t("pay.store_other_help") }}

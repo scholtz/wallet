@@ -121,6 +121,8 @@
   },
   "pay":{
     "title":"Nová platba - od",
+    "toggle_camera":"Zapnúť/Vypnúť kameru",
+    "note_is_b64":"Poznámka je v base64. Ak vložíte poznámku v base64, odošle sa ako raw data pri vytváraní transakcie.",
     "selected_account":"Vybraný účet",
     "multisig_account":"Multipodpisový účet",
     "create_proposal":"Vytvoriť návrh",
