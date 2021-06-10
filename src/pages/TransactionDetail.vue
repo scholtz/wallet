@@ -17,10 +17,10 @@
       <tr>
         <th>{{ $t("transaction.note") }}:</th>
         <td>
-          <b>RAW:</b><br />
+          <b>{{ $t("transaction.note_raw") }}:</b><br />
           <code>{{ transaction["note"] }}</code>
           <div>
-            <b>Decoded:</b><br />
+            <b>{{ $t("transaction.note_decoded") }}:</b><br />
             <code v-if="isBase64(transaction['note'])">{{
               fromB64(transaction["note"])
             }}</code>
