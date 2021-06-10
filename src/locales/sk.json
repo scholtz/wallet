@@ -42,7 +42,8 @@
     "title":"Prijať platbu",
     "address":"Adresa príjemcu platby",
     "amount":"Čiastka",
-    "note":"Poznámka"
+    "note":"Poznámka",
+    "decimals":"Informácia o desatinnej čiarke do kódu"
   },
   "acc_overview":{
     "title":"Prehľad účtov",

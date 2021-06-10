@@ -42,7 +42,8 @@
     "title":"Receive payment",
     "address":"Receive payment to address",
     "amount":"Amount",
-    "note":"Note"
+    "note":"Note",
+    "decimals":"Information about decimal place to QR code"
   },
   "acc_overview":{
     "title":"Account overview",
