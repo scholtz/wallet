@@ -3,6 +3,18 @@
     <h1>{{ $t("receive.title") }} {{ account.name }}</h1>
     <label for="paynote">{{ $t("receive.note") }}</label>
     <input v-model="paynote" id="paynote" class="form-control" />
+
+    <div class="form-check m-1">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        v-model="paynoteB64"
+        id="paynoteB64"
+      />
+      <label class="form-check-label" for="paynoteB64">
+        {{ $t("pay.note_is_b64") }}
+      </label>
+    </div>
     <label for="payamount">{{ $t("receive.amount") }}</label>
     <input
       v-model="payamount"
@@ -11,6 +23,16 @@
       min="0.000001"
       max="999999999"
       step="0.000001"
+      class="form-control"
+    />
+    <label for="decimals">{{ $t("receive.decimals") }}</label>
+    <input
+      v-model="decimals"
+      id="decimals"
+      type="number"
+      min="0"
+      max="6"
+      step="1"
       class="form-control"
     />
     <label for="payto"
@@ -49,21 +71,30 @@ export default {
     return {
       payamount: 0,
       paynote: "",
+      paynoteB64: false,
+      decimals: 0,
     };
   },
   computed: {
     qrcode() {
       if (!this.account) return "";
       let ret = "algorand://" + this.account.addr + "?";
-
-      if (this.paynote) {
-        ret += "&label=" + this.paynote;
+      if (this.payamount > 0) {
+        if (this.decimals > 0) {
+          ret += "&amount=" + this.payamount * Math.pow(10, this.decimals);
+          ret += "&decimal-power=" + this.decimals;
+        } else {
+          ret += "&amount=" + this.payamount;
+        }
+      }
+      if (this.paynoteB64) {
+        ret += "&noteB64=1";
       }
       if (this.paynote) {
         ret += "&note=" + this.paynote;
       }
-      if (this.payamount > 0) {
-        ret += "&amount=" + this.payamount;
+      if (this.paynote) {
+        ret += "&label=" + this.paynote;
       }
       console.log("qrcode", ret);
       return ret;
