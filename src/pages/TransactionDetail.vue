@@ -15,6 +15,19 @@
         <td>{{ transaction["tx-type"] }}</td>
       </tr>
       <tr>
+        <th>{{ $t("transaction.note") }}:</th>
+        <td>
+          <b>RAW:</b><br />
+          <code>{{ transaction["note"] }}</code>
+          <div>
+            <b>Decoded:</b><br />
+            <code v-if="isBase64(transaction['note'])">{{
+              fromB64(transaction["note"])
+            }}</code>
+          </div>
+        </td>
+      </tr>
+      <tr>
         <th>{{ $t("transaction.created_asset") }}:</th>
         <td>{{ transaction["created-asset-index"] }}</td>
       </tr>
@@ -263,6 +276,22 @@ export default {
     transaction() {
       console.log("transaction", this.$store.state.wallet.transaction);
       return this.$store.state.wallet.transaction;
+    },
+  },
+  methods: {
+    isBase64(str) {
+      if (!str) return false;
+      if (str.trim() === "") {
+        return false;
+      }
+      try {
+        return btoa(atob(str)) == str;
+      } catch (err) {
+        return false;
+      }
+    },
+    fromB64(str) {
+      return atob(str);
     },
   },
 };
