@@ -106,7 +106,7 @@ export default {
       passw3: "",
       b64wallet: "",
 
-      langs: ["en", "sk", "cs"],
+      langs: ["en", "sk", "cs", "hu"],
     };
   },
   watch: {
