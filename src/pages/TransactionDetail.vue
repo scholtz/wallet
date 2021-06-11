@@ -214,7 +214,13 @@
       </tr>
       <tr v-if="transaction['payment-transaction']">
         <th>{{ $t("transaction.amount") }}:</th>
-        <td>{{ transaction["payment-transaction"]["amount"] }}</td>
+        <td>
+          {{
+            $filters.formatCurrency(
+              transaction["payment-transaction"]["amount"]
+            )
+          }}
+        </td>
       </tr>
       <tr v-if="transaction['payment-transaction']">
         <th>{{ $t("transaction.close_amount") }}:</th>
