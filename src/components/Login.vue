@@ -3,12 +3,13 @@
     <div class="card col-12 col-md-6 col-lg-4" v-if="newWalletForm">
       <div class="card-header">{{ $t("login.new_wallet") }}</div>
       <div class="card-body">
-        <form @submit="createWalletClick">
+        <form @submit="createWalletClick" autocomplete="off">
           <label for="newwallet-name">{{ $t("login.new_wallet_name") }}</label>
           <input
             v-model="newname"
             id="newwallet-name"
             class="form-control my-2"
+            autocomplete="off"
           />
           <label for="newwallet-pass"
             >{{ $t("login.new_wallet_pass") }}
@@ -21,6 +22,7 @@
             id="newwallet-pass"
             type="password"
             class="form-control my-2"
+            autocomplete="off"
           />
           <input
             type="submit"
