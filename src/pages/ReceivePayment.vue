@@ -15,6 +15,17 @@
         {{ $t("pay.note_is_b64") }}
       </label>
     </div>
+    <div class="form-check m-1">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        v-model="noteeditable"
+        id="noteeditable"
+      />
+      <label class="form-check-label" for="noteeditable">
+        {{ $t("receive.noteeditable") }}
+      </label>
+    </div>
     <label for="payamount">{{ $t("receive.amount") }}</label>
     <input
       v-model="payamount"
@@ -46,6 +57,9 @@
       disabled
     />
 
+    <label for="label">{{ $t("receive.label") }}</label>
+    <input v-model="label" id="label" class="form-control my-2" />
+
     <QRCodeVue3
       :width="400"
       :height="400"
@@ -73,6 +87,8 @@ export default {
       paynote: "",
       paynoteB64: false,
       decimals: 0,
+      label: "",
+      noteeditable: true,
     };
   },
   computed: {
@@ -81,7 +97,9 @@ export default {
       let ret = "algorand://" + this.account.addr + "?";
       if (this.payamount > 0) {
         if (this.decimals > 0) {
-          ret += "&amount=" + this.payamount * Math.pow(10, this.decimals);
+          ret +=
+            "&amount=" +
+            Math.round(this.payamount * Math.pow(10, this.decimals));
           ret += "&decimal-power=" + this.decimals;
         } else {
           ret += "&amount=" + this.payamount;
@@ -90,11 +108,15 @@ export default {
       if (this.paynoteB64) {
         ret += "&noteB64=1";
       }
-      if (this.paynote) {
+
+      if (this.paynote && this.noteeditable) {
         ret += "&note=" + this.paynote;
       }
-      if (this.paynote) {
-        ret += "&label=" + this.paynote;
+      if (this.paynote && !this.noteeditable) {
+        ret += "&xnote=" + this.paynote;
+      }
+      if (this.label) {
+        ret += "&label=" + this.label;
       }
       console.log("qrcode", ret);
       return ret;

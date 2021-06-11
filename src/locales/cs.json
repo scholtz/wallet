@@ -43,7 +43,9 @@
     "address":"Adresa príjemcu platby",
     "amount":"Čiastka",
     "note":"Poznámka",
-    "decimals":"Informácia o desatinnej čiarke do kódu"
+    "decimals":"Informácia o desatinnej čiarke do kódu",
+    "label":"Návrh označenia účtu pre odosielateľa",
+    "noteeditable":"Poznámka je editovateľná odosielateľom"
   },
   "acc_overview":{
     "title":"Prehľad účtov",

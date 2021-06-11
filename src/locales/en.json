@@ -43,7 +43,9 @@
     "address":"Receive payment to address",
     "amount":"Amount",
     "note":"Note",
-    "decimals":"Information about decimal place to QR code"
+    "decimals":"Information about decimal place to QR code",
+    "label":"Suggested label of the receiver address",
+    "noteeditable":"Note is editable by user"
   },
   "acc_overview":{
     "title":"Account overview",
