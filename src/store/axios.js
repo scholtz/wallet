@@ -44,7 +44,7 @@ const actions = {
 
       response = await axios.get(url, { params }).catch(function(error) {
         if (error.response && error.response && error.response.status == 401) {
-          dispatch("snackbar/openError", "Session timeout - unauthenticated", {
+          dispatch("toast/openError", "Session timeout - unauthenticated", {
             root: true,
           });
           shown = true;
@@ -67,7 +67,7 @@ const actions = {
               const err = error.response.data.errors[index][index2];
               if (err) {
                 shown = true;
-                dispatch("snackbar/openError", err, {
+                dispatch("toast/openError", err, {
                   root: true,
                 });
               }
@@ -79,14 +79,14 @@ const actions = {
           error.response.data.detail
         ) {
           shown = true;
-          dispatch("snackbar/openError", error.response.data.detail, {
+          dispatch("toast/openError", error.response.data.detail, {
             root: true,
           });
         }
         if (!shown) {
           shown = true;
           dispatch(
-            "snackbar/openError",
+            "toast/openError",
             "Error occured, please try again later",
             { root: true }
           );
@@ -101,14 +101,14 @@ const actions = {
 
       if (!shown) {
         dispatch(
-          "snackbar/openError",
+          "toast/openError",
           "Error occured, please try again later",
           { root: true }
         );
       }
     } catch (e) {
       console.log("catch.e", e);
-      dispatch("snackbar/openError", e.message, { root: true });
+      dispatch("toast/openError", e.message, { root: true });
     }
   },
   async download({ dispatch }, { url, params, type, name }) {
@@ -159,7 +159,7 @@ const actions = {
 
             if (error.response && error.response.status == 401) {
               dispatch(
-                "snackbar/openError",
+                "toast/openError",
                 "Session timeout - unauthenticated",
                 {
                   root: true,
@@ -185,7 +185,7 @@ const actions = {
                   const err = error.response.data.errors[index][index2];
                   if (err) {
                     shown = true;
-                    dispatch("snackbar/openError", err, {
+                    dispatch("toast/openError", err, {
                       root: true,
                     });
                   }
@@ -197,14 +197,14 @@ const actions = {
               error.response.data.detail
             ) {
               shown = true;
-              dispatch("snackbar/openError", error.response.data.detail, {
+              dispatch("toast/openError", error.response.data.detail, {
                 root: true,
               });
             }
             if (!shown) {
               shown = true;
               dispatch(
-                "snackbar/openError",
+                "toast/openError",
                 "Error occured, please try again later",
                 { root: true }
               );
@@ -240,7 +240,7 @@ const actions = {
           .catch(function(error) {
             if (error.response && error.response.status == 401) {
               dispatch(
-                "snackbar/openError",
+                "toast/openError",
                 "Session timeout - unauthenticated",
                 {
                   root: true,
@@ -266,7 +266,7 @@ const actions = {
                   const err = error.response.data.errors[index][index2];
                   if (err) {
                     shown = true;
-                    dispatch("snackbar/openError", err, {
+                    dispatch("toast/openError", err, {
                       root: true,
                     });
                   }
@@ -278,14 +278,14 @@ const actions = {
               error.response.data.detail
             ) {
               shown = true;
-              dispatch("snackbar/openError", error.response.data.detail, {
+              dispatch("toast/openError", error.response.data.detail, {
                 root: true,
               });
             }
             if (!shown) {
               shown = true;
               dispatch(
-                "snackbar/openError",
+                "toast/openError",
                 "Error occured, please try again later",
                 { root: true }
               );
@@ -301,14 +301,14 @@ const actions = {
 
       if (!shown) {
         dispatch(
-          "snackbar/openError",
+          "toast/openError",
           "Error occured, please try again later",
           { root: true }
         );
       }
     } catch (e) {
       console.log("catch.e", e);
-      dispatch("snackbar/openError", e.message, { root: true });
+      dispatch("toast/openError", e.message, { root: true });
     }
   },
   async post({ dispatch }, { url, params, body }) {
@@ -331,7 +331,7 @@ const actions = {
       let shown = false;
       response = await axios.post(url, fd).catch(function(error) {
         if (error.response && error.response && error.response.status == 401) {
-          dispatch("snackbar/openError", "Session timeout - unauthenticated", {
+          dispatch("toast/openError", "Session timeout - unauthenticated", {
             root: true,
           });
           shown = true;
@@ -353,7 +353,7 @@ const actions = {
               const err = error.response.data.errors[index][index2];
               if (err) {
                 shown = true;
-                dispatch("snackbar/openError", err, {
+                dispatch("toast/openError", err, {
                   root: true,
                 });
               }
@@ -365,13 +365,13 @@ const actions = {
           error.response.data.detail
         ) {
           shown = true;
-          dispatch("snackbar/openError", error.response.data.detail, {
+          dispatch("toast/openError", error.response.data.detail, {
             root: true,
           });
         } else if (error.response && error.response.status === 401) {
           shown = true;
           dispatch(
-            "snackbar/openError",
+            "toast/openError",
             "401 Unauthorized, authentication is needed",
             { root: true }
           );
@@ -379,7 +379,7 @@ const actions = {
         if (!shown) {
           shown = true;
           dispatch(
-            "snackbar/openError",
+            "toast/openError",
             "Error occured, please try again later",
             { root: true }
           );
@@ -395,14 +395,14 @@ const actions = {
 
       if (!shown) {
         dispatch(
-          "snackbar/openError",
+          "toast/openError",
           "Error occured, please try again later",
           { root: true }
         );
       }
     } catch (e) {
       console.log("catch.e", e);
-      dispatch("snackbar/openError", e.message, { root: true });
+      dispatch("toast/openError", e.message, { root: true });
     }
   },
 };

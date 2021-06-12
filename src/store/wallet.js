@@ -118,12 +118,18 @@ const actions = {
   },
   async addPrivateAccount({ dispatch, commit }, { mn, name }) {
     if (!name) {
+      dispatch(
+        "toast/openError",
+        "Plase set account name",
+        {
+          root: true,
+        }
+      );
       alert("Plase set account name");
       return false;
     }
     try {
       const secret = algosdk.mnemonicToSecretKey(mn);
-
       await commit("addPrivateAccount", { name, secret });
       await dispatch("saveWallet");
       return true;
@@ -206,7 +212,7 @@ const actions = {
 
     if (!pass) {
       // password not yet initialized
-      return false
+      return false;
     }
 
     if (!this.state.wallet.name) {

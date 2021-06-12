@@ -100,6 +100,7 @@ export default {
   },
   mounted() {
     this.updateBalance();
+
   },
   methods: {
     ...mapActions({
