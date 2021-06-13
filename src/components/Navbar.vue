@@ -113,7 +113,7 @@ export default {
   },
   data() {
     return {
-      langs: ["en", "sk", "cs","hu","it"],
+      langs: ["en", "sk", "cs", "hu", "it", "nl"],
     };
   },
   methods: {
