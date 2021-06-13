@@ -26,7 +26,7 @@
         </div>
       </div>
       <div class="row" v-if="showDesignScreen">
-        <div class="col-12">
+        <div :class="scan ? 'col-8' : 'col-12'">
           <ul class="nav nav-tabs">
             <li class="nav-item">
               <a
@@ -71,9 +71,6 @@
             <p>
               {{ $t("pay.store_other_help") }}
             </p>
-            <div v-if="scan">
-              <qrcode-stream @decode="onDecodeQR" />
-            </div>
           </div>
           <label for="asset">{{ $t("pay.asset") }}</label>
           <select id="asset" class="form-control" v-model="asset">
@@ -145,6 +142,10 @@
             value="Cancel"
             @click="$router.push('/accounts')"
           />
+        </div>
+
+        <div v-if="scan" class="col-4">
+          <qrcode-stream @decode="onDecodeQR" />
         </div>
       </div>
     </form>
@@ -305,10 +306,10 @@
       <div
         v-if="
           isMultisig &&
-          !multisigDecoded.txn &&
-          txn &&
-          accountsFromMultisig &&
-          accountsFromMultisig.length > 0
+            !multisigDecoded.txn &&
+            txn &&
+            accountsFromMultisig &&
+            accountsFromMultisig.length > 0
         "
       >
         <label>{{ $t("pay.sign_with") }}</label>
@@ -366,7 +367,7 @@
 </template>
 
 <script>
-import { QrcodeStream } from "vue-qrcode-reader";
+import { QrcodeStream } from "qrcode-reader-vue3";
 
 import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";

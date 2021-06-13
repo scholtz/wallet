@@ -1,6 +1,6 @@
 {
   "name": "wallet",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -25,12 +25,11 @@
     "moment": "^2.29.1",
     "page": "^1.11.6",
     "primeicons": "^4.1.0",
-    "primevue": "^3.5.0",
+    "primevue": "^3.5.1",
+    "qrcode-reader-vue3": "^3.0.3",
     "qrcode-vue3": "^1.4.16",
     "register-service-worker": "^1.7.1",
-    "vue": "^3.0.11",
     "vue-i18n": "^9.1.0",
-    "vue-qrcode-reader": "^3.0.1",
     "vue-router": "^4.0.8",
     "vuex": "^4.0.1"
   },
@@ -40,11 +39,11 @@
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-pwa": "^4.5.13",
     "@vue/cli-service": "~4.5.0",
-    "@vue/compiler-sfc": "^3.0.0",
+    "@vue/compiler-sfc": "^3.1.1",
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^7.10.0",
-    "vue": "^3.0.11",
+    "eslint-plugin-vue": "^7.11.1",
+    "vue": "^3.1.1",
     "vue-cli-plugin-i18n": "~2.1.1"
   },
   "eslintConfig": {
