@@ -94,7 +94,10 @@ export default {
   computed: {
     qrcode() {
       if (!this.account) return "";
-      let ret = "algorand://" + this.account.addr + "?";
+      let ret = "algorand://" + this.account.addr;
+      if (this.payamount > 0 || this.paynoteB64 || this.paynote || this.label) {
+        ret += "?";
+      }
       if (this.payamount > 0) {
         if (this.decimals > 0) {
           ret +=

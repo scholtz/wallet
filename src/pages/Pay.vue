@@ -51,11 +51,11 @@
 
           <input
             v-if="genericaccount"
-            v-model="payto"
-            id="payto"
+            v-model="payTo"
+            id="payTo"
             class="form-control"
           />
-          <select class="form-control" v-model="payto" v-if="!genericaccount">
+          <select class="form-control" v-model="payTo" v-if="!genericaccount">
             <option
               v-for="option in $store.state.wallet.privateAccounts"
               :key="option.addr"
@@ -159,7 +159,7 @@
         </tr>
         <tr>
           <th>{{ $t("pay.pay_to") }}:</th>
-          <td>{{ payto }}</td>
+          <td>{{ payTo }}</td>
         </tr>
         <tr>
           <th>{{ $t("pay.note") }}:</th>
@@ -382,7 +382,7 @@ export default {
       genericaccount: false,
       payamount: 0,
       fee: 0.001,
-      payto: "",
+      payTo: "",
       paynote: "",
       paynoteB64: false,
       page: "design",
@@ -404,7 +404,7 @@ export default {
   },
   computed: {
     isNotValid() {
-      if (!this.payto) return true;
+      if (!this.payTo) return true;
       return false;
     },
     amountLong() {
@@ -438,7 +438,7 @@ export default {
     },
   },
   async mounted() {
-    this.payto = this.$store.state.wallet.lastPayTo;
+    this.payTo = this.$store.state.wallet.lastpayTo;
     this.lastActiveAccount({ addr: this.$route.params.account });
     console.log("account", this.account);
     await this.makeAssets();
@@ -500,7 +500,7 @@ export default {
     async payMultisig() {
       this.prolong();
       const multsigaddr = this.$route.params.account;
-      const payTo = this.payto;
+      const payTo = this.payTo;
       const amount = this.amountLong;
       const enc = new TextEncoder();
       const note = enc.encode(this.paynote);
@@ -607,7 +607,7 @@ export default {
         if (this.isMultisig) return this.payMultisig();
         this.reset();
         this.prolong();
-        const payTo = this.payto;
+        const payTo = this.payTo;
         const payFrom = this.$route.params.account;
         const amount = this.amountLong;
         const note = this.paynote;
@@ -713,6 +713,9 @@ export default {
     toggleCamera(e) {
       e.preventDefault();
       this.scan = !this.scan;
+      if(this.scan){
+        this.payTo = ''
+      }
       console.log("camera", this.scan);
     },
     test(e) {
@@ -740,6 +743,7 @@ export default {
       }
     },
     onDecodeQR(result) {
+      console.log("onDecodeQR",result)
       if (this.scan && result) {
         if (result.startsWith("algorand://")) {
           // parse according to https://github.com/emg110/algorand-qrcode
@@ -816,6 +820,10 @@ export default {
         } else {
           this.payTo = result;
         }
+      }
+      console.log("onDecodeQR.out",result, this.payTo)
+      if(this.payTo){
+        this.scan = false
       }
     },
   },

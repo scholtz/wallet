@@ -26,7 +26,7 @@
     "page": "^1.11.6",
     "primeicons": "^4.1.0",
     "primevue": "^3.5.1",
-    "qrcode-reader-vue3": "^3.0.3",
+    "qrcode-reader-vue3": "^3.0.6",
     "qrcode-vue3": "^1.4.16",
     "register-service-worker": "^1.7.1",
     "vue-i18n": "^9.1.0",
