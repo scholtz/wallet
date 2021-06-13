@@ -154,6 +154,35 @@
         <textarea class="form-control my-1" v-model="w" />
         <input class="form-control my-1" v-model="a" />
 
+        <QRCodeVue3
+          :width="500"
+          :height="500"
+          :value="w"
+          :cornersSquareOptions="{ type: 'square', color: '#333' }"
+          :cornersDotOptions="{ type: 'square', color: '#333',
+                      gradient: {
+              type: 'linear',
+              rotation: 0,
+              colorStops: [
+                { offset: 0, color: '#333' },
+                { offset: 1, color: '#000' },
+              ],
+            },
+ }"
+          :dotsOptions="{
+            type: 'square',
+            color: '#333',
+            gradient: {
+              type: 'linear',
+              rotation: 0,
+              colorStops: [
+                { offset: 0, color: '#333' },
+                { offset: 1, color: '#000' },
+              ],
+            },
+          }"
+        />
+
         <button v-if="this.s" class="btn btn-primary m-1" @click="makeRandom">
           {{ $t("newacc.start_challenge") }}
         </button>
@@ -169,10 +198,12 @@
       </div>
     </div>
   </main-layout>
-</template><script>
+</template>
+<script>
 import MainLayout from "../layouts/Main.vue";
 import algosdk from "algosdk";
 import { mapActions } from "vuex";
+import QRCodeVue3 from "qrcode-vue3";
 
 export default {
   data() {
@@ -193,6 +224,7 @@ export default {
   },
   components: {
     MainLayout,
+    QRCodeVue3,
   },
   mounted() {
     this.reset();
