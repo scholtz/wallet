@@ -417,7 +417,11 @@ export default {
       return false;
     },
     amountLong() {
-      return this.payamount * Math.pow(10, this.assetObj.decimals);
+      let decimals = 6;
+      if (this.assetObj && this.assetObj.decimals !== undefined) {
+        decimals = this.assetObj.decimals;
+      }
+      return this.payamount * Math.pow(10, decimals);
     },
     feeLong() {
       return this.fee * Math.pow(10, 6); // algo
