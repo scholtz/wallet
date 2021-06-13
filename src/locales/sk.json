@@ -25,7 +25,8 @@
     "go_home": "Domov",
     "copy_address": "Skopírovať adresu",
     "copied_to_clipboard": "Skopírované",
-    "stop_camera":"Vypnúť kameru"
+    "stop_camera":"Vypnúť kameru",
+    "cancel":"Zrušiť"
   },
   "navbar": {
     "logo": "A Wallet",
@@ -78,7 +79,12 @@
     "receiver": "Príjemca",
     "receiver_rewards": "Odmena pre príjemcu",
     "confirmed_round": "Potvrdený blok",
-    "fee": "Poplatok"
+    "fee": "Poplatok",
+    "delete":"Vymazať účet",
+    "delete_header":"Vymazať účet",
+    "delete_confirm":"Ste si istý, že chcete tento účet vymazať?",
+    "delete_confirm_button":"Vymazať účet",
+    "deleted":"Účet bol vymazaný"
   },
   "accounts": {
     "title": "Prehľad účtov",

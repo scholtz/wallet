@@ -66,14 +66,28 @@ const actions = {
         noteEnc,
         params,
       });
-      let txn = algosdk.makePaymentTxnWithSuggestedParams(
-        payFrom,
-        payTo,
-        amount,
-        assetId,
-        noteEnc,
-        params
-      );
+      let txn = null;
+      if (asset) {
+        const transactionOptions = {
+          from: payFrom,
+          to: payTo,
+          assetIndex: assetId,
+          amount,
+          suggestedParams: params,
+        };
+        txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
+          transactionOptions
+        );
+      } else {
+        txn = algosdk.makePaymentTxnWithSuggestedParams(
+          payFrom,
+          payTo,
+          amount,
+          undefined,
+          noteEnc,
+          params
+        );
+      }
       console.log("txn", txn, sk);
       let signedTxn = txn.signTxn(sk);
       console.log("signedTxn", signedTxn);

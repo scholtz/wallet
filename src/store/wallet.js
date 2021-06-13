@@ -38,6 +38,13 @@ const mutations = {
     const acc = { name, addr };
     state.privateAccounts.push(acc);
   },
+  deleteAccount(state, { name, addr }) {
+    const index = state.privateAccounts.findIndex(
+      (acc) => acc.name == name && acc.addr == addr
+    );
+    console.log("deleting", index);
+    state.privateAccounts.splice(index, 1);
+  },
   setPrivateAccount(state, { info }) {
     const acc = state.privateAccounts.find((x) => x.addr == info.address);
     if (acc) {
@@ -118,13 +125,9 @@ const actions = {
   },
   async addPrivateAccount({ dispatch, commit }, { mn, name }) {
     if (!name) {
-      dispatch(
-        "toast/openError",
-        "Plase set account name",
-        {
-          root: true,
-        }
-      );
+      dispatch("toast/openError", "Plase set account name", {
+        root: true,
+      });
       alert("Plase set account name");
       return false;
     }
@@ -150,6 +153,24 @@ const actions = {
     } catch (e) {
       console.log("error", e);
       alert("Account has not been created");
+    }
+  },
+  async deleteAccount({ dispatch, commit }, { name, addr }) {
+    if (!name) {
+      alert("Plase define account name");
+      return false;
+    }
+    if (!addr) {
+      alert("Plase define account addr");
+      return false;
+    }
+    try {
+      await commit("deleteAccount", { name, addr });
+      await dispatch("saveWallet");
+      return true;
+    } catch (e) {
+      console.log("error", e);
+      alert("Account has not been deleted");
     }
   },
   async addMultiAccount({ dispatch, commit }, { params, name }) {

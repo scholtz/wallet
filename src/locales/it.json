@@ -25,7 +25,8 @@
     "go_home": "Torna alla Home",
     "copy_address": "Copia indirizzo",
     "copied_to_clipboard": "Copiato negli appunti",
-    "stop_camera":"Stop camera"
+    "stop_camera":"Stop camera",
+    "cancel":"Cancel"
   },
   "navbar": {
     "logo": "A Wallet",
@@ -78,7 +79,12 @@
     "receiver": "Destinatario",
     "receiver_rewards": "Ricompensa destinatario",
     "confirmed_round": "Round confermato",
-    "fee": "Commissione"
+    "fee": "Commissione",
+    "delete":"Delete account",
+    "delete_header":"Delete account",
+    "delete_confirm":"Are you sure you want to delete this account from your wallet?",
+    "delete_confirm_button":"Delete this account",
+    "deleted":"Account has been deleted"
   },
   "accounts": {
     "title": "Anteprima Account",

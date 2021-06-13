@@ -212,6 +212,44 @@
         <th>{{ $t("transaction.last_valid") }}:</th>
         <td>{{ transaction["last-valid"] }}</td>
       </tr>
+      <tr v-if="transaction['asset-transfer-transaction']">
+        <th>{{ $t("transaction.amount") }}:</th>
+        <td>
+          {{
+            $filters.formatCurrency(
+              transaction["asset-transfer-transaction"]["amount"],
+              assetObj.name,
+              assetObj.decimals
+            )
+          }}
+          ({{ transaction["asset-transfer-transaction"]["asset-id"] }})
+        </td>
+      </tr>
+      <tr v-if="transaction['asset-transfer-transaction']">
+        <th>{{ $t("transaction.receiver") }}:</th>
+        <td>
+          <router-link
+            :to="
+              '/account/' +
+              transaction['asset-transfer-transaction']['receiver']
+            "
+            class="btn btn-xs btn-light"
+            >{{
+              transaction["asset-transfer-transaction"]["receiver"]
+            }}</router-link
+          >
+        </td>
+      </tr>
+      <tr v-if="transaction['payment-transaction']">
+        <th>{{ $t("transaction.close_amount") }}:</th>
+        <td>
+          {{
+            $filters.formatCurrency(
+              transaction["payment-transaction"]["close-amount"]
+            )
+          }}
+        </td>
+      </tr>
       <tr v-if="transaction['payment-transaction']">
         <th>{{ $t("transaction.amount") }}:</th>
         <td>
@@ -270,13 +308,20 @@
 
 <script>
 import MainLayout from "../layouts/Main.vue";
+import { mapActions } from "vuex";
 
 export default {
   components: {
     MainLayout,
   },
   data() {
-    return {};
+    return {
+      assetObj: {
+        "asset-id": undefined,
+        name: "ALGO",
+        decimals: 6,
+      },
+    };
   },
   computed: {
     transaction() {
@@ -284,7 +329,18 @@ export default {
       return this.$store.state.wallet.transaction;
     },
   },
+  watch: {
+    async transaction() {
+      await this.loadAsset();
+    },
+  },
+  mounted() {
+    this.loadAsset();
+  },
   methods: {
+    ...mapActions({
+      getAsset: "indexer/getAsset",
+    }),
     isBase64(str) {
       if (!str) return false;
       if (str.trim() === "") {
@@ -298,6 +354,23 @@ export default {
     },
     fromB64(str) {
       return atob(str);
+    },
+    async loadAsset() {
+      if (
+        !this.transaction["asset-transfer-transaction"] ||
+        !this.transaction["asset-transfer-transaction"]["asset-id"]
+      ) {
+        this.assetObj = {
+          "asset-id": undefined,
+          name: "ALGO",
+          decimals: 6,
+        };
+      } else {
+        this.assetObj = await this.getAsset({
+          assetIndex: this.asset,
+        });
+      }
+      console.log("this.assetObj", this.assetObj);
     },
   },
 };

@@ -4,9 +4,38 @@
       {{ $t("acc_overview.title") }} -
       {{ this.$store.state.wallet.lastActiveAccountName }}
     </h1>
+    <p>
+      <button
+        @click="displayDeleteDialog = true"
+        class="btn btn-light btn-xs m-2 float-end"
+      >
+        <div>{{ $t("acc_overview.delete") }}</div>
+      </button>
 
-    <p v-if="account && (account.sk || account.params)">
+      <Dialog
+        :header="$t('acc_overview.delete_header')"
+        v-model:visible="displayDeleteDialog"
+        :modal="true"
+      >
+        <p>{{ $t("acc_overview.delete_confirm") }}</p>
+        <p v-if="account">
+          <b>{{ account.name }}</b>
+        </p>
+        <p v-if="account">{{ account.addr }}</p>
+
+        <template #footer
+          ><button
+            @click="displayDeleteDialog = false"
+            class="btn btn-xs btn-primary"
+          >
+            {{ $t("global.cancel") }}</button
+          ><button class="btn btn-xs btn-danger" @click="deleteAccountClick">
+            {{ $t("acc_overview.delete_confirm_button") }}
+          </button></template
+        >
+      </Dialog>
       <router-link
+        v-if="account && (account.sk || account.params)"
         :to="'/accounts/pay/' + $route.params.account"
         class="btn btn-light btn-xs my-2"
         >{{ $t("acc_overview.pay") }}</router-link
@@ -17,14 +46,6 @@
         >{{ $t("acc_overview.receive_payment") }}</router-link
       >
     </p>
-    <p v-else>
-      <router-link
-        :to="'/receive-payment/' + $route.params.account"
-        class="btn btn-light btn-xs m-2"
-        >{{ $t("acc_overview.receive_payment") }}</router-link
-      >
-    </p>
-
     <table class="table" v-if="account">
       <tr>
         <th>{{ $t("acc_overview.name") }}:</th>
@@ -275,6 +296,7 @@ export default {
   },
   data() {
     return {
+      displayDeleteDialog: false,
       transactions: [],
       selection: null,
       assets: [],
@@ -313,6 +335,7 @@ export default {
       accountInformation: "algod/accountInformation",
       updateAccount: "wallet/updateAccount",
       lastActiveAccount: "wallet/lastActiveAccount",
+      deleteAccount: "wallet/deleteAccount",
       searchForTransactions: "indexer/searchForTransactions",
       setTransaction: "wallet/setTransaction",
       getAsset: "indexer/getAsset",
@@ -380,6 +403,13 @@ export default {
       if (copy(text)) {
         alert(this.$t("global.copied_to_clipboard"));
       }
+    },
+    async deleteAccountClick() {
+      await this.deleteAccount({
+        name: this.account.name,
+        addr: this.account.addr,
+      });
+      this.$router.push("/accounts");
     },
   },
 };

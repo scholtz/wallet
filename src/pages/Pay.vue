@@ -167,13 +167,21 @@
         </tr>
         <tr>
           <th>{{ $t("pay.amount") }}:</th>
-          <td>{{ $filters.formatCurrency(amountLong) }}</td>
+          <td>
+            {{
+              $filters.formatCurrency(
+                amountLong,
+                this.assetObj.name,
+                this.assetObj.decimals
+              )
+            }}
+          </td>
         </tr>
         <tr>
           <th>{{ $t("pay.fee") }}:</th>
           <td>{{ $filters.formatCurrency(feeLong) }}</td>
         </tr>
-        <tr>
+        <tr v-if="!asset">
           <th>{{ $t("pay.total") }}:</th>
           <td>{{ $filters.formatCurrency(amountLong + feeLong) }}</td>
         </tr>
@@ -306,10 +314,10 @@
       <div
         v-if="
           isMultisig &&
-            !multisigDecoded.txn &&
-            txn &&
-            accountsFromMultisig &&
-            accountsFromMultisig.length > 0
+          !multisigDecoded.txn &&
+          txn &&
+          accountsFromMultisig &&
+          accountsFromMultisig.length > 0
         "
       >
         <label>{{ $t("pay.sign_with") }}</label>
@@ -399,6 +407,7 @@ export default {
       multisigDecoded: {},
       assets: [],
       asset: "",
+      assetObj: {},
       scan: false,
     };
   },
@@ -408,10 +417,10 @@ export default {
       return false;
     },
     amountLong() {
-      return this.payamount * 1000000;
+      return this.payamount * Math.pow(10, this.assetObj.decimals);
     },
     feeLong() {
-      return this.fee * 1000000;
+      return this.fee * Math.pow(10, 6); // algo
     },
     account() {
       return this.$store.state.wallet.privateAccounts.find(
@@ -435,6 +444,20 @@ export default {
   watch: {
     account() {
       this.makeAssets();
+    },
+    async asset() {
+      if (!this.asset) {
+        this.assetObj = {
+          "asset-id": undefined,
+          name: "ALGO",
+          decimals: 6,
+        };
+      } else {
+        this.assetObj = await this.getAsset({
+          assetIndex: this.asset,
+        });
+      }
+      console.log("assetObj", this.assetObj);
     },
   },
   async mounted() {
@@ -611,7 +634,8 @@ export default {
         const payFrom = this.$route.params.account;
         const amount = this.amountLong;
         const note = this.paynote;
-        const fee = this.feeLong;
+        let fee = this.feeLong;
+        const asset = this.asset;
 
         const enc = new TextEncoder();
         let noteEnc = enc.encode(note);
@@ -625,13 +649,13 @@ export default {
             console.log("Error converting b64 to array");
           }
         }
-
         console.log("sending payment", {
           payTo,
           payFrom,
           amount,
           noteEnc,
           fee,
+          asset,
         });
         this.tx = await this.makePayment({
           payTo,
@@ -639,6 +663,7 @@ export default {
           amount,
           noteEnc,
           fee,
+          asset,
         });
         const confirmation = await this.waitForConfirmation({
           txId: this.tx,

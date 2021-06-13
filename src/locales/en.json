@@ -25,7 +25,8 @@
     "go_home": "Go home",
     "copy_address": "Copy address",
     "copied_to_clipboard": "Copied to clipboard",
-    "stop_camera":"Stop camera"
+    "stop_camera":"Stop camera",
+    "cancel":"Cancel"
   },
   "navbar": {
     "logo": "A Wallet",
@@ -78,7 +79,12 @@
     "receiver": "Receiver",
     "receiver_rewards": "Receiver rewards",
     "confirmed_round": "Confirmed round",
-    "fee": "Fee"
+    "fee": "Fee",
+    "delete":"Delete account",
+    "delete_header":"Delete account",
+    "delete_confirm":"Are you sure you want to delete this account from your wallet?",
+    "delete_confirm_button":"Delete this account",
+    "deleted":"Account has been deleted"
   },
   "accounts": {
     "title": "Accounts overview",

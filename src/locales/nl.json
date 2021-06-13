@@ -25,7 +25,8 @@
       "go_home": "Naar homepagina",
       "copy_address": "Kopieer adres",
       "copied_to_clipboard": "Gekopieerd naar uw klembord",
-      "stop_camera":"Stop camera"
+      "stop_camera":"Stop camera",
+      "cancel":"Cancel"
     },
     "navbar": {
       "logo": "Een portemonnee",
@@ -78,7 +79,12 @@
       "receiver": "Ontvanger",
       "receiver_rewards": "Ontvanger beloningen",
       "confirmed_round": "Bevestigde ronde",
-      "fee": "Kost"
+      "fee": "Kost",
+      "delete":"Delete account",
+      "delete_header":"Delete account",
+      "delete_confirm":"Are you sure you want to delete this account from your wallet?",
+      "delete_confirm_button":"Delete this account",
+      "deleted":"Account has been deleted"
     },
     "accounts": {
       "title": "Accounts overzicht",
