@@ -24,7 +24,8 @@
     "go_back": "Vissza",
     "go_home": "Ugrás a kezdőlapra",
     "copy_address": "Cím másolása",
-    "copied_to_clipboard": "Átmásolva a vágólapra"
+    "copied_to_clipboard": "Átmásolva a vágólapra",
+    "stop_camera":"Stop camera"
   },
   "navbar": {
     "logo": "A Wallet",
@@ -104,7 +105,8 @@
     "start_challenge": "A kihívás kezdete",
     "create_new": "Új készítése",
     "hide_mnemonic": "A mnemonik elrejtése",
-    "drop_phrase": "A kifejezés elvetése"
+    "drop_phrase": "A kifejezés elvetése",
+    "scan":"Scan from QR"
   },
   "import": {
     "title": "Pénztárca importja",

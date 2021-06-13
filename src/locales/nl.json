@@ -24,7 +24,8 @@
       "go_back": "Ga terug",
       "go_home": "Naar homepagina",
       "copy_address": "Kopieer adres",
-      "copied_to_clipboard": "Gekopieerd naar uw klembord"
+      "copied_to_clipboard": "Gekopieerd naar uw klembord",
+      "stop_camera":"Stop camera"
     },
     "navbar": {
       "logo": "Een portemonnee",
@@ -52,7 +53,7 @@
       "pay": "Maak een betaling",
       "receive_payment": "Ontvang betaling",
       "name": "Naam",
-  
+
       "address": "Adres",
       "amount": "Bedrag",
       "amount_without_pending": "Bedrag zonder wachtende beloningen",
@@ -108,7 +109,8 @@
       "start_challenge": "Start de uitdaging",
       "create_new": "Maak nieuw",
       "hide_mnemonic": "Verberg geheugensteun",
-      "drop_phrase": "Laat zin vallen"
+      "drop_phrase": "Laat zin vallen",
+      "scan":"Scan from QR"
     },
     "import": {
       "title": "Importeer portemonee",
@@ -261,7 +263,7 @@
       "note": "Opmerking ingesteld in de aanmaak transactie",
       "create_button": "Maak NFT / ASA"
     },
-  
+
     "faq": {
       "title": "Veelgestelde vragen",
       "q1": "Over de portemonnee",
@@ -290,8 +292,7 @@
       "q8": "Hoe maak je een rekening met meerdere handtekeningen?",
       "a8_1": "Maak eerst de accounts aan met de private sleutels of maak publieke accounts aan. Het is beter om ze namen te geven die je zult onthouden voor het doel ervan.",
       "a8_2": "Ga naar nieuw adres aanmaken en selecteer adres met meerdere handtekeningen.",
-      "a8_3": "Selecteer alle accounts die de transacties kunnen ondertekenen en selecteer hoeveel handtekeningen minimaal zijn voor het netwerk om de multisig-betaling te accepteren.", 
+      "a8_3": "Selecteer alle accounts die de transacties kunnen ondertekenen en selecteer hoeveel handtekeningen minimaal zijn voor het netwerk om de multisig-betaling te accepteren.",
       "a8_4": "Nadat u de multisignature-rekening hebt aangemaakt, kunt u deze openen via de rekeningenlijstpagina."
     }
   }
-  

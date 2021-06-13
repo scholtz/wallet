@@ -145,7 +145,7 @@
         </div>
 
         <div v-if="scan" class="col-4">
-          <qrcode-stream @decode="onDecodeQR" />
+          <QrcodeStream @decode="onDecodeQR" />
         </div>
       </div>
     </form>
@@ -713,8 +713,8 @@ export default {
     toggleCamera(e) {
       e.preventDefault();
       this.scan = !this.scan;
-      if(this.scan){
-        this.payTo = ''
+      if (this.scan) {
+        this.payTo = "";
       }
       console.log("camera", this.scan);
     },
@@ -743,7 +743,7 @@ export default {
       }
     },
     onDecodeQR(result) {
-      console.log("onDecodeQR",result)
+      console.log("onDecodeQR", result);
       if (this.scan && result) {
         if (result.startsWith("algorand://")) {
           // parse according to https://github.com/emg110/algorand-qrcode
@@ -821,9 +821,9 @@ export default {
           this.payTo = result;
         }
       }
-      console.log("onDecodeQR.out",result, this.payTo)
-      if(this.payTo){
-        this.scan = false
+      console.log("onDecodeQR.out", result, this.payTo);
+      if (this.payTo) {
+        this.scan = false;
       }
     },
   },

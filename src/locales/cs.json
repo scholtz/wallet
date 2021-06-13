@@ -24,7 +24,8 @@
     "go_back": "Naspäť",
     "go_home": "Domov",
     "copy_address": "Skopírovať adresu",
-    "copied_to_clipboard": "Skopírované"
+    "copied_to_clipboard": "Skopírované",
+    "stop_camera":"Stop camera"
   },
   "navbar": {
     "logo": "A Wallet",

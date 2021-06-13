@@ -24,7 +24,8 @@
     "go_back": "Naspäť",
     "go_home": "Domov",
     "copy_address": "Skopírovať adresu",
-    "copied_to_clipboard": "Skopírované"
+    "copied_to_clipboard": "Skopírované",
+    "stop_camera":"Vypnúť kameru"
   },
   "navbar": {
     "logo": "A Wallet",
@@ -108,7 +109,8 @@
     "start_challenge": "Začať test",
     "create_new": "Vytvoriť novú",
     "hide_mnemonic": "Skryť frázu",
-    "drop_phrase": "Zahodiť frázu"
+    "drop_phrase": "Zahodiť frázu",
+    "scan":"Nascanovať z QR"
   },
   "import": {
     "title": "Import peňaženky",

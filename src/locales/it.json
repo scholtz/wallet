@@ -24,7 +24,8 @@
     "go_back": "Indietro",
     "go_home": "Torna alla Home",
     "copy_address": "Copia indirizzo",
-    "copied_to_clipboard": "Copiato negli appunti"
+    "copied_to_clipboard": "Copiato negli appunti",
+    "stop_camera":"Stop camera"
   },
   "navbar": {
     "logo": "A Wallet",
@@ -108,7 +109,8 @@
     "start_challenge": "Inizia la verifica",
     "create_new": "Crea nuova",
     "hide_mnemonic": "Nascondi menemonico",
-    "drop_phrase": "Scarta frase"
+    "drop_phrase": "Scarta frase",
+    "scan":"Scan from QR"
   },
   "import": {
     "title": "Importa wallet",

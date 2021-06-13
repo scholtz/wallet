@@ -29,18 +29,40 @@
         </button>
       </div>
       <div v-if="page == 'importaccount'">
-        <p>{{ $t("newacc.write_mnemonic") }}</p>
-        <textarea class="form-control my-1" v-model="w" />
+        <div class="row">
+          <div :class="scanMnemonic ? 'col-8' : 'col-12'">
+            <p>{{ $t("newacc.write_mnemonic") }}</p>
+            <textarea class="form-control my-1" v-model="w" />
 
-        <p>{{ $t("newacc.name") }}</p>
-        <input v-model="name" class="form-control" />
+            <p>{{ $t("newacc.name") }}</p>
+            <input v-model="name" class="form-control" />
 
-        <button class="btn btn-primary m-1" @click="importAccountClick">
-          {{ $t("newacc.create_account") }}
-        </button>
-        <button class="btn btn-light m-1" @click="reset">
-          {{ $t("global.go_back") }}
-        </button>
+            <button class="btn btn-primary m-1" @click="importAccountClick">
+              {{ $t("newacc.create_account") }}
+            </button>
+
+            <button
+              v-if="!scanMnemonic"
+              class="btn btn-light m-1"
+              @click="scanMnemonic = true"
+            >
+              {{ $t("newacc.scan") }}
+            </button>
+            <button
+              v-if="scanMnemonic"
+              class="btn btn-light m-1"
+              @click="scanMnemonic = false"
+            >
+              {{ $t("global.stop_camera") }}
+            </button>
+            <button class="btn btn-light m-1" @click="reset">
+              {{ $t("global.go_back") }}
+            </button>
+          </div>
+          <div v-if="scanMnemonic" class="col-4">
+            <QrcodeStream @decode="onDecodeQRMnemonic" />
+          </div>
+        </div>
       </div>
       <div v-if="page == 'watchaccount'">
         <p>{{ $t("newacc.name") }}</p>
@@ -159,8 +181,10 @@
           :height="500"
           :value="w"
           :cornersSquareOptions="{ type: 'square', color: '#333' }"
-          :cornersDotOptions="{ type: 'square', color: '#333',
-                      gradient: {
+          :cornersDotOptions="{
+            type: 'square',
+            color: '#333',
+            gradient: {
               type: 'linear',
               rotation: 0,
               colorStops: [
@@ -168,7 +192,7 @@
                 { offset: 1, color: '#000' },
               ],
             },
- }"
+          }"
           :dotsOptions="{
             type: 'square',
             color: '#333',
@@ -204,6 +228,7 @@ import MainLayout from "../layouts/Main.vue";
 import algosdk from "algosdk";
 import { mapActions } from "vuex";
 import QRCodeVue3 from "qrcode-vue3";
+import { QrcodeStream } from "qrcode-reader-vue3";
 
 export default {
   data() {
@@ -214,6 +239,7 @@ export default {
       guess: "",
       s: false,
       challenge: false,
+      scanMnemonic: false,
       page: "new",
       multisignum: 2,
       multisigaccts: [],
@@ -225,6 +251,7 @@ export default {
   components: {
     MainLayout,
     QRCodeVue3,
+    QrcodeStream,
   },
   mounted() {
     this.reset();
@@ -313,6 +340,11 @@ export default {
         }
       }
       return ret;
+    },
+    onDecodeQRMnemonic(result) {
+      if (result) {
+        this.w = result;
+      }
     },
   },
 };
