@@ -26,6 +26,18 @@
         {{ $t("receive.noteeditable") }}
       </label>
     </div>
+
+    <label for="payamount">{{ $t("pay.asset") }}</label>
+    <select id="asset" class="form-control" v-model="asset">
+      <option
+        v-for="asset in assets"
+        :key="asset['asset-id']"
+        :value="asset['asset-id']"
+      >
+        {{ asset["name"] }}
+      </option>
+    </select>
+
     <label for="payamount">{{ $t("receive.amount") }}</label>
     <input
       v-model="payamount"
@@ -89,13 +101,21 @@ export default {
       decimals: 0,
       label: "",
       noteeditable: true,
+      assets: [],
+      asset: "",
     };
   },
   computed: {
     qrcode() {
       if (!this.account) return "";
       let ret = "algorand://" + this.account.addr;
-      if (this.payamount > 0 || this.paynoteB64 || this.paynote || this.label) {
+      if (
+        this.payamount > 0 ||
+        this.paynoteB64 ||
+        this.paynote ||
+        this.label ||
+        this.asset
+      ) {
         ret += "?";
       }
       if (this.payamount > 0) {
@@ -121,6 +141,9 @@ export default {
       if (this.label) {
         ret += "&label=" + this.label;
       }
+      if (this.asset) {
+        ret += "&asset=" + this.asset;
+      }
       console.log("qrcode", ret);
       return ret;
     },
@@ -137,6 +160,8 @@ export default {
   },
   mounted() {
     console.log("qrcode", this.qrcode, this.account);
+
+    this.makeAssets();
   },
   methods: {
     ...mapActions({
