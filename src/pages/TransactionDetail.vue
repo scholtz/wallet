@@ -328,6 +328,10 @@ export default {
       console.log("transaction", this.$store.state.wallet.transaction);
       return this.$store.state.wallet.transaction;
     },
+    asset() {
+      if (!this.transaction["asset-config-transaction"]) return false;
+      return this.transaction["asset-config-transaction"]["asset-id"];
+    },
   },
   watch: {
     async transaction() {
@@ -367,7 +371,8 @@ export default {
         };
       } else {
         this.assetObj = await this.getAsset({
-          assetIndex: this.asset,
+          assetIndex:
+            this.transaction["asset-transfer-transaction"]["asset-id"],
         });
       }
       console.log("this.assetObj", this.assetObj);

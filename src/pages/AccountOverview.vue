@@ -145,8 +145,13 @@
             <tbody>
               <tr v-for="asset in account['assets']" :key="asset['asset-id']">
                 <td>
-                  {{ asset["amount"] }}
-                  {{ getAssetName(asset["asset-id"]) }}
+                  {{
+                    $filters.formatCurrency(
+                      asset["amount"],
+                      getAssetName(asset["asset-id"]),
+                      getAssetDecimals(asset["asset-id"])
+                    )
+                  }}
                 </td>
                 <td>{{ asset["asset-id"] }}</td>
                 <td>{{ asset["is-frozen"] }}</td>
@@ -389,6 +394,10 @@ export default {
     getAssetName(id) {
       const asset = this.getAssetSync(id);
       if (asset) return asset["name"];
+    },
+    getAssetDecimals(id) {
+      const asset = this.getAssetSync(id);
+      if (asset) return asset["decimals"];
     },
     async reloadAccount() {
       await this.accountInformation({
