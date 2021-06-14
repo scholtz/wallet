@@ -63,7 +63,7 @@ const actions = {
         payTo,
         amount,
         assetId,
-        noteEnc,
+        note: noteEnc,
         params,
       });
       let txn = null;
@@ -73,6 +73,7 @@ const actions = {
           to: payTo,
           assetIndex: assetId,
           amount,
+          note: noteEnc,
           suggestedParams: params,
         };
         console.log("transactionOptions", transactionOptions);
