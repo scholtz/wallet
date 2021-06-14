@@ -1,5 +1,5 @@
 <template>
-  <PublicLayout>
+  <MainLayout>
     <form @submit="createAsset">
       <h1>
         {{ $t("assetcreate.title") }}
@@ -186,15 +186,15 @@
         :value="$t('assetcreate.create_button')"
       />
     </form>
-  </PublicLayout>
+  </MainLayout>
 </template>
 
 <script>
-import PublicLayout from "../../layouts/Public.vue";
+import MainLayout from "../../layouts/Main.vue";
 import { mapActions } from "vuex";
 export default {
   components: {
-    PublicLayout,
+    MainLayout,
   },
   data() {
     return {

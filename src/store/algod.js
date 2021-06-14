@@ -53,7 +53,7 @@ const actions = {
       );
       let assetId = undefined;
       if (asset) {
-        assetId = asset;
+        assetId = parseInt(asset);
       }
       let params = await algodclient.getTransactionParams().do();
       params.fee = fee;
@@ -67,7 +67,7 @@ const actions = {
         params,
       });
       let txn = null;
-      if (asset) {
+      if (assetId) {
         const transactionOptions = {
           from: payFrom,
           to: payTo,
@@ -75,6 +75,7 @@ const actions = {
           amount,
           suggestedParams: params,
         };
+        console.log("transactionOptions", transactionOptions);
         txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
           transactionOptions
         );

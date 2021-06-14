@@ -16,6 +16,7 @@ import AssetDestroy from "@/pages/Asset/Destroy.vue";
 import AssetFreeze from "@/pages/Asset/Freeze.vue";
 import AssetModify from "@/pages/Asset/Modify.vue";
 import AssetRevoke from "@/pages/Asset/Revoke.vue";
+import OptIn from "@/pages/Asset/OptIn.vue";
 
 const routes = [
   {
@@ -77,6 +78,11 @@ const routes = [
     path: "/account/:account",
     name: "AccountOverview",
     component: AccountOverview,
+  },
+  {
+    path: "/account/optin/:account",
+    name: "OptIn",
+    component: OptIn,
   },
   {
     path: "/transaction/:id",

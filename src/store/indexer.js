@@ -67,6 +67,24 @@ const actions = {
       console.log("error", error);
     }
   },
+  async getAssetsByName({ commit }, { name }) {
+    try {
+      const url = new URL(this.state.config.indexer);
+      const indexerClient = new algosdk.Indexer(
+        this.state.config.indexerToken,
+        this.state.config.indexer,
+        url.port
+      );
+      const assetInfo = await indexerClient
+        .searchForAssets()
+        .name(name)
+        .do();
+      console.log("assetInfo", assetInfo);
+      return assetInfo.assets;
+    } catch (error) {
+      console.log("error", error, commit);
+    }
+  },
 };
 export default {
   namespaced: true,

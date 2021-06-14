@@ -26,7 +26,9 @@
     "copy_address": "Skopírovať adresu",
     "copied_to_clipboard": "Skopírované",
     "stop_camera":"Vypnúť kameru",
-    "cancel":"Zrušiť"
+    "cancel":"Zrušiť",
+    "yes":"Áno",
+    "no":"Nie"
   },
   "navbar": {
     "logo": "A Wallet",
@@ -84,7 +86,34 @@
     "delete_header":"Vymazať účet",
     "delete_confirm":"Ste si istý, že chcete tento účet vymazať?",
     "delete_confirm_button":"Vymazať účet",
-    "deleted":"Účet bol vymazaný"
+    "deleted":"Účet bol vymazaný",
+    "asset_optin":"Pridať aktívum"
+  },
+  "optin":{
+    "title":"Prijímať aktívum (ASA alebo NFT) na účte",
+    "searchById":"Viem ID aktíva",
+    "assetId":"ID aktíva",
+    "assetName":"Názov aktíva",
+    "searchButton":"Nájsť aktívum",
+    "assetInfo":"Informácia o aktíve",
+    "total":"Celkovo",
+    "unit_name":"Jednotka",
+    "decimals":"Des. miesta",
+    "url":"URL",
+    "metadata_hash":"Metadata hash",
+    "default_frozen":"Predvolene zamrznuté",
+    "creator":"Adresa tvorcu aktíva",
+    "manager":"Adresa managera aktíva",
+    "clawback":"Adresa clawback účtu",
+    "freeze":"Uzamykateľný účet aktíva",
+    "reserve":"Rezervný účet aktíva",
+    "action":"Akcia",
+    "optin_button":"Akceptovať aktívum",
+    "dialog_header":"Akceptovať aktívum",
+    "optin_confirm":"Ste si istý, že chcete vykonať prevod za poplatok 0.001 algo a umožňniť prijímať aktívum?",
+    "optin_confirm_button":"Chcem prijímať aktívum",
+    "asset_not_found":"Aktívum nebolo nájdené",
+    "asset_opt_in_success":"Úspešne ste sa v sieti prihlásili k prijímaniu aktíva"
   },
   "accounts": {
     "title": "Prehľad účtov",

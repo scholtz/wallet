@@ -41,6 +41,12 @@
         >{{ $t("acc_overview.pay") }}</router-link
       >
       <router-link
+        v-if="account && (account.sk || account.params)"
+        :to="'/account/optin/' + $route.params.account"
+        class="btn btn-light btn-xs my-2"
+        >{{ $t("acc_overview.asset_optin") }}</router-link
+      >
+      <router-link
         :to="'/receive-payment/' + $route.params.account"
         class="btn btn-light btn-xs m-2"
         >{{ $t("acc_overview.receive_payment") }}</router-link
@@ -329,6 +335,7 @@ export default {
   async mounted() {
     await this.reloadAccount();
     await this.makeAssets();
+    this.prolong();
   },
   methods: {
     ...mapActions({
@@ -339,6 +346,7 @@ export default {
       searchForTransactions: "indexer/searchForTransactions",
       setTransaction: "wallet/setTransaction",
       getAsset: "indexer/getAsset",
+      prolong: "wallet/prolong",
     }),
 
     async makeAssets() {
