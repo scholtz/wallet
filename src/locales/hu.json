@@ -254,7 +254,8 @@
     "asset_decimals": "Tizedesjegyek száma",
     "asset_defaultfrozen": "Kezdetben legyen befagyasztva",
     "asset_url": "Eszköz url",
-    "asset_metadata": "Eszköz metaadat"
+    "asset_metadata": "Eszköz metaadat",
+    "time": "Idő"
   },
   "privacy": {
     "title": "Adatvédelmi irányelvek",

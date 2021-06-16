@@ -263,7 +263,8 @@
     "asset_decimals": "Asset decimals",
     "asset_defaultfrozen": "Asset default frozen",
     "asset_url": "Asset url",
-    "asset_metadata": "Asset metadata"
+    "asset_metadata": "Asset metadata",
+    "time": "Time"
   },
   "privacy": {
     "title": "Privacy policy",

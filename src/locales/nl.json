@@ -263,7 +263,8 @@
       "asset_decimals": "Activa decimalen",
       "asset_defaultfrozen": "Activa standaard bevroren",
       "asset_url": "Activa url",
-      "asset_metadata": "Activa metadata"
+      "asset_metadata": "Activa metadata",
+      "time": "Tijd"
     },
     "privacy": {
       "title": "Privacy beleid",

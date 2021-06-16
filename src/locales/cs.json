@@ -262,7 +262,8 @@
     "asset_decimals": "Počet desatinných miest aktíva",
     "asset_defaultfrozen": "Predvolené je zamknuté",
     "asset_url": "URL adresa aktíva",
-    "asset_metadata": "Metadata aktíva"
+    "asset_metadata": "Metadata aktíva",
+    "time": "Čas"
   },
   "privacy": {
     "title": "Zásady ochrany osobných údajov",

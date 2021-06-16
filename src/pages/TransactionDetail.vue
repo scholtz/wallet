@@ -7,7 +7,7 @@
         <td>{{ transaction["id"] }}</td>
       </tr>
       <tr>
-        <th>{{ $t("transaction.tr_id") }}:</th>
+        <th>{{ $t("transaction.time") }}:</th>
         <td>{{ $filters.formatDateTime(transaction["round-time"]) }}</td>
       </tr>
       <tr>
