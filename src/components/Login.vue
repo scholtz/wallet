@@ -73,6 +73,7 @@
             type="password"
             id="wallet-pass"
             class="form-control my-2"
+            autocomplete="on"
           />
           <input
             type="submit"
