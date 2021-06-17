@@ -7,18 +7,18 @@
     "text": "Algo Peňaženka"
   },
   "login": {
-    "new_wallet": "Nová peňaženka",
+    "new_wallet": "Nová peněženka",
     "new_wallet_name": "Názov peňaženky",
     "new_wallet_pass": "Heslo peňaženky",
     "new_wallet_button_create": "Vytvoriť peňaženku",
     "new_wallet_button_import": "Importovať peňaženku",
     "new_wallet_help1": "Vaša peňaženka bude uložená v prehliadači. Heslo je potrebné k odomknutiu peňaženky a možnosti odosielania vašich aktív.",
     "new_wallet_help2": "Odporúčame použiť veľmi silné heslo. Aspoň 12 znakov s použitím znakov zo skupín malé písmená, veľké písmená, číslice a špeciálne znaky",
-    "open_wallet": "Otvoriť peňaženku",
-    "select_wallet": "Vybrať peňaženku",
-    "wallet_password": "Heslo do peňaženky",
+    "open_wallet": "Otevřít peněženku",
+    "select_wallet": "Vybrat peněženku",
+    "wallet_password": "Heslo do peněženky",
     "strength": "Sila hesla",
-    "new_wallet_button_open": "Otvoriť peňaženku"
+    "new_wallet_button_open": "Otevřít peněženku"
   },
   "global": {
     "go_back": "Naspäť",
@@ -39,7 +39,7 @@
     "asset": "Aktíva",
     "asset_create": "Vytvoriť NTF",
     "faq": "FAQ",
-    "privacy_policy": "Ochrana osob. údajov",
+    "privacy_policy": "Ochrana osobních údajů",
     "logout": "Odhlásenie"
   },
   "receive": {
