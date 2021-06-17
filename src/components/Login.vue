@@ -155,6 +155,7 @@ export default {
       e.preventDefault();
       localStorage.setItem("lastUsedWallet", this.wallet);
       await this.openWallet({ name: this.wallet, pass: this.pass });
+      if (this.$store.state.config.noredirect) return;
       if (
         this.$store.state.wallet.lastActiveAccount &&
         this.$store.state.wallet.lastActiveAccountName

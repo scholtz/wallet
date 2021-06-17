@@ -91,6 +91,11 @@ const routes = [
   },
   {
     path: "/accounts/pay/:account",
+    name: "PayWithAccount",
+    component: Pay,
+  },
+  {
+    path: "/pay/:toAccount",
     name: "Pay",
     component: Pay,
   },

@@ -9,6 +9,7 @@ const state = () => ({
   indexerToken:
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   languages: ["en", "hu", "it", "nl", "sk", "cs"],
+  noredirect: false, // redirect to account page after successfull login
 });
 
 const mutations = {
@@ -91,10 +92,17 @@ const mutations = {
       localStorage.setItem("indexerToken", indexerToken);
     }
   },
+  setNoRedirect(state) {
+    state.noredirect = true;
+    console.log("state.noredirect", state.noredirect);
+  },
 };
 const actions = {
   async setHosts({ commit }, { algod, kmd, indexer }) {
     await commit("setHosts", { algod, kmd, indexer });
+  },
+  async setNoRedirect({ commit }) {
+    await commit("setNoRedirect");
   },
   async getConfig({ dispatch, commit }) {
     try {
