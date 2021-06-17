@@ -8,7 +8,7 @@ const state = () => ({
   kmdToken: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   indexerToken:
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  languages: ["en", "hu", "it", "nl", "sk"],
+  languages: ["en", "hu", "it", "nl", "sk", "cs"],
 });
 
 const mutations = {
