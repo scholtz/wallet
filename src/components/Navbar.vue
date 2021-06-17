@@ -64,7 +64,7 @@
           <Dropdown
             v-if="!$store.state.wallet.isOpen"
             v-model="$i18n.locale"
-            :options="langs"
+            :options="$store.state.config.languages"
             @change="languageUpdated"
             style="min-width: 100px"
           >
@@ -112,9 +112,7 @@ export default {
     VLink,
   },
   data() {
-    return {
-      langs: ["en", "sk", "cs", "hu", "it", "nl"],
-    };
+    return {};
   },
   methods: {
     ...mapActions({

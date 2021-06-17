@@ -8,6 +8,7 @@ const state = () => ({
   kmdToken: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   indexerToken:
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  languages: ["en", "hu", "it", "nl", "sk"],
 });
 
 const mutations = {
@@ -20,6 +21,9 @@ const mutations = {
     }
     if (value.kmd) {
       state.kmd = value.kmd;
+    }
+    if (value.languages) {
+      state.languages = value.languages;
     }
     if (value.indexer) {
       state.indexer = value.indexer;

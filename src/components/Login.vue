@@ -1,5 +1,14 @@
 <template>
-  <div class="d-flex align-items-center justify-content-center h-100 m-2">
+  <div
+    class="
+      d-flex
+      flex-column
+      align-items-center
+      justify-content-center
+      h-100
+      m-2
+    "
+  >
     <div class="card col-12 col-md-6 col-lg-4" v-if="newWalletForm">
       <div class="card-header">{{ $t("login.new_wallet") }}</div>
       <div class="card-body">
@@ -83,6 +92,21 @@
         </form>
       </div>
     </div>
+    <div class="my-5">
+      <a
+        v-for="lang in $store.state.config.languages"
+        :key="lang"
+        class="m-2"
+        @click="setLanguage(lang)"
+        role="button"
+      >
+        <img
+          :src="'/flags/3x2/' + lang + '.svg'"
+          height="50"
+          class="border border-3 rounded rounded-3"
+        />
+      </a>
+    </div>
   </div>
 </template>
 <script>
@@ -160,6 +184,10 @@ export default {
           this.$router.push("/accounts");
         }
       }
+    },
+    setLanguage(lang) {
+      this.$i18n.locale = lang;
+      localStorage.setItem("lang", this.$i18n.locale);
     },
   },
 };

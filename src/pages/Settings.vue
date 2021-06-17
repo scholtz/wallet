@@ -22,7 +22,7 @@
 
     <Dropdown
       v-model="$i18n.locale"
-      :options="langs"
+      :options="$store.state.config.languages"
       @change="languageUpdated"
       style="min-width: 100px"
     >
@@ -105,8 +105,6 @@ export default {
       passw2: "",
       passw3: "",
       b64wallet: "",
-
-      langs: ["en", "sk", "cs", "hu", "it", "nl"],
     };
   },
   watch: {
