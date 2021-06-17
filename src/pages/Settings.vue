@@ -7,17 +7,78 @@
       <option value="mainnet">{{ $t("settings.mainnet") }}</option>
       <option value="testnet">{{ $t("settings.testnet") }}</option>
       <option value="sandbox">{{ $t("settings.sandbox") }}</option>
+      <option value="custom">{{ $t("settings.custom") }}</option>
     </select>
-    <p>AlgoD {{ $t("settings.host") }}: {{ $store.state.config.algod }}</p>
-    <p>
-      AlgoD {{ $t("settings.token") }}: {{ $store.state.config.algodToken }}
-    </p>
-    <p>KMD {{ $t("settings.host") }}: {{ $store.state.config.kmd }}</p>
-    <p>KMD {{ $t("settings.token") }}: {{ $store.state.config.kmdToken }}</p>
-    <p>Indexer {{ $t("settings.host") }}: {{ $store.state.config.indexer }}</p>
-    <p>
-      Indexer {{ $t("settings.token") }}: {{ $store.state.config.indexerToken }}
-    </p>
+
+    <table>
+      <tr>
+        <td>AlgoD {{ $t("settings.host") }}:</td>
+        <td>
+          <input
+            type="text"
+            :disabled="env != 'custom'"
+            v-model="algodHost"
+            class="form-control"
+          />
+        </td>
+      </tr>
+      <tr>
+        <td>AlgoD {{ $t("settings.token") }}:</td>
+        <td>
+          <input
+            type="text"
+            :disabled="env != 'custom'"
+            v-model="algodToken"
+            class="form-control"
+          />
+        </td>
+      </tr>
+      <tr>
+        <td>KMD {{ $t("settings.host") }}:</td>
+        <td>
+          <input
+            type="text"
+            :disabled="env != 'custom'"
+            v-model="kmdHost"
+            class="form-control"
+          />
+        </td>
+      </tr>
+      <tr>
+        <td>KMD {{ $t("settings.token") }}:</td>
+        <td>
+          <input
+            type="text"
+            :disabled="env != 'custom'"
+            v-model="kmdToken"
+            class="form-control"
+          />
+        </td>
+      </tr>
+      <tr>
+        <td>Indexer {{ $t("settings.host") }}:</td>
+        <td>
+          <input
+            type="text"
+            :disabled="env != 'custom'"
+            v-model="indexerHost"
+            class="form-control"
+          />
+        </td>
+      </tr>
+      <tr>
+        <td>Indexer {{ $t("settings.token") }}:</td>
+        <td>
+          <input
+            type="text"
+            :disabled="env != 'custom'"
+            v-model="indexerToken"
+            class="form-control"
+          />
+        </td>
+      </tr>
+    </table>
+
     <h2>{{ $t("settings.language") }}</h2>
 
     <Dropdown
@@ -105,11 +166,17 @@ export default {
       passw2: "",
       passw3: "",
       b64wallet: "",
+      algodHost: "",
+      algodToken: "",
+      kmdHost: "",
+      kmdToken: "",
+      indexerHost: "",
+      indexerToken: "",
     };
   },
+
   watch: {
     env() {
-      console.log("this.env", this.env);
       if (this.env == "mainnet") {
         this.setHosts({
           algod: "https://algoexplorerapi.io",
@@ -139,8 +206,67 @@ export default {
       }
       localStorage.setItem("env", this.env);
     },
+    algodHostConfig() {
+      if (this.algodHost != this.algodHostConfig)
+        this.algodHost = this.algodHostConfig;
+    },
+    algodTokenConfig() {
+      if (this.algodToken != this.algodTokenConfig)
+        this.algodToken = this.algodTokenConfig;
+    },
+    kmdHostConfig() {
+      if (this.kmdHost != this.kmdHostConfig) this.kmdHost = this.kmdHostConfig;
+    },
+    kmdTokenConfig() {
+      if (this.kmdToken != this.kmdTokenConfig)
+        this.kmdToken = this.kmdTokenConfig;
+    },
+    indexerHostConfig() {
+      if (this.indexerHost != this.indexerHostConfig)
+        this.indexerHost = this.indexerHostConfig;
+    },
+    indexerTokenConfig() {
+      if (this.indexerToken != this.indexerTokenConfig)
+        this.indexerToken = this.indexerTokenConfig;
+    },
+    algodHost() {
+      if (this.algodHost != this.algodHostConfig) this.updateConfig();
+    },
+    algodToken() {
+      if (this.algodToken != this.algodTokenConfig) this.updateConfig();
+    },
+    kmdHost() {
+      if (this.kmdHost != this.kmdHostConfig) this.updateConfig();
+    },
+    kmdToken() {
+      if (this.kmdToken != this.kmdTokenConfig) this.updateConfig();
+    },
+    indexerHost() {
+      if (this.indexerHost != this.indexerHostConfig) this.updateConfig();
+    },
+    indexerToken() {
+      if (this.indexerToken != this.indexerTokenConfig) this.updateConfig();
+    },
   },
   computed: {
+    algodHostConfig() {
+      return this.$store.state.config.algod;
+    },
+    algodTokenConfig() {
+      return this.$store.state.config.algodToken;
+    },
+    kmdHostConfig() {
+      return this.$store.state.config.kmd;
+    },
+    kmdTokenConfig() {
+      return this.$store.state.config.kmdToken;
+    },
+    indexerHostConfig() {
+      return this.$store.state.config.indexer;
+    },
+    indexerTokenConfig() {
+      return this.$store.state.config.indexerToken;
+    },
     downloadableWalletName() {
       return (
         this.$store.state.wallet.name.replace(" ", "") +
@@ -170,6 +296,12 @@ export default {
     if (newEnv) {
       this.env = newEnv;
     }
+    this.algodHost = this.algodHostConfig;
+    this.algodToken = this.algodTokenConfig;
+    this.kmdHost = this.kmdHostConfig;
+    this.kmdToken = this.kmdTokenConfig;
+    this.indexerHost = this.indexerHostConfig;
+    this.indexerToken = this.indexerTokenConfig;
   },
   methods: {
     ...mapActions({
@@ -197,6 +329,16 @@ export default {
     },
     languageUpdated() {
       localStorage.setItem("lang", this.$i18n.locale);
+    },
+    updateConfig() {
+      this.setHosts({
+        algod: this.algodHost,
+        kmd: this.kmdHost,
+        indexer: this.indexerHost,
+        algodToken: this.algodToken,
+        kmdToken: this.kmdToken,
+        indexerToken: this.indexerToken,
+      });
     },
   },
 };

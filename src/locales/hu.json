@@ -218,7 +218,8 @@
     "download": "Letöltés",
     "delete": "Pénztárca törlés",
     "strength": "Erősség",
-    "updated_password": "A jelszó módosult"
+    "updated_password": "A jelszó módosult",
+    "custom":"Custom server settings"
   },
   "transaction": {
     "title": "Tranzakció részletei",

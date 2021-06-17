@@ -224,7 +224,8 @@
     "download": "Stiahnuť",
     "delete": "Vymazať peňaženku",
     "strength": "Sila hesla",
-    "updated_password": "Heslo bolo upravené"
+    "updated_password": "Heslo bolo upravené",
+    "custom":"Vlastné nastavenie serverov"
   },
   "transaction": {
     "title": "Detail transakcie",
