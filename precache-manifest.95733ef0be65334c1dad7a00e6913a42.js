@@ -1,14 +1,14 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "5271d3890484d12eac012a35c888b513",
+    "revision": "1a75e2e5c0f11c361fc0b83bbe945e40",
     "url": "/android-chrome-192x192.png"
   },
   {
-    "revision": "f2274240a066ab066ec744dd94cf1f0b",
+    "revision": "28ebfb5f42b84ad9517e1cb6e36d2a36",
     "url": "/android-chrome-512x512.png"
   },
   {
-    "revision": "7237d4bc96dd9e8abab472231c698451",
+    "revision": "ad0122777225e51fd4fcbd004dd1efb6",
     "url": "/apple-touch-icon.png"
   },
   {
@@ -2114,6 +2114,26 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
     "revision": "84280a5a02b43480862c5a72464d4da8",
     "url": "/img/algorand-algo-logo-96.png"
+  },
+  {
+    "revision": "ad0122777225e51fd4fcbd004dd1efb6",
+    "url": "/img/algorand-algo-logo-whtbck-180.png"
+  },
+  {
+    "revision": "1a75e2e5c0f11c361fc0b83bbe945e40",
+    "url": "/img/algorand-algo-logo-whtbck-192.png"
+  },
+  {
+    "revision": "28ebfb5f42b84ad9517e1cb6e36d2a36",
+    "url": "/img/algorand-algo-logo-whtbck-512.png"
+  },
+  {
+    "revision": "5d2325073bd7a7dd88e5edb63e2de891",
+    "url": "/img/algorand-algo-logo-whtbck.png"
+  },
+  {
+    "revision": "7aa2bf8731e25ab70c907012c0521362",
+    "url": "/img/algorand-algo-logo-whtbck.svg"
   },
   {
     "revision": "d96735a31799f94ae7d54eccb4891697",
