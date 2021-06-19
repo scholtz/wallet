@@ -103,46 +103,57 @@
                 </p>
               </div>
             </div>
-            <label for="asset">{{ $t("pay.asset") }}</label>
-            <select id="asset" class="form-control" v-model="asset">
-              <option
-                v-for="asset in assets"
-                :key="asset['asset-id']"
-                :value="asset['asset-id']"
-              >
-                {{ asset["name"] }} ({{
-                  $filters.formatCurrency(
-                    asset["amount"],
-                    asset["name"],
-                    asset["decimals"]
-                  )
-                }})
-              </option>
-            </select>
-            <label for="payamount">{{ $t("pay.amount") }}</label>
-            <input
-              v-model="payamount"
-              id="payamount"
-              type="number"
-              min="0"
-              max="99999999"
-              step="0.000001"
-              class="form-control"
-            />
-            <button @click="setMaxAmount">{{ $t("pay.set_max") }}</button>
-            <label for="fee">Fee</label>
-            <input
-              v-model="fee"
-              id="fee"
-              type="number"
-              min="0.001"
-              max="1"
-              step="0.001"
-              class="form-control"
-            />
-
-            <label for="paynote">{{ $t("pay.note") }}</label>
-            <input v-model="paynote" id="paynote" class="form-control" />
+            <div>
+              <label for="asset">{{ $t("pay.asset") }}</label>
+              <select id="asset" class="form-control" v-model="asset">
+                <option
+                  v-for="asset in assets"
+                  :key="asset['asset-id']"
+                  :value="asset['asset-id']"
+                >
+                  {{ asset["name"] }} ({{
+                    $filters.formatCurrency(
+                      asset["amount"],
+                      asset["name"],
+                      asset["decimals"]
+                    )
+                  }})
+                </option>
+              </select>
+            </div>
+            <div>
+              <label for="payamount" class="">{{ $t("pay.amount") }}</label>
+              <div class="input-group">
+                <input
+                  v-model="payamount"
+                  id="payamount"
+                  type="number"
+                  min="0"
+                  :max="maxAmount"
+                  :step="stepAmount"
+                  class="form-control"
+                />
+                <button class="btn btn-outline-secondary" @click="setMaxAmount">
+                  {{ $t("pay.set_max") }}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label for="fee">Fee</label>
+              <input
+                v-model="fee"
+                id="fee"
+                type="number"
+                min="0.001"
+                max="1"
+                step="0.001"
+                class="form-control"
+              />
+            </div>
+            <div>
+              <label for="paynote">{{ $t("pay.note") }}</label>
+              <input v-model="paynote" id="paynote" class="form-control" />
+            </div>
 
             <div class="form-check m-1">
               <input
@@ -155,25 +166,26 @@
                 {{ $t("pay.note_is_b64") }}
               </label>
             </div>
-
-            <input
-              :disabled="isNotValid"
-              class="btn btn-primary my-2"
-              type="submit"
-              value="Preview payment"
-            />
-            <input
-              v-if="isMultisig"
-              class="btn btn-light m-2"
-              value="Cancel"
-              @click="subpage = ''"
-            />
-            <input
-              v-if="!isMultisig"
-              class="btn btn-light m-2"
-              value="Cancel"
-              @click="$router.push('/accounts')"
-            />
+            <div>
+              <input
+                :disabled="isNotValid"
+                class="btn btn-primary my-2"
+                type="submit"
+                value="Preview payment"
+              />
+              <input
+                v-if="isMultisig"
+                class="btn btn-light m-2"
+                value="Cancel"
+                @click="subpage = ''"
+              />
+              <input
+                v-if="!isMultisig"
+                class="btn btn-light m-2"
+                value="Cancel"
+                @click="$router.push('/accounts')"
+              />
+            </div>
           </div>
 
           <div v-if="scan" class="col-4">
@@ -451,11 +463,14 @@ export default {
       return false;
     },
     amountLong() {
+      return this.payamount * this.decimalsPower();
+    },
+    decimalsPower() {
       let decimals = 6;
       if (this.assetObj && this.assetObj.decimals !== undefined) {
         decimals = this.assetObj.decimals;
       }
-      return this.payamount * Math.pow(10, decimals);
+      return Math.pow(10, decimals);
     },
     feeLong() {
       return this.fee * Math.pow(10, 6); // algo
@@ -482,8 +497,40 @@ export default {
       if (this.$route.params.account) return this.$route.params.account;
       return this.payFromDirect;
     },
+    selectedAssetFromAccount() {
+      return this.account["assets"].find((a) => a["asset-id"] == this.asset);
+    },
+    maxAmount() {
+      if (!this.account) return 0;
+
+      if (this.asset) {
+        if (!this.selectedAssetFromAccount) return 0;
+        return this.selectedAssetFromAccount.amount / this.decimalsPower;
+      } else {
+        let ret = this.account.amount / 1000000 - 0.1;
+        if (this.account["assets"] && this.account["assets"].length > 0)
+          ret = ret - this.account["assets"].length * 0.1;
+        return ret;
+      }
+    },
+    stepAmount() {
+      if (!this.asset) return 0.000001;
+      if (!this.account) return 0.000001;
+      if (this.assetObj.decimals === undefined) return 0.000001;
+      return Math.pow(10, -1 * this.assetObj.decimals);
+    },
   },
   watch: {
+    payamount() {
+      /*
+      console.log(
+        "this.stepAmount",
+        this.stepAmount,
+        this.assetObj,
+        this.account["assets"]
+      );
+      */
+    },
     account() {
       console.log("account changed ", this.account);
       this.makeAssets();
@@ -501,6 +548,7 @@ export default {
         });
       }
       console.log("assetObj", this.assetObj);
+      this.payamount = 0;
     },
   },
   async mounted() {
@@ -899,6 +947,10 @@ export default {
       if (this.payTo) {
         this.scan = false;
       }
+    },
+    setMaxAmount(e) {
+      e.preventDefault();
+      this.payamount = this.maxAmount;
     },
   },
 };
