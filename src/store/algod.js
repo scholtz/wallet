@@ -98,9 +98,6 @@ const actions = {
       const ret = await algodclient
         .sendRawTransaction(signedTxn)
         .do()
-        .then((resp) => {
-          console.log("resp", resp);
-        })
         .catch((e) => {
           if (e && e.response && e.response.body && e.response.body.message) {
             dispatch("toast/openError", e.response.body.message, {
