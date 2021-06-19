@@ -12,7 +12,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/apple-touch-icon.png"
   },
   {
-    "revision": "e6beee159d26643e23c9",
+    "revision": "41883664057981167a59",
     "url": "/css/app.05b48347.css"
   },
   {
@@ -2184,12 +2184,12 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/img/primeicons.25954ab5.svg"
   },
   {
-    "revision": "d45dd44344ad373b869b25bf2c444c30",
+    "revision": "cff91a61755c36117aff42cd7b41a7a5",
     "url": "/index.html"
   },
   {
-    "revision": "e6beee159d26643e23c9",
-    "url": "/js/app.2733f1e4.js"
+    "revision": "41883664057981167a59",
+    "url": "/js/app.9ee44c77.js"
   },
   {
     "revision": "4988ca70b9dda6462057",
