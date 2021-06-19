@@ -463,7 +463,7 @@ export default {
       return false;
     },
     amountLong() {
-      return this.payamount * this.decimalsPower();
+      return this.payamount * this.decimalsPower;
     },
     decimalsPower() {
       let decimals = 6;
@@ -614,6 +614,11 @@ export default {
     },
     previewPaymentClick(e) {
       this.page = "review";
+      this.error = "";
+      this.confirmedRound = "";
+      this.tx = null;
+
+      this.processing = false;
       this.prolong();
       e.preventDefault();
     },
