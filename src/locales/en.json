@@ -18,7 +18,10 @@
     "select_wallet": "Select wallet",
     "wallet_password": "Wallet password",
     "strength": "Strength",
-    "new_wallet_button_open": "Open wallet"
+    "new_wallet_button_open": "Open wallet",
+    "basic_usage":"Basic usage",
+    "tether_usage":"How to use Tether  (USDt)",
+    "source_code":"AWallet source code"
   },
   "global": {
     "go_back": "Go back",
@@ -202,7 +205,8 @@
     "transaction": "Transaction",
     "error": "Error",
     "asset": "Asset",
-    "state_error_not_sent": "Payment has probably not reached the network. Are you offline? Please check you account"
+    "state_error_not_sent": "Payment has probably not reached the network. Are you offline? Please check you account",
+    "set_max":"Set maxium"
   },
   "settings": {
     "title": "Settings",

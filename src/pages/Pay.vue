@@ -129,6 +129,7 @@
               step="0.000001"
               class="form-control"
             />
+            <button @click="setMaxAmount">{{ $t("pay.set_max") }}</button>
             <label for="fee">Fee</label>
             <input
               v-model="fee"

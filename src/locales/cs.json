@@ -18,7 +18,10 @@
     "select_wallet": "Vybrat peněženku",
     "wallet_password": "Heslo do peněženky",
     "strength": "Sila hesla",
-    "new_wallet_button_open": "Otevřít peněženku"
+    "new_wallet_button_open": "Otevřít peněženku",
+    "basic_usage":"Základní použití",
+    "tether_usage":"Jak používat Tether (USDt)",
+    "source_code":"Zdrojový kód AWallet"
   },
   "global": {
     "go_back": "Naspäť",
@@ -201,7 +204,8 @@
     "transaction": "Transakcia",
     "error": "Chyba",
     "asset": "Aktívum",
-    "state_error_not_sent": "Platba pravdepodobne nedorazila do siete. Máte prístup k internetu? Skontroolujte si stav na účte."
+    "state_error_not_sent": "Platba pravdepodobne nedorazila do siete. Máte prístup k internetu? Skontroolujte si stav na účte.",
+    "set_max":"Nastavit maxium"
   },
   "settings": {
     "title": "Nastavenia",

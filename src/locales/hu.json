@@ -18,7 +18,10 @@
     "select_wallet": "Pénztárca kiválasztása",
     "wallet_password": "Pénztárca jelszava",
     "strength": "Erősség",
-    "new_wallet_button_open": "Pénztárca megnyitása"
+    "new_wallet_button_open": "Pénztárca megnyitása",
+    "basic_usage":"Basic usage",
+    "tether_usage":"How to use Tether  (USDt)",
+    "source_code":"AWallet source code"
   },
   "global": {
     "go_back": "Vissza",
@@ -196,7 +199,8 @@
     "transaction": "Tranzakció",
     "error": "Hiba",
     "asset": "Eszköz",
-    "state_error_not_sent": "Az utalás valószínűleg nem jutott el a hálózatra. Offline módba kerültél? Kérjük, ellenőrizd a számládat."
+    "state_error_not_sent": "Az utalás valószínűleg nem jutott el a hálózatra. Offline módba kerültél? Kérjük, ellenőrizd a számládat.",
+    "set_max":"Set maxium"
   },
   "settings": {
     "title": "Beállítások",

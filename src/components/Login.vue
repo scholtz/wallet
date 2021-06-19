@@ -107,20 +107,52 @@
           class="border border-3 rounded rounded-3"
         />
       </a>
+      <a
+        class="m-2"
+        href="https://github.com/scholtz/wallet/wiki/I-want-to-help-to-translate"
+        target="_blank"
+        role="button"
+        style="width: 75; height: 50"
+        ><svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="50"
+          height="50"
+          fill="currentColor"
+          class="bi bi-plus-circle"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"
+          />
+          <path
+            d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"
+          /></svg
+      ></a>
     </div>
     <div class="my-5">
       <a
-        v-for="lang in $store.state.config.languages"
-        :key="lang"
-        class="m-2"
-        @click="setLanguage(lang)"
+        href="https://youtu.be/cCsx7t68DS4"
+        target="youtube"
+        class="m-2 btn btn-xs btn-light btn-link"
         role="button"
       >
-        <img
-          :src="'/flags/3x2/' + lang + '.svg'"
-          height="50"
-          class="border border-3 rounded rounded-3"
-        />
+        Youtube - {{ $t("login.basic_usage") }}
+      </a>
+      <a
+        href="https://youtu.be/M0KZvp7AJQs"
+        target="youtube"
+        class="m-2 btn btn-xs btn-light btn-link"
+        role="button"
+      >
+        Youtube - {{ $t("login.tether_usage") }}
+      </a>
+      <a
+        href="https://github.com/scholtz/wallet/"
+        target="github"
+        class="m-2 btn btn-xs btn-light btn-link"
+        role="button"
+      >
+        GitHub: {{ $t("login.source_code") }}
       </a>
     </div>
   </div>

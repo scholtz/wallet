@@ -18,7 +18,10 @@
       "select_wallet": "Selecteer portemonnee",
       "wallet_password": "Portemonnee wachtwoord",
       "strength": "Sterkte",
-      "new_wallet_button_open": "Open portemonnee"
+      "new_wallet_button_open": "Open portemonnee",
+      "basic_usage":"Basic usage",
+      "tether_usage":"How to use Tether  (USDt)",
+      "source_code":"AWallet source code"
     },
     "global": {
       "go_back": "Ga terug",
@@ -202,7 +205,8 @@
       "transaction": "Transactie",
       "error": "Error",
       "asset": "activaten",
-      "state_error_not_sent": "De betaling heeft het netwerk waarschijnlijk niet bereikt. Bent u offline? Controleer uw account"
+      "state_error_not_sent": "De betaling heeft het netwerk waarschijnlijk niet bereikt. Bent u offline? Controleer uw account",
+      "set_max":"Set maxium"
     },
     "settings": {
       "title": "Instellingen",
