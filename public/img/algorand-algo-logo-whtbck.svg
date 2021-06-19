@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="Layer_1"
+   data-name="Layer 1"
+   viewBox="0 0 113.4 113.4"
+   version="1.1"
+   sodipodi:docname="algorand-algo-logo-whtbck.svg"
+   inkscape:version="1.0.2-2 (e86c870879, 2021-01-15)"
+   inkscape:export-filename="C:\Users\ludko\source\repos\scholtz\wallet\wallet\public\img\algorand-algo-logo-whtbck-180.png"
+   inkscape:export-xdpi="152.38"
+   inkscape:export-ydpi="152.38">
+  <metadata
+     id="metadata11">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs9" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1288"
+     id="namedview7"
+     showgrid="false"
+     inkscape:zoom="8.8888888"
+     inkscape:cx="38.8375"
+     inkscape:cy="56.700001"
+     inkscape:window-x="2871"
+     inkscape:window-y="810"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="Layer_1"
+     inkscape:document-rotation="0" />
+  <title
+     id="title2">algorand-algo-logo</title>
+  <rect
+     style="fill:#ffffff;opacity:0.3"
+     id="rect13"
+     width="113.4"
+     height="113.4"
+     x="0"
+     y="0"
+     rx="10" />
+  <polygon
+     points="36,85 52.4,56.7 68.7,28.3 71.4,23.8 72.6,28.3 77.6,47 72,56.7 55.6,85 39.3,113.4 58.9,113.4 75.3,85 83.8,70.3 87.8,85 95.4,113.4 113,113.4 105.4,85 97.8,56.7 95.8,49.4 108,28.3 90.2,28.3 89.6,26.2 83.4,3 82.6,0 65.5,0 65.1,0.6 49.1,28.3 32.7,56.7 16.4,85 0,113.4 19.6,113.4 "
+     id="polygon4"
+     transform="matrix(0.93827434,0,0,0.93827434,3.4875,3.4998452)" />
+</svg>
