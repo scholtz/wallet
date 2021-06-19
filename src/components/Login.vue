@@ -108,6 +108,21 @@
         />
       </a>
     </div>
+    <div class="my-5">
+      <a
+        v-for="lang in $store.state.config.languages"
+        :key="lang"
+        class="m-2"
+        @click="setLanguage(lang)"
+        role="button"
+      >
+        <img
+          :src="'/flags/3x2/' + lang + '.svg'"
+          height="50"
+          class="border border-3 rounded rounded-3"
+        />
+      </a>
+    </div>
   </div>
 </template>
 <script>

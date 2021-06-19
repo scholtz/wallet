@@ -1,6 +1,6 @@
 {
   "name": "Algo Wallet",
-  "short_name": "a-wallet",
+  "short_name": "AWallet",
   "theme_color": "#4DBA87",
   "protocol_handlers": [
     {
@@ -34,5 +34,5 @@
   ],
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000"
+  "background_color": "#eeeeee"
 }
