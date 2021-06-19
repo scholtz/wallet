@@ -4,7 +4,9 @@
       <h1>{{ $t("newacc.title") }}</h1>
       <div v-if="page == 'new'">
         <button v-if="!w" class="btn btn-primary m-1" @click="createAccount">
-          {{ $t("newacc.create_basic") }}
+          {{ $t("newacc.create_basic") }}</button
+        ><button v-if="!w" class="btn btn-primary m-1" @click="createVanity">
+          {{ $t("newacc.create_vanity") }}
         </button>
         <button
           v-if="!w"
@@ -63,6 +65,50 @@
             <QrcodeStream @decode="onDecodeQRMnemonic" />
           </div>
         </div>
+      </div>
+      <div v-if="page == 'vanity'">
+        <p>{{ $t("newacc.vanity_start") }}</p>
+        <input v-model="vanityStart" class="form-control my-2" />
+        <p>{{ $t("newacc.vanity_mid") }}</p>
+        <input v-model="vanityMid" class="form-control my-2" />
+        <p>{{ $t("newacc.vanity_end") }}</p>
+        <input v-model="vanityEnd" class="form-control my-2" />
+        <p>{{ $t("newacc.vanity_workers") }}</p>
+        <input
+          v-model="vanityWorkers"
+          class="form-control my-2"
+          type="number"
+          min="1"
+          max="100"
+          step="1"
+        />
+        <div>{{ $t("newacc.vanity_count") }} {{ vanityCount }}</div>
+        <div class="alert alert-success my-2" v-if="a">{{ a }}</div>
+        <button
+          v-if="!vanityRunning"
+          class="btn my-1"
+          :class="a ? 'btn-light' : 'btn-primary'"
+          @click="createVanityStartClick"
+        >
+          {{ $t("newacc.vanity_button_start") }}
+        </button>
+        <button
+          v-if="vanityRunning"
+          class="btn btn-primary my-1"
+          @click="createVanityStopClick"
+        >
+          {{ $t("newacc.vanity_button_stop") }}
+        </button>
+        <button
+          v-if="!vanityRunning && a"
+          class="btn btn-primary my-1"
+          @click="useVanityStartClick"
+        >
+          {{ $t("newacc.vanity_use") }}
+        </button>
+        <button class="btn btn-light m-1" @click="reset">
+          {{ $t("global.go_back") }}
+        </button>
       </div>
       <div v-if="page == 'watchaccount'">
         <p>{{ $t("newacc.name") }}</p>
@@ -229,6 +275,8 @@ import algosdk from "algosdk";
 import { mapActions } from "vuex";
 import QRCodeVue3 from "qrcode-vue3";
 import { QrcodeStream } from "qrcode-reader-vue3";
+//import { sendMessage } from "../workers/vanity-api";
+import Worker from "worker-loader!../workers/vanity";
 
 export default {
   data() {
@@ -246,6 +294,13 @@ export default {
       friendaccounts: "",
       name: "",
       addr: "",
+      vanityStart: "",
+      vanityMid: "",
+      vanityEnd: "",
+      vanityRunning: false,
+      vanityCount: 0,
+      vanityThreads: [],
+      vanityWorkers: 8,
     };
   },
   components: {
@@ -269,6 +324,8 @@ export default {
       this.s = false;
       this.w = "";
       this.addr = "";
+      this.vanityRunning = false;
+      this.vanityCount = 0;
       this.prolong();
     },
     createAccount() {
@@ -277,6 +334,63 @@ export default {
       let account = algosdk.generateAccount();
       this.a = account.addr;
       this.w = algosdk.secretKeyToMnemonic(account.sk);
+    },
+    createVanity() {
+      console.log("this", this);
+      this.page = "vanity";
+      this.a = "";
+    },
+    useVanityStartClick(e) {
+      e.preventDefault();
+
+      this.page = "newaccount";
+    },
+    async createVanityStartClick() {
+      this.vanityCount = 0;
+      this.vanityRunning = true;
+      for (let index in this.vanityThreads) {
+        this.vanityThreads[index].terminate();
+      }
+      this.vanityThreads = [];
+      for (let i = 0; i < this.vanityWorkers; i++) {
+        const worker = new Worker();
+
+        worker.addEventListener("message", (e) => {
+          const account = e.data;
+          if (e.data && e.data.addr) {
+            this.vanityRunning = false;
+            this.a = account.addr;
+            this.w = algosdk.secretKeyToMnemonic(account.sk);
+          } else {
+            this.vanityCount += e.data;
+          }
+          console.log("worker", account);
+
+          if (this.vanityRunning) {
+            worker.postMessage({
+              vanityStart: this.vanityStart,
+              vanityMid: this.vanityMid,
+              vanityEnd: this.vanityEnd,
+            });
+          } else {
+            for (let index in this.vanityThreads) {
+              this.vanityThreads[index].terminate();
+            }
+          }
+        });
+        worker.postMessage({
+          vanityStart: this.vanityStart,
+          vanityMid: this.vanityMid,
+          vanityEnd: this.vanityEnd,
+        });
+      }
+    },
+    async createVanityStopClick() {
+      this.vanityRunning = false;
+
+      for (let index in this.vanityThreads) {
+        this.vanityThreads[index].terminate();
+      }
     },
     makeRandom() {
       this.guess = "";

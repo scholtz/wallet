@@ -148,7 +148,16 @@
     "create_new": "Vytvoriť novú",
     "hide_mnemonic": "Skryť frázu",
     "drop_phrase": "Zahodiť frázu",
-    "scan":"Nascanovať z QR"
+    "scan":"Nascanovať z QR",
+    "create_vanity":"Účet s vlastnou adresou",
+    "vanity_start":"Začne na",
+    "vanity_mid":"Obsahuje",
+    "vanity_end":"Končí na",
+    "vanity_count":"Počet otestovaných účtov",
+    "vanity_button_start":"Nájsť účet",
+    "vanity_button_stop":"Stop",
+    "vanity_workers":"Počet vlákien",
+    "vanity_use":"Použiť tento účet"
   },
   "import": {
     "title": "Import peňaženky",

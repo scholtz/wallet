@@ -148,7 +148,16 @@
     "create_new": "Crea nuova",
     "hide_mnemonic": "Nascondi menemonico",
     "drop_phrase": "Scarta frase",
-    "scan":"Scan from QR"
+    "scan":"Scan from QR",
+    "create_vanity":"Create vanity account",
+    "vanity_start":"Address will start with",
+    "vanity_mid":"Address will contain",
+    "vanity_end":"Address will end with",
+    "vanity_count":"Number of addresses processed",
+    "vanity_button_start":"Find the address",
+    "vanity_button_stop":"Stop searching",
+    "vanity_workers":"Number of threads to use",
+    "vanity_use":"Use this account"
   },
   "import": {
     "title": "Importa wallet",

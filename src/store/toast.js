@@ -5,13 +5,11 @@ const state = () => ({
 const mutations = {
   setVM(state, vm) {
     state._vm = vm;
-    console.log("state._vm", state._vm);
   },
 };
 const actions = {
   setVM({ commit }, { _vm }) {
     commit("setVM", _vm);
-    console.log("this.state._vm", this.state._vm);
   },
   async openSuccess({ commit }, m) {
     if (!this.state.toast._vm) {

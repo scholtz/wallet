@@ -425,6 +425,8 @@ import { QrcodeStream } from "qrcode-reader-vue3";
 import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
+
+
 export default {
   components: {
     QrcodeStream,

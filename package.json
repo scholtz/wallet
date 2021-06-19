@@ -30,8 +30,9 @@
     "qrcode-vue3": "^1.4.17",
     "register-service-worker": "^1.7.1",
     "vue-i18n": "^9.1.0",
-    "vue-router": "^4.0.8",
-    "vuex": "^4.0.1"
+    "vue-router": "^4.0.9",
+    "vuex": "^4.0.2",
+    "worker-loader": "^3.0.8"
   },
   "devDependencies": {
     "@intlify/vue-i18n-loader": "^2.1.0",
