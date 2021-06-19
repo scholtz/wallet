@@ -95,7 +95,24 @@ const actions = {
       console.log("signedTxn", signedTxn);
       let txId = txn.txID().toString();
       console.log("txId", txId);
-      const ret = await algodclient.sendRawTransaction(signedTxn).do();
+      const ret = await algodclient
+        .sendRawTransaction(signedTxn)
+        .do()
+        .then((resp) => {
+          console.log("resp", resp);
+        })
+        .catch((e) => {
+          if (e && e.response && e.response.body && e.response.body.message) {
+            dispatch("toast/openError", e.response.body.message, {
+              root: true,
+            });
+          }
+          console.log("e", e, e.message, e.data);
+
+          for (var key in e) {
+            console.log("e.key", key, e[key]);
+          }
+        });
       await dispatch(
         "wallet/lastPayTo",
         { addr: payTo },
@@ -105,7 +122,7 @@ const actions = {
       );
       return ret.txId;
     } catch (error) {
-      console.log("error", error, dispatch);
+      console.log("error", error);
     }
   },
 
