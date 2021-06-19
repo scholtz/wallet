@@ -426,7 +426,6 @@ import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
 
-
 export default {
   components: {
     QrcodeStream,
@@ -510,6 +509,7 @@ export default {
         return this.selectedAssetFromAccount.amount / this.decimalsPower;
       } else {
         let ret = this.account.amount / 1000000 - 0.1;
+        ret = ret - this.fee;
         if (this.account["assets"] && this.account["assets"].length > 0)
           ret = ret - this.account["assets"].length * 0.1;
         return ret;
