@@ -372,6 +372,7 @@ export default {
               vanityMid: this.vanityMid,
               vanityEnd: this.vanityEnd,
             });
+            this.prolong();
           } else {
             for (let index in this.vanityThreads) {
               this.vanityThreads[index].terminate();
