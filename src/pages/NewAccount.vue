@@ -82,7 +82,11 @@
           max="100"
           step="1"
         />
-        <div>{{ $t("newacc.vanity_count") }} {{ vanityCount }}</div>
+        <div v-if="vanityCount">
+          {{ $t("newacc.vanity_count") }} {{ vanityCount }} {{ vanityTime }} ({{
+            vanityRPS
+          }}/s)
+        </div>
         <div class="alert alert-success my-2" v-if="a">{{ a }}</div>
         <button
           v-if="!vanityRunning"
@@ -109,6 +113,9 @@
         <button class="btn btn-light m-1" @click="reset">
           {{ $t("global.go_back") }}
         </button>
+        <div v-if="vanityRunning" class="alert alert-danger">
+          {{ $t("newacc.auto_lock_off") }}
+        </div>
       </div>
       <div v-if="page == 'watchaccount'">
         <p>{{ $t("newacc.name") }}</p>
@@ -275,6 +282,7 @@ import algosdk from "algosdk";
 import { mapActions } from "vuex";
 import QRCodeVue3 from "qrcode-vue3";
 import { QrcodeStream } from "qrcode-reader-vue3";
+import moment from "moment";
 //import { sendMessage } from "../workers/vanity-api";
 import Worker from "worker-loader!../workers/vanity";
 
@@ -301,6 +309,9 @@ export default {
       vanityCount: 0,
       vanityThreads: [],
       vanityWorkers: 8,
+      vanityStarted: null,
+      vanityTime: "",
+      vanityRPS: "", // results per second
     };
   },
   components: {
@@ -326,6 +337,7 @@ export default {
       this.addr = "";
       this.vanityRunning = false;
       this.vanityCount = 0;
+      this.vanityStarted = null;
       this.prolong();
     },
     createAccount() {
@@ -348,6 +360,7 @@ export default {
     async createVanityStartClick() {
       this.vanityCount = 0;
       this.vanityRunning = true;
+      this.vanityStarted = moment();
       for (let index in this.vanityThreads) {
         this.vanityThreads[index].terminate();
       }
@@ -364,7 +377,6 @@ export default {
           } else {
             this.vanityCount += e.data;
           }
-          console.log("worker", account);
 
           if (this.vanityRunning) {
             worker.postMessage({
@@ -378,6 +390,13 @@ export default {
               this.vanityThreads[index].terminate();
             }
           }
+          const duration = moment.duration(moment().diff(this.vanityStarted));
+          const miliseconds = duration.valueOf();
+          this.vanityTime = moment.utc(miliseconds).format("HH:mm:ss");
+
+          this.vanityRPS =
+            Math.round((this.vanityCount / miliseconds) * 1000000) / 1000;
+          //.subtract(moment(this.vanityStarted))
         });
         worker.postMessage({
           vanityStart: this.vanityStart,

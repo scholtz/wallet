@@ -157,7 +157,8 @@
     "vanity_button_start":"Nájsť účet",
     "vanity_button_stop":"Stop",
     "vanity_workers":"Počet vlákien",
-    "vanity_use":"Použiť tento účet"
+    "vanity_use":"Použiť tento účet",
+    "auto_lock_off":"Auto zamykanie peňaženky je vypnuté"
   },
   "import": {
     "title": "Import peňaženky",

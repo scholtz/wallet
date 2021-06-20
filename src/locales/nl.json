@@ -157,7 +157,8 @@
       "vanity_button_start":"Find the address",
       "vanity_button_stop":"Stop searching",
       "vanity_workers":"Number of threads to use",
-      "vanity_use":"Use this account"
+      "vanity_use":"Use this account",
+      "auto_lock_off":"Auto lock feature is turned off"
     },
     "import": {
       "title": "Importeer portemonee",
