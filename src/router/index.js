@@ -8,6 +8,7 @@ import NewAccount from "@/pages/NewAccount.vue";
 import NotFound from "@/pages/404.vue";
 import FAQ from "@/pages/FAQ.vue";
 import Pay from "@/pages/Pay.vue";
+import Merchant from "@/pages/Merchant.vue";
 import ReceivePayment from "@/pages/ReceivePayment.vue";
 import Settings from "@/pages/Settings.vue";
 import Asset from "@/pages/AssetList.vue";
@@ -17,6 +18,7 @@ import AssetFreeze from "@/pages/Asset/Freeze.vue";
 import AssetModify from "@/pages/Asset/Modify.vue";
 import AssetRevoke from "@/pages/Asset/Revoke.vue";
 import OptIn from "@/pages/Asset/OptIn.vue";
+import PaymentGateway from "@/pages/PaymentGateway.vue";
 
 const routes = [
   {
@@ -45,9 +47,24 @@ const routes = [
     component: AssetCreate,
   },
   {
+    path: "/payment-gateway/:account",
+    name: "PaymentGateway",
+    component: PaymentGateway,
+  },
+  {
     path: "/asset/destroy/:assetId",
     name: "AssetDestroy",
     component: AssetDestroy,
+  },
+  {
+    path: "/gateway/:b64/:settings",
+    name: "Merchant",
+    component: Merchant,
+  },
+  {
+    path: "/gateway/:b64",
+    name: "MerchantNoSettings",
+    component: Merchant,
   },
   {
     path: "/receive-payment/:account",

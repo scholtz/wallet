@@ -45,6 +45,21 @@
     "privacy_policy": "Ochrana osobních údajů",
     "logout": "Odhlásenie"
   },
+  "merchant":{
+    "make_payment":"Platobná brána",
+    "pay":"Zaptaťte",
+    "to_address":"na algorand účet",
+    "please":"",
+    "network":"Sieť",
+    "matching_symbol":"Párovací symbol",
+    "network_fee":"Poplatok za prevod",
+    "pay_qr":"Zaplatiť pomocou QR kódu",
+    "pay_signer":"Zaplatiť cez algo signer",
+    "cancel_payment":"Zrušiť platbu",
+    "payment_received":"Platba bola prijatá.",
+    "go_back_to_merchant":"Ísť späť na webstránku obchodníka",
+    "waiting_for_payment":"Čaká sa na platbu. Zaplaťte prosím."
+  },
   "receive": {
     "title": "Prijať platbu",
     "address": "Adresa príjemcu platby",

@@ -233,6 +233,7 @@ export default {
     ...mapActions({
       makeAssetCreateTxnWithSuggestedParams:
         "algod/makeAssetCreateTxnWithSuggestedParams",
+      openSuccess: "toast/openSuccess",
     }),
     async createAsset(e) {
       e.preventDefault();
@@ -240,7 +241,9 @@ export default {
       const asset = await this.makeAssetCreateTxnWithSuggestedParams({
         asset: this.asset,
       });
-      console.log("ret.asset", asset);
+      if (asset.txId) {
+        this.openSuccess("Asset request sent to the network: " + asset.txId);
+      }
     },
   },
 };

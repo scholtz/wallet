@@ -51,6 +51,11 @@
         class="btn btn-light btn-xs m-2"
         >{{ $t("acc_overview.receive_payment") }}</router-link
       >
+      <router-link
+        :to="'/payment-gateway/' + $route.params.account"
+        class="btn btn-light btn-xs m-2"
+        >{{ $t("acc_overview.payment_gateway") }}</router-link
+      >
     </p>
     <table class="table" v-if="account">
       <tr>
@@ -367,16 +372,19 @@ export default {
       }
       if (this.account) {
         for (let index in this.account.assets) {
+          console.log("fetching", this.account.assets[index]["asset-id"]);
           const asset = await this.getAsset({
             assetIndex: this.account.assets[index]["asset-id"],
           });
-          this.assets.push({
-            "asset-id": this.account.assets[index]["asset-id"],
-            amount: this.account.assets[index]["amount"],
-            name: asset["name"],
-            decimals: asset["decimals"],
-            "unit-name": asset["unit-name"],
-          });
+          if (asset) {
+            this.assets.push({
+              "asset-id": this.account.assets[index]["asset-id"],
+              amount: this.account.assets[index]["amount"],
+              name: asset["name"],
+              decimals: asset["decimals"],
+              "unit-name": asset["unit-name"],
+            });
+          }
         }
       }
       console.log("this.assets", this.assets);

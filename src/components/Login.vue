@@ -97,7 +97,7 @@
       <a
         v-for="lang in $store.state.config.languages"
         :key="lang"
-        class="m-2"
+        class="m-2 d-inline-block"
         @click="setLanguage(lang)"
         role="button"
       >

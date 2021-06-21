@@ -9,7 +9,7 @@ const mutations = {
   },
 };
 const actions = {
-  async searchForTransactions({ dispatch }, { addr }) {
+  async searchForTransactions({ dispatch }, { addr, note }) {
     try {
       const url = new URL(this.state.config.indexer);
       const indexerClient = new algosdk.Indexer(
@@ -17,18 +17,30 @@ const actions = {
         this.state.config.indexer,
         url.port
       );
-      console.log(
-        "indexer",
-        this.state.config.indexerToken,
-        this.state.config.indexer,
-        url.port
-      );
-      const searchForTransactions = await indexerClient
-        .searchForTransactions()
-        .address(addr)
-        .do();
-      console.log("indexer.searchForTransactions", searchForTransactions);
-      return searchForTransactions;
+      if (note) {
+        console.log("searching for addr and note", addr, note);
+        const enc = new TextEncoder();
+        const noteenc = enc.encode(note);
+        const searchForTransactions = await indexerClient
+          .searchForTransactions()
+          .address(addr)
+          .notePrefix(noteenc)
+          .do();
+        console.log(
+          "indexer.searchForTransactions with note",
+          searchForTransactions,
+          note
+        );
+        return searchForTransactions;
+      } else {
+        console.log("searching for addr ", addr);
+        const searchForTransactions = await indexerClient
+          .searchForTransactions()
+          .address(addr)
+          .do();
+        console.log("indexer.searchForTransactions", searchForTransactions);
+        return searchForTransactions;
+      }
     } catch (error) {
       console.log("error", error, dispatch);
     }

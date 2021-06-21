@@ -1,6 +1,8 @@
 <template>
   <main-layout>
-    <h1>{{ $t("receive.title") }} {{ account.name }}</h1>
+    <h1>
+      {{ $t("receive.title") }} <span v-if="account">{{ account.name }}</span>
+    </h1>
     <label for="paynote">{{ $t("receive.note") }}</label>
     <input v-model="paynote" id="paynote" class="form-control" />
 
@@ -50,6 +52,7 @@
     />
     <label for="decimals">{{ $t("receive.decimals") }}</label>
     <input
+      disabled
       v-model="decimals"
       id="decimals"
       type="number"
@@ -102,6 +105,7 @@ export default {
       label: "",
       noteeditable: true,
       assets: [],
+      assetObj: {},
       asset: "",
     };
   },
@@ -123,7 +127,6 @@ export default {
           ret +=
             "&amount=" +
             Math.round(this.payamount * Math.pow(10, this.decimals));
-          ret += "&decimal-power=" + this.decimals;
         } else {
           ret += "&amount=" + this.payamount;
         }
@@ -156,6 +159,20 @@ export default {
   watch: {
     account() {
       this.makeAssets();
+    },
+    async asset() {
+      if (!this.asset) {
+        this.assetObj = {
+          "asset-id": undefined,
+          name: "ALGO",
+          decimals: 6,
+        };
+      } else {
+        this.assetObj = await this.getAsset({
+          assetIndex: this.asset,
+        });
+      }
+      this.decimals = this.assetObj.decimals;
     },
   },
   mounted() {
@@ -191,13 +208,15 @@ export default {
             assetIndex: this.account.assets[index]["asset-id"],
           });
           console.log("asset", asset);
-          this.assets.push({
-            "asset-id": this.account.assets[index]["asset-id"],
-            amount: this.account.assets[index]["amount"],
-            name: asset["name"],
-            decimals: asset["decimals"],
-            "unit-name": asset["unit-name"],
-          });
+          if (asset) {
+            this.assets.push({
+              "asset-id": this.account.assets[index]["asset-id"],
+              amount: this.account.assets[index]["amount"],
+              name: asset["name"],
+              decimals: asset["decimals"],
+              "unit-name": asset["unit-name"],
+            });
+          }
         }
       }
       console.log("this.assets", this.assets);
