@@ -3,10 +3,13 @@
     <template v-slot:header><span></span></template>
     <template v-slot:footer><span></span></template>
     <div class="container">
-      <h1>{{ $t("merchant.make_payment") }}</h1>
+      <h1>
+        {{ $t("merchant.make_payment") }}
+        <span v-if="asset">{{ asset.name }}</span>
+      </h1>
       <div v-if="this.b64decode" class="my-3">
         {{ $t("merchant.pay") }} {{ this.b64decode.payamount }}
-        <span v-if="asset">{{ asset.name }}</span>
+        <span v-if="asset">{{ asset["unit-name"] }}</span>
         {{ $t("merchant.to_address") }} {{ this.b64decode.payTo }}
         {{ $t("merchant.please") }}
         <table class="table">
@@ -139,11 +142,11 @@ export default {
   },
   computed: {
     assetImage() {
+      if (this.b64decode.asset == 312769) {
+        return "/img/tether-usdt-logo-96.png";
+      }
       if (this.asset["asset-id"] === "") {
         return "/img/algorand-algo-logo-96.png";
-      }
-      if (this.asset["asset-id"] == "312769") {
-        return "/img/tether-usdt-logo-96.png";
       }
       return "";
     },
