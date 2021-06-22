@@ -41,12 +41,25 @@
         ></span>
       </div>
       <div v-if="!isPaid">
-        <a :href="origcode" role="button" class="btn btn-primary btn-xl mb-3">{{
-          $t("merchant.pay_qr")
-        }}</a>
-        <a :href="origcode" class="btn btn-light btn-xl mx-3 mb-3">{{
-          $t("merchant.pay_signer")
-        }}</a>
+        <a
+          :href="origcode"
+          title="origcode"
+          role="button"
+          class="btn btn-primary btn-xl mb-3"
+          >{{ $t("merchant.pay_qr") }}</a
+        >
+        <a
+          :href="origcode"
+          title="origcode"
+          class="btn btn-light btn-xl mx-3 mb-3"
+          >{{ $t("merchant.pay_nativewallet") }}</a
+        >
+        <a
+          :href="codeP2"
+          title="codeP2"
+          class="btn btn-light btn-xl mx-3 mb-3"
+          >{{ $t("merchant.pay_webwallet") }}</a
+        >
         <a
           :href="settings.cancel"
           class="btn btn-light btn-xl mb-3"
@@ -89,6 +102,7 @@
       <div class="row">
         <div class="col-12 col-lg-6">
           <QRCodeVue3
+            :title="origcode"
             v-if="!isPaid"
             :width="400"
             :height="400"
@@ -132,9 +146,11 @@ export default {
   data() {
     return {
       origcode: "",
+      codeP2: "",
       b64decode: {},
       settings: {},
       asset: {},
+
       transactions: [],
       formSent: false,
       countDown: null,
@@ -179,6 +195,7 @@ export default {
     window.setInterval(() => {
       this.getNotifications();
     }, 5000);
+    this.setWebProtocol();
   },
   methods: {
     ...mapActions({
@@ -187,6 +204,13 @@ export default {
       openError: "toast/openError",
       setHosts: "config/setHosts",
     }),
+    setWebProtocol() {
+      if (this.origcode.startsWith("algorand:")) {
+        this.codeP2 = "web+" + this.origcode;
+      } else {
+        this.codeP2 = "web+algorand://" + this.origcode;
+      }
+    },
     async lowerCountDown() {
       if (this.countDown > 0) {
         this.countDown = this.countDown - 1;
