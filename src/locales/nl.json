@@ -280,7 +280,10 @@
       "delete": "Verwijder uw portemonnee",
       "strength": "Sterkte",
       "updated_password": "Wachtwoord is geupdate",
-      "custom":"Custom server settings"
+      "custom":"Custom server settings",
+      "protocol_title":"Register protocol handler",
+      "protocol_button":"Register web+algorand:// handler",
+      "protocol_change_success":"Successfully updated the protocol handler"
     },
     "transaction": {
       "title": "Transactie details",

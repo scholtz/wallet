@@ -255,7 +255,10 @@
     "delete": "Vymazať peňaženku",
     "strength": "Sila hesla",
     "updated_password": "Heslo bolo upravené",
-    "custom":"Custom server settings"
+    "custom":"Custom server settings",
+    "protocol_title":"Register protocol handler",
+    "protocol_button":"Register web+algorand:// handler",
+    "protocol_change_success":"Successfully updated the protocol handler"
   },
   "transaction": {
     "title": "Detail transakcie",

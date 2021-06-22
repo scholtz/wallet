@@ -280,7 +280,10 @@
     "delete": "Pénztárca törlés",
     "strength": "Erősség",
     "updated_password": "A jelszó módosult",
-    "custom": "Egyedi szerver beállítások"
+    "custom": "Egyedi szerver beállítások",
+    "protocol_title":"Register protocol handler",
+    "protocol_button":"Register web+algorand:// handler",
+    "protocol_change_success":"Successfully updated the protocol handler"
   },
   "transaction": {
     "title": "Tranzakció részletei",

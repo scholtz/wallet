@@ -78,6 +78,12 @@
         </td>
       </tr>
     </table>
+    <div>
+      <h2>{{ $t("settings.protocol_title") }}</h2>
+      <button @click="registerProtocolClick" class="btn btn-light">
+        {{ $t("settings.protocol_button") }}
+      </button>
+    </div>
 
     <h2>{{ $t("settings.language") }}</h2>
 
@@ -309,6 +315,8 @@ export default {
       changePassword: "wallet/changePassword",
       backupWallet: "wallet/backupWallet",
       destroyWallet: "wallet/destroyWallet",
+      openError: "toast/openError",
+      openSuccess: "toast/openSuccess",
     }),
     changePasswordClick(e) {
       e.preventDefault();
@@ -339,6 +347,19 @@ export default {
         kmdToken: this.kmdToken,
         indexerToken: this.indexerToken,
       });
+    },
+    registerProtocolClick(e) {
+      e.preventDefault();
+      try {
+        navigator.registerProtocolHandler(
+          "web+algorand",
+          location.origin + "/pay/%s",
+          "A Wallet"
+        );
+        this.openSuccess(this.$t("settings.protocol_change_success"));
+      } catch (exc) {
+        this.openError(exc.message);
+      }
     },
   },
 };

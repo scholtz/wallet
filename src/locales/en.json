@@ -280,7 +280,10 @@
     "delete": "Delete the wallet",
     "strength": "Strength",
     "updated_password": "Password has been updated",
-    "custom":"Custom server settings"
+    "custom":"Custom server settings",
+    "protocol_title":"Register protocol handler",
+    "protocol_button":"Register web+algorand:// handler",
+    "protocol_change_success":"Successfully updated the protocol handler"
   },
   "transaction": {
     "title": "Transaction detail",
