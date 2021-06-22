@@ -48,11 +48,6 @@
               $t("navbar.asset_create")
             }}</v-link>
           </li>
-          <li class="nav-item active" v-if="$store.state.wallet.isOpen">
-            <v-link class="nav-link" href="/settings">{{
-              $t("navbar.settings")
-            }}</v-link>
-          </li>
           <li class="nav-item active">
             <v-link class="nav-link" href="/faq">{{ $t("navbar.faq") }}</v-link>
           </li>
@@ -61,6 +56,8 @@
               $t("navbar.privacy_policy")
             }}</v-link>
           </li>
+        </ul>
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
           <Dropdown
             v-if="!$store.state.wallet.isOpen"
             v-model="$i18n.locale"
@@ -93,6 +90,11 @@
               </div>
             </template>
           </Dropdown>
+          <li class="nav-item active" v-if="$store.state.wallet.isOpen">
+            <v-link class="nav-link" href="/settings">{{
+              $t("navbar.settings")
+            }}</v-link>
+          </li>
           <li class="nav-item active" v-if="$store.state.wallet.isOpen">
             <v-link class="nav-link" href="/" @click="logoutClick">{{
               $t("navbar.logout")
