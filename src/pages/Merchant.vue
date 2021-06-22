@@ -43,20 +43,20 @@
       <div v-if="!isPaid">
         <a
           :href="origcode"
-          title="origcode"
+          :title="origcode"
           role="button"
           class="btn btn-primary btn-xl mb-3"
           >{{ $t("merchant.pay_qr") }}</a
         >
         <a
           :href="origcode"
-          title="origcode"
+          :title="origcode"
           class="btn btn-light btn-xl mx-3 mb-3"
           >{{ $t("merchant.pay_nativewallet") }}</a
         >
         <a
           :href="codeP2"
-          title="codeP2"
+          :title="codeP2"
           class="btn btn-light btn-xl mx-3 mb-3"
           >{{ $t("merchant.pay_webwallet") }}</a
         >
