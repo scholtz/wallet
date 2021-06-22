@@ -3,8 +3,12 @@ export default {
     let ret = {};
     console.log("onDecodeQR", result);
     if (result) {
-      if (result.startsWith("algorand://")) {
+      if (
+        result.startsWith("algorand://") ||
+        result.startsWith("web+algorand://")
+      ) {
         // parse according to https://github.com/emg110/algorand-qrcode
+        result = result.replace("web+algorand://", "");
         result = result.replace("algorand://", "");
         const qIndex = result.indexOf("?");
         if (qIndex < 0) {

@@ -15,7 +15,9 @@
     </div>
     <div v-if="account">
       <form @submit="previewPaymentClick" v-if="page == 'design'">
-        <h1>{{ $t("pay.title") }} {{ account.name }}</h1>
+        <h1>
+          {{ $t("pay.title") }} <span v-if="account">{{ account.name }}</span>
+        </h1>
         <p>{{ $t("pay.selected_account") }}: {{ account.addr }}</p>
         <div v-if="isMultisig && !subpage">
           <h2>{{ $t("pay.multisig_account") }}</h2>
@@ -43,8 +45,16 @@
           <div :class="scan ? 'col-8' : 'col-12'">
             <div v-if="$route.params.toAccount">
               <input
+                v-if="!payTo"
                 v-model="$route.params.toAccount"
-                id="payTo"
+                id="payTo1"
+                disabled
+                class="form-control"
+              />
+              <input
+                v-else
+                v-model="payTo"
+                id="payTo2"
                 disabled
                 class="form-control"
               />
@@ -211,7 +221,7 @@
           </tr>
           <tr>
             <th>{{ $t("pay.amount") }}:</th>
-            <td>
+            <td v-if="this.assetObj">
               {{
                 $filters.formatCurrency(
                   amountLong,
@@ -219,6 +229,9 @@
                   this.assetObj.decimals
                 )
               }}
+            </td>
+            <td v-else>
+              {{ $filters.formatCurrency(amountLong) }}
             </td>
           </tr>
           <tr>
@@ -421,6 +434,7 @@
 
 <script>
 import { QrcodeStream } from "qrcode-reader-vue3";
+import aprotocol from "../shared/algorand-protocol-parse";
 
 import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
@@ -551,13 +565,22 @@ export default {
       }
       console.log("assetObj", this.assetObj);
       this.payamount = 0;
+      if (this.$route.params.toAccount) {
+        this.parseToAccount();
+      }
     },
   },
   async mounted() {
     if (!this.payFrom) {
       this.setNoRedirect();
     }
+
     this.payTo = this.$store.state.wallet.lastpayTo;
+
+    if (this.$route.params.toAccount) {
+      this.parseToAccount();
+    }
+
     if (this.$route.params.account) {
       this.lastActiveAccount({ addr: this.$route.params.account });
     }
@@ -593,16 +616,27 @@ export default {
             assetIndex: this.account.assets[index]["asset-id"],
           });
           console.log("asset", asset);
-          this.assets.push({
-            "asset-id": this.account.assets[index]["asset-id"],
-            amount: this.account.assets[index]["amount"],
-            name: asset["name"],
-            decimals: asset["decimals"],
-            "unit-name": asset["unit-name"],
-          });
+          if (asset) {
+            this.assets.push({
+              "asset-id": this.account.assets[index]["asset-id"],
+              amount: this.account.assets[index]["amount"],
+              name: asset["name"],
+              decimals: asset["decimals"],
+              "unit-name": asset["unit-name"],
+            });
+          } else {
+            console.log(
+              "Asset not loaded",
+              this.account.assets[index]["asset-id"]
+            );
+          }
         }
       }
       console.log("this.assets", this.assets);
+
+      if (this.$route.params.toAccount) {
+        this.parseToAccount();
+      }
     },
     reset() {
       this.subpage = "";
@@ -613,6 +647,29 @@ export default {
       this.signMultisigWith = [];
       this.rawSignedTxn = "";
       this.rawSignedTxnInput = "";
+    },
+    parseToAccount() {
+      this.b64decode = aprotocol.parseAlgorandProtocolParameters(
+        this.$route.params.toAccount
+      );
+      this.payTo = this.b64decode.payTo;
+      this.payamount = this.b64decode.payamountbase / this.decimalsPower;
+      if (this.b64decode.asset) {
+        this.asset = this.b64decode.asset;
+      }
+      if (this.b64decode.paynote) {
+        this.paynote = this.b64decode.paynote;
+      }
+      if (this.b64decode.fee) {
+        this.fee = this.b64decode.fee;
+      }
+      console.log(
+        "parseToAccount",
+        this.$route.params.toAccount,
+        this.b64decode,
+        this.payTo,
+        this.asset
+      );
     },
     previewPaymentClick(e) {
       this.page = "review";
@@ -874,8 +931,12 @@ export default {
     onDecodeQR(result) {
       console.log("onDecodeQR", result);
       if (this.scan && result) {
-        if (result.startsWith("algorand://")) {
+        if (
+          result.startsWith("algorand://") ||
+          result.startsWith("web+algorand://")
+        ) {
           // parse according to https://github.com/emg110/algorand-qrcode
+          result = result.replace("web+algorand://", "");
           result = result.replace("algorand://", "");
           const qIndex = result.indexOf("?");
           if (qIndex < 0) {
