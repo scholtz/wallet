@@ -189,7 +189,7 @@ export default {
     this.makeAsset();
     if (!this.b64decode.paynote) {
       this.b64decode.paynote = "a-wallet/" + uuidv4();
-      this.origcode = this.origcode + "&" + this.b64decode.paynote;
+      this.origcode = this.origcode + "&xnote=" + this.b64decode.paynote;
     }
     console.log("this.b64decode ", this.b64decode, this.asset, this.settings);
     window.setInterval(() => {
