@@ -2204,7 +2204,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/js/vanity.c904f01d.worker.js"
   },
   {
-    "revision": "da96430392c67d01f9a8d0af31bb58b9",
+    "revision": "2ddbbe784f5c58c57c9b2817580b566c",
     "url": "/manifest.json"
   },
   {
