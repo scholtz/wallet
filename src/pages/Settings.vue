@@ -7,6 +7,7 @@
       <option value="mainnet">{{ $t("settings.mainnet") }}</option>
       <option value="testnet">{{ $t("settings.testnet") }}</option>
       <option value="sandbox">{{ $t("settings.sandbox") }}</option>
+      <option value="devnet">{{ $t("settings.devnet") }}</option>
       <option value="custom">{{ $t("settings.custom") }}</option>
     </select>
 
@@ -197,6 +198,16 @@ export default {
           indexer: "https://testnet.algoexplorerapi.io/idx2",
         });
       }
+      if (this.env == "devnet") {
+        this.setHosts({
+          algod: "http://localhost:4180",
+          kmd: "http://localhost:4002",
+          indexer: "http://localhost:8980",
+          algodToken:
+            "c87f5580d7a866317b4bfe9e8b8d1dda955636ccebfa88c12b414db208dd9705",
+          indexerToken: "reach-devnet",
+        });
+      }
       if (this.env == "sandbox") {
         this.setHosts({
           algod: "http://localhost:4001",
@@ -339,6 +350,14 @@ export default {
       localStorage.setItem("lang", this.$i18n.locale);
     },
     updateConfig() {
+      console.log("update", {
+        algod: this.algodHost,
+        kmd: this.kmdHost,
+        indexer: this.indexerHost,
+        algodToken: this.algodToken,
+        kmdToken: this.kmdToken,
+        indexerToken: this.indexerToken,
+      });
       this.setHosts({
         algod: this.algodHost,
         kmd: this.kmdHost,

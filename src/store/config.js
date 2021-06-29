@@ -98,8 +98,18 @@ const mutations = {
   },
 };
 const actions = {
-  async setHosts({ commit }, { algod, kmd, indexer }) {
-    await commit("setHosts", { algod, kmd, indexer });
+  async setHosts(
+    { commit },
+    { algod, kmd, indexer, algodToken, kmdToken, indexerToken }
+  ) {
+    await commit("setHosts", {
+      algod,
+      kmd,
+      indexer,
+      algodToken,
+      kmdToken,
+      indexerToken,
+    });
   },
   async setNoRedirect({ commit }) {
     await commit("setNoRedirect");
