@@ -265,6 +265,7 @@
     "environment": "Ambiente",
     "mainnet": "Mainnet",
     "testnet": "Testnet",
+    "devnet": "Reach Devnet",
     "sandbox": "Sandbox",
     "host": "host",
     "token": "token",

@@ -265,6 +265,7 @@
     "environment": "környezet",
     "mainnet": "Mainnet",
     "testnet": "Testnet",
+    "devnet": "Reach Devnet",
     "sandbox": "Sandbox",
     "host": "gazdagép",
     "token": "token",

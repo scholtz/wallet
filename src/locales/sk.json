@@ -265,6 +265,7 @@
     "environment": "Prostredie",
     "mainnet": "Mainnet",
     "testnet": "Testnet",
+    "devnet": "Reach Devnet",
     "sandbox": "Sandbox",
     "host": "hostiteľ",
     "token": "token",
