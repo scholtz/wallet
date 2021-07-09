@@ -164,12 +164,14 @@ export default {
           } else {
             ctc = await acc.deploy(BackendInfo);
           }
-          console.log("ctc", ctc);
-          const getInfo = await ctc.getInfo();
-          this.ctx = getInfo;
-          console.log("getInfo", getInfo);
+
+          const that = this;
+          setInterval(async () => {
+            that.ctx = await ctc.getInfo();
+            console.log("ctx", this.ctx);
+          }, 1000);
           console.log("params", this.info, this.request);
-          const Alice = BackendInfo.Alice(ctc, this);
+          const Alice = await BackendInfo.Alice(ctc, this);
           console.log("Alice", Alice);
         }
       } catch (e) {
@@ -183,19 +185,17 @@ export default {
           this.setup();
           const mn = algosdk.secretKeyToMnemonic(sk);
           const acc = await this.reach.newAccountFromMnemonic(mn);
-          acc.setDebugLabel("ACC1");
+          acc.setDebugLabel("ACC2");
           const balAtomic = await this.reach.balanceOf(acc);
           console.log("balAtomic", balAtomic);
           let ctc = null;
+          console.log("attaching with ctx", this.ctx);
           ctc = await acc.attach(BackendInfo, this.ctx);
-          /*
-          if (this.ctx && this.ctx.ApplicationID) {
-            ctc = await acc.attach(BackendInfo, this.ctx);
-          } else {
-            ctc = await acc.deploy(BackendInfo);
-          }*/
+          console.log("ctc", ctc);
           console.log("ctc", ctc);
 
+          const ctx = await ctc.getInfo();
+          console.log("ctx", ctx);
           const Bob = BackendInfo.Bob(ctc, this);
           console.log("Bob", Bob);
         }
