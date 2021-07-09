@@ -265,6 +265,93 @@ const actions = {
       console.log("error", error, dispatch);
     }
   },
+  async createApp(
+    { dispatch },
+    { from, onComplete, approvalProgram, clearProgram }
+  ) {
+    try {
+      console.log("createApp");
+      const url = new URL(this.state.config.algod);
+      let algodclient = new algosdk.Algodv2(
+        this.state.config.algodToken,
+        this.state.config.algod,
+        url.port
+      );
+      const txParams = await algodclient.getTransactionParams().do();
+      const numLocalInts = 0;
+      const numLocalByteSlices = 0;
+      const numGlobalInts = 0;
+      const numGlobalByteSlices = 16;
+      const appArgs = [];
+      txParams.fee = 1001;
+      txParams.flatFee = true;
+
+      const txn = await algosdk.makeApplicationCreateTxn(
+        from,
+        txParams,
+        algosdk.OnApplicationComplete.NoOpOC,
+        approvalProgram,
+        clearProgram,
+        numLocalInts,
+        numLocalByteSlices,
+        numGlobalInts,
+        numGlobalByteSlices,
+        appArgs
+      );
+      console.log("app", txn);
+
+      const sk = await dispatch(
+        "wallet/getSK",
+        { addr: from },
+        {
+          root: true,
+        }
+      );
+      console.log("txn", txn);
+      let signedTxn = txn.signTxn(sk);
+      console.log("signedTxn", signedTxn);
+      let txId = txn.txID().toString();
+      console.log("txId", txId);
+      const ret = await algodclient
+        .sendRawTransaction(signedTxn)
+        .do()
+        .catch((e) => {
+          if (e && e.response && e.response.body && e.response.body.message) {
+            dispatch("toast/openError", e.response.body.message, {
+              root: true,
+            });
+          }
+          console.log("e", e, e.message, e.data);
+
+          for (var key in e) {
+            console.log("e.key", key, e[key]);
+          }
+        });
+      console.log("ret", ret);
+    } catch (error) {
+      console.log("error", error, dispatch, onComplete);
+    }
+  },
+  async compileProgram({ dispatch }, { programSource }) {
+    try {
+      const url = new URL(this.state.config.algod);
+      let algodclient = new algosdk.Algodv2(
+        this.state.config.algodToken,
+        this.state.config.algod,
+        url.port
+      );
+      let encoder = new TextEncoder();
+      let programBytes = encoder.encode(programSource);
+      console.log("algodclient", algodclient);
+      let compileResponse = await algodclient.compile(programBytes).do();
+      let compiledBytes = new Uint8Array(
+        Buffer.from(compileResponse.result, "base64")
+      );
+      return compiledBytes;
+    } catch (e) {
+      console.log("error", e, dispatch);
+    }
+  },
 };
 export default {
   namespaced: true,

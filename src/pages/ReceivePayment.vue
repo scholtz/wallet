@@ -80,7 +80,7 @@
       :height="400"
       :value="qrcode"
       :qrOptions="{ errorCorrectionLevel: 'H' }"
-      image="/img/algorand-algo-logo-96.png"
+      :image="assetImage"
     />
     <code>{{ qrcode }}</code>
   </main-layout>
@@ -154,6 +154,15 @@ export default {
       return this.$store.state.wallet.privateAccounts.find(
         (a) => a.addr == this.$route.params.account
       );
+    },
+    assetImage() {
+      if (this.asset == 312769) {
+        return "/img/tether-usdt-logo-96.png";
+      }
+      if (this.asset === "") {
+        return "/img/algorand-algo-logo-96.png";
+      }
+      return "/img/algorand-algo-logo-96.png";
     },
   },
   watch: {

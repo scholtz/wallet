@@ -1,0 +1,1575 @@
+#!/bin/sh
+
+# OS X doesn't come with realpath, so we use
+# https://github.com/mkropat/sh-realpath/blob/master/realpath.sh
+# if we can't find realpath
+
+command -v realpath >/dev/null 2>&1 || realpath() {
+    canonicalize_path "$(resolve_symlinks "$1")"
+}
+
+resolve_symlinks() {
+    _resolve_symlinks "$1"
+}
+
+_resolve_symlinks() (
+    _assert_no_path_cycles "$@" || return
+
+    path=$(readlink -- "$1")
+    res=$?
+    if [ "$res" -eq 0 ]; then
+        dir_context=$(dirname -- "$1")
+        _resolve_symlinks "$(_prepend_dir_context_if_necessary "$dir_context" "$path")" "$@"
+    else
+        printf '%s\n' "$1"
+    fi
+)
+
+_prepend_dir_context_if_necessary() {
+    if [ "$1" = . ]; then
+        printf '%s\n' "$2"
+    else
+        _prepend_path_if_relative "$1" "$2"
+    fi
+}
+
+_prepend_path_if_relative() {
+    case "$2" in
+        /* ) printf '%s\n' "$2" ;;
+         * ) printf '%s\n' "$1/$2" ;;
+    esac
+}
+
+_assert_no_path_cycles() (
+    target=$1
+    shift
+
+    for path in "$@"; do
+        if [ "$path" = "$target" ]; then
+            return 1
+        fi
+    done
+)
+
+canonicalize_path() {
+    if [ -d "$1" ]; then
+        _canonicalize_dir_path "$1"
+    else
+        _canonicalize_file_path "$1"
+    fi
+}
+
+_canonicalize_dir_path() {
+    (cd "$1" 2>/dev/null && pwd -P)
+}
+
+_canonicalize_file_path() (
+    dir=$(dirname -- "$1")
+    file=$(basename -- "$1")
+    (cd "$dir" 2>/dev/null && printf '%s/%s\n' "$(pwd -P)" "$file")
+)
+
+# Real Reach follows
+
+# Rules for how reach interacts with your Makefile,
+# if you have *all* of the expected scaffolded files.
+# ------------------------------------------------
+#
+# reach run
+#
+# --> must call exactly once -->
+# make run
+#
+# * must not call bare reach run
+#
+# --> may call many times -->
+# REACH_CONNECTOR_MODE=$M reach run $T $ARGS...
+#
+# * must always export REACH_CONNECTOR_MODE in a canonical form
+#
+# --> must call exactly once (per called) -->
+# make run-target ARGS="$T $(ARGS)"
+#
+# * must not call reach run at all
+#
+# --> expected to be something like -->
+# docker-compose run --rm reach-app-$${REACH_CONNECTOR_MODE} $T $(ARGS)
+
+REACH="$(realpath "$0")"
+export REACH
+HERE="$(dirname "$REACH")"
+
+# XXX Get from VERSION in Haskell version
+REACH_DEFAULT_VERSION=0.1
+# REACH_FULL_VERSION=0.1.2
+
+# XXX RV_TAG* is no longer used b/c
+#   the reach version is no longer embedded into package.json
+# When breaking changes occur between RCs,
+# it may help to bump the TAGMIN
+# so that users are less likely to end up with old RCs.
+# When we stop making breaking changes on patch/rc versions
+# then this probably won't be necessary
+# RV_TAG='rc'
+# RV_TAGMIN=4
+# RV_TAGMAX=9999
+
+if [ "x${REACH_VERSION}" = "x" ] ; then
+    REACH_VERSION="${REACH_DEFAULT_VERSION}"
+else
+    # XXX this is wrong if specified version is not full
+    # REACH_FULL_VERSION="${REACH_VERSION}"
+    # RV_TAG='release'
+    :
+fi
+if [ "${REACH_VERSION}" = "stable" ] ; then
+    REACH_VERSION_SHORT="${REACH_DEFAULT_VERSION}"
+else
+    REACH_VERSION_SHORT=$(echo "$REACH_VERSION" | sed 's/^v//' | awk -F. '{print $1"."$2}')
+fi
+
+if ! (which make docker docker-compose > /dev/null 2>&1) ; then
+  echo "Reach relies on an installation of make, docker, and docker-compose"
+  exit 1
+fi
+
+# shellcheck disable=SC2016
+fatal_infinite_reach_run_loop () {
+  echo 'reach run has detected an infinite loop'
+  echo '`make run` may not call `reach run` with no arguments'
+  echo 'instead try something like `reach run index` from `make run`'
+  exit 1
+}
+
+fatal_connector_mode_coming_soon () {
+  echo "Sorry. Support for $REACH_CONNECTOR_MODE is coming soon!"
+  exit 1
+}
+
+fatal_pls_report () {
+    echo "Please report this as an issue with the reach command at:"
+    echo "  https://github.com/reach-sh/reach-lang/issues"
+  exit 1
+}
+
+fatal_impossible_connector_mode() {
+  echo "impossible: unsupported REACH_CONNECTOR_MODE=$REACH_CONNECTOR_MODE"
+  fatal_pls_report
+}
+
+fatal_unrecognized_connector_mode() {
+  echo "Unrecognized REACH_CONNECTOR_MODE=$REACH_CONNECTOR_MODE"
+  exit 1
+}
+
+ensure_connector_mode () {
+  # Makes sure to set REACH_CONNECTOR_MODE to one of:
+  # * ETH-test-dockerized-geth
+  # * ETH-live
+  # * ALGO-test-dockerized-algod
+  # $WHAT-$WHERE-$HOW-$HOW_WHERE
+  # (or error)
+  # This can be derived from REACH_TESTNET and possibly REACH_ETH_MODE
+
+  # Expand defaults
+  REACH_CONNECTOR_MODE=${REACH_CONNECTOR_MODE:-ETH}
+  case "$REACH_CONNECTOR_MODE" in
+    "ETH")
+      REACH_CONNECTOR_MODE="ETH-test-dockerized-geth"
+      ;;
+    "ETH-live")
+      REACH_CONNECTOR_MODE="ETH-live"
+      ;;
+    "ETH-test")
+      REACH_CONNECTOR_MODE="ETH-test-dockerized-geth"
+      ;;
+    "ETH-test-dockerized")
+      REACH_CONNECTOR_MODE="ETH-test-dockerized-geth"
+      ;;
+    "ALGO")
+      REACH_CONNECTOR_MODE="ALGO-test-dockerized-algod"
+      ;;
+    "ALGO-live")
+      REACH_CONNECTOR_MODE="ALGO-live"
+      ;;
+    "ALGO-test")
+      REACH_CONNECTOR_MODE="ALGO-test-dockerized-algod"
+      ;;
+    "ALGO-test-dockerized")
+      REACH_CONNECTOR_MODE="ALGO-test-dockerized-algod"
+      ;;
+    "CFX")
+      REACH_CONNECTOR_MODE="CFX-devnet"
+      ;;
+    "CFX-devnet")
+      REACH_CONNECTOR_MODE="CFX-devnet"
+      ;;
+    "CFX-live")
+      REACH_CONNECTOR_MODE="CFX-live"
+      ;;
+  esac
+
+  # ensure it is one of the supported things
+  case "$REACH_CONNECTOR_MODE" in
+    "ETH-live")
+      ;;
+    "ETH-test-dockerized-geth")
+      ;;
+    "ALGO-live")
+      ;;
+    "ALGO-test-dockerized-algod")
+      ;;
+    "CFX-devnet")
+      ;;
+    "CFX-live")
+      ;;
+    *)
+      fatal_unrecognized_connector_mode
+      ;;
+  esac
+
+  # make sure sub-commands receive this
+  export REACH_CONNECTOR_MODE
+}
+
+do_whoami () {
+  docker info --format '{{.ID}}' 2>/dev/null
+}
+
+has_opt () {
+  opt="$1"
+  shift
+  for X in "$@"; do
+    if [ "$X" = "$opt" ]; then
+      return 1
+    fi
+  done
+  return 0
+}
+
+do_compile () {
+    HS=${HERE}/hs
+
+    # Note: shellcheck says splatting is dangerous,
+    # (because what if file names have spaces),
+    # but also, sh doesn't have array splicing, so... this.
+    # It's a little less mix-and-match
+
+    INT_OPT="--intermediate-files"
+    has_opt "$INT_OPT" "$@"
+    HAS_INT="$?"
+
+    reachc_release () {
+      stack build && \
+        stack exec -- \
+              reachc "$@"
+    }
+    reachc_prof () {
+      if [ "$HAS_INT" = "1" ]; then
+        stack build --profile --fast && \
+          stack exec --profile -- \
+                reachc --disable-reporting "$@" +RTS -p
+      else
+        stack build --profile --fast && \
+          stack exec --profile -- \
+                reachc --disable-reporting --intermediate-files "$@" +RTS -p
+      fi
+    }
+    reachc_dev () {
+      if [ "$HAS_INT" = "1" ]; then
+        stack build --fast && \
+          stack exec -- \
+                reachc --disable-reporting "$@"
+      else
+        stack build --fast && \
+          stack exec -- \
+                reachc --disable-reporting --intermediate-files "$@"
+      fi
+    }
+
+    ID=$(do_whoami)
+    if [ "$CIRCLECI" = "true" ] && [ -x ~/.local/bin/reachc ]; then
+        ~/.local/bin/reachc --disable-reporting "$@"
+
+    elif [ -z "${REACH_DOCKER}" ] && [ -d "${HS}/.stack-work" ] && (which stack > /dev/null 2>&1) ; then
+        export STACK_YAML="${HS}/stack.yaml"
+        export REACHC_ID=${ID}
+        REACHC_HASH="$("${HS}/../scripts/git-hash.sh")"
+        export REACHC_HASH
+        (cd "$HS" && make stack)
+        if [ "x${REACHC_RELEASE}" = "xY" ] ; then
+          reachc_release "$@"
+        elif [ "x${REACHC_PROFILE}" = "xY" ] ; then
+          reachc_prof "$@"
+        else
+          reachc_dev "$@"
+        fi
+
+    else
+        docker run \
+          --rm \
+          --volume "$PWD:/app" \
+          -e "REACHC_ID=${ID}" \
+          reachsh/reach:${REACH_VERSION} \
+          "$@"
+    fi
+}
+
+do_clean () {
+  # TODO: add `make clean` to scaffolded makefile,
+  # and just scaffold & make clean instead?
+  # This implementation was simpler, though.
+  MODULE="$1"
+  if [ "x$MODULE" = "x" ] ; then
+    MODULE="index"
+  else
+    shift
+    if [ -d "$MODULE" ] ; then
+      cd "$MODULE" || exit 1
+      MODULE="index"
+    fi
+  fi
+
+  IDENT="$1"
+  if [ "x$IDENT" = "x" ] ; then
+    IDENT="main"
+  else
+    shift
+  fi
+
+  rm -f "build/$MODULE.$IDENT.mjs"
+}
+
+do_init () {
+  # reach init [APP]
+  # ----------
+  # APP defaults to index
+  # fail if $APP.mjs or $APP.rsh exist
+  # write $APP.mjs and $APP.rsh
+
+  APP="$1"
+  if [ "x$APP" = "x" ] ; then
+    APP=index
+  else
+    shift
+  fi
+
+  RSH="$APP.rsh"
+  MJS="$APP.mjs"
+
+  if [ -f "$RSH" ] ; then
+    echo "$RSH already exists"
+    exit 1
+  fi
+  if [ -f "$MJS" ] ; then
+    echo "$MJS already exists"
+  fi
+
+  echo writing "$RSH"
+  cat >"${RSH}" <<EOF
+'reach ${REACH_VERSION_SHORT}';
+
+export const main = Reach.App(() => {
+  const Alice = Participant('Alice', {});
+  const Bob   = Participant('Bob', {});
+  deploy();
+  // write your program here
+
+});
+EOF
+
+  echo writing "$MJS"
+  cat >"${MJS}" <<EOF
+import {loadStdlib} from '@reach-sh/stdlib';
+import * as backend from './build/${APP}.main.mjs';
+
+(async () => {
+  const stdlib = await loadStdlib(process.env);
+  const startingBalance = stdlib.parseCurrency(100);
+
+  const alice = await stdlib.newTestAccount(startingBalance);
+  const bob = await stdlib.newTestAccount(startingBalance);
+
+  const ctcAlice = alice.deploy(backend);
+  const ctcBob = bob.attach(backend, ctcAlice.getInfo());
+
+  await Promise.all([
+    backend.Alice(ctcAlice, {
+      ...stdlib.hasRandom
+    }),
+    backend.Bob(ctcBob, {
+      ...stdlib.hasRandom
+    }),
+  ]);
+
+  console.log('Hello, Alice and Bob!');
+})();
+EOF
+}
+
+do_scaffold () {
+  # reach scaffold [--isolate] [--quiet] [APP]
+  # --------------
+  # if next arg is --isolate, set ISOLATE flag & shift
+  # if next arg is --quiet, disable VERBOSE flag & shift
+  # APP is next arg, defaults to index
+  # write each of the below if they do not exist
+  # * .gitignore
+  # * .dockerignore
+  # Suffix the following file names with .$APP if ISOLATE:
+  # Error if any of the below exist:
+  # Write each of the below:
+  # * package.json
+  # * Dockerfile
+  # * docker-compose.yml
+  # * Makefile
+
+  # lol I hope you didn't misspell --isolate or --quiet
+  # TODO: better arg parsing
+
+  ensure_connector_mode
+
+  ISOLATE=false
+  if [ "x$1" = "x--isolate" ] ; then
+    ISOLATE=true
+    shift
+  fi
+
+  VERBOSE=true
+  if [ "x$1" = "x--quiet" ] ; then
+    VERBOSE=false
+    shift
+  fi
+
+  APP="$1"
+  if [ "x$APP" = "x" ] ; then
+    APP="index"
+  else
+    shift
+  fi
+
+  PROJ="$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]')"
+  DOCKERFILE="Dockerfile"
+  PACKAGE_JSON="package.json"
+  DOCKER_COMPOSE_YML="docker-compose.yml"
+  MAKEFILE="Makefile"
+
+  if $ISOLATE ; then
+    PROJ="$PROJ-$APP"
+    DOCKERFILE="$DOCKERFILE.$APP"
+    PACKAGE_JSON="$PACKAGE_JSON.$APP"
+    DOCKER_COMPOSE_YML="$DOCKER_COMPOSE_YML.$APP"
+    MAKEFILE="$MAKEFILE.$APP"
+  fi
+
+  MJS="$APP.mjs"
+  RSH="$APP.rsh"
+
+  if $ISOLATE ; then
+    CPLINE="RUN cp /app/${PACKAGE_JSON} /app/package.json"
+  else
+    # Omit this line of the file if not --isolate
+    CPLINE=""
+  fi
+  if $VERBOSE ; then echo writing $DOCKERFILE; fi
+  cat >"${DOCKERFILE}" <<EOF
+FROM reachsh/runner:${REACH_VERSION}
+
+# If your project needs more node dependencies:
+# COPY ${PACKAGE_JSON} /app/package.json
+# RUN npm install
+# RUN npm link @reach-sh/stdlib
+
+COPY . /app
+${CPLINE}
+CMD ["${APP}"]
+EOF
+
+  # TODO: s/lint/preapp. It's disabled because sometimes our
+  # generated code trips the linter
+  # TODO: ^ The same goes for js/runner_package.template.json
+
+  if $VERBOSE ; then echo writing $PACKAGE_JSON; fi
+  # XXX We could optimize this by making reachsh/stdlib-app with everything except the MJS files and make the package linking/install go faster.
+  # if [ "$RV_TAG" = "release" ] ; then
+  #   echo "$RV_TAG"
+  #   REACH_VERSION_EXPR="$REACH_FULL_VERSION"
+  # else
+  #   REACH_VERSION_EXPR=">=$REACH_FULL_VERSION-$RV_TAG.$RV_TAGMIN <$REACH_FULL_VERSION-$RV_TAG.$RV_TAGMAX"
+  # fi
+  # XXX: Is REACH_VERSION_EXPR still useful somehow?
+  #   It seems wasteful to just throw it away
+  cat >"${PACKAGE_JSON}" <<EOF
+{
+  "name": "@reach-sh/${PROJ}",
+  "type": "module",
+  "dependencies": {
+  },
+  "author": "reach.sh",
+  "license": "Apache-2.0",
+  "scripts": {
+    "lint": "eslint --ignore-path .gitignore --ext .mjs .",
+    "${APP}": "node --experimental-modules --unhandled-rejections=strict ${MJS}"
+  }
+}
+EOF
+
+  SERVICE="reach-app-${PROJ}"
+  IMAGE="reachsh/${SERVICE}"
+  IMAGE_TAG="${IMAGE}:latest"
+  if $VERBOSE ; then echo writing $DOCKER_COMPOSE_YML; fi
+  cat >"${DOCKER_COMPOSE_YML}" <<EOF
+version: '3.4'
+x-app-base: &app-base
+  image: ${IMAGE_TAG}
+services:
+  devnet-cfx:
+    image: reachsh/devnet-cfx:${REACH_VERSION}
+  ethereum-devnet:
+    image: reachsh/ethereum-devnet:${REACH_VERSION}
+  algorand-devnet:
+    image: reachsh/algorand-devnet:${REACH_VERSION}
+    depends_on:
+      - algorand-postgres-db
+    environment:
+      - REACH_ALGO_DEBUG
+      - POSTGRES_HOST=algorand-postgres-db
+      - POSTGRES_USER=algogrand
+      - POSTGRES_PASSWORD=indexer
+      - POSTGRES_DB=pgdb
+    ports:
+      - 9392
+  algorand-postgres-db:
+    image: postgres:11-alpine
+    environment:
+      - POSTGRES_USER=algogrand
+      - POSTGRES_PASSWORD=indexer
+      - POSTGRES_DB=pgdb
+  ${SERVICE}-ETH-live:
+    <<: *app-base
+    environment:
+      - REACH_DEBUG
+      - REACH_CONNECTOR_MODE=ETH-live
+      - REACH_ISOLATED_NETWORK
+      - ETH_NODE_URI
+      - ETH_NODE_NETWORK
+  ${SERVICE}-ETH-test-dockerized-geth: &default-app
+    <<: *app-base
+    depends_on:
+      - ethereum-devnet
+    environment:
+      - REACH_DEBUG
+      - REACH_CONNECTOR_MODE=ETH-test-dockerized-geth
+      - ETH_NODE_URI=http://ethereum-devnet:8545
+  ${SERVICE}-ALGO-live:
+    <<: *app-base
+    environment:
+      - REACH_DEBUG
+      - REACH_CONNECTOR_MODE=ALGO-live
+      - REACH_ISOLATED_NETWORK
+      - ALGO_TOKEN
+      - ALGO_SERVER
+      - ALGO_PORT
+      - ALGO_INDEXER_TOKEN
+      - ALGO_INDEXER_SERVER
+      - ALGO_INDEXER_PORT
+      - ALGO_FAUCET_PASSPHRASE
+  ${SERVICE}-ALGO-test-dockerized-algod:
+    <<: *app-base
+    depends_on:
+      - algorand-devnet
+    environment:
+      - REACH_DEBUG
+      - REACH_CONNECTOR_MODE=ALGO-test-dockerized-algod
+      - ALGO_SERVER=http://algorand-devnet
+      - ALGO_PORT=4180
+      - ALGO_INDEXER_SERVER=http://algorand-devnet
+      - ALGO_INDEXER_PORT=8980
+  ${SERVICE}-CFX-devnet:
+    <<: *app-base
+    depends_on:
+      - devnet-cfx
+    environment:
+      - REACH_DEBUG
+      - REACH_CONNECTOR_MODE=CFX-devnet
+      - CFX_DEBUG
+      - CFX_NODE_URI=http://devnet-cfx:12537
+      - CFX_NETWORK_ID=999
+  ${SERVICE}-CFX-live:
+    <<: *app-base
+    environment:
+      - REACH_DEBUG
+      - REACH_CONNECTOR_MODE=CFX-live
+      - CFX_DEBUG
+      - CFX_NODE_URI
+      - CFX_NETWORK_ID
+  ${SERVICE}-: *default-app
+  ${SERVICE}: *default-app
+EOF
+
+
+  if $VERBOSE ; then echo writing "$MAKEFILE"; fi
+  # TODO: a better makefile
+  cat >"${MAKEFILE}" <<EOF
+REACH = reach
+
+.PHONY: clean
+clean:
+	rm -rf build/*.main.mjs
+
+build/%.main.mjs: %.rsh
+	\$(REACH) compile $^
+
+.PHONY: build
+build: build/${APP}.main.mjs
+	docker build -f ${DOCKERFILE} --tag=${IMAGE_TAG} .
+
+.PHONY: run
+run:
+	\$(REACH) run ${APP}
+
+.PHONY: run-target
+run-target: build
+	docker-compose -f "${DOCKER_COMPOSE_YML}" run --rm ${SERVICE}-\$\${REACH_CONNECTOR_MODE} \$(ARGS)
+
+.PHONY: down
+down:
+	docker-compose -f "${DOCKER_COMPOSE_YML}" down --remove-orphans
+EOF
+
+  GITIGNORE=".gitignore"
+  if [ ! -f "$GITIGNORE" ] ; then
+    if $VERBOSE ; then echo writing "$GITIGNORE"; fi
+    cat >"$GITIGNORE" <<EOF
+build/
+node_modules/
+EOF
+  fi
+
+  DOCKERIGNORE=".dockerignore"
+  if [ ! -f "$DOCKERIGNORE" ] ; then
+    if $VERBOSE ; then echo writing "$DOCKERIGNORE" ; fi
+    cat >"$DOCKERIGNORE" <<EOF
+node_modules/
+EOF
+  fi
+
+}
+
+do_unscaffold () {
+  ISOLATE=false
+  if [ "x$1" = "x--isolate" ] ; then
+    ISOLATE=true
+    shift
+  fi
+
+  VERBOSE=true
+  if [ "x$1" = "x--quiet" ] ; then
+    VERBOSE=false
+    shift
+  fi
+
+  APP="$1"
+  if [ "x$APP" = "x" ] ; then
+    APP="index"
+  else
+    shift
+  fi
+
+  DOCKERFILE="Dockerfile"
+  PACKAGE_JSON="package.json"
+  DOCKER_COMPOSE_YML="docker-compose.yml"
+  MAKEFILE="Makefile"
+
+  if $ISOLATE ; then
+    DOCKERFILE="$DOCKERFILE.$APP"
+    PACKAGE_JSON="$PACKAGE_JSON.$APP"
+    DOCKER_COMPOSE_YML="$DOCKER_COMPOSE_YML.$APP"
+    MAKEFILE="$MAKEFILE.$APP"
+  fi
+
+  for file in $DOCKERFILE $PACKAGE_JSON $DOCKER_COMPOSE_YML $MAKEFILE ; do
+    if $VERBOSE ; then echo deleting $file ; fi
+    rm -f $file
+  done
+}
+
+do_down () {
+  # TODO: not duplicate so much from do_run
+  MAKEFILE=Makefile
+  DOCKERFILE=Dockerfile
+  PACKAGE_JSON=package.json
+  DOCKER_COMPOSE_YML=docker-compose.yml
+
+  # Note: Makefile excluded from this check
+  NONE_EXIST=true
+  if [ -f "$DOCKERFILE" ] || [ -f "$PACKAGE_JSON" ] || [ -f "$DOCKER_COMPOSE_YML" ] ; then
+    NONE_EXIST=false
+  fi
+
+  if $NONE_EXIST ; then
+    do_scaffold --isolate --quiet "$APP"
+  fi
+
+  cleanup () {
+      do_unscaffold --isolate --quiet "$APP"
+  }
+
+  reach_make () {
+    RUN_FROM_REACH=true make "$@" REACH="${REACH}"
+    MAKE_EXIT=$?
+    if [ $MAKE_EXIT -ne 0 ] ; then
+      cleanup
+      exit $MAKE_EXIT
+    fi
+  }
+
+  # if do_scaffold ran, it changed $MAKEFILE
+  reach_make_f () {
+      reach_make -f "$MAKEFILE" "$@"
+  }
+
+  reach_make_f down
+  cleanup
+}
+
+run_ () {
+  F="$1"
+  shift
+  PROJ="$1"
+  shift
+  docker-compose -f "$F" run --rm "reach-app-${PROJ}" "$@"
+}
+
+do_run () {
+  # reach run args
+  # check state of scaffolded files
+  # * if none exist: scaffold in --isolate --quiet mode, set flag UNSCAFFOLD
+  # * if all exist: just use the existing things
+  # * if some exist: error
+  # make build run
+  # unscaffold if UNSCAFFOLD
+
+  ANY_CUSTOMIZATION=false
+  if ! [ "x$REACH_CONNECTOR_MODE" = "x" ] ; then
+    ANY_CUSTOMIZATION=true
+  fi
+  ensure_connector_mode
+
+  export RUN_FROM_REACH=${RUN_FROM_REACH:-false}
+  if [ "x$1" = "x" ] ; then
+    BARE_REACH_RUN=true
+    APP="index"
+  else
+    BARE_REACH_RUN=false
+    ANY_CUSTOMIZATION=true
+    ARG=$1
+    shift
+
+    # TODO: better arg parsing at some point
+    if [ "x$ARG" = "x--" ] ; then
+      ARG="index"
+    fi
+    if [ -d "$ARG" ] ; then
+      ARG="$ARG/index"
+    fi
+    cd "$(dirname "$ARG")" || exit
+    APP="$(basename "$ARG")"
+  fi
+
+  RSH="${APP}.rsh"
+  MJS="${APP}.mjs"
+
+  if [ "x$APP" = "x" ] ||
+       ! [ -f "${RSH}" ] ||
+       ! [ -f "${MJS}" ]; then
+    echo "Usage: reach run APP"
+    echo "  where APP.rsh"
+    echo "    and APP.mjs"
+    echo "  exists in current directory."
+    exit 1
+  fi
+
+  # XXX Can we add eslint on the JS?
+
+  MAKEFILE=Makefile
+  DOCKERFILE=Dockerfile
+  PACKAGE_JSON=package.json
+  DOCKER_COMPOSE_YML=docker-compose.yml
+
+  NONE_EXIST=true
+  # Note: Makefile excluded from this check
+  if [ -f "$DOCKERFILE" ] || [ -f "$PACKAGE_JSON" ] || [ -f "$DOCKER_COMPOSE_YML" ] ; then
+    NONE_EXIST=false
+  fi
+
+  if $NONE_EXIST ; then
+    do_scaffold --isolate --quiet "$APP"
+
+    cleanup () {
+      do_unscaffold --isolate --quiet "$APP"
+    }
+
+    # Note: do_scaffold --isolate has mutated these vars like so:
+    # MAKEFILE=$MAKEFILE.${APP}
+    # DOCKERFILE=$Dockerfile.${APP}
+    # PACKAGE_JSON=$PACKAGE_JSON.${APP}
+    # DOCKER_COMPOSE_YML=$DOCKER_COMPOSE_YML.${APP}
+  else
+    cleanup () {
+      :
+    }
+
+    ALL_EXIST=false
+    if [ -f "$MAKEFILE" ] && [ -f "$DOCKERFILE" ] && [ -f "$PACKAGE_JSON" ] && [ -f "$DOCKER_COMPOSE_YML" ] ; then
+      ALL_EXIST=true
+    fi
+
+    # We trust our scaffolded makefiles,
+    # so we only need to check for infinite recurrsion on:
+    # * reach run ($BARE_REACH_RUN), since this is the only potential avenue for inf recursion
+    # * a proj with customized scaffolding. ($ALL_EXIST)
+    # * running from inside another reach run ($RUN_FROM_REACH)
+    if $BARE_REACH_RUN && $ALL_EXIST && $RUN_FROM_REACH ; then
+      fatal_infinite_reach_run_loop
+    fi
+
+    if ! $ALL_EXIST ; then
+      # TODO: more description on err
+      echo "I'm confused, some scaffolded files exist, but not all"
+      exit 1
+    fi
+  fi
+
+  reach_make () {
+    RUN_FROM_REACH=true make "$@" REACH="${REACH}"
+    MAKE_EXIT=$?
+    if [ $MAKE_EXIT -ne 0 ] ; then
+      cleanup
+      exit $MAKE_EXIT
+    fi
+  }
+
+  reach_make_f () {
+    reach_make -f "$MAKEFILE" "$@"
+  }
+
+  if $BARE_REACH_RUN ; then
+    # Always build from "scaffolded" file
+    reach_make_f build
+    # Run from Makefile if present and not "run from reach"
+    if [ -f Makefile ] && ! $RUN_FROM_REACH && ! $ANY_CUSTOMIZATION; then
+      reach_make run "$@"
+    else
+      reach_make_f run "$@"
+    fi
+  else
+    # It is assumed that if this is being called from within reach run,
+    # then the build step has already been handled.
+    # TODO: better use of makefiles so that we just call make build anyway,
+    # and it is a noop if nothing needs to be done.
+    if ! $RUN_FROM_REACH ; then
+      reach_make_f build
+    fi
+
+    # This is nuts and possibly a little bit wrong.
+    # Easier methods exist but they are outside of POSIX standard.
+    escape_args () {
+      for arg in "$APP" "$@" ; do
+        escaped_arg=""
+        for word in $arg ; do
+          escaped_arg="$escaped_arg$(printf "%s\ " "$word")"
+        done
+        echo "${escaped_arg%??}"
+      done
+    }
+    ARGS=$(escape_args "$@")
+    # Yes it apparently has to be exactly "$(echo $ARGS)" because reasons.
+    # shellcheck disable=SC2116,SC2086
+    reach_make_f run-target ARGS="$(echo $ARGS)"
+  fi
+
+  cleanup
+}
+
+react_compose () {
+  if $USE_EXISTING_DEVNET ; then
+    echo 'using existing devnet'
+    DEPENDS_ON=''
+  else
+    case "$REACH_CONNECTOR_MODE" in
+      CFX*)
+        DEPENDS_ON='
+    depends_on:
+      - devnet-cfx
+'
+        ;;
+      ALGO*)
+        DEPENDS_ON='
+    depends_on:
+      - algorand-devnet
+'
+        ;;
+      ETH*)
+        DEPENDS_ON='
+    depends_on:
+      - ethereum-devnet
+'
+        ;;
+    esac
+  fi
+  cat<<EOF > docker-compose.yml.react
+version: '3.4'
+services:
+  dev-server:
+    image: reachsh/react-runner:$REACH_VERSION
+    volumes:
+      - .:/app/src
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+    environment:
+      - REACH_DEBUG
+      - REACH_CONNECTOR_MODE
+      - REACH_ISOLATED_NETWORK
+      - REACT_APP_REACH_DEBUG=${REACH_DEBUG}
+      - REACT_APP_REACH_CONNECTOR_MODE=${REACH_CONNECTOR_MODE}
+      - REACT_APP_REACH_ISOLATED_NETWORK=${REACH_ISOLATED_NETWORK}
+$DEPENDS_ON
+  ethereum-devnet:
+    image: reachsh/ethereum-devnet:${REACH_VERSION}
+    ports:
+      - '8545:8545'
+  devnet-cfx:
+    image: reachsh/devnet-cfx:${REACH_VERSION}
+    ports:
+      - '12537:12537'
+  algorand-devnet:
+    image: reachsh/algorand-devnet:${REACH_VERSION}
+    depends_on:
+      - algorand-postgres-db
+    environment:
+      - REACH_ALGO_DEBUG
+      - POSTGRES_HOST=algorand-postgres-db
+      - POSTGRES_USER=algogrand
+      - POSTGRES_PASSWORD=indexer
+      - POSTGRES_DB=pgdb
+    ports:
+      - '4180:4180'
+      - '8980:8980'
+      - '9392:9392'
+  algorand-postgres-db:
+    image: postgres:11-alpine
+    environment:
+      - POSTGRES_USER=algogrand
+      - POSTGRES_PASSWORD=indexer
+      - POSTGRES_DB=pgdb
+EOF
+
+  # /bin/sh run.sh.react || :
+  docker-compose -f docker-compose.yml.react "$@" || :
+  rm docker-compose.yml.react # run.sh.react
+}
+
+
+fatal_unrecognized_connector_mode_react () {
+  echo "Unrecognized REACH_CONNECTOR_MODE=$REACH_CONNECTOR_MODE"
+  echo "Supported modes for reach react are: ETH, ALGO, CFX"
+  exit 1
+}
+
+ensure_connector_mode_browser () {
+  # Makes sure to set REACH_CONNECTOR_MODE to one of:
+  # * ETH-browser
+  # * ALGO-browser
+  # * CFX-browser
+  # $WHAT-$WHERE
+
+  # TODO: distinguish between BLAH-browser-dockerized and browser-remote
+
+  # Expand defaults
+  REACH_CONNECTOR_MODE=${REACH_CONNECTOR_MODE:-ETH}
+  case "$REACH_CONNECTOR_MODE" in
+    "ETH")
+      REACH_CONNECTOR_MODE="ETH-browser"
+      ;;
+    "ALGO")
+      REACH_CONNECTOR_MODE="ALGO-browser"
+      ;;
+    "CFX")
+      REACH_CONNECTOR_MODE="CFX-browser"
+      ;;
+  esac
+
+  # ensure it is one of the supported things
+  case "$REACH_CONNECTOR_MODE" in
+    "ETH-browser")
+      ;;
+    "ALGO-browser")
+      ;;
+    "CFX-browser")
+      ;;
+    *)
+      fatal_unrecognized_connector_mode_react
+      ;;
+  esac
+}
+
+do_react () {
+  ensure_connector_mode_browser
+
+  # TODO: make better use of REACH_CONNECTOR_MODE for branching here
+  USE_EXISTING_DEVNET=false
+  if [ "x$1" = "x--use-existing-devnet" ]; then
+    shift
+    USE_EXISTING_DEVNET=true
+  fi
+  case "$REACH_CONNECTOR_MODE" in
+    CFX*)
+      if command -v lsof >/dev/null && lsof -i tcp:12537 | grep LISTEN >/dev/null ; then
+        USE_EXISTING_DEVNET=true
+      fi
+      ;;
+    ALGO*)
+      if command -v lsof >/dev/null && lsof -i tcp:4180 | grep LISTEN >/dev/null ; then
+        USE_EXISTING_DEVNET=true
+      fi
+      ;;
+    ETH*)
+      if command -v lsof >/dev/null && lsof -i tcp:8545 | grep LISTEN >/dev/null ; then
+        USE_EXISTING_DEVNET=true
+      fi
+      ;;
+  esac
+
+  # All args are just forwarded to do_compile
+  # TODO: support args comparable to do_run?
+  do_compile "$@"
+
+  react_compose run --service-ports --rm dev-server
+  exit 0
+}
+
+do_react_down () {
+  USE_EXISTING_DEVNET=false
+  react_compose down
+  exit 0
+}
+
+do_devnet () {
+  ensure_connector_mode
+
+  case "$REACH_CONNECTOR_MODE" in
+    ALGO*)
+  cat<<EOF > docker-compose.yml.devnet
+version: '3.4'
+services:
+  algorand-devnet:
+    image: reachsh/algorand-devnet:latest
+    depends_on:
+      - algorand-postgres-db
+    environment:
+      - REACH_ALGO_DEBUG
+      - POSTGRES_HOST=algorand-postgres-db
+      - POSTGRES_USER=algogrand
+      - POSTGRES_PASSWORD=indexer
+      - POSTGRES_DB=pgdb
+    ports:
+      - '4180:4180'
+      - '8980:8980'
+      - '9392:9392'
+  algorand-postgres-db:
+    image: postgres:11-alpine
+    environment:
+      - POSTGRES_USER=algogrand
+      - POSTGRES_PASSWORD=indexer
+      - POSTGRES_DB=pgdb
+EOF
+    DEVNET_NAME=algorand-devnet
+    ;;
+
+    CFX*)
+  cat<<EOF > docker-compose.yml.devnet
+version: '3.4'
+services:
+  devnet-cfx:
+    image: reachsh/devnet-cfx:latest
+    ports:
+      - '12537:12537'
+EOF
+    DEVNET_NAME=devnet-cfx
+    ;;
+    ETH*)
+  cat<<EOF > docker-compose.yml.devnet
+version: '3.4'
+services:
+  ethereum-devnet:
+    image: reachsh/ethereum-devnet:latest
+    ports:
+      - '8545:8545'
+EOF
+    DEVNET_NAME=ethereum-devnet
+    ;;
+
+  esac
+
+  docker-compose -f docker-compose.yml.devnet run --service-ports --rm "${DEVNET_NAME}"
+}
+
+rpc_server_compose () {
+  # TODO: write this docker-compose file a better way
+
+  case "$REACH_CONNECTOR_MODE" in
+    *"live"*)
+      DEPENDS_ON='
+      - ETH_NODE_URI
+      - ETH_NODE_NETWORK
+      - ALGO_TOKEN
+      - ALGO_SERVER
+      - ALGO_PORT
+      - ALGO_INDEXER_TOKEN
+      - ALGO_INDEXER_SERVER
+      - ALGO_INDEXER_PORT
+      - ALGO_FAUCET_PASSPHRASE
+      - CFX_NODE_URI
+      - CFX_NETWORK_ID
+'
+    ;;
+
+    *)
+      if $USE_EXISTING_DEVNET ; then
+        echo 'using existing devnet'
+        DEPENDS_ON='
+      - ETH_NODE_URI=http://ethereum-devnet:8545
+'
+      else
+        # XXX CFX
+        if $IS_ALGO ; then
+          DEPENDS_ON='
+      - ALGO_SERVER=http://algorand-devnet
+      - ALGO_PORT=4180
+      - ALGO_INDEXER_SERVER=http://algorand-devnet
+      - ALGO_INDEXER_PORT=8980
+    # Does not technically depend on algorand-devnet.
+    # This is just to get it to run both.
+    depends_on:
+      - algorand-devnet
+'
+      else
+        DEPENDS_ON='
+      - ETH_NODE_URI=http://ethereum-devnet:8545
+    # Does not technically depend on ethereum-devnet.
+    # This is just to get it to run both.
+    depends_on:
+      - ethereum-devnet
+'
+      fi
+    fi
+    ;;
+
+  esac
+
+  cat<<EOF > docker-compose.yml.server
+version: '3.4'
+services:
+  rpc-server:
+    image: reachsh/rpc-server:$REACH_VERSION
+    volumes:
+      - ./build:/app/build
+      - ./tls:/app/tls
+    ports:
+      - '${REACH_RPC_PORT}:${REACH_RPC_PORT}'
+    stdin_open: true
+    tty: true
+    environment:
+      - REACH_DEBUG
+      - REACH_CONNECTOR_MODE=${REACH_CONNECTOR_MODE}
+      - REACH_ISOLATED_NETWORK
+      - REACH_RPC_PORT
+      - REACH_RPC_KEY
+      - REACH_RPC_TLS_KEY
+      - REACH_RPC_TLS_CRT
+      - REACH_RPC_TLS_PASSPHRASE
+$DEPENDS_ON
+  ethereum-devnet:
+    image: reachsh/ethereum-devnet:${REACH_VERSION}
+    ports:
+      - '8545:8545'
+  algorand-devnet:
+    image: reachsh/algorand-devnet:latest
+    depends_on:
+      - algorand-postgres-db
+    environment:
+      - POSTGRES_HOST=algorand-postgres-db
+      - POSTGRES_USER=algogrand
+      - POSTGRES_PASSWORD=indexer
+      - POSTGRES_DB=pgdb
+    ports:
+      - '4180:4180'
+      - '8980:8980'
+      - '9392:9392'
+  algorand-postgres-db:
+    image: postgres:11-alpine
+    environment:
+      - POSTGRES_USER=algogrand
+      - POSTGRES_PASSWORD=indexer
+      - POSTGRES_DB=pgdb
+EOF
+
+  REACH_RPC_KEY=${REACH_RPC_KEY} docker-compose -f docker-compose.yml.server "$@" || :
+  rm docker-compose.yml.server
+}
+
+TLS_DEFAULT_CRT=$(cat <<EOF
+-----BEGIN CERTIFICATE-----
+MIIFGzCCAwOgAwIBAgIUe73ptPqznaSuKNOgL6voU2VMn5EwDQYJKoZIhvcNAQEL
+BQAwMjELMAkGA1UEBhMCVVMxIzAhBgNVBAMMGnJlYWNoLWFwcC10dXQtNi1ycGMt
+c2VydmVyMB4XDTIxMDIwMzE4MzE0NloXDTMxMDIwMTE4MzE0NlowMjELMAkGA1UE
+BhMCVVMxIzAhBgNVBAMMGnJlYWNoLWFwcC10dXQtNi1ycGMtc2VydmVyMIICIjAN
+BgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAmX7ycczMUGEC0BL6wxiZAqB1AONW
+hznybJmSXuSJ+bui7wxdqTlnIgstIZAMkgZsawln76YYvHJlWC/Z+HS/pTZhxywh
+V0Sy3mPOw1HErCLkfEDi6k72DGmvnvaazppg5mUZ4eSAxZZj8SCRStv0SINqcsyC
+PdmWxl3XqiZvz5y7XpUI+I4vty4zPtomDIwG4csHskWPw32UibjfpJ4kEcvffI+R
+f4EctSqG/WBM/sYOWprRP77FQmIyhjMNFUDomH4vLcJBvkS2nTRavEI5I+705j2z
+a4PqA7G9Sn7dBlpWaibCyTeyRE7P1BWPJSNdDkNgQDkQ/2pR1g7+yCcm4MvWHMeM
+cC2MW/F3dkxJm1Yopl9CffcfeIyTZK4Km1842poSWo2ZCM+e9+OSKyVF7BIpsX2T
+si3yGq2vRsqku682e1/MdorAPGKNcsVDDJto1DgfQrHsfsLvwBDTMWqb1r9ki8ks
+MnhUtU14m4fQgIOeK8AZXgGo8M66JSUaZC9rHSJq/HfbVP+u/pKVAiGorlLhMHO+
+YAD8qwMfZIeRtj52TAtU+V2LBZRlK5QM1ICXHlCsb3853pnGvvKELaAqqrbVvzd3
+jpma412drsSfLCJzPrVMvFKum1pDR6KztX+mu9689U3Cbeli59SfiJTrevhOumZO
+kWAc+NkXs8ZAH1ECAwEAAaMpMCcwJQYDVR0RBB4wHIIacmVhY2gtYXBwLXR1dC02
+LXJwYy1zZXJ2ZXIwDQYJKoZIhvcNAQELBQADggIBADGBEQP0Ne5Dfp0dyQq3q77d
++xLWgI8qVwSnvIUXDK6dEMRoVvSljkf7xwJ1E33wd12B1wjMcMJP+QREm5Lma2YZ
+EWsBeJ5UI5lemiR+3+6mM5H+5zRiIHCUySuB7NCoOLg7y0+0Z7aI0V2RCcMwLhfC
+h6hXwn1CzMKtRwGKUkiMLIQoONj3fSZ9FIesoafHcv8tH0kxJ/C4KS7CX8b5Zsy1
+7INayQV6M3dILGumBn1XPlyebSoWItWgIFKu3I432xcsholYBDKr1pFCB2EnKiGq
+tXGsavFdGkHJjqFmdZHM+ygJKWBDL6upCPzxgutVL/FuwRQsbdjtuvvyIWceax7z
+R1aDBloaxHRmB6q6yp+8Ms3FHl609HEqRGZm7FI90csIEjPXVRLiXoVvqY/NvG3b
+3QIyTPtFQ72xPPs9SxHgy8kuTqOabXPDNB5YdYRnGDRnZn6WQTq+AK98fedGRg0y
+V+7dRKEMlIgs75RieLCHSw0YcLcLKJCD0gHrYbDTXLJt5OsHJtyqmqaQyn8TdZE5
+lhR0vPUKF6OLR8r5EudNrschA50yq54HehGzWIQHTZkEHYAQM+QINXXZ7zaH5zk0
+vIrP7DrHuHVPaTzHP2Pm+RRb8k306WR6JWD4ufru5F/jYdyxW9A4jtpiZlwLXpi7
+nHZtu+AzCUBsktc3TajF
+-----END CERTIFICATE-----
+EOF
+)
+
+TLS_DEFAULT_KEY=$(cat <<EOF
+-----BEGIN ENCRYPTED PRIVATE KEY-----
+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
+L++5YrWi0IYutYAANujzeA==
+-----END ENCRYPTED PRIVATE KEY-----
+EOF
+)
+
+RPC_DEFAULT_KEY=opensesame
+TLS_DEFAULT_PASSPHRASE=rpc-demo
+TLS_SAN=reach-server
+
+do_rpc_run () {
+  # Preserve `cmd` portion of `reach rpc-run cmd` since `reach rpc-server`
+  # intercepts it
+  cmd=$(printf '%s ' "$@")
+
+  "$REACH" rpc-server &
+  spid="$!" # We'll SIGTERM `reach rpc-server` and all its child processes below
+
+  [ "x$REACH_RPC_SERVER"                = "x" ] && REACH_RPC_SERVER=127.0.0.1
+  [ "x$REACH_RPC_PORT"                  = "x" ] && REACH_RPC_PORT=3000
+  [ "x$REACH_RPC_KEY"                   = "x" ] && REACH_RPC_KEY="$RPC_DEFAULT_KEY"
+  [ "x$REACH_RPC_TLS_REJECT_UNVERIFIED" = "x" ] && REACH_RPC_TLS_REJECT_UNVERIFIED=0
+  export REACH_RPC_SERVER REACH_RPC_PORT REACH_RPC_KEY REACH_RPC_TLS_REJECT_UNVERIFIED
+
+  # Be patient while rpc-server comes online...
+  i=0
+  s=0
+  while [ "$i" -lt 30 ]; do
+    sleep 1
+    i=$((i+1))
+    s=$(curl \
+      --http1.1 \
+      -sk \
+      -o /dev/null \
+      -w '%{http_code}' \
+      -H "X-API-Key: $REACH_RPC_KEY" \
+      -X POST \
+      "https://$REACH_RPC_SERVER:$REACH_RPC_PORT/health")
+
+    [ "$s" -eq 200 ] && break
+  done
+
+  killbg () {
+    echo
+    pkill -TERM -P "$spid"
+    do_down
+  }
+
+  [ ! "$s" -eq 200 ] \
+    && killbg \
+    && echo "RPC server returned HTTP $s after $i seconds" \
+    && exit 1
+
+  sh -c "$cmd"; killbg
+}
+
+do_rpc_server () {
+  ensure_connector_mode
+  # TODO: less copy/paste duplication from do_react
+  # TODO: check for different ports based on REACH_CONNECTOR_MODE
+  USE_EXISTING_DEVNET=false
+  if [ "x$1" = "x--use-existing-devnet" ]; then
+    shift
+    USE_EXISTING_DEVNET=true
+  fi
+  if command -v lsof >/dev/null && lsof -i tcp:8545 | grep LISTEN >/dev/null ; then
+    USE_EXISTING_DEVNET=true
+  fi
+
+  # TODO: rework REACH_CONNECTOR_MODE to work better w/ server
+  IS_ALGO=false
+  case "$REACH_CONNECTOR_MODE" in ALGO*)
+    IS_ALGO=true ;;
+  esac
+
+  if [ "x$REACH_RPC_KEY" = "x" ]; then
+    REACH_RPC_KEY="$RPC_DEFAULT_KEY"
+    echo "Warning! Using development RPC key: REACH_RPC_KEY=${REACH_RPC_KEY}."
+  fi
+  export REACH_RPC_KEY
+
+  if [ "x$REACH_RPC_PORT" = "x" ]; then
+    REACH_RPC_PORT=3000
+  fi
+  export REACH_RPC_PORT
+
+  if [ "x${REACH_RPC_TLS_KEY}" = "x" ]; then
+    REACH_RPC_TLS_KEY=${TLS_SAN}.key
+  elif [ ! -e "./tls/$REACH_RPC_TLS_KEY" ]; then
+    echo "./tls/$REACH_RPC_TLS_KEY doesn't exist!"
+    exit 1
+  fi
+
+  if [ "x${REACH_RPC_TLS_CRT}" = "x" ]; then
+    REACH_RPC_TLS_CRT=${TLS_SAN}.crt
+  elif [ ! -e "./tls/$REACH_RPC_TLS_CRT" ]; then
+    echo "./tls/$REACH_RPC_TLS_CRT doesn't exist!"
+    exit 1
+  fi
+
+  if [ "x${REACH_RPC_TLS_PASSPHRASE}" = "x" ]; then
+    REACH_RPC_TLS_PASSPHRASE="$TLS_DEFAULT_PASSPHRASE"
+  fi
+
+  warn_dev () {
+    echo "Warning! The current TLS certificate is only suitable for development purposes."
+  }
+
+  if [ ! -e "./tls/$REACH_RPC_TLS_KEY" ] && [ ! -e "./tls/$REACH_RPC_TLS_CRT" ]; then
+    mkdir -p ./tls
+    echo "$TLS_DEFAULT_KEY" > "./tls/$REACH_RPC_TLS_KEY"
+    echo "$TLS_DEFAULT_CRT" > "./tls/$REACH_RPC_TLS_CRT"
+    warn_dev
+
+  elif [ "$TLS_DEFAULT_KEY" = "$(cat "./tls/$REACH_RPC_TLS_KEY")" ]; then
+    warn_dev
+  fi
+
+  export REACH_RPC_TLS_KEY REACH_RPC_TLS_CRT REACH_RPC_TLS_PASSPHRASE
+
+  # All args are just forwarded to do_compile
+  do_compile "$@"
+
+  rpc_server_compose run --service-ports --rm rpc-server
+  exit 0
+}
+
+do_rpc_server_down () {
+  USE_EXISTING_DEVNET=false
+  rpc_server_compose down
+  exit 0
+}
+
+do_docker_reset () {
+  # it's ok shellcheck, the word splitting is intentional here
+  echo 'docker kill all the things...'
+  # shellcheck disable=SC2046
+  docker kill $(docker ps -q) >/dev/null 2>&1 || :
+  echo 'docker rm all the things...'
+  # shellcheck disable=SC2046
+  docker rm $(docker ps -qa) >/dev/null 2>&1 || :
+  echo '...done'
+}
+
+REACH_IMAGES='reach ethereum-devnet algorand-devnet devnet-cfx runner react-runner rpc-server'
+
+do_update() {
+  for IMG in $REACH_IMAGES ; do
+    docker pull "reachsh/${IMG}:${REACH_VERSION}"
+  done
+}
+
+do_hash () {
+  echo "$1:" "$(docker run --entrypoint /bin/sh "reachsh/$1:$REACH_VERSION" -c 'echo $REACH_GIT_HASH')"
+}
+
+do_hashes () {
+  for IMG in $REACH_IMAGES ; do
+    do_hash "$IMG"
+  done
+}
+
+do_usage () {
+  echo "Usage: reach COMMAND"
+  echo " where COMMAND is one of"
+  echo "  compile      --- compile an app"
+  echo "  clean        --- delete compiled artifacts"
+  echo "  init         --- set up source files for a simple app"
+  echo "  run          --- run a simple app"
+  echo "  down         --- halt any dockerized devnets for this app"
+  echo "  scaffold     --- set up Docker scaffolding for a simple app"
+  echo "  react        --- run a simple react app"
+  echo "  rpc-server   --- run a simple Reach RPC server"
+  echo "  rpc-run      --- run an RPC server + frontend with development configuration"
+  echo "  devnet       --- run only the devnet"
+  echo "  upgrade      --- upgrade Reach"
+  echo "  update       --- update Reach Docker images"
+  echo "  docker-reset --- docker kill and rm all images"
+  echo "  version      --- display version"
+  echo "  hashes       --- display git hashes used to build each Docker image"
+  echo "  help         --- show this info"
+}
+
+SUBCOMMAND=$1
+shift
+
+case ${SUBCOMMAND} in
+    compile)
+        do_compile "$@"
+        ;;
+    clean)
+        do_clean "$@"
+        ;;
+    devnet)
+        do_devnet "$@"
+        ;;
+    run)
+        do_run "$@"
+        ;;
+    react)
+        do_react "$@"
+        ;;
+    react-down)
+        do_react_down "$@"
+        ;;
+    rpc-server)
+        do_rpc_server "$@"
+        ;;
+    rpc-server-down)
+        do_rpc_server_down "$@"
+        ;;
+    rpc-run)
+        do_rpc_run "$@"
+        ;;
+    init)
+        do_init "$@"
+        ;;
+    scaffold)
+        do_scaffold "$@"
+        ;;
+    unscaffold)
+        do_unscaffold "$@"
+        ;;
+    down)
+        do_down "$@"
+        ;;
+    upgrade)
+        NEW=reach.$$
+        curl https://docs.reach.sh/reach -o ${NEW} && \
+            chmod +x ${NEW} && \
+            cp -f ${NEW} "${REACH}"
+        exit 0
+        ;;
+    update)
+        do_update
+        exit 0
+        ;;
+    docker-reset)
+        do_docker_reset
+        exit 0
+        ;;
+    version|--version)
+        echo "reach ${REACH_VERSION}"
+        exit 0
+        ;;
+    whoami)
+        do_whoami;
+        exit 0
+        ;;
+    numeric-version|--numeric-version)
+        echo "${REACH_VERSION}"
+        exit 0
+        ;;
+    hashes)
+        do_hashes
+        exit 0
+        ;;
+    help|--help)
+        do_usage
+        exit 0
+        ;;
+    *)
+        do_usage
+        exit 1
+        ;;
+esac

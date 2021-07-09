@@ -117,6 +117,20 @@ const actions = {
     }
     console.log(x);
   },
+  async getSK2({ x }, { addr }) {
+    console.log(
+      "this.state.wallet.privateAccounts",
+      this.state.wallet.privateAccounts
+    );
+    const address = this.state.wallet.privateAccounts.find(
+      (a) => a.address == addr
+    );
+    console.log("find", addr, address);
+    if (address) {
+      return address.sk;
+    }
+    console.log("address not found", x);
+  },
   async logout({ commit }) {
     await commit("logout");
   },

@@ -17,6 +17,7 @@ import AssetDestroy from "@/pages/Asset/Destroy.vue";
 import AssetFreeze from "@/pages/Asset/Freeze.vue";
 import AssetModify from "@/pages/Asset/Modify.vue";
 import AssetRevoke from "@/pages/Asset/Revoke.vue";
+import App from "@/pages/App.vue";
 import OptIn from "@/pages/Asset/OptIn.vue";
 import PaymentGateway from "@/pages/PaymentGateway.vue";
 
@@ -95,6 +96,11 @@ const routes = [
     path: "/account/:account",
     name: "AccountOverview",
     component: AccountOverview,
+  },
+  {
+    path: "/app/:account",
+    name: "App",
+    component: App,
   },
   {
     path: "/account/optin/:account",

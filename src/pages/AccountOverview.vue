@@ -56,6 +56,11 @@
         class="btn btn-light btn-xs m-2"
         >{{ $t("acc_overview.payment_gateway") }}</router-link
       >
+      <router-link
+        :to="'/app/' + $route.params.account"
+        class="btn btn-light btn-xs m-2"
+        >App</router-link
+      >
     </p>
     <table class="table" v-if="account">
       <tr>
@@ -350,6 +355,7 @@ export default {
   methods: {
     ...mapActions({
       accountInformation: "algod/accountInformation",
+      compileProgram: "algod/compileProgram",
       updateAccount: "wallet/updateAccount",
       lastActiveAccount: "wallet/lastActiveAccount",
       deleteAccount: "wallet/deleteAccount",
