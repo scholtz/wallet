@@ -156,11 +156,8 @@ export default {
           const getInfo = await ctc.getInfo();
           this.ctx = getInfo;
           console.log("getInfo", getInfo);
-          console.log("getViews", ctc.getViews());
-          const views = await ctc.getViews();
-          console.log("getViews", views);
-          console.log("params", this.getId, this.deadline, this.nftViewAddress);
-          const Alice = BackendInfo.Alice(ctc, this);
+          console.log("params", this.info, this.request);
+          const Alice = await BackendInfo.Alice(ctc, this);
           console.log("Alice", Alice);
         }
       } catch (e) {
@@ -184,11 +181,8 @@ export default {
             ctc = await acc.deploy(BackendInfo);
           }
           console.log("ctc", ctc);
-          console.log("getViews", ctc.getViews());
-          const views = await ctc.getViews();
-          console.log("getViews", views);
-          console.log("params", this.getId, this.deadline, this.nftViewAddress);
-          const Bob = BackendInfo.Bob(ctc, this);
+
+          const Bob = await BackendInfo.Bob(ctc, this);
           console.log("Bob", Bob);
         }
       } catch (e) {
