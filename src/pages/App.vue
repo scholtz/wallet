@@ -14,6 +14,18 @@
           v-model="appId"
         />
       </div>
+      <div class="form-group">
+        <label for="creationRound" class="m-2">round</label>
+        <input
+          id="creationRound"
+          type="number"
+          min="1"
+          max="99999999"
+          step="1"
+          class="form-control m-2"
+          v-model="ctx.creationRound"
+        />
+      </div>
       {{ ctx }}
       <select v-model="app" class="form-control m-2">
         <option value="Info">Info</option>
@@ -57,7 +69,7 @@ export default {
       deadline: 22500,
       nftViewAddress: "1",
       reach: null,
-      ctx: null,
+      ctx: {},
       appId: null,
       reachSetup: false,
       info: "",
@@ -157,7 +169,7 @@ export default {
           this.ctx = getInfo;
           console.log("getInfo", getInfo);
           console.log("params", this.info, this.request);
-          const Alice = await BackendInfo.Alice(ctc, this);
+          const Alice = BackendInfo.Alice(ctc, this);
           console.log("Alice", Alice);
         }
       } catch (e) {
@@ -184,7 +196,7 @@ export default {
           }*/
           console.log("ctc", ctc);
 
-          const Bob = await BackendInfo.Bob(ctc, this);
+          const Bob = BackendInfo.Bob(ctc, this);
           console.log("Bob", Bob);
         }
       } catch (e) {
