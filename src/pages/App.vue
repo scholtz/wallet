@@ -45,7 +45,7 @@ import MainLayout from "../layouts/Main.vue";
 import { loadStdlib } from "@reach-sh/stdlib";
 import algosdk from "algosdk";
 
-import * as Backend from "../shared/build/Nft-Auction.main.mjs";
+//import * as Backend from "../shared/build/Nft-Auction.main.mjs";
 import * as BackendInfo from "../shared/build/Info.main.mjs";
 import { mapActions } from "vuex";
 
@@ -175,11 +175,13 @@ export default {
           const balAtomic = await this.reach.balanceOf(acc);
           console.log("balAtomic", balAtomic);
           let ctc = null;
+          ctc = await acc.attach(BackendInfo, this.ctx);
+          /*
           if (this.ctx && this.ctx.ApplicationID) {
             ctc = await acc.attach(BackendInfo, this.ctx);
           } else {
             ctc = await acc.deploy(BackendInfo);
-          }
+          }*/
           console.log("ctc", ctc);
 
           const Bob = await BackendInfo.Bob(ctc, this);
@@ -189,6 +191,7 @@ export default {
         console.log("error", e);
       }
     },
+    /*
     async clickCreator() {
       try {
         const sk = await this.getSK({ addr: this.$route.params.account });
@@ -214,7 +217,7 @@ export default {
         ApplicationID: 15,
         creationRound: 19980,
         Deployer: "K7PPBDZEC6IJMWN2BAIIBNUPLK5BM6G6MVQR3UQUZ5G72VI2F5SAA6NCTE",
-      };*/
+      };
           const ctx = {
             ApplicationID: 47,
             Deployer:
@@ -222,7 +225,7 @@ export default {
             creationRound: 23250,
           };
           const ctc = await acc.attach(Backend, ctx);
-          /* */
+          /* 
           //const ctc = await acc.deploy(Backend);
 
           console.log("ctc", ctc);
@@ -239,7 +242,7 @@ export default {
       } catch (e) {
         console.log("error", e);
       }
-    },
+    },*/
   },
 };
 </script>
