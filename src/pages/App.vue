@@ -166,10 +166,11 @@ export default {
           }
 
           const that = this;
+          that.ctx = await ctc.getInfo();
           setInterval(async () => {
             that.ctx = await ctc.getInfo();
             console.log("ctx", this.ctx);
-          }, 1000);
+          }, 10000);
           console.log("params", this.info, this.request);
           const Alice = await BackendInfo.Alice(ctc, this);
           console.log("Alice", Alice);
@@ -189,7 +190,9 @@ export default {
           const balAtomic = await this.reach.balanceOf(acc);
           console.log("balAtomic", balAtomic);
           let ctc = null;
+          this.ctx.creationRound = parseInt(this.ctx.creationRound);
           console.log("attaching with ctx", this.ctx);
+
           ctc = await acc.attach(BackendInfo, this.ctx);
           console.log("ctc", ctc);
           console.log("ctc", ctc);
