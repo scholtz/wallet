@@ -56,6 +56,12 @@
         class="btn btn-light btn-xs m-2"
         >{{ $t("acc_overview.payment_gateway") }}</router-link
       >
+      <router-link
+        v-if="account && (account.sk || account.params)"
+        :to="'/vote/ask/'"
+        class="btn btn-light btn-xs my-2"
+        >{{ $t("acc_overview.ask_question") }}</router-link
+      >
     </p>
     <table class="table" v-if="account">
       <tr>

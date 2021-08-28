@@ -19,6 +19,8 @@ import AssetModify from "@/pages/Asset/Modify.vue";
 import AssetRevoke from "@/pages/Asset/Revoke.vue";
 import OptIn from "@/pages/Asset/OptIn.vue";
 import PaymentGateway from "@/pages/PaymentGateway.vue";
+import VoteAsk from "@/pages/vote/Ask.vue";
+import VoteOverview from "@/pages/vote/Overview.vue";
 
 const routes = [
   {
@@ -134,6 +136,16 @@ const routes = [
   {
     path: "/:catchAll(.*)",
     component: NotFound,
+  },
+  {
+    path: "/vote/ask",
+    name: "VoteAsk",
+    component: VoteAsk,
+  },
+  {
+    path: "/vote/overview",
+    name: "VoteOverview",
+    component: VoteOverview,
   },
 ];
 

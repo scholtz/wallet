@@ -43,7 +43,13 @@
     "asset_create": "Create NTF",
     "faq": "FAQ",
     "privacy_policy": "Privacy policy",
-    "logout": "Logout"
+    "logout": "Logout",
+    "vote":"Voting"
+  },
+  "voteask":{
+    "title":"Ask question through blockchain",
+    "question_placeholder":"Ask your question here",
+    "submit_question":"Submit question"
   },
   "merchant":{
     "make_payment":"Payment gateway",
@@ -131,7 +137,8 @@
     "delete_confirm":"Are you sure you want to delete this account from your wallet?",
     "delete_confirm_button":"Delete this account",
     "deleted":"Account has been deleted",
-    "asset_optin":"Opt in to asset"
+    "asset_optin":"Opt in to asset",
+    "ask_question": "Ask question"
   },
   "optin":{
     "title":"Accept transfers of asset in account",
