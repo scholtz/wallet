@@ -1,6 +1,10 @@
 <template>
   <footer>
-    <a @click="prolong" class="btn btn-xs btn-light float-end">
+    <a
+      @click="prolong"
+      class="btn btn-xs btn-light float-end"
+      :style="'background:' + this.b"
+    >
       {{ t }}
     </a>
     <div v-if="this.$store.state.wallet.isOpen" class="text-center">
@@ -15,6 +19,7 @@ export default {
   data() {
     return {
       t: "",
+      b: "white",
     };
   },
   mounted() {
@@ -34,6 +39,20 @@ export default {
     setTime() {
       const elapsed = new Date() - this.$store.state.wallet.time;
       const t = 300000 - elapsed;
+      if (t < 60000) {
+        const sec = Math.round(t / 1000) % 3;
+        if (sec == 0) {
+          this.b = "white";
+        }
+        if (sec == 1) {
+          this.b = "red";
+        }
+        if (sec == 2) {
+          this.b = "orange";
+        }
+      } else {
+        this.b = "white";
+      }
       if (t < 0) {
         this.logout();
       }

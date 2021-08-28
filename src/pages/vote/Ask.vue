@@ -14,7 +14,7 @@
             rows="8"
             :placeholder="$t('voteask.title_placeholder')"
           />
-          </div>
+        </div>
         <div class="col-12">
           <textarea
             class="form-control my-2"
@@ -23,7 +23,7 @@
             :placeholder="$t('voteask.question_placeholder')"
           ></textarea>
         </div>
-        
+
         <div class="col-12">
           <input
             class="form-control my-2"
@@ -31,7 +31,7 @@
             rows="8"
             :placeholder="$t('voteask.url_placeholder')"
           />
-          </div>
+        </div>
         <div class="col-12">
           <input
             class="form-control my-2"
@@ -42,38 +42,43 @@
             v-model="duration"
             :placeholder="$t('voteask.duration')"
           />
-          </div>
-        <div class="col-12">
-          Max block: {{max_block}} Estimated time: {{max_blockTime}}
         </div>
-        <div class="row" v-for="option in options" :key="option.code">
+        <div class="col-12">
+          Max block: {{ max_block }} Estimated time: {{ max_blockTime }}
+        </div>
+        <div class="row" v-for="(option, index) in options" :key="index">
           <div class="col-2">
-            
-          <input
-            class="form-control my-2"
-            v-model="option.code"
-            :placeholder="$t('voteask.code')"
-          />
+            <input
+              class="form-control my-2"
+              v-model="option.code"
+              :placeholder="$t('voteask.code')"
+            />
           </div>
           <div class="col-9">
-            
-          <input
-            class="form-control my-2  "
-            v-model="option.text"
-            :placeholder="$t('voteask.response_text')"
-          />
+            <input
+              class="form-control my-2"
+              v-model="option.text"
+              :placeholder="$t('voteask.response_text')"
+            />
           </div>
           <div class="col-1">
-            
-          <button
-            class="form-control  my-2 "
-            @click="this.options = this.options.filter(function(item) {return item !== option})"
-          >Remove option</button>
+            <button
+              class="form-control my-2"
+              @click="
+                this.options = this.options.filter(function (item) {
+                  return item !== option;
+                })
+              "
+            >
+              Remove option
+            </button>
           </div>
         </div>
         <div class="col-12">
-          <button class="btn btn-light btn-xs" @click="this.options.push({'code':'','text':''})">Add new option</button>
-          </div>
+          <button class="btn btn-light btn-xs" @click="addOption">
+            Add new option
+          </button>
+        </div>
         <div class="col-12">
           <input
             class="form-control my-2"
@@ -81,16 +86,21 @@
             rows="8"
             :placeholder="$t('voteask.category')"
           />
-          </div>
-          <div>
-            
-          {{$store.state.wallet.lastActiveAccount}}
-          <code>{{note}}</code>
-          </div>
-        <div class="col-12">
-          <input type="submit" :disabled="!note" class="btn btn-primary my-2" @click="loadMultisig" :value="$t('voteask.submit_question')" />
         </div>
-        
+        <div>
+          {{ $store.state.wallet.lastActiveAccount }}
+          <code>{{ note }}</code>
+        </div>
+        <div class="col-12">
+          <input
+            type="submit"
+            :disabled="!note"
+            class="btn btn-primary my-2"
+            @click="loadMultisig"
+            :value="$t('voteask.submit_question')"
+          />
+        </div>
+
         <p v-if="!tx && processing" class="alert alert-primary my-2">
           <span
             class="spinner-grow spinner-grow-sm"
@@ -131,18 +141,21 @@ export default {
   },
   data() {
     return {
-        title: "",
-        question: "",
-        url:"",
-        category: "community",
-        duration: 20000,
-        paramsTime: null,
-        params: null,
-        tx:null,
-        processing:false,
-        confirmedRound: null,
-        error:"",
-      options:[{code:"","text":""},{code:"","text":""}],
+      title: "",
+      question: "",
+      url: "",
+      category: "community",
+      duration: 20000,
+      paramsTime: null,
+      params: null,
+      tx: null,
+      processing: false,
+      confirmedRound: null,
+      error: "",
+      options: [
+        { code: "", text: "" },
+        { code: "", text: "" },
+      ],
       advanced: false,
     };
   },
@@ -155,52 +168,52 @@ export default {
         this.accountsWithPrivateKey && this.accountsWithPrivateKey.length > 0
       );
     },
-    note(){
-      if(!this.title) return "";
-      if(!this.question) return "";
-      if(!this.category) return "";
-      if(!this.max_block) return "";
-      
+    note() {
+      if (!this.title) return "";
+      if (!this.question) return "";
+      if (!this.category) return "";
+      if (!this.max_block) return "";
+
       let options = {};
-      for(let index in this.options){
-        const option = this.options[index]
-        
-        if(option.code && option.text){
-          options[option.code] = option.text
+      for (let index in this.options) {
+        const option = this.options[index];
+
+        if (option.code && option.text) {
+          options[option.code] = option.text;
         }
       }
-      if(Object.values(options).length == 0) return "";
+      if (Object.values(options).length == 0) return "";
 
-      const json = {}
+      const json = {};
       json.t = this.title;
       json.q = this.question;
       json.max = this.max_block;
       json.category = this.category;
-      if(this.url){
-      json.url = this.url
+      if (this.url) {
+        json.url = this.url;
       }
       json.o = options;
-      return 'avote-question/v1:j'+JSON.stringify(json);
+      return "avote-question/v1:j" + JSON.stringify(json);
     },
-    max_block(){
-      if(!this.params) return ;
-      console.log("this.params",this.params,this.params.firstRound)
-      if(!this.params.firstRound) return ;
-      return parseInt(this.params.firstRound)+parseInt(this.duration);
+    max_block() {
+      if (!this.params) return;
+      console.log("this.params", this.params, this.params.firstRound);
+      if (!this.params.firstRound) return;
+      return parseInt(this.params.firstRound) + parseInt(this.duration);
     },
-    max_blockTime(){
-      if(!this.paramsTime) return ;
+    max_blockTime() {
+      if (!this.paramsTime) return;
       var t = new Date(this.paramsTime);
-      t.setSeconds(t.getSeconds() + this.duration*4.5);
+      t.setSeconds(t.getSeconds() + this.duration * 4.5);
       return t;
-    }
+    },
   },
   async mounted() {
     console.log("accountsWithPrivateKey", this.accountsWithPrivateKey);
     this.prolong();
     this.params = await this.getTransactionParams();
     this.paramsTime = new Date();
-    console.log("params",this.params)
+    console.log("params", this.params);
   },
   methods: {
     ...mapActions({
@@ -208,11 +221,14 @@ export default {
         "algod/makeAssetCreateTxnWithSuggestedParams",
       openSuccess: "toast/openSuccess",
       makePayment: "algod/makePayment",
-      getTransactionParams:"algod/getTransactionParams",
+      getTransactionParams: "algod/getTransactionParams",
       waitForConfirmation: "algod/waitForConfirmation",
       prolong: "wallet/prolong",
     }),
-
+    addOption(e) {
+      e.preventDefault();
+      this.options.push({ code: "", text: "" });
+    },
     async submitQuestion(e) {
       this.prolong();
       e.preventDefault();
@@ -221,9 +237,11 @@ export default {
         const payFrom = this.$store.state.wallet.lastActiveAccount;
         const amount = 702;
         const fee = 1000;
-        const asset = null
+        const asset = null;
         const enc = new TextEncoder();
-        let noteEnc = enc.encode(this.note);
+        const note = this.note;
+        if (!note) return;
+        let noteEnc = enc.encode(note);
         console.log("sending payment", {
           payTo,
           payFrom,
@@ -263,7 +281,7 @@ export default {
         this.error = exc;
       }
     },
-        async createAsset(e) {
+    async createAsset(e) {
       e.preventDefault();
       console.log("asset", this.asset);
       const asset = await this.makeAssetCreateTxnWithSuggestedParams({

@@ -19,6 +19,7 @@ import moment from "moment";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import InputText from "primevue/inputtext";
+import Slider from "primevue/slider";
 import Dialog from "primevue/dialog";
 import Toast from "primevue/toast";
 import Accordion from "primevue/accordion";
@@ -61,6 +62,7 @@ myApp.use(ToastService);
 myApp.component("DataTable", DataTable);
 myApp.component("Column", Column);
 myApp.component("InputText", InputText);
+myApp.component("Slider", Slider);
 myApp.component("Dialog", Dialog);
 myApp.component("Toast", Toast);
 myApp.component("Accordion", Accordion);
@@ -121,6 +123,10 @@ myApp.config.globalProperties.$filters = {
       separatorString +
       valueMoment.format(showSeconds ? "LTS" : "LT")
     );
+  },
+  formatPercent(value) {
+    if (!value) return "0 %";
+    return Math.round(value * 1000) / 10 + " %";
   },
 };
 
