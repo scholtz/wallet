@@ -27,6 +27,9 @@ module.exports = {
     },
     devServer: {
       headers: { "Access-Control-Allow-Origin": "*" },
+      https: true,
+      hotOnly: false,
+
     },
   },
 };

@@ -19,6 +19,7 @@ import AssetModify from "@/pages/Asset/Modify.vue";
 import AssetRevoke from "@/pages/Asset/Revoke.vue";
 import OptIn from "@/pages/Asset/OptIn.vue";
 import PaymentGateway from "@/pages/PaymentGateway.vue";
+import Connect from "@/pages/Connect.vue";
 
 const routes = [
   {
@@ -65,6 +66,11 @@ const routes = [
     path: "/gateway/:b64",
     name: "MerchantNoSettings",
     component: Merchant,
+  },
+  {
+    path: "/connect/:account",
+    name: "Connect",
+    component: Connect,
   },
   {
     path: "/receive-payment/:account",

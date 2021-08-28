@@ -12,6 +12,7 @@
     "@popperjs/core": "^2.9.2",
     "@reach-sh/stdlib": "^0.1.2-rc.65",
     "@revolist/vue3-datagrid": "^3.0.52",
+    "@walletconnect/client": "^1.5.2",
     "algosdk": "^1.10.0",
     "axios": "^0.21.1",
     "bootstrap": "^5.0.2",

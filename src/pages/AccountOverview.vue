@@ -56,6 +56,11 @@
         class="btn btn-light btn-xs m-2"
         >{{ $t("acc_overview.payment_gateway") }}</router-link
       >
+      <router-link
+        :to="'/connect/' + $route.params.account"
+        class="btn btn-light btn-xs m-2"
+        >{{ $t("acc_overview.connect") }}</router-link
+      >
     </p>
     <table class="table" v-if="account">
       <tr>
