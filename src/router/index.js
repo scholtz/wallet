@@ -21,6 +21,9 @@ import OptIn from "@/pages/Asset/OptIn.vue";
 import PaymentGateway from "@/pages/PaymentGateway.vue";
 import VoteAsk from "@/pages/vote/Ask.vue";
 import VoteOverview from "@/pages/vote/Overview.vue";
+import VoteMyQuestions from "@/pages/vote/MyQuestions.vue";
+import VoteDelegate from "@/pages/vote/Delegate.vue";
+import VoteAnswers from "@/pages/vote/Answers.vue";
 
 const routes = [
   {
@@ -146,6 +149,21 @@ const routes = [
     path: "/vote/overview",
     name: "VoteOverview",
     component: VoteOverview,
+  },
+  {
+    path: "/vote/my-questions",
+    name: "my-questions",
+    component: VoteMyQuestions,
+  },
+  {
+    path: "/vote/delegate",
+    name: "delegate",
+    component: VoteDelegate,
+  },
+  {
+    path: "/vote/answers",
+    name: "answers",
+    component: VoteAnswers,
   },
 ];
 

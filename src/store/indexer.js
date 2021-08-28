@@ -45,6 +45,33 @@ const actions = {
       console.log("error", error, dispatch);
     }
   },
+  async searchForTransactionsWithNoteAndAmount({ dispatch }, { note,amount }) {
+    try {
+      const url = new URL(this.state.config.indexer);
+      const indexerClient = new algosdk.Indexer(
+        this.state.config.indexerToken,
+        this.state.config.indexer,
+        url.port
+      );
+        console.log("searching for addr and note", note);
+        const enc = new TextEncoder();
+        const noteenc = enc.encode(note);
+        const searchForTransactions = await indexerClient
+          .searchForTransactions()
+          .currencyGreaterThan(amount - 1)
+          .currencyLessThan(amount + 1)
+          .notePrefix(noteenc)
+          .do();
+        console.log(
+          "indexer.searchForTransactions with note",
+          searchForTransactions,
+          note
+        );
+        return searchForTransactions;
+    } catch (error) {
+      console.log("error", error, dispatch);
+    }
+  },
   async getAsset({ commit }, { assetIndex }) {
     try {
       const url = new URL(this.state.config.indexer);

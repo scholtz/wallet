@@ -1,23 +1,120 @@
 <template>
   <MainLayout>
     <VoteMenu current="ask" />
-    <form @submit="createAsset">
+    <form @submit="submitQuestion">
       <h1>
         {{ $t("voteask.title") }}
       </h1>
 
       <div class="row">
         <div class="col-12">
+          <input
+            class="form-control my-2"
+            v-model="title"
+            rows="8"
+            :placeholder="$t('voteask.title_placeholder')"
+          />
+          </div>
+        <div class="col-12">
           <textarea
             class="form-control my-2"
-            v-model="rawSignedTxnInput"
+            v-model="question"
             rows="8"
             :placeholder="$t('voteask.question_placeholder')"
           ></textarea>
-          <button class="btn btn-primary my-2" @click="loadMultisig">
-            {{ $t("voteask.submit_question") }}
-          </button>
         </div>
+        
+        <div class="col-12">
+          <input
+            class="form-control my-2"
+            v-model="url"
+            rows="8"
+            :placeholder="$t('voteask.url_placeholder')"
+          />
+          </div>
+        <div class="col-12">
+          <input
+            class="form-control my-2"
+            min="1"
+            max="9999999"
+            step="1"
+            type="number"
+            v-model="duration"
+            :placeholder="$t('voteask.duration')"
+          />
+          </div>
+        <div class="col-12">
+          Max block: {{max_block}} Estimated time: {{max_blockTime}}
+        </div>
+        <div class="row" v-for="option in options" :key="option.code">
+          <div class="col-2">
+            
+          <input
+            class="form-control my-2"
+            v-model="option.code"
+            :placeholder="$t('voteask.code')"
+          />
+          </div>
+          <div class="col-9">
+            
+          <input
+            class="form-control my-2  "
+            v-model="option.text"
+            :placeholder="$t('voteask.response_text')"
+          />
+          </div>
+          <div class="col-1">
+            
+          <button
+            class="form-control  my-2 "
+            @click="this.options = this.options.filter(function(item) {return item !== option})"
+          >Remove option</button>
+          </div>
+        </div>
+        <div class="col-12">
+          <button class="btn btn-light btn-xs" @click="this.options.push({'code':'','text':''})">Add new option</button>
+          </div>
+        <div class="col-12">
+          <input
+            class="form-control my-2"
+            v-model="category"
+            rows="8"
+            :placeholder="$t('voteask.category')"
+          />
+          </div>
+          <div>
+            
+          {{$store.state.wallet.lastActiveAccount}}
+          <code>{{note}}</code>
+          </div>
+        <div class="col-12">
+          <input type="submit" :disabled="!note" class="btn btn-primary my-2" @click="loadMultisig" :value="$t('voteask.submit_question')" />
+        </div>
+        
+        <p v-if="!tx && processing" class="alert alert-primary my-2">
+          <span
+            class="spinner-grow spinner-grow-sm"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          {{ $t("pay.state_sending") }}
+        </p>
+        <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
+          <span
+            class="spinner-grow spinner-grow-sm"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          {{ $t("pay.state_sent") }}: {{ tx }}.
+          {{ $t("pay.state_waiting_confirm") }}
+        </p>
+        <p v-if="confirmedRound" class="alert alert-success my-2">
+          {{ $t("pay.state_confirmed") }} <b>{{ confirmedRound }}</b
+          >. {{ $t("pay.transaction") }}: {{ tx }}.
+        </p>
+        <p v-if="error" class="alert alert-danger my-2">
+          {{ $t("pay.error") }}: {{ error }}
+        </p>
       </div>
     </form>
   </MainLayout>
@@ -34,21 +131,18 @@ export default {
   },
   data() {
     return {
-      asset: {
-        addr: "",
-        note: "",
-        totalIssuance: 1,
-        decimals: 0,
-        defaultFrozen: false,
-        manager: "",
-        reserve: "",
-        freeze: "",
-        clawback: "",
-        unitName: "",
-        assetName: "",
-        assetURL: "",
-        assetMetadataHash: "",
-      },
+        title: "",
+        question: "",
+        url:"",
+        category: "community",
+        duration: 20000,
+        paramsTime: null,
+        params: null,
+        tx:null,
+        processing:false,
+        confirmedRound: null,
+        error:"",
+      options:[{code:"","text":""},{code:"","text":""}],
       advanced: false,
     };
   },
@@ -61,17 +155,115 @@ export default {
         this.accountsWithPrivateKey && this.accountsWithPrivateKey.length > 0
       );
     },
+    note(){
+      if(!this.title) return "";
+      if(!this.question) return "";
+      if(!this.category) return "";
+      if(!this.max_block) return "";
+      
+      let options = {};
+      for(let index in this.options){
+        const option = this.options[index]
+        
+        if(option.code && option.text){
+          options[option.code] = option.text
+        }
+      }
+      if(Object.values(options).length == 0) return "";
+
+      const json = {}
+      json.t = this.title;
+      json.q = this.question;
+      json.max = this.max_block;
+      json.category = this.category;
+      if(this.url){
+      json.url = this.url
+      }
+      json.o = options;
+      return 'avote-question/v1:j'+JSON.stringify(json);
+    },
+    max_block(){
+      if(!this.params) return ;
+      console.log("this.params",this.params,this.params.firstRound)
+      if(!this.params.firstRound) return ;
+      return parseInt(this.params.firstRound)+parseInt(this.duration);
+    },
+    max_blockTime(){
+      if(!this.paramsTime) return ;
+      var t = new Date(this.paramsTime);
+      t.setSeconds(t.getSeconds() + this.duration*4.5);
+      return t;
+    }
   },
-  mounted() {
+  async mounted() {
     console.log("accountsWithPrivateKey", this.accountsWithPrivateKey);
+    this.prolong();
+    this.params = await this.getTransactionParams();
+    this.paramsTime = new Date();
+    console.log("params",this.params)
   },
   methods: {
     ...mapActions({
       makeAssetCreateTxnWithSuggestedParams:
         "algod/makeAssetCreateTxnWithSuggestedParams",
       openSuccess: "toast/openSuccess",
+      makePayment: "algod/makePayment",
+      getTransactionParams:"algod/getTransactionParams",
+      waitForConfirmation: "algod/waitForConfirmation",
+      prolong: "wallet/prolong",
     }),
-    async createAsset(e) {
+
+    async submitQuestion(e) {
+      this.prolong();
+      e.preventDefault();
+      try {
+        const payTo = this.$store.state.wallet.lastActiveAccount;
+        const payFrom = this.$store.state.wallet.lastActiveAccount;
+        const amount = 702;
+        const fee = 1000;
+        const asset = null
+        const enc = new TextEncoder();
+        let noteEnc = enc.encode(this.note);
+        console.log("sending payment", {
+          payTo,
+          payFrom,
+          amount,
+          noteEnc,
+          fee,
+          asset,
+        });
+        this.tx = await this.makePayment({
+          payTo,
+          payFrom,
+          amount,
+          noteEnc,
+          fee,
+          asset,
+        });
+        const confirmation = await this.waitForConfirmation({
+          txId: this.tx,
+          timeout: 4,
+        });
+        if (!confirmation) {
+          this.processing = false;
+          this.error = this.$t("pay.state_error_not_sent");
+          //            "Payment has probably not reached the network. Are you offline? Please check you account";
+          return;
+        }
+        if (confirmation["confirmed-round"]) {
+          this.processing = false;
+          this.confirmedRound = confirmation["confirmed-round"];
+        }
+        if (confirmation["pool-error"]) {
+          this.processing = false;
+          this.error = confirmation["pool-error"];
+        }
+        console.log("confirmation", this.tx, this.confirmation);
+      } catch (exc) {
+        this.error = exc;
+      }
+    },
+        async createAsset(e) {
       e.preventDefault();
       console.log("asset", this.asset);
       const asset = await this.makeAssetCreateTxnWithSuggestedParams({

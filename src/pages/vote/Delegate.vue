@@ -1,6 +1,6 @@
 <template>
   <MainLayout>
-    <VoteMenu current="overview" />
+    <VoteMenu current="delegate" />
     <h1>Questions</h1>
     <QuestionList />
   </MainLayout>

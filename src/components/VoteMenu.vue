@@ -13,7 +13,7 @@
       >
       <v-link
         class="nav-item nav-link"
-        :class="current == 'ask' ? 'my-questions' : ''"
+        :class="current == 'my-questions' ? 'active' : ''"
         data-toggle="tab"
         href="/vote/my-questions"
         role="tab"
