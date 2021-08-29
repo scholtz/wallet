@@ -26,26 +26,19 @@ const actions = {
           .address(addr)
           .notePrefix(noteenc)
           .do();
-        console.log(
-          "indexer.searchForTransactions with note",
-          searchForTransactions,
-          note
-        );
         return searchForTransactions;
       } else {
-        console.log("searching for addr ", addr);
         const searchForTransactions = await indexerClient
           .searchForTransactions()
           .address(addr)
           .do();
-        console.log("indexer.searchForTransactions", searchForTransactions);
         return searchForTransactions;
       }
     } catch (error) {
       console.log("error", error, dispatch);
     }
   },
-  async searchForTransactionsWithNoteAndAmount({ dispatch }, { note,amount }) {
+  async searchForTransactionsWithNoteAndAmount({ dispatch }, { note, amount }) {
     try {
       const url = new URL(this.state.config.indexer);
       const indexerClient = new algosdk.Indexer(
@@ -53,21 +46,40 @@ const actions = {
         this.state.config.indexer,
         url.port
       );
-        console.log("searching for addr and note", note);
-        const enc = new TextEncoder();
-        const noteenc = enc.encode(note);
-        const searchForTransactions = await indexerClient
-          .searchForTransactions()
-          .currencyGreaterThan(amount - 1)
-          .currencyLessThan(amount + 1)
-          .notePrefix(noteenc)
-          .do();
-        console.log(
-          "indexer.searchForTransactions with note",
-          searchForTransactions,
-          note
-        );
-        return searchForTransactions;
+      const enc = new TextEncoder();
+      const noteenc = enc.encode(note);
+      const searchForTransactions = await indexerClient
+        .searchForTransactions()
+        .currencyGreaterThan(amount - 1)
+        .currencyLessThan(amount + 1)
+        .notePrefix(noteenc)
+        .do();
+      return searchForTransactions;
+    } catch (error) {
+      console.log("error", error, dispatch);
+    }
+  },
+  async searchForTransactionsWithNoteAndAmountAndAccount(
+    { dispatch },
+    { note, amount, account }
+  ) {
+    try {
+      const url = new URL(this.state.config.indexer);
+      const indexerClient = new algosdk.Indexer(
+        this.state.config.indexerToken,
+        this.state.config.indexer,
+        url.port
+      );
+      const enc = new TextEncoder();
+      const noteenc = enc.encode(note);
+      const searchForTransactions = await indexerClient
+        .searchForTransactions()
+        .currencyGreaterThan(amount - 1)
+        .currencyLessThan(amount + 1)
+        .notePrefix(noteenc)
+        .address(account)
+        .do();
+      return searchForTransactions;
     } catch (error) {
       console.log("error", error, dispatch);
     }
