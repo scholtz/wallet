@@ -139,7 +139,11 @@
             {{ note }}
           </code>
         </div>
-        <button class="btn btn-primary" @click="submitDelegation">
+        <button
+          class="btn btn-primary"
+          @click="submitDelegation"
+          :disabled="!note || processing"
+        >
           Store delegation to the blockchain
         </button>
       </div>

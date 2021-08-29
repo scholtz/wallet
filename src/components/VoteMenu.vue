@@ -41,6 +41,7 @@
         aria-selected="false"
         >Delegation</v-link
       >
+      <!--
       <v-link
         class="nav-item nav-link"
         :class="current == 'answers' ? 'active' : ''"
@@ -50,6 +51,16 @@
         aria-controls="nav-contact"
         aria-selected="false"
         >Answers</v-link
+      >-->
+      <v-link
+        class="nav-item nav-link"
+        :class="current == 'tl' ? 'active' : ''"
+        data-toggle="tab"
+        href="/vote/tl"
+        role="tab"
+        aria-controls="nav-contact"
+        aria-selected="false"
+        >Trusted list</v-link
       >
     </div>
   </div>

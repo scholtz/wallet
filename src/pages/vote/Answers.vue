@@ -15,7 +15,7 @@ export default {
   components: {
     MainLayout,
     VoteMenu,
-    QuestionList
+    QuestionList,
   },
   data() {
     return {

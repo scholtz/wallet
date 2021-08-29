@@ -94,7 +94,7 @@
         <div class="col-12">
           <input
             type="submit"
-            :disabled="!note"
+            :disabled="!note || processing"
             class="btn btn-primary my-2"
             @click="loadMultisig"
             :value="$t('voteask.submit_question')"

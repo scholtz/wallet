@@ -53,7 +53,10 @@
       ></Column>
     </DataTable>
     <div v-if="selection">
-      <button class="btn btn-xs btn-primary" @click="this.selection = null">
+      <button
+        class="btn btn-xs btn-default btn-outline-primary"
+        @click="this.selection = null"
+      >
         List all questions
       </button>
       <table class="table">
@@ -64,6 +67,14 @@
         <tr>
           <th>Round:</th>
           <td>{{ this.selection.round }}</td>
+        </tr>
+        <tr v-if="this.selection && this.selection.note">
+          <th>Max voting round:</th>
+          <td>{{ this.selection.note.max }}</td>
+        </tr>
+        <tr v-if="this.params">
+          <th>Current round:</th>
+          <td>{{ this.params.firstRound }}</td>
         </tr>
         <tr>
           <th>Time of the round:</th>
@@ -101,17 +112,24 @@
                     {{ o }}
                   </label>
                 </div>
-                <div class="col-9" v-if="!votingFinished">
+                <div
+                  class="col-9"
+                  v-if="
+                    !votingFinished || (selectedAnswer && selectedAnswer.latest)
+                  "
+                >
                   <InputText
                     :id="'R' + index"
                     class="w1"
                     v-model.number="results[index]"
                     style="width: 14rem"
+                    :disabled="votingFinished"
                   />
                   <Slider
                     class="w1"
                     v-model="results[index]"
                     style="width: 14rem"
+                    :disabled="votingFinished"
                   />
                   <div class="m-2">
                     {{ $filters.formatPercent(results[index] / sum) }}
@@ -136,11 +154,23 @@
             </div>
 
             <button
+              v-if="!votingFinished"
               class="btn btn-primary bg-primary"
-              :disabled="!canVote"
+              :disabled="
+                !canVote ||
+                processing ||
+                (selectedAnswer && selectedAnswer.latest)
+              "
               @click="submitVote"
             >
               Vote with account {{ $store.state.wallet.lastActiveAccountName }}
+            </button>
+            <button
+              v-if="votingFinished"
+              class="btn btn-primary bg-primary"
+              @click="checkResults"
+            >
+              Check results
             </button>
             <div v-if="canVote">
               <code>{{ note }}</code>
@@ -173,7 +203,7 @@
       <p v-if="error" class="alert alert-danger my-2">
         {{ $t("pay.error") }}: {{ error }}
       </p>
-      <div>
+      <div v-if="!votingFinished">
         If you want to vote, select your preferences please. You can assign your
         preferences for each answer with rating from zero to 100 points. If you
         want to select only one answer, please give it 100 points, and other
@@ -214,6 +244,7 @@ export default {
       confirmedRound: null,
       error: "",
       selectedAnswer: {},
+      processingResults: false,
     };
   },
   watch: {
@@ -240,6 +271,9 @@ export default {
           this.selectedAnswer.latest = false;
         }
       }
+    },
+    votingFinished() {
+      console.log("votingFinished", this.votingFinished);
     },
   },
   computed: {
@@ -329,6 +363,7 @@ export default {
       getTransactionParams: "algod/getTransactionParams",
       waitForConfirmation: "algod/waitForConfirmation",
       prolong: "wallet/prolong",
+      axiosGet: "axios/get",
     }),
 
     isBase64(str) {
@@ -403,6 +438,234 @@ export default {
       } catch (exc) {
         this.error = exc;
       }
+    },
+    async checkResults() {
+      this.prolong();
+      this.processingResults = true;
+      try {
+        // get all answers
+        const answersPerAccount = {};
+        const search = "avote-vote/v1/" + this.selection.id.substring(0, 10);
+        let txs = await this.searchForTransactionsWithNoteAndAmount({
+          note: search,
+          amount: 703,
+        });
+
+        if (txs.transactions) {
+          for (let index in txs.transactions) {
+            const tx = txs.transactions[index];
+            if (!tx["sender"]) continue;
+            let note = "";
+            if (this.isBase64(tx.note)) {
+              note = atob(tx.note);
+            }
+            const searchWithJ = search + ":j";
+            if (!note.startsWith(searchWithJ)) {
+              continue;
+            }
+            note = note.replace(searchWithJ, "");
+            console.log("note", note);
+            let noteJson = {};
+            try {
+              noteJson = JSON.parse(note);
+            } catch (e) {
+              console.log("error parsing", tx);
+              continue;
+            }
+            const answ = {
+              round: tx["confirmed-round"],
+              "round-time": tx["round-time"],
+              sender: tx["sender"],
+              id: tx["id"],
+              response: noteJson.a,
+            };
+
+            if (answersPerAccount[answ.sender] === undefined) {
+              answersPerAccount[answ.sender] = answ;
+            } else {
+              if (answersPerAccount[answ.sender].round < answ.round)
+                answersPerAccount[answ.sender] = answ;
+              if (
+                answersPerAccount[answ.sender].round == answ.round &&
+                answersPerAccount[answ.sender].id > answ.id
+              ) {
+                answersPerAccount[answ.sender] = answ;
+              }
+            }
+          }
+        } else {
+          this.processingResults = false;
+          console.log("no transactions found");
+          return;
+        }
+        console.log("answersPerAccount", answersPerAccount);
+        // calculate whole delegation tree
+        const delegationPerAccount = {};
+        const searchDeleg = "avote-delegation/v1";
+        txs = await this.searchForTransactionsWithNoteAndAmount({
+          note: searchDeleg,
+          amount: 701,
+        });
+        if (txs && txs.transactions) {
+          for (let index in txs.transactions) {
+            const tx = txs.transactions[index];
+            if (tx["sender"] != this.$store.state.wallet.lastActiveAccount)
+              continue;
+            let note = "";
+            if (this.isBase64(tx.note)) {
+              note = atob(tx.note);
+            }
+            const searchDelegWithJ = searchDeleg + ":j";
+            if (!note.startsWith(searchDelegWithJ)) {
+              continue;
+            }
+            note = note.replace(searchDelegWithJ, "");
+            let noteJson = {};
+            try {
+              noteJson = JSON.parse(note);
+            } catch (e) {
+              console.log("error parsing", tx);
+              continue;
+            }
+            let deleg = {};
+            if (noteJson.d[this.selection.note.category] !== undefined) {
+              deleg = noteJson.d[this.selection.note.category];
+            } else if (noteJson.d["any"] !== undefined) {
+              deleg = noteJson.d["any"];
+            }
+            const answ = {
+              round: tx["confirmed-round"],
+              sender: tx["sender"],
+              id: tx["id"],
+              d: deleg,
+            };
+
+            if (delegationPerAccount[answ.sender] === undefined) {
+              delegationPerAccount[answ.sender] = answ;
+            } else {
+              if (delegationPerAccount[answ.sender].round < answ.round)
+                delegationPerAccount[answ.sender] = answ;
+              if (
+                delegationPerAccount[answ.sender].round == answ.round &&
+                delegationPerAccount[answ.sender].id > answ.id
+              ) {
+                delegationPerAccount[answ.sender] = answ;
+              }
+            }
+          }
+        } else {
+          console.log("no transactions found");
+        }
+        console.log("delegationPerAccount", delegationPerAccount);
+        const delegationsToAccount = {};
+        for (let accFrom in delegationPerAccount) {
+          for (let accTo in delegationPerAccount[accFrom].d) {
+            if (delegationsToAccount[accTo] === undefined) {
+              delegationsToAccount[accTo] = {};
+              delegationsToAccount[accTo][accFrom] = true;
+            } else {
+              delegationsToAccount[accTo][accFrom] = true;
+            }
+          }
+        }
+        console.log("delegationsToAccount", delegationsToAccount);
+        // first calculation - trusted accounts
+        const accounts = await this.axiosGet({ url: "/trusted.json" });
+        const trusted = {};
+        for (let index in accounts) {
+          trusted[accounts[index]] = true;
+        }
+        const totalResults = {};
+        for (let index in this.selection.note.o) {
+          totalResults[index] = 0;
+        }
+        const done = {};
+        for (let account in answersPerAccount) {
+          if (done[account] !== undefined) continue; // already processed
+          let accResult = this.getAccountResult(
+            account,
+            delegationsToAccount,
+            delegationPerAccount,
+            answersPerAccount,
+            trusted,
+            1
+          );
+          console.log("accResult", account, accResult);
+          for (let index in this.selection.note.o) {
+            totalResults[index] += accResult[index];
+          }
+          done[account] = true;
+        }
+
+        console.log("accounts", accounts);
+        console.log("totalResults", totalResults);
+        // second calculation - 1 algo = 1 vote
+
+        this.processingResults = false;
+      } catch (e) {
+        console.log("error:", e);
+        this.processingResults = false;
+      }
+    },
+    getAccountResult(
+      account,
+      delegationsToAccount,
+      delegationPerAccount,
+      answersPerAccount,
+      trusted,
+      weight
+    ) {
+      const r = {};
+      for (let index in this.selection.note.o) {
+        r[index] = 0;
+      }
+      let failed = false;
+      if (
+        answersPerAccount[account] === undefined ||
+        trusted[account] === undefined
+      ) {
+        return r; // count votes only of voted accounts and calculate their delegation value
+      }
+      // count the real vote .. if the account is on the list
+      if (trusted[account] !== undefined) {
+        let sum = 0;
+        for (let index in this.selection.note.o) {
+          sum += answersPerAccount[account].response[index];
+          if (answersPerAccount[account].response[index] < 0) {
+            failed = true;
+          }
+        }
+        if (sum > 0 && !failed) {
+          for (let index in this.selection.note.o) {
+            r[index] =
+              (answersPerAccount[account].response[index] / sum) * weight;
+          }
+        }
+      }
+      // check delegations
+      if (delegationsToAccount[account] !== undefined) {
+        for (let delegFrom in delegationsToAccount[account]) {
+          if (answersPerAccount[delegFrom] !== undefined) continue; //the delegated from account voted by it self
+          let sum = 0;
+          for (let acc in delegationPerAccount[delegFrom]) {
+            sum += delegationPerAccount[delegFrom][acc];
+          }
+          let w = (weight * delegationPerAccount[delegFrom][account]) / sum;
+          const delegatedPowerFromOther = this.getAccountResult(
+            delegFrom,
+            delegationsToAccount,
+            delegationPerAccount,
+            answersPerAccount,
+            trusted,
+            w
+          );
+
+          for (let index in this.selection.note.o) {
+            r[index] += delegatedPowerFromOther[index];
+          }
+        }
+      }
+      return r;
     },
   },
 };
