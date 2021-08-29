@@ -21,7 +21,7 @@
     </div>
     <div class="row my-2">
       <div class="col-12">
-        <button class="btn btn-primary">
+        <button class="btn btn-primary" @click="submitTL">
           Store trusted list to blockchain
         </button>
       </div>
@@ -31,8 +31,32 @@
         <code>{{ note }}</code>
       </div>
     </div>
+            <p v-if="!tx && processing" class="alert alert-primary my-2">
+          <span
+            class="spinner-grow spinner-grow-sm"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          {{ $t("pay.state_sending") }}
+        </p>
+        <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
+          <span
+            class="spinner-grow spinner-grow-sm"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          {{ $t("pay.state_sent") }}: {{ tx }}.
+          {{ $t("pay.state_waiting_confirm") }}
+        </p>
+        <p v-if="confirmedRound" class="alert alert-success my-2">
+          {{ $t("pay.state_confirmed") }} <b>{{ confirmedRound }}</b
+          >. {{ $t("pay.transaction") }}: {{ tx }}.
+        </p>
+        <p v-if="error" class="alert alert-danger my-2">
+          {{ $t("pay.error") }}: {{ error }}
+        </p>
     <DataTable
-      :value="questions"
+      :value="tl"
       responsiveLayout="scroll"
       selectionMode="single"
       v-model:selection="selection"
@@ -44,35 +68,11 @@
         field="round"
         :header="$t('voteanswer.round')"
         :sortable="true"
-      ></Column>
-      <Column
-        field="round-time"
-        :header="$t('acc_overview.time')"
+      ></Column><Column
+        field="account"
+        :header="$t('voteanswer.account')"
         :sortable="true"
-      >
-        <template #body="slotProps">
-          <div v-if="slotProps.column.props.field in slotProps.data">
-            {{
-              $filters.formatDateTime(
-                slotProps.data[slotProps.column.props.field]
-              )
-            }}
-          </div>
-        </template>
-      </Column>
-      <Column
-        field="sender"
-        :header="$t('acc_overview.sender')"
-        :sortable="true"
-        styleClass="not-show-at-start"
       ></Column>
-      <Column field="response" :header="$t('voteanswer.response')">
-        <template #body="slotProps">
-          <div v-if="slotProps.column.props.field in slotProps.data">
-            {{ JSON.stringify(slotProps.data[slotProps.column.props.field]) }}
-          </div>
-        </template>
-      </Column>
     </DataTable>
   </MainLayout>
 </template>
@@ -95,7 +95,7 @@ export default {
       selection: null,
       add: "",
       remove: "",
-      answers: [],
+      tl: [],
       results: {},
       value2: 3,
       params: null,
@@ -110,30 +110,29 @@ export default {
       this.$emit("update:selectedAnswer", this.selection);
       this.prolong();
     },
-    async question() {
-      if (!this.question) return;
-      await this.loadTableItems();
-    },
   },
   computed: {
     note() {
       const data = {};
-      data.a = this.add.split("\n").filter((a) => this.validateAccount(a));
-      data.r = this.remove.split("\n").filter((a) => this.validateAccount(a));
+      const add = this.add.split("\n").filter((a) => this.validateAccount(a));
+      if(add.length > 0) data.a = add;
+      const remove = this.remove.split("\n").filter((a) => this.validateAccount(a));
+      if(remove.length > 0) data.r = remove;
+
+      if(add.length == 0 && remove.length == 0) return ""
       return "avote-tl/v1:j" + JSON.stringify(data);
     },
   },
 
   async mounted() {
     this.prolong();
-    if (this.question) {
       await this.loadTableItems();
-    }
   },
   methods: {
     ...mapActions({
       searchForTransactionsWithNoteAndAmount:
         "indexer/searchForTransactionsWithNoteAndAmount",
+        searchForTransactionsWithNoteAndAmountAndAccount:"indexer/searchForTransactionsWithNoteAndAmountAndAccount",
       openSuccess: "toast/openSuccess",
       makePayment: "algod/makePayment",
       getTransactionParams: "algod/getTransactionParams",
@@ -149,12 +148,13 @@ export default {
     async loadTableItems() {
       console.log("this.question", this.question);
       this.params = await this.getTransactionParams();
-      const search = "avote-vote/v1/" + this.question.substring(0, 10);
-      const txs = await this.searchForTransactionsWithNoteAndAmount({
+      const search = "avote-tl/v1";
+      const txs = await this.searchForTransactionsWithNoteAndAmountAndAccount({
         note: search,
-        amount: 703,
+        amount: 705,
+        account:this.$store.state.wallet.lastActiveAccount
       });
-      let latest = null;
+      let ret = {};
       if (txs.transactions) {
         for (let index in txs.transactions) {
           const tx = txs.transactions[index];
@@ -177,28 +177,30 @@ export default {
             console.log("error parsing", tx);
             continue;
           }
-          console.log("noteJson", noteJson);
-          const answ = {
-            round: tx["confirmed-round"],
-            "round-time": tx["round-time"],
-            sender: tx["sender"],
-            id: tx["id"],
-            response: noteJson.a,
-          };
-          if (answ.sender == this.$store.state.wallet.lastActiveAccount) {
-            if (!latest) latest = answ;
-            if (latest.round < answ.round) latest = answ;
-          }
-          this.questions.push(answ);
+          
+
+            if(noteJson.a){
+                for(let index in noteJson.a){
+                    ret[noteJson.a[index]] = tx["confirmed-round"]
+                }
+            }
+            if(noteJson.r){
+                for(let index in noteJson.r){
+                    if(ret[noteJson.r[index]] !== undefined){
+                        delete ret[noteJson.r[index]];
+                    }
+                }
+            }
+
         }
       } else {
         console.log("no transactions found");
       }
-      if (latest) {
-        latest.latest = true;
-        this.$emit("update:selectedAnswer", latest);
+
+      this.tl = []
+      for(let index in ret){
+        this.tl.push({round:ret[index],account:index})
       }
-      console.log("txs", txs, this.questions);
     },
     isBase64(str) {
       if (!str) return false;
@@ -209,6 +211,59 @@ export default {
         return btoa(atob(str)) == str;
       } catch (err) {
         return false;
+      }
+    },
+    
+    async submitTL(e) {
+      this.prolong();
+      e.preventDefault();
+      try {
+        const payTo = this.$store.state.wallet.lastActiveAccount;
+        const payFrom = this.$store.state.wallet.lastActiveAccount;
+        const amount = 705;
+        const fee = 1000;
+        const asset = null;
+        const enc = new TextEncoder();
+        const note = this.note;
+        if (!note) return;
+        let noteEnc = enc.encode(note);
+        console.log("sending payment", {
+          payTo,
+          payFrom,
+          amount,
+          noteEnc,
+          fee,
+          asset,
+        });
+        this.tx = await this.makePayment({
+          payTo,
+          payFrom,
+          amount,
+          noteEnc,
+          fee,
+          asset,
+        });
+        const confirmation = await this.waitForConfirmation({
+          txId: this.tx,
+          timeout: 4,
+        });
+        if (!confirmation) {
+          this.processing = false;
+          this.error = this.$t("pay.state_error_not_sent");
+          //            "Payment has probably not reached the network. Are you offline? Please check you account";
+          return;
+        }
+        if (confirmation["confirmed-round"]) {
+          this.processing = false;
+          this.confirmedRound = confirmation["confirmed-round"];
+        }
+        if (confirmation["pool-error"]) {
+          this.processing = false;
+          this.error = confirmation["pool-error"];
+        }
+        console.log("confirmation", this.tx, this.confirmation);
+      } catch (exc) {
+        this.error = exc;
       }
     },
   },

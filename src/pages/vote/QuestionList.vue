@@ -172,6 +172,38 @@
             >
               Check results
             </button>
+<div v-if="Object.values(resultsFirstCalc).length > 0">
+<div v-for="(o, index) in this.selection.note.o" :key="index">
+              <div class="row">
+                <div class="col-3">
+                  <label :for="'R' + index">
+                    {{ o }}
+                  </label>
+                </div>
+                <div
+                  class="col-9"
+                >
+                  <InputText
+                    :id="'R' + index"
+                    class="w1"
+                    v-model.number="resultsFirstCalc[index]"
+                    style="width: 14rem"
+                    :disabled="true"
+                  />
+                  <Slider
+                    class="w1"
+                    v-model="resultsFirstCalc[index]"
+                    style="width: 14rem"
+                    :disabled="true"
+                  />
+                  <div class="m-2">
+                    {{ $filters.formatPercent(resultsFirstCalc[index]/100) }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+
             <div v-if="canVote">
               <code>{{ note }}</code>
             </div>
@@ -237,6 +269,7 @@ export default {
       questions: [],
       answers: [],
       results: {},
+      resultsFirstCalc:{},
       value2: 3,
       params: null,
       tx: null,
@@ -358,6 +391,7 @@ export default {
     ...mapActions({
       searchForTransactionsWithNoteAndAmount:
         "indexer/searchForTransactionsWithNoteAndAmount",
+        searchForTransactionsWithNoteAndAmountAndAccount:"indexer/searchForTransactionsWithNoteAndAmountAndAccount",
       openSuccess: "toast/openSuccess",
       makePayment: "algod/makePayment",
       getTransactionParams: "algod/getTransactionParams",
@@ -509,8 +543,6 @@ export default {
         if (txs && txs.transactions) {
           for (let index in txs.transactions) {
             const tx = txs.transactions[index];
-            if (tx["sender"] != this.$store.state.wallet.lastActiveAccount)
-              continue;
             let note = "";
             if (this.isBase64(tx.note)) {
               note = atob(tx.note);
@@ -570,11 +602,10 @@ export default {
         }
         console.log("delegationsToAccount", delegationsToAccount);
         // first calculation - trusted accounts
-        const accounts = await this.axiosGet({ url: "/trusted.json" });
-        const trusted = {};
-        for (let index in accounts) {
-          trusted[accounts[index]] = true;
-        }
+
+        
+        const trusted = await this.getTrustedList();
+        console.log("trusted",trusted)
         const totalResults = {};
         for (let index in this.selection.note.o) {
           totalResults[index] = 0;
@@ -588,7 +619,8 @@ export default {
             delegationPerAccount,
             answersPerAccount,
             trusted,
-            1
+            1,
+            account
           );
           console.log("accResult", account, accResult);
           for (let index in this.selection.note.o) {
@@ -597,8 +629,11 @@ export default {
           done[account] = true;
         }
 
-        console.log("accounts", accounts);
         console.log("totalResults", totalResults);
+        this.resultsFirstCalc = {}
+        for(let index in totalResults){
+            this.resultsFirstCalc[index] = Math.round(totalResults[index]*10000)/100
+        }
         // second calculation - 1 algo = 1 vote
 
         this.processingResults = false;
@@ -613,32 +648,27 @@ export default {
       delegationPerAccount,
       answersPerAccount,
       trusted,
-      weight
+      weight,
+      voteAccount
     ) {
       const r = {};
       for (let index in this.selection.note.o) {
         r[index] = 0;
       }
       let failed = false;
-      if (
-        answersPerAccount[account] === undefined ||
-        trusted[account] === undefined
-      ) {
-        return r; // count votes only of voted accounts and calculate their delegation value
-      }
       // count the real vote .. if the account is on the list
       if (trusted[account] !== undefined) {
         let sum = 0;
         for (let index in this.selection.note.o) {
-          sum += answersPerAccount[account].response[index];
-          if (answersPerAccount[account].response[index] < 0) {
+          sum += answersPerAccount[voteAccount].response[index];
+          if (answersPerAccount[voteAccount].response[index] < 0) {
             failed = true;
           }
         }
         if (sum > 0 && !failed) {
           for (let index in this.selection.note.o) {
             r[index] =
-              (answersPerAccount[account].response[index] / sum) * weight;
+              (answersPerAccount[voteAccount].response[index] / sum) * weight;
           }
         }
       }
@@ -647,19 +677,23 @@ export default {
         for (let delegFrom in delegationsToAccount[account]) {
           if (answersPerAccount[delegFrom] !== undefined) continue; //the delegated from account voted by it self
           let sum = 0;
-          for (let acc in delegationPerAccount[delegFrom]) {
-            sum += delegationPerAccount[delegFrom][acc];
+          console.log("delegationPerAccount[delegFrom]",delegationPerAccount[delegFrom])
+          for (let acc in delegationPerAccount[delegFrom].d) {
+            sum += parseInt(delegationPerAccount[delegFrom].d[acc]);
           }
-          let w = (weight * delegationPerAccount[delegFrom][account]) / sum;
+          if(sum == 0) continue;
+          let w = (weight * delegationPerAccount[delegFrom].d[account]) / sum;
           const delegatedPowerFromOther = this.getAccountResult(
             delegFrom,
             delegationsToAccount,
             delegationPerAccount,
             answersPerAccount,
             trusted,
-            w
-          );
+            w,
+            voteAccount
 
+          );
+            console.log("delegation",sum,account, delegFrom,w,weight,sum )
           for (let index in this.selection.note.o) {
             r[index] += delegatedPowerFromOther[index];
           }
@@ -667,6 +701,62 @@ export default {
       }
       return r;
     },
+    async getTrustedList(){
+        const ret = {}
+        /*
+                const accounts = await this.axiosGet({ url: "/trusted.json" });
+        for (let index in accounts) {
+          trusted[accounts[index]] = true;
+        }*/
+        const searchTL = "avote-tl/v1";
+        const txs = await this.searchForTransactionsWithNoteAndAmountAndAccount({
+          note: searchTL,
+          amount: 705,
+          account: this.selection.sender
+        });
+        if (txs && txs.transactions) {
+          for (let index in txs.transactions) {
+            const tx = txs.transactions[index];
+            if (tx["sender"] != this.selection.sender)
+              continue;
+            let note = "";
+            if (this.isBase64(tx.note)) {
+              note = atob(tx.note);
+            }
+            const searchTLWithJ = searchTL + ":j";
+            if (!note.startsWith(searchTLWithJ)) {
+              continue;
+            }
+            note = note.replace(searchTLWithJ, "");
+            let noteJson = {};
+            try {
+              noteJson = JSON.parse(note);
+            } catch (e) {
+              console.log("error parsing", tx);
+              continue;
+            }
+
+
+            if(noteJson.a){
+                for(let index in noteJson.a){
+                    ret[noteJson.a[index]] = true
+                }
+            }
+            if(noteJson.r){
+                for(let index in noteJson.r){
+                    if(ret[noteJson.r[index]] !== undefined){
+                        delete ret[noteJson.r[index]];
+                    }
+                }
+            }
+
+
+          }
+        } else {
+          console.log("no transactions found");
+        }
+        return ret;
+    }
   },
 };
 </script>
