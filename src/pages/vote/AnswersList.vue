@@ -1,48 +1,63 @@
 <template>
   <div>
-    <DataTable
-      :value="questions"
-      responsiveLayout="scroll"
-      selectionMode="single"
-      v-model:selection="selection"
-      :paginator="true"
-      :rows="20"
-    >
-      <template #empty> {{ $t("voteanswerslist.no_answers") }} </template>
-      <Column
-        field="round"
-        :header="$t('voteanswerslist.round')"
-        :sortable="true"
-      ></Column>
-      <Column
-        field="round-time"
-        :header="$t('voteanswerslist.time')"
-        :sortable="true"
+    <div v-if="loading || error">
+      <div v-if="error" class="alert alert-danger">
+        {{ error }}
+      </div>
+      <div v-else>
+        <span
+          class="spinner-grow spinner-grow-sm"
+          role="status"
+          aria-hidden="true"
+        ></span>
+        {{ $t("global.loading") }}
+      </div>
+    </div>
+    <div v-else>
+      <DataTable
+        :value="questions"
+        responsiveLayout="scroll"
+        selectionMode="single"
+        v-model:selection="selection"
+        :paginator="true"
+        :rows="20"
       >
-        <template #body="slotProps">
-          <div v-if="slotProps.column.props.field in slotProps.data">
-            {{
-              $filters.formatDateTime(
-                slotProps.data[slotProps.column.props.field]
-              )
-            }}
-          </div>
-        </template>
-      </Column>
-      <Column
-        field="sender"
-        :header="$t('voteanswerslist.sender')"
-        :sortable="true"
-        styleClass="not-show-at-start"
-      ></Column>
-      <Column field="response" :header="$t('voteanswerslist.response')">
-        <template #body="slotProps">
-          <div v-if="slotProps.column.props.field in slotProps.data">
-            {{ JSON.stringify(slotProps.data[slotProps.column.props.field]) }}
-          </div>
-        </template>
-      </Column>
-    </DataTable>
+        <template #empty> {{ $t("voteanswerslist.no_answers") }} </template>
+        <Column
+          field="round"
+          :header="$t('voteanswerslist.round')"
+          :sortable="true"
+        ></Column>
+        <Column
+          field="round-time"
+          :header="$t('voteanswerslist.time')"
+          :sortable="true"
+        >
+          <template #body="slotProps">
+            <div v-if="slotProps.column.props.field in slotProps.data">
+              {{
+                $filters.formatDateTime(
+                  slotProps.data[slotProps.column.props.field]
+                )
+              }}
+            </div>
+          </template>
+        </Column>
+        <Column
+          field="sender"
+          :header="$t('voteanswerslist.sender')"
+          :sortable="true"
+          styleClass="not-show-at-start"
+        ></Column>
+        <Column field="response" :header="$t('voteanswerslist.response')">
+          <template #body="slotProps">
+            <div v-if="slotProps.column.props.field in slotProps.data">
+              {{ JSON.stringify(slotProps.data[slotProps.column.props.field]) }}
+            </div>
+          </template>
+        </Column>
+      </DataTable>
+    </div>
   </div>
 </template>
 
@@ -55,6 +70,7 @@ export default {
   },
   data() {
     return {
+      loading: false,
       selection: null,
       questions: [],
       answers: [],
@@ -95,14 +111,17 @@ export default {
     }),
     async loadTableItems() {
       console.log("this.question", this.question);
+      this.loading = true;
       this.params = await this.getTransactionParams();
       const search = "avote-vote/v1/" + this.question.substring(0, 10);
       const txs = await this.searchForTransactionsWithNoteAndAmount({
         note: search,
         amount: 703,
+        min: this.params.firstRound - 100000,
       });
+      this.loading = false;
       let latest = null;
-      if (txs.transactions) {
+      if (txs && txs.transactions) {
         for (let index in txs.transactions) {
           const tx = txs.transactions[index];
           if (!tx["sender"]) continue;
@@ -139,6 +158,7 @@ export default {
           this.questions.push(answ);
         }
       } else {
+        this.error = "Error while loading data from the blockchain";
         console.log("no transactions found");
       }
       if (latest) {

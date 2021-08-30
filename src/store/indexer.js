@@ -45,7 +45,10 @@ const actions = {
       console.log("error", error, dispatch);
     }
   },
-  async searchForTransactionsWithNoteAndAmount({ dispatch }, { note, amount }) {
+  async searchForTransactionsWithNoteAndAmount(
+    { dispatch },
+    { note, amount, min }
+  ) {
     try {
       const url = new URL(this.state.config.indexer);
       const indexerClient = new algosdk.Indexer(
@@ -59,11 +62,12 @@ const actions = {
         .searchForTransactions()
         .currencyGreaterThan(amount - 1)
         .currencyLessThan(amount + 1)
+        .minRound(Math.max(min, 0))
         .notePrefix(noteenc)
         .do();
       return searchForTransactions;
     } catch (error) {
-      console.log("error", error, dispatch);
+      console.log("error", error, dispatch, note);
     }
   },
   async searchForTransactionsWithNoteAndAmountAndAccount(
@@ -127,30 +131,48 @@ const actions = {
   },
   async getAccountBalanceAtRound({ commit }, { account, round }) {
     try {
+      console.log(
+        "this.state.indexer.balance is undefined",
+        round,
+        this.state.indexer.balance,
+        this.state.indexer.balance[round] !== undefined
+      );
+      if (this.state.indexer.balance[round] !== undefined) {
+        if (this.state.indexer.balance[round][account] !== undefined) {
+          return this.state.indexer.balance[round][account];
+        } else {
+          console.log(
+            "this.state.indexer.balance[round][account] is undefined",
+            this.state.indexer.balance[round][account]
+          );
+        }
+      } else {
+        console.log(
+          "this.state.indexer.balance[round] is undefined",
+          this.state.indexer.balance[round]
+        );
+      }
       const url = new URL(this.state.config.indexer);
       const indexerClient = new algosdk.Indexer(
         this.state.config.indexerToken,
         this.state.config.indexer,
         url.port
       );
-      if (this.state.indexer.balance[round] !== undefined) {
-        if (this.state.indexer.balance[round][account] !== undefined) {
-          return this.state.indexer.balance[round][account];
-        }
-      }
-      const assetInfo = await indexerClient
+      const accountInfo = await indexerClient
         .lookupAccountByID(account)
         .round(round)
         .do();
-      console.log("assetInfo", assetInfo);
-      if (
-        assetInfo &&
-        assetInfo.assets &&
-        assetInfo.assets.length > 0 &&
-        assetInfo.assets[0].params
-      ) {
-        const balance = assetInfo["balance"];
-        commit("setBalance", { account, round, balance });
+      console.log(
+        "accountInfo",
+        accountInfo,
+        accountInfo.account,
+        accountInfo.account.amount
+      );
+
+      if (accountInfo && accountInfo.account && accountInfo.account.amount) {
+        const balance = accountInfo.account.amount / 1000000;
+        await commit("setBalance", { account, round, balance });
+        console.log(this.state.indexer.balance[round][account]);
         return balance;
       }
     } catch (error) {

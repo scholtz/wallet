@@ -11,6 +11,7 @@
         aria-selected="true"
         >{{ $t("votemenu.overview") }}</v-link
       >
+      <!--
       <v-link
         class="nav-item nav-link"
         :class="current == 'my-questions' ? 'active' : ''"
@@ -20,7 +21,7 @@
         aria-controls="nav-profile"
         aria-selected="false"
         >{{ $t("votemenu.my_questions") }}</v-link
-      >
+      >-->
       <v-link
         class="nav-item nav-link"
         :class="current == 'ask' ? 'active' : ''"

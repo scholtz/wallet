@@ -1,172 +1,187 @@
 <template>
   <MainLayout>
-    <VoteMenu current="delegate" />
-    <h1>{{ $t("votedelegate.title") }}</h1>
-    <p>
-      {{ $t("votedelegate.intro1") }}
-    </p>
-    <p>
-      {{ $t("votedelegate.intro2") }}
-    </p>
-    <p>
-      {{ $t("votedelegate.intro3") }}
-    </p>
-    <p>
-      {{ $t("votedelegate.intro4") }}
-    </p>
-    <div v-for="(delegation, category) in delegations" :key="category">
-      <hr />
-      <h2 v-if="category == 'any'">{{ $t("votedelegate.category_any") }}</h2>
-      <h2 v-else>{{ category }}</h2>
-      <div v-for="(weight, account) in delegation" :key="account">
-        <div class="row">
-          <div class="col-8">
-            <label :for="'A' + category + account">
-              {{ getAccountName(account) }}
-              {{ account }}
-            </label>
-          </div>
-          <div class="col-4">
-            <InputText
-              :id="'A' + category + account"
-              class="w1"
-              v-model.number="delegation[account]"
-              style="width: 14rem"
-            />
-            <Slider
-              class="w1"
-              v-model="delegation[account]"
-              style="width: 14rem"
-            />
-            <div class="m-2">
-              {{
-                $filters.formatPercent(delegation[account] / sum(delegation))
-              }}
+    <div v-if="loading || error">
+      <div v-if="error" class="alert alert-danger">
+        {{ error }}
+      </div>
+      <div v-else>
+        <span
+          class="spinner-grow spinner-grow-sm"
+          role="status"
+          aria-hidden="true"
+        ></span>
+        {{ $t("global.loading") }}
+      </div>
+    </div>
+    <div v-else>
+      <VoteMenu current="delegate" />
+      <h1>{{ $t("votedelegate.title") }}</h1>
+      <p>
+        {{ $t("votedelegate.intro1") }}
+      </p>
+      <p>
+        {{ $t("votedelegate.intro2") }}
+      </p>
+      <p>
+        {{ $t("votedelegate.intro3") }}
+      </p>
+      <p>
+        {{ $t("votedelegate.intro4") }}
+      </p>
+      <div v-for="(delegation, category) in delegations" :key="category">
+        <hr />
+        <h2 v-if="category == 'any'">{{ $t("votedelegate.category_any") }}</h2>
+        <h2 v-else>{{ category }}</h2>
+        <div v-for="(weight, account) in delegation" :key="account">
+          <div class="row">
+            <div class="col-8">
+              <label :for="'A' + category + account">
+                {{ getAccountName(account) }}
+                {{ account }}
+              </label>
+            </div>
+            <div class="col-4">
+              <InputText
+                :id="'A' + category + account"
+                class="w1"
+                v-model.number="delegation[account]"
+                style="width: 14rem"
+              />
+              <Slider
+                class="w1"
+                v-model="delegation[account]"
+                style="width: 14rem"
+              />
+              <div class="m-2">
+                {{
+                  $filters.formatPercent(delegation[account] / sum(delegation))
+                }}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="col-2">
-          <label :for="'add-' + category">{{
-            $t("votedelegate.add_account")
-          }}</label>
-        </div>
-        <div class="col-1">
-          <div class="form-check m-1">
+        <div class="row">
+          <div class="col-2">
+            <label :for="'add-' + category">{{
+              $t("votedelegate.add_account")
+            }}</label>
+          </div>
+          <div class="col-1">
+            <div class="form-check m-1">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                v-model="walletAddress"
+                :id="'custom-' + category"
+              />
+              <label class="form-check-label" :for="'custom-' + category">
+                {{ $t("votedelegate.wallet_address") }}
+              </label>
+            </div>
+          </div>
+          <div class="col-7">
             <input
-              class="form-check-input"
-              type="checkbox"
-              v-model="walletAddress"
-              :id="'custom-' + category"
+              v-if="!walletAddress"
+              :id="'add-' + category"
+              :ref="'add-' + category"
+              class="form-control"
             />
-            <label class="form-check-label" :for="'custom-' + category">
-              {{ $t("votedelegate.wallet_address") }}
-            </label>
+            <select
+              class="form-control"
+              :ref="'add-select-' + category"
+              v-if="walletAddress"
+            >
+              <option
+                v-for="option in $store.state.wallet.privateAccounts"
+                :key="option.addr"
+                :value="option.addr"
+              >
+                {{ option.name + "  - " + option.addr }}
+              </option>
+            </select>
+          </div>
+          <div class="col-2">
+            <button
+              class="btn btn-light btn-outline-primary"
+              @click="addDelegation(category)"
+            >
+              {{ $t("votedelegate.delegate") }}
+            </button>
           </div>
         </div>
-        <div class="col-7">
+      </div>
+
+      <hr />
+      <div class="row">
+        <div class="col-10">
+          <label for="newCategory">{{ $t("votedelegate.category") }}</label>
           <input
-            v-if="!walletAddress"
-            :id="'add-' + category"
-            :ref="'add-' + category"
+            id="newCategory"
+            v-model="newCategory"
             class="form-control"
+            :placeholder="$t('votedelegate.category_placeholder')"
           />
-          <select
-            class="form-control"
-            :ref="'add-select-' + category"
-            v-if="walletAddress"
-          >
-            <option
-              v-for="option in $store.state.wallet.privateAccounts"
-              :key="option.addr"
-              :value="option.addr"
-            >
-              {{ option.name + "  - " + option.addr }}
-            </option>
-          </select>
         </div>
         <div class="col-2">
           <button
             class="btn btn-light btn-outline-primary"
-            @click="addDelegation(category)"
+            @click="this.delegations[this.newCategory] = {}"
           >
-            {{ $t("votedelegate.delegate") }}
+            {{ $t("votedelegate.add_category") }}
           </button>
         </div>
       </div>
-    </div>
 
-    <hr />
-    <div class="row">
-      <div class="col-10">
-        <label for="newCategory">{{ $t("votedelegate.category") }}</label>
-        <input
-          id="newCategory"
-          v-model="newCategory"
-          class="form-control"
-          :placeholder="$t('votedelegate.category_placeholder')"
-        />
-      </div>
-      <div class="col-2">
-        <button
-          class="btn btn-light btn-outline-primary"
-          @click="this.delegations[this.newCategory] = {}"
-        >
-          {{ $t("votedelegate.add_category") }}
-        </button>
-      </div>
-    </div>
-
-    <hr />
-    <div class="row">
-      <div class="col-12">
-        <p>
-          {{ $t("votedelegate.submit_help") }}
-        </p>
-        <div class="my-2">
-          <code>
-            {{ note }}
-          </code>
+      <hr />
+      <div class="row">
+        <div class="col-12">
+          <p>
+            {{ $t("votedelegate.submit_help") }}
+          </p>
+          <div class="my-2">
+            <code>
+              {{ note }}
+            </code>
+          </div>
+          <button
+            class="btn btn-primary"
+            @click="submitDelegation"
+            :disabled="!note || processing"
+          >
+            {{
+              $t("votedelegate.submit_text", {
+                accountName: $store.state.wallet.lastActiveAccountName,
+              })
+            }}
+          </button>
         </div>
-        <button
-          class="btn btn-primary"
-          @click="submitDelegation"
-          :disabled="!note || processing"
-        >
-          {{
-            $t("votedelegate.submit_text", {
-              accountName: $store.state.wallet.lastActiveAccountName,
-            })
-          }}
-        </button>
       </div>
-    </div>
 
-    <p v-if="!tx && processing" class="alert alert-primary my-2">
-      <span
-        class="spinner-grow spinner-grow-sm"
-        role="status"
-        aria-hidden="true"
-      ></span>
-      {{ $t("pay.state_sending") }}
-    </p>
-    <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
-      <span
-        class="spinner-grow spinner-grow-sm"
-        role="status"
-        aria-hidden="true"
-      ></span>
-      {{ $t("pay.state_sent") }}: {{ tx }}.
-      {{ $t("pay.state_waiting_confirm") }}
-    </p>
-    <p v-if="confirmedRound" class="alert alert-success my-2">
-      {{ $t("pay.state_confirmed") }} <b>{{ confirmedRound }}</b
-      >. {{ $t("pay.transaction") }}: {{ tx }}.
-    </p>
-    <p v-if="error" class="alert alert-danger my-2">
-      {{ $t("pay.error") }}: {{ error }}
-    </p>
+      <p v-if="!tx && processing" class="alert alert-primary my-2">
+        <span
+          class="spinner-grow spinner-grow-sm"
+          role="status"
+          aria-hidden="true"
+        ></span>
+        {{ $t("pay.state_sending") }}
+      </p>
+      <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
+        <span
+          class="spinner-grow spinner-grow-sm"
+          role="status"
+          aria-hidden="true"
+        ></span>
+        {{ $t("pay.state_sent") }}: {{ tx }}.
+        {{ $t("pay.state_waiting_confirm") }}
+      </p>
+      <p v-if="confirmedRound" class="alert alert-success my-2">
+        {{ $t("pay.state_confirmed") }} <b>{{ confirmedRound }}</b
+        >. {{ $t("pay.transaction") }}: {{ tx }}.
+      </p>
+      <p v-if="error" class="alert alert-danger my-2">
+        {{ $t("pay.error") }}: {{ error }}
+      </p>
+    </div>
   </MainLayout>
 </template>
 
@@ -181,6 +196,7 @@ export default {
   },
   data() {
     return {
+      loading: false,
       delegations: { any: {} },
       walletAddress: true,
       newCategory: "",
@@ -234,11 +250,13 @@ export default {
     }),
     async loadMyDelegation() {
       const search = "avote-delegation/v1";
+      this.loading = true;
       const txs = await this.searchForTransactionsWithNoteAndAmountAndAccount({
         note: search,
         amount: 701,
         account: this.$store.state.wallet.lastActiveAccount,
       });
+      this.loading = false;
       let latest = null;
       if (txs && txs.transactions) {
         for (let index in txs.transactions) {
@@ -271,6 +289,7 @@ export default {
           if (latest.round < answ.round) latest = answ;
         }
       } else {
+        this.error = "Error while loading data from the blockchain";
         console.log("no transactions found");
       }
       console.log("latest", latest);
