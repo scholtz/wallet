@@ -73,7 +73,7 @@
           <td>{{ this.selection.note.max }}</td>
         </tr>
         <tr v-if="this.params">
-          <th>{{ $t("votequestionlist.maxround") }}:</th>
+          <th>{{ $t("votequestionlist.current_round") }}:</th>
           <td>{{ this.params.firstRound }}</td>
         </tr>
         <tr>
@@ -102,7 +102,9 @@
           <th>{{ $t("votequestionlist.url") }}:</th>
           <td>{{ this.selection.note["url"] }}</td>
         </tr>
-        <tr>
+        <tr
+          v-if="this.selection && this.selection.note && this.selection.note.o"
+        >
           <th>{{ $t("votequestionlist.options") }}:</th>
           <td>
             <div v-for="(o, index) in this.selection.note.o" :key="index">
@@ -179,61 +181,75 @@
             >
               {{ $t("votequestionlist.check_results") }}
             </button>
-            <div v-if="Object.values(resultsFirstCalc).length > 0">
-              <h2>{{ $t("votequestionlist.trusted_list_results") }}</h2>
-              <div v-for="(o, index) in this.selection.note.o" :key="index">
-                <div class="row">
-                  <div class="col-3">
-                    <label :for="'R' + index"> {{ o }} ({{ index }}) </label>
-                  </div>
-                  <div class="col-9">
-                    <InputText
-                      :id="'R' + index"
-                      class="w1"
-                      v-model.number="resultsFirstCalc[index]"
-                      style="width: 14rem"
-                      :disabled="true"
-                    />
-                    <Slider
-                      class="w1"
-                      v-model="resultsFirstCalc[index]"
-                      style="width: 14rem"
-                      :disabled="true"
-                    />
-                    <div class="m-2">
-                      {{
-                        $filters.formatPercent(resultsFirstCalc[index] / 100)
-                      }}
+            <div
+              v-if="
+                Object.values(resultsFirstCalc).length > 0 &&
+                selection &&
+                selection.note &&
+                selection.note.o &&
+                Object.values(selection.note.o).length > 0
+              "
+            >
+              <div v-if="Object.values(resultsFirstCalc).length > 0">
+                <h2>{{ $t("votequestionlist.trusted_list_results") }}</h2>
+                <div v-for="(o, index) in this.selection.note.o" :key="index">
+                  <div class="row">
+                    <div class="col-3">
+                      <label :for="'R1-' + index">
+                        {{ o }} ({{ index }})
+                      </label>
+                    </div>
+                    <div class="col-9">
+                      <InputText
+                        :id="'R1-' + index"
+                        class="w1"
+                        v-model.number="resultsFirstCalc[index]"
+                        style="width: 14rem"
+                        :disabled="true"
+                      />
+                      <Slider
+                        class="w1"
+                        v-model="resultsFirstCalc[index]"
+                        style="width: 14rem"
+                        :disabled="true"
+                      />
+                      <div class="m-2">
+                        {{
+                          $filters.formatPercent(resultsFirstCalc[index] / 100)
+                        }}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div v-if="Object.values(resultsFirstCalc).length > 0">
-              <h2>{{ $t("votequestionlist.hypercapitalism_results") }}</h2>
-              <div v-for="(o, index) in this.selection.note.o" :key="index">
-                <div class="row">
-                  <div class="col-3">
-                    <label :for="'R' + index"> {{ o }} ({{ index }}) </label>
-                  </div>
-                  <div class="col-9">
-                    <InputText
-                      :id="'R' + index"
-                      class="w1"
-                      v-model.number="resultsFirstCalc[index]"
-                      style="width: 14rem"
-                      :disabled="true"
-                    />
-                    <Slider
-                      class="w1"
-                      v-model="resultsFirstCalc[index]"
-                      style="width: 14rem"
-                      :disabled="true"
-                    />
-                    <div class="m-2">
-                      {{
-                        $filters.formatPercent(resultsFirstCalc[index] / 100)
-                      }}
+              <div v-if="Object.values(resultsSecondCalc).length > 0">
+                <h2>{{ $t("votequestionlist.hypercapitalism_results") }}</h2>
+                <div v-for="(o, index) in this.selection.note.o" :key="index">
+                  <div class="row">
+                    <div class="col-3">
+                      <label :for="'R2-' + index">
+                        {{ o }} ({{ index }})
+                      </label>
+                    </div>
+                    <div class="col-9">
+                      <InputText
+                        :id="'R2-' + index"
+                        class="w1"
+                        v-model.number="resultsSecondCalc[index]"
+                        style="width: 14rem"
+                        :disabled="true"
+                      />
+                      <Slider
+                        class="w1"
+                        v-model="resultsSecondCalc[index]"
+                        style="width: 14rem"
+                        :disabled="true"
+                      />
+                      <div class="m-2">
+                        {{
+                          $filters.formatPercent(resultsSecondCalc[index] / 100)
+                        }}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -296,6 +312,7 @@ export default {
       answers: [],
       results: {},
       resultsFirstCalc: {},
+      resultsSecondCalc: {},
       value2: 3,
       params: null,
       tx: null,
@@ -425,6 +442,7 @@ export default {
       waitForConfirmation: "algod/waitForConfirmation",
       prolong: "wallet/prolong",
       axiosGet: "axios/get",
+      getAccountBalanceAtRound: "indexer/getAccountBalanceAtRound",
     }),
 
     isBase64(str) {
@@ -636,7 +654,7 @@ export default {
         for (let index in this.selection.note.o) {
           totalResults[index] = 0;
         }
-        const done = {};
+        let done = {};
         for (let account in answersPerAccount) {
           if (done[account] !== undefined) continue; // already processed
           let accResult = this.getAccountResult(
@@ -662,6 +680,35 @@ export default {
             Math.round(totalResults[index] * 10000) / 100;
         }
         // second calculation - 1 algo = 1 vote
+        const coinResults = {};
+        for (let index in this.selection.note.o) {
+          coinResults[index] = 0;
+        }
+        done = {};
+        for (let account in answersPerAccount) {
+          if (done[account] !== undefined) continue; // already processed
+          let accResult = this.getAccountResultCoinVote(
+            account,
+            delegationsToAccount,
+            delegationPerAccount,
+            answersPerAccount,
+            1,
+            account,
+            this.selection.note.max
+          );
+          console.log("accResult", account, accResult);
+          for (let index in this.selection.note.o) {
+            coinResults[index] += accResult[index];
+          }
+          done[account] = true;
+        }
+
+        console.log("coinResults", coinResults);
+        this.resultsSecondCalc = {};
+        for (let index in coinResults) {
+          this.resultsSecondCalc[index] =
+            Math.round(coinResults[index] * 10000) / 100;
+        }
 
         this.processingResults = false;
       } catch (e) {
@@ -722,6 +769,68 @@ export default {
             trusted,
             w,
             voteAccount
+          );
+          console.log("delegation", sum, account, delegFrom, w, weight, sum);
+          for (let index in this.selection.note.o) {
+            r[index] += delegatedPowerFromOther[index];
+          }
+        }
+      }
+      return r;
+    },
+    getAccountResultCoinVote(
+      account,
+      delegationsToAccount,
+      delegationPerAccount,
+      answersPerAccount,
+      weight,
+      voteAccount,
+      round
+    ) {
+      const r = {};
+      for (let index in this.selection.note.o) {
+        r[index] = 0;
+      }
+      let failed = false;
+      // count the real vote .. if the account is on the list
+      let sum = 0;
+      for (let index in this.selection.note.o) {
+        sum += answersPerAccount[voteAccount].response[index];
+        if (answersPerAccount[voteAccount].response[index] < 0) {
+          failed = true;
+        }
+      }
+      if (sum > 0 && !failed) {
+        for (let index in this.selection.note.o) {
+          r[index] =
+            (answersPerAccount[voteAccount].response[index] / sum) *
+            weight *
+            this.getAccountBalanceAtRound({ account, round });
+        }
+      }
+      // check delegations
+      if (delegationsToAccount[account] !== undefined) {
+        for (let delegFrom in delegationsToAccount[account]) {
+          if (answersPerAccount[delegFrom] !== undefined) continue; //the delegated from account voted by it self
+          let sum = 0;
+          console.log(
+            "delegationPerAccount[delegFrom]",
+            delegationPerAccount[delegFrom]
+          );
+          for (let acc in delegationPerAccount[delegFrom].d) {
+            sum += parseInt(delegationPerAccount[delegFrom].d[acc]);
+          }
+          if (sum == 0) continue;
+          let w = (weight * delegationPerAccount[delegFrom].d[account]) / sum;
+          if (w < 0.00001) continue;
+          const delegatedPowerFromOther = this.getAccountResult(
+            delegFrom,
+            delegationsToAccount,
+            delegationPerAccount,
+            answersPerAccount,
+            w,
+            voteAccount,
+            round
           );
           console.log("delegation", sum, account, delegFrom, w, weight, sum);
           for (let index in this.selection.note.o) {

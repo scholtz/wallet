@@ -1,11 +1,18 @@
 import algosdk from "algosdk";
 const state = () => ({
   assets: [],
+  balance: {},
 });
 
 const mutations = {
   setAsset(state, assetInfo) {
     state.assets.push(assetInfo);
+  },
+  setBalance(state, { account, round, balance }) {
+    if (state.balance[round] === undefined) {
+      state.balance[round] = {};
+    }
+    state.balance[round][account] = balance;
   },
 };
 const actions = {
@@ -113,6 +120,38 @@ const actions = {
         assetInfoData["asset-id"] = assetIndex;
         commit("setAsset", assetInfoData);
         return assetInfoData;
+      }
+    } catch (error) {
+      console.log("error", error);
+    }
+  },
+  async getAccountBalanceAtRound({ commit }, { account, round }) {
+    try {
+      const url = new URL(this.state.config.indexer);
+      const indexerClient = new algosdk.Indexer(
+        this.state.config.indexerToken,
+        this.state.config.indexer,
+        url.port
+      );
+      if (this.state.indexer.balance[round] !== undefined) {
+        if (this.state.indexer.balance[round][account] !== undefined) {
+          return this.state.indexer.balance[round][account];
+        }
+      }
+      const assetInfo = await indexerClient
+        .lookupAccountByID(account)
+        .round(round)
+        .do();
+      console.log("assetInfo", assetInfo);
+      if (
+        assetInfo &&
+        assetInfo.assets &&
+        assetInfo.assets.length > 0 &&
+        assetInfo.assets[0].params
+      ) {
+        const balance = assetInfo["balance"];
+        commit("setBalance", { account, round, balance });
+        return balance;
       }
     } catch (error) {
       console.log("error", error);
