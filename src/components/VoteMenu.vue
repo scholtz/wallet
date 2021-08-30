@@ -9,7 +9,7 @@
         role="tab"
         aria-controls="nav-home"
         aria-selected="true"
-        >Overview</v-link
+        >{{ $t("votemenu.overview") }}</v-link
       >
       <v-link
         class="nav-item nav-link"
@@ -19,7 +19,7 @@
         role="tab"
         aria-controls="nav-profile"
         aria-selected="false"
-        >My questions</v-link
+        >{{ $t("votemenu.my_questions") }}</v-link
       >
       <v-link
         class="nav-item nav-link"
@@ -29,7 +29,7 @@
         role="tab"
         aria-controls="nav-profile"
         aria-selected="false"
-        >Ask question</v-link
+        >{{ $t("votemenu.ask_question") }}</v-link
       >
       <v-link
         class="nav-item nav-link"
@@ -39,7 +39,7 @@
         role="tab"
         aria-controls="nav-contact"
         aria-selected="false"
-        >Delegation</v-link
+        >{{ $t("votemenu.delegation") }}</v-link
       >
       <!--
       <v-link
@@ -50,7 +50,7 @@
         role="tab"
         aria-controls="nav-contact"
         aria-selected="false"
-        >Answers</v-link
+        >{{$t("votemenu.answers")}}</v-link
       >-->
       <v-link
         class="nav-item nav-link"
@@ -60,7 +60,7 @@
         role="tab"
         aria-controls="nav-contact"
         aria-selected="false"
-        >Trusted list</v-link
+        >{{ $t("votemenu.trusted_list") }}</v-link
       >
     </div>
   </div>

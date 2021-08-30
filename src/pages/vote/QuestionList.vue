@@ -713,6 +713,7 @@ export default {
           }
           if (sum == 0) continue;
           let w = (weight * delegationPerAccount[delegFrom].d[account]) / sum;
+          if (w < 0.00001) continue;
           const delegatedPowerFromOther = this.getAccountResult(
             delegFrom,
             delegationsToAccount,

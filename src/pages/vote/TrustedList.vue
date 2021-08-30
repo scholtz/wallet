@@ -1,20 +1,18 @@
 <template>
   <MainLayout>
     <VoteMenu current="tl" />
+    <h1>{{ $t("votetl.title") }}</h1>
+    <p>{{ $t("votetl.help1") }}</p>
     <div class="row">
       <div class="col-12">
-        <label for="add"
-          >Add accounts to trusted list - one account per line</label
-        >
+        <label for="add">{{ $t("votetl.add") }}</label>
         <textarea v-model="add" id="add" rows="10" class="form-control">
         </textarea>
       </div>
     </div>
     <div class="row">
       <div class="col-12">
-        <label for="remove"
-          >Remove accounts from trusted list - one account per line</label
-        >
+        <label for="remove">{{ $t("votetl.remove") }}</label>
         <textarea v-model="remove" id="remove" rows="10" class="form-control">
         </textarea>
       </div>
@@ -22,8 +20,11 @@
     <div class="row my-2">
       <div class="col-12">
         <button class="btn btn-primary" @click="submitTL">
-          Store trusted list to blockchain for
-          {{ $store.state.wallet.lastActiveAccountName }}
+          {{
+            $t("votetl.submit_text", {
+              accountName: $store.state.wallet.lastActiveAccountName,
+            })
+          }}
         </button>
       </div>
     </div>
@@ -64,15 +65,21 @@
       :paginator="true"
       :rows="20"
     >
-      <template #empty> {{ $t("acc_overview.no_answers") }} </template>
+      <template #empty>
+        {{
+          $t("votetl.no_tl", {
+            accountName: $store.state.wallet.lastActiveAccountName,
+          })
+        }}
+      </template>
       <Column
         field="round"
-        :header="$t('voteanswer.round')"
+        :header="$t('votetl.round')"
         :sortable="true"
       ></Column
       ><Column
         field="account"
-        :header="$t('voteanswer.account')"
+        :header="$t('votetl.account')"
         :sortable="true"
       ></Column>
     </DataTable>
