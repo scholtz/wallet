@@ -46,6 +46,14 @@
     "logout": "Logout",
     "vote":"Voting"
   },
+  "votemenu": {
+    "overview": "Overview",
+    "my_questions": "My questions",
+    "ask_question": "Ask question",
+    "delegation": "Delegation",
+    "answers": "Answers",
+    "trusted_list": "Trusted list"
+  },
   "voteask":{
     "title":"Ask question through blockchain",
     "question_title":"Question title",
@@ -108,7 +116,16 @@
     "hypercapitalism_results":"1 coin 1 vote results",
     "vote_help":"If you want to vote, select your preferences please. You can assign your preferences for each answer with rating from zero to 100 points. If you want to select only one answer, please give it 100 points, and other answers to zero points. If you do not know, you do not have to vote, or you can assign all answers the equal number of points. If you vote for one answer in 100 points, and other answer 20 points, your voting power for first answer will be 100/120 = 83% and voting power distribution for second answer will be 17%. If you assign all options 100 points, your voting power distribution will be the same as if you assign all options 1 point.",
     "check_results":"Check results"
-    
+  },
+  "votetl":{
+    "title":"Trusted list management",    
+    "help1":"Questioner can manage list of trusted accounts on this page. Each person may have only one trusted account. The management of this must be provided by the questioner. After the voting will be finished, there are two calculation of votes - one person one vote, and one coin one vote. The voting system does not interpret what the result of voting means. The voting system just calculates the results of votings according to the voting system rules, eg the delegation of votes, proportion of votes, validity of votes and more.",
+    "add":"Add accounts to trusted list - one account per line",    
+    "remove":"Remove accounts from trusted list - one account per line",
+    "submit_text":"Store trusted list to blockchain for {accountName}",
+    "round":"Added in the round n.",
+    "account":"Trusted account",
+    "no_tl":"There are no trusted accounts listed for the account {accountName}."
   },
   "voteanswerslist":{
     "no_answers":"There is no response yet to the question",
