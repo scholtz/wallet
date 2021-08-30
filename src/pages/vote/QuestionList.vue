@@ -57,53 +57,53 @@
         class="btn btn-xs btn-default btn-outline-primary"
         @click="this.selection = null"
       >
-        {{$t("votequestionlist.list")}}
+        {{ $t("votequestionlist.list") }}
       </button>
       <table class="table">
         <tr>
-          <th>{{$t("votequestionlist.id")}}:</th>
+          <th>{{ $t("votequestionlist.id") }}:</th>
           <td>{{ this.selection["id"] }}</td>
         </tr>
         <tr>
-          <th>{{$t("votequestionlist.round")}}:</th>
+          <th>{{ $t("votequestionlist.round") }}:</th>
           <td>{{ this.selection.round }}</td>
         </tr>
         <tr v-if="this.selection && this.selection.note">
-          <th>{{$t("votequestionlist.maxround")}}:</th>
+          <th>{{ $t("votequestionlist.maxround") }}:</th>
           <td>{{ this.selection.note.max }}</td>
         </tr>
         <tr v-if="this.params">
-          <th>{{$t("votequestionlist.maxround")}}:</th>
+          <th>{{ $t("votequestionlist.maxround") }}:</th>
           <td>{{ this.params.firstRound }}</td>
         </tr>
         <tr>
-          <th>{{$t("votequestionlist.round_time")}}:</th>
+          <th>{{ $t("votequestionlist.round_time") }}:</th>
           <td>
             {{ $filters.formatDateTime(this.selection["round-time"]) }}
           </td>
         </tr>
         <tr>
-          <th>{{$t("votequestionlist.sender")}}:</th>
+          <th>{{ $t("votequestionlist.sender") }}:</th>
           <td>{{ this.selection["sender"] }}</td>
         </tr>
         <tr>
-          <th>{{$t("votequestionlist.question_title")}}:</th>
+          <th>{{ $t("votequestionlist.question_title") }}:</th>
           <td>{{ this.selection.note.t }}</td>
         </tr>
         <tr>
-          <th>{{$t("votequestionlist.question_text")}}:</th>
+          <th>{{ $t("votequestionlist.question_text") }}:</th>
           <td>{{ this.selection.note.q }}</td>
         </tr>
         <tr>
-          <th>{{$t("votequestionlist.category")}}:</th>
+          <th>{{ $t("votequestionlist.category") }}:</th>
           <td>{{ this.selection.note["category"] }}</td>
         </tr>
         <tr>
-          <th>{{$t("votequestionlist.url")}}:</th>
+          <th>{{ $t("votequestionlist.url") }}:</th>
           <td>{{ this.selection.note["url"] }}</td>
         </tr>
         <tr>
-          <th>{{$t("votequestionlist.options")}}:</th>
+          <th>{{ $t("votequestionlist.options") }}:</th>
           <td>
             <div v-for="(o, index) in this.selection.note.o" :key="index">
               <div class="row">
@@ -143,13 +143,17 @@
           <th></th>
           <td>
             <div v-if="votingFinished" class="alert alert-danger">
-              {{$t("votequestionlist.voting_closed")}}
+              {{ $t("votequestionlist.voting_closed") }}
             </div>
             <div
               v-if="selectedAnswer && selectedAnswer.latest"
               class="alert alert-success"
             >
-                {{$t("votequestionlist.voting_closed",{accountName:$store.state.wallet.lastActiveAccountName})}}
+              {{
+                $t("votequestionlist.voting_closed", {
+                  accountName: $store.state.wallet.lastActiveAccountName,
+                })
+              }}
             </div>
 
             <button
@@ -162,78 +166,78 @@
               "
               @click="submitVote"
             >
-                {{$t("votequestionlist.vote_button",{accountName:$store.state.wallet.lastActiveAccountName})}}
+              {{
+                $t("votequestionlist.vote_button", {
+                  accountName: $store.state.wallet.lastActiveAccountName,
+                })
+              }}
             </button>
             <button
               v-if="votingFinished"
               class="btn btn-primary bg-primary"
               @click="checkResults"
             >
-              {{$t("votequestionlist.check_results")}}
+              {{ $t("votequestionlist.check_results") }}
             </button>
-<div v-if="Object.values(resultsFirstCalc).length > 0">
-                <h2>{{$t("votequestionlist.trusted_list_results")}}</h2>
-<div v-for="(o, index) in this.selection.note.o" :key="index">
-              <div class="row">
-                <div class="col-3">
-                  <label :for="'R' + index">
-                    {{ o }} ({{index}})
-                  </label>
-                </div>
-                <div
-                  class="col-9"
-                >
-                  <InputText
-                    :id="'R' + index"
-                    class="w1"
-                    v-model.number="resultsFirstCalc[index]"
-                    style="width: 14rem"
-                    :disabled="true"
-                  />
-                  <Slider
-                    class="w1"
-                    v-model="resultsFirstCalc[index]"
-                    style="width: 14rem"
-                    :disabled="true"
-                  />
-                  <div class="m-2">
-                    {{ $filters.formatPercent(resultsFirstCalc[index]/100) }}
+            <div v-if="Object.values(resultsFirstCalc).length > 0">
+              <h2>{{ $t("votequestionlist.trusted_list_results") }}</h2>
+              <div v-for="(o, index) in this.selection.note.o" :key="index">
+                <div class="row">
+                  <div class="col-3">
+                    <label :for="'R' + index"> {{ o }} ({{ index }}) </label>
+                  </div>
+                  <div class="col-9">
+                    <InputText
+                      :id="'R' + index"
+                      class="w1"
+                      v-model.number="resultsFirstCalc[index]"
+                      style="width: 14rem"
+                      :disabled="true"
+                    />
+                    <Slider
+                      class="w1"
+                      v-model="resultsFirstCalc[index]"
+                      style="width: 14rem"
+                      :disabled="true"
+                    />
+                    <div class="m-2">
+                      {{
+                        $filters.formatPercent(resultsFirstCalc[index] / 100)
+                      }}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-            </div>
-<div v-if="Object.values(resultsFirstCalc).length > 0">
-                <h2>{{$t("votequestionlist.hypercapitalism_results")}}</h2>
-<div v-for="(o, index) in this.selection.note.o" :key="index">
-              <div class="row">
-                <div class="col-3">
-                  <label :for="'R' + index">
-                    {{ o }} ({{index}})
-                  </label>
-                </div>
-                <div
-                  class="col-9"
-                >
-                  <InputText
-                    :id="'R' + index"
-                    class="w1"
-                    v-model.number="resultsFirstCalc[index]"
-                    style="width: 14rem"
-                    :disabled="true"
-                  />
-                  <Slider
-                    class="w1"
-                    v-model="resultsFirstCalc[index]"
-                    style="width: 14rem"
-                    :disabled="true"
-                  />
-                  <div class="m-2">
-                    {{ $filters.formatPercent(resultsFirstCalc[index]/100) }}
+            <div v-if="Object.values(resultsFirstCalc).length > 0">
+              <h2>{{ $t("votequestionlist.hypercapitalism_results") }}</h2>
+              <div v-for="(o, index) in this.selection.note.o" :key="index">
+                <div class="row">
+                  <div class="col-3">
+                    <label :for="'R' + index"> {{ o }} ({{ index }}) </label>
+                  </div>
+                  <div class="col-9">
+                    <InputText
+                      :id="'R' + index"
+                      class="w1"
+                      v-model.number="resultsFirstCalc[index]"
+                      style="width: 14rem"
+                      :disabled="true"
+                    />
+                    <Slider
+                      class="w1"
+                      v-model="resultsFirstCalc[index]"
+                      style="width: 14rem"
+                      :disabled="true"
+                    />
+                    <div class="m-2">
+                      {{
+                        $filters.formatPercent(resultsFirstCalc[index] / 100)
+                      }}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
             </div>
             <div v-if="canVote">
               <code>{{ note }}</code>
@@ -267,7 +271,7 @@
         {{ $t("pay.error") }}: {{ error }}
       </p>
       <div v-if="!votingFinished">
-       {{ $t("pay.vote_help") }}
+        {{ $t("pay.vote_help") }}
       </div>
       <AnswersList
         v-if="selection && selection.id"
@@ -291,7 +295,7 @@ export default {
       questions: [],
       answers: [],
       results: {},
-      resultsFirstCalc:{},
+      resultsFirstCalc: {},
       value2: 3,
       params: null,
       tx: null,
@@ -413,7 +417,8 @@ export default {
     ...mapActions({
       searchForTransactionsWithNoteAndAmount:
         "indexer/searchForTransactionsWithNoteAndAmount",
-        searchForTransactionsWithNoteAndAmountAndAccount:"indexer/searchForTransactionsWithNoteAndAmountAndAccount",
+      searchForTransactionsWithNoteAndAmountAndAccount:
+        "indexer/searchForTransactionsWithNoteAndAmountAndAccount",
       openSuccess: "toast/openSuccess",
       makePayment: "algod/makePayment",
       getTransactionParams: "algod/getTransactionParams",
@@ -625,9 +630,8 @@ export default {
         console.log("delegationsToAccount", delegationsToAccount);
         // first calculation - trusted accounts
 
-        
         const trusted = await this.getTrustedList();
-        console.log("trusted",trusted)
+        console.log("trusted", trusted);
         const totalResults = {};
         for (let index in this.selection.note.o) {
           totalResults[index] = 0;
@@ -652,9 +656,10 @@ export default {
         }
 
         console.log("totalResults", totalResults);
-        this.resultsFirstCalc = {}
-        for(let index in totalResults){
-            this.resultsFirstCalc[index] = Math.round(totalResults[index]*10000)/100
+        this.resultsFirstCalc = {};
+        for (let index in totalResults) {
+          this.resultsFirstCalc[index] =
+            Math.round(totalResults[index] * 10000) / 100;
         }
         // second calculation - 1 algo = 1 vote
 
@@ -699,11 +704,14 @@ export default {
         for (let delegFrom in delegationsToAccount[account]) {
           if (answersPerAccount[delegFrom] !== undefined) continue; //the delegated from account voted by it self
           let sum = 0;
-          console.log("delegationPerAccount[delegFrom]",delegationPerAccount[delegFrom])
+          console.log(
+            "delegationPerAccount[delegFrom]",
+            delegationPerAccount[delegFrom]
+          );
           for (let acc in delegationPerAccount[delegFrom].d) {
             sum += parseInt(delegationPerAccount[delegFrom].d[acc]);
           }
-          if(sum == 0) continue;
+          if (sum == 0) continue;
           let w = (weight * delegationPerAccount[delegFrom].d[account]) / sum;
           const delegatedPowerFromOther = this.getAccountResult(
             delegFrom,
@@ -713,9 +721,8 @@ export default {
             trusted,
             w,
             voteAccount
-
           );
-            console.log("delegation",sum,account, delegFrom,w,weight,sum )
+          console.log("delegation", sum, account, delegFrom, w, weight, sum);
           for (let index in this.selection.note.o) {
             r[index] += delegatedPowerFromOther[index];
           }
@@ -723,64 +730,60 @@ export default {
       }
       return r;
     },
-    async getTrustedList(){
-        const ret = {}
-        /*
+    async getTrustedList() {
+      const ret = {};
+      /*
                 const accounts = await this.axiosGet({ url: "/trusted.json" });
         for (let index in accounts) {
           trusted[accounts[index]] = true;
         }*/
-        const searchTL = "avote-tl/v1";
-        const txs = await this.searchForTransactionsWithNoteAndAmountAndAccount({
-          note: searchTL,
-          amount: 705,
-          account: this.selection.sender
-        });
-        if (txs && txs.transactions) {
-          for (let index in txs.transactions) {
-            const tx = txs.transactions[index];
-            if (tx["sender"] != this.selection.sender)
-              continue;
-            if(tx["confirmed-block"] > this.selection.note.max) continue;
+      const searchTL = "avote-tl/v1";
+      const txs = await this.searchForTransactionsWithNoteAndAmountAndAccount({
+        note: searchTL,
+        amount: 705,
+        account: this.selection.sender,
+      });
+      if (txs && txs.transactions) {
+        for (let index in txs.transactions) {
+          const tx = txs.transactions[index];
+          if (tx["sender"] != this.selection.sender) continue;
+          if (tx["confirmed-block"] > this.selection.note.max) continue;
 
-            let note = "";
-            if (this.isBase64(tx.note)) {
-              note = atob(tx.note);
-            }
-            const searchTLWithJ = searchTL + ":j";
-            if (!note.startsWith(searchTLWithJ)) {
-              continue;
-            }
-            note = note.replace(searchTLWithJ, "");
-            let noteJson = {};
-            try {
-              noteJson = JSON.parse(note);
-            } catch (e) {
-              console.log("error parsing", tx);
-              continue;
-            }
-
-
-            if(noteJson.a){
-                for(let index in noteJson.a){
-                    ret[noteJson.a[index]] = true
-                }
-            }
-            if(noteJson.r){
-                for(let index in noteJson.r){
-                    if(ret[noteJson.r[index]] !== undefined){
-                        delete ret[noteJson.r[index]];
-                    }
-                }
-            }
-
-
+          let note = "";
+          if (this.isBase64(tx.note)) {
+            note = atob(tx.note);
           }
-        } else {
-          console.log("no transactions found");
+          const searchTLWithJ = searchTL + ":j";
+          if (!note.startsWith(searchTLWithJ)) {
+            continue;
+          }
+          note = note.replace(searchTLWithJ, "");
+          let noteJson = {};
+          try {
+            noteJson = JSON.parse(note);
+          } catch (e) {
+            console.log("error parsing", tx);
+            continue;
+          }
+
+          if (noteJson.a) {
+            for (let index in noteJson.a) {
+              ret[noteJson.a[index]] = true;
+            }
+          }
+          if (noteJson.r) {
+            for (let index in noteJson.r) {
+              if (ret[noteJson.r[index]] !== undefined) {
+                delete ret[noteJson.r[index]];
+              }
+            }
+          }
         }
-        return ret;
-    }
+      } else {
+        console.log("no transactions found");
+      }
+      return ret;
+    },
   },
 };
 </script>

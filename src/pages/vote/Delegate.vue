@@ -1,22 +1,22 @@
 <template>
   <MainLayout>
     <VoteMenu current="delegate" />
-    <h1>{{$t("votedelegate.title")}}</h1>
+    <h1>{{ $t("votedelegate.title") }}</h1>
     <p>
-      {{$t("votedelegate.intro1")}}
+      {{ $t("votedelegate.intro1") }}
     </p>
     <p>
-      {{$t("votedelegate.intro2")}}
+      {{ $t("votedelegate.intro2") }}
     </p>
     <p>
-      {{$t("votedelegate.intro3")}}
+      {{ $t("votedelegate.intro3") }}
     </p>
     <p>
-      {{$t("votedelegate.intro4")}}
+      {{ $t("votedelegate.intro4") }}
     </p>
     <div v-for="(delegation, category) in delegations" :key="category">
       <hr />
-      <h2 v-if="category == 'any'">{{$t("votedelegate.category_any")}}</h2>
+      <h2 v-if="category == 'any'">{{ $t("votedelegate.category_any") }}</h2>
       <h2 v-else>{{ category }}</h2>
       <div v-for="(weight, account) in delegation" :key="account">
         <div class="row">
@@ -48,7 +48,9 @@
       </div>
       <div class="row">
         <div class="col-2">
-          <label :for="'add-' + category">{{$t("votedelegate.add_account")}}</label>
+          <label :for="'add-' + category">{{
+            $t("votedelegate.add_account")
+          }}</label>
         </div>
         <div class="col-1">
           <div class="form-check m-1">
@@ -59,7 +61,7 @@
               :id="'custom-' + category"
             />
             <label class="form-check-label" :for="'custom-' + category">
-              {{$t("votedelegate.wallet_address")}}
+              {{ $t("votedelegate.wallet_address") }}
             </label>
           </div>
         </div>
@@ -89,7 +91,7 @@
             class="btn btn-light btn-outline-primary"
             @click="addDelegation(category)"
           >
-            {{$t("votedelegate.delegate")}}
+            {{ $t("votedelegate.delegate") }}
           </button>
         </div>
       </div>
@@ -98,9 +100,9 @@
     <hr />
     <div class="row">
       <div class="col-10">
-        <label for="newCategory">{{$t("votedelegate.category")}}</label>
+        <label for="newCategory">{{ $t("votedelegate.category") }}</label>
         <input
-        id="newCategory"
+          id="newCategory"
           v-model="newCategory"
           class="form-control"
           :placeholder="$t('votedelegate.category_placeholder')"
@@ -111,7 +113,7 @@
           class="btn btn-light btn-outline-primary"
           @click="this.delegations[this.newCategory] = {}"
         >
-          {{$t("votedelegate.add_category")}}
+          {{ $t("votedelegate.add_category") }}
         </button>
       </div>
     </div>
@@ -120,7 +122,7 @@
     <div class="row">
       <div class="col-12">
         <p>
-          {{$t("votedelegate.submit_help")}}
+          {{ $t("votedelegate.submit_help") }}
         </p>
         <div class="my-2">
           <code>
@@ -132,7 +134,11 @@
           @click="submitDelegation"
           :disabled="!note || processing"
         >
-          {{$t("votedelegate.submit_text",{accountName:$store.state.wallet.lastActiveAccountName})}} 
+          {{
+            $t("votedelegate.submit_text", {
+              accountName: $store.state.wallet.lastActiveAccountName,
+            })
+          }}
         </button>
       </div>
     </div>

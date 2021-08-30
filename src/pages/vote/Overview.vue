@@ -1,7 +1,7 @@
 <template>
   <MainLayout>
     <VoteMenu current="overview" />
-    <h1>{{$t("voteoverview.title")}}</h1>
+    <h1>{{ $t("voteoverview.title") }}</h1>
     <QuestionList />
   </MainLayout>
 </template>
@@ -15,11 +15,10 @@ export default {
   components: {
     MainLayout,
     VoteMenu,
-    QuestionList
+    QuestionList,
   },
   data() {
-    return {
-    };
+    return {};
   },
   computed: {
     accountsWithPrivateKey() {
@@ -40,6 +39,6 @@ export default {
         "algod/makeAssetCreateTxnWithSuggestedParams",
       openSuccess: "toast/openSuccess",
     }),
-  }
+  },
 };
 </script>

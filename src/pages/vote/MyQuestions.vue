@@ -1,7 +1,7 @@
 <template>
   <MainLayout>
     <VoteMenu current="my-questions" />
-    <h1>{{$t("votequestions.title")}}</h1>
+    <h1>{{ $t("votequestions.title") }}</h1>
     <QuestionList />
   </MainLayout>
 </template>
@@ -15,11 +15,10 @@ export default {
   components: {
     MainLayout,
     VoteMenu,
-    QuestionList
+    QuestionList,
   },
   data() {
-    return {
-    };
+    return {};
   },
   computed: {
     accountsWithPrivateKey() {

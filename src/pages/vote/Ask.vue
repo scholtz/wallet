@@ -8,7 +8,7 @@
 
       <div class="row">
         <div class="col-12">
-          <label for="title">{{$t("voteask.question_title")}}</label>
+          <label for="title">{{ $t("voteask.question_title") }}</label>
           <input
             id="title"
             class="form-control my-2"
@@ -18,7 +18,7 @@
           />
         </div>
         <div class="col-12">
-          <label for="question">{{$t("voteask.question_text")}}</label>
+          <label for="question">{{ $t("voteask.question_text") }}</label>
           <textarea
             id="question"
             class="form-control my-2"
@@ -28,7 +28,7 @@
         </div>
 
         <div class="col-12">
-          <label for="url">{{$t("voteask.url")}}</label>
+          <label for="url">{{ $t("voteask.url") }}</label>
           <input
             class="form-control my-2"
             v-model="url"
@@ -37,9 +37,9 @@
           />
         </div>
         <div class="col-12">
-          <label for="max">{{$t("voteask.max_round")}}</label>
+          <label for="max">{{ $t("voteask.max_round") }}</label>
           <input
-          id="max"
+            id="max"
             class="form-control my-2"
             min="1"
             max="9999999"
@@ -49,9 +49,10 @@
           />
         </div>
         <div class="col-12">
-          {{$t("voteask.calculated_block")}}: {{ max_block }} {{$t("voteask.calculated_time")}}: {{ max_blockTime }}
+          {{ $t("voteask.calculated_block") }}: {{ max_block }}
+          {{ $t("voteask.calculated_time") }}: {{ max_blockTime }}
         </div>
-        <p>{{$t("voteask.responses_help")}}</p>
+        <p>{{ $t("voteask.responses_help") }}</p>
         <div class="row" v-for="(option, index) in options" :key="index">
           <div class="col-2">
             <input
@@ -76,17 +77,20 @@
                 })
               "
             >
-              {{$t("voteask.remove_response")}}
+              {{ $t("voteask.remove_response") }}
             </button>
           </div>
         </div>
         <div class="col-12">
-          <button class="btn btn-light btn-xs btn-outline-primary" @click="addOption">
-            {{$t("voteask.add_response")}}
+          <button
+            class="btn btn-light btn-xs btn-outline-primary"
+            @click="addOption"
+          >
+            {{ $t("voteask.add_response") }}
           </button>
         </div>
         <div class="col-12">
-          <label for="category">{{$t("voteask.category")}}</label>
+          <label for="category">{{ $t("voteask.category") }}</label>
           <input
             id="category"
             class="form-control my-2"
@@ -105,7 +109,11 @@
             :disabled="!note || processing"
             class="btn btn-primary my-2"
             @click="loadMultisig"
-            :value="$t('voteask.submit_question',{accountName: $store.state.wallet.lastActiveAccountName })"
+            :value="
+              $t('voteask.submit_question', {
+                accountName: $store.state.wallet.lastActiveAccountName,
+              })
+            "
           />
         </div>
 

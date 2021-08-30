@@ -22,7 +22,8 @@
     <div class="row my-2">
       <div class="col-12">
         <button class="btn btn-primary" @click="submitTL">
-          Store trusted list to blockchain for {{ $store.state.wallet.lastActiveAccountName }}
+          Store trusted list to blockchain for
+          {{ $store.state.wallet.lastActiveAccountName }}
         </button>
       </div>
     </div>
@@ -31,30 +32,30 @@
         <code>{{ note }}</code>
       </div>
     </div>
-            <p v-if="!tx && processing" class="alert alert-primary my-2">
-          <span
-            class="spinner-grow spinner-grow-sm"
-            role="status"
-            aria-hidden="true"
-          ></span>
-          {{ $t("pay.state_sending") }}
-        </p>
-        <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
-          <span
-            class="spinner-grow spinner-grow-sm"
-            role="status"
-            aria-hidden="true"
-          ></span>
-          {{ $t("pay.state_sent") }}: {{ tx }}.
-          {{ $t("pay.state_waiting_confirm") }}
-        </p>
-        <p v-if="confirmedRound" class="alert alert-success my-2">
-          {{ $t("pay.state_confirmed") }} <b>{{ confirmedRound }}</b
-          >. {{ $t("pay.transaction") }}: {{ tx }}.
-        </p>
-        <p v-if="error" class="alert alert-danger my-2">
-          {{ $t("pay.error") }}: {{ error }}
-        </p>
+    <p v-if="!tx && processing" class="alert alert-primary my-2">
+      <span
+        class="spinner-grow spinner-grow-sm"
+        role="status"
+        aria-hidden="true"
+      ></span>
+      {{ $t("pay.state_sending") }}
+    </p>
+    <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
+      <span
+        class="spinner-grow spinner-grow-sm"
+        role="status"
+        aria-hidden="true"
+      ></span>
+      {{ $t("pay.state_sent") }}: {{ tx }}.
+      {{ $t("pay.state_waiting_confirm") }}
+    </p>
+    <p v-if="confirmedRound" class="alert alert-success my-2">
+      {{ $t("pay.state_confirmed") }} <b>{{ confirmedRound }}</b
+      >. {{ $t("pay.transaction") }}: {{ tx }}.
+    </p>
+    <p v-if="error" class="alert alert-danger my-2">
+      {{ $t("pay.error") }}: {{ error }}
+    </p>
     <DataTable
       :value="tl"
       responsiveLayout="scroll"
@@ -68,7 +69,8 @@
         field="round"
         :header="$t('voteanswer.round')"
         :sortable="true"
-      ></Column><Column
+      ></Column
+      ><Column
         field="account"
         :header="$t('voteanswer.account')"
         :sortable="true"
@@ -115,24 +117,27 @@ export default {
     note() {
       const data = {};
       const add = this.add.split("\n").filter((a) => this.validateAccount(a));
-      if(add.length > 0) data.a = add;
-      const remove = this.remove.split("\n").filter((a) => this.validateAccount(a));
-      if(remove.length > 0) data.r = remove;
+      if (add.length > 0) data.a = add;
+      const remove = this.remove
+        .split("\n")
+        .filter((a) => this.validateAccount(a));
+      if (remove.length > 0) data.r = remove;
 
-      if(add.length == 0 && remove.length == 0) return ""
+      if (add.length == 0 && remove.length == 0) return "";
       return "avote-tl/v1:j" + JSON.stringify(data);
     },
   },
 
   async mounted() {
     this.prolong();
-      await this.loadTableItems();
+    await this.loadTableItems();
   },
   methods: {
     ...mapActions({
       searchForTransactionsWithNoteAndAmount:
         "indexer/searchForTransactionsWithNoteAndAmount",
-        searchForTransactionsWithNoteAndAmountAndAccount:"indexer/searchForTransactionsWithNoteAndAmountAndAccount",
+      searchForTransactionsWithNoteAndAmountAndAccount:
+        "indexer/searchForTransactionsWithNoteAndAmountAndAccount",
       openSuccess: "toast/openSuccess",
       makePayment: "algod/makePayment",
       getTransactionParams: "algod/getTransactionParams",
@@ -152,7 +157,7 @@ export default {
       const txs = await this.searchForTransactionsWithNoteAndAmountAndAccount({
         note: search,
         amount: 705,
-        account:this.$store.state.wallet.lastActiveAccount
+        account: this.$store.state.wallet.lastActiveAccount,
       });
       let ret = {};
       if (txs.transactions) {
@@ -177,29 +182,27 @@ export default {
             console.log("error parsing", tx);
             continue;
           }
-          
 
-            if(noteJson.a){
-                for(let index in noteJson.a){
-                    ret[noteJson.a[index]] = tx["confirmed-round"]
-                }
+          if (noteJson.a) {
+            for (let index in noteJson.a) {
+              ret[noteJson.a[index]] = tx["confirmed-round"];
             }
-            if(noteJson.r){
-                for(let index in noteJson.r){
-                    if(ret[noteJson.r[index]] !== undefined){
-                        delete ret[noteJson.r[index]];
-                    }
-                }
+          }
+          if (noteJson.r) {
+            for (let index in noteJson.r) {
+              if (ret[noteJson.r[index]] !== undefined) {
+                delete ret[noteJson.r[index]];
+              }
             }
-
+          }
         }
       } else {
         console.log("no transactions found");
       }
 
-      this.tl = []
-      for(let index in ret){
-        this.tl.push({round:ret[index],account:index})
+      this.tl = [];
+      for (let index in ret) {
+        this.tl.push({ round: ret[index], account: index });
       }
     },
     isBase64(str) {
@@ -213,7 +216,7 @@ export default {
         return false;
       }
     },
-    
+
     async submitTL(e) {
       this.prolong();
       e.preventDefault();
