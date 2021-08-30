@@ -1,7 +1,7 @@
 <template>
   <MainLayout>
     <VoteMenu current="overview" />
-    <h1>Questions</h1>
+    <h1>{{$t("voteoverview.title")}}</h1>
     <QuestionList />
   </MainLayout>
 </template>
@@ -19,22 +19,6 @@ export default {
   },
   data() {
     return {
-      asset: {
-        addr: "",
-        note: "",
-        totalIssuance: 1,
-        decimals: 0,
-        defaultFrozen: false,
-        manager: "",
-        reserve: "",
-        freeze: "",
-        clawback: "",
-        unitName: "",
-        assetName: "",
-        assetURL: "",
-        assetMetadataHash: "",
-      },
-      advanced: false,
     };
   },
   computed: {
@@ -56,16 +40,6 @@ export default {
         "algod/makeAssetCreateTxnWithSuggestedParams",
       openSuccess: "toast/openSuccess",
     }),
-    async createAsset(e) {
-      e.preventDefault();
-      console.log("asset", this.asset);
-      const asset = await this.makeAssetCreateTxnWithSuggestedParams({
-        asset: this.asset,
-      });
-      if (asset.txId) {
-        this.openSuccess("Asset request sent to the network: " + asset.txId);
-      }
-    },
-  },
+  }
 };
 </script>

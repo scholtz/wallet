@@ -1,35 +1,22 @@
 <template>
   <MainLayout>
     <VoteMenu current="delegate" />
-    <h1>Voting power delegation</h1>
+    <h1>{{$t("votedelegate.title")}}</h1>
     <p>
-      You can delegate your voting power to someone you trust. It may be your
-      friend or some public person.
+      {{$t("votedelegate.intro1")}}
     </p>
     <p>
-      If you have good friend in finance, you can delegate him voting power in
-      finance category. If he does not vote for questions directly, he might
-      delegate your voting power and his voting power according his wisdom to
-      wise person he know. When the wise person votes, he uses your voting power
-      and he represents your opinions. You can always vote directly in all
-      matters even if you have the delegation. If you vote directly, your voting
-      power stays only at your discrete decision.
+      {{$t("votedelegate.intro2")}}
     </p>
     <p>
-      You can split your voting power to several friends. You set the weight of
-      your voting power distribution in points. If you set 50 points for first
-      friend and 100 points for second friend, first friend will have 50/150 =
-      33% of your voting power. Second friend will have the rest 100/150 = 67%
-      of your voting power.
+      {{$t("votedelegate.intro3")}}
     </p>
     <p>
-      The category any is the fallback category. If category delegation for
-      specific question is not defined, the any category will be used if
-      defined.
+      {{$t("votedelegate.intro4")}}
     </p>
     <div v-for="(delegation, category) in delegations" :key="category">
       <hr />
-      <h2 v-if="category == 'any'">Any category</h2>
+      <h2 v-if="category == 'any'">{{$t("votedelegate.category_any")}}</h2>
       <h2 v-else>{{ category }}</h2>
       <div v-for="(weight, account) in delegation" :key="account">
         <div class="row">
@@ -61,7 +48,7 @@
       </div>
       <div class="row">
         <div class="col-2">
-          <label :for="'add-' + category">Add account</label>
+          <label :for="'add-' + category">{{$t("votedelegate.add_account")}}</label>
         </div>
         <div class="col-1">
           <div class="form-check m-1">
@@ -72,7 +59,7 @@
               :id="'custom-' + category"
             />
             <label class="form-check-label" :for="'custom-' + category">
-              Wallet address
+              {{$t("votedelegate.wallet_address")}}
             </label>
           </div>
         </div>
@@ -102,7 +89,7 @@
             class="btn btn-light btn-outline-primary"
             @click="addDelegation(category)"
           >
-            Add account to delegation
+            {{$t("votedelegate.delegate")}}
           </button>
         </div>
       </div>
@@ -111,10 +98,12 @@
     <hr />
     <div class="row">
       <div class="col-10">
+        <label for="newCategory">{{$t("votedelegate.category")}}</label>
         <input
+        id="newCategory"
           v-model="newCategory"
           class="form-control"
-          placeholder="Add specific delegation category name"
+          :placeholder="$t('votedelegate.category_placeholder')"
         />
       </div>
       <div class="col-2">
@@ -122,7 +111,7 @@
           class="btn btn-light btn-outline-primary"
           @click="this.delegations[this.newCategory] = {}"
         >
-          Add specific category
+          {{$t("votedelegate.add_category")}}
         </button>
       </div>
     </div>
@@ -131,8 +120,7 @@
     <div class="row">
       <div class="col-12">
         <p>
-          By clicking the button below, you will store your delegation
-          preferences to the blockchain.
+          {{$t("votedelegate.submit_help")}}
         </p>
         <div class="my-2">
           <code>
@@ -144,7 +132,7 @@
           @click="submitDelegation"
           :disabled="!note || processing"
         >
-          Store delegation to the blockchain
+          {{$t("votedelegate.submit_text",{accountName:$store.state.wallet.lastActiveAccountName})}} 
         </button>
       </div>
     </div>

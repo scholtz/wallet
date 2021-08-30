@@ -22,7 +22,7 @@
     <div class="row my-2">
       <div class="col-12">
         <button class="btn btn-primary" @click="submitTL">
-          Store trusted list to blockchain
+          Store trusted list to blockchain for {{ $store.state.wallet.lastActiveAccountName }}
         </button>
       </div>
     </div>

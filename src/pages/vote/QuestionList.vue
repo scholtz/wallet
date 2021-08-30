@@ -12,22 +12,22 @@
       <template #empty> {{ $t("acc_overview.no_questions") }} </template>
       <Column
         field="note.t"
-        :header="$t('votequestion.title')"
+        :header="$t('votequestionlist.question_title')"
         :sortable="true"
       ></Column>
       <Column
         field="round"
-        :header="$t('votequestion.round')"
+        :header="$t('votequestionlist.round')"
         :sortable="true"
       ></Column>
       <Column
         field="note.max"
-        :header="$t('votequestion.maxround')"
+        :header="$t('votequestionlist.maxround')"
         :sortable="true"
       ></Column>
       <Column
         field="round-time"
-        :header="$t('acc_overview.time')"
+        :header="$t('votequestionlist.time')"
         :sortable="true"
       >
         <template #body="slotProps">
@@ -42,12 +42,12 @@
       </Column>
       <Column
         field="note.category"
-        :header="$t('votequestion.category')"
+        :header="$t('votequestionlist.category')"
         :sortable="true"
       ></Column>
       <Column
         field="sender"
-        :header="$t('acc_overview.sender')"
+        :header="$t('votequestionlist.sender')"
         :sortable="true"
         styleClass="not-show-at-start"
       ></Column>
@@ -57,53 +57,53 @@
         class="btn btn-xs btn-default btn-outline-primary"
         @click="this.selection = null"
       >
-        List all questions
+        {{$t("votequestionlist.list")}}
       </button>
       <table class="table">
         <tr>
-          <th>Question id:</th>
+          <th>{{$t("votequestionlist.id")}}:</th>
           <td>{{ this.selection["id"] }}</td>
         </tr>
         <tr>
-          <th>Round:</th>
+          <th>{{$t("votequestionlist.round")}}:</th>
           <td>{{ this.selection.round }}</td>
         </tr>
         <tr v-if="this.selection && this.selection.note">
-          <th>Max voting round:</th>
+          <th>{{$t("votequestionlist.maxround")}}:</th>
           <td>{{ this.selection.note.max }}</td>
         </tr>
         <tr v-if="this.params">
-          <th>Current round:</th>
+          <th>{{$t("votequestionlist.maxround")}}:</th>
           <td>{{ this.params.firstRound }}</td>
         </tr>
         <tr>
-          <th>Time of the round:</th>
+          <th>{{$t("votequestionlist.round_time")}}:</th>
           <td>
             {{ $filters.formatDateTime(this.selection["round-time"]) }}
           </td>
         </tr>
         <tr>
-          <th>Questionaree:</th>
+          <th>{{$t("votequestionlist.sender")}}:</th>
           <td>{{ this.selection["sender"] }}</td>
         </tr>
         <tr>
-          <th>Title:</th>
+          <th>{{$t("votequestionlist.question_title")}}:</th>
           <td>{{ this.selection.note.t }}</td>
         </tr>
         <tr>
-          <th>Question:</th>
+          <th>{{$t("votequestionlist.question_text")}}:</th>
           <td>{{ this.selection.note.q }}</td>
         </tr>
         <tr>
-          <th>Category:</th>
+          <th>{{$t("votequestionlist.category")}}:</th>
           <td>{{ this.selection.note["category"] }}</td>
         </tr>
         <tr>
-          <th>Url:</th>
+          <th>{{$t("votequestionlist.url")}}:</th>
           <td>{{ this.selection.note["url"] }}</td>
         </tr>
         <tr>
-          <th>Options:</th>
+          <th>{{$t("votequestionlist.options")}}:</th>
           <td>
             <div v-for="(o, index) in this.selection.note.o" :key="index">
               <div class="row">
@@ -143,14 +143,13 @@
           <th></th>
           <td>
             <div v-if="votingFinished" class="alert alert-danger">
-              Voting has been closed
+              {{$t("votequestionlist.voting_closed")}}
             </div>
             <div
               v-if="selectedAnswer && selectedAnswer.latest"
               class="alert alert-success"
             >
-              Latest vote for the account
-              {{ $store.state.wallet.lastActiveAccountName }} is selected
+                {{$t("votequestionlist.voting_closed",{accountName:$store.state.wallet.lastActiveAccountName})}}
             </div>
 
             <button
@@ -163,21 +162,22 @@
               "
               @click="submitVote"
             >
-              Vote with account {{ $store.state.wallet.lastActiveAccountName }}
+                {{$t("votequestionlist.vote_button",{accountName:$store.state.wallet.lastActiveAccountName})}}
             </button>
             <button
               v-if="votingFinished"
               class="btn btn-primary bg-primary"
               @click="checkResults"
             >
-              Check results
+              {{$t("votequestionlist.check_results")}}
             </button>
 <div v-if="Object.values(resultsFirstCalc).length > 0">
+                <h2>{{$t("votequestionlist.trusted_list_results")}}</h2>
 <div v-for="(o, index) in this.selection.note.o" :key="index">
               <div class="row">
                 <div class="col-3">
                   <label :for="'R' + index">
-                    {{ o }}
+                    {{ o }} ({{index}})
                   </label>
                 </div>
                 <div
@@ -203,7 +203,38 @@
               </div>
             </div>
             </div>
-
+<div v-if="Object.values(resultsFirstCalc).length > 0">
+                <h2>{{$t("votequestionlist.hypercapitalism_results")}}</h2>
+<div v-for="(o, index) in this.selection.note.o" :key="index">
+              <div class="row">
+                <div class="col-3">
+                  <label :for="'R' + index">
+                    {{ o }} ({{index}})
+                  </label>
+                </div>
+                <div
+                  class="col-9"
+                >
+                  <InputText
+                    :id="'R' + index"
+                    class="w1"
+                    v-model.number="resultsFirstCalc[index]"
+                    style="width: 14rem"
+                    :disabled="true"
+                  />
+                  <Slider
+                    class="w1"
+                    v-model="resultsFirstCalc[index]"
+                    style="width: 14rem"
+                    :disabled="true"
+                  />
+                  <div class="m-2">
+                    {{ $filters.formatPercent(resultsFirstCalc[index]/100) }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
             <div v-if="canVote">
               <code>{{ note }}</code>
             </div>
@@ -236,16 +267,7 @@
         {{ $t("pay.error") }}: {{ error }}
       </p>
       <div v-if="!votingFinished">
-        If you want to vote, select your preferences please. You can assign your
-        preferences for each answer with rating from zero to 100 points. If you
-        want to select only one answer, please give it 100 points, and other
-        answers to zero points. If you do not know, you do not have to vote, or
-        you can assign all answers the equal number of points. If you vote for
-        one answer in 100 points, and other answer 20 points, your voting power
-        for first answer will be 100/120 = 83% and voting power distribution for
-        second answer will be 17%. If you assign all options 100 points, your
-        voting power distribution will be the same as if you assign all options
-        1 point.
+       {{ $t("pay.vote_help") }}
       </div>
       <AnswersList
         v-if="selection && selection.id"
@@ -719,6 +741,8 @@ export default {
             const tx = txs.transactions[index];
             if (tx["sender"] != this.selection.sender)
               continue;
+            if(tx["confirmed-block"] > this.selection.note.max) continue;
+
             let note = "";
             if (this.isBase64(tx.note)) {
               note = atob(tx.note);

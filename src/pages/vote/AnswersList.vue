@@ -8,15 +8,15 @@
       :paginator="true"
       :rows="20"
     >
-      <template #empty> {{ $t("acc_overview.no_answers") }} </template>
+      <template #empty> {{ $t("voteanswerslist.no_answers") }} </template>
       <Column
         field="round"
-        :header="$t('voteanswer.round')"
+        :header="$t('voteanswerslist.round')"
         :sortable="true"
       ></Column>
       <Column
         field="round-time"
-        :header="$t('acc_overview.time')"
+        :header="$t('voteanswerslist.time')"
         :sortable="true"
       >
         <template #body="slotProps">
@@ -31,11 +31,11 @@
       </Column>
       <Column
         field="sender"
-        :header="$t('acc_overview.sender')"
+        :header="$t('voteanswerslist.sender')"
         :sortable="true"
         styleClass="not-show-at-start"
       ></Column>
-      <Column field="response" :header="$t('voteanswer.response')">
+      <Column field="response" :header="$t('voteanswerslist.response')">
         <template #body="slotProps">
           <div v-if="slotProps.column.props.field in slotProps.data">
             {{ JSON.stringify(slotProps.data[slotProps.column.props.field]) }}
