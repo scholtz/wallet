@@ -1,11 +1,18 @@
 import algosdk from "algosdk";
 const state = () => ({
   assets: [],
+  balance: {},
 });
 
 const mutations = {
   setAsset(state, assetInfo) {
     state.assets.push(assetInfo);
+  },
+  setBalance(state, { account, round, balance }) {
+    if (state.balance[round] === undefined) {
+      state.balance[round] = {};
+    }
+    state.balance[round][account] = balance;
   },
 };
 const actions = {
@@ -26,21 +33,64 @@ const actions = {
           .address(addr)
           .notePrefix(noteenc)
           .do();
-        console.log(
-          "indexer.searchForTransactions with note",
-          searchForTransactions,
-          note
-        );
         return searchForTransactions;
       } else {
-        console.log("searching for addr ", addr);
         const searchForTransactions = await indexerClient
           .searchForTransactions()
           .address(addr)
           .do();
-        console.log("indexer.searchForTransactions", searchForTransactions);
         return searchForTransactions;
       }
+    } catch (error) {
+      console.log("error", error, dispatch);
+    }
+  },
+  async searchForTransactionsWithNoteAndAmount(
+    { dispatch },
+    { note, amount, min }
+  ) {
+    try {
+      const url = new URL(this.state.config.indexer);
+      const indexerClient = new algosdk.Indexer(
+        this.state.config.indexerToken,
+        this.state.config.indexer,
+        url.port
+      );
+      const enc = new TextEncoder();
+      const noteenc = enc.encode(note);
+      const searchForTransactions = await indexerClient
+        .searchForTransactions()
+        .currencyGreaterThan(amount - 1)
+        .currencyLessThan(amount + 1)
+        .minRound(Math.max(min, 0))
+        .notePrefix(noteenc)
+        .do();
+      return searchForTransactions;
+    } catch (error) {
+      console.log("error", error, dispatch, note);
+    }
+  },
+  async searchForTransactionsWithNoteAndAmountAndAccount(
+    { dispatch },
+    { note, amount, account }
+  ) {
+    try {
+      const url = new URL(this.state.config.indexer);
+      const indexerClient = new algosdk.Indexer(
+        this.state.config.indexerToken,
+        this.state.config.indexer,
+        url.port
+      );
+      const enc = new TextEncoder();
+      const noteenc = enc.encode(note);
+      const searchForTransactions = await indexerClient
+        .searchForTransactions()
+        .currencyGreaterThan(amount - 1)
+        .currencyLessThan(amount + 1)
+        .notePrefix(noteenc)
+        .address(account)
+        .do();
+      return searchForTransactions;
     } catch (error) {
       console.log("error", error, dispatch);
     }
@@ -74,6 +124,56 @@ const actions = {
         assetInfoData["asset-id"] = assetIndex;
         commit("setAsset", assetInfoData);
         return assetInfoData;
+      }
+    } catch (error) {
+      console.log("error", error);
+    }
+  },
+  async getAccountBalanceAtRound({ commit }, { account, round }) {
+    try {
+      console.log(
+        "this.state.indexer.balance is undefined",
+        round,
+        this.state.indexer.balance,
+        this.state.indexer.balance[round] !== undefined
+      );
+      if (this.state.indexer.balance[round] !== undefined) {
+        if (this.state.indexer.balance[round][account] !== undefined) {
+          return this.state.indexer.balance[round][account];
+        } else {
+          console.log(
+            "this.state.indexer.balance[round][account] is undefined",
+            this.state.indexer.balance[round][account]
+          );
+        }
+      } else {
+        console.log(
+          "this.state.indexer.balance[round] is undefined",
+          this.state.indexer.balance[round]
+        );
+      }
+      const url = new URL(this.state.config.indexer);
+      const indexerClient = new algosdk.Indexer(
+        this.state.config.indexerToken,
+        this.state.config.indexer,
+        url.port
+      );
+      const accountInfo = await indexerClient
+        .lookupAccountByID(account)
+        .round(round)
+        .do();
+      console.log(
+        "accountInfo",
+        accountInfo,
+        accountInfo.account,
+        accountInfo.account.amount
+      );
+
+      if (accountInfo && accountInfo.account && accountInfo.account.amount) {
+        const balance = accountInfo.account.amount / 1000000;
+        await commit("setBalance", { account, round, balance });
+        console.log(this.state.indexer.balance[round][account]);
+        return balance;
       }
     } catch (error) {
       console.log("error", error);

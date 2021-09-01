@@ -48,6 +48,11 @@
               $t("navbar.asset_create")
             }}</v-link>
           </li>
+          <li class="nav-item active" v-if="$store.state.wallet.isOpen">
+            <v-link class="nav-link" href="/vote/overview">{{
+              $t("navbar.vote")
+            }}</v-link>
+          </li>
           <li class="nav-item active">
             <v-link class="nav-link" href="/faq">{{ $t("navbar.faq") }}</v-link>
           </li>

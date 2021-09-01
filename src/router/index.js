@@ -19,6 +19,12 @@ import AssetModify from "@/pages/Asset/Modify.vue";
 import AssetRevoke from "@/pages/Asset/Revoke.vue";
 import OptIn from "@/pages/Asset/OptIn.vue";
 import PaymentGateway from "@/pages/PaymentGateway.vue";
+import VoteAsk from "@/pages/vote/Ask.vue";
+import VoteOverview from "@/pages/vote/Overview.vue";
+import VoteMyQuestions from "@/pages/vote/MyQuestions.vue";
+import VoteDelegate from "@/pages/vote/Delegate.vue";
+import VoteAnswers from "@/pages/vote/Answers.vue";
+import TrustedList from "@/pages/vote/TrustedList.vue";
 
 const routes = [
   {
@@ -134,6 +140,36 @@ const routes = [
   {
     path: "/:catchAll(.*)",
     component: NotFound,
+  },
+  {
+    path: "/vote/ask",
+    name: "VoteAsk",
+    component: VoteAsk,
+  },
+  {
+    path: "/vote/overview",
+    name: "VoteOverview",
+    component: VoteOverview,
+  },
+  {
+    path: "/vote/my-questions",
+    name: "my-questions",
+    component: VoteMyQuestions,
+  },
+  {
+    path: "/vote/delegate",
+    name: "delegate",
+    component: VoteDelegate,
+  },
+  {
+    path: "/vote/answers",
+    name: "answers",
+    component: VoteAnswers,
+  },
+  {
+    path: "/vote/tl",
+    name: "tl",
+    component: TrustedList,
   },
 ];
 

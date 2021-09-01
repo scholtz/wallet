@@ -31,7 +31,8 @@
     "stop_camera": "Fényképezőgép leállítása",
     "cancel": "Mégsem",
     "yes": "Igen",
-    "no": "Nem"
+    "no": "Nem",
+    "loading":"Loading.."
   },
   "navbar": {
     "logo": "AWallet",
@@ -43,7 +44,99 @@
     "asset_create": "NTF létrehozás",
     "faq": "GYIK",
     "privacy_policy": "Adatvédelem",
-    "logout": "Kijelentkezés"
+    "logout": "Kijelentkezés",
+    "vote":"Voting"
+  },
+  "votemenu": {
+    "overview": "Overview",
+    "my_questions": "My questions",
+    "ask_question": "Ask question",
+    "delegation": "Delegation",
+    "answers": "Answers",
+    "trusted_list": "Trusted list"
+  },
+  "voteask":{
+    "title":"Ask question through blockchain",
+    "question_title":"Question title",
+    "title_placeholder":"This will show up in the table list of questions",
+    "question_text":"Text of the question",
+    "url":"URL address with more question details (start with https://)",
+    "url_placeholder":"Add here url address where people can find more information about the question",
+    "max_round":"Number of blocks since now until the question will be closed",
+    "calculated_block":"Max block",
+    "calculated_time":"Estimated time",
+    "code":"Code",
+    "response_text":"Text of the response option",
+    "remove_response":"Remove option"   ,
+    "responses_help":"People will answer your question by voting for specific responses. Please provide codes and texts of 2-N responses.",
+    "add_response":"Add new ressponse", 
+    "category":"Question category",
+    "category_placeholder":"Knowledge based category vote delegation in effect",
+    "submit_question":"Ask question using account {accountName}"    
+  },
+  "votedelegate":{
+    "title":"Voting power delegation",
+    "intro1":"You can delegate your voting power to someone you trust. It may be your friend or some public person.",
+    "intro2":"If you have good friend in finance, you can delegate him voting power in finance category. If he does not vote for questions directly, he might delegate your voting power and his voting power according his wisdom to wise person he know. When the wise person votes, he uses your voting power and he represents your opinions. You can always vote directly in all matters even if you have the delegation. If you vote directly, your voting power stays only at your discrete decision.",
+    "intro3":"You can split your voting power to several friends. You set the weight of your voting power distribution in points. If you set 50 points for first friend and 100 points for second friend, first friend will have 50/150 = 33% of your voting power. Second friend will have the rest 100/150 = 67% of your voting power.",
+    "intro4":"The category any is the fallback category. If category delegation for specific question is not defined, the any category will be used if defined.",
+    "category_any":"Any category",
+    "add_account":"Add account",
+    "wallet_address":"Wallet address",
+    "delegate":"Add account to delegation",
+    "category":"Delegate specific category",
+    "category_placeholder":"You can specify your delegation in knowledge based category.. eg IT, finance, governance",
+    "add_category":"Add specific category",
+    "submit_help":"By clicking the button below, you will store your delegation preferences to the blockchain.",
+    "submit_text":"Store delegation to the blockchain for {accountName}"
+  },
+  "voteoverview":{
+    "title":"Overview"
+  },
+  "votequestions":{
+    "title":"Questions"
+  },
+  "votequestionlist":{
+    "question_title":"Question title",
+    "no_questions":"Be the first one to ask a question",
+    "question_text":"Question text",
+    "round":"Placed at round",
+    "maxround":"Open until round",
+    "time":"Time",
+    "category":"Category",
+    "sender":"Questioner",
+    "list":"List all questions",
+    "id":"Question id",
+    "current_round":"Current round",
+    "round_time":"Time of the round",
+    "url":"URL",
+    "options":"Options",
+    "voting_closed":"Voting has been closed",
+    "latest_response":"Latest vote for the account {accountName} is selected",
+    "vote_button":"Vote with account {accountName}",
+    "sum_trusted":"Number of accounted votes",
+    "sum_coins":"Sum of accounted coins",
+    "trusted_list_results":"Trusted list result",
+    "hypercapitalism_results":"1 coin 1 vote results",
+    "vote_help":"If you want to vote, select your preferences please. You can assign your preferences for each answer with rating from zero to 100 points. If you want to select only one answer, please give it 100 points, and other answers to zero points. If you do not know, you do not have to vote, or you can assign all answers the equal number of points. If you vote for one answer in 100 points, and other answer 20 points, your voting power for first answer will be 100/120 = 83% and voting power distribution for second answer will be 17%. If you assign all options 100 points, your voting power distribution will be the same as if you assign all options 1 point.",
+    "check_results":"Check results"
+  },
+  "votetl":{
+    "title":"Trusted list management",    
+    "help1":"Questioner can manage list of trusted accounts on this page. Each person may have only one trusted account. The management of this must be provided by the questioner. After the voting will be finished, there are two calculation of votes - one person one vote, and one coin one vote. The voting system does not interpret what the result of voting means. The voting system just calculates the results of votings according to the voting system rules, eg the delegation of votes, proportion of votes, validity of votes and more.",
+    "add":"Add accounts to trusted list - one account per line",    
+    "remove":"Remove accounts from trusted list - one account per line",
+    "submit_text":"Store trusted list to blockchain for {accountName}",
+    "round":"Added in the round n.",
+    "account":"Trusted account",
+    "no_tl":"There are no trusted accounts listed for the account {accountName}."
+  },
+  "voteanswerslist":{
+    "no_answers":"There is no response yet to the question",
+    "round":"Response round",
+    "time":"Response time",
+    "sender":"Responder",
+    "response":"Response json"
   },
   "merchant":{
     "make_payment":"Fizetési gateway",
@@ -63,7 +156,7 @@
   },
   "gateway":{
     "title":"Szabadon használható, nyílt forráskódú, közvetítők nélküli fizetési gateway",
-    "perex":"Fogadj	el a webhelyeden Algót, USDC-t, USDT-t vagy más egyéb pénzeszközt. A kriptovaluták pénzügyi közvetítő nélküli elfogadása növeli a webhely eladásait és a hasznot.",
+    "perex":"Fogadj el a webhelyeden Algót, USDC-t, USDT-t vagy más egyéb pénzeszközt. A kriptovaluták pénzügyi közvetítő nélküli elfogadása növeli a webhely eladásait és a hasznot.",
     "how":"Hogyan működik?",
     "create_order":"Hozz létre egy egyedi azonosító szimbólumot, pl. a megrendelés azonosítót",
     "redirect_to_gateway":"Irányítsd át a felhasználót a gateway-re",
@@ -131,7 +224,8 @@
     "delete_confirm": "Biztosan törölni szeretnéd ezt a számlát a pénztárcából?",
     "delete_confirm_button": "Ennek a számlának a törlése",
     "deleted": "A számla törölve lett",
-    "asset_optin": "Pénzeszköz engedélyezés"
+    "asset_optin": "Pénzeszköz engedélyezés",
+    "ask_question": "Ask question"
   },
   "optin": {
     "title": "Egy adott pénzeszköz fogadásának engedélyezése, számla:",
