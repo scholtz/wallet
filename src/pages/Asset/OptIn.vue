@@ -279,7 +279,7 @@ export default {
         payFrom: this.account.addr,
         amount: 0,
         noteEnc: new Uint8Array([]),
-        fee: 1,
+        fee: 1000,
         asset: this.asset["asset-id"],
       };
       console.log("payment.data", data);
