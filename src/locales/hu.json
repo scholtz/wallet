@@ -32,7 +32,7 @@
     "cancel": "Mégsem",
     "yes": "Igen",
     "no": "Nem",
-    "loading":"Betöltés alatt.."
+    "loading":"Betöltés alatt..."
   },
   "navbar": {
     "logo": "AWallet",
@@ -77,7 +77,7 @@
   "votedelegate":{
     "title":"Szavazati jog átruházása",
     "intro1":"A szavazati jogodat átruházhatod más valakire, akiben megbízol. Ez lehet a barátod, vagy egy ismert személy.",
-    "intro2":"Ha van egy pénzügyekben jártas jóbarátod, akkor a pénzügyi kategóriában átruházhatod rá a szavazati jogodat. Ha a barátod sem szavaz közvetlenül a kérdésekre, akkor átruházhatja a te szavazati jogodat és a saját szavazati jogát a saját belátása szerint az általa ismert szakértőre. Amikor ez a szakértő szavaz, akkor a te szavazati jogodat használja és a te véleményedet képviseli. Mindig szavazhatsz közvetlen módon, még akkor is, ha átruháztad a szavazati jogodat. Ha közvetelnül szavazol, akkor az adott kérdésben a tiéd marad a szavazati jogod.",
+    "intro2":"Ha van egy pénzügyekben jártas jóbarátod, akkor a pénzügyi kategóriában átruházhatod rá a szavazati jogodat. Ha a barátod sem szavaz közvetlenül a kérdésekre, akkor átruházhatja a te szavazati jogodat és a saját szavazati jogát a saját belátása szerint az általa ismert szakértőre. Amikor ez a szakértő szavaz, akkor a te szavazati jogodat használja és a te véleményedet képviseli. Mindig szavazhatsz közvetlen módon, még akkor is, ha átruháztad a szavazati jogodat. Ha közvetlenül szavazol, akkor az adott kérdésben a tiéd marad a szavazati jogod.",
     "intro3":"A szavazati jogodat több barátod között is szétoszthatod. A szavazati jogod megosztásának súlyozását pontokkal tudod kifejezni. Ha az első barátodnak 50 pontot adtál, a másodiknak 100 pontot, akkor az első barátod a szavazati jogod 50/150 = 33 %-val fog rendelkezni. A szavazati jogod maradékát, 100/150 = 67 %-ot a második barátod kapja.",
     "intro4":"A 'Tetszőleges kategória' tartalék kategória. Ha egy adott kérdés esetében nem lett delegálva egyetlen kategória sem, de a 'Tetszőleges kategória' definiálva van, akkor ez lesz használva.",
     "category_any":"Tetszőleges kategória",
@@ -87,7 +87,7 @@
     "category":"Egy adott kategória átruházása",
     "category_placeholder":"Az átruházás megadható egy adott tudás alapú kategóriában, pl. IT, pénzügy, irányítás",
     "add_category":"Egy adott kategória megadása",
-    "submit_help":"A lenti gomb megnyomásával az átruházásással kapcsolatos preferenciák a blokkláncon tárolhatók.",
+    "submit_help":"A lenti gomb megnyomásával az átruházással kapcsolatos preferenciák a blokkláncon tárolhatók.",
     "submit_text":"Az {accountName} átruházásainak tárolása a blokkláncon"
   },
   "voteoverview":{
@@ -100,7 +100,7 @@
     "question_title":"A kérdés címe",
     "no_questions":"Légy te az első, aki feltesz egy kérdést",
     "question_text":"A kérdés szövege",
-    "round":"A kérdés ennél a mentetnél lett feltéve:",
+    "round":"A kérdés ennél a menetnél lett feltéve:",
     "maxround":"A kérdés eddig a menetig lesz nyitva:",
     "time":"Idő",
     "category":"Kategória",
@@ -118,12 +118,12 @@
     "sum_coins":"A figyelembe vett érmék összege",
     "trusted_list_results":"Eredmény a megbízható szavazók listája alapján",
     "hypercapitalism_results":"Eredmény az 1 érme 1 szavazat alapján",
-    "vote_help":"Ha szavazni szeretnél, akkor szíveskedj megadni a preferenciáidat. Az egyes válaszoknál nulla és 100 pont közötti preferencia adható meg. Ha csak egy választ akarsz kiválasztani, akkor adj neki 100 pontot, a többi válasznak pedig nulla pontot. Ha nem tudod a választ, akkor nem kell szavaznod, vagy az összes válaszhoz azonos pontot rendelhetsz hozzá. Ha az egyik válaszra 100 ponttal szavazol, egy másik válaszra pedig 20 ponttal, akkor az első válaszra a szavazati jogod 100/120 = 83% -ával szavazol, a másodikra 17 %-kal. Ha az összes lehetőséghez 100 pontot rendelsz, akkor a sdzavazati jogod eloszlása ugyanolyan lesz, mint ha mindegyik lehetőséghez 1 pontot rendeltés volna.",
+    "vote_help":"Ha szavazni szeretnél, akkor légy szíves, add meg a súlyozást. Az egyes válaszoknál nulla és 100 pont közötti súlyozás adható. Ha csak egy választ akarsz kiválasztani, akkor adj neki 100 pontot, a többi válasznak pedig nulla pontot. Ha nem tudod a választ, akkor nem kell szavaznod, illetve az összes válaszhoz azonos pontot rendelhetsz hozzá. Ha az egyik válaszra 100 ponttal szavazol, egy másik válaszra pedig 20 ponttal, akkor az első válaszra a szavazati jogod 100/120 = 83%-ával szavazol, a másodikra 17 %-kal. Ha az összes lehetőséghez 100 pontot rendelsz, akkor a szavazati jogod eloszlása ugyanolyan lesz, mint ha mindegyik lehetőséghez 1 pontot rendeltél volna.",
     "check_results":"Eredmények ellenőrzése"
   },
   "votetl":{
     "title":"A megbízható szavazók listájának kezelése",    
-    "help1":"A kérdésfeltevő ezen a lapon kezelheti a megbízható számlák listáját. Egy személyhez csak egy megbízható számla tartozhat. Ennek a listának a kezelése a kérdésfeltevő feladata. A szavazás befejeződése után kétféleképpen lesznek a szavazatok összesítve: egy személy egy szavazat alapján, vagy egy érme egy szavazat alapján. A szavazó rendszer nem értelmezi a szavazás eredményét, csupán kiszámítja a szabályok alapján a szavazás eredményét, vagyis figyelembe veszi pl. a szavazatok átruházását, a rész-szavazatokat, a szavazatok érvényességét stb.",
+    "help1":"A kérdésfeltevő ezen a lapon kezelheti a megbízható számlák listáját. Egy személyhez csak egy megbízható számla tartozhat. Ennek a listának a kezelése a kérdésfeltevő feladata. A szavazás befejeződése után kétféleképpen lesznek a szavazatok összesítve: 'egy személy egy szavazat' alapján, vagy 'egy érme egy szavazat' alapján. A szavazó rendszer nem értelmezi a szavazás eredményét, csupán kiszámítja a szabályok alapján a szavazás eredményét, vagyis figyelembe veszi pl. a szavazatok átruházását, a rész-szavazatokat, a szavazatok érvényességét stb.",
     "add":"Számla hozzáadása a megbízható szavazók listájához - soronként egy számla",    
     "remove":"Számla eltávolítása a megbízható szavazók listájából - soronként egy számla",
     "submit_text":"Az {accountName} számlához tartozó megbízható szavazók listájának eltárolása a blokkláncon",
@@ -185,7 +185,7 @@
     "amount": "Összeg",
     "note": "Megjegyzés",
     "decimals": "Tizedes jegyek száma a QR-kód számára",
-    "label": "A fogadó fél címéhez tartozó cimke",
+    "label": "A fogadó fél címéhez tartozó címke",
     "noteeditable": "A megjegyzés mezőt a felhasználó szerkesztheti"
   },
   "acc_overview": {
@@ -225,7 +225,7 @@
     "delete_confirm_button": "Ennek a számlának a törlése",
     "deleted": "A számla törölve lett",
     "asset_optin": "Pénzeszköz engedélyezés",
-    "ask_question": "Ask question"
+    "ask_question": "Kérdésem van"
   },
   "optin": {
     "title": "Egy adott pénzeszköz fogadásának engedélyezése, számla:",
@@ -314,7 +314,7 @@
     "selected_account": "Kiválasztott számla",
     "multisig_account": "Többszörösen aláírt számla",
     "create_proposal": "Ajánlat készítése",
-    "sign_proposal": "Ajánlat aláírása & elküldésese",
+    "sign_proposal": "Ajánlat aláírása & elküldése",
     "signature_from_friend": "Kérjük, itt add be a barátodtól származó aláírást",
     "load_multisig_data": "Többszörösen aláírt adat betöltése",
     "pay_to_wallet": "Fizetés a pénztárcában lévő számlának",
@@ -351,7 +351,7 @@
     "error": "Hiba",
     "asset": "Eszköz",
     "state_error_not_sent": "Az utalás valószínűleg nem jutott el a hálózatra. Offline módba kerültél? Kérjük, ellenőrizd a számládat.",
-    "set_max": "Maxium beállítása"
+    "set_max": "Maximum beállítása"
   },
   "settings": {
     "title": "Beállítások",
@@ -435,10 +435,10 @@
   },
   "assetcreate": {
     "title": "Új NTF / ASA",
-    "show_advanced": "Haladóknak szóló form megjelenítése",
+    "show_advanced": "Haladóknak szóló űrlap megjelenítése",
     "assetName": "Barátságos név",
     "creator": "A létrehozó címe",
-    "hide_advanced": "Haladóknak szóló form elrejtése",
+    "hide_advanced": "Haladóknak szóló űrlap elrejtése",
     "creator_not_found": "Cím létrehozása vagy először cím beimportálása",
     "default_fronzen": "Befagyasztva: a felhasználói számlákat fel kell oldani a tranzakciók végzése előtt",
     "decimals": "Tizedesjegyek: a tizedes jegyek számát megadó egész szám, mely az eszköz egységeinek a számítására használatos",
@@ -459,14 +459,14 @@
     "q1": "A pénztárcáról",
     "a1": "Az Algo pénztárca alkalmazást eredetileg a Scholtz & Company készítette. Nyílt forráskódú, tisztán html-ben íródott, fő előnye a könnyű használhatóság és a biztonság.",
     "q2": "Mennyire biztonságosan vannak a pénztárca adatai tárolva?",
-    "a2": "Az adatok csak a böngészőn belül vannak meg. Az adatok egy perzisztens index db-ben vannak tárolva. A pénztárcák titkosítása aes256-tal, a jelszó segítségével történik. Ha a jelszó elég erős, akkor a pénztárca nyers erővel soha sem lesz feltörhető. A jelszó nem hagyja el a számítógépedet, és csak a böngésző gyorsítótárában van meg. A bejelentkezés után 5 perccel a böngésző gyorsítótára törlődik.",
+    "a2": "Az adatok csak a böngészőn belül vannak meg. Az adatok egy perzisztens index db-ben vannak tárolva. A pénztárcák titkosítása aes256-tal, jelszó segítségével történik. Ha a jelszó elég erős, akkor a pénztárca nyers erővel soha sem lesz feltörhető. A jelszó nem hagyja el a számítógépedet, és csak a böngésző gyorsítótárában van meg. A bejelentkezés után 5 perccel a böngésző gyorsítótára törlődik.",
     "q3": "Kikerül-e a pénztárcám jelszava az Internetre?",
     "a3": "Nem, soha",
     "q4": "Hogyan tudom megváltoztatni a pénztárca jelszavát?",
     "a4_1": "Jelentkezz be a pénztárcádba",
     "a4_2": "Menj a 'Beállítások'-hoz",
     "a4_3": "Gépeld be a régi jelszót, az új jelszót, majd ismételten az új jelszót.",
-    "a4_4": "A form elküldése után a jelszó megváltozik.",
+    "a4_4": "Az űrlap elküldése után a jelszó megváltozik.",
     "q5": "Át tudom vinni a pénztárcámat egy másik számítógépre?",
     "a5_1": "Jelentkezz be a pénztárcádba",
     "a5_2": "Menj a 'Beállítások'-hoz",
