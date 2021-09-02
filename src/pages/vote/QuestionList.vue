@@ -314,7 +314,7 @@
           {{ $t("pay.error") }}: {{ error }}
         </p>
         <div v-if="!votingFinished">
-          {{ $t("pay.vote_help") }}
+          {{ $t("votequestionlist.vote_help") }}
         </div>
         <AnswersList
           v-if="selection && selection.id"
