@@ -49,6 +49,15 @@
           >Donate now</a
         >
       </li>
+      <li>
+        Payment gateway implementation to Magento - No middleman, you accept the
+        payments to your account, match with invoices
+        <a
+          href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9MTAwMDAwMDAwMCZhc3NldD0zMTI3Njk/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0L3N1Y2Nlc3MiLCJjYW5jZWwiOiJodHRwczovL3d3dy5hLXdhbGxldC5uZXQvZG9uYXRlIn0"
+          class="btn btn-primary"
+          >Donate now</a
+        >
+      </li>
     </ol>
     <p>
       We accept donations to this account:
