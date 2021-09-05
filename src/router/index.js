@@ -25,6 +25,8 @@ import VoteMyQuestions from "@/pages/vote/MyQuestions.vue";
 import VoteDelegate from "@/pages/vote/Delegate.vue";
 import VoteAnswers from "@/pages/vote/Answers.vue";
 import TrustedList from "@/pages/vote/TrustedList.vue";
+import Donation from "@/pages/Donation.vue";
+import Success from "@/pages/Success.vue";
 
 const routes = [
   {
@@ -170,6 +172,16 @@ const routes = [
     path: "/vote/tl",
     name: "tl",
     component: TrustedList,
+  },
+  {
+    path: "/donate",
+    name: "Donation",
+    component: Donation,
+  },
+  {
+    path: "/success",
+    name: "Success",
+    component: Success,
   },
 ];
 

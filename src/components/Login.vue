@@ -154,6 +154,9 @@
       >
         GitHub: {{ $t("login.source_code") }}
       </a>
+      <a href="/donate" class="m-2 btn btn-xs btn-light btn-link" role="button">
+        Support us
+      </a>
     </div>
   </div>
 </template>
