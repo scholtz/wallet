@@ -61,9 +61,11 @@
     </ol>
     <p>
       We accept donations to this account:
-      P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U
+      <b>P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U</b>
     </p>
     <p>Thank you</p>
+    <p>&nbsp;&nbsp;Ludo Scholtz</p>
+    <p>&nbsp;&nbsp;Scholtz&amp;Company, jsa</p>
   </PublicLayout>
 </template>
 
