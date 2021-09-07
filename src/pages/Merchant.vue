@@ -255,7 +255,7 @@ export default {
           amount: 0,
           name: "ALG",
           decimals: 6,
-          "unit-name": "",
+          "unit-name": "Algo",
         };
       }
       // transfer to asset decimals
