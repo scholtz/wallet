@@ -65,7 +65,15 @@
         </ol>
         <p>
           We accept donations to this account:
-          <b>P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U</b>
+
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://algoexplorer.io/address/P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U"
+            ><b
+              >P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U</b
+            ></a
+          >
         </p>
         <p>Thank you</p>
         <p>&nbsp;&nbsp;Ludo Scholtz</p>
@@ -73,14 +81,18 @@
       </div>
       <div class="col-3">
         <p>
-          <QRCodeVue3
-            class="d-md-none d-lg-block"
-            :width="400"
-            :height="400"
-            value="P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U"
-            :qrOptions="{ errorCorrectionLevel: 'H' }"
-            image="/img/algorand-algo-logo-96.png"
-          />
+          <a
+            href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9MTAwMDAwMDA/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0L3N1Y2Nlc3MiLCJjYW5jZWwiOiJodHRwczovL3d3dy5hLXdhbGxldC5uZXQvZG9uYXRlIn0"
+          >
+            <QRCodeVue3
+              class="d-md-none d-lg-block"
+              :width="400"
+              :height="400"
+              value="P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U"
+              :qrOptions="{ errorCorrectionLevel: 'H' }"
+              image="/img/algorand-algo-logo-96.png"
+            />
+          </a>
         </p>
       </div>
     </div>
