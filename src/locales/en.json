@@ -457,7 +457,7 @@
   "faq": {
     "title": "Frequently asked questions",
     "q1": "About the wallet",
-    "a1": "Algo wallet application has been initially created by Scholtz & Company, jsa. Open source, html only, coroporate friendly, and security are the main advantages for its usage.",
+    "a1": "Algo wallet application has been initially created by Scholtz & Company, jsa. Open source, html only, coroporate friendly, and security are the main advantages for its usage. Algorand logo, word algo as well word algorand are trademarked by the algorand inc., and are used with algorand media guidelines https://www.algorand.com/about/media-kit/ .",
     "q2": "How is my wallet data secured?",
     "a2": "Your data is in the browser only. It is stored in persistant index db. Every wallet is encrypted using aes256 with your password. If you make strong enough password, your wallet will never be brute-forced. The password does not leave your computer and resides only in the browser cache. After 5 minutes after the login the cache is destroyed.",
     "q3": "Does my wallet password go to the internet?",
