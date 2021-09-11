@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://www.a-wallet.net/AMS/avote-delegation.json",
+  "type": "object",
+  "title": "Vote power delegation schema",
+  "description": "Knowledge based pure democracy vote delegation JSON document.",
+  "default": {},
+  "examples": [
+      {"d":{"any":{"TESTB74MOARQDWSX4433VWVNO4VJK3PDQWQ4JEOVQQTK3ZIX2MK3JF55TE":20,"TESTC2TMLDK273INHLXCSV235NFJ5LITNFDXZPU7JTZCVCBAZDUSJS4OPU":80},"finance":{"TESTDUUODZVXNO4YKEK4I5I6UU67ANYBJ77JZUI444VAD7V3TL26DVOMFA":1}}}
+  ],
+  "required": [
+      "d"
+  ],
+  "properties": {
+      "d": {
+          "$id": "#/properties/d",
+          "type": "object",
+          "title": "Delegation of power",
+          "description": "The object of categories with the object of accounts and the weights. Weight must be integer number in range from 0 to 1000 including.",
+          "default": {},
+          "examples": [
+              {"any":{"TESTB74MOARQDWSX4433VWVNO4VJK3PDQWQ4JEOVQQTK3ZIX2MK3JF55TE":20,"TESTC2TMLDK273INHLXCSV235NFJ5LITNFDXZPU7JTZCVCBAZDUSJS4OPU":80},"finance":{"TESTDUUODZVXNO4YKEK4I5I6UU67ANYBJ77JZUI444VAD7V3TL26DVOMFA":1}}
+          ],
+          "additionalProperties": true
+      }
+  },
+  "additionalProperties": false
+}
