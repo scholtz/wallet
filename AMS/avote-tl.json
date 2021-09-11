@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "title": "Trusted list management schema",
+  "description": "Knowledge based pure democracy trusted list JSON document.",
+  "default": {},
+  "examples": [
+      {
+          "a": [
+              "TESTAUZJU4JRAPUZBH4FCPYDLEWIFIFRPVILUZBSYP6IBZLYF6M6YVMMX4",
+              "TESTB74MOARQDWSX4433VWVNO4VJK3PDQWQ4JEOVQQTK3ZIX2MK3JF55TE",
+              "TESTC2TMLDK273INHLXCSV235NFJ5LITNFDXZPU7JTZCVCBAZDUSJS4OPU"
+          ],
+          "r": [
+              "TESTQKYINIZLITDRT3BECSIPI77IQVCXG5I5SNOQLRO4PWSAQPSPCRHUXU"
+          ]
+      }
+  ],
+  "properties": {
+      "a": {
+          "$id": "#/properties/a",
+          "type": "array",
+          "title": "Trusted list additions",
+          "description": "List of accounts to be added to the trusted list",
+          "default": [],
+          "examples": [
+              [
+                  "TESTAUZJU4JRAPUZBH4FCPYDLEWIFIFRPVILUZBSYP6IBZLYF6M6YVMMX4",
+                  "TESTB74MOARQDWSX4433VWVNO4VJK3PDQWQ4JEOVQQTK3ZIX2MK3JF55TE"
+              ]
+          ],
+          "additionalItems": false,
+          "items": {
+              "$id": "#/properties/a/items",
+              "anyOf": [
+                  {
+                      "$id": "#/properties/a/items/anyOf/0",
+                      "type": "string",
+                      "title": "Account",
+                      "minLength": 1,
+                      "maxLength": 60,
+                      "description": "The valid account",
+                      "default": "",
+                      "examples": [
+                          "TESTAUZJU4JRAPUZBH4FCPYDLEWIFIFRPVILUZBSYP6IBZLYF6M6YVMMX4",
+                          "TESTB74MOARQDWSX4433VWVNO4VJK3PDQWQ4JEOVQQTK3ZIX2MK3JF55TE"
+                      ]
+                  }
+              ]
+          }
+      },
+      "r": {
+          "$id": "#/properties/r",
+          "type": "array",
+          "title": "Trusted list removals",
+          "description": "List of accounts to be removed from the trusted list.",
+          "default": [],
+          "examples": [
+              [
+                  "TESTQKYINIZLITDRT3BECSIPI77IQVCXG5I5SNOQLRO4PWSAQPSPCRHUXU"
+              ]
+          ],
+          "additionalItems": false,
+          "items": {
+              "$id": "#/properties/r/items",
+              "anyOf": [
+                  {
+                      "$id": "#/properties/r/items/anyOf/0",
+                      "type": "string",
+                      "title": "Account",
+                      "minLength": 1,
+                      "maxLength": 60,
+                      "description": "The valid account.",
+                      "default": "",
+                      "examples": [
+                          "TESTQKYINIZLITDRT3BECSIPI77IQVCXG5I5SNOQLRO4PWSAQPSPCRHUXU"
+                      ]
+                  }
+              ]
+          }
+      }
+  },
+  "additionalProperties": false
+}

@@ -1,11 +1,23 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "7d61deb61f6fc909f19a8eb3c4a1c1e2",
+    "revision": "3e898855a2342e5ffcd6727f307e275f",
     "url": "/AMS/AMS-0001.md"
+  },
+  {
+    "revision": "d384fe15d7626cc6598511e4a3a4a3c1",
+    "url": "/AMS/avote-delegation.json"
   },
   {
     "revision": "2582217439d55bb7fe42be09feb5c14c",
     "url": "/AMS/avote-question.json"
+  },
+  {
+    "revision": "ecb316a442e15f94912e965fda29e0be",
+    "url": "/AMS/avote-tl.json"
+  },
+  {
+    "revision": "5a48d0a30051573cbb237b8a15c3d81d",
+    "url": "/AMS/avote-vote.json"
   },
   {
     "revision": "1a75e2e5c0f11c361fc0b83bbe945e40",
