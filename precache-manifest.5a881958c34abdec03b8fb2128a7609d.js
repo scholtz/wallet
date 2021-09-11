@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "3e898855a2342e5ffcd6727f307e275f",
+    "revision": "c5b1c90841e8b2fa2dbc8ff946be9a82",
     "url": "/AMS/AMS-0001.md"
   },
   {
