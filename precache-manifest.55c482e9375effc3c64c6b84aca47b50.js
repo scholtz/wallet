@@ -1,5 +1,13 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
+    "revision": "7d61deb61f6fc909f19a8eb3c4a1c1e2",
+    "url": "/AMS/AMS-0001.md"
+  },
+  {
+    "revision": "2582217439d55bb7fe42be09feb5c14c",
+    "url": "/AMS/avote-question.json"
+  },
+  {
     "revision": "1a75e2e5c0f11c361fc0b83bbe945e40",
     "url": "/android-chrome-192x192.png"
   },
