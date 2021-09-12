@@ -84,7 +84,7 @@
           </tr>
           <tr v-if="this.selection && this.selection.note">
             <th>{{ $t("votequestionlist.maxround") }}:</th>
-            <td>{{ this.selection.note.max }}</td>
+            <td>{{ this.max }}</td>
           </tr>
           <tr v-if="this.params">
             <th>{{ $t("votequestionlist.current_round") }}:</th>
@@ -384,14 +384,24 @@ export default {
     },
   },
   computed: {
+    max() {
+      if (!this.selection || !this.selection.note) return 0;
+      let max = this.selection.note.max;
+      if (this.selection.note.duration) {
+        return (
+          parseInt(this.selection.round) +
+          parseInt(this.selection.note.duration)
+        );
+      }
+      return max;
+    },
     votingFinished() {
       return (
         this.params &&
         this.params.firstRound &&
         this.selection &&
         this.selection.note &&
-        this.selection.note.max &&
-        this.params.firstRound > this.selection.note.max
+        this.params.firstRound > this.max
       );
     },
     sum() {
@@ -432,7 +442,7 @@ export default {
       this.loading = true;
       this.params = await this.getTransactionParams();
       const txs = await this.searchForTransactionsWithNoteAndAmount({
-        note: "avote-question/v1:",
+        note: "avote-question/",
         amount: 702,
         min: this.params.firstRound - 100000,
       });
@@ -444,20 +454,36 @@ export default {
           if (this.isBase64(tx.note)) {
             note = atob(tx.note);
           }
-          if (!note.startsWith("avote-question/v1:j")) {
-            continue;
-          }
-          note = note.replace("avote-question/v1:j", "");
-          const noteJson = JSON.parse(note);
-          console.log("noteJson", noteJson);
+          if (note.startsWith("avote-question/v1:j")) {
+            note = note.replace("avote-question/v1:j", "");
+            const noteJson = JSON.parse(note);
+            console.log("noteJson", noteJson);
 
-          this.questions.push({
-            round: tx["confirmed-round"],
-            "round-time": tx["round-time"],
-            sender: tx["sender"],
-            id: tx["id"],
-            note: noteJson,
-          });
+            this.questions.push({
+              round: tx["confirmed-round"],
+              "confirmed-round": tx["confirmed-round"],
+              "round-time": tx["round-time"],
+              sender: tx["sender"],
+              id: tx["id"],
+              note: noteJson,
+            });
+          }
+          if (note.startsWith("avote-question/v2:j")) {
+            note = note.replace("avote-question/v2:j", "");
+            const noteJson = JSON.parse(note);
+            console.log("noteJson", noteJson);
+            noteJson.max =
+              parseInt(tx["confirmed-round"]) + parseInt(noteJson.duration);
+            this.questions.push({
+              round: tx["confirmed-round"],
+
+              "confirmed-round": tx["confirmed-round"],
+              "round-time": tx["round-time"],
+              sender: tx["sender"],
+              id: tx["id"],
+              note: noteJson,
+            });
+          }
         }
       } else {
         this.error = "Error while loading data from the blockchain";
@@ -593,7 +619,8 @@ export default {
               console.log("error parsing", tx);
               continue;
             }
-            if (tx["confirmed-round"] > this.selection.note.max) continue; // do not count any late votes
+
+            if (tx["confirmed-round"] > this.max) continue; // do not count any late votes
 
             const answ = {
               round: tx["confirmed-round"],
@@ -748,7 +775,7 @@ export default {
             answersPerAccount,
             1,
             account,
-            this.selection.note.max,
+            this.max,
             1
           );
           console.log("accResult", account, accResult);
@@ -946,11 +973,12 @@ export default {
         amount: 705,
         account: this.selection.sender,
       });
+
       if (txs && txs.transactions) {
         for (let index in txs.transactions) {
           const tx = txs.transactions[index];
           if (tx["sender"] != this.selection.sender) continue;
-          if (tx["confirmed-block"] > this.selection.note.max) continue;
+          if (tx["confirmed-block"] > this.max) continue;
 
           let note = "";
           if (this.isBase64(tx.note)) {

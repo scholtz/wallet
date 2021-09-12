@@ -37,9 +37,9 @@
           />
         </div>
         <div class="col-12">
-          <label for="max">{{ $t("voteask.max_round") }}</label>
+          <label for="duration">{{ $t("voteask.max_round") }}</label>
           <input
-            id="max"
+            id="duration"
             class="form-control my-2"
             min="1"
             max="9999999"
@@ -188,7 +188,7 @@ export default {
       if (!this.title) return "";
       if (!this.question) return "";
       if (!this.category) return "";
-      if (!this.max_block) return "";
+      if (!this.duration) return "";
 
       let options = {};
       for (let index in this.options) {
@@ -203,13 +203,13 @@ export default {
       const json = {};
       json.t = this.title;
       json.q = this.question;
-      json.max = this.max_block;
+      json.duration = this.duration;
       json.category = this.category;
       if (this.url) {
         json.url = this.url;
       }
       json.o = options;
-      return "avote-question/v1:j" + JSON.stringify(json);
+      return "avote-question/v2:j" + JSON.stringify(json);
     },
     max_block() {
       if (!this.params) return;
