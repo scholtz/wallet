@@ -60,6 +60,11 @@ const routes = [
     component: PaymentGateway,
   },
   {
+    path: "/payment-gateway/",
+    name: "PaymentGateway1",
+    component: PaymentGateway,
+  },
+  {
     path: "/asset/destroy/:assetId",
     name: "AssetDestroy",
     component: AssetDestroy,

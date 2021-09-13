@@ -54,6 +54,11 @@
             }}</v-link>
           </li>
           <li class="nav-item active">
+            <v-link class="nav-link" href="/payment-gateway">{{
+              $t("merchant.make_payment")
+            }}</v-link>
+          </li>
+          <li class="nav-item active">
             <v-link class="nav-link" href="/faq">{{ $t("navbar.faq") }}</v-link>
           </li>
           <li class="nav-item active">
