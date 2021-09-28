@@ -1,5 +1,6 @@
 <template>
   <MainLayout>
+    <VoteTopMenu current="ams01" />
     <VoteMenu current="ask" />
     <form @submit="submitQuestion">
       <h1>
@@ -149,11 +150,13 @@
 <script>
 import MainLayout from "../../layouts/Main.vue";
 import VoteMenu from "../../components/VoteMenu.vue";
+import VoteTopMenu from "../../components/VoteTopMenu.vue";
 import { mapActions } from "vuex";
 export default {
   components: {
     MainLayout,
     VoteMenu,
+    VoteTopMenu,
   },
   data() {
     return {

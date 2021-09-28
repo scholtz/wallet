@@ -19,6 +19,7 @@ import AssetModify from "@/pages/Asset/Modify.vue";
 import AssetRevoke from "@/pages/Asset/Revoke.vue";
 import OptIn from "@/pages/Asset/OptIn.vue";
 import PaymentGateway from "@/pages/PaymentGateway.vue";
+import GovernanceOverview from "@/pages/governance/Overview.vue";
 import VoteAsk from "@/pages/vote/Ask.vue";
 import VoteOverview from "@/pages/vote/Overview.vue";
 import VoteMyQuestions from "@/pages/vote/MyQuestions.vue";
@@ -147,6 +148,11 @@ const routes = [
   {
     path: "/:catchAll(.*)",
     component: NotFound,
+  },
+  {
+    path: "/vote/governance/:id",
+    name: "GovernanceOverview",
+    component: GovernanceOverview,
   },
   {
     path: "/vote/ask",

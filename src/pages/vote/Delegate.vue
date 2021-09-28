@@ -14,6 +14,7 @@
       </div>
     </div>
     <div v-else>
+      <VoteTopMenu current="ams01" />
       <VoteMenu current="delegate" />
       <h1>{{ $t("votedelegate.title") }}</h1>
       <p>
@@ -188,11 +189,13 @@
 <script>
 import MainLayout from "../../layouts/Main.vue";
 import VoteMenu from "../../components/VoteMenu.vue";
+import VoteTopMenu from "../../components/VoteTopMenu.vue";
 import { mapActions } from "vuex";
 export default {
   components: {
     MainLayout,
     VoteMenu,
+    VoteTopMenu,
   },
   data() {
     return {

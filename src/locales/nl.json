@@ -53,7 +53,16 @@
       "ask_question": "Ask question",
       "delegation": "Delegation",
       "answers": "Answers",
-      "trusted_list": "Trusted list"
+      "trusted_list": "Trusted list",
+      "governance":"Governance",
+      "ams01":"Knowledge based voting - AMS-0001"
+    },
+    "govtoolsmenu": {
+      "gen": "Generate accounts",
+      "distribute": "Distribute algo 1->N",
+      "optin": "Opt in for the governance",
+      "pay": "Mass pay N->1",
+      "merge": "Merge accounts N->1"
     },
     "voteask":{
       "title":"Ask question through blockchain",

@@ -53,7 +53,16 @@
     "ask_question": "Kérdésem van",
     "delegation": "Delegálás",
     "answers": "Válaszok",
-    "trusted_list": "Bizalmi lista"
+    "trusted_list": "Bizalmi lista",
+    "governance":"Governance",
+    "ams01":"Knowledge based voting - AMS-0001"
+  },
+  "govtoolsmenu": {
+    "gen": "Generate accounts",
+    "distribute": "Distribute algo 1->N",
+    "optin": "Opt in for the governance",
+    "pay": "Mass pay N->1",
+    "merge": "Merge accounts N->1"
   },
   "voteask":{
     "title":"Kérdezz valamit a blokkláncon keresztül",
