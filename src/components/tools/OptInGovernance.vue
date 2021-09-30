@@ -53,15 +53,22 @@
         </div>
         <div class="m-1">
           <label for="sendTo"
-            >Sent to account. Sandbox:
+            >Sent to account. Mainnet:
             <span
               @click="
                 this.sendTo =
-                  'AYP7GCB34L4QG3NY3YPGLIGJ7WQC4ERQEDOYXTO75BYH3G76RRSJIFFEGA'
+                  'GULDQIEZ2CUPBSHKXRWUW7X3LCYL44AI5GGSHHOQDGKJAZ2OANZJ43S72U'
               "
-              >AYP7GCB34L4QG3NY3YPGLIGJ7WQC4ERQEDOYXTO75BYH3G76RRSJIFFEGA</span
-            >
-            Mainnet: Unknow</label
+              >GULDQIEZ2CUPBSHKXRWUW7X3LCYL44AI5GGSHHOQDGKJAZ2OANZJ43S72U</span
+            ></label
+          >
+          Testnet:
+          <span
+            @click="
+              this.sendTo =
+                'AYP7GCB34L4QG3NY3YPGLIGJ7WQC4ERQEDOYXTO75BYH3G76RRSJIFFEGA'
+            "
+            >AYP7GCB34L4QG3NY3YPGLIGJ7WQC4ERQEDOYXTO75BYH3G76RRSJIFFEGA</span
           >
           <input v-model="sendTo" id="sendTo" class="form-control" rows="6" />
         </div>
