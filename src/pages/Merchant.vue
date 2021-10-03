@@ -137,6 +137,7 @@ import QRCodeVue3 from "qrcode-vue3";
 import { mapActions } from "vuex";
 import aprotocol from "../shared/algorand-protocol-parse";
 import { v4 as uuidv4 } from "uuid";
+import base64url from "base64url";
 
 export default {
   components: {
@@ -177,9 +178,19 @@ export default {
   mounted() {
     console.log("qrcode", this.qrcode, this.account);
     try {
-      this.origcode = atob(this.$route.params.b64);
+      try {
+        this.origcode = atob(this.$route.params.b64);
+      } catch {
+        this.origcode = base64url.decode(this.$route.params.b64);
+      }
       if (this.$route.params.settings) {
-        this.settings = JSON.parse(atob(this.$route.params.settings));
+        let settings = "";
+        try {
+          settings = atob(this.$route.params.settings);
+        } catch {
+          settings = base64url.decode(this.$route.params.settings);
+        }
+        this.settings = JSON.parse(settings);
       }
     } catch (e) {
       this.openError(e.message);
