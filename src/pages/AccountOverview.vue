@@ -238,6 +238,7 @@
           <div
             class="text-end"
             v-if="
+              slotProps.data['tx-type'] == 'pay' &&
               'payment-transaction' in slotProps.data &&
               'amount' in slotProps.data['payment-transaction']
             "
@@ -245,6 +246,25 @@
             {{
               $filters.formatCurrency(
                 slotProps.data["payment-transaction"]["amount"]
+              )
+            }}
+          </div>
+          <div
+            class="text-end"
+            v-if="
+              slotProps.data['tx-type'] == 'axfer' &&
+              'asset-transfer-transaction' in slotProps.data &&
+              'amount' in slotProps.data['asset-transfer-transaction']
+            "
+          >
+            {{
+              $filters.formatCurrency(
+                slotProps.data["asset-transfer-transaction"]["amount"],
+                this.getAssetName(
+                  slotProps.data["asset-transfer-transaction"]["asset-id"]
+                ),
+
+                getAssetDecimals(asset["asset-id"])
               )
             }}
           </div>
