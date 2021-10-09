@@ -440,7 +440,8 @@
     "asset_defaultfrozen": "Predvolené je zamknuté",
     "asset_url": "URL adresa aktíva",
     "asset_metadata": "Metadata aktíva",
-    "time": "Čas"
+    "time": "Čas",
+    "group":"ID skupiny transakcií"
   },
   "privacy": {
     "title": "Zásady ochrany osobných údajov",

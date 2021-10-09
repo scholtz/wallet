@@ -440,7 +440,8 @@
     "asset_defaultfrozen": "Asset predefinito congelato",
     "asset_url": "Asset url",
     "asset_metadata": "Asset metadata",
-    "time": "Data"
+    "time": "Data",
+    "group":"Group ID"
   },
   "privacy": {
     "title": "Privacy policy",

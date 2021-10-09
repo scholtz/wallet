@@ -440,7 +440,8 @@
       "asset_defaultfrozen": "Activa standaard bevroren",
       "asset_url": "Activa url",
       "asset_metadata": "Activa metadata",
-      "time": "Tijd"
+      "time": "Tijd",
+      "group":"Group ID"
     },
     "privacy": {
       "title": "Privacy beleid",
