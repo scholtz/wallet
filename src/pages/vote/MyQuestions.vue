@@ -38,8 +38,6 @@ export default {
   },
   methods: {
     ...mapActions({
-      makeAssetCreateTxnWithSuggestedParams:
-        "algod/makeAssetCreateTxnWithSuggestedParams",
       openSuccess: "toast/openSuccess",
     }),
   },

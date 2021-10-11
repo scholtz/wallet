@@ -45,6 +45,25 @@ const actions = {
       console.log("error", error, dispatch);
     }
   },
+  async searchForTransactionsWithAddrAndAsset({ dispatch }, { addr, asset }) {
+    try {
+      const url = new URL(this.state.config.indexer);
+      const indexerClient = new algosdk.Indexer(
+        this.state.config.indexerToken,
+        this.state.config.indexer,
+        url.port
+      );
+      console.log("searching for addr and asset", addr, asset);
+      const searchForTransactions = await indexerClient
+        .searchForTransactions()
+        .address(addr)
+        .assetID(asset)
+        .do();
+      return searchForTransactions;
+    } catch (error) {
+      console.log("error", error, dispatch);
+    }
+  },
   async searchForTransactionsWithNoteAndAmount(
     { dispatch },
     { note, amount, min }

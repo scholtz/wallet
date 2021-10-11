@@ -64,17 +64,23 @@
         v-model="asset.decimals"
         id="decimals"
         class="form-control m-1"
+        type="number"
         min="0"
         max="6"
         step="1"
       />
       <label for="totalIssuance" class="m-1"
-        >{{ $t("assetcreate.totalIssuance") }}
+        >{{ $t("assetcreate.totalIssuance") }} (<span title="min">{{
+          min
+        }}</span>
+        - <span title="max">{{ max }}</span
+        >)
       </label>
       <input
         v-model="asset.totalIssuance"
         id="totalIssuance"
         class="form-control m-1"
+        type="number"
         min="0"
         max="1000000000"
         step="1"
@@ -224,6 +230,17 @@ export default {
       return (
         this.accountsWithPrivateKey && this.accountsWithPrivateKey.length > 0
       );
+    },
+    min() {
+      if (this.asset.decimals == 0) {
+        return 1;
+      }
+      return parseFloat(Math.pow(10, -1 * this.asset.decimals)).toFixed(
+        this.asset.decimals
+      );
+    },
+    max() {
+      return new Intl.NumberFormat().format(this.asset.totalIssuance);
     },
   },
   mounted() {

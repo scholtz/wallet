@@ -523,16 +523,6 @@ export default {
         return false;
       }
     },
-    async createAsset(e) {
-      e.preventDefault();
-      console.log("asset", this.asset);
-      const asset = await this.makeAssetCreateTxnWithSuggestedParams({
-        asset: this.asset,
-      });
-      if (asset.txId) {
-        this.openSuccess("Asset request sent to the network: " + asset.txId);
-      }
-    },
     async submitVote(e) {
       this.prolong();
       e.preventDefault();

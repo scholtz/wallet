@@ -130,15 +130,6 @@ const actions = {
     }
   },
 
-  _base64ToArrayBuffer(base64) {
-    var binary_string = window.atob(base64);
-    var len = binary_string.length;
-    var bytes = new Uint8Array(len);
-    for (var i = 0; i < len; i++) {
-      bytes[i] = binary_string.charCodeAt(i);
-    }
-    return bytes.buffer;
-  },
   async sendRawTransaction({ dispatch }, { signedTxn }) {
     const url = new URL(this.state.config.algod);
 
@@ -191,7 +182,7 @@ const actions = {
     const txn = algosdk.makeAssetCreateTxnWithSuggestedParams(
       asset.addr,
       noteEnc,
-      parseInt(asset.totalIssuance),
+      parseInt(asset.totalIssuance * Math.pow(10, asset.decimals)),
       parseInt(asset.decimals),
       asset.defaultFrozen,
       asset.manager ? asset.manager : undefined,

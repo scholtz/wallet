@@ -236,8 +236,6 @@ export default {
   },
   methods: {
     ...mapActions({
-      makeAssetCreateTxnWithSuggestedParams:
-        "algod/makeAssetCreateTxnWithSuggestedParams",
       openSuccess: "toast/openSuccess",
       makePayment: "algod/makePayment",
       getTransactionParams: "algod/getTransactionParams",
@@ -298,16 +296,6 @@ export default {
         console.log("confirmation", this.tx, this.confirmation);
       } catch (exc) {
         this.error = exc;
-      }
-    },
-    async createAsset(e) {
-      e.preventDefault();
-      console.log("asset", this.asset);
-      const asset = await this.makeAssetCreateTxnWithSuggestedParams({
-        asset: this.asset,
-      });
-      if (asset.txId) {
-        this.openSuccess("Asset request sent to the network: " + asset.txId);
       }
     },
   },
