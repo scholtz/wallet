@@ -49,8 +49,13 @@
             }}</v-link>
           </li>
           <li class="nav-item active" v-if="$store.state.wallet.isOpen">
-            <v-link class="nav-link" href="/vote/overview">{{
+            <v-link class="nav-link" href="/vote/governance/optin">{{
               $t("navbar.vote")
+            }}</v-link>
+          </li>
+          <li class="nav-item active">
+            <v-link class="nav-link" href="/payment-gateway">{{
+              $t("merchant.make_payment")
             }}</v-link>
           </li>
           <li class="nav-item active">

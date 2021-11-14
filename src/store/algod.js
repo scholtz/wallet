@@ -43,14 +43,21 @@ const actions = {
         this.state.config.algod,
         url.port
       );
-
-      const sk = await dispatch(
-        "wallet/getSK",
-        { addr: payFrom },
-        {
-          root: true,
-        }
-      );
+      let sk = null;
+      let fromAcct = "";
+      if (payFrom.sk) {
+        sk = payFrom.sk;
+        fromAcct = payFrom.addr;
+      } else {
+        fromAcct = payFrom;
+        sk = await dispatch(
+          "wallet/getSK",
+          { addr: payFrom },
+          {
+            root: true,
+          }
+        );
+      }
       let assetId = undefined;
       if (asset) {
         assetId = parseInt(asset);
@@ -59,7 +66,7 @@ const actions = {
       params.fee = fee;
       params.flatFee = true;
       console.log("going to sign ", {
-        payFrom,
+        fromAcct,
         payTo,
         amount,
         assetId,
@@ -69,7 +76,7 @@ const actions = {
       let txn = null;
       if (assetId) {
         const transactionOptions = {
-          from: payFrom,
+          from: fromAcct,
           to: payTo,
           assetIndex: assetId,
           amount,
@@ -82,7 +89,7 @@ const actions = {
         );
       } else {
         txn = algosdk.makePaymentTxnWithSuggestedParams(
-          payFrom,
+          fromAcct,
           payTo,
           amount,
           undefined,
@@ -123,15 +130,6 @@ const actions = {
     }
   },
 
-  _base64ToArrayBuffer(base64) {
-    var binary_string = window.atob(base64);
-    var len = binary_string.length;
-    var bytes = new Uint8Array(len);
-    for (var i = 0; i < len; i++) {
-      bytes[i] = binary_string.charCodeAt(i);
-    }
-    return bytes.buffer;
-  },
   async sendRawTransaction({ dispatch }, { signedTxn }) {
     const url = new URL(this.state.config.algod);
 
@@ -184,7 +182,7 @@ const actions = {
     const txn = algosdk.makeAssetCreateTxnWithSuggestedParams(
       asset.addr,
       noteEnc,
-      parseInt(asset.totalIssuance),
+      parseInt(asset.totalIssuance * Math.pow(10, asset.decimals)),
       parseInt(asset.decimals),
       asset.defaultFrozen,
       asset.manager ? asset.manager : undefined,

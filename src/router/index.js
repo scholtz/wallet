@@ -19,12 +19,15 @@ import AssetModify from "@/pages/Asset/Modify.vue";
 import AssetRevoke from "@/pages/Asset/Revoke.vue";
 import OptIn from "@/pages/Asset/OptIn.vue";
 import PaymentGateway from "@/pages/PaymentGateway.vue";
+import GovernanceOverview from "@/pages/governance/Overview.vue";
 import VoteAsk from "@/pages/vote/Ask.vue";
 import VoteOverview from "@/pages/vote/Overview.vue";
 import VoteMyQuestions from "@/pages/vote/MyQuestions.vue";
 import VoteDelegate from "@/pages/vote/Delegate.vue";
 import VoteAnswers from "@/pages/vote/Answers.vue";
 import TrustedList from "@/pages/vote/TrustedList.vue";
+import Donation from "@/pages/Donation.vue";
+import Success from "@/pages/Success.vue";
 
 const routes = [
   {
@@ -55,6 +58,11 @@ const routes = [
   {
     path: "/payment-gateway/:account",
     name: "PaymentGateway",
+    component: PaymentGateway,
+  },
+  {
+    path: "/payment-gateway/",
+    name: "PaymentGateway1",
     component: PaymentGateway,
   },
   {
@@ -142,6 +150,11 @@ const routes = [
     component: NotFound,
   },
   {
+    path: "/vote/governance/:id",
+    name: "GovernanceOverview",
+    component: GovernanceOverview,
+  },
+  {
     path: "/vote/ask",
     name: "VoteAsk",
     component: VoteAsk,
@@ -170,6 +183,16 @@ const routes = [
     path: "/vote/tl",
     name: "tl",
     component: TrustedList,
+  },
+  {
+    path: "/donate",
+    name: "Donation",
+    component: Donation,
+  },
+  {
+    path: "/success",
+    name: "Success",
+    component: Success,
   },
 ];
 

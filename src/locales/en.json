@@ -53,7 +53,16 @@
     "ask_question": "Ask question",
     "delegation": "Delegation",
     "answers": "Answers",
-    "trusted_list": "Trusted list"
+    "trusted_list": "Trusted list",
+    "governance":"Governance",
+    "ams01":"Knowledge based voting - AMS-0001"
+  },
+  "govtoolsmenu": {
+    "gen": "Generate accounts",
+    "distribute": "Distribute algo 1->N",
+    "optin": "Opt in for the governance",
+    "pay": "Mass pay N->1",
+    "merge": "Merge accounts N->1"
   },
   "voteask":{
     "title":"Ask question through blockchain",
@@ -177,7 +186,20 @@
     "settings_params":"Allowed settings",
     "success":"URL address where to redirect client after successful payment",
     "cancel":"URL address where to redirect client after he clicks cancel payment",
-    "example":"Example"
+    "example":"Example",
+    "turn_on_build_tool":"Turn on the build tool",
+    "turn_off_build_tool":"Turn off the build tool",
+    "tether":"Tether mainnet",
+    "algorand":"Algorand",
+    "asset":"You can specify asset id for the transaction",
+    "error_transaction":"Please fill in at least account, amount and asset",
+    "error_url":"URL address must start with https:// protocol",
+    "button":"Generated button",
+    "payment_info":"Payment info",
+    "callback_configuration":"Callback configuration",
+    "link":"Generated link",
+    "html_example":"HTML link example"
+    
   },
   "receive": {
     "title": "Receive payment",
@@ -418,7 +440,8 @@
     "asset_defaultfrozen": "Asset default frozen",
     "asset_url": "Asset url",
     "asset_metadata": "Asset metadata",
-    "time": "Time"
+    "time": "Time",
+    "group":"Group ID"
   },
   "privacy": {
     "title": "Privacy policy",
@@ -457,7 +480,7 @@
   "faq": {
     "title": "Frequently asked questions",
     "q1": "About the wallet",
-    "a1": "Algo wallet application has been initially created by Scholtz & Company, jsa. Open source, html only, coroporate friendly, and security are the main advantages for its usage.",
+    "a1": "Algo wallet application has been initially created by Scholtz & Company, jsa. Open source, html only, coroporate friendly, and security are the main advantages for its usage. Algorand logo, word algo as well word algorand are trademarked by the algorand inc., and are used with algorand media guidelines https://www.algorand.com/about/media-kit/ .",
     "q2": "How is my wallet data secured?",
     "a2": "Your data is in the browser only. It is stored in persistant index db. Every wallet is encrypted using aes256 with your password. If you make strong enough password, your wallet will never be brute-forced. The password does not leave your computer and resides only in the browser cache. After 5 minutes after the login the cache is destroyed.",
     "q3": "Does my wallet password go to the internet?",

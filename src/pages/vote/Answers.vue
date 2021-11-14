@@ -1,5 +1,6 @@
 <template>
   <MainLayout>
+    <VoteTopMenu current="ams01" />
     <VoteMenu current="answers" />
     <h1>Questions</h1>
     <QuestionList />
@@ -8,12 +9,14 @@
 
 <script>
 import MainLayout from "../../layouts/Main.vue";
+import VoteTopMenu from "../../components/VoteTopMenu.vue";
 import VoteMenu from "../../components/VoteMenu.vue";
 import QuestionList from "./QuestionList";
 import { mapActions } from "vuex";
 export default {
   components: {
     MainLayout,
+    VoteTopMenu,
     VoteMenu,
     QuestionList,
   },
@@ -52,20 +55,8 @@ export default {
   },
   methods: {
     ...mapActions({
-      makeAssetCreateTxnWithSuggestedParams:
-        "algod/makeAssetCreateTxnWithSuggestedParams",
       openSuccess: "toast/openSuccess",
     }),
-    async createAsset(e) {
-      e.preventDefault();
-      console.log("asset", this.asset);
-      const asset = await this.makeAssetCreateTxnWithSuggestedParams({
-        asset: this.asset,
-      });
-      if (asset.txId) {
-        this.openSuccess("Asset request sent to the network: " + asset.txId);
-      }
-    },
   },
 };
 </script>

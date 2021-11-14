@@ -1,5 +1,6 @@
 <template>
   <MainLayout>
+    <VoteTopMenu current="ams01" />
     <VoteMenu current="ask" />
     <form @submit="submitQuestion">
       <h1>
@@ -37,9 +38,9 @@
           />
         </div>
         <div class="col-12">
-          <label for="max">{{ $t("voteask.max_round") }}</label>
+          <label for="duration">{{ $t("voteask.max_round") }}</label>
           <input
-            id="max"
+            id="duration"
             class="form-control my-2"
             min="1"
             max="9999999"
@@ -149,11 +150,13 @@
 <script>
 import MainLayout from "../../layouts/Main.vue";
 import VoteMenu from "../../components/VoteMenu.vue";
+import VoteTopMenu from "../../components/VoteTopMenu.vue";
 import { mapActions } from "vuex";
 export default {
   components: {
     MainLayout,
     VoteMenu,
+    VoteTopMenu,
   },
   data() {
     return {
@@ -188,7 +191,7 @@ export default {
       if (!this.title) return "";
       if (!this.question) return "";
       if (!this.category) return "";
-      if (!this.max_block) return "";
+      if (!this.duration) return "";
 
       let options = {};
       for (let index in this.options) {
@@ -203,13 +206,13 @@ export default {
       const json = {};
       json.t = this.title;
       json.q = this.question;
-      json.max = this.max_block;
+      json.duration = this.duration;
       json.category = this.category;
       if (this.url) {
         json.url = this.url;
       }
       json.o = options;
-      return "avote-question/v1:j" + JSON.stringify(json);
+      return "avote-question/v2:j" + JSON.stringify(json);
     },
     max_block() {
       if (!this.params) return;
@@ -233,8 +236,6 @@ export default {
   },
   methods: {
     ...mapActions({
-      makeAssetCreateTxnWithSuggestedParams:
-        "algod/makeAssetCreateTxnWithSuggestedParams",
       openSuccess: "toast/openSuccess",
       makePayment: "algod/makePayment",
       getTransactionParams: "algod/getTransactionParams",
@@ -295,16 +296,6 @@ export default {
         console.log("confirmation", this.tx, this.confirmation);
       } catch (exc) {
         this.error = exc;
-      }
-    },
-    async createAsset(e) {
-      e.preventDefault();
-      console.log("asset", this.asset);
-      const asset = await this.makeAssetCreateTxnWithSuggestedParams({
-        asset: this.asset,
-      });
-      if (asset.txId) {
-        this.openSuccess("Asset request sent to the network: " + asset.txId);
       }
     },
   },

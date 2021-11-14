@@ -197,6 +197,10 @@
         <td>{{ transaction["first-valid"] }}</td>
       </tr>
       <tr>
+        <th>{{ $t("transaction.group") }}:</th>
+        <td>{{ transaction["group"] }}</td>
+      </tr>
+      <tr>
         <th>{{ $t("transaction.genesis_id") }}:</th>
         <td>{{ transaction["genesis-id"] }}</td>
       </tr>
