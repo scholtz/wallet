@@ -54,15 +54,15 @@
     "delegation": "Delegálás",
     "answers": "Válaszok",
     "trusted_list": "Bizalmi lista",
-    "governance":"Governance",
-    "ams01":"Knowledge based voting - AMS-0001"
+    "governance":"Irányítás",
+    "ams01":"Tudásalapú szavazás - AMS-0001"
   },
   "govtoolsmenu": {
-    "gen": "Generate accounts",
-    "distribute": "Distribute algo 1->N",
-    "optin": "Opt in for the governance",
-    "pay": "Mass pay N->1",
-    "merge": "Merge accounts N->1"
+    "gen": "Számlák előállítása",
+    "distribute": "Algo szétosztás 1->N",
+    "optin": "Benevezés az irányításba",
+    "pay": "Tömeges fizetés N->1",
+    "merge": "Számlák összevonása N->1"
   },
   "voteask":{
     "title":"Kérdezz valamit a blokkláncon keresztül",
@@ -187,18 +187,18 @@
     "success":"URL cím, ahová a kliens a sikeres fizetés után lesz átirányítva",
     "cancel":"URL cím, ahová a kliens a 'fizetés törlése' választása után lesz átirányítva",
     "example":"Példa",
-    "turn_on_build_tool":"Turn on the build tool",
-    "turn_off_build_tool":"Turn off the build tool",
+    "turn_on_build_tool":"A build eszköz bekapcsolása",
+    "turn_off_build_tool":"A build eszköz kikapcsolása",
     "tether":"Tether mainnet",
     "algorand":"Algorand",
-    "asset":"You can specify asset id for the transaction",
-    "error_transaction":"Please fill in at least account, amount and asset",
-    "error_url":"URL address must start with https:// protocol",
-    "button":"Generated button",
-    "payment_info":"Payment info",
-    "callback_configuration":"Callback configuration",
-    "link":"Generated link",
-    "html_example":"HTML link example"
+    "asset":"Megadható a tranzakcióhoz a pénzeszköz azon.",
+    "error_transaction":"Kérjük, töltse ki a számlát, az összeget és a pénzeszközt",
+    "error_url":"Az URL címnek a https:// protokollal kell kezdődnie",
+    "button":"Generált nyomógomb",
+    "payment_info":"Fizetési információ",
+    "callback_configuration":"Callback konfiguráció",
+    "link":"Generált hiperlink",
+    "html_example":"HTML hiperlink példa"
     
   },
   "receive": {
