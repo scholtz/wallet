@@ -66,7 +66,7 @@
         class="form-control m-1"
         type="number"
         min="0"
-        max="6"
+        max="18"
         step="1"
       />
       <label for="totalIssuance" class="m-1"
