@@ -1,6 +1,7 @@
 const state = () => ({
   debug: false,
   LOGO: "/img/logo.svg",
+  env: "mainnet",
   algod: "https://algoexplorerapi.io",
   kmd: "",
   indexer: "https://algoexplorerapi.io/idx2",
@@ -57,6 +58,10 @@ const mutations = {
     if (algodHost) {
       state.algod = algodHost;
     }
+    const env = localStorage.getItem("env");
+    if (env) {
+      state.env = env;
+    }
     const kmdHost = localStorage.getItem("kmddHost");
     if (kmdHost) {
       state.kmd = kmdHost;
@@ -80,7 +85,11 @@ const mutations = {
     }
     console.log("hosts", algodHost, kmdHost, indexerHost);
   },
-  setHosts(state, { algod, kmd, indexer, algodToken, kmdToken, indexerToken }) {
+  setHosts(state, { env, algod, kmd, indexer, algodToken, kmdToken, indexerToken }) {
+    if (env) {
+      state.env = env;
+      localStorage.setItem("env", env);
+    }
     if (algod) {
       state.algod = algod;
       localStorage.setItem("algodHost", algod);
@@ -114,9 +123,10 @@ const mutations = {
 const actions = {
   async setHosts(
     { commit },
-    { algod, kmd, indexer, algodToken, kmdToken, indexerToken }
+    { env, algod, kmd, indexer, algodToken, kmdToken, indexerToken }
   ) {
     await commit("setHosts", {
+      env,
       algod,
       kmd,
       indexer,

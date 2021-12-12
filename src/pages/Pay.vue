@@ -206,7 +206,7 @@
       <form @submit="payPaymentClick" v-if="page == 'review'">
         <h1>{{ $t("pay.review_payment") }}</h1>
         <p>{{ $t("pay.review_payment_help") }}</p>
-        <table class="table" v-if="!multisigDecoded.txn">
+        <table class="w-100" v-if="!multisigDecoded.txn">
           <tr>
             <th>{{ $t("pay.from_account") }}:</th>
             <td>{{ payFrom }}</td>
@@ -246,7 +246,7 @@
 
         <div v-if="multisigDecoded.txn">
           <h2>{{ $t("pay.transaction_details") }}</h2>
-          <table class="table">
+          <table class="w-100">
             <tr>
               <th>{{ $t("pay.type") }}</th>
               <td>{{ multisigDecoded.txn.type }}</td>
@@ -290,7 +290,7 @@
           </table>
 
           <h2>{{ $t("pay.signatures") }}</h2>
-          <table class="table">
+          <table class="w-100">
             <tr v-for="sig in multisigDecoded.msig.subsig" :key="sig">
               <th>
                 <span v-if="sig.s" class="badge bg-success">{{

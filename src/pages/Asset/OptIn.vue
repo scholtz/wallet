@@ -80,7 +80,7 @@
       <div class="card-header">
         {{ $t("optin.assetInfo") }}
       </div>
-      <table class="table">
+      <table class="w-100">
         <tbody>
           <tr>
             <th>{{ $t("optin.action") }}</th>

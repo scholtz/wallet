@@ -226,6 +226,13 @@ export default {
       t.setSeconds(t.getSeconds() + this.duration * 4.5);
       return t;
     },
+    isASAVote() {
+      if (!this.currentToken) return false;
+      return parseInt(this.currentToken) > 0;
+    },
+    currentToken() {
+      return this.$store.state.vote.assetId;
+    },
   },
   async mounted() {
     console.log("accountsWithPrivateKey", this.accountsWithPrivateKey);
@@ -254,7 +261,8 @@ export default {
         const payFrom = this.$store.state.wallet.lastActiveAccount;
         const amount = 702;
         const fee = 1000;
-        const asset = null;
+        let asset = null;
+        if (this.isASAVote) asset = this.currentToken;
         const enc = new TextEncoder();
         const note = this.note;
         if (!note) return;

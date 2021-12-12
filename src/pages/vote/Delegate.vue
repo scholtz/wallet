@@ -234,6 +234,18 @@ export default {
       json.d = d;
       return "avote-delegation/v1:j" + JSON.stringify(json);
     },
+    isASAVote() {
+      if (!this.currentToken) return false;
+      return parseInt(this.currentToken) > 0;
+    },
+    currentToken() {
+      return this.$store.state.vote.assetId;
+    },
+  },
+  watch: {
+    currentToken() {
+      this.loadMyDelegation();
+    },
   },
   async mounted() {
     this.prolong();
@@ -347,7 +359,8 @@ export default {
         const payFrom = this.$store.state.wallet.lastActiveAccount;
         const amount = 701;
         const fee = 1000;
-        const asset = null;
+        let asset = null;
+        if (this.isASAVote) asset = this.currentToken;
         const enc = new TextEncoder();
         const note = this.note;
         if (!note) return;

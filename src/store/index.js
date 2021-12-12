@@ -5,6 +5,7 @@ import config from "./config";
 import wallet from "./wallet";
 import indexer from "./indexer";
 import toast from "./toast";
+import vote from "./vote";
 
 const debugStrict = process.env.NODE_ENV !== "production";
 
@@ -15,7 +16,8 @@ export default createStore({
     config,
     wallet,
     indexer,
-    toast
+    toast,
+    vote
   },
   strict: debugStrict,
 });

@@ -92,6 +92,18 @@ export default {
       if (!this.question) return;
       await this.loadTableItems();
     },
+    currentToken() {
+      this.loadTableItems();
+    },
+  },
+  computed: {
+    isASAVote() {
+      if (!this.currentToken) return false;
+      return parseInt(this.currentToken) > 0;
+    },
+    currentToken() {
+      return this.$store.state.vote.assetId;
+    },
   },
   async mounted() {
     this.prolong();
@@ -103,6 +115,8 @@ export default {
     ...mapActions({
       searchForTransactionsWithNoteAndAmount:
         "indexer/searchForTransactionsWithNoteAndAmount",
+      searchForTokenTransactionsWithNoteAndAmount:
+        "indexer/searchForTokenTransactionsWithNoteAndAmount",
       openSuccess: "toast/openSuccess",
       makePayment: "algod/makePayment",
       getTransactionParams: "algod/getTransactionParams",
@@ -114,11 +128,20 @@ export default {
       this.loading = true;
       this.params = await this.getTransactionParams();
       const search = "avote-vote/v1/" + this.question.substring(0, 10);
-      const txs = await this.searchForTransactionsWithNoteAndAmount({
-        note: search,
-        amount: 703,
-        min: this.params.firstRound - 100000,
-      });
+      let txs = null;
+      if (this.isASAVote) {
+        txs = await this.searchForTokenTransactionsWithNoteAndAmount({
+          note: search,
+          amount: 703,
+          assetId: this.currentToken,
+        });
+      } else {
+        txs = await this.searchForTransactionsWithNoteAndAmount({
+          note: search,
+          amount: 703,
+          min: this.params.firstRound - 300000,
+        });
+      }
       this.loading = false;
       let latest = null;
       if (txs && txs.transactions) {

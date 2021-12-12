@@ -186,6 +186,7 @@ export default {
     env() {
       if (this.env == "mainnet") {
         this.setHosts({
+          env: "mainnet",
           algod: "https://algoexplorerapi.io",
           kmd: "?",
           indexer: "https://algoexplorerapi.io/idx2",
@@ -193,6 +194,7 @@ export default {
       }
       if (this.env == "testnet") {
         this.setHosts({
+          env: "testnet",
           algod: "https://testnet.algoexplorerapi.io",
           kmd: "?",
           indexer: "https://testnet.algoexplorerapi.io/idx2",
@@ -200,6 +202,7 @@ export default {
       }
       if (this.env == "devnet") {
         this.setHosts({
+          env: "devnet",
           algod: "http://localhost:4180",
           kmd: "http://localhost:4002",
           indexer: "http://localhost:8980",
@@ -210,6 +213,7 @@ export default {
       }
       if (this.env == "sandbox") {
         this.setHosts({
+          env: "sandbox",
           algod: "http://localhost:4001",
           kmd: "http://localhost:4002",
           indexer: "http://localhost:8980",
@@ -266,6 +270,9 @@ export default {
     },
   },
   computed: {
+    envConfig() {
+      return this.$store.state.config.env;
+    },
     algodHostConfig() {
       return this.$store.state.config.algod;
     },
@@ -309,9 +316,8 @@ export default {
     MainLayout,
   },
   mounted() {
-    const newEnv = localStorage.getItem("env");
-    if (newEnv) {
-      this.env = newEnv;
+    if (this.envConfig) {
+      this.env = this.envConfig;
     }
     this.algodHost = this.algodHostConfig;
     this.algodToken = this.algodTokenConfig;
@@ -351,6 +357,7 @@ export default {
     },
     updateConfig() {
       console.log("update", {
+        env: this.env,
         algod: this.algodHost,
         kmd: this.kmdHost,
         indexer: this.indexerHost,
@@ -359,6 +366,7 @@ export default {
         indexerToken: this.indexerToken,
       });
       this.setHosts({
+        env: this.env,
         algod: this.algodHost,
         kmd: this.kmdHost,
         indexer: this.indexerHost,

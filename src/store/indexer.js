@@ -8,11 +8,14 @@ const mutations = {
   setAsset(state, assetInfo) {
     state.assets.push(assetInfo);
   },
-  setBalance(state, { account, round, balance }) {
+  setBalance(state, { account, round, assetId, balance }) {
     if (state.balance[round] === undefined) {
       state.balance[round] = {};
     }
-    state.balance[round][account] = balance;
+    if (state.balance[round][account] === undefined) {
+      state.balance[round][account] = {};
+    }
+    state.balance[round][account][assetId] = balance;
   },
 };
 const actions = {
@@ -89,6 +92,31 @@ const actions = {
       console.log("error", error, dispatch, note);
     }
   },
+  async searchForTokenTransactionsWithNoteAndAmount(
+    { dispatch },
+    { note, amount, assetId }
+  ) {
+    try {
+      const url = new URL(this.state.config.indexer);
+      const indexerClient = new algosdk.Indexer(
+        this.state.config.indexerToken,
+        this.state.config.indexer,
+        url.port
+      );
+      const enc = new TextEncoder();
+      const noteenc = enc.encode(note);
+      const searchForTransactions = await indexerClient
+        .searchForTransactions()
+        .assetID(assetId)
+        .currencyGreaterThan(amount - 1)
+        .currencyLessThan(amount + 1)
+        .notePrefix(noteenc)
+        .do();
+      return searchForTransactions;
+    } catch (error) {
+      console.log("error", error, dispatch, note);
+    }
+  },
   async searchForTransactionsWithNoteAndAmountAndAccount(
     { dispatch },
     { note, amount, account }
@@ -114,12 +142,37 @@ const actions = {
       console.log("error", error, dispatch);
     }
   },
+  async searchForTokenTransactionsWithNoteAndAmountAndAccount(
+    { dispatch },
+    { note, amount, account, assetId }
+  ) {
+    try {
+      const url = new URL(this.state.config.indexer);
+      const indexerClient = new algosdk.Indexer(
+        this.state.config.indexerToken,
+        this.state.config.indexer,
+        url.port
+      );
+      const enc = new TextEncoder();
+      const noteenc = enc.encode(note);
+      const searchForTransactions = await indexerClient
+        .searchForTransactions()
+        .currencyGreaterThan(amount - 1)
+        .currencyLessThan(amount + 1)
+        .notePrefix(noteenc)
+        .address(account)
+        .assetID(assetId)
+        .do();
+      return searchForTransactions;
+    } catch (error) {
+      console.log("error", error, dispatch);
+    }
+  },
   async getAsset({ commit }, { assetIndex }) {
     try {
       try{
         const cache = localStorage.getItem(`Asset-${assetIndex}`);
         if(cache){
-          console.log("cache",cache)
           const cacheObj = JSON.parse(cache);
           if(cacheObj && cacheObj["asset-id"] == assetIndex){
             commit("setAsset", cacheObj);
@@ -163,7 +216,7 @@ const actions = {
       console.log("error", error);
     }
   },
-  async getAccountBalanceAtRound({ commit }, { account, round }) {
+  async getAccountBalanceAtRound({ commit }, { account, round, assetId }) {
     try {
       console.log(
         "this.state.indexer.balance is undefined",
@@ -173,19 +226,11 @@ const actions = {
       );
       if (this.state.indexer.balance[round] !== undefined) {
         if (this.state.indexer.balance[round][account] !== undefined) {
-          return this.state.indexer.balance[round][account];
-        } else {
-          console.log(
-            "this.state.indexer.balance[round][account] is undefined",
-            this.state.indexer.balance[round][account]
-          );
+          if (this.state.indexer.balance[round][account][assetId] !== undefined) {
+            return this.state.indexer.balance[round][account][assetId];
+          }
         }
-      } else {
-        console.log(
-          "this.state.indexer.balance[round] is undefined",
-          this.state.indexer.balance[round]
-        );
-      }
+      } 
       const url = new URL(this.state.config.indexer);
       const indexerClient = new algosdk.Indexer(
         this.state.config.indexerToken,
@@ -196,17 +241,19 @@ const actions = {
         .lookupAccountByID(account)
         .round(round)
         .do();
-      console.log(
-        "accountInfo",
-        accountInfo,
-        accountInfo.account,
-        accountInfo.account.amount
-      );
 
-      if (accountInfo && accountInfo.account && accountInfo.account.amount) {
-        const balance = accountInfo.account.amount / 1000000;
-        await commit("setBalance", { account, round, balance });
-        console.log(this.state.indexer.balance[round][account]);
+      let balance = 0;
+      if(!assetId || assetId <= 0 ){
+        balance = accountInfo.account.amount / 1000000;
+      }else{
+        const item = accountInfo.account.assets.find(a=>a['asset-id'] == assetId && a['deleted'] == false && a['is-frozen'] == false);
+        if(item){
+          balance = item.amount
+        }
+      }
+
+      if (accountInfo && accountInfo.account && balance > 0) {
+        await commit("setBalance", { account, round, assetId, balance });
         return balance;
       }
     } catch (error) {

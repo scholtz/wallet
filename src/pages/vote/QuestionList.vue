@@ -22,6 +22,9 @@
         v-model:selection="selection"
         :paginator="true"
         :rows="20"
+        sortField="round"
+        :sortOrder="-1"
+        removableSort
       >
         <template #empty> {{ $t("votequestionlist.no_questions") }} </template>
         <Column
@@ -73,7 +76,7 @@
         >
           {{ $t("votequestionlist.list") }}
         </button>
-        <table class="table">
+        <table class="w-100">
           <tr>
             <th>{{ $t("votequestionlist.id") }}:</th>
             <td>{{ this.selection["id"] }}</td>
@@ -382,6 +385,9 @@ export default {
     votingFinished() {
       console.log("votingFinished", this.votingFinished);
     },
+    currentToken() {
+      this.initLoad();
+    },
   },
   computed: {
     max() {
@@ -435,67 +441,18 @@ export default {
         JSON.stringify(json)
       );
     },
+    isASAVote() {
+      if (!this.currentToken) return false;
+      return parseInt(this.currentToken) > 0;
+    },
+    currentToken() {
+      return this.$store.state.vote.assetId;
+    },
   },
+
   async mounted() {
     this.prolong();
-    try {
-      this.loading = true;
-      this.params = await this.getTransactionParams();
-      const txs = await this.searchForTransactionsWithNoteAndAmount({
-        note: "avote-question/",
-        amount: 702,
-        min: this.params.firstRound - 100000,
-      });
-      if (txs && txs.transactions) {
-        for (let index in txs.transactions) {
-          const tx = txs.transactions[index];
-          if (!tx["sender"]) continue;
-          let note = "";
-          if (this.isBase64(tx.note)) {
-            note = atob(tx.note);
-          }
-          if (note.startsWith("avote-question/v1:j")) {
-            note = note.replace("avote-question/v1:j", "");
-            const noteJson = JSON.parse(note);
-            console.log("noteJson", noteJson);
-
-            this.questions.push({
-              round: tx["confirmed-round"],
-              "confirmed-round": tx["confirmed-round"],
-              "round-time": tx["round-time"],
-              sender: tx["sender"],
-              id: tx["id"],
-              note: noteJson,
-            });
-          }
-          if (note.startsWith("avote-question/v2:j")) {
-            note = note.replace("avote-question/v2:j", "");
-            const noteJson = JSON.parse(note);
-            console.log("noteJson", noteJson);
-            noteJson.max =
-              parseInt(tx["confirmed-round"]) + parseInt(noteJson.duration);
-            this.questions.push({
-              round: tx["confirmed-round"],
-
-              "confirmed-round": tx["confirmed-round"],
-              "round-time": tx["round-time"],
-              sender: tx["sender"],
-              id: tx["id"],
-              note: noteJson,
-            });
-          }
-        }
-      } else {
-        this.error = "Error while loading data from the blockchain";
-        console.log("no transactions found");
-      }
-      console.log("txs", txs, this.questions);
-      this.loading = false;
-    } catch (e) {
-      console.log("e", e);
-      this.loading = false;
-      this.error = e;
-    }
+    await this.initLoad();
   },
   methods: {
     ...mapActions({
@@ -503,6 +460,10 @@ export default {
         "indexer/searchForTransactionsWithNoteAndAmount",
       searchForTransactionsWithNoteAndAmountAndAccount:
         "indexer/searchForTransactionsWithNoteAndAmountAndAccount",
+      searchForTokenTransactionsWithNoteAndAmount:
+        "indexer/searchForTokenTransactionsWithNoteAndAmount",
+      searchForTokenTransactionsWithNoteAndAmountAndAccount:
+        "indexer/searchForTokenTransactionsWithNoteAndAmountAndAccount",
       openSuccess: "toast/openSuccess",
       makePayment: "algod/makePayment",
       getTransactionParams: "algod/getTransactionParams",
@@ -511,7 +472,76 @@ export default {
       axiosGet: "axios/get",
       getAccountBalanceAtRound: "indexer/getAccountBalanceAtRound",
     }),
+    async initLoad() {
+      try {
+        this.loading = true;
+        this.params = await this.getTransactionParams();
+        let txs = null;
+        if (this.isASAVote) {
+          txs = await this.searchForTokenTransactionsWithNoteAndAmount({
+            note: "avote-question/",
+            amount: 702,
+            assetId: this.currentToken,
+          });
+        } else {
+          txs = await this.searchForTransactionsWithNoteAndAmount({
+            note: "avote-question/",
+            amount: 702,
+            min: this.params.firstRound - 300000,
+          });
+        }
+        this.questions = [];
+        if (txs && txs.transactions) {
+          for (let index in txs.transactions) {
+            const tx = txs.transactions[index];
+            if (!tx["sender"]) continue;
+            let note = "";
+            if (this.isBase64(tx.note)) {
+              note = atob(tx.note);
+            }
+            if (note.startsWith("avote-question/v1:j")) {
+              note = note.replace("avote-question/v1:j", "");
+              const noteJson = JSON.parse(note);
+              console.log("noteJson", noteJson);
 
+              this.questions.push({
+                round: tx["confirmed-round"],
+                "confirmed-round": tx["confirmed-round"],
+                "round-time": tx["round-time"],
+                sender: tx["sender"],
+                id: tx["id"],
+                note: noteJson,
+              });
+            }
+            if (note.startsWith("avote-question/v2:j")) {
+              note = note.replace("avote-question/v2:j", "");
+              const noteJson = JSON.parse(note);
+              console.log("noteJson", noteJson);
+              noteJson.max =
+                parseInt(tx["confirmed-round"]) + parseInt(noteJson.duration);
+              this.questions.push({
+                round: tx["confirmed-round"],
+
+                "confirmed-round": tx["confirmed-round"],
+                "round-time": tx["round-time"],
+                sender: tx["sender"],
+                id: tx["id"],
+                note: noteJson,
+              });
+            }
+          }
+        } else {
+          this.error = "Error while loading data from the blockchain";
+          console.log("no transactions found");
+        }
+        console.log("txs", txs, this.questions);
+        this.loading = false;
+      } catch (e) {
+        console.log("e", e);
+        this.loading = false;
+        this.error = e;
+      }
+    },
     isBase64(str) {
       if (!str) return false;
       if (str.trim() === "") {
@@ -531,7 +561,8 @@ export default {
         const payFrom = this.$store.state.wallet.lastActiveAccount;
         const amount = 703;
         const fee = 1000;
-        const asset = null;
+        let asset = null;
+        if (this.isASAVote) asset = this.currentToken;
         const enc = new TextEncoder();
         const note = this.note;
         if (!note) return;
@@ -582,11 +613,20 @@ export default {
         // get all answers
         const answersPerAccount = {};
         const search = "avote-vote/v1/" + this.selection.id.substring(0, 10);
-        let txs = await this.searchForTransactionsWithNoteAndAmount({
-          note: search,
-          amount: 703,
-          min: this.params.firstRound - 100000,
-        });
+        let txs = false;
+        if (this.isASAVote) {
+          txs = await this.searchForTokenTransactionsWithNoteAndAmount({
+            note: search,
+            amount: 703,
+            assetId: this.currentToken,
+          });
+        } else {
+          txs = await this.searchForTransactionsWithNoteAndAmount({
+            note: search,
+            amount: 703,
+            min: this.params.firstRound - 300000,
+          });
+        }
 
         if (txs.transactions) {
           for (let index in txs.transactions) {
@@ -642,10 +682,20 @@ export default {
         // calculate whole delegation tree
         const delegationPerAccount = {};
         const searchDeleg = "avote-delegation/v1";
-        txs = await this.searchForTransactionsWithNoteAndAmount({
-          note: searchDeleg,
-          amount: 701,
-        });
+
+        if (this.isASAVote) {
+          txs = await this.searchForTokenTransactionsWithNoteAndAmount({
+            note: searchDeleg,
+            amount: 701,
+            assetId: this.currentToken,
+          });
+        } else {
+          txs = await this.searchForTransactionsWithNoteAndAmount({
+            note: searchDeleg,
+            amount: 701,
+          });
+        }
+
         if (txs && txs.transactions) {
           for (let index in txs.transactions) {
             const tx = txs.transactions[index];
@@ -888,7 +938,11 @@ export default {
           failed = true;
         }
       }
-      let balance = await this.getAccountBalanceAtRound({ account, round });
+      let balance = await this.getAccountBalanceAtRound({
+        account,
+        round,
+        assetId: this.currentToken,
+      });
       if (sum > 0 && !failed) {
         for (let index in this.selection.note.o) {
           r[index] =
@@ -958,11 +1012,21 @@ export default {
           trusted[accounts[index]] = true;
         }*/
       const searchTL = "avote-tl/v1";
-      const txs = await this.searchForTransactionsWithNoteAndAmountAndAccount({
-        note: searchTL,
-        amount: 705,
-        account: this.selection.sender,
-      });
+      let txs = null;
+      if (this.isASAVote) {
+        txs = await this.searchForTokenTransactionsWithNoteAndAmountAndAccount({
+          note: searchTL,
+          amount: 705,
+          account: this.selection.sender,
+          assetId: this.currentToken,
+        });
+      } else {
+        txs = await this.searchForTransactionsWithNoteAndAmountAndAccount({
+          note: searchTL,
+          amount: 705,
+          account: this.selection.sender,
+        });
+      }
 
       if (txs && txs.transactions) {
         for (let index in txs.transactions) {

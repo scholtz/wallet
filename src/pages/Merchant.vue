@@ -12,7 +12,7 @@
         <span v-if="asset">{{ asset["unit-name"] }}</span>
         {{ $t("merchant.to_address") }} {{ this.b64decode.payTo }}
         {{ $t("merchant.please") }}
-        <table class="table">
+        <table class="w-100">
           <tr v-if="this.b64decode.network">
             <td>{{ $t("merchant.network") }}:</td>
             <td>

@@ -1,7 +1,7 @@
 <template>
   <MainLayout>
     <h1>{{ $t("transaction.title") }}</h1>
-    <table class="table" v-if="transaction">
+    <table class="w-100" v-if="transaction">
       <tr>
         <th>{{ $t("transaction.tr_id") }}:</th>
         <td>{{ transaction["id"] }}</td>

@@ -37,33 +37,33 @@
       <router-link
         v-if="account && (account.sk || account.params)"
         :to="'/accounts/pay/' + $route.params.account"
-        class="btn btn-light btn-xs my-2"
+        class="btn btn-light btn-xs me-2 my-2"
         >{{ $t("acc_overview.pay") }}</router-link
       >
       <router-link
         v-if="account && (account.sk || account.params)"
         :to="'/account/optin/' + $route.params.account"
-        class="btn btn-light btn-xs my-2"
+        class="btn btn-light btn-xs me-2 my-2"
         >{{ $t("acc_overview.asset_optin") }}</router-link
       >
       <router-link
         :to="'/receive-payment/' + $route.params.account"
-        class="btn btn-light btn-xs m-2"
+        class="btn btn-light btn-xs me-2 my-2"
         >{{ $t("acc_overview.receive_payment") }}</router-link
       >
       <router-link
         :to="'/payment-gateway/' + $route.params.account"
-        class="btn btn-light btn-xs m-2"
+        class="btn btn-light btn-xs me-2 my-2"
         >{{ $t("acc_overview.payment_gateway") }}</router-link
       >
       <router-link
         v-if="account && (account.sk || account.params)"
         :to="'/vote/ask/'"
-        class="btn btn-light btn-xs my-2"
+        class="btn btn-light btn-xs me-2 my-2"
         >{{ $t("acc_overview.ask_question") }}</router-link
       >
     </p>
-    <table class="table" v-if="account">
+    <table class="w-100" v-if="account">
       <tr>
         <th>{{ $t("acc_overview.name") }}:</th>
         <td>{{ account["name"] }}</td>
@@ -144,7 +144,7 @@
       <tr v-if="account['assets'] && account['assets'].length > 0">
         <th>{{ $t("acc_overview.assets") }}:</th>
         <td>
-          <table class="table">
+          <table class="w-100">
             <thead>
               <tr>
                 <th>ASA Amount</th>
@@ -398,7 +398,6 @@ export default {
       }
       if (this.account) {
         for (let index in this.account.assets) {
-          console.log("fetching", this.account.assets[index]["asset-id"]);
           const asset = await this.getAsset({
             assetIndex: this.account.assets[index]["asset-id"],
           });
@@ -413,13 +412,8 @@ export default {
           }
         }
       }
-      console.log("this.assets", this.assets);
     },
     getAssetSync(id) {
-      console.log(
-        "this.$store.state.indexer.assets",
-        this.$store.state.indexer.assets
-      );
       const ret = this.$store.state.indexer.assets.find(
         (a) => a["asset-id"] == id
       );
