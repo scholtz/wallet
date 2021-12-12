@@ -130,7 +130,6 @@ const actions = {
   },
   async getConfig({ dispatch, commit }) {
     try {
-      console.log("getConfig");
       const data = await dispatch(
         "axios/get",
         {

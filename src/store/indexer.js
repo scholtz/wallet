@@ -116,6 +116,20 @@ const actions = {
   },
   async getAsset({ commit }, { assetIndex }) {
     try {
+      try{
+        const cache = localStorage.getItem(`Asset-${assetIndex}`);
+        if(cache){
+          console.log("cache",cache)
+          const cacheObj = JSON.parse(cache);
+          if(cacheObj && cacheObj["asset-id"] == assetIndex){
+            commit("setAsset", cacheObj);
+            return cacheObj;
+          }
+        }
+      }catch(e){
+        console.log("error",e)
+      }
+
       const url = new URL(this.state.config.indexer);
       const indexerClient = new algosdk.Indexer(
         this.state.config.indexerToken,
@@ -142,6 +156,7 @@ const actions = {
         const assetInfoData = assetInfo.assets[0].params;
         assetInfoData["asset-id"] = assetIndex;
         commit("setAsset", assetInfoData);
+        localStorage.setItem(`Asset-${assetIndex}`,JSON.stringify(assetInfoData))
         return assetInfoData;
       }
     } catch (error) {
