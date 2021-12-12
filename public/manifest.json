@@ -6,10 +6,6 @@
     {
       "protocol": "web+algorand",
       "url": "/pay/%s"
-    },
-    {
-      "protocol": "algorand",
-      "url": "/pay/%s"
     }
   ],
   "icons": [
