@@ -1,4 +1,5 @@
 const state = () => ({
+  debug: false,
   LOGO: "/img/logo.svg",
   algod: "https://algoexplorerapi.io",
   kmd: "",
@@ -14,6 +15,19 @@ const state = () => ({
 
 const mutations = {
   setConfig(state, value) {
+
+    const removeConsoleLogs = !value.debug;
+
+    console.info("Welcome to AWallet");
+    if (removeConsoleLogs) {
+      console.info("Logs has been removed in production environment");
+      if (!window.console) window.console = {};
+      const methods = ["log", "debug", "warn", "info"];
+      for (var i = 0; i < methods.length; i++) {
+        console[methods[i]] = function() {};
+      }
+    }
+
     if (value.LOGO) {
       state.LOGO = value.LOGO;
     }
