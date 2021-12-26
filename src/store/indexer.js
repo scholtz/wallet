@@ -170,17 +170,23 @@ const actions = {
   },
   async getAsset({ commit }, { assetIndex }) {
     try {
-      try{
-        const cache = localStorage.getItem(`Asset-${assetIndex}`);
-        if(cache){
+      let env = state.config.env;
+      if (env == "mainnet") {
+        env = "";
+      } else {
+        env += "-";
+      }
+      try {
+        const cache = localStorage.getItem(`Asset-${env}${assetIndex}`);
+        if (cache) {
           const cacheObj = JSON.parse(cache);
-          if(cacheObj && cacheObj["asset-id"] == assetIndex){
+          if (cacheObj && cacheObj["asset-id"] == assetIndex) {
             commit("setAsset", cacheObj);
             return cacheObj;
           }
         }
-      }catch(e){
-        console.log("error",e)
+      } catch (e) {
+        console.log("error", e);
       }
 
       const url = new URL(this.state.config.indexer);
@@ -209,7 +215,10 @@ const actions = {
         const assetInfoData = assetInfo.assets[0].params;
         assetInfoData["asset-id"] = assetIndex;
         commit("setAsset", assetInfoData);
-        localStorage.setItem(`Asset-${assetIndex}`,JSON.stringify(assetInfoData))
+        localStorage.setItem(
+          `Asset-${env}${assetIndex}`,
+          JSON.stringify(assetInfoData)
+        );
         return assetInfoData;
       }
     } catch (error) {
@@ -226,11 +235,13 @@ const actions = {
       );
       if (this.state.indexer.balance[round] !== undefined) {
         if (this.state.indexer.balance[round][account] !== undefined) {
-          if (this.state.indexer.balance[round][account][assetId] !== undefined) {
+          if (
+            this.state.indexer.balance[round][account][assetId] !== undefined
+          ) {
             return this.state.indexer.balance[round][account][assetId];
           }
         }
-      } 
+      }
       const url = new URL(this.state.config.indexer);
       const indexerClient = new algosdk.Indexer(
         this.state.config.indexerToken,
@@ -243,12 +254,17 @@ const actions = {
         .do();
 
       let balance = 0;
-      if(!assetId || assetId <= 0 ){
+      if (!assetId || assetId <= 0) {
         balance = accountInfo.account.amount / 1000000;
-      }else{
-        const item = accountInfo.account.assets.find(a=>a['asset-id'] == assetId && a['deleted'] == false && a['is-frozen'] == false);
-        if(item){
-          balance = item.amount
+      } else {
+        const item = accountInfo.account.assets.find(
+          (a) =>
+            a["asset-id"] == assetId &&
+            a["deleted"] == false &&
+            a["is-frozen"] == false
+        );
+        if (item) {
+          balance = item.amount;
         }
       }
 
