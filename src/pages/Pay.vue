@@ -115,21 +115,30 @@
             </div>
             <div>
               <label for="asset">{{ $t("pay.asset") }}</label>
-              <select id="asset" class="form-control" v-model="asset">
+              <input
+                v-model="assetObj.name"
+                v-if="forceAsset && assetObj && assetObj.name"
+                class="form-control"
+                disabled
+              />
+              <select id="asset" class="form-control" v-model="asset" v-else>
                 <option
-                  v-for="asset in assets"
-                  :key="asset['asset-id']"
-                  :value="asset['asset-id']"
+                  v-for="assetInfo in assets"
+                  :key="assetInfo['asset-id']"
+                  :value="assetInfo['asset-id']"
                 >
-                  {{ asset["name"] }} ({{
+                  {{ assetInfo["name"] }} ({{
                     $filters.formatCurrency(
-                      asset["amount"],
-                      asset["name"],
-                      asset["decimals"]
+                      assetInfo["amount"],
+                      assetInfo["name"],
+                      assetInfo["decimals"]
                     )
                   }})
                 </option>
               </select>
+            </div>
+            <div class="alert alert-danger my-2" v-if="payamountGtMaxAmount">
+              It seems your balance is below desired pay amount
             </div>
             <div>
               <label for="payamount" class="">{{ $t("pay.amount") }}</label>
@@ -143,22 +152,34 @@
                   :step="stepAmount"
                   class="form-control"
                 />
-                <button class="btn btn-outline-secondary" @click="setMaxAmount">
+                <input
+                  v-if="assetUnit"
+                  disabled
+                  :value="assetUnit"
+                  class="col-2"
+                />
+                <button
+                  class="col-2 btn btn-outline-secondary"
+                  @click="setMaxAmount"
+                >
                   {{ $t("pay.set_max") }}
                 </button>
               </div>
             </div>
             <div>
               <label for="fee">Fee</label>
-              <input
-                v-model="fee"
-                id="fee"
-                type="number"
-                min="0.001"
-                max="1"
-                step="0.001"
-                class="form-control"
-              />
+              <div class="input-group">
+                <input
+                  v-model="fee"
+                  id="fee"
+                  type="number"
+                  min="0.001"
+                  max="1"
+                  step="0.001"
+                  class="form-control"
+                />
+                <input disabled value="Algo" class="col-4" />
+              </div>
             </div>
             <div>
               <label for="paynote">{{ $t("pay.note") }}</label>
@@ -470,6 +491,7 @@ export default {
       asset: "",
       assetObj: {},
       scan: false,
+      forceAsset: false,
     };
   },
   computed: {
@@ -529,15 +551,27 @@ export default {
         return ret;
       }
     },
+    payamountGtMaxAmount() {
+      return this.payamount > this.maxAmount;
+    },
     stepAmount() {
       if (!this.asset) return 0.000001;
       if (!this.account) return 0.000001;
-      if (this.assetObj.decimals === undefined) return 0.000001;
+      if (!this.assetObj || this.assetObj.decimals === undefined)
+        return 0.000001;
       return Math.pow(10, -1 * this.assetObj.decimals);
     },
     noteIsB64() {
       if (!this.paynote) return false;
       return this.isBase64(this.paynote);
+    },
+    assetUnit() {
+      if (!this.assetObj) return "";
+      if (!this.assetObj["unit-name"]) return "";
+      return this.assetObj["unit-name"];
+    },
+    isAuth() {
+      return this.$store.state.wallet.isOpen;
     },
   },
   watch: {
@@ -560,6 +594,7 @@ export default {
         this.assetObj = {
           "asset-id": undefined,
           name: "ALGO",
+          "unit-name": "Algo",
           decimals: 6,
         };
       } else {
@@ -571,6 +606,16 @@ export default {
       this.payamount = 0;
       if (this.$route.params.toAccount) {
         this.parseToAccount();
+      }
+    },
+    isAuth() {
+      if (this.isAuth) {
+        if (
+          this.$store.state.wallet.privateAccounts &&
+          this.$store.state.wallet.privateAccounts.length == 1
+        ) {
+          this.payFromDirect = this.$store.state.wallet.privateAccounts[0].addr;
+        }
       }
     },
   },
@@ -590,6 +635,13 @@ export default {
     }
     console.log("account", this.account);
     await this.makeAssets();
+
+    if (
+      this.$store.state.wallet.privateAccounts &&
+      this.$store.state.wallet.privateAccounts.length == 1
+    ) {
+      this.payFromDirect = this.$store.state.wallet.privateAccounts[0].addr;
+    }
   },
   methods: {
     ...mapActions({
@@ -669,6 +721,7 @@ export default {
       this.payamount = this.b64decode.payamountbase / this.decimalsPower;
       if (this.b64decode.asset) {
         this.asset = this.b64decode.asset;
+        this.forceAsset = true;
       }
       if (this.b64decode.paynote) {
         this.paynote = this.b64decode.paynote;
@@ -676,13 +729,6 @@ export default {
       if (this.b64decode.fee) {
         this.fee = this.b64decode.fee;
       }
-      console.log(
-        "parseToAccount",
-        this.$route.params.toAccount,
-        this.b64decode,
-        this.payTo,
-        this.asset
-      );
     },
     previewPaymentClick(e) {
       this.page = "review";
