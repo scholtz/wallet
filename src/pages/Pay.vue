@@ -165,7 +165,7 @@
               <input v-model="paynote" id="paynote" class="form-control" />
             </div>
 
-            <div class="form-check m-1">
+            <div class="form-check m-1" v-if="noteIsB64">
               <input
                 class="form-check-input"
                 type="checkbox"
@@ -535,6 +535,10 @@ export default {
       if (this.assetObj.decimals === undefined) return 0.000001;
       return Math.pow(10, -1 * this.assetObj.decimals);
     },
+    noteIsB64() {
+      if (!this.paynote) return false;
+      return this.isBase64(this.paynote);
+    },
   },
   watch: {
     payamount() {
@@ -599,6 +603,15 @@ export default {
       getSK: "wallet/getSK",
       getAsset: "indexer/getAsset",
     }),
+    isBase64(str) {
+      try {
+        const decoded1 = Buffer.from(str, "base64").toString("utf8");
+        const encoded2 = Buffer.from(decoded1, "binary").toString("base64");
+        return str == encoded2;
+      } catch {
+        return false;
+      }
+    },
     async makeAssets() {
       this.assets = [];
       if (this.account && this.account.amount > 0) {
