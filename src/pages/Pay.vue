@@ -928,6 +928,10 @@ export default {
         );
       }
     },
+    isEncoded(uri) {
+      uri = uri || "";
+      return uri !== decodeURIComponent(uri);
+    },
     onDecodeQR(result) {
       console.log("onDecodeQR", result);
       if (this.scan && result) {
@@ -983,6 +987,10 @@ export default {
             }
 
             this.paynote = note;
+            if (this.isEncoded(this.paynote)) {
+              this.paynote = decodeURIComponent(this.paynote);
+            }
+
             this.paynoteB64 = !!noteB64;
             if (decimals !== undefined) {
               if (amount) {

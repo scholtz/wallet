@@ -1,4 +1,8 @@
 export default {
+  isEncoded(uri) {
+    uri = uri || "";
+    return uri !== decodeURIComponent(uri);
+  },
   parseAlgorandProtocolParameters(result) {
     let ret = {};
     console.log("onDecodeQR", result);
@@ -37,6 +41,9 @@ export default {
                 case "xnote":
                 case "label":
                   note = paramValue;
+                  if (this.isEncoded(note)) {
+                    note = decodeURIComponent(note);
+                  }
                   break;
                 case "noteB64":
                   noteB64 = paramValue;
