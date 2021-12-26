@@ -170,7 +170,7 @@ const actions = {
   },
   async getAsset({ commit }, { assetIndex }) {
     try {
-      let env = state.config.env;
+      let env = this.state.config.env;
       if (env == "mainnet") {
         env = "";
       } else {
