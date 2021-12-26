@@ -113,6 +113,9 @@
                 </p>
               </div>
             </div>
+            <div class="alert alert-danger my-2" v-if="forcedAssetNotLoaded">
+              It seems that desired asset has failed to load
+            </div>
             <div>
               <label for="asset">{{ $t("pay.asset") }}</label>
               <input
@@ -197,6 +200,16 @@
                 {{ $t("pay.note_is_b64") }}
               </label>
             </div>
+
+            <div>
+              <label for="env">Environment</label>
+              <input
+                :value="$store.state.config.env"
+                id="env"
+                class="form-control"
+                disabled
+              />
+            </div>
             <div>
               <input
                 :disabled="isNotValid"
@@ -239,6 +252,10 @@
           <tr>
             <th>{{ $t("pay.note") }}:</th>
             <td>{{ paynote }}</td>
+          </tr>
+          <tr>
+            <th>Environment:</th>
+            <td>{{ $store.state.config.env }}</td>
           </tr>
           <tr>
             <th>{{ $t("pay.amount") }}:</th>
@@ -554,6 +571,9 @@ export default {
     payamountGtMaxAmount() {
       return this.payamount > this.maxAmount;
     },
+    forcedAssetNotLoaded() {
+      return this.forceAsset && (!this.assetObj || !this.assetObj.name);
+    },
     stepAmount() {
       if (!this.asset) return 0.000001;
       if (!this.account) return 0.000001;
@@ -654,6 +674,7 @@ export default {
       sendRawTransaction: "algod/sendRawTransaction",
       getSK: "wallet/getSK",
       getAsset: "indexer/getAsset",
+      setEnv: "config/setEnv",
     }),
     isBase64(str) {
       try {
@@ -728,6 +749,9 @@ export default {
       }
       if (this.b64decode.fee) {
         this.fee = this.b64decode.fee;
+      }
+      if (this.b64decode.network != this.$store.state.config.env) {
+        this.setEnv({ env: this.b64decode.network });
       }
     },
     previewPaymentClick(e) {

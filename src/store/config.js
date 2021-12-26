@@ -16,7 +16,6 @@ const state = () => ({
 
 const mutations = {
   setConfig(state, value) {
-
     const removeConsoleLogs = !value.debug;
 
     console.info("Welcome to AWallet");
@@ -85,7 +84,10 @@ const mutations = {
     }
     console.log("hosts", algodHost, kmdHost, indexerHost);
   },
-  setHosts(state, { env, algod, kmd, indexer, algodToken, kmdToken, indexerToken }) {
+  setHosts(
+    state,
+    { env, algod, kmd, indexer, algodToken, kmdToken, indexerToken }
+  ) {
     if (env) {
       state.env = env;
       localStorage.setItem("env", env);
@@ -134,6 +136,50 @@ const actions = {
       kmdToken,
       indexerToken,
     });
+  },
+  async setEnv({ dispatch }, { env }) {
+    if (env == "mainnet") {
+      dispatch("setHosts", {
+        env: "mainnet",
+        algod: "https://algoexplorerapi.io",
+        kmd: "?",
+        indexer: "https://algoindexer.algoexplorerapi.io",
+      });
+    }
+    if (env == "testnet") {
+      dispatch("setHosts", {
+        env: "testnet",
+        algod: "https://testnet.algoexplorerapi.io",
+        kmd: "?",
+        indexer: "https://testnet.algoexplorerapi.io/idx2",
+      });
+    }
+    if (env == "devnet") {
+      dispatch("setHosts", {
+        env: "devnet",
+        algod: "http://localhost:4180",
+        kmd: "http://localhost:4002",
+        indexer: "http://localhost:8980",
+        algodToken:
+          "c87f5580d7a866317b4bfe9e8b8d1dda955636ccebfa88c12b414db208dd9705",
+        indexerToken: "reach-devnet",
+      });
+    }
+    if (env == "sandbox") {
+      dispatch("setHosts", {
+        env: "sandbox",
+        algod: "http://localhost:4001",
+        kmd: "http://localhost:4002",
+        indexer: "http://localhost:8980",
+        algodToken:
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        kmdToken:
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        indexerToken:
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      });
+    }
+    localStorage.setItem("env", env);
   },
   async setNoRedirect({ commit }) {
     await commit("setNoRedirect");
