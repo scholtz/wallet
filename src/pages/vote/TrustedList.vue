@@ -167,8 +167,8 @@ export default {
   },
   methods: {
     ...mapActions({
-      searchForTransactionsWithNoteAndAmount:
-        "indexer/searchForTransactionsWithNoteAndAmount",
+      searchForTokenTransactionsWithNoteAndAmountAndAccount:
+        "indexer/searchForTokenTransactionsWithNoteAndAmountAndAccount",
       searchForTransactionsWithNoteAndAmountAndAccount:
         "indexer/searchForTransactionsWithNoteAndAmountAndAccount",
       openSuccess: "toast/openSuccess",
@@ -188,11 +188,21 @@ export default {
       this.loading = true;
       this.params = await this.getTransactionParams();
       const search = "avote-tl/v1";
-      const txs = await this.searchForTransactionsWithNoteAndAmountAndAccount({
-        note: search,
-        amount: 705,
-        account: this.$store.state.wallet.lastActiveAccount,
-      });
+      let txs = null;
+      if (this.isASAVote) {
+        txs = await this.searchForTokenTransactionsWithNoteAndAmountAndAccount({
+          note: search,
+          amount: 705,
+          account: "",
+          assetId: this.currentToken,
+        });
+      } else {
+        txs = await this.searchForTransactionsWithNoteAndAmountAndAccount({
+          note: search,
+          amount: 705,
+          account: "",
+        });
+      }
       this.loading = false;
       let ret = {};
       if (txs && txs.transactions) {

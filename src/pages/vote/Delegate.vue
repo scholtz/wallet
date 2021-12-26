@@ -259,16 +259,28 @@ export default {
       waitForConfirmation: "algod/waitForConfirmation",
       searchForTransactionsWithNoteAndAmountAndAccount:
         "indexer/searchForTransactionsWithNoteAndAmountAndAccount",
+      searchForTokenTransactionsWithNoteAndAmountAndAccount:
+        "indexer/searchForTokenTransactionsWithNoteAndAmountAndAccount",
       prolong: "wallet/prolong",
     }),
     async loadMyDelegation() {
       const search = "avote-delegation/v1";
       this.loading = true;
-      const txs = await this.searchForTransactionsWithNoteAndAmountAndAccount({
-        note: search,
-        amount: 701,
-        account: this.$store.state.wallet.lastActiveAccount,
-      });
+      let txs = null;
+      if (this.isASAVote) {
+        txs = await this.searchForTokenTransactionsWithNoteAndAmountAndAccount({
+          note: search,
+          amount: 701,
+          account: "",
+          assetId: this.currentToken,
+        });
+      } else {
+        txs = await this.searchForTransactionsWithNoteAndAmountAndAccount({
+          note: search,
+          amount: 701,
+          account: "",
+        });
+      }
       this.loading = false;
       let latest = null;
       if (txs && txs.transactions) {
