@@ -909,11 +909,19 @@ export default {
           fee,
           asset,
         });
+        if (!this.tx) {
+          console.error("this.makePayment has failed");
+          this.processing = false;
+          this.error = this.$t("pay.state_error_not_sent");
+          //            "Payment has probably not reached the network. Are you offline? Please check you account";
+          return;
+        }
         const confirmation = await this.waitForConfirmation({
           txId: this.tx,
           timeout: 4,
         });
         if (!confirmation) {
+          console.error(`confirmation not received for this.tx`);
           this.processing = false;
           this.error = this.$t("pay.state_error_not_sent");
           //            "Payment has probably not reached the network. Are you offline? Please check you account";
