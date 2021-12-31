@@ -257,6 +257,10 @@
             <th>Environment:</th>
             <td>{{ $store.state.config.env }}</td>
           </tr>
+          <tr v-if="this.assetObj">
+            <th>{{ $t("optin.assetId") }}:</th>
+            <td>{{ this.assetObj["asset-id"] }}</td>
+          </tr>
           <tr>
             <th>{{ $t("pay.amount") }}:</th>
             <td v-if="this.assetObj">
