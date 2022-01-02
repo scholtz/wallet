@@ -15,7 +15,7 @@ const actions = {
       console.log("ret", ret);
       return ret;
     } catch (error) {
-      console.log("error", error, dispatch);
+      console.error("error", error, dispatch);
     }
   },
   async getTransactionParams() {
@@ -28,7 +28,7 @@ const actions = {
       );
       return await algodclient.getTransactionParams().do();
     } catch (error) {
-      console.log("error", error);
+      console.error("error", error);
     }
   },
   async makePayment(
@@ -84,9 +84,10 @@ const actions = {
           suggestedParams: params,
         };
         console.log("transactionOptions", transactionOptions);
-        txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
-          transactionOptions
-        );
+        txn =
+          algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
+            transactionOptions
+          );
       } else {
         txn = algosdk.makePaymentTxnWithSuggestedParams(
           fromAcct,
@@ -126,7 +127,7 @@ const actions = {
       );
       return ret.txId;
     } catch (error) {
-      console.log("error", error);
+      console.error("error", error);
     }
   },
 
@@ -260,7 +261,7 @@ const actions = {
         "Pending tx not found in timeout rounds, timeout value = " + timeout
       );
     } catch (error) {
-      console.log("error", error, dispatch);
+      console.error("error", error, dispatch);
     }
   },
 };
