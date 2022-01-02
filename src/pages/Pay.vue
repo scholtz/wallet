@@ -609,6 +609,11 @@ export default {
       );
       */
     },
+    payFromDirect() {
+      if (this.payFromDirect) {
+        this.lastActiveAccount({ addr: this.payFromDirect });
+      }
+    },
     account() {
       console.log("account changed ", this.account);
       this.makeAssets();
