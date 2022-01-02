@@ -245,6 +245,13 @@
             <th>{{ $t("pay.from_account") }}:</th>
             <td>{{ payFrom }}</td>
           </tr>
+          <tr v-if="malformedAddress">
+            <td colspan="2">
+              <div class="alert alert-danger">
+                Address Pay To seems to be malformed.
+              </div>
+            </td>
+          </tr>
           <tr>
             <th>{{ $t("pay.pay_to") }}:</th>
             <td>{{ payTo }}</td>
@@ -597,6 +604,9 @@ export default {
     isAuth() {
       return this.$store.state.wallet.isOpen;
     },
+    malformedAddress() {
+      return !algosdk.isValidAddress(this.payTo);
+    },
   },
   watch: {
     payamount() {
@@ -748,6 +758,7 @@ export default {
         this.$route.params.toAccount
       );
       this.payTo = this.b64decode.payTo;
+      this.payTo = this.payTo.replace(/[^\w\s]/gi, "");
       this.payamount = this.b64decode.payamountbase / this.decimalsPower;
       if (this.b64decode.asset) {
         this.asset = this.b64decode.asset;
@@ -1045,8 +1056,10 @@ export default {
           const qIndex = result.indexOf("?");
           if (qIndex < 0) {
             this.payTo = result;
+            this.payTo = this.payTo.replace(/[^\w\s]/gi, "");
           } else {
             this.payTo = result.substring(0, qIndex);
+            this.payTo = this.payTo.replace(/[^\w\s]/gi, "");
 
             const params = result.substring(qIndex + 1);
             const paramsArr = params.split("&");
@@ -1113,6 +1126,7 @@ export default {
           }
         } else {
           this.payTo = result;
+          this.payTo = this.payTo.replace(/[^\w\s]/gi, "");
         }
       }
       console.log("onDecodeQR.out", result, this.payTo);
