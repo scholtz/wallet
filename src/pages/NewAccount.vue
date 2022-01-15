@@ -328,6 +328,7 @@ export default {
       addMultiAccount: "wallet/addMultiAccount",
       addPublicAccount: "wallet/addPublicAccount",
       prolong: "wallet/prolong",
+      openError: "toast/openError",
     }),
     reset() {
       this.name = "";
@@ -341,11 +342,15 @@ export default {
       this.prolong();
     },
     createAccount() {
-      console.log("this", this);
-      this.page = "newaccount";
-      let account = algosdk.generateAccount();
-      this.a = account.addr;
-      this.w = algosdk.secretKeyToMnemonic(account.sk);
+      try {
+        console.log("this", this);
+        this.page = "newaccount";
+        let account = algosdk.generateAccount();
+        this.a = account.addr;
+        this.w = algosdk.secretKeyToMnemonic(account.sk);
+      } catch (e) {
+        this.openError(e);
+      }
     },
     createVanity() {
       console.log("this", this);
@@ -358,51 +363,55 @@ export default {
       this.page = "newaccount";
     },
     async createVanityStartClick() {
-      this.vanityCount = 0;
-      this.vanityRunning = true;
-      this.vanityStarted = moment();
-      for (let index in this.vanityThreads) {
-        this.vanityThreads[index].terminate();
-      }
-      this.vanityThreads = [];
-      for (let i = 0; i < this.vanityWorkers; i++) {
-        const worker = new Worker();
+      try {
+        this.vanityCount = 0;
+        this.vanityRunning = true;
+        this.vanityStarted = moment();
+        for (let index in this.vanityThreads) {
+          this.vanityThreads[index].terminate();
+        }
+        this.vanityThreads = [];
+        for (let i = 0; i < this.vanityWorkers; i++) {
+          const worker = new Worker();
 
-        worker.addEventListener("message", (e) => {
-          const account = e.data;
-          if (e.data && e.data.addr) {
-            this.vanityRunning = false;
-            this.a = account.addr;
-            this.w = algosdk.secretKeyToMnemonic(account.sk);
-          } else {
-            this.vanityCount += e.data;
-          }
-
-          if (this.vanityRunning) {
-            worker.postMessage({
-              vanityStart: this.vanityStart,
-              vanityMid: this.vanityMid,
-              vanityEnd: this.vanityEnd,
-            });
-            this.prolong();
-          } else {
-            for (let index in this.vanityThreads) {
-              this.vanityThreads[index].terminate();
+          worker.addEventListener("message", (e) => {
+            const account = e.data;
+            if (e.data && e.data.addr) {
+              this.vanityRunning = false;
+              this.a = account.addr;
+              this.w = algosdk.secretKeyToMnemonic(account.sk);
+            } else {
+              this.vanityCount += e.data;
             }
-          }
-          const duration = moment.duration(moment().diff(this.vanityStarted));
-          const miliseconds = duration.valueOf();
-          this.vanityTime = moment.utc(miliseconds).format("HH:mm:ss");
 
-          this.vanityRPS =
-            Math.round((this.vanityCount / miliseconds) * 1000000) / 1000;
-          //.subtract(moment(this.vanityStarted))
-        });
-        worker.postMessage({
-          vanityStart: this.vanityStart,
-          vanityMid: this.vanityMid,
-          vanityEnd: this.vanityEnd,
-        });
+            if (this.vanityRunning) {
+              worker.postMessage({
+                vanityStart: this.vanityStart,
+                vanityMid: this.vanityMid,
+                vanityEnd: this.vanityEnd,
+              });
+              this.prolong();
+            } else {
+              for (let index in this.vanityThreads) {
+                this.vanityThreads[index].terminate();
+              }
+            }
+            const duration = moment.duration(moment().diff(this.vanityStarted));
+            const miliseconds = duration.valueOf();
+            this.vanityTime = moment.utc(miliseconds).format("HH:mm:ss");
+
+            this.vanityRPS =
+              Math.round((this.vanityCount / miliseconds) * 1000000) / 1000;
+            //.subtract(moment(this.vanityStarted))
+          });
+          worker.postMessage({
+            vanityStart: this.vanityStart,
+            vanityMid: this.vanityMid,
+            vanityEnd: this.vanityEnd,
+          });
+        }
+      } catch (e) {
+        this.openError(e);
       }
     },
     async createVanityStopClick() {
@@ -419,50 +428,70 @@ export default {
       this.r = 1;
     },
     confirmCreate() {
-      const that = this;
-      const words = this.w.split(" ");
-      if (words[this.r - 1] == this.guess.trim()) {
+      try {
+        const that = this;
+        const words = this.w.split(" ");
+        if (words[this.r - 1] == this.guess.trim()) {
+          this.addPrivateAccount({ mn: this.w, name: this.name }).then((r) => {
+            if (r) {
+              that.$router.push({ name: "Accounts" });
+            }
+          });
+        } else {
+          console.log("error");
+          this.openError("error");
+        }
+      } catch (e) {
+        this.openError(e);
+      }
+    },
+    createMultisignClick() {
+      try {
+        const accounts = this.friendaccounts.split("\n");
+        let accts = Array.from(this.multisigaccts);
+
+        for (let index in accounts) {
+          if (accounts[index].length == 58) {
+            accts.push(accounts[index]);
+          }
+        }
+        const mparams = {
+          version: 1,
+          threshold: this.multisignum,
+          addrs: accts,
+        };
+        console.log("mparams", mparams, this.multisigaccts, accts);
+        this.addMultiAccount({ params: mparams, name: this.name });
+        this.$router.push({ name: "Accounts" });
+      } catch (e) {
+        this.openError(e);
+      }
+    },
+    importAccountClick() {
+      try {
+        const that = this;
         this.addPrivateAccount({ mn: this.w, name: this.name }).then((r) => {
           if (r) {
             that.$router.push({ name: "Accounts" });
           }
         });
-      } else {
-        console.log("error");
+      } catch (e) {
+        this.openError(e);
       }
-    },
-    createMultisignClick() {
-      const accounts = this.friendaccounts.split("\n");
-      let accts = Array.from(this.multisigaccts);
-
-      for (let index in accounts) {
-        if (accounts[index].length == 58) {
-          accts.push(accounts[index]);
-        }
-      }
-      const mparams = {
-        version: 1,
-        threshold: this.multisignum,
-        addrs: accts,
-      };
-      console.log("mparams", mparams, this.multisigaccts, accts);
-      this.addMultiAccount({ params: mparams, name: this.name });
-    },
-    importAccountClick() {
-      const that = this;
-      this.addPrivateAccount({ mn: this.w, name: this.name }).then((r) => {
-        if (r) {
-          that.$router.push({ name: "Accounts" });
-        }
-      });
     },
     watchAccountClick() {
-      const that = this;
-      this.addPublicAccount({ name: this.name, addr: this.addr }).then((r) => {
-        if (r) {
-          that.$router.push({ name: "Accounts" });
-        }
-      });
+      try {
+        const that = this;
+        this.addPublicAccount({ name: this.name, addr: this.addr }).then(
+          (r) => {
+            if (r) {
+              that.$router.push({ name: "Accounts" });
+            }
+          }
+        );
+      } catch (e) {
+        this.openError(e);
+      }
     },
 
     countAccounts() {
