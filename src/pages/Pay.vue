@@ -708,6 +708,7 @@ export default {
       prolong: "wallet/prolong",
       makePayment: "algod/makePayment",
       waitForConfirmation: "algod/waitForConfirmation",
+      preparePayment: "algod/preparePayment",
       lastActiveAccount: "wallet/lastActiveAccount",
       getTransactionParams: "algod/getTransactionParams",
       sendRawTransaction: "algod/sendRawTransaction",
@@ -806,24 +807,18 @@ export default {
     },
     async payMultisig() {
       this.prolong();
-      const multsigaddr = this.payFrom;
-      const payTo = this.payTo;
-      const amount = this.amountLong;
       const enc = new TextEncoder();
       const note = enc.encode(this.paynote);
 
-      let params = await this.getTransactionParams();
-      // comment out the next two lines to use suggested fee
-      params.fee = 1000;
-      params.flatFee = true;
-      this.txn = algosdk.makePaymentTxnWithSuggestedParams(
-        multsigaddr,
-        payTo,
-        amount,
-        undefined,
-        note,
-        params
-      );
+      const data = {
+        payTo: this.payTo,
+        payFrom: this.payFrom,
+        amount: this.amountLong,
+        noteEnc: note,
+        fee: 1000,
+        asset: this.assetObj["asset-id"],
+      };
+      this.txn = await this.preparePayment(data);
       //let txId = txn.txID().toString();
     },
     async signMultisig(e) {
