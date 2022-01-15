@@ -1009,6 +1009,7 @@ export default {
       this.multisigDecoded = algosdk.decodeSignedTransaction(
         this._base64ToArrayBuffer(this.rawSignedTxnInput)
       );
+      this.rawSignedTxn = this.rawSignedTxnInput;
       this.page = "review";
       console.log("this.multisigDecoded", this.multisigDecoded);
     },
