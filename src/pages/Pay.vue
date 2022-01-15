@@ -488,6 +488,7 @@ import aprotocol from "../shared/algorand-protocol-parse";
 import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
+//import base64url from "base64url";
 
 export default {
   components: {
@@ -668,7 +669,26 @@ export default {
     if (this.$route.params.toAccount) {
       this.parseToAccount();
     }
+    if (this.$route.params.rawSignedTxnInput) {
+      try {
+        const encoded = this.$route.params.rawSignedTxnInput;
+        console.log("encoded", encoded);
+        const b64 = this.base64url2base64(encoded);
+        const uint8buffer = this._base64ToArrayBuffer(b64);
+        console.log("uint8buffer", uint8buffer);
 
+        this.txn = algosdk.decodeUnsignedTransaction(uint8buffer);
+        if (this.txn.to) {
+          this.payTo = algosdk.encodeAddress(this.txn.to.publicKey);
+        }
+        this.note = this.txn.note;
+        this.asset = this.txn.assetIndex;
+        console.log("this.txn", JSON.stringify(this.txn));
+        this.page = "review";
+      } catch (e) {
+        console.error("Input is not valid base64-url format ", e);
+      }
+    }
     if (this.$route.params.account) {
       this.lastActiveAccount({ addr: this.$route.params.account });
     }
@@ -706,7 +726,7 @@ export default {
     },
     async makeAssets() {
       this.assets = [];
-      if (this.account && this.account.amount > 0) {
+      if (this.account && this.account.amount >= 0) {
         this.assets.push({
           "asset-id": "",
           amount: this.account.amount,
@@ -887,6 +907,27 @@ export default {
       }
       return bytes.buffer;
     },
+    base64url2base64(input) {
+      // Replace non-url compatible chars with base64 standard chars
+      input = input.replace(/-/g, "+").replace(/_/g, "/");
+
+      // Pad out with standard base64 required padding characters
+      var pad = input.length % 4;
+      if (pad) {
+        if (pad === 1) {
+          throw new Error(
+            "InvalidLengthError: Input base64url string is the wrong length to determine padding"
+          );
+        }
+        input += new Array(5 - pad).join("=");
+      }
+
+      return input;
+    },
+    base642base64url(input) {
+      return input.replace("+", "-").replace("/", "_").replace("=", "");
+    },
+
     async payPaymentClick(e) {
       this.prolong();
       e.preventDefault();
@@ -962,7 +1003,9 @@ export default {
     },
     loadMultisig(e) {
       this.prolong();
-      e.preventDefault();
+      if (e) {
+        e.preventDefault();
+      }
       this.multisigDecoded = algosdk.decodeSignedTransaction(
         this._base64ToArrayBuffer(this.rawSignedTxnInput)
       );

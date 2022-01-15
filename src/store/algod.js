@@ -31,7 +31,7 @@ const actions = {
       console.error("error", error);
     }
   },
-  async makePayment(
+  async preparePayment(
     { dispatch },
     { payTo, payFrom, amount, noteEnc, fee, asset }
   ) {
@@ -43,20 +43,11 @@ const actions = {
         this.state.config.algod,
         url.port
       );
-      let sk = null;
       let fromAcct = "";
       if (payFrom.sk) {
-        sk = payFrom.sk;
         fromAcct = payFrom.addr;
       } else {
         fromAcct = payFrom;
-        sk = await dispatch(
-          "wallet/getSK",
-          { addr: payFrom },
-          {
-            root: true,
-          }
-        );
       }
       let assetId = undefined;
       if (asset) {
@@ -98,11 +89,50 @@ const actions = {
           params
         );
       }
+      return txn;
+    } catch (error) {
+      console.error("error", error, dispatch);
+    }
+  },
+  async makePayment(
+    { dispatch },
+    { payTo, payFrom, amount, noteEnc, fee, asset }
+  ) {
+    try {
+      const txn = await dispatch("preparePayment", {
+        payTo,
+        payFrom,
+        amount,
+        noteEnc,
+        fee,
+        asset,
+      });
+
+      let sk = null;
+      if (payFrom.sk) {
+        sk = payFrom.sk;
+      } else {
+        sk = await dispatch(
+          "wallet/getSK",
+          { addr: payFrom },
+          {
+            root: true,
+          }
+        );
+      }
       console.log("txn", txn, sk);
       let signedTxn = txn.signTxn(sk);
       console.log("signedTxn", signedTxn);
       let txId = txn.txID().toString();
       console.log("txId", txId);
+
+      const url = new URL(this.state.config.algod);
+
+      const algodclient = new algosdk.Algodv2(
+        this.state.config.algodToken,
+        this.state.config.algod,
+        url.port
+      );
       const ret = await algodclient
         .sendRawTransaction(signedTxn)
         .do()
@@ -130,7 +160,6 @@ const actions = {
       console.error("error", error);
     }
   },
-
   async sendRawTransaction({ dispatch }, { signedTxn }) {
     const url = new URL(this.state.config.algod);
 

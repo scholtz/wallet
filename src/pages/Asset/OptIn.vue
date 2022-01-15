@@ -68,11 +68,17 @@
         >
           {{ $t("global.cancel") }}</button
         ><button
-          v-if="!optInProcessing"
+          v-if="!optInProcessing && !isMultisig"
           class="btn btn-xs btn-primary"
           @click="optInConfirmClick"
         >
-          {{ $t("optin.optin_confirm_button") }}
+          {{ $t("optin.optin_confirm_button") }}</button
+        ><button
+          v-if="!optInProcessing && isMultisig"
+          class="btn btn-xs btn-primary"
+          @click="optInMultisigConfirmClick"
+        >
+          {{ $t("optin.optin_confirm_button") }} - MultiSig
         </button></template
       >
     </Dialog>
@@ -205,6 +211,8 @@
 <script>
 import MainLayout from "../../layouts/Main.vue";
 import { mapActions } from "vuex";
+//import base64url from "base64url";
+import algosdk from "algosdk";
 
 export default {
   components: {
@@ -235,6 +243,9 @@ export default {
         (a) => a.addr == this.$route.params.account
       );
     },
+    isMultisig() {
+      return !!this.account.params;
+    },
   },
   methods: {
     ...mapActions({
@@ -244,6 +255,7 @@ export default {
       openError: "toast/openError",
       openSuccess: "toast/openSuccess",
       makePayment: "algod/makePayment",
+      preparePayment: "algod/preparePayment",
     }),
     async findAssetClick(e) {
       e.preventDefault();
@@ -294,6 +306,71 @@ export default {
     sleep(time) {
       return new Promise((resolve) => setTimeout(resolve, time));
     },
+    async optInMultisigConfirmClick() {
+      this.optInProcessing = true;
+      const data = {
+        payTo: this.account.addr,
+        payFrom: this.account.addr,
+        amount: 0,
+        noteEnc: new Uint8Array([]),
+        fee: 1000,
+        asset: this.asset["asset-id"],
+      };
+      const txn = await this.preparePayment(data);
+      const encodedtxn = algosdk.encodeUnsignedTransaction(txn);
+      const urldataB64 = this._arrayBufferToBase64(encodedtxn);
+      const urldataB64url = this.base642base64url(urldataB64);
+      const pushTo = `/multisig/${this.$route.params.account}/${urldataB64url}`;
+      console.log("txn", txn, encodedtxn, urldataB64, urldataB64url, pushTo);
+      this.$router.push(pushTo);
+    },
+    _arrayBufferToBase64(buffer) {
+      var binary = "";
+      var bytes = new Uint8Array(buffer);
+      var len = bytes.byteLength;
+      for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    },
+    _base64ToArrayBuffer(base64) {
+      var binary_string = window.atob(base64);
+      var len = binary_string.length;
+      var bytes = new Uint8Array(len);
+      for (var i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
+      }
+      return bytes.buffer;
+    },
+    base64url2base64(input) {
+      // Replace non-url compatible chars with base64 standard chars
+      input = input.replace(/-/g, "+").replace(/_/g, "/");
+
+      // Pad out with standard base64 required padding characters
+      var pad = input.length % 4;
+      if (pad) {
+        if (pad === 1) {
+          throw new Error(
+            "InvalidLengthError: Input base64url string is the wrong length to determine padding"
+          );
+        }
+        input += new Array(5 - pad).join("=");
+      }
+
+      return input;
+    },
+    base642base64url(input) {
+      return input
+        .replaceAll("+", "-")
+        .replaceAll("/", "_")
+        .replaceAll("=", "");
+    },
   },
 };
 </script>
+<style scoped>
+td,
+th {
+  padding: 5px;
+}
+</style>

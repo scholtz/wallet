@@ -131,6 +131,11 @@ const routes = [
     component: Pay,
   },
   {
+    path: "/multisig/:account/:rawSignedTxnInput",
+    name: "PayMultisig",
+    component: Pay,
+  },
+  {
     path: "/new-account",
     name: "NewAccount",
     component: NewAccount,
