@@ -82,7 +82,7 @@
         class="form-control m-1"
         type="number"
         min="0"
-        max="1000000000"
+        max="1000000000000"
         step="1"
       />
       <label for="unitName" class="m-1" v-if="advanced"
