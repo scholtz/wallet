@@ -244,7 +244,25 @@ export default {
       );
     },
     isMultisig() {
-      return !!this.account.params;
+      return !!this.multisigParams;
+    },
+    rekeyedToInfo() {
+      if (!this.account) return;
+      return this.$store.state.wallet.privateAccounts.find(
+        (a) => a.addr == this.account.rekeyedTo
+      );
+    },
+    multisigParams() {
+      if (this.rekeyedToInfo) return this.rekeyedMultisigParams;
+      return this.account.params;
+    },
+    rekeyedMultisigParams() {
+      if (!this.account) return;
+      const rekeyedInfo = this.$store.state.wallet.privateAccounts.find(
+        (a) => a.addr == this.account.rekeyedTo
+      );
+      if (!rekeyedInfo) return;
+      return rekeyedInfo.params;
     },
   },
   methods: {

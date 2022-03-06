@@ -247,7 +247,9 @@
     "delete_confirm_button": "Ennek a számlának a törlése",
     "deleted": "A számla törölve lett",
     "asset_optin": "Pénzeszköz engedélyezés",
-    "ask_question": "Kérdésem van"
+    "ask_question": "Kérdésem van",
+    "rekey":"Rekey account",
+    "rekeyedTo":"Rekeyed to account"
   },
   "optin": {
     "title": "Egy adott pénzeszköz fogadásának engedélyezése, számla:",
@@ -327,7 +329,8 @@
   "acc_type": {
     "basic_account": "Egyszerű számla",
     "multisig_account": "Többszörösen aláírt számla",
-    "public_account": "Nyilvános számla"
+    "public_account": "Nyilvános számla",
+    "rekeyed": "Rekeyed account"
   },
   "pay": {
     "title": "Kifizetés indítása innen: ",
@@ -373,7 +376,17 @@
     "error": "Hiba",
     "asset": "Eszköz",
     "state_error_not_sent": "Az utalás valószínűleg nem jutott el a hálózatra. Offline módba kerültél? Kérjük, ellenőrizd a számládat.",
-    "set_max": "Maximum beállítása"
+    "set_max": "Maximum beállítása",
+    "environment": "Environment",
+    "pay_to_address_malformed":"Address Pay To seems to be malformed.",
+    "asset_failed_to_load":"It seems that desired asset has failed to load",
+    "asset_too_small_balance":"It seems your balance is below desired pay amount",
+    "rekey_to":"Rekey to account",
+    "rekey_to_wallet_account":"Rekey to wallet account",
+    "rekey_to_external_account":"Rekey to external account",
+    "rekey_title":"Rekey account",
+    "rekey_warning":"Please take a special attention to this transaction. From now on, the account will use different private key to be able to do the transactions. If you do not have private key of the new account, you will most likely loose ability to sign transactions."
+
   },
   "settings": {
     "title": "Beállítások",

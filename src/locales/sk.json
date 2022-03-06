@@ -247,7 +247,9 @@
     "delete_confirm_button":"Vymazať účet",
     "deleted":"Účet bol vymazaný",
     "asset_optin":"Pridať aktívum",
-    "ask_question": "Ask question"
+    "ask_question": "Ask question",
+    "rekey":"Rekey account",
+    "rekeyedTo":"Rekeyed to account"
   },
   "optin":{
     "title":"Prijímať aktívum (ASA alebo NFT) na účte",
@@ -327,7 +329,8 @@
   "acc_type": {
     "basic_account": "Bežný účet",
     "multisig_account": "Multipodpisový účet",
-    "public_account": "Verejný účet"
+    "public_account": "Verejný účet",
+    "rekeyed": "Rekeyed account"
   },
   "pay": {
     "title": "Nová platba - od",
@@ -373,7 +376,16 @@
     "error": "Chyba",
     "asset": "Aktívum",
     "state_error_not_sent": "Platba pravdepodobne nedorazila do siete. Máte prístup k internetu? Skontroolujte si stav na účte.",
-    "set_max":"Nastaviť maxium"
+    "set_max":"Nastaviť maxium",
+    "environment": "Prostredie",
+    "pay_to_address_malformed":"Address Pay To seems to be malformed.",
+    "asset_failed_to_load":"It seems that desired asset has failed to load",
+    "asset_too_small_balance":"It seems your balance is below desired pay amount",
+    "rekey_to":"Rekey to account",
+    "rekey_to_wallet_account":"Rekey to wallet account",
+    "rekey_to_external_account":"Rekey to external account",
+    "rekey_title":"Rekey account",
+    "rekey_warning":"Please take a special attention to this transaction. From now on, the account will use different private key to be able to do the transactions. If you do not have private key of the new account, you will most likely loose ability to sign transactions."
   },
   "settings": {
     "title": "Nastavenia",

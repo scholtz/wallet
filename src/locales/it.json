@@ -247,7 +247,9 @@
     "delete_confirm_button":"Delete this account",
     "deleted":"Account has been deleted",
     "asset_optin":"Opt in to asset",
-    "ask_question": "Ask question"
+    "ask_question": "Ask question",
+    "rekey":"Rekey account",
+    "rekeyedTo":"Rekeyed to account"
   },
   "optin":{
     "title":"Accept transfers of asset in account",
@@ -327,7 +329,8 @@
   "acc_type": {
     "basic_account": "Account di base",
     "multisig_account": "Account multifirma",
-    "public_account": "Account pubblico"
+    "public_account": "Account pubblico",
+    "rekeyed": "Rekeyed account"
   },
   "pay": {
     "title": "Effettua pagamento - da",
@@ -373,7 +376,17 @@
     "error": "Errore",
     "asset": "Asset",
     "state_error_not_sent": "Probabilmente il pagamento non ha raggiunto la rete. Sei offline? Per favore controlla il tuo account",
-    "set_max":"Set maxium"
+    "set_max":"Set maxium",
+    "environment": "Environment",
+    "pay_to_address_malformed":"Address Pay To seems to be malformed.",
+    "asset_failed_to_load":"It seems that desired asset has failed to load",
+    "asset_too_small_balance":"It seems your balance is below desired pay amount",
+    "rekey_to":"Rekey to account",
+    "rekey_to_wallet_account":"Rekey to wallet account",
+    "rekey_to_external_account":"Rekey to external account",
+    "rekey_title":"Rekey account",
+    "rekey_warning":"Please take a special attention to this transaction. From now on, the account will use different private key to be able to do the transactions. If you do not have private key of the new account, you will most likely loose ability to sign transactions."
+
   },
   "settings": {
     "title": "Impostazioni",

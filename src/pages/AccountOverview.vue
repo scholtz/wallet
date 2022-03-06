@@ -42,6 +42,12 @@
       >
       <router-link
         v-if="account && (account.sk || account.params)"
+        :to="'/accounts/rekey/' + $route.params.account"
+        class="btn btn-light btn-xs me-2 my-2"
+        >{{ $t("acc_overview.rekey") }}</router-link
+      >
+      <router-link
+        v-if="account && (account.sk || account.params)"
         :to="'/account/optin/' + $route.params.account"
         class="btn btn-light btn-xs me-2 my-2"
         >{{ $t("acc_overview.asset_optin") }}</router-link
@@ -81,7 +87,10 @@
       <tr>
         <th>{{ $t("acc_overview.type") }}:</th>
         <td>
-          <div class="badge bg-primary" v-if="account.sk">
+          <div class="badge bg-danger" v-if="account.rekeyedTo">
+            {{ $t("acc_type.rekeyed") }}
+          </div>
+          <div class="badge bg-primary" v-else-if="account.sk">
             {{ $t("acc_type.basic_account") }}
           </div>
           <div class="badge bg-warning text-dark" v-else-if="account.params">
@@ -103,6 +112,40 @@
             <i class="pi pi-copy"></i>
           </button>
           {{ account.address }}
+        </td>
+      </tr>
+      <tr v-if="account.rekeyedTo">
+        <th>{{ $t("acc_overview.rekeyedTo") }}:</th>
+        <td>
+          {{ account.rekeyedTo }}
+
+          <div v-if="rekeyedToInfo">
+            <div class="badge bg-danger" v-if="rekeyedToInfo.rekeyedTo">
+              {{ $t("acc_type.rekeyed") }}
+            </div>
+            <div class="badge bg-primary" v-else-if="rekeyedToInfo.sk">
+              {{ $t("acc_type.basic_account") }}
+            </div>
+            <div
+              class="badge bg-warning text-dark"
+              v-else-if="rekeyedToInfo.params"
+            >
+              {{ $t("acc_type.multisig_account") }}
+            </div>
+            <div class="badge bg-info text-dark" v-else>
+              {{ $t("acc_type.public_account") }}
+            </div>
+            <table v-if="rekeyedToInfo.params">
+              <tr v-if="rekeyedToInfo.params">
+                <th>{{ $t("acc_overview.multisignature_threshold") }}:</th>
+                <td>{{ rekeyedToInfo.params.threshold }}</td>
+              </tr>
+              <tr v-if="rekeyedToInfo.params">
+                <th>{{ $t("acc_overview.multisignature_addresses") }}:</th>
+                <td>{{ rekeyedToInfo.params.addrs }}</td>
+              </tr>
+            </table>
+          </div>
         </td>
       </tr>
       <tr>
@@ -354,6 +397,18 @@ export default {
     },
     lastActiveAccountAddr() {
       return this.$store.state.wallet.lastActiveAccount;
+    },
+    rekeyedToInfo() {
+      return this.$store.state.wallet.privateAccounts.find(
+        (a) => a.addr == this.account.rekeyedTo
+      );
+    },
+    rekeyedMultisigParams() {
+      const rekeyedInfo = this.$store.state.wallet.privateAccounts.find(
+        (a) => a.addr == this.account.rekeyedTo
+      );
+      if (!rekeyedInfo) return null;
+      return rekeyedInfo.params;
     },
   },
   watch: {

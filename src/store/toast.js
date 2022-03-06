@@ -1,10 +1,14 @@
 const state = () => ({
   _vm: null,
+  lastError: "",
 });
 
 const mutations = {
   setVM(state, vm) {
     state._vm = vm;
+  },
+  setLastError(state, lastError) {
+    state.lastError = lastError;
   },
 };
 const actions = {
@@ -34,6 +38,7 @@ const actions = {
         life: 10000,
       });
     }
+    commit("setLastError", m);
   },
 };
 

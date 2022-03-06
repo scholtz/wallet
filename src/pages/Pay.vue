@@ -15,9 +15,17 @@
     </div>
     <div v-if="account">
       <form @submit="previewPaymentClick" v-if="page == 'design'">
-        <h1>
+        <h1 v-if="!isRekey">
           {{ $t("pay.title") }} <span v-if="account">{{ account.name }}</span>
         </h1>
+        <h1 v-if="isRekey">
+          {{ $t("pay.rekey_title") }}
+          <span v-if="account">{{ account.name }}</span>
+        </h1>
+
+        <div class="alert alert-danger my-2" v-if="isRekey">
+          {{ $t("pay.rekey_warning") }}
+        </div>
         <p>{{ $t("pay.selected_account") }}: {{ account.addr }}</p>
         <div v-if="isMultisig && !subpage">
           <h2>{{ $t("pay.multisig_account") }}</h2>
@@ -60,38 +68,97 @@
               />
             </div>
             <div v-else>
+              <div v-if="!isRekey">
+                <ul class="nav nav-tabs">
+                  <li class="nav-item">
+                    <a
+                      class="nav-link"
+                      :class="genericaccount ? '' : 'active'"
+                      @click="genericaccount = false"
+                      href="#"
+                    >
+                      {{ $t("pay.pay_to_wallet") }}</a
+                    >
+                  </li>
+                  <li class="nav-item">
+                    <a
+                      class="nav-link"
+                      :class="genericaccount ? 'active' : ''"
+                      @click="genericaccount = true"
+                      href="#"
+                      >{{ $t("pay.pay_to_other") }}</a
+                    >
+                  </li>
+                </ul>
+
+                <input
+                  v-if="genericaccount"
+                  v-model="payTo"
+                  id="payTo"
+                  class="form-control"
+                />
+                <select
+                  class="form-control"
+                  v-model="payTo"
+                  v-if="!genericaccount"
+                >
+                  <option
+                    v-for="option in $store.state.wallet.privateAccounts"
+                    :key="option.addr"
+                    :value="option.addr"
+                  >
+                    {{ option.name + "  - " + option.addr }}
+                  </option>
+                </select>
+                <div v-if="genericaccount">
+                  <button
+                    @click="toggleCamera"
+                    class="btn btn-primary btn-xs m-2"
+                  >
+                    {{ $t("pay.toggle_camera") }}
+                  </button>
+                  <p>
+                    {{ $t("pay.store_other_help") }}
+                  </p>
+                </div>
+              </div>
+              <div class="alert alert-danger my-2" v-if="forcedAssetNotLoaded">
+                {{ $t("pay.asset_failed_to_load") }}
+              </div>
+            </div>
+            <div v-if="isRekey">
               <ul class="nav nav-tabs">
                 <li class="nav-item">
                   <a
                     class="nav-link"
-                    :class="genericaccount ? '' : 'active'"
-                    @click="genericaccount = false"
+                    :class="genericaccountRekey ? '' : 'active'"
+                    @click="genericaccountRekey = false"
                     href="#"
                   >
-                    {{ $t("pay.pay_to_wallet") }}</a
+                    {{ $t("pay.rekey_to_wallet_account") }}</a
                   >
                 </li>
                 <li class="nav-item">
                   <a
                     class="nav-link"
-                    :class="genericaccount ? 'active' : ''"
-                    @click="genericaccount = true"
+                    :class="genericaccountRekey ? 'active' : ''"
+                    @click="genericaccountRekey = true"
                     href="#"
-                    >{{ $t("pay.pay_to_other") }}</a
+                    >{{ $t("pay.rekey_to_external_account") }}</a
                   >
                 </li>
               </ul>
 
               <input
-                v-if="genericaccount"
-                v-model="payTo"
-                id="payTo"
+                v-if="genericaccountRekey"
+                v-model="rekeyTo"
+                id="rekeyTo"
                 class="form-control"
               />
               <select
                 class="form-control"
-                v-model="payTo"
-                v-if="!genericaccount"
+                v-model="rekeyTo"
+                v-if="!genericaccountRekey"
               >
                 <option
                   v-for="option in $store.state.wallet.privateAccounts"
@@ -101,7 +168,7 @@
                   {{ option.name + "  - " + option.addr }}
                 </option>
               </select>
-              <div v-if="genericaccount">
+              <div v-if="genericaccountRekey">
                 <button
                   @click="toggleCamera"
                   class="btn btn-primary btn-xs m-2"
@@ -112,9 +179,6 @@
                   {{ $t("pay.store_other_help") }}
                 </p>
               </div>
-            </div>
-            <div class="alert alert-danger my-2" v-if="forcedAssetNotLoaded">
-              It seems that desired asset has failed to load
             </div>
             <div>
               <label for="asset">{{ $t("pay.asset") }}</label>
@@ -141,9 +205,9 @@
               </select>
             </div>
             <div class="alert alert-danger my-2" v-if="payamountGtMaxAmount">
-              It seems your balance is below desired pay amount
+              {{ $t("pay.asset_too_small_balance") }}
             </div>
-            <div>
+            <div v-if="!isRekey">
               <label for="payamount" class="">{{ $t("pay.amount") }}</label>
               <div class="input-group">
                 <input
@@ -170,7 +234,7 @@
               </div>
             </div>
             <div>
-              <label for="fee">Fee</label>
+              <label for="fee">{{ $t("pay.fee") }}</label>
               <div class="input-group">
                 <input
                   v-model="fee"
@@ -202,7 +266,7 @@
             </div>
 
             <div>
-              <label for="env">Environment</label>
+              <label for="env">{{ $t("pay.environment") }}</label>
               <input
                 :value="$store.state.config.env"
                 id="env"
@@ -248,7 +312,7 @@
           <tr v-if="malformedAddress">
             <td colspan="2">
               <div class="alert alert-danger">
-                Address Pay To seems to be malformed.
+                {{ $t("pay.pay_to_address_malformed") }}
               </div>
             </td>
           </tr>
@@ -261,12 +325,16 @@
             <td>{{ paynote }}</td>
           </tr>
           <tr>
-            <th>Environment:</th>
+            <th>{{ $t("pay.environment") }}:</th>
             <td>{{ $store.state.config.env }}</td>
           </tr>
           <tr v-if="this.assetObj">
             <th>{{ $t("optin.assetId") }}:</th>
-            <td>{{ this.assetObj["asset-id"] }}</td>
+            <td>
+              {{
+                this.assetObj["asset-id"] ? this.assetObj["asset-id"] : "Algo"
+              }}
+            </td>
           </tr>
           <tr>
             <th>{{ $t("pay.amount") }}:</th>
@@ -290,6 +358,10 @@
           <tr v-if="!asset">
             <th>{{ $t("pay.total") }}:</th>
             <td>{{ $filters.formatCurrency(amountLong + feeLong) }}</td>
+          </tr>
+          <tr v-if="rekeyTo">
+            <th>{{ $t("pay.rekey_to") }}:</th>
+            <td class="alert alert-danger">{{ rekeyTo }}</td>
           </tr>
         </table>
 
@@ -331,6 +403,12 @@
             <tr>
               <th>{{ $t("pay.tag") }}</th>
               <td>{{ multisigDecoded.txn.tag }}</td>
+            </tr>
+            <tr v-if="multisigDecoded.txn.reKeyTo">
+              <th>{{ $t("pay.rekey_to") }}</th>
+              <td class="alert alert-danger">
+                {{ encodeAddress(multisigDecoded.txn.reKeyTo.publicKey) }}
+              </td>
             </tr>
             <tr>
               <th>{{ $t("pay.to_account") }}</th>
@@ -443,6 +521,13 @@
           >
             {{ $t("pay.sign") }}
           </button>
+          <button
+            class="btn btn-primary m-2"
+            @click="sendMultisig"
+            :disabled="!rawSignedTxn && !rawSignedTxnInput"
+          >
+            {{ $t("pay.send_to_network") }}
+          </button>
           <p v-if="rawSignedTxn">{{ $t("pay.send_to_other_signators") }}:</p>
           <textarea
             class="form-control my-2"
@@ -476,6 +561,12 @@
         <p v-if="error" class="alert alert-danger my-2">
           {{ $t("pay.error") }}: {{ error }}
         </p>
+        <p
+          v-if="this.$store.state.toast.lastError"
+          class="alert alert-danger my-2"
+        >
+          Last error: {{ this.$store.state.toast.lastError }}
+        </p>
       </form>
     </div>
   </main-layout>
@@ -499,9 +590,11 @@ export default {
     return {
       payFromDirect: "",
       genericaccount: false,
+      genericaccountRekey: false,
       payamount: 0,
       fee: 0.001,
       payTo: "",
+      rekeyTo: "",
       paynote: "",
       paynoteB64: false,
       page: "design",
@@ -526,6 +619,7 @@ export default {
   computed: {
     isNotValid() {
       if (!this.payTo) return true;
+      if (this.isRekey && !this.rekeyTo) return true;
       return false;
     },
     amountLong() {
@@ -547,11 +641,11 @@ export default {
       );
     },
     isMultisig() {
-      return !!this.account.params;
+      return !!this.multisigParams;
     },
     accountsFromMultisig() {
       return this.$store.state.wallet.privateAccounts.filter((a) =>
-        this.account.params.addrs.includes(a.addr)
+        this.multisigParams.addrs.includes(a.addr)
       );
     },
     showDesignScreen() {
@@ -562,6 +656,15 @@ export default {
     payFrom() {
       if (this.$route.params.account) return this.$route.params.account;
       return this.payFromDirect;
+    },
+    isRekey() {
+      if (
+        this.multisigDecoded &&
+        this.multisigDecoded.txn &&
+        this.multisigDecoded.reKeyTo
+      )
+        return true;
+      return this.$route.params.type == "rekey";
     },
     selectedAssetFromAccount() {
       return this.account["assets"].find((a) => a["asset-id"] == this.asset);
@@ -607,6 +710,24 @@ export default {
     },
     malformedAddress() {
       return !algosdk.isValidAddress(this.payTo);
+    },
+    rekeyedToInfo() {
+      if (!this.account) return;
+      return this.$store.state.wallet.privateAccounts.find(
+        (a) => a.addr == this.account.rekeyedTo
+      );
+    },
+    multisigParams() {
+      if (this.rekeyedToInfo) return this.rekeyedMultisigParams;
+      return this.account.params;
+    },
+    rekeyedMultisigParams() {
+      if (!this.account) return;
+      const rekeyedInfo = this.$store.state.wallet.privateAccounts.find(
+        (a) => a.addr == this.account.rekeyedTo
+      );
+      if (!rekeyedInfo) return;
+      return rekeyedInfo.params;
     },
   },
   watch: {
@@ -701,6 +822,11 @@ export default {
     ) {
       this.payFromDirect = this.$store.state.wallet.privateAccounts[0].addr;
     }
+
+    if (this.isRekey && this.account && this.account.addr) {
+      // if is rekey, make self tx
+      this.payTo = this.account.addr;
+    }
   },
   methods: {
     ...mapActions({
@@ -712,9 +838,12 @@ export default {
       lastActiveAccount: "wallet/lastActiveAccount",
       getTransactionParams: "algod/getTransactionParams",
       sendRawTransaction: "algod/sendRawTransaction",
+      updateAccount: "wallet/updateAccount",
       getSK: "wallet/getSK",
       getAsset: "indexer/getAsset",
       setEnv: "config/setEnv",
+      openSuccess: "toast/openSuccess",
+      openError: "toast/openError",
     }),
     isBase64(str) {
       try {
@@ -736,6 +865,7 @@ export default {
           "unit-name": "",
         });
       }
+      if (this.isRekey) return;
       if (this.account) {
         for (let index in this.account.assets) {
           const asset = await this.getAsset({
@@ -818,7 +948,11 @@ export default {
         fee: 1000,
         asset: this.assetObj["asset-id"],
       };
+      if (this.rekeyTo) {
+        data.reKeyTo = this.rekeyTo;
+      }
       this.txn = await this.preparePayment(data);
+
       //let txId = txn.txID().toString();
     },
     async signMultisig(e) {
@@ -841,15 +975,15 @@ export default {
           });
           console.log(
             "before signMultisigTransaction",
-            algosdk,
+
             this.txn,
             this.account,
-            this.account.params,
+            this.multisigParams,
             sk
           );
           rawSignedTxn = algosdk.signMultisigTransaction(
             this.txn,
-            this.account.params,
+            this.multisigParams,
             sk
           ).blob;
           console.log("rawSignedTxn", rawSignedTxn);
@@ -857,7 +991,7 @@ export default {
           console.log(
             "before appendSignMultisigTransaction",
             rawSignedTxn,
-            this.account.params,
+            this.multisigParams,
             sk
           );
           const sk = await this.getSK({
@@ -865,7 +999,7 @@ export default {
           });
           rawSignedTxn = algosdk.appendSignMultisigTransaction(
             rawSignedTxn,
-            this.account.params,
+            this.multisigParams,
             sk
           ).blob;
           console.log("rawSignedTxn", rawSignedTxn);
@@ -957,6 +1091,7 @@ export default {
           fee,
           asset,
         });
+        if (!this.isRekey) this.rekeyTo = undefined;
         this.tx = await this.makePayment({
           payTo,
           payFrom,
@@ -964,12 +1099,36 @@ export default {
           noteEnc,
           fee,
           asset,
+          reKeyTo: this.rekeyTo,
         });
         if (!this.tx) {
           console.error("this.makePayment has failed");
           this.processing = false;
           this.error = this.$t("pay.state_error_not_sent");
           //            "Payment has probably not reached the network. Are you offline? Please check you account";
+
+          const search = "should have been authorized by ";
+          if (
+            this.$store.state.toast.lastError &&
+            this.$store.state.toast.lastError.indexOf(search) > 0
+          ) {
+            let rekeyIndex = this.$store.state.toast.lastError.indexOf(search);
+            const msg = this.$store.state.toast.lastError.substring(
+              rekeyIndex + search.length
+            );
+            let rekeyIndexAddress = msg.indexOf(" ");
+            if (rekeyIndexAddress > 0) {
+              const rekeyedTo = msg.substring(0, rekeyIndexAddress);
+              const info = {};
+              info.address = this.payFrom;
+              info.rekeyedTo = rekeyedTo;
+              console.log("rekeyedTo", rekeyedTo);
+              await this.updateAccount({ info });
+              await this.openSuccess(
+                `Information about rekeying to address ${rekeyedTo} has been stored`
+              );
+            }
+          }
           return;
         }
         const confirmation = await this.waitForConfirmation({
@@ -986,6 +1145,17 @@ export default {
         if (confirmation["confirmed-round"]) {
           this.processing = false;
           this.confirmedRound = confirmation["confirmed-round"];
+
+          if (this.rekeyTo) {
+            const info = {};
+            info.address = this.payFrom;
+            info.rekeyedTo = this.rekeyTo;
+            console.log("rekeyedTo", this.rekeyTo);
+            await this.updateAccount({ info });
+            await this.openSuccess(
+              `Information about rekeying to address ${this.rekeyTo} has been stored`
+            );
+          }
         }
         if (confirmation["pool-error"]) {
           this.processing = false;
@@ -1020,19 +1190,44 @@ export default {
         e.preventDefault();
         const signedTxn = this._base64ToArrayBuffer(this.rawSignedTxn);
         console.log("signedTxn tosend", signedTxn, this.rawSignedTxn);
-        const transaction = await this.sendRawTransaction({ signedTxn });
-        console.log("transaction", transaction);
-        this.tx = transaction.txId;
+        let error = "";
+        try {
+          const transaction = await this.sendRawTransaction({ signedTxn });
+          console.log("transaction", transaction);
+          this.tx = transaction.txId;
+        } catch (e) {
+          await this.openError(e.message);
+          console.error(e);
+          error = e.message;
+        }
+        if (!this.tx) {
+          this.processing = false;
+          this.error = this.$t("pay.state_error_not_sent");
+          // "Payment has probably not reached the network. Are you offline? Please check you account";
+
+          const search = "should have been authorized by ";
+          if (error && error.indexOf(search) > 0) {
+            let rekeyIndex = error.indexOf(search);
+            const msg = error.substring(rekeyIndex + search.length);
+            let rekeyIndexAddress = msg.indexOf(" ");
+            if (rekeyIndexAddress > 0) {
+              const rekeyedTo = msg.substring(0, rekeyIndexAddress);
+              const info = {};
+              info.address = this.payFrom;
+              info.rekeyedTo = rekeyedTo;
+              console.log("rekeyedTo", rekeyedTo);
+              await this.updateAccount({ info });
+              await this.openSuccess(
+                `Information about rekeying to address ${rekeyedTo} has been stored`
+              );
+            }
+          }
+          return;
+        }
         const confirmation = await this.waitForConfirmation({
           txId: this.tx,
           timeout: 4,
         });
-        if (!confirmation) {
-          this.processing = false;
-          this.error = this.$t("pay.state_error_not_sent");
-          // "Payment has probably not reached the network. Are you offline? Please check you account";
-          return;
-        }
         if (confirmation["confirmed-round"]) {
           this.processing = false;
           this.confirmedRound = confirmation["confirmed-round"];

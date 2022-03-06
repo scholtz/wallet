@@ -247,7 +247,9 @@
       "delete_confirm_button":"Delete this account",
       "deleted":"Account has been deleted",
       "asset_optin":"Opt in to asset",
-      "ask_question": "Ask question"
+      "ask_question": "Ask question",
+      "rekey":"Rekey account",
+      "rekeyedTo":"Rekeyed to account"
     },
     "optin":{
       "title":"Accept transfers of asset in account",
@@ -327,7 +329,8 @@
     "acc_type": {
       "basic_account": "Basis account",
       "multisig_account": "Multisignature accout",
-      "public_account": "Publiek account"
+      "public_account": "Publiek account",
+      "rekeyed": "Rekeyed account"
     },
     "pay": {
       "title": "Maak een betaling - van",
@@ -373,7 +376,16 @@
       "error": "Error",
       "asset": "activaten",
       "state_error_not_sent": "De betaling heeft het netwerk waarschijnlijk niet bereikt. Bent u offline? Controleer uw account",
-      "set_max":"Set maxium"
+      "set_max":"Set maxium",
+      "environment": "Environment",
+      "pay_to_address_malformed":"Address Pay To seems to be malformed.",
+      "asset_failed_to_load":"It seems that desired asset has failed to load",
+      "asset_too_small_balance":"It seems your balance is below desired pay amount",
+      "rekey_to":"Rekey to account",
+      "rekey_to_wallet_account":"Rekey to wallet account",
+      "rekey_to_external_account":"Rekey to external account",
+      "rekey_title":"Rekey account",
+      "rekey_warning":"Please take a special attention to this transaction. From now on, the account will use different private key to be able to do the transactions. If you do not have private key of the new account, you will most likely loose ability to sign transactions."
     },
     "settings": {
       "title": "Instellingen",

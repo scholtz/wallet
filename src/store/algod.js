@@ -33,7 +33,7 @@ const actions = {
   },
   async preparePayment(
     { dispatch },
-    { payTo, payFrom, amount, noteEnc, fee, asset }
+    { payTo, payFrom, amount, noteEnc, fee, asset, reKeyTo }
   ) {
     try {
       const url = new URL(this.state.config.algod);
@@ -63,30 +63,35 @@ const actions = {
         assetId,
         note: noteEnc,
         params,
+        reKeyTo,
       });
       let txn = null;
       if (assetId) {
-        const transactionOptions = {
+        const transactionOptionsAsa = {
           from: fromAcct,
           to: payTo,
           assetIndex: assetId,
           amount,
           note: noteEnc,
           suggestedParams: params,
+          rekeyTo: reKeyTo,
         };
-        console.log("transactionOptions", transactionOptions);
-        txn =
-          algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
-            transactionOptions
-          );
+        console.log("transactionOptionsAsa", transactionOptionsAsa);
+        txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
+          transactionOptionsAsa
+        );
       } else {
-        txn = algosdk.makePaymentTxnWithSuggestedParams(
-          fromAcct,
-          payTo,
+        const transactionOptionsAlg = {
+          from: fromAcct,
+          to: payTo,
           amount,
-          undefined,
-          noteEnc,
-          params
+          note: noteEnc,
+          suggestedParams: params,
+          rekeyTo: reKeyTo,
+        };
+        console.log("transactionOptionsAlg", transactionOptionsAlg);
+        txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(
+          transactionOptionsAlg
         );
       }
       return txn;
@@ -96,7 +101,7 @@ const actions = {
   },
   async makePayment(
     { dispatch },
-    { payTo, payFrom, amount, noteEnc, fee, asset }
+    { payTo, payFrom, amount, noteEnc, fee, asset, reKeyTo }
   ) {
     try {
       const txn = await dispatch("preparePayment", {
@@ -106,6 +111,7 @@ const actions = {
         noteEnc,
         fee,
         asset,
+        reKeyTo,
       });
 
       let sk = null;

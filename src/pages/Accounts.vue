@@ -39,7 +39,10 @@
 
       <Column header="Type" :sortable="true">
         <template #body="slotProps">
-          <div class="badge bg-primary" v-if="slotProps.data.sk">
+          <div class="badge bg-danger" v-if="slotProps.data.rekeyedTo">
+            {{ $t("acc_type.rekeyed") }}
+          </div>
+          <div class="badge bg-primary" v-else-if="slotProps.data.sk">
             {{ $t("acc_type.basic_account") }}
           </div>
           <div
@@ -100,7 +103,6 @@ export default {
   },
   mounted() {
     this.updateBalance();
-
   },
   methods: {
     ...mapActions({

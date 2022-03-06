@@ -121,7 +121,7 @@ const routes = [
     component: TransactionDetail,
   },
   {
-    path: "/accounts/pay/:account",
+    path: "/accounts/:type/:account",
     name: "PayWithAccount",
     component: Pay,
   },

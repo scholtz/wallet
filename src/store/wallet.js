@@ -47,11 +47,18 @@ const mutations = {
   },
   setPrivateAccount(state, { info }) {
     const acc = state.privateAccounts.find((x) => x.addr == info.address);
+    if (!acc || !acc.addr)
+      throw `Error storing account. Address ${info.address} not found`;
     if (acc) {
       for (let index in info) {
         acc[index] = info[index];
+        if (index == "rekeyedTo" && acc[index] == info.address) {
+          // rekeying set to original address
+          delete acc[index];
+        }
       }
     }
+    console.log("setPrivateAccount", info, acc);
   },
   addMultiAccount(state, { addr, params, name }) {
     const multsigaddr = { addr, name, params };
@@ -107,15 +114,18 @@ const actions = {
     commit("lastActiveAccount", addr);
     await dispatch("saveWallet");
   },
-  async getSK({ x }, { addr }) {
+  async getSK({ dispatch }, { addr }) {
     const address = this.state.wallet.privateAccounts.find(
       (a) => a.addr == addr
     );
     if (address) {
+      console.log("address", address);
+      if (address.rekeyedTo && address.rekeyedTo != addr) {
+        return await dispatch("getSK", { addr: address.rekeyedTo });
+      }
       const ret = Uint8Array.from(Object.values(address.sk));
       return ret;
     }
-    console.log(x);
   },
   async logout({ commit }) {
     await commit("logout");
@@ -190,6 +200,7 @@ const actions = {
     }
   },
   async updateAccount({ dispatch, commit }, { info }) {
+    console.log("updateAccount", info);
     if (!info) {
       return false;
     }
@@ -298,10 +309,10 @@ const actions = {
 
     db.wallets
       .add({ name, data: dataencoded.toString() })
-      .then(function() {
+      .then(function () {
         return true;
       })
-      .catch(function(e) {
+      .catch(function (e) {
         alert("Error: " + (e.stack || e));
       });
     await dispatch("saveWallet");
