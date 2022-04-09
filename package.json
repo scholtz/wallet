@@ -25,7 +25,7 @@
     "cryptojs": "^2.5.3",
     "dexie": "^3.2.0",
     "leaflet": "^1.7.1",
-    "moment": "^2.29.1",
+    "moment": "^2.29.2",
     "page": "^1.11.6",
     "primeicons": "^4.1.0",
     "primevue": "^3.10.0",
