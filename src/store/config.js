@@ -24,7 +24,7 @@ const mutations = {
       if (!window.console) window.console = {};
       const methods = ["log", "debug", "warn", "info"];
       for (var i = 0; i < methods.length; i++) {
-        console[methods[i]] = function() {};
+        console[methods[i]] = function () {};
       }
     }
 
@@ -141,7 +141,7 @@ const actions = {
     if (env == "mainnet") {
       dispatch("setHosts", {
         env: "mainnet",
-        algod: "https://algoexplorerapi.io",
+        algod: "https://node.algoexplorerapi.io",
         kmd: "?",
         indexer: "https://algoindexer.algoexplorerapi.io",
       });
@@ -149,9 +149,9 @@ const actions = {
     if (env == "testnet") {
       dispatch("setHosts", {
         env: "testnet",
-        algod: "https://testnet.algoexplorerapi.io",
+        algod: "https://node.testnet.algoexplorerapi.io",
         kmd: "?",
-        indexer: "https://testnet.algoexplorerapi.io/idx2",
+        indexer: "https://algoindexer.testnet.algoexplorerapi.io",
       });
     }
     if (env == "devnet") {

@@ -288,17 +288,17 @@ export default {
       console.log("this.b64decode.network", this.b64decode.network);
       if (this.b64decode.network == "mainnet") {
         this.setHosts({
-          algod: "https://algoexplorerapi.io",
+          algod: "https://node.algoexplorerapi.io",
           kmd: "?",
-          indexer: "https://algoexplorerapi.io/idx2",
+          indexer: "https://algoindexer.algoexplorerapi.io",
         });
       }
       if (this.b64decode.network == "testnet") {
         console.log("setting testnet");
         this.setHosts({
-          algod: "https://testnet.algoexplorerapi.io",
+          algod: "https://node.testnet.algoexplorerapi.io",
           kmd: "?",
-          indexer: "https://testnet.algoexplorerapi.io/idx2",
+          indexer: "https://algoindexer.testnet.algoexplorerapi.io",
         });
       }
       if (this.b64decode.network == "sandbox") {
