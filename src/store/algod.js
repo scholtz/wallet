@@ -1,23 +1,6 @@
 import algosdk from "algosdk";
 
 const actions = {
-  async accountInformation({ dispatch }, { addr }) {
-    try {
-      const url = new URL(this.state.config.algod);
-
-      console.log("this, this.state", this, this.state.config.algod, url.port);
-      let algodclient = new algosdk.Algodv2(
-        this.state.config.algodToken,
-        this.state.config.algod,
-        url.port
-      );
-      const ret = await algodclient.accountInformation(addr).do();
-      console.log("ret", ret);
-      return ret;
-    } catch (error) {
-      console.error("error", error, dispatch);
-    }
-  },
   async getTransactionParams() {
     try {
       const url = new URL(this.state.config.algod);

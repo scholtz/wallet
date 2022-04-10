@@ -19,6 +19,23 @@ const mutations = {
   },
 };
 const actions = {
+  async accountInformation({ dispatch }, { addr }) {
+    try {
+      const url = new URL(this.state.config.indexer);
+
+      console.log("this, this.state", this, this.state.config.algod, url.port);
+      let algodclient = new algosdk.Algodv2(
+        this.state.config.algodToken,
+        this.state.config.algod,
+        url.port
+      );
+      const ret = await indexerClient.lookupAccountByID(addr).do();
+      console.log("ret", ret);
+      return ret;
+    } catch (error) {
+      console.error("error", error, dispatch);
+    }
+  },
   async searchForTransactions({ dispatch }, { addr, note }) {
     try {
       const url = new URL(this.state.config.indexer);
@@ -284,10 +301,7 @@ const actions = {
         this.state.config.indexer,
         url.port
       );
-      const assetInfo = await indexerClient
-        .searchForAssets()
-        .name(name)
-        .do();
+      const assetInfo = await indexerClient.searchForAssets().name(name).do();
       console.log("assetInfo", assetInfo);
       return assetInfo.assets;
     } catch (error) {

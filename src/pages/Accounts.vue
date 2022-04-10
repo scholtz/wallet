@@ -3,24 +3,26 @@
     <h1>{{ $t("accounts.title") }}</h1>
 
     <DataTable
-      :value="accounts"
-      responsiveLayout="scroll"
-      selectionMode="single"
       v-model:selection="selection"
+      :value="accounts"
+      responsive-layout="scroll"
+      selection-mode="single"
       :paginator="true"
       :rows="20"
     >
-      <template #empty> {{ $t("accounts.no_accounts") }} </template>
+      <template #empty>
+        {{ $t("accounts.no_accounts") }}
+      </template>
       <Column
         field="name"
         :header="$t('accounts.account_name')"
         :sortable="true"
-      ></Column>
+      />
       <Column field="amount" :header="$t('accounts.amount')" :sortable="true">
         <template #body="slotProps">
           <div
-            class="text-end"
             v-if="slotProps.column.props.field in slotProps.data"
+            class="text-end"
           >
             {{
               $filters.formatCurrency(
@@ -31,27 +33,23 @@
           <div v-else>-</div>
         </template>
       </Column>
-      <Column
-        field="addr"
-        :header="$t('accounts.address')"
-        :sortable="true"
-      ></Column>
+      <Column field="addr" :header="$t('accounts.address')" :sortable="true" />
 
       <Column header="Type" :sortable="true">
         <template #body="slotProps">
-          <div class="badge bg-danger" v-if="slotProps.data.rekeyedTo">
+          <div v-if="slotProps.data.rekeyedTo" class="badge bg-danger">
             {{ $t("acc_type.rekeyed") }}
           </div>
-          <div class="badge bg-primary" v-else-if="slotProps.data.sk">
+          <div v-else-if="slotProps.data.sk" class="badge bg-primary">
             {{ $t("acc_type.basic_account") }}
           </div>
           <div
-            class="badge bg-warning text-dark"
             v-else-if="slotProps.data.params"
+            class="badge bg-warning text-dark"
           >
             {{ $t("acc_type.multisig_account") }}
           </div>
-          <div class="badge bg-info text-dark" v-else>
+          <div v-else class="badge bg-info text-dark">
             {{ $t("acc_type.public_account") }}
           </div>
         </template>
@@ -62,8 +60,9 @@
             v-if="slotProps.data.sk || slotProps.data.params"
             :to="'/accounts/pay/' + slotProps.data.addr"
             class="btn btn-light btn-xs"
-            >{{ $t("accounts.pay") }}</router-link
           >
+            {{ $t("accounts.pay") }}
+          </router-link>
         </template>
       </Column>
     </DataTable>
@@ -78,11 +77,20 @@ import { mapActions } from "vuex";
 //import VGridButton from "../components/VGridButton.vue";
 export default {
   name: "App",
+  components: {
+    //VGrid,
+    MainLayout,
+  },
   data() {
     return {
       gridEditors: { button: false },
       selection: null,
     };
+  },
+  computed: {
+    accounts() {
+      return this.$store.state.wallet.privateAccounts;
+    },
   },
   watch: {
     async selection() {
@@ -92,21 +100,12 @@ export default {
       }
     },
   },
-  computed: {
-    accounts() {
-      return this.$store.state.wallet.privateAccounts;
-    },
-  },
-  components: {
-    //VGrid,
-    MainLayout,
-  },
   mounted() {
     this.updateBalance();
   },
   methods: {
     ...mapActions({
-      accountInformation: "algod/accountInformation",
+      accountInformation: "indexer/accountInformation",
       updateAccount: "wallet/updateAccount",
       lastActiveAccount: "wallet/lastActiveAccount",
     }),

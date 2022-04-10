@@ -2,74 +2,82 @@
   <MainLayout>
     <h1>
       {{ $t("acc_overview.title") }} -
-      {{ this.$store.state.wallet.lastActiveAccountName }}
+      {{ $store.state.wallet.lastActiveAccountName }}
     </h1>
     <p>
       <button
-        @click="displayDeleteDialog = true"
         class="btn btn-light btn-xs m-2 float-end"
+        @click="displayDeleteDialog = true"
       >
         <div>{{ $t("acc_overview.delete") }}</div>
       </button>
 
       <Dialog
-        :header="$t('acc_overview.delete_header')"
         v-model:visible="displayDeleteDialog"
+        :header="$t('acc_overview.delete_header')"
         :modal="true"
       >
         <p>{{ $t("acc_overview.delete_confirm") }}</p>
         <p v-if="account">
           <b>{{ account.name }}</b>
         </p>
-        <p v-if="account">{{ account.addr }}</p>
+        <p v-if="account">
+          {{ account.addr }}
+        </p>
 
-        <template #footer
-          ><button
-            @click="displayDeleteDialog = false"
+        <template #footer>
+          <button
             class="btn btn-xs btn-primary"
+            @click="displayDeleteDialog = false"
           >
             {{ $t("global.cancel") }}</button
           ><button class="btn btn-xs btn-danger" @click="deleteAccountClick">
             {{ $t("acc_overview.delete_confirm_button") }}
-          </button></template
-        >
+          </button>
+        </template>
       </Dialog>
       <router-link
         v-if="account && (account.sk || account.params)"
         :to="'/accounts/pay/' + $route.params.account"
         class="btn btn-light btn-xs me-2 my-2"
-        >{{ $t("acc_overview.pay") }}</router-link
       >
+        {{ $t("acc_overview.pay") }}
+      </router-link>
       <router-link
         v-if="account && (account.sk || account.params)"
         :to="'/accounts/rekey/' + $route.params.account"
         class="btn btn-light btn-xs me-2 my-2"
-        >{{ $t("acc_overview.rekey") }}</router-link
       >
+        {{ $t("acc_overview.rekey") }}
+      </router-link>
       <router-link
         v-if="account && (account.sk || account.params)"
         :to="'/account/optin/' + $route.params.account"
         class="btn btn-light btn-xs me-2 my-2"
-        >{{ $t("acc_overview.asset_optin") }}</router-link
       >
+        {{ $t("acc_overview.asset_optin") }}
+      </router-link>
       <router-link
         :to="'/receive-payment/' + $route.params.account"
         class="btn btn-light btn-xs me-2 my-2"
-        >{{ $t("acc_overview.receive_payment") }}</router-link
       >
+        {{ $t("acc_overview.receive_payment") }}
+      </router-link>
       <router-link
         :to="'/payment-gateway/' + $route.params.account"
         class="btn btn-light btn-xs me-2 my-2"
-        >{{ $t("acc_overview.payment_gateway") }}</router-link
       >
+        {{ $t("acc_overview.payment_gateway") }}
+      </router-link>
       <router-link
         v-if="account && (account.sk || account.params)"
         :to="'/vote/ask/'"
         class="btn btn-light btn-xs me-2 my-2"
-        >{{ $t("acc_overview.ask_question") }}</router-link
       >
+        {{ $t("acc_overview.ask_question") }}
+      </router-link>
     </p>
-    <table class="w-100" v-if="account">
+    <table v-if="account" class="w-100">
       <tr>
         <th>{{ $t("acc_overview.name") }}:</th>
         <td>{{ account["name"] }}</td>
@@ -79,7 +87,7 @@
             :width="400"
             :height="400"
             :value="account.addr"
-            :qrOptions="{ errorCorrectionLevel: 'H' }"
+            :qr-options="{ errorCorrectionLevel: 'H' }"
             image="/img/algorand-algo-logo-96.png"
           />
         </td>
@@ -87,16 +95,16 @@
       <tr>
         <th>{{ $t("acc_overview.type") }}:</th>
         <td>
-          <div class="badge bg-danger" v-if="account.rekeyedTo">
+          <div v-if="account.rekeyedTo" class="badge bg-danger">
             {{ $t("acc_type.rekeyed") }}
           </div>
-          <div class="badge bg-primary" v-else-if="account.sk">
+          <div v-else-if="account.sk" class="badge bg-primary">
             {{ $t("acc_type.basic_account") }}
           </div>
-          <div class="badge bg-warning text-dark" v-else-if="account.params">
+          <div v-else-if="account.params" class="badge bg-warning text-dark">
             {{ $t("acc_type.multisig_account") }}
           </div>
-          <div class="badge bg-info text-dark" v-else>
+          <div v-else class="badge bg-info text-dark">
             {{ $t("acc_type.public_account") }}
           </div>
         </td>
@@ -109,7 +117,7 @@
             :title="$t('global.copy_address')"
             @click="copyToClipboard(account.address)"
           >
-            <i class="pi pi-copy"></i>
+            <i class="pi pi-copy" />
           </button>
           {{ account.address }}
         </td>
@@ -120,19 +128,19 @@
           {{ account.rekeyedTo }}
 
           <div v-if="rekeyedToInfo">
-            <div class="badge bg-danger" v-if="rekeyedToInfo.rekeyedTo">
+            <div v-if="rekeyedToInfo.rekeyedTo" class="badge bg-danger">
               {{ $t("acc_type.rekeyed") }}
             </div>
-            <div class="badge bg-primary" v-else-if="rekeyedToInfo.sk">
+            <div v-else-if="rekeyedToInfo.sk" class="badge bg-primary">
               {{ $t("acc_type.basic_account") }}
             </div>
             <div
-              class="badge bg-warning text-dark"
               v-else-if="rekeyedToInfo.params"
+              class="badge bg-warning text-dark"
             >
               {{ $t("acc_type.multisig_account") }}
             </div>
-            <div class="badge bg-info text-dark" v-else>
+            <div v-else class="badge bg-info text-dark">
               {{ $t("acc_type.public_account") }}
             </div>
             <table v-if="rekeyedToInfo.params">
@@ -232,7 +240,7 @@
         <td>{{ account.params.addrs }}</td>
       </tr>
       <tr>
-        <th></th>
+        <th />
         <td>
           <button class="btn btn-light btn-xs" @click="reloadAccount">
             {{ $t("acc_overview.refresh") }}
@@ -244,19 +252,21 @@
     <h2>{{ $t("acc_overview.transactions") }}</h2>
 
     <DataTable
-      :value="transactions"
-      responsiveLayout="scroll"
-      selectionMode="single"
       v-model:selection="selection"
+      :value="transactions"
+      responsive-layout="scroll"
+      selection-mode="single"
       :paginator="true"
       :rows="20"
     >
-      <template #empty> {{ $t("acc_overview.no_transactions") }} </template>
+      <template #empty>
+        {{ $t("acc_overview.no_transactions") }}
+      </template>
       <Column
         field="tx-type"
         :header="$t('acc_overview.type')"
         :sortable="true"
-      ></Column>
+      />
       <Column
         field="round-time"
         :header="$t('acc_overview.time')"
@@ -279,12 +289,12 @@
       >
         <template #body="slotProps">
           <div
-            class="text-end"
             v-if="
               slotProps.data['tx-type'] == 'pay' &&
               'payment-transaction' in slotProps.data &&
               'amount' in slotProps.data['payment-transaction']
             "
+            class="text-end"
           >
             {{
               $filters.formatCurrency(
@@ -293,17 +303,17 @@
             }}
           </div>
           <div
-            class="text-end"
             v-if="
               slotProps.data['tx-type'] == 'axfer' &&
               'asset-transfer-transaction' in slotProps.data &&
               'amount' in slotProps.data['asset-transfer-transaction']
             "
+            class="text-end"
           >
             {{
               $filters.formatCurrency(
                 slotProps.data["asset-transfer-transaction"]["amount"],
-                this.getAssetName(
+                getAssetName(
                   slotProps.data["asset-transfer-transaction"]["asset-id"]
                 ),
 
@@ -311,20 +321,20 @@
               )
             }}
           </div>
-        </template></Column
-      >
+        </template>
+      </Column>
       <Column
         field="sender"
         :header="$t('acc_overview.sender')"
         :sortable="true"
-        styleClass="not-show-at-start"
-      ></Column>
+        style-class="not-show-at-start"
+      />
       <Column
         field="payment-transaction.receiver"
         :header="$t('acc_overview.receiver')"
         :sortable="true"
-        styleClass="not-show-at-start"
-      ></Column>
+        style-class="not-show-at-start"
+      />
       <Column
         field="receiver-rewards"
         :header="$t('acc_overview.receiver_rewards')"
@@ -332,8 +342,8 @@
       >
         <template #body="slotProps">
           <div
-            class="text-end"
             v-if="slotProps.column.props.field in slotProps.data"
+            class="text-end"
           >
             {{
               $filters.formatCurrency(
@@ -341,13 +351,13 @@
               )
             }}
           </div>
-        </template></Column
-      >
-      <Column field="fee" :header="$t('acc_overview.fee')" :sortable="true"
-        ><template #body="slotProps">
+        </template>
+      </Column>
+      <Column field="fee" :header="$t('acc_overview.fee')" :sortable="true">
+        <template #body="slotProps">
           <div
-            class="text-end"
             v-if="slotProps.column.props.field in slotProps.data"
+            class="text-end"
           >
             {{
               $filters.formatCurrency(
@@ -355,14 +365,13 @@
               )
             }}
           </div>
-        </template></Column
-      >
+        </template>
+      </Column>
       <Column
         field="confirmed-round"
         :header="$t('acc_overview.confirmed_round')"
         :sortable="true"
-      >
-      </Column>
+      />
     </DataTable>
   </MainLayout>
 </template>
@@ -430,7 +439,7 @@ export default {
   },
   methods: {
     ...mapActions({
-      accountInformation: "algod/accountInformation",
+      accountInformation: "indexer/accountInformation",
       updateAccount: "wallet/updateAccount",
       lastActiveAccount: "wallet/lastActiveAccount",
       deleteAccount: "wallet/deleteAccount",
