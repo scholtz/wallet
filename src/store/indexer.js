@@ -21,17 +21,18 @@ const mutations = {
 const actions = {
   async accountInformation({ dispatch }, { addr }) {
     try {
+      console.log("accountInformation", addr);
       const url = new URL(this.state.config.indexer);
 
       console.log("this, this.state", this, this.state.config.algod, url.port);
-      let algodclient = new algosdk.Algodv2(
-        this.state.config.algodToken,
-        this.state.config.algod,
+      let indexerClient = new algosdk.Indexer(
+        this.state.config.indexerToken,
+        this.state.config.indexer,
         url.port
       );
       const ret = await indexerClient.lookupAccountByID(addr).do();
       console.log("ret", ret);
-      return ret;
+      return ret.account;
     } catch (error) {
       console.error("error", error, dispatch);
     }
