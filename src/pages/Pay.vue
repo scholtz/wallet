@@ -1,9 +1,9 @@
 <template>
   <main-layout>
-    <div v-if="!this.$route.params.account">
+    <div v-if="!$route.params.account">
       <h1>Select account from which you want to make the payment</h1>
 
-      <select class="form-control" v-model="payFromDirect">
+      <select v-model="payFromDirect" class="form-control">
         <option
           v-for="option in $store.state.wallet.privateAccounts"
           :key="option.addr"
@@ -14,7 +14,7 @@
       </select>
     </div>
     <div v-if="account">
-      <form @submit="previewPaymentClick" v-if="page == 'design'">
+      <form v-if="page == 'design'" @submit="previewPaymentClick">
         <h1 v-if="!isRekey">
           {{ $t("pay.title") }} <span v-if="account">{{ account.name }}</span>
         </h1>
@@ -23,7 +23,7 @@
           <span v-if="account">{{ account.name }}</span>
         </h1>
 
-        <div class="alert alert-danger my-2" v-if="isRekey">
+        <div v-if="isRekey" class="alert alert-danger my-2">
           {{ $t("pay.rekey_warning") }}
         </div>
         <p>{{ $t("pay.selected_account") }}: {{ account.addr }}</p>
@@ -36,33 +36,33 @@
             {{ $t("pay.sign_proposal") }}
           </button>
         </div>
-        <div class="row" v-if="subpage == 'sign'">
+        <div v-if="subpage == 'sign'" class="row">
           <div class="col-12">
             <p>{{ $t("pay.signature_from_friend") }}:</p>
             <textarea
-              class="form-control my-2"
               v-model="rawSignedTxnInput"
+              class="form-control my-2"
               rows="8"
-            ></textarea>
+            />
             <button class="btn btn-primary my-2" @click="loadMultisig">
               {{ $t("pay.load_multisig_data") }}
             </button>
           </div>
         </div>
-        <div class="row" v-if="showDesignScreen">
+        <div v-if="showDesignScreen" class="row">
           <div :class="scan ? 'col-8' : 'col-12'">
             <div v-if="$route.params.toAccount">
               <input
                 v-if="!payTo"
-                v-model="$route.params.toAccount"
                 id="payTo1"
+                v-model="$route.params.toAccount"
                 disabled
                 class="form-control"
               />
               <input
                 v-else
-                v-model="payTo"
                 id="payTo2"
+                v-model="payTo"
                 disabled
                 class="form-control"
               />
@@ -74,8 +74,8 @@
                     <a
                       class="nav-link"
                       :class="genericaccount ? '' : 'active'"
-                      @click="genericaccount = false"
                       href="#"
+                      @click="genericaccount = false"
                     >
                       {{ $t("pay.pay_to_wallet") }}</a
                     >
@@ -84,8 +84,8 @@
                     <a
                       class="nav-link"
                       :class="genericaccount ? 'active' : ''"
-                      @click="genericaccount = true"
                       href="#"
+                      @click="genericaccount = true"
                       >{{ $t("pay.pay_to_other") }}</a
                     >
                   </li>
@@ -93,14 +93,14 @@
 
                 <input
                   v-if="genericaccount"
-                  v-model="payTo"
                   id="payTo"
+                  v-model="payTo"
                   class="form-control"
                 />
                 <select
-                  class="form-control"
-                  v-model="payTo"
                   v-if="!genericaccount"
+                  v-model="payTo"
+                  class="form-control"
                 >
                   <option
                     v-for="option in $store.state.wallet.privateAccounts"
@@ -112,8 +112,8 @@
                 </select>
                 <div v-if="genericaccount">
                   <button
-                    @click="toggleCamera"
                     class="btn btn-primary btn-xs m-2"
+                    @click="toggleCamera"
                   >
                     {{ $t("pay.toggle_camera") }}
                   </button>
@@ -122,7 +122,7 @@
                   </p>
                 </div>
               </div>
-              <div class="alert alert-danger my-2" v-if="forcedAssetNotLoaded">
+              <div v-if="forcedAssetNotLoaded" class="alert alert-danger my-2">
                 {{ $t("pay.asset_failed_to_load") }}
               </div>
             </div>
@@ -132,8 +132,8 @@
                   <a
                     class="nav-link"
                     :class="genericaccountRekey ? '' : 'active'"
-                    @click="genericaccountRekey = false"
                     href="#"
+                    @click="genericaccountRekey = false"
                   >
                     {{ $t("pay.rekey_to_wallet_account") }}</a
                   >
@@ -142,8 +142,8 @@
                   <a
                     class="nav-link"
                     :class="genericaccountRekey ? 'active' : ''"
-                    @click="genericaccountRekey = true"
                     href="#"
+                    @click="genericaccountRekey = true"
                     >{{ $t("pay.rekey_to_external_account") }}</a
                   >
                 </li>
@@ -151,14 +151,14 @@
 
               <input
                 v-if="genericaccountRekey"
-                v-model="rekeyTo"
                 id="rekeyTo"
+                v-model="rekeyTo"
                 class="form-control"
               />
               <select
-                class="form-control"
-                v-model="rekeyTo"
                 v-if="!genericaccountRekey"
+                v-model="rekeyTo"
+                class="form-control"
               >
                 <option
                   v-for="option in $store.state.wallet.privateAccounts"
@@ -170,8 +170,8 @@
               </select>
               <div v-if="genericaccountRekey">
                 <button
-                  @click="toggleCamera"
                   class="btn btn-primary btn-xs m-2"
+                  @click="toggleCamera"
                 >
                   {{ $t("pay.toggle_camera") }}
                 </button>
@@ -183,12 +183,12 @@
             <div>
               <label for="asset">{{ $t("pay.asset") }}</label>
               <input
-                v-model="assetObj.name"
                 v-if="forceAsset && assetObj && assetObj.name"
+                v-model="assetObj.name"
                 class="form-control"
                 disabled
               />
-              <select id="asset" class="form-control" v-model="asset" v-else>
+              <select v-else id="asset" v-model="asset" class="form-control">
                 <option
                   v-for="assetInfo in assets"
                   :key="assetInfo['asset-id']"
@@ -204,15 +204,15 @@
                 </option>
               </select>
             </div>
-            <div class="alert alert-danger my-2" v-if="payamountGtMaxAmount">
+            <div v-if="payamountGtMaxAmount" class="alert alert-danger my-2">
               {{ $t("pay.asset_too_small_balance") }}
             </div>
             <div v-if="!isRekey">
               <label for="payamount" class="">{{ $t("pay.amount") }}</label>
               <div class="input-group">
                 <input
-                  v-model="payamount"
                   id="payamount"
+                  v-model="payamount"
                   type="number"
                   min="0"
                   :max="maxAmount"
@@ -237,8 +237,8 @@
               <label for="fee">{{ $t("pay.fee") }}</label>
               <div class="input-group">
                 <input
-                  v-model="fee"
                   id="fee"
+                  v-model="fee"
                   type="number"
                   min="0.001"
                   max="1"
@@ -250,15 +250,15 @@
             </div>
             <div>
               <label for="paynote">{{ $t("pay.note") }}</label>
-              <input v-model="paynote" id="paynote" class="form-control" />
+              <input id="paynote" v-model="paynote" class="form-control" />
             </div>
 
-            <div class="form-check m-1" v-if="noteIsB64">
+            <div v-if="noteIsB64" class="form-check m-1">
               <input
+                id="paynoteB64"
+                v-model="paynoteB64"
                 class="form-check-input"
                 type="checkbox"
-                v-model="paynoteB64"
-                id="paynoteB64"
               />
               <label class="form-check-label" for="paynoteB64">
                 {{ $t("pay.note_is_b64") }}
@@ -268,8 +268,8 @@
             <div>
               <label for="env">{{ $t("pay.environment") }}</label>
               <input
-                :value="$store.state.config.env"
                 id="env"
+                :value="$store.state.config.env"
                 class="form-control"
                 disabled
               />
@@ -301,10 +301,10 @@
           </div>
         </div>
       </form>
-      <form @submit="payPaymentClick" v-if="page == 'review'">
+      <form v-if="page == 'review'" @submit="payPaymentClick">
         <h1>{{ $t("pay.review_payment") }}</h1>
         <p>{{ $t("pay.review_payment_help") }}</p>
-        <table class="w-100" v-if="!multisigDecoded.txn">
+        <table v-if="!multisigDecoded.txn" class="w-100">
           <tr>
             <th>{{ $t("pay.from_account") }}:</th>
             <td>{{ payFrom }}</td>
@@ -328,22 +328,20 @@
             <th>{{ $t("pay.environment") }}:</th>
             <td>{{ $store.state.config.env }}</td>
           </tr>
-          <tr v-if="this.assetObj">
+          <tr v-if="assetObj">
             <th>{{ $t("optin.assetId") }}:</th>
             <td>
-              {{
-                this.assetObj["asset-id"] ? this.assetObj["asset-id"] : "Algo"
-              }}
+              {{ assetObj["asset-id"] ? assetObj["asset-id"] : "Algo" }}
             </td>
           </tr>
           <tr>
             <th>{{ $t("pay.amount") }}:</th>
-            <td v-if="this.assetObj">
+            <td v-if="assetObj">
               {{
                 $filters.formatCurrency(
                   amountLong,
-                  this.assetObj.name,
-                  this.assetObj.decimals
+                  assetObj.name,
+                  assetObj.decimals
                 )
               }}
             </td>
@@ -361,7 +359,9 @@
           </tr>
           <tr v-if="rekeyTo">
             <th>{{ $t("pay.rekey_to") }}:</th>
-            <td class="alert alert-danger">{{ rekeyTo }}</td>
+            <td class="alert alert-danger">
+              {{ rekeyTo }}
+            </td>
           </tr>
         </table>
 
@@ -454,17 +454,12 @@
         <input
           class="btn btn-light mx-2"
           value="Go back"
-          @click="this.page = 'design'"
+          @click="page = 'design'"
         />
-        <textarea
-          class="form-control my-2"
-          v-if="txn"
-          v-model="txn"
-          rows="5"
-        ></textarea>
+        <textarea v-if="txn" v-model="txn" class="form-control my-2" rows="5" />
         <div v-if="isMultisig && multisigDecoded.txn">
           <label>{{ $t("pay.sign_with") }}</label>
-          <select class="form-control" v-model="signMultisigWith" multiple>
+          <select v-model="signMultisigWith" class="form-control" multiple>
             <option
               v-for="option in accountsFromMultisig"
               :key="option.addr"
@@ -475,22 +470,22 @@
           </select>
           <button
             class="btn btn-primary my-2"
-            @click="signMultisig"
             :disabled="signMultisigWith.length == 0"
+            @click="signMultisig"
           >
             {{ $t("pay.sign") }}
           </button>
           <p v-if="rawSignedTxn">{{ $t("pay.send_to_other_signators") }}:</p>
           <textarea
-            class="form-control my-2"
             v-if="rawSignedTxn"
             v-model="rawSignedTxn"
+            class="form-control my-2"
             rows="8"
-          ></textarea>
+          />
           <button
             class="btn btn-primary m-2"
-            @click="sendMultisig"
             :disabled="!rawSignedTxn && !rawSignedTxnInput"
+            @click="sendMultisig"
           >
             {{ $t("pay.send_to_network") }}
           </button>
@@ -505,7 +500,7 @@
           "
         >
           <label>{{ $t("pay.sign_with") }}</label>
-          <select class="form-control" v-model="signMultisigWith" multiple>
+          <select v-model="signMultisigWith" class="form-control" multiple>
             <option
               v-for="option in accountsFromMultisig"
               :key="option.addr"
@@ -516,25 +511,25 @@
           </select>
           <button
             class="btn btn-primary my-2"
-            @click="signMultisig"
             :disabled="signMultisigWith.length == 0"
+            @click="signMultisig"
           >
             {{ $t("pay.sign") }}
           </button>
           <button
             class="btn btn-primary m-2"
-            @click="sendMultisig"
             :disabled="!rawSignedTxn && !rawSignedTxnInput"
+            @click="sendMultisig"
           >
             {{ $t("pay.send_to_network") }}
           </button>
           <p v-if="rawSignedTxn">{{ $t("pay.send_to_other_signators") }}:</p>
           <textarea
-            class="form-control my-2"
             v-if="rawSignedTxn"
             v-model="rawSignedTxn"
+            class="form-control my-2"
             rows="8"
-          ></textarea>
+          />
         </div>
 
         <p v-if="!tx && processing" class="alert alert-primary my-2">
@@ -542,7 +537,7 @@
             class="spinner-grow spinner-grow-sm"
             role="status"
             aria-hidden="true"
-          ></span>
+          />
           {{ $t("pay.state_sending") }}
         </p>
         <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
@@ -550,7 +545,7 @@
             class="spinner-grow spinner-grow-sm"
             role="status"
             aria-hidden="true"
-          ></span>
+          />
           {{ $t("pay.state_sent") }}: {{ tx }}.
           {{ $t("pay.state_waiting_confirm") }}
         </p>
@@ -561,11 +556,8 @@
         <p v-if="error" class="alert alert-danger my-2">
           {{ $t("pay.error") }}: {{ error }}
         </p>
-        <p
-          v-if="this.$store.state.toast.lastError"
-          class="alert alert-danger my-2"
-        >
-          Last error: {{ this.$store.state.toast.lastError }}
+        <p v-if="$store.state.toast.lastError" class="alert alert-danger my-2">
+          Last error: {{ $store.state.toast.lastError }}
         </p>
       </form>
     </div>
@@ -826,6 +818,9 @@ export default {
     if (this.isRekey && this.account && this.account.addr) {
       // if is rekey, make self tx
       this.payTo = this.account.addr;
+    }
+    if (this.payTo && !this.payFromDirect) {
+      this.payFromDirect = this.payTo;
     }
   },
   methods: {
