@@ -322,7 +322,17 @@
           </tr>
           <tr>
             <th>{{ $t("pay.note") }}:</th>
-            <td>{{ paynote }}</td>
+            <td v-if="!paynote || paynote.length < 50">
+              {{ paynote }}
+            </td>
+            <td v-else>
+              <textarea
+                v-model="paynote"
+                class="form-control"
+                rows="5"
+                :disabled="true"
+              />
+            </td>
           </tr>
           <tr>
             <th>{{ $t("pay.environment") }}:</th>
