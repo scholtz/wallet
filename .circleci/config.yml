@@ -11,22 +11,28 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-deps-{{ .Branch }}-{{ checksum "package.json" }}
+            - v1-deps-{{ .Branch }}-{{ checksum "package-lock.json" }}
             - v1-deps-{{ .Branch }}
             - v1-deps
       - run:
           name: Install Dependencies
           command: npm i
-      - run:
-          name: Install Dependencies
-          command: npm run build
       - save_cache:
-          key: v1-deps-{{ .Branch }}-{{ checksum "package.json" }}
+          key: v1-deps-{{ .Branch }}-{{ checksum "package-lock.json" }}
           # cache NPM modules and the folder with the Cypress binary
           paths:
             - ~/.npm
+            - ~/.node_modules
             - ~/.cache
       - run:
-          name: Install Dependencies
+          name: Build
+          command: npm run build
+      - run:
+          name: Run tests
           command: npm run test
+
+      - store_artifacts:
+          path: cypress/videos
+      - store_artifacts:
+          path: cypress/screenshots
 #      - run: $(npm bin)/cypress run --record --key <record_key>
