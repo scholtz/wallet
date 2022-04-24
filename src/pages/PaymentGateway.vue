@@ -2,19 +2,25 @@
   <PublicLayout>
     <h1>{{ $t("gateway.title") }}</h1>
     <p>{{ $t("gateway.perex") }}</p>
-    <div class="row" v-if="!build">
+    <div v-if="!build" class="row">
       <div class="col-md-6">
         <h2>{{ $t("gateway.how") }}</h2>
         <ol class="list-group list-group-numbered">
-          <li class="list-group-item">{{ $t("gateway.create_order") }}</li>
+          <li class="list-group-item">
+            {{ $t("gateway.create_order") }}
+          </li>
           <li class="list-group-item">
             {{ $t("gateway.redirect_to_gateway") }}
           </li>
-          <li class="list-group-item">{{ $t("gateway.customer_pays") }}</li>
+          <li class="list-group-item">
+            {{ $t("gateway.customer_pays") }}
+          </li>
           <li class="list-group-item">
             {{ $t("gateway.customer_redirected") }}
           </li>
-          <li class="list-group-item">{{ $t("gateway.use_your_money") }}</li>
+          <li class="list-group-item">
+            {{ $t("gateway.use_your_money") }}
+          </li>
         </ol>
       </div>
       <div class="col-md-6">
@@ -70,7 +76,7 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-md-12" v-if="!build">
+      <div v-if="!build" class="col-md-12">
         <h2>{{ $t("gateway.allowed_parameters") }}</h2>
         <p>{{ $t("gateway.parameters_perex") }}</p>
       </div>
@@ -80,12 +86,14 @@
         <ul class="list-group">
           <li class="list-group-item">
             <select
-              class="form-control"
-              v-model="asset"
               v-if="build"
+              v-model="asset"
+              class="form-control"
               :title="$t('gateway.asset')"
             >
-              <option value="312769">{{ $t("gateway.tether") }}</option>
+              <option value="312769">
+                {{ $t("gateway.tether") }}
+              </option>
               <option value="">Algorand</option>
             </select>
             <span v-if="!build">
@@ -94,8 +102,8 @@
           </li>
           <li class="list-group-item">
             <input
-              v-model="payTo"
               v-if="build"
+              v-model="payTo"
               class="form-control"
               :placeholder="$t('pay.pay_to')"
               :title="$t('pay.pay_to')"
@@ -105,7 +113,7 @@
             </span>
           </li>
           <li class="list-group-item">
-            <div class="input-group" v-if="build">
+            <div v-if="build" class="input-group">
               <input
                 v-model="amount"
                 class="form-control"
@@ -125,8 +133,8 @@
           </li>
           <li class="list-group-item">
             <input
-              v-model="xnote"
               v-if="build"
+              v-model="xnote"
               class="form-control"
               :placeholder="$t('merchant.matching_symbol')"
               :title="$t('merchant.matching_symbol')"
@@ -136,10 +144,10 @@
             </span>
           </li>
           <li class="list-group-item">
-            <div class="input-group" v-if="build">
+            <div v-if="build" class="input-group">
               <input
-                v-model="fee"
                 v-if="build"
+                v-model="fee"
                 class="form-control"
                 :placeholder="$t('pay.fee')"
                 :title="$t('pay.fee')"
@@ -161,8 +169,8 @@
         <ul class="list-group">
           <li class="list-group-item">
             <input
-              v-model="success"
               v-if="build"
+              v-model="success"
               class="form-control"
               :placeholder="$t('gateway.success')"
             />
@@ -172,8 +180,8 @@
           </li>
           <li class="list-group-item">
             <input
-              v-model="cancel"
               v-if="build"
+              v-model="cancel"
               class="form-control"
               :placeholder="$t('gateway.cancel')"
             />
@@ -184,21 +192,21 @@
         </ul>
       </div>
     </div>
-    <div class="row" v-if="build && !dataOk">
+    <div v-if="build && !dataOk" class="row">
       <div class="col-md-12">
         <div class="alert alert-danger my-2">
           {{ $t("gateway.error_transaction") }}
         </div>
       </div>
     </div>
-    <div class="row" v-if="build && !settingsOk">
+    <div v-if="build && !settingsOk" class="row">
       <div class="col-md-12">
         <div class="alert alert-danger my-2">
           {{ $t("gateway.error_url") }}
         </div>
       </div>
     </div>
-    <div class="row" v-if="build && dataOk && settingsOk">
+    <div v-if="build && dataOk && settingsOk" class="row">
       <div class="col-md-6">
         <h2>{{ $t("gateway.button") }}</h2>
         <div>
@@ -237,7 +245,7 @@
         </div>
       </div>
     </div>
-    <div class="row" v-if="build && dataOk && settingsOk">
+    <div v-if="build && dataOk && settingsOk" class="row">
       <div class="col-md-12">
         <div>
           <label>{{ $t("gateway.link") }}</label>
@@ -263,7 +271,7 @@
         </a>
       </div>
     </div>
-    <div class="row" v-if="!build">
+    <div v-if="!build" class="row">
       <div class="col-md-12">
         <h2>{{ $t("gateway.example") }}</h2>
         <code>
@@ -286,8 +294,13 @@
 <script>
 import PublicLayout from "../layouts/Public.vue";
 import base64url from "base64url";
+var Buffer = require("buffer/").Buffer;
+window.Buffer = Buffer;
 
 export default {
+  components: {
+    PublicLayout,
+  },
   data() {
     return {
       build: false,
@@ -346,7 +359,9 @@ export default {
       return ret;
     },
     paymentinfoB64() {
-      return base64url(this.paymentinfo);
+      if (!this.paymentinfo) return "";
+      var buffer = Buffer.from(this.paymentinfo, "utf8");
+      return base64url(buffer);
     },
     callbackConfig() {
       let ret = {};
@@ -355,11 +370,9 @@ export default {
       return JSON.stringify(ret);
     },
     callbackConfigB64() {
+      if (!this.callbackConfig) return "";
       return base64url(this.callbackConfig);
     },
-  },
-  components: {
-    PublicLayout,
   },
 };
 </script>
