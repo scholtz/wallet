@@ -993,15 +993,15 @@ export default {
           ).blob;
           console.log("rawSignedTxn", rawSignedTxn);
         } else {
+          const sk = await this.getSK({
+            addr: this.accountsFromMultisig[acc].addr,
+          });
           console.log(
             "before appendSignMultisigTransaction",
             rawSignedTxn,
             this.multisigParams,
             sk
           );
-          const sk = await this.getSK({
-            addr: this.accountsFromMultisig[acc].addr,
-          });
           rawSignedTxn = algosdk.appendSignMultisigTransaction(
             rawSignedTxn,
             this.multisigParams,

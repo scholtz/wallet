@@ -4,14 +4,14 @@
       {{ $t("receive.title") }} <span v-if="account">{{ account.name }}</span>
     </h1>
     <label for="paynote">{{ $t("receive.note") }}</label>
-    <input v-model="paynote" id="paynote" class="form-control" />
+    <input id="paynote" v-model="paynote" class="form-control" />
 
     <div class="form-check m-1">
       <input
+        id="paynoteB64"
+        v-model="paynoteB64"
         class="form-check-input"
         type="checkbox"
-        v-model="paynoteB64"
-        id="paynoteB64"
       />
       <label class="form-check-label" for="paynoteB64">
         {{ $t("pay.note_is_b64") }}
@@ -19,10 +19,10 @@
     </div>
     <div class="form-check m-1">
       <input
+        id="noteeditable"
+        v-model="noteeditable"
         class="form-check-input"
         type="checkbox"
-        v-model="noteeditable"
-        id="noteeditable"
       />
       <label class="form-check-label" for="noteeditable">
         {{ $t("receive.noteeditable") }}
@@ -30,7 +30,7 @@
     </div>
 
     <label for="payamount">{{ $t("pay.asset") }}</label>
-    <select id="asset" class="form-control" v-model="asset">
+    <select id="asset" v-model="asset" class="form-control">
       <option
         v-for="asset in assets"
         :key="asset['asset-id']"
@@ -42,8 +42,8 @@
 
     <label for="payamount">{{ $t("receive.amount") }}</label>
     <input
-      v-model="payamount"
       id="payamount"
+      v-model="payamount"
       type="number"
       min="0.000001"
       max="999999999"
@@ -52,9 +52,9 @@
     />
     <label for="decimals">{{ $t("receive.decimals") }}</label>
     <input
-      disabled
-      v-model="decimals"
       id="decimals"
+      v-model="decimals"
+      disabled
       type="number"
       min="0"
       max="6"
@@ -66,20 +66,20 @@
     >
     <input
       v-if="account"
-      v-model="account.addr"
       id="payto"
+      v-model="account.addr"
       class="form-control"
       disabled
     />
 
     <label for="label">{{ $t("receive.label") }}</label>
-    <input v-model="label" id="label" class="form-control my-2" />
+    <input id="label" v-model="label" class="form-control my-2" />
 
     <QRCodeVue3
       :width="400"
       :height="400"
       :value="qrcode"
-      :qrOptions="{ errorCorrectionLevel: 'H' }"
+      :qr-options="{ errorCorrectionLevel: 'H' }"
       image="/img/algorand-algo-logo-96.png"
     />
     <code>{{ qrcode }}</code>
@@ -291,15 +291,15 @@ export default {
           ).blob;
           console.log("rawSignedTxn", rawSignedTxn);
         } else {
+          const sk = await this.getSK({
+            addr: this.accountsFromMultisig[acc].addr,
+          });
           console.log(
             "before appendSignMultisigTransaction",
             rawSignedTxn,
             this.account.params,
             sk
           );
-          const sk = await this.getSK({
-            addr: this.accountsFromMultisig[acc].addr,
-          });
           rawSignedTxn = algosdk.appendSignMultisigTransaction(
             rawSignedTxn,
             this.account.params,
