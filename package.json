@@ -29,7 +29,7 @@
     "crypto-js": "^4.1.1",
     "crypto-random-string": "^4.0.0",
     "cryptojs": "*",
-    "dexie": "^3.2.0",
+    "dexie": "^3.2.2",
     "leaflet": "^1.7.1",
     "moment": "^2.29.1",
     "page": "^1.11.6",
