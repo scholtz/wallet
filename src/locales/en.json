@@ -481,7 +481,7 @@
     "totalIssuance": "Total number of this asset available for circulation",
     "unitName": "Used to display asset units to user",
     "assetURL": "Optional string pointing to a URL relating to the asset",
-    "assetMetadataHash": "Optional hash commitment of some sort relating to the asset. 32 character length.",
+    "assetMetadataHash": "Optional hash commitment of some sort relating to the asset. Base64 format",
     "manager": "Manager can modify manager, reserve, freeze, and clawback account for the asset.",
     "reserve": "Reserve address: Specified address is considered the asset reserve (it has no special privileges, this is only informational)",
     "freeze": "Freeze address: Specified address can freeze or unfreeze user asset holdings",

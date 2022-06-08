@@ -214,7 +214,7 @@ const actions = {
       asset.unitName,
       asset.assetName,
       asset.assetURL,
-      asset.assetMetadataHash,
+      new Uint8Array(Buffer.from(asset.assetMetadataHash, "base64")),
       params
     );
 

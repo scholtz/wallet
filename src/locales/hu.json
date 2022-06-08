@@ -481,7 +481,7 @@
     "totalIssuance": "Ennek az eszköznek a forgalomban lévő összes darabszáma",
     "unitName": "Arra használjuk, hogy az eszköz egységeit megjelenítsük a felhasználó számára",
     "assetURL": "Egy opcionális string, amely az eszközhöz tartozó URL-re mutat",
-    "assetMetadataHash": "Egy opcionális hash, amely valamilyen módon az eszközhöz kapcsolódik. 32 karakter hosszú.",
+    "assetMetadataHash": "Egy opcionális hash, amely valamilyen módon az eszközhöz kapcsolódik. Base64 format.",
     "manager": "A kezelő módosítani tudja az eszköz kezelőjének, kibocsátójának, befagyasztójának és visszakövetelőjének a számlacímét",
     "reserve": "Kibocsátó cím: A megadott címet tekinti az eszköz kibocsátójának (nincs semmi különös privilégiuma, csak informális)",
     "freeze": "Befagyasztási cím: A megadott cím képes a felhasználó pénzeszközének befagyasztására vagy a befagyasztás feloldására",

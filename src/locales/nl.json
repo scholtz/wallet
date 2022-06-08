@@ -480,7 +480,7 @@
       "totalIssuance": "Totaal aantal van dit goed beschikbaar voor circulatie",
       "unitName": "Gebruikt om activa eenheden te tonen aan de gebruiker",
       "assetURL": "Optionele string die verwijst naar een URL met betrekking tot het activa",
-      "assetMetadataHash": "Optionele hash-verbintenis van een soort met betrekking tot het goed. Lengte 32 tekens.",
+      "assetMetadataHash": "Optionele hash-verbintenis van een soort met betrekking tot het goed. Base64 format.",
       "manager": "Beheerder kan beheerder beamen, reserve, bevriezing en terugvorderingsrekening voor het goed wijzigen.",
       "reserve": "Reserve adres: Gespecificeerd adres wordt beschouwd als de activareserve (het heeft geen speciale voorrechten, dit is slechts informatief)",
       "freeze": "Bevries adres: Gespecificeerd adres kan tegoeden van gebruiker bevriezen of deblokkeren",

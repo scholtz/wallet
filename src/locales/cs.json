@@ -479,7 +479,7 @@
     "totalIssuance": "Celkový počet aktíva k dispozícii v obehu",
     "unitName": "Názov jednotky aktíva",
     "assetURL": "URL adresa smerujúca na miesto ktoré popisuje aktívum",
-    "assetMetadataHash": "Hash aktíva. Dĺžka 32 znakov.",
+    "assetMetadataHash": "Hash aktíva. Base64",
     "manager": "Manager môže upraviť adresy managera, rezervy, uzamykajúceho účtu a clawback účtu pre aktívum.",
     "reserve": "Rezervná adresa: Zadaná adresa sa považuje za rezervu majetku (nemá žiadne zvláštne privilégiá, má iba informačný charakter)",
     "freeze": "Uzamykajúci účet: Zadaná adresa môže zmraziť alebo zrušiť zmrazenie pozícií majetku používateľa",

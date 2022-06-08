@@ -481,7 +481,7 @@
     "totalIssuance": "Numero totale di circolante per questo asset",
     "unitName": "Utilizzato per visualizzare le unità di asset all'utente",
     "assetURL": "Stringa opzionale che punta a un URL relativo all'asset",
-    "assetMetadataHash": "Hash opzionale relativo all'asset. Lunghezza 32 caratteri.",
+    "assetMetadataHash": "Hash opzionale relativo all'asset. Base64 format.",
     "manager": "Il manager può modificare il manager, la riserva, l'account di congelamento e di revoca per l'asset.",
     "reserve": "Indirizzo di riserva: L'indirizzo specificato è considerato la riserva dell'asset (non ha privilegi speciali, è solo informativo)",
     "freeze": "Indirizzo di congelamento: L'indirizzo specificato può congelare o scongelare gli asset dell'utente",
