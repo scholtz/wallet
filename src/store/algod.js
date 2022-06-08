@@ -182,10 +182,13 @@ const actions = {
 
     const enc = new TextEncoder();
     const noteEnc = enc.encode(asset.note);
+    const issueBase = BigInt(asset.totalIssuance);
+    const issuePower = BigInt(Math.pow(10, asset.decimals));
+    const issueBigInt = issueBase * issuePower;
     console.log("sending", [
       asset.addr,
       noteEnc,
-      parseInt(asset.totalIssuance),
+      issueBigInt,
       parseInt(asset.decimals),
       asset.defaultFrozen,
       asset.manager ? asset.manager : undefined,
@@ -201,7 +204,7 @@ const actions = {
     const txn = algosdk.makeAssetCreateTxnWithSuggestedParams(
       asset.addr,
       noteEnc,
-      parseInt(asset.totalIssuance * Math.pow(10, asset.decimals)),
+      issueBigInt,
       parseInt(asset.decimals),
       asset.defaultFrozen,
       asset.manager ? asset.manager : undefined,
