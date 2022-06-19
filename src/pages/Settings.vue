@@ -5,6 +5,7 @@
     <label for="env">{{ $t("settings.environment") }}</label>
     <select id="env" v-model="env" class="form-control">
       <option value="mainnet">{{ $t("settings.mainnet") }}</option>
+      <option value="aramidmain">Aramid Algo Co-chain</option>
       <option value="testnet">{{ $t("settings.testnet") }}</option>
       <option value="sandbox">{{ $t("settings.sandbox") }}</option>
       <option value="devnet">{{ $t("settings.devnet") }}</option>
