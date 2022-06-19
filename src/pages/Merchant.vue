@@ -293,6 +293,13 @@ export default {
           indexer: "https://algoindexer.algoexplorerapi.io",
         });
       }
+      if (this.b64decode.network == "aramidmain") {
+        this.setHosts({
+          algod: "https://algod.aramidmain.a-wallet.net",
+          kmd: "?",
+          indexer: "https://indexer.aramidmain.a-wallet.net",
+        });
+      }
       if (this.b64decode.network == "testnet") {
         console.log("setting testnet");
         this.setHosts({

@@ -192,6 +192,20 @@ export default {
           indexer: "https://algoindexer.algoexplorerapi.io",
         });
       }
+      if (this.env == "aramidmain") {
+        this.setHosts({
+          env: "aramidmain",
+          algod: "https://algod.aramidmain.a-wallet.net",
+          kmd: "?",
+          indexer: "https://indexer.aramidmain.a-wallet.net",
+          algodToken:
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          kmdToken:
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          indexerToken:
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        });
+      }
       if (this.env == "testnet") {
         this.setHosts({
           env: "testnet",
