@@ -138,7 +138,7 @@ const actions = {
     });
   },
   async setEnv({ dispatch }, { env }) {
-    if (env == "mainnet") {
+    if (env == "mainnet" || env == "mainnet-v1.0") {
       dispatch("setHosts", {
         env: "mainnet",
         algod: "https://node.algoexplorerapi.io",
@@ -147,7 +147,7 @@ const actions = {
       });
     }
 
-    if (this.env == "aramidmain") {
+    if (this.env == "aramidmain" || env == "aramidmain-v1.0") {
       dispatch("setHosts", {
         env: "aramidmain",
         algod: "https://algod.aramidmain.a-wallet.net",
@@ -161,7 +161,7 @@ const actions = {
           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       });
     }
-    if (env == "testnet") {
+    if (env == "testnet" || env == "testnet-v1.0") {
       dispatch("setHosts", {
         env: "testnet",
         algod: "https://node.testnet.algoexplorerapi.io",
