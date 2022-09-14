@@ -185,6 +185,14 @@
         <td>{{ account["round"] }}</td>
       </tr>
       <tr>
+        <th>{{ $t("acc_overview.status") }}:</th>
+        <td>
+          <button class="btn btn-light btn-xs" @click="onStatusClick">
+            {{ account["status"] }}
+          </button>
+        </td>
+      </tr>
+      <tr>
         <th>{{ $t("acc_overview.apps_local_state") }}:</th>
         <td>{{ account["apps-local-state"] }}</td>
       </tr>
@@ -226,10 +234,6 @@
       <tr>
         <th>{{ $t("acc_overview.created_apps") }}:</th>
         <td>{{ account["created-apps"] }}</td>
-      </tr>
-      <tr>
-        <th>{{ $t("acc_overview.status") }}:</th>
-        <td>{{ account["status"] }}</td>
       </tr>
       <tr v-if="account.params">
         <th>{{ $t("acc_overview.multisignature_threshold") }}:</th>
@@ -447,6 +451,7 @@ export default {
       setTransaction: "wallet/setTransaction",
       getAsset: "indexer/getAsset",
       prolong: "wallet/prolong",
+      setAccountOnline: "kmd/setAccountOnline",
     }),
 
     async makeAssets() {
@@ -519,6 +524,14 @@ export default {
         addr: this.account.addr,
       });
       this.$router.push("/accounts");
+    },
+    async onStatusClick() {
+      if (
+        await this.setAccountOnline({ account: this.$route.params.account })
+      ) {
+        await this.reloadAccount();
+        this.openSuccess("You have set the account to online mode");
+      }
     },
   },
 };

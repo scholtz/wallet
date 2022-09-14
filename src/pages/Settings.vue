@@ -11,8 +11,34 @@
       <option value="devnet">{{ $t("settings.devnet") }}</option>
       <option value="custom">{{ $t("settings.custom") }}</option>
     </select>
+    <div v-if="publicList">
+      <label for="env2">Public {{ $t("settings.environment") }}</label>
 
+      <select id="env2" v-model="env" class="form-control">
+        <option
+          v-for="value in publicList"
+          :value="value.network"
+          :key="value.network"
+        >
+          {{ value.name }}
+        </option>
+      </select>
+    </div>
     <table>
+      <tr v-if="algodList && algodList.length > 0">
+        <td><label for="algodProvider">Public AlgoD provider</label>:</td>
+        <td>
+          <select id="algodProvider" v-model="algodHost" class="form-control">
+            <option
+              v-for="value in algodList"
+              :value="value.algodHost"
+              :key="value.algodHost"
+            >
+              {{ value.providerName }}
+            </option>
+          </select>
+        </td>
+      </tr>
       <tr>
         <td>AlgoD {{ $t("settings.host") }}:</td>
         <td>
@@ -24,7 +50,7 @@
           />
         </td>
       </tr>
-      <tr>
+      <tr v-if="env == 'custom'">
         <td>AlgoD {{ $t("settings.token") }}:</td>
         <td>
           <input
@@ -33,6 +59,20 @@
             v-model="algodToken"
             class="form-control"
           />
+        </td>
+      </tr>
+      <tr v-if="kmdList && kmdList.length > 0">
+        <td><label for="kmdProvider">Public KMD provider</label>:</td>
+        <td>
+          <select id="kmdProvider" v-model="kmdHost" class="form-control">
+            <option
+              v-for="value in kmdList"
+              :value="value.kmdHost"
+              :key="value.kmdHost"
+            >
+              {{ value.providerName }}
+            </option>
+          </select>
         </td>
       </tr>
       <tr>
@@ -46,15 +86,22 @@
           />
         </td>
       </tr>
-      <tr>
-        <td>KMD {{ $t("settings.token") }}:</td>
+      <tr v-if="indexerList && indexerList.length > 0">
+        <td><label for="indexerProvider">Public KMD provider</label>:</td>
         <td>
-          <input
-            type="text"
-            :disabled="env != 'custom'"
-            v-model="kmdToken"
+          <select
+            id="indexerProvider"
+            v-model="indexerHost"
             class="form-control"
-          />
+          >
+            <option
+              v-for="value in indexerList"
+              :value="value.indexerHost"
+              :key="value.indexerHost"
+            >
+              {{ value.providerName }}
+            </option>
+          </select>
         </td>
       </tr>
       <tr>
@@ -68,7 +115,7 @@
           />
         </td>
       </tr>
-      <tr>
+      <tr v-if="env == 'custom'">
         <td>Indexer {{ $t("settings.token") }}:</td>
         <td>
           <input
@@ -180,11 +227,17 @@ export default {
       kmdToken: "",
       indexerHost: "",
       indexerToken: "",
+      publicList: [],
+      publicListItem: null,
+      algodList: [],
+      kmdList: [],
+      indexerList: [],
     };
   },
 
   watch: {
-    env() {
+    async env() {
+      await this.loadPublicData();
       if (this.env == "mainnet") {
         this.setHosts({
           env: "mainnet",
@@ -330,7 +383,7 @@ export default {
   components: {
     MainLayout,
   },
-  mounted() {
+  async mounted() {
     if (this.envConfig) {
       this.env = this.envConfig;
     }
@@ -340,6 +393,9 @@ export default {
     this.kmdToken = this.kmdTokenConfig;
     this.indexerHost = this.indexerHostConfig;
     this.indexerToken = this.indexerTokenConfig;
+
+    this.publicList = await this.getGenesisList();
+    await this.loadPublicData();
   },
   methods: {
     ...mapActions({
@@ -349,6 +405,10 @@ export default {
       destroyWallet: "wallet/destroyWallet",
       openError: "toast/openError",
       openSuccess: "toast/openSuccess",
+      getGenesisList: "publicData/getGenesisList",
+      getAlgodList: "publicData/getAlgodList",
+      getKMDList: "publicData/getKMDList",
+      getIndexerList: "publicData/getIndexerList",
     }),
     changePasswordClick(e) {
       e.preventDefault();
@@ -401,6 +461,61 @@ export default {
         this.openSuccess(this.$t("settings.protocol_change_success"));
       } catch (exc) {
         this.openError(exc.message);
+      }
+    },
+    async loadPublicData() {
+      if (this.env) {
+        this.publicListItem = this.publicList.find(
+          (x) => x.network == this.env
+        );
+        if (this.publicListItem) {
+          const listAlgod = await this.getAlgodList({ chainId: this.env });
+          this.algodList = listAlgod.filter((i) => !i.registrationRequired);
+          if (this.algodList.length > 0) {
+            const alreadySet = this.algodList.find(
+              (i) => i.algodHost == this.algodHost
+            );
+            if (!alreadySet) {
+              this.algodHost = this.algodList[0].algodHost;
+            }
+          }
+
+          const listKMD = await this.getKMDList({ chainId: this.env });
+          this.kmdList = listKMD.filter((i) => !i.registrationRequired);
+          if (this.kmdList.length > 0) {
+            const alreadySet = this.kmdList.find(
+              (i) => i.kmdHost == this.kmdHost
+            );
+            if (!alreadySet) {
+              this.kmdHost = this.kmdList[0].kmdHost;
+            }
+          }
+
+          const listIndexer = await this.getIndexerList({ chainId: this.env });
+          this.indexerList = listIndexer.filter((i) => !i.registrationRequired);
+          if (this.indexerList.length > 0) {
+            const alreadySet = this.indexerList.find(
+              (i) => i.indexerHost == this.indexerHost
+            );
+            if (!alreadySet) {
+              this.indexerHost = this.indexerList[0].indexerHost;
+            }
+          }
+
+          this.setHosts({
+            env: this.env,
+            algod: this.algodHost,
+            kmd: this.kmdHost,
+            indexer: this.indexerHost,
+            algodToken: this.algodToken,
+            kmdToken: this.kmdToken,
+            indexerToken: this.indexerToken,
+          });
+        } else {
+          this.algodList = [];
+          this.kmdList = [];
+          this.indexerList = [];
+        }
       }
     },
   },

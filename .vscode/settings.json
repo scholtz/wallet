@@ -3,7 +3,7 @@
     "settings": {},
     "vetur.validation.template": false,
     "editor.formatOnSave": true,
-    "editor.defaultFormatter": "octref.vetur",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "vetur.format.defaultFormatter.html": "prettier",
     "vetur.format.defaultFormatter.css": "prettier",
     "vetur.format.defaultFormatter.postcss": "prettier",

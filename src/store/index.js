@@ -6,6 +6,8 @@ import wallet from "./wallet";
 import indexer from "./indexer";
 import toast from "./toast";
 import vote from "./vote";
+import publicData from "./publicData";
+import kmd from "./kmd";
 
 const debugStrict = process.env.NODE_ENV !== "production";
 
@@ -17,7 +19,9 @@ export default createStore({
     wallet,
     indexer,
     toast,
-    vote
+    vote,
+    publicData,
+    kmd,
   },
   strict: debugStrict,
 });

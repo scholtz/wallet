@@ -61,7 +61,7 @@ const mutations = {
     if (env) {
       state.env = env;
     }
-    const kmdHost = localStorage.getItem("kmddHost");
+    const kmdHost = localStorage.getItem("kmdHost");
     if (kmdHost) {
       state.kmd = kmdHost;
     }
