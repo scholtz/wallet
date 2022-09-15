@@ -123,8 +123,10 @@ const actions = {
       if (address.rekeyedTo && address.rekeyedTo != addr) {
         return await dispatch("getSK", { addr: address.rekeyedTo });
       }
-      const ret = Uint8Array.from(Object.values(address.sk));
-      return ret;
+      if (address.sk) {
+        const ret = Uint8Array.from(Object.values(address.sk));
+        return ret;
+      }
     }
   },
   async logout({ commit }) {

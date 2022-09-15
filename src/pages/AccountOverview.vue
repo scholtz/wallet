@@ -186,10 +186,18 @@
       </tr>
       <tr>
         <th>{{ $t("acc_overview.status") }}:</th>
-        <td>
+        <td v-if="!changeOnline">
           <button class="btn btn-light btn-xs" @click="onStatusClick">
             {{ account["status"] }}
           </button>
+        </td>
+        <td v-else>
+          <span
+            class="spinner-grow spinner-grow-sm"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          Setting your account to online state. Please wait a while
         </td>
       </tr>
       <tr>
@@ -400,6 +408,7 @@ export default {
       assets: [],
       asset: "",
       icons: [PrimeIcons.COPY],
+      changeOnline: false,
     };
   },
   computed: {
@@ -452,6 +461,7 @@ export default {
       getAsset: "indexer/getAsset",
       prolong: "wallet/prolong",
       setAccountOnline: "kmd/setAccountOnline",
+      openSuccess: "toast/openSuccess",
     }),
 
     async makeAssets() {
@@ -526,11 +536,19 @@ export default {
       this.$router.push("/accounts");
     },
     async onStatusClick() {
-      if (
-        await this.setAccountOnline({ account: this.$route.params.account })
-      ) {
-        await this.reloadAccount();
-        this.openSuccess("You have set the account to online mode");
+      if (this.account && this.account["status"] == "Offline") {
+        this.changeOnline = true;
+        if (
+          await this.setAccountOnline({ account: this.$route.params.account })
+        ) {
+          await this.reloadAccount();
+          this.openSuccess("You have set the account to online mode");
+          this.changeOnline = true;
+        } else {
+          this.changeOnline = true;
+        }
+      } else {
+        this.openSuccess("Your account is already in online mode");
       }
     },
   },

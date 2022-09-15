@@ -14,10 +14,10 @@ function getLang() {
 }
 
 axios.interceptors.response.use(
-  function(response) {
+  function (response) {
     return response;
   },
-  function(error) {
+  function (error) {
     if (401 === error.response.status) {
       // handle error: inform user, go to login, etc
       console.log("401", error);
@@ -42,7 +42,7 @@ const actions = {
         }
       }
 
-      response = await axios.get(url, { params }).catch(function(error) {
+      response = await axios.get(url, { params }).catch(function (error) {
         if (error.response && error.response && error.response.status == 401) {
           dispatch("toast/openError", "Session timeout - unauthenticated", {
             root: true,
@@ -85,11 +85,9 @@ const actions = {
         }
         if (!shown) {
           shown = true;
-          dispatch(
-            "toast/openError",
-            "Error occured, please try again later",
-            { root: true }
-          );
+          dispatch("toast/openError", "Error occured, please try again later", {
+            root: true,
+          });
         }
       });
       if (response && response.status === 200) {
@@ -100,11 +98,9 @@ const actions = {
       }
 
       if (!shown) {
-        dispatch(
-          "toast/openError",
-          "Error occured, please try again later",
-          { root: true }
-        );
+        dispatch("toast/openError", "Error occured, please try again later", {
+          root: true,
+        });
       }
     } catch (e) {
       console.log("catch.e", e);
@@ -154,17 +150,13 @@ const actions = {
             }
             return response;
           })
-          .catch(function(error) {
+          .catch(function (error) {
             console.log("error", error.response.data);
 
             if (error.response && error.response.status == 401) {
-              dispatch(
-                "toast/openError",
-                "Session timeout - unauthenticated",
-                {
-                  root: true,
-                }
-              );
+              dispatch("toast/openError", "Session timeout - unauthenticated", {
+                root: true,
+              });
               shown = true;
               dispatch(
                 "user/Logout",
@@ -237,15 +229,11 @@ const actions = {
             }
             return response;
           })
-          .catch(function(error) {
+          .catch(function (error) {
             if (error.response && error.response.status == 401) {
-              dispatch(
-                "toast/openError",
-                "Session timeout - unauthenticated",
-                {
-                  root: true,
-                }
-              );
+              dispatch("toast/openError", "Session timeout - unauthenticated", {
+                root: true,
+              });
               shown = true;
               dispatch(
                 "user/Logout",
@@ -300,11 +288,9 @@ const actions = {
       }
 
       if (!shown) {
-        dispatch(
-          "toast/openError",
-          "Error occured, please try again later",
-          { root: true }
-        );
+        dispatch("toast/openError", "Error occured, please try again later", {
+          root: true,
+        });
       }
     } catch (e) {
       console.log("catch.e", e);
@@ -329,7 +315,7 @@ const actions = {
         }
       }
       let shown = false;
-      response = await axios.post(url, fd).catch(function(error) {
+      response = await axios.post(url, fd).catch(function (error) {
         if (error.response && error.response && error.response.status == 401) {
           dispatch("toast/openError", "Session timeout - unauthenticated", {
             root: true,
@@ -378,11 +364,9 @@ const actions = {
         }
         if (!shown) {
           shown = true;
-          dispatch(
-            "toast/openError",
-            "Error occured, please try again later",
-            { root: true }
-          );
+          dispatch("toast/openError", "Error occured, please try again later", {
+            root: true,
+          });
         }
       });
 
@@ -394,11 +378,9 @@ const actions = {
       }
 
       if (!shown) {
-        dispatch(
-          "toast/openError",
-          "Error occured, please try again later",
-          { root: true }
-        );
+        dispatch("toast/openError", "Error occured, please try again later", {
+          root: true,
+        });
       }
     } catch (e) {
       console.log("catch.e", e);

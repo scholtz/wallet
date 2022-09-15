@@ -213,7 +213,7 @@ const actions = {
         return data;
       }
     } catch (error) {
-      dispatch("snackbar/openError", error.response, {
+      dispatch("toast/openError", error.response, {
         root: true,
       });
     }
