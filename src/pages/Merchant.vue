@@ -289,7 +289,7 @@ export default {
       if (this.b64decode.network == "mainnet") {
         this.setHosts({
           algod: "https://node.algoexplorerapi.io",
-          kmd: "?",
+          kmd: "https://kmd.h2.a-wallet.net",
           indexer: "https://algoindexer.algoexplorerapi.io",
         });
       }

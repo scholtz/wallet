@@ -242,7 +242,7 @@ export default {
         this.setHosts({
           env: "mainnet",
           algod: "https://node.algoexplorerapi.io",
-          kmd: "?",
+          kmd: "https://kmd.h2.a-wallet.net",
           indexer: "https://algoindexer.algoexplorerapi.io",
         });
       }
