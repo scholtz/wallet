@@ -541,11 +541,11 @@ export default {
         if (
           await this.setAccountOnline({ account: this.$route.params.account })
         ) {
+          this.changeOnline = false;
           await this.reloadAccount();
           this.openSuccess("You have set the account to online mode");
-          this.changeOnline = true;
         } else {
-          this.changeOnline = true;
+          this.changeOnline = false;
         }
       } else {
         this.openSuccess("Your account is already in online mode");
