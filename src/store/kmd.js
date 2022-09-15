@@ -52,10 +52,8 @@ const actions = {
         "axios/get",
         {
           url: `${this.state.config.kmd}/v1/KMD/addpartkey?roundFirstValid=${voteFirst}&roundLastValid=${voteLast}&address=${account}`,
-          params: {
-            headers: {
-              Authorization: auth,
-            },
+          headers: {
+            Authorization: auth,
           },
         },
         { root: true }

@@ -29,7 +29,7 @@ axios.interceptors.response.use(
 );
 
 const actions = {
-  async get({ dispatch }, { url, params }) {
+  async get({ dispatch }, { url, params, headers }) {
     let response = null;
     try {
       let shown = false;
@@ -42,54 +42,64 @@ const actions = {
         }
       }
 
-      response = await axios.get(url, { params }).catch(function (error) {
-        if (error.response && error.response && error.response.status == 401) {
-          dispatch("toast/openError", "Session timeout - unauthenticated", {
-            root: true,
-          });
-          shown = true;
-          dispatch(
-            "user/Logout",
-            {},
-            {
+      response = await axios
+        .get(url, { params, headers })
+        .catch(function (error) {
+          if (
+            error.response &&
+            error.response &&
+            error.response.status == 401
+          ) {
+            dispatch("toast/openError", "Session timeout - unauthenticated", {
               root: true,
-            }
-          );
-        }
+            });
+            shown = true;
+            dispatch(
+              "user/Logout",
+              {},
+              {
+                root: true,
+              }
+            );
+          }
 
-        if (
-          error.response &&
-          error.response.data &&
-          error.response.data.errors
-        ) {
-          for (const index in error.response.data.errors) {
-            for (const index2 in error.response.data.errors[index]) {
-              const err = error.response.data.errors[index][index2];
-              if (err) {
-                shown = true;
-                dispatch("toast/openError", err, {
-                  root: true,
-                });
+          if (
+            error.response &&
+            error.response.data &&
+            error.response.data.errors
+          ) {
+            for (const index in error.response.data.errors) {
+              for (const index2 in error.response.data.errors[index]) {
+                const err = error.response.data.errors[index][index2];
+                if (err) {
+                  shown = true;
+                  dispatch("toast/openError", err, {
+                    root: true,
+                  });
+                }
               }
             }
+          } else if (
+            error.response &&
+            error.response.data &&
+            error.response.data.detail
+          ) {
+            shown = true;
+            dispatch("toast/openError", error.response.data.detail, {
+              root: true,
+            });
           }
-        } else if (
-          error.response &&
-          error.response.data &&
-          error.response.data.detail
-        ) {
-          shown = true;
-          dispatch("toast/openError", error.response.data.detail, {
-            root: true,
-          });
-        }
-        if (!shown) {
-          shown = true;
-          dispatch("toast/openError", "Error occured, please try again later", {
-            root: true,
-          });
-        }
-      });
+          if (!shown) {
+            shown = true;
+            dispatch(
+              "toast/openError",
+              "Error occured, please try again later",
+              {
+                root: true,
+              }
+            );
+          }
+        });
       if (response && response.status === 200) {
         return response.data;
       }
