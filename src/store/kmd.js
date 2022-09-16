@@ -18,7 +18,6 @@ const actions = {
 
       const authParams = suggestedParams;
       authParams.fee = 0;
-      console.error("authParams", authParams);
       const note = Buffer.from("KMD", "ascii");
       const authObj = {
         from: account,
@@ -27,7 +26,6 @@ const actions = {
         note: new Uint8Array(note),
         suggestedParams: authParams,
       };
-      console.error("authObj", authObj);
       const authTxn =
         algosdk.makePaymentTxnWithSuggestedParamsFromObject(authObj);
       const sk = await dispatch(
@@ -71,7 +69,6 @@ const actions = {
         voteKeyDilution: data.voteKeyDilution,
         nonParticipation: false,
       };
-      console.error("toSign", toSignData);
       const txn =
         algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(toSignData);
 
