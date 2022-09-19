@@ -536,19 +536,15 @@ export default {
       this.$router.push("/accounts");
     },
     async onStatusClick() {
-      if (this.account && this.account["status"] == "Offline") {
-        this.changeOnline = true;
-        if (
-          await this.setAccountOnline({ account: this.$route.params.account })
-        ) {
-          this.changeOnline = false;
-          await this.reloadAccount();
-          this.openSuccess("You have set the account to online mode");
-        } else {
-          this.changeOnline = false;
-        }
+      this.changeOnline = true;
+      if (
+        await this.setAccountOnline({ account: this.$route.params.account })
+      ) {
+        this.changeOnline = false;
+        await this.reloadAccount();
+        this.openSuccess("You have set the account to online mode");
       } else {
-        this.openSuccess("Your account is already in online mode");
+        this.changeOnline = false;
       }
     },
   },

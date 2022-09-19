@@ -45,7 +45,7 @@ const actions = {
       const auth = "SigTx " + b64;
 
       const voteFirst = suggestedParams.firstRound + 2;
-      const voteLast = voteFirst + 10000;
+      const voteLast = voteFirst + 1000000;
       const data = await dispatch(
         "axios/get",
         {
