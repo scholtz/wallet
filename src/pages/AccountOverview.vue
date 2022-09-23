@@ -475,7 +475,7 @@ export default {
           "unit-name": "",
         });
       }
-      if (this.account) {
+      if (this.account && this.account.assets) {
         for (let index in this.account.assets) {
           const asset = await this.getAsset({
             assetIndex: this.account.assets[index]["asset-id"],
