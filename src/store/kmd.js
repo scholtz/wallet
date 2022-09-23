@@ -58,6 +58,7 @@ const actions = {
       );
       if (!data) throw new Error("Unable to create participation key");
       suggestedParams.fee = 1000;
+      suggestedParams.flatFee = true;
       const toSignData = {
         from: account,
         suggestedParams: suggestedParams,
