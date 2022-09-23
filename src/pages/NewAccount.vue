@@ -34,7 +34,14 @@
         <div class="row">
           <div :class="scanMnemonic ? 'col-8' : 'col-12'">
             <p>{{ $t("newacc.write_mnemonic") }}</p>
-            <textarea class="form-control my-1" v-model="w" />
+            <Password
+              inputClass="form-control my-1 w-100"
+              style="width: 100%"
+              inputStyle="width:100%"
+              :feedback="false"
+              :toggleMask="true"
+              v-model="w"
+            />
 
             <p>{{ $t("newacc.name") }}</p>
             <input v-model="name" class="form-control" />

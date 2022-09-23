@@ -26,6 +26,7 @@ import Accordion from "primevue/accordion";
 import AccordionTab from "primevue/accordiontab";
 import ToastService from "primevue/toastservice";
 import Dropdown from "primevue/dropdown";
+import Password from "primevue/password";
 import "primevue/resources/themes/saga-blue/theme.css";
 
 import "primevue/resources/primevue.min.css";
@@ -68,6 +69,7 @@ myApp.component("Toast", Toast);
 myApp.component("Accordion", Accordion);
 myApp.component("AccordionTab", AccordionTab);
 myApp.component("Dropdown", Dropdown);
+myApp.component("Password", Password);
 
 myApp.config.globalProperties.$filters = {
   formatCurrency(
