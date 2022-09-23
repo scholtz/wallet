@@ -535,11 +535,15 @@ export default {
       });
       this.$router.push("/accounts");
     },
+    sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    },
     async onStatusClick() {
       this.changeOnline = true;
       if (
         await this.setAccountOnline({ account: this.$route.params.account })
       ) {
+        await this.sleep(5000);
         this.changeOnline = false;
         await this.reloadAccount();
         this.openSuccess("You have set the account to online mode");
