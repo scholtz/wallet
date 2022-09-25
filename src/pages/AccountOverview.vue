@@ -200,11 +200,25 @@
           Setting your account to online state. Please wait a while
         </td>
       </tr>
-      <tr>
+      <tr
+        v-if="
+          $store &&
+          $store.state &&
+          $store.state.config &&
+          $store.state.config.dev
+        "
+      >
         <th>{{ $t("acc_overview.apps_local_state") }}:</th>
         <td>{{ account["apps-local-state"] }}</td>
       </tr>
-      <tr>
+      <tr
+        v-if="
+          $store &&
+          $store.state &&
+          $store.state.config &&
+          $store.state.config.dev
+        "
+      >
         <th>{{ $t("acc_overview.apps_total_schema") }}:</th>
         <td>{{ account["apps-total-schema"] }}</td>
       </tr>
@@ -239,7 +253,14 @@
           </table>
         </td>
       </tr>
-      <tr>
+      <tr
+        v-if="
+          $store &&
+          $store.state &&
+          $store.state.config &&
+          $store.state.config.dev
+        "
+      >
         <th>{{ $t("acc_overview.created_apps") }}:</th>
         <td>{{ account["created-apps"] }}</td>
       </tr>

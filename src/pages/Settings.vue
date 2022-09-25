@@ -182,6 +182,10 @@
       <input type="password" class="form-control my-2" v-model="passw3" />
       <input type="submit" class="btn btn-light my-2" value="Update password" />
     </form>
+    <h2>{{ $t("settings.dev_settings") }}</h2>
+    <div>
+      <InputSwitch v-model="dev" aria-label="Enable dev output" />
+    </div>
     <h2>{{ $t("settings.backup") }}</h2>
     <p>{{ $t("settings.backup_help") }}</p>
     <p>
@@ -227,6 +231,7 @@ export default {
       kmdToken: "",
       indexerHost: "",
       indexerToken: "",
+      dev: false,
       publicList: [],
       publicListItem: null,
       algodList: [],
@@ -336,6 +341,9 @@ export default {
     indexerToken() {
       if (this.indexerToken != this.indexerTokenConfig) this.updateConfig();
     },
+    dev() {
+      this.setDev({ dev: this.dev });
+    },
   },
   computed: {
     envConfig() {
@@ -393,13 +401,14 @@ export default {
     this.kmdToken = this.kmdTokenConfig;
     this.indexerHost = this.indexerHostConfig;
     this.indexerToken = this.indexerTokenConfig;
-
+    this.dev = this.$store.state.config.dev;
     this.publicList = await this.getGenesisList();
     await this.loadPublicData();
   },
   methods: {
     ...mapActions({
       setHosts: "config/setHosts",
+      setDev: "config/setDev",
       changePassword: "wallet/changePassword",
       backupWallet: "wallet/backupWallet",
       destroyWallet: "wallet/destroyWallet",

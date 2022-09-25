@@ -12,9 +12,14 @@ const state = () => ({
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   languages: ["en", "hu", "it", "nl", "sk", "cs"],
   noredirect: false, // redirect to account page after successfull login
+  dev: false,
 });
 
 const mutations = {
+  setDev(state, value) {
+    localStorage.setItem("dev", value);
+    state.dev = value;
+  },
   setConfig(state, value) {
     const removeConsoleLogs = !value.debug;
 
@@ -53,6 +58,10 @@ const mutations = {
       state.indexerToken = value.indexerToken;
     }
 
+    const dev = localStorage.getItem("dev");
+    if (dev && dev != "false") {
+      state.dev = true;
+    }
     const algodHost = localStorage.getItem("algodHost");
     if (algodHost) {
       state.algod = algodHost;
@@ -198,6 +207,9 @@ const actions = {
   },
   async setNoRedirect({ commit }) {
     await commit("setNoRedirect");
+  },
+  async setDev({ commit }, { dev }) {
+    await commit("setDev", dev);
   },
   async getConfig({ dispatch, commit }) {
     try {
