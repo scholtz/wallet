@@ -109,16 +109,46 @@ export default {
       updateAccount: "wallet/updateAccount",
       lastActiveAccount: "wallet/lastActiveAccount",
     }),
-    updateBalance() {
+    sleep(ms) {
+      return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+      });
+    },
+    async updateBalance() {
       console.log("updating");
       for (let index in this.$store.state.wallet.privateAccounts) {
+        await this.sleep(100);
         this.accountInformation({
           addr: this.$store.state.wallet.privateAccounts[index].addr,
-        }).then((info) => {
-          if (info) {
-            this.updateAccount({ info });
-          }
-        });
+        })
+          .then((info) => {
+            if (info) {
+              this.updateAccount({ info });
+            }
+          })
+          .catch((e) => {
+            if (e.message.indexOf("404") >= 0) {
+              const info = {
+                address: this.$store.state.wallet.privateAccounts[index].addr,
+                amount: 0,
+                "amount-without-pending-rewards": 0,
+                "created-at-round": 0,
+                deleted: false,
+                "pending-rewards": 0,
+                "reward-base": 0,
+                rewards: 0,
+                round: 0,
+                "sig-type": "sig",
+                status: "Offline",
+                "total-apps-opted-in": 0,
+                "total-assets-opted-in": 0,
+                "total-created-apps": 0,
+                "total-created-assets": 0,
+              };
+
+              this.updateAccount({ info });
+            }
+          });
       }
     },
   },

@@ -31,8 +31,8 @@
           <select id="algodProvider" v-model="algodHost" class="form-control">
             <option
               v-for="value in algodList"
-              :value="value.algodHost"
-              :key="value.algodHost"
+              :value="value.host"
+              :key="value.host"
             >
               {{ value.providerName }}
             </option>
@@ -67,8 +67,8 @@
           <select id="kmdProvider" v-model="kmdHost" class="form-control">
             <option
               v-for="value in kmdList"
-              :value="value.kmdHost"
-              :key="value.kmdHost"
+              :value="value.host"
+              :key="value.host"
             >
               {{ value.providerName }}
             </option>
@@ -87,7 +87,7 @@
         </td>
       </tr>
       <tr v-if="indexerList && indexerList.length > 0">
-        <td><label for="indexerProvider">Public KMD provider</label>:</td>
+        <td><label for="indexerProvider">Public Indexer provider</label>:</td>
         <td>
           <select
             id="indexerProvider"
@@ -96,8 +96,8 @@
           >
             <option
               v-for="value in indexerList"
-              :value="value.indexerHost"
-              :key="value.indexerHost"
+              :value="value.host"
+              :key="value.host"
             >
               {{ value.providerName }}
             </option>
@@ -481,33 +481,35 @@ export default {
           const listAlgod = await this.getAlgodList({ chainId: this.env });
           this.algodList = listAlgod.filter((i) => !i.registrationRequired);
           if (this.algodList.length > 0) {
-            const alreadySet = this.algodList.find(
-              (i) => i.algodHost == this.algodHost
+            const alreadySet = this.algodList.find((i) =>
+              i.host ? i.host == this.algodHost : i.algodHost == this.algodHost
             );
             if (!alreadySet) {
-              this.algodHost = this.algodList[0].algodHost;
+              this.algodHost = this.algodList[0].host;
             }
           }
 
           const listKMD = await this.getKMDList({ chainId: this.env });
           this.kmdList = listKMD.filter((i) => !i.registrationRequired);
           if (this.kmdList.length > 0) {
-            const alreadySet = this.kmdList.find(
-              (i) => i.kmdHost == this.kmdHost
+            const alreadySet = this.kmdList.find((i) =>
+              i.host ? i.host == this.kmdHost : i.kmdHost == this.kmdHost
             );
             if (!alreadySet) {
-              this.kmdHost = this.kmdList[0].kmdHost;
+              this.kmdHost = this.kmdList[0].host;
             }
           }
 
           const listIndexer = await this.getIndexerList({ chainId: this.env });
           this.indexerList = listIndexer.filter((i) => !i.registrationRequired);
           if (this.indexerList.length > 0) {
-            const alreadySet = this.indexerList.find(
-              (i) => i.indexerHost == this.indexerHost
+            const alreadySet = this.indexerList.find((i) =>
+              i.host
+                ? i.host == this.indexerHost
+                : i.indexerHost == this.indexerHost
             );
             if (!alreadySet) {
-              this.indexerHost = this.indexerList[0].indexerHost;
+              this.indexerHost = this.indexerList[0].host;
             }
           }
 

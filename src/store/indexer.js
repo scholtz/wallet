@@ -35,6 +35,7 @@ const actions = {
       return ret.account;
     } catch (error) {
       console.error("error", error, dispatch);
+      throw error;
     }
   },
   async searchForTransactions({ dispatch }, { addr, note }) {
