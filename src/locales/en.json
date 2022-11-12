@@ -463,8 +463,8 @@
     "a2": "Nothing. We do not use cookies. We use persistant local storage called indexdb for starage of your wallet.",
     "q3": "How do you collect analytics information?",
     "a3": "We do not. We do not use any form of analytics service eg google analytics, so that you can feel safer. The web is purly html with javascript, and we do know your IP address only when you request the server. Depending on your settings and your algod server or indexer, the selected server also may know your IP address.",
-    "q4": "Does use of this service affect commercials I see?",
-    "a4": "No. Commercial servers do not have any information from us about any usage. Only way how for example google may know you are using this service is that you access this site from google search.",
+    "q4": "Does use of this service affect the ads I see?",
+    "a4": "No. Ad servers do not have any information from us about any usage. The only way how, for example google, may know you are using this service is if you access this site from google search.",
     "q5": "Who provides this service?",
     "a5": "Scholtz & Company, jsa has created this service. Company Id: 51 882 272, VAT ID: SK2120828105, based in Bratislava, Slovakia.  If this is running in official website a-wallet.net, the company is also service provider. The company is not liable for any service, nor any errors in the application."
   },
