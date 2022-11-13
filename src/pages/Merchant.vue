@@ -261,7 +261,7 @@ export default {
         if (newAsset && newAsset.decimals !== undefined) {
           this.asset = newAsset;
         } else {
-          const errorMsg = $t('merchant.error_asset') + this.b64decode.asset;
+          const errorMsg = this.$t('merchant.error_asset') + this.b64decode.asset;
           this.openError(errorMsg);
           this.b64decode.error = errorMsg;
           return;
