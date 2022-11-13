@@ -15,4 +15,4 @@ Running at: https://www.a-wallet.net/
 
 Technology stack: Vue3, JsAlgoSDK, CICD to pure HTML+JS
 
-If anyne wants to contribute please create a pull request
+If anyone wants to contribute please create a pull request
