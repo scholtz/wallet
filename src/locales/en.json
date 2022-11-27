@@ -161,7 +161,8 @@
     "cancel_payment": "Cancel payment",
     "payment_received": "Payment received",
     "go_back_to_merchant": "Go back to merchant",
-    "waiting_for_payment": "Waiting for the payment"
+    "waiting_for_payment": "Waiting for the payment",
+    "error_asset": "Error fetching asset: "
   },
   "gateway": {
     "title": "Free open source payment gateway without a middleman",

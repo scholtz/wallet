@@ -7,7 +7,7 @@
         {{ $t("merchant.make_payment") }}
         <span v-if="asset">{{ asset.name }}</span>
       </h1>
-      <div v-if="this.b64decode" class="my-3">
+      <div v-if="this.b64decode && !this.b64decode.error" class="my-3">
         {{ $t("merchant.pay") }} {{ this.b64decode.payamount }}
         <span v-if="asset">{{ asset["unit-name"] }}</span>
         {{ $t("merchant.to_address") }} {{ this.b64decode.payTo }}
@@ -32,6 +32,9 @@
             </td>
           </tr>
         </table>
+      </div>
+      <div v-else-if="this.b64decode.error" class="my-3">
+        {{ this.b64decode.error }}
       </div>
       <div v-else>
         <span
@@ -258,7 +261,10 @@ export default {
         if (newAsset && newAsset.decimals !== undefined) {
           this.asset = newAsset;
         } else {
-          this.openError("Error fetching asset " + this.b64decode.asset);
+          const errorMsg = this.$t('merchant.error_asset') + this.b64decode.asset;
+          this.openError(errorMsg);
+          this.b64decode.error = errorMsg;
+          return;
         }
       } else {
         this.asset = {
