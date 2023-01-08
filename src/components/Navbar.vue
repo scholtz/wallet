@@ -38,6 +38,16 @@
               >{{ $store.state.wallet.lastActiveAccountName }}</v-link
             >
           </li>
+          <li
+            class="nav-item active"
+            v-if="$store.state.wallet.lastActiveAccountName"
+          >
+            <v-link
+              class="nav-link"
+              :href="'/swap/' + $store.state.wallet.lastActiveAccount"
+              >{{ $t("navbar.swap") }}</v-link
+            >
+          </li>
           <li class="nav-item active" v-if="$store.state.wallet.isOpen">
             <v-link class="nav-link" href="/new-account">{{
               $t("navbar.new_account")

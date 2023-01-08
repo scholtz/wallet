@@ -42,7 +42,7 @@ const mutations = {
     const index = state.privateAccounts.findIndex(
       (acc) => acc.name == name && acc.addr == addr
     );
-    console.log("deleting", index);
+    //console.log("deleting", index);
     state.privateAccounts.splice(index, 1);
   },
   setPrivateAccount(state, { info }) {
@@ -58,7 +58,7 @@ const mutations = {
         }
       }
     }
-    console.log("setPrivateAccount", info, acc);
+    //console.log("setPrivateAccount", info, acc);
   },
   addMultiAccount(state, { addr, params, name }) {
     const multsigaddr = { addr, name, params };
@@ -118,8 +118,9 @@ const actions = {
     const address = this.state.wallet.privateAccounts.find(
       (a) => a.addr == addr
     );
+    //console.log("privateAccounts", address);
     if (address) {
-      console.log("address", address);
+      //console.log("address", address);
       if (address.rekeyedTo && address.rekeyedTo != addr) {
         return await dispatch("getSK", { addr: address.rekeyedTo });
       }
@@ -149,7 +150,8 @@ const actions = {
       await dispatch("saveWallet");
       return true;
     } catch (e) {
-      console.log("error", e);
+      console.error("error", e);
+
       alert("Account has not been created");
     }
   },
@@ -163,7 +165,7 @@ const actions = {
       await dispatch("saveWallet");
       return true;
     } catch (e) {
-      console.log("error", e);
+      console.error("error", e);
       alert("Account has not been created");
     }
   },
@@ -181,7 +183,7 @@ const actions = {
       await dispatch("saveWallet");
       return true;
     } catch (e) {
-      console.log("error", e);
+      console.error("error", e);
       alert("Account has not been deleted");
     }
   },
@@ -197,7 +199,7 @@ const actions = {
       await dispatch("saveWallet");
       return true;
     } catch (e) {
-      console.log("error", e);
+      console.error("error", e);
       alert("Account has not been created");
     }
   },
@@ -291,7 +293,7 @@ const actions = {
       return true;
     } catch (e) {
       alert("Wrong password");
-      console.log("wrong password", e);
+      console.error("wrong password", e);
     }
   },
   async createWallet({ dispatch, commit }, { name, pass }) {
@@ -339,7 +341,7 @@ const actions = {
       const w = await db.wallets.toArray();
       return w.map((v) => v.name);
     } catch {
-      console.log("no wallet exists yet");
+      console.error("no wallet exists yet");
       return [];
     }
   },

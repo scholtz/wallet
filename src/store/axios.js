@@ -307,7 +307,7 @@ const actions = {
       dispatch("toast/openError", e.message, { root: true });
     }
   },
-  async post({ dispatch }, { url, params, body }) {
+  async post({ dispatch }, { url, params, body, config }) {
     let response = null;
     // console.log('post', url, params)
     try {
@@ -325,7 +325,8 @@ const actions = {
         }
       }
       let shown = false;
-      response = await axios.post(url, fd).catch(function (error) {
+      console.log("post", url, fd, config);
+      response = await axios.post(url, fd, config).catch(function (error) {
         if (error.response && error.response && error.response.status == 401) {
           dispatch("toast/openError", "Session timeout - unauthenticated", {
             root: true,

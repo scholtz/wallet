@@ -45,7 +45,21 @@
     "faq": "Veelgestelde Vragen",
     "privacy_policy": "Privacy beleid",
     "logout": "Uitloggen",
-    "vote": "Voting"
+    "vote": "Voting",
+    "swap": "SWAP"
+  },
+  "swap": {
+    "title": "Swap assets using Deflex protocol",
+    "network": "Network",
+    "network_not_supported": "Network is not supported",
+    "has_sk": "Only standard accounts with private keys are supported now",
+    "swap_asset_from": "Select asset from which you want to swap",
+    "swap_asset_to": "Select asset to which you want to swap",
+    "swap_amount": "Set the amount to swap",
+    "get_quote": "Get quote",
+    "apps_optin": "SWAP requires your account to opt in to the applications",
+    "apps_optin_button": "Opt in to the apps",
+    "execute_button": "Execute"
   },
   "votemenu": {
     "overview": "Overview",

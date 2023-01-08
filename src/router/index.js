@@ -28,6 +28,7 @@ import VoteAnswers from "@/pages/vote/Answers.vue";
 import TrustedList from "@/pages/vote/TrustedList.vue";
 import Donation from "@/pages/Donation.vue";
 import Success from "@/pages/Success.vue";
+import Swap from "@/pages/Swap.vue";
 
 const routes = [
   {
@@ -39,6 +40,11 @@ const routes = [
     path: "/privacy-policy",
     name: "Privacy",
     component: Privacy,
+  },
+  {
+    path: "/swap/:account",
+    name: "Swap",
+    component: Swap,
   },
   {
     path: "/import-wallet",
