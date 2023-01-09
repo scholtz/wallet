@@ -102,7 +102,7 @@
               role="status"
               aria-hidden="true"
             ></span>
-            {{ $t("swap.apps_optin_button") }}
+            {{ $t("swap.execute_button") }}
           </button>
         </div>
       </div>
