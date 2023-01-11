@@ -1,16 +1,39 @@
 <!DOCTYPE html>
 <html lang="">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
     <title>Algo Wallet</title>
-    <style type="text/css">body, html {height: 100%;}</style>
+    <style type="text/css">
+      body,
+      html {
+        height: 100%;
+      }
+    </style>
+    <meta property="og:title" content="Community Algorand Wallet - AWallet" />
+    <meta property="og:image" content="<%= BASE_URL %>favicon.ico" />
+    <meta
+      property="og:description"
+      content="Free open source algorand wallet created by community for community."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="<%= BASE_URL %>" />
+    <meta name="twitter:image" content="<%= BASE_URL %>/img/logo.svg" />
+    <meta name="twitter:title" content="AWallet - Community algorand wallet" />
+    <meta
+      name="twitter:description"
+      content="Free open source algorand wallet created by community for community."
+    />
   </head>
   <body>
     <noscript>
-      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+      <strong
+        >We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work
+        properly without JavaScript enabled. Please enable it to
+        continue.</strong
+      >
     </noscript>
     <div id="app" class="d-flex flex-column h-100"></div>
     <!-- built files will be auto injected -->
