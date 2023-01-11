@@ -12,7 +12,7 @@
           <a href="https://www.a-dir.net/">Algorand Directory</a>, besides the
           wallet support, we have created the
           <a
-            href="https://www.a-wallet.net/payment-gateway/P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U"
+            href="https://www.a-wallet.net/payment-gateway/AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
             >payment gateway</a
           >
           which does not require any financial middleman, we have created open
@@ -69,9 +69,9 @@
           <a
             target="_blank"
             rel="noreferrer"
-            href="https://algoexplorer.io/address/P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U"
+            href="https://algoexplorer.io/address/AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
             ><b
-              >P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U</b
+              >AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y</b
             ></a
           >
         </p>
@@ -88,7 +88,7 @@
               class="d-md-none d-lg-block"
               :width="400"
               :height="400"
-              value="P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U"
+              value="AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
               :qrOptions="{ errorCorrectionLevel: 'H' }"
               image="/img/algorand-algo-logo-96.png"
             />

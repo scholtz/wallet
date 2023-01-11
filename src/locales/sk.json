@@ -525,7 +525,7 @@
     "q6": "Môžem skontrolovať váš zdrojový kód?",
     "a6": "Áno. https://github.com/scholtz/wallet/ Táto peňaženka bola vytvorená ako otvorený zdroj a je možné ju bezplatne používať, kopírovať alebo upravovať aj na komerčné účely. Ak sa môžete na projekte zúčastniť, buďte prosím láskaví a vytvorte pull request v oficiálnom gite so svojím vylepšením.",
     "q7": "Ako môžem projektu pomôcť?",
-    "a7_1": "Príspevok na algo adresu P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U pomôže projektu pokračovať. Projekt nebol financovaný z Algorand inc ani Algorand foundation.",
+    "a7_1": "Príspevok na algo adresu AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y pomôže projektu pokračovať. Projekt nebol financovaný z Algorand inc ani Algorand foundation.",
     "a7_2": "Ak chcete preložiť projekt alebo pomôcť s prekladom, prejdite na stránku https://github.com/scholtz/wallet/tree/master/src/locales, skopírujte prekladový súbor do svojho jazyka a vytvorte pull request.",
     "a7_3": "Ak ste programátor, skontrolujte kód alebo nám pomôžte akýmkoľvek spôsobom akým uznáte za vhodné aby bol tento projekt lepší.",
     "q8": "Ako vytvoriť účet s viacerými podpismi?",

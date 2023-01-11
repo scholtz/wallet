@@ -334,7 +334,7 @@ export default {
         this.processingQuote = false;
         return;
       }
-      const request = `https://app.alammex.com/api/quote?chain=${chain}&fromASAID=${fromAsset}&toASAID=${toAsset}&atomicOnly=false&amount=${amount}&type=fixed-input&disabledProtocols=&referrerAddress=P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U`;
+      const request = `https://app.alammex.com/api/quote?chain=${chain}&fromASAID=${fromAsset}&toASAID=${toAsset}&atomicOnly=false&amount=${amount}&type=fixed-input&disabledProtocols=&referrerAddress=AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y`;
       const quotes = await this.axiosGet({ url: request }).catch((e) => {
         this.error = "No quotes available " + e.message;
         this.processingQuote = false;

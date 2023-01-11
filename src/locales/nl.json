@@ -525,7 +525,7 @@
     "q6": "Kan ik uw broncode bekijken?",
     "a6": "Ja. https://github.com/scholtz/wallet/ Deze wallet is open source gemaakt en is vrij om te gebruiken, te kopiëren of aan te passen, zelfs voor commerciële doeleinden. Als u in staat bent om deel te nemen aan het project, wees dan zo vriendelijk en maak een pull request aan met uw verbetering.",
     "q7": "Hoe kan ik het project helpen?",
-    "a7_1": "Donatie aan algorand adres P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U zal het project op gang helpen. Het project is niet gefinancierd door algorand inc noch door algorand foundation.",
+    "a7_1": "Donatie aan algorand adres AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y zal het project op gang helpen. Het project is niet gefinancierd door algorand inc noch door algorand foundation.",
     "a7_2": "Om het project te vertalen of te helpen met de vertaling, ga naar https://github.com/scholtz/wallet/tree/master/src/locales, kopieer het vertaalbestand naar jouw taal en doe een pull-verzoek.",
     "a7_3": "Als je een programmeur bent, doe dan alsjeblieft een code review, of help ons op welke manier dan ook waarvan je denkt dat dit project beter zou moeten zijn.",
     "q8": "Hoe maak je een rekening met meerdere handtekeningen?",

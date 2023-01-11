@@ -524,7 +524,7 @@
     "q6": "Tudom ellenőrizni a forráskódot?",
     "a6": "Igen. https://github.com/scholtz/wallet/ A pénztárca nyílt forráskódú és szabadon használható, másolható vagy módosítható, még kereskedelmi célokra is. Ha részt szeretnél venni a projektben, akkor hozz létre egy 'pull request'-et, amely a javításaidat tartalmazza.",
     "q7": "Hogyan tudom segíteni a projektet?",
-    "a7_1": "A P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U Algorand címre küldött adományokkal lehet a projektnek segítséget nyújtani. A projektet sem az Algorand Inc., sem az Algorand Foundation nem támogatta.",
+    "a7_1": "A AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y Algorand címre küldött adományokkal lehet a projektnek segítséget nyújtani. A projektet sem az Algorand Inc., sem az Algorand Foundation nem támogatta.",
     "a7_2": "A projekt más nyelvre történő lefordításához menj a https://github.com/scholtz/wallet/tree/master/src/locales web helyre, fordítsd le az állományt a saját anyanyelvedre, és végezz egy 'pull request'-et.",
     "a7_3": "Ha programozó vagy, végezz kódvizsgálatot, vagy jelezd, hogy miképpen lehetne a projektet jobbá tenni.",
     "q8": "Hogyan készíthetők többszörösen aláírt számlák?",

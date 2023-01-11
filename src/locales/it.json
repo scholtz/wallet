@@ -525,7 +525,7 @@
     "q6": "Posso controllare il tuo codice sorgente?",
     "a6": "Sì. https://github.com/scholtz/wallet/ Questo wallet è stato reso open source ed è libero di essere usato, copiato o modificato anche per scopi commerciali. Se sei in grado di partecipare al progetto, sii così gentile da creare una richiesta di pull con i tuoi contributi.",
     "q7": "Come posso aiutare il progetto?",
-    "a7_1": "Una donazione all'indirizzo Algorand P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U aiuterà il progetto ad andare avanti. Il progetto non è stato finanziato da Algorand inc né dalla fondazione Algorand.",
+    "a7_1": "Una donazione all'indirizzo Algorand AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y aiuterà il progetto ad andare avanti. Il progetto non è stato finanziato da Algorand inc né dalla fondazione Algorand.",
     "a7_2": "Per tradurre il progetto o aiutare con la traduzione, vai su https://github.com/scholtz/wallet/tree/master/src/locales, copia il file di traduzione nella tua lingua e fai una richiesta di pull.",
     "a7_3": "Se sei un programmatore, per favore fai una revisione del codice, o aiutaci in qualsiasi modo tu pensi che questo progetto possa essere migliorato.",
     "q8": "Come fare un account multifirma?",

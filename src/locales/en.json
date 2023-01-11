@@ -526,7 +526,7 @@
     "q6": "Can I view the source code?",
     "a6": "Yes. https://github.com/scholtz/wallet/ This wallet was made open source and is free to be used, copied or modified for any reason, including for commercial purposes. If you are able to participate in the project, please be so kind and create a pull request with your improvement.",
     "q7": "How can I help the project?",
-    "a7_1": "Donatation to algorand address P65LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U will help the project keep going. The project has not been funded from Algorand Inc. nor the Algorand Foundation.",
+    "a7_1": "Donatation to algorand address AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y will help the project keep going. The project has not been funded from Algorand Inc. nor the Algorand Foundation.",
     "a7_2": "To translate the project or help with the translation, please go to  https://github.com/scholtz/wallet/tree/master/src/locales, copy the translation file to your language and make a pull request.",
     "a7_3": "If you are a programmer, please do a code review, or help us in any way you think this project should be better.",
     "q8": "How can I create a multisignature account?",
