@@ -386,13 +386,13 @@
               <th>{{ $t("pay.name") }}</th>
               <td>{{ multisigDecoded.txn.name }}</td>
             </tr>
-            <tr>
+            <tr v-if="multisigDecoded.txn.amount">
               <th>{{ $t("pay.amount") }}</th>
-              <td>{{ multisigDecoded.txn.amount }}</td>
+              <td>{{ $filters.formatCurrency(multisigDecoded.txn.amount) }}</td>
             </tr>
             <tr>
               <th>{{ $t("pay.fee") }}</th>
-              <td>{{ multisigDecoded.txn.fee }}</td>
+              <td>{{ $filters.formatCurrency(multisigDecoded.txn.fee) }}</td>
             </tr>
             <tr>
               <th>{{ $t("pay.first_round") }}</th>
