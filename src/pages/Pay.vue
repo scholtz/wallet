@@ -408,7 +408,9 @@
             </tr>
             <tr>
               <th>{{ $t("pay.note") }}</th>
-              <td>{{ multisigDecoded.txn.note }}</td>
+              <td v-if="multisigDecoded.txn.note">
+                {{ msigNote }}
+              </td>
             </tr>
             <tr>
               <th>{{ $t("pay.tag") }}</th>
@@ -619,6 +621,13 @@ export default {
     };
   },
   computed: {
+    msigNote() {
+      if (!this.multisigDecoded) return "";
+      if (!this.multisigDecoded.txn) return "";
+      if (!this.multisigDecoded.txn.note) return "";
+      //console.log("multisigDecoded.txn.note", this.multisigDecoded.txn.note);
+      return Buffer.from(this.multisigDecoded.txn.note).toString("utf8");
+    },
     isNotValid() {
       if (!this.payTo) return true;
       if (this.isRekey && !this.rekeyTo) return true;
