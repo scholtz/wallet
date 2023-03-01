@@ -982,7 +982,15 @@ export default {
         if (!selected.includes(this.accountsFromMultisig[acc].addr)) {
           continue;
         }
-
+        console.log("this.multisigParams", this.multisigParams);
+        if (
+          this.multisigParams &&
+          typeof this.multisigParams.threshold === "string"
+        ) {
+          this.multisigParams.threshold = parseInt(
+            this.multisigParams.threshold
+          );
+        }
         if (rawSignedTxn == null) {
           const sk = await this.getSK({
             addr: this.accountsFromMultisig[acc].addr,
@@ -1005,18 +1013,22 @@ export default {
           const sk = await this.getSK({
             addr: this.accountsFromMultisig[acc].addr,
           });
-          console.log(
-            "before appendSignMultisigTransaction",
-            rawSignedTxn,
-            this.multisigParams,
-            sk
-          );
-          rawSignedTxn = algosdk.appendSignMultisigTransaction(
-            rawSignedTxn,
-            this.multisigParams,
-            sk
-          ).blob;
-          console.log("rawSignedTxn", rawSignedTxn);
+          if (sk) {
+            console.log(
+              "before appendSignMultisigTransaction",
+              rawSignedTxn,
+              this.multisigParams,
+              sk
+            );
+            rawSignedTxn = algosdk.appendSignMultisigTransaction(
+              rawSignedTxn,
+              this.multisigParams,
+              sk
+            ).blob;
+            console.log("rawSignedTxn", rawSignedTxn);
+          } else {
+            this.error = "You do not have private key to this account.";
+          }
         }
       }
       this.rawSignedTxn = this._arrayBufferToBase64(rawSignedTxn);
@@ -1190,6 +1202,13 @@ export default {
       );
       this.rawSignedTxn = this.rawSignedTxnInput;
       this.page = "review";
+      if (
+        this.multisigDecoded &&
+        this.multisigDecoded.msig &&
+        typeof this.multisigDecoded.msig.thr === "string"
+      ) {
+        this.multisigDecoded.msig.thr = parseInt(this.multisigDecoded.msig.thr);
+      }
       console.log("this.multisigDecoded", this.multisigDecoded);
     },
     encodeAddress(a) {
