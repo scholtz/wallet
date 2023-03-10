@@ -76,6 +76,14 @@
       >
         {{ $t("acc_overview.ask_question") }}
       </router-link>
+
+      <router-link
+        v-if="$store.state.config.dev"
+        :to="'/arc14/' + $route.params.account"
+        class="btn btn-light btn-xs me-2 my-2"
+      >
+        ARC14
+      </router-link>
     </p>
     <table v-if="account" class="w-100">
       <tr>

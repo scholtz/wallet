@@ -29,6 +29,7 @@ import TrustedList from "@/pages/vote/TrustedList.vue";
 import Donation from "@/pages/Donation.vue";
 import Success from "@/pages/Success.vue";
 import Swap from "@/pages/Swap.vue";
+import Arc14 from "@/pages/Arc14.vue";
 
 const routes = [
   {
@@ -65,6 +66,11 @@ const routes = [
     path: "/payment-gateway/:account",
     name: "PaymentGateway",
     component: PaymentGateway,
+  },
+  {
+    path: "/arc14/:account",
+    name: "ARC14",
+    component: Arc14,
   },
   {
     path: "/payment-gateway/",

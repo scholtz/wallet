@@ -8,6 +8,7 @@ import toast from "./toast";
 import vote from "./vote";
 import publicData from "./publicData";
 import kmd from "./kmd";
+import arc14 from "./arc14";
 
 const debugStrict = process.env.NODE_ENV !== "production";
 
@@ -22,6 +23,7 @@ export default createStore({
     vote,
     publicData,
     kmd,
+    arc14,
   },
   strict: debugStrict,
 });
