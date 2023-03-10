@@ -2,9 +2,9 @@ const state = () => ({
   debug: false,
   LOGO: "/img/logo.svg",
   env: "mainnet",
-  algod: "https://algoexplorerapi.io",
+  algod: "https://mainnet-api.algonode.cloud",
   kmd: "",
-  indexer: "https://algoexplorerapi.io/idx2",
+  indexer: "https://mainnet-idx.algonode.cloud",
   algodToken:
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   kmdToken: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -150,9 +150,9 @@ const actions = {
     if (env == "mainnet" || env == "mainnet-v1.0") {
       dispatch("setHosts", {
         env: "mainnet",
-        algod: "https://node.algoexplorerapi.io",
+        algod: "https://mainnet-api.algonode.cloud",
         kmd: "https://kmd.h2.a-wallet.net",
-        indexer: "https://algoindexer.algoexplorerapi.io",
+        indexer: "https://mainnet-idx.algonode.cloud",
       });
     }
 
@@ -173,9 +173,9 @@ const actions = {
     if (env == "testnet" || env == "testnet-v1.0") {
       dispatch("setHosts", {
         env: "testnet",
-        algod: "https://node.testnet.algoexplorerapi.io",
+        algod: "https://testnet-api.algonode.cloud",
         kmd: "?",
-        indexer: "https://algoindexer.testnet.algoexplorerapi.io",
+        indexer: "https://testnet-idx.algonode.cloud",
       });
     }
     if (env == "devnet") {
