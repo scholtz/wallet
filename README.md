@@ -29,5 +29,6 @@ https://www.a-wallet.net - Most stable deployment - Private onprem K8S cluster r
 ## Main branch deployments
 
 - https://main.h3.a-wallet.net - Private onprem K8S cluster run by Scholtz&Co
-- https://vercel.a-wallet.net - Built and hosted by vercel
 - https://ww2.a-wallet.net - Built by github and hosted on github pages
+- https://vercel.a-wallet.net - Built and hosted by vercel
+- https://awallet.vercel.app - Built and hosted by vercel on vercel domain
