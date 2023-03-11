@@ -4,7 +4,11 @@
 Algorand community wallet built by community for community, fully open source since 2021
 ```
 
-Currently working features:
+## News channel is Algorand Forum
+
+https://forum.algorand.org/t/algorand-wallet-open-source/3497
+
+## Supported features
 
 - Creating wallet / Export wallet / Import wallet / Destroying wallet
 - Creating account, Creating multisign account, Adding public account
