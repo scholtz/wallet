@@ -6,22 +6,22 @@ metadata:
 apiVersion: apps/v1 
 kind: Deployment
 metadata:
-  name: awallet-web-main-landing-deployment
+  name: awallet-stable-deployment
   namespace: awallet
 spec:
   selector:
     matchLabels:
-      app: awallet-web-main-landing
-  replicas: 3
+      app: awallet-stable
+  replicas: 6
   template:
     metadata:
       labels:
-        app: awallet-web-main-landing
+        app: awallet-stable
     spec:
       imagePullSecrets:
       - name: regcred
       containers:
-        - name: awallet-web-main-landing
+        - name: awallet-stable
           image: scholtz2/a-wallet:1.2023.03.11-main
           imagePullPolicy: Always
           ports: 
@@ -30,36 +30,36 @@ spec:
           readinessProbe:
             tcpSocket:
               port: 8080
-            initialDelaySeconds: 10
+            initialDelaySeconds: 1
             timeoutSeconds: 5  
             failureThreshold: 2
           livenessProbe:
             tcpSocket:
               port: 8080
-            initialDelaySeconds: 20
+            initialDelaySeconds: 1
             timeoutSeconds: 5  
             failureThreshold: 2
             terminationGracePeriodSeconds: 1
           volumeMounts:
-            - name: awallet-main-conf
+            - name: awallet-stable-conf
               mountPath: /app/config.json
               subPath: config.json
       volumes:
-        - name: awallet-main-conf
+        - name: awallet-stable-conf
           configMap:
-            name: awallet-main-conf
+            name: awallet-stable-conf
             
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: awallet-service-landing
+  name: awallet-stable-service
   namespace: awallet
 spec:
   type: ClusterIP
   selector:
-    app: awallet-web-main-landing
+    app: awallet-stable
   ports:
     - name: http
       protocol: TCP
@@ -71,7 +71,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: awallet-web-main
+  name: awallet-www-stable
   namespace: awallet
   annotations: 
     kubernetes.io/ingress.class: "nginx"
@@ -81,17 +81,44 @@ metadata:
 spec:
   tls:
   - hosts:
-    - main.h3.a-wallet.net
-    secretName: tls-main.h3.a-wallet.net
+    - www.a-wallet.net
+    secretName: www.a-wallet.net
   rules:
-  - host: main.h3.a-wallet.net
+  - host: www.a-wallet.net
     http:
       paths:
       - path: /(.*)
         pathType: Prefix
         backend:
           service:
-            name: awallet-service-landing
+            name: awallet-stable-service
+            port:
+              number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: awallet-stable
+  namespace: awallet
+  annotations: 
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  tls:
+  - hosts:
+    - a-wallet.net
+    secretName: a-wallet.net
+  rules:
+  - host: a-wallet.net
+    http:
+      paths:
+      - path: /(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: awallet-stable-service
             port:
               number: 8080
 
