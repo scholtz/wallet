@@ -1,6 +1,8 @@
-**Open source algo wallet**
+# AWallet
 
-The project was not funded by Algorand, please donate to the following address to keep the project evolving: AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y
+```
+Algorand community wallet built by community for community, fully open source since 2021
+```
 
 Currently working features:
 
@@ -13,8 +15,19 @@ Currently working features:
 - Rekeying of standard accounts, multisig accounts and rekeyed accounts
 
 Source code: https://github.com/scholtz/wallet
-Running at: https://www.a-wallet.net/
 
 Technology stack: Vue3, JsAlgoSDK, CICD to pure HTML+JS
 
-If anyone wants to contribute please create a pull request
+Docker image: https://hub.docker.com/r/scholtz2/a-wallet/tags
+
+Please create a pull request for contribution to the project.
+
+## Deployments
+
+https://www.a-wallet.net - Most stable deployment - Private onprem K8S cluster run by Scholtz&Co. Docker image released after some time in main branch deployment.
+
+## Main branch deployments
+
+- https://main.h3.a-wallet.net - Private onprem K8S cluster run by Scholtz&Co
+- https://vercel.a-wallet.net - Built and hosted by vercel
+- https://ww2.a-wallet.net - Built by github and hosted on github pages
