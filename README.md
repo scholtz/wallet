@@ -17,6 +17,7 @@ https://forum.algorand.org/t/algorand-wallet-open-source/3497
 - Sending algo payment, Signing and sending multisig payments
 - Multilanguage support
 - Rekeying of standard accounts, multisig accounts and rekeyed accounts
+- Connecting to DApps using WalletConnect
 
 Source code: https://github.com/scholtz/wallet
 

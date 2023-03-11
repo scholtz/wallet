@@ -7,10 +7,12 @@ import { mapActions } from "vuex";
 import { Buffer } from "buffer";
 // @ts-ignore
 window.Buffer = Buffer;
+import wc from "./shared/wc";
 
 export default {
   name: "App",
   async created() {
+    wc.initialize(this.$store);
     await this.getConfig();
   },
   methods: {

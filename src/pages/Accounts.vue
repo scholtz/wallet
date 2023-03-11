@@ -65,9 +65,15 @@
           <router-link
             v-if="slotProps.data.sk || slotProps.data.params"
             :to="'/accounts/pay/' + slotProps.data.addr"
-            class="btn btn-light btn-xs"
+            class="btn btn-light btn-xs me-2"
           >
             {{ $t("accounts.pay") }}
+          </router-link>
+          <router-link
+            :to="'/account/connect/' + slotProps.data.addr"
+            class="btn btn-light btn-xs me-2"
+          >
+            {{ $t("accounts.connect") }}
           </router-link>
         </template>
       </Column>
