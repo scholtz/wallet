@@ -61,8 +61,12 @@ const mutations = {
     //console.log("setPrivateAccount", info, acc);
   },
   addMultiAccount(state, { addr, params, name }) {
-    const multsigaddr = { addr, name, params };
+    const multsigaddr = { addr, name, params, type: "msig" };
     state.privateAccounts.push(multsigaddr);
+  },
+  addLedgerAccount(state, { name, addr, addr0, slot }) {
+    const account = { name, addr, addr0, slot, type: "ledger" };
+    state.privateAccounts.push(account);
   },
   setPrivateAccounts(state, accts) {
     if (accts) {
@@ -196,6 +200,20 @@ const actions = {
       const multsigaddr = algosdk.multisigAddress(params);
 
       await commit("addMultiAccount", { addr: multsigaddr, params, name });
+      await dispatch("saveWallet");
+      return true;
+    } catch (e) {
+      console.error("error", e);
+      alert("Account has not been created");
+    }
+  },
+  async addLedgerAccount({ dispatch, commit }, { name, addr, addr0, slot }) {
+    if (!name) {
+      alert("Plase set account name");
+      return false;
+    }
+    try {
+      await commit("addLedgerAccount", { name, addr, addr0, slot });
       await dispatch("saveWallet");
       return true;
     } catch (e) {

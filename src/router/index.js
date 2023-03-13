@@ -30,6 +30,7 @@ import Donation from "@/pages/Donation.vue";
 import Success from "@/pages/Success.vue";
 import Swap from "@/pages/Swap.vue";
 import Arc14 from "@/pages/Arc14.vue";
+import NewAccountLedger from "@/pages/NewAccount/Ledger.vue";
 
 const routes = [
   {
@@ -41,6 +42,11 @@ const routes = [
     path: "/privacy-policy",
     name: "Privacy",
     component: Privacy,
+  },
+  {
+    path: "/new-account/ledger",
+    name: "NewAccountLedger",
+    component: NewAccountLedger,
   },
   {
     path: "/swap/:account",

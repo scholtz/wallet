@@ -49,6 +49,12 @@
           >
             {{ $t("acc_type.multisig_account") }}
           </div>
+          <div
+            v-else-if="slotProps.data.type == 'ledger'"
+            class="badge bg-success text-light"
+          >
+            {{ $t("acc_type.ledger_account") }}
+          </div>
           <div v-else class="badge bg-info text-dark">
             {{ $t("acc_type.public_account") }}
           </div>

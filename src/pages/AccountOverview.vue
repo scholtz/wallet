@@ -112,6 +112,12 @@
           <div v-else-if="account.params" class="badge bg-warning text-dark">
             {{ $t("acc_type.multisig_account") }}
           </div>
+          <div
+            v-else-if="account.type == 'ledger'"
+            class="badge bg-success text-light"
+          >
+            {{ $t("acc_type.ledger_account") }}
+          </div>
           <div v-else class="badge bg-info text-dark">
             {{ $t("acc_type.public_account") }}
           </div>
@@ -163,6 +169,14 @@
             </table>
           </div>
         </td>
+      </tr>
+      <tr v-if="account.type == 'ledger'">
+        <th>{{ $t("acc_overview.account0") }}:</th>
+        <td>{{ account.addr0 }}</td>
+      </tr>
+      <tr v-if="account.type == 'ledger'">
+        <th>{{ $t("acc_overview.slot") }}:</th>
+        <td>{{ account.slot }}</td>
       </tr>
       <tr>
         <th>{{ $t("acc_overview.amount") }}:</th>

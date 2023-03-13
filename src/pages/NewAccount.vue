@@ -3,6 +3,10 @@
     <div class="container-fluid">
       <h1>{{ $t("newacc.title") }}</h1>
       <div v-if="page == 'new'">
+        <router-link to="/new-account/ledger" class="btn btn-primary m-1">
+          HW Wallet - Ledger
+        </router-link>
+
         <button v-if="!w" class="btn btn-primary m-1" @click="createAccount">
           {{ $t("newacc.create_basic") }}</button
         ><button v-if="!w" class="btn btn-primary m-1" @click="createVanity">
