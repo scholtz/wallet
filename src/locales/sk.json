@@ -343,7 +343,8 @@
     "basic_account": "Bežný účet",
     "multisig_account": "Multipodpisový účet",
     "public_account": "Verejný účet",
-    "rekeyed": "Rekeyed account"
+    "rekeyed": "Rekeyed account",
+    "ledger_account": "HW ledger účet"
   },
   "pay": {
     "title": "Nová platba - od",
@@ -502,7 +503,17 @@
     "note": "Poznámka uvedená v transakcii vytvorenia",
     "create_button": "Vytvoriť NFT / ASA"
   },
-
+  "new_account_ledger": {
+    "header": "Pridať HW ledger účet",
+    "description": "Ledger is a physical device - HW wallet which can store your private key. The maximum security for storing the assets on algorand is multisig account with all signators secured by ledger devices.",
+    "last_error": "Posledná chyba",
+    "connect": "Pripojiť ledger a načítať adresu",
+    "slot": "Slot",
+    "address": "Adresa",
+    "primary_address": "Primárna adresa",
+    "account_name": "Názov účtu",
+    "save_address": "Pridať účet do peňaženky"
+  },
   "faq": {
     "title": "Často kladené otázky",
     "q1": "O peňaženke",

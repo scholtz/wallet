@@ -1,13 +1,13 @@
 <template>
   <MainLayout>
-    <h1>Add Ledger account</h1>
+    <h1>{{ $t("new_account_ledger.header") }}</h1>
     <p>
-      Ledger is a physical device - HW wallet which can store your private key.
-      The maximum security for storing the assets on algorand is multisig
-      account with all signators secured by ledger devices.
+      {{ $t("new_account_ledger.description") }}
     </p>
     <div v-if="lastError">
-      <div class="alert alert-danger">Last error: {{ lastError }}</div>
+      <div class="alert alert-danger">
+        {{ $t("new_account_ledger.last_error") }}: {{ lastError }}
+      </div>
     </div>
     <input
       id="slot"
@@ -24,18 +24,21 @@
         @click="clickAddress"
         :class="this.address ? 'btn-light' : 'btn-primary'"
       >
-        Connect ledger and load algorand address
+        {{ $t("new_account_ledger.connect") }}
       </button>
     </div>
     <div v-if="address">
-      <div>Slot {{ loadedSlot }} Address: {{ address }}</div>
-      <div v-if="this.address0 != this.address">
-        Primary address: {{ address0 }}
+      <div>
+        {{ $t("new_account_ledger.slot") }} {{ loadedSlot }}
+        {{ $t("new_account_ledger.address") }}: {{ address }}
       </div>
-      <h3>Account name</h3>
+      <div v-if="this.address0 != this.address">
+        {{ $t("new_account_ledger.primary_address") }}: {{ address0 }}
+      </div>
+      <h3>{{ $t("new_account_ledger.account_name") }}</h3>
       <input v-model="name" class="form-control my-2" />
       <button class="btn btn-primary my-2" @click="clickSave">
-        Save the address to the wallet
+        {{ $t("new_account_ledger.save_address") }}
       </button>
     </div>
   </MainLayout>

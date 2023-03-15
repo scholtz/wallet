@@ -344,7 +344,8 @@
     "basic_account": "Basic account",
     "multisig_account": "Multisignature account",
     "public_account": "Public account",
-    "rekeyed": "Rekeyed account"
+    "rekeyed": "Rekeyed account",
+    "ledger_account": "HW ledger account"
   },
   "pay": {
     "title": "Make payment - from",
@@ -503,7 +504,17 @@
     "note": "Note set in the create transaction",
     "create_button": "Create NFT / ASA"
   },
-
+  "new_account_ledger": {
+    "header": "Add Ledger account",
+    "description": "Ledger is a physical device - HW wallet which can store your private key. The maximum security for storing the assets on algorand is multisig account with all signators secured by ledger devices.",
+    "last_error": "Last error",
+    "connect": "Connect ledger and load algorand address",
+    "slot": "Slot",
+    "address": "Address",
+    "primary_address": "Primary address",
+    "account_name": "Account name",
+    "save_address": "Save the address to the wallet"
+  },
   "faq": {
     "title": "Frequently asked questions",
     "q1": "About AWallet",
