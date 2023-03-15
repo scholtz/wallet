@@ -268,39 +268,42 @@ export default (() => {
     acceptRequest: async (id) => {
       const { payload, connector, auth, address } = state.requestById[id];
 
-      const sk = await state.store.dispatch("wallet/getSK", {
-        addr: auth,
-      });
+      const signedTxns = await Promise.all(
+        payload.params[0].map(async (item) => {
+          const txn = item["txn"];
+          const decoded = algosdk.decodeUnsignedTransaction(
+            Buffer.from(txn, "base64")
+          );
 
-      if (!sk) {
-        throw `Private key for the auth address is not available`;
-      }
+          const signers = item["signers"];
 
-      const signedTxns = payload.params[0].map((item) => {
-        const txn = item["txn"];
-        const decoded = algosdk.decodeUnsignedTransaction(
-          Buffer.from(txn, "base64")
-        );
-
-        const signers = item["signers"];
-
-        if (signers !== undefined) {
-          if (signers.length == 0) {
-            return null;
+          if (signers !== undefined) {
+            if (signers.length == 0) {
+              return null;
+            }
           }
-        }
 
-        if (decoded.from) {
-          const from = algosdk.encodeAddress(decoded.from.publicKey);
-          if (from != address) {
-            return null;
+          if (decoded.from) {
+            const from = algosdk.encodeAddress(decoded.from.publicKey);
+            if (from != address) {
+              return null;
+            }
           }
-        }
 
-        const stx = decoded.signTxn(sk);
-        const b64 = Buffer.from(stx).toString("base64");
-        return b64;
-      });
+          const stx = await state.store.dispatch("signer/signTransaction", {
+            from: address,
+            signator: auth,
+            tx: decoded,
+          });
+
+          if (!stx) {
+            throw "Failed to sign transaction";
+          }
+
+          const b64 = Buffer.from(stx).toString("base64");
+          return b64;
+        })
+      );
 
       const response = {
         id: id,
