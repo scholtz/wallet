@@ -4,6 +4,10 @@
 
 <script>
 import { mapActions } from "vuex";
+import { Buffer } from "buffer";
+// @ts-ignore
+window.Buffer = Buffer;
+
 export default {
   name: "App",
   async created() {

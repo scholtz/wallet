@@ -269,6 +269,7 @@ export default {
       getTransactionParams: "algod/getTransactionParams",
       sendRawTransaction: "algod/sendRawTransaction",
       waitForConfirmation: "algod/waitForConfirmation",
+      signTransaction: "signer/signTransaction",
     }),
 
     async reloadAccount() {
@@ -463,13 +464,7 @@ export default {
     async clickOptInToApps() {
       this.processingOptin = true;
       const params = await this.getTransactionParams();
-      const senderSK = await this.getSK({
-        addr: this.account.addr,
-      });
-      if (!senderSK) {
-        this.processingOptin = false;
-        return;
-      }
+
       let ret = "Processed in txs: ";
       for (let app of this.appsToOptIn) {
         const appOptInTxn = algosdk.makeApplicationOptInTxn(
@@ -477,7 +472,11 @@ export default {
           params,
           app
         );
-        const signedTxn = appOptInTxn.signTxn(senderSK);
+
+        let signedTxn = await signTransaction({
+          from: this.account.addr,
+          tx: appOptInTxn,
+        });
         const tx = await this.sendRawTransaction({ signedTxn }).catch((e) => {
           //console.error("error doing swap", e);
           this.error = e.message;

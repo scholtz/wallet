@@ -217,6 +217,7 @@ const actions = {
         "axios/get",
         {
           url: "/config.json",
+          silent: true,
         },
         { root: true }
       );
@@ -225,9 +226,7 @@ const actions = {
         return data;
       }
     } catch (error) {
-      dispatch("toast/openError", error.response, {
-        root: true,
-      });
+      console.error(error);
     }
   },
 };

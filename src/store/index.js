@@ -9,6 +9,7 @@ import vote from "./vote";
 import publicData from "./publicData";
 import kmd from "./kmd";
 import arc14 from "./arc14";
+import signer from "./signer";
 
 const debugStrict = process.env.NODE_ENV !== "production";
 
@@ -24,6 +25,7 @@ export default createStore({
     publicData,
     kmd,
     arc14,
+    signer,
   },
   strict: debugStrict,
 });
