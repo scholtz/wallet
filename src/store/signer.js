@@ -53,8 +53,8 @@ const actions = {
     let fromAccount = this.state.wallet.privateAccounts.find(
       (a) => a.addr == from
     );
-    const algo = new Algorand(transport);
     const transport = await TransportWebUSB.request();
+    const algo = new Algorand(transport);
 
     const { signature } = await algo.sign(
       `44'/283'/${fromAccount.slot}'/0/0`,

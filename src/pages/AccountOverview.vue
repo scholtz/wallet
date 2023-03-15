@@ -37,21 +37,21 @@
         </template>
       </Dialog>
       <router-link
-        v-if="account && (account.sk || account.params)"
+        v-if="canSign"
         :to="'/accounts/pay/' + $route.params.account"
         class="btn btn-light btn-xs me-2 my-2"
       >
         {{ $t("acc_overview.pay") }}
       </router-link>
       <router-link
-        v-if="account && (account.sk || account.params)"
+        v-if="canSign"
         :to="'/accounts/rekey/' + $route.params.account"
         class="btn btn-light btn-xs me-2 my-2"
       >
         {{ $t("acc_overview.rekey") }}
       </router-link>
       <router-link
-        v-if="account && (account.sk || account.params)"
+        v-if="canSign"
         :to="'/account/optin/' + $route.params.account"
         class="btn btn-light btn-xs me-2 my-2"
       >
@@ -70,7 +70,7 @@
         {{ $t("acc_overview.payment_gateway") }}
       </router-link>
       <router-link
-        v-if="account && (account.sk || account.params)"
+        v-if="canSign"
         :to="'/vote/ask/'"
         class="btn btn-light btn-xs me-2 my-2"
       >
@@ -455,6 +455,12 @@ export default {
     };
   },
   computed: {
+    canSign() {
+      if (!this.account) return false;
+      return (
+        this.account.sk || this.account.params || this.account.type == "ledger"
+      );
+    },
     account() {
       return this.$store.state.wallet.privateAccounts.find(
         (a) => a.addr == this.$route.params.account
