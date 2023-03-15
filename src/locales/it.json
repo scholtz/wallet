@@ -262,7 +262,9 @@
     "asset_optin": "Opt in to asset",
     "ask_question": "Ask question",
     "rekey": "Rekey account",
-    "rekeyedTo": "Rekeyed to account"
+    "rekeyedTo": "Rekeyed to account",
+    "account0": "Ledger primary account",
+    "slot": "Account at ledger slot"
   },
   "optin": {
     "title": "Accept transfers of asset in account",

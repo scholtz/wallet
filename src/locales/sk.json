@@ -262,7 +262,9 @@
     "asset_optin": "Pridať aktívum",
     "ask_question": "Ask question",
     "rekey": "Rekey account",
-    "rekeyedTo": "Rekeyed to account"
+    "rekeyedTo": "Rekeyed to account",
+    "account0": "Ledger primary account",
+    "slot": "Account at ledger slot"
   },
   "optin": {
     "title": "Prijímať aktívum (ASA alebo NFT) na účte",

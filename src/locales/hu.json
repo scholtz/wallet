@@ -261,7 +261,9 @@
     "asset_optin": "Pénzeszköz engedélyezés",
     "ask_question": "Kérdésem van",
     "rekey": "Rekey account",
-    "rekeyedTo": "Rekeyed to account"
+    "rekeyedTo": "Rekeyed to account",
+    "account0": "Ledger primary account",
+    "slot": "Account at ledger slot"
   },
   "optin": {
     "title": "Egy adott pénzeszköz fogadásának engedélyezése, számla:",
