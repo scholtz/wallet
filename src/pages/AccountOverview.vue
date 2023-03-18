@@ -71,6 +71,13 @@
       </router-link>
       <router-link
         v-if="canSign"
+        :to="'/account/connect/' + $route.params.account"
+        class="btn btn-light btn-xs me-2 my-2"
+      >
+        {{ $t("acc_overview.connect") }}
+      </router-link>
+      <router-link
+        v-if="account && (account.sk || account.params)"
         :to="'/vote/ask/'"
         class="btn btn-light btn-xs me-2 my-2"
       >
@@ -218,7 +225,7 @@
             class="spinner-grow spinner-grow-sm"
             role="status"
             aria-hidden="true"
-          ></span>
+          />
           Setting your account to online state. Please wait a while
         </td>
       </tr>
@@ -560,7 +567,6 @@ export default {
         addr: this.$route.params.account,
       }).then(async (info) => {
         if (info) {
-          console.log("info", info);
           this.updateAccount({ info });
           if (this.account.rekeyedTo != this.account["auth-addr"]) {
             const rekeyedTo = this.account["auth-addr"];

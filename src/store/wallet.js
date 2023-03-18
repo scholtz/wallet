@@ -1,7 +1,8 @@
 import algosdk from "algosdk";
-import Dexie from "dexie";
 import CryptoJS from "crypto-js";
 import cryptoRandomString from "crypto-random-string";
+import db from "../shared/db";
+import wc from "../shared/wc";
 
 const state = () => ({
   name: "w2",
@@ -135,6 +136,7 @@ const actions = {
     }
   },
   async logout({ commit }) {
+    wc.clear();
     await commit("logout");
   },
   async prolong({ commit }) {
@@ -246,8 +248,6 @@ const actions = {
       return;
     }
 
-    const db = new Dexie("AWallet");
-    db.version(2).stores({ wallets: "++id,name,addr,data" });
     const walletRecord = await db.wallets.get({ name: this.state.wallet.name });
 
     const data = JSON.stringify(this.state.wallet);
@@ -279,8 +279,6 @@ const actions = {
     ) {
       return false; // check not to empty the wallet
     }
-    const db = new Dexie("AWallet");
-    db.version(2).stores({ wallets: "++id,name,addr,data" });
     const walletRecord = await db.wallets.get({ name: this.state.wallet.name });
     if (!walletRecord) return;
     if (!walletRecord || !walletRecord.id) {
@@ -296,9 +294,6 @@ const actions = {
     //console.log("saved", this.state.wallet);
   },
   async openWallet({ commit }, { name, pass }) {
-    const db = new Dexie("AWallet");
-
-    db.version(2).stores({ wallets: "++id,name,addr,data" });
     const walletRecord = await db.wallets.get({ name });
     const encryptedData = walletRecord.data;
     try {
@@ -308,20 +303,20 @@ const actions = {
       await commit("lastPayTo", json.lastPayTo);
       await commit("lastActiveAccount", json.lastActiveAccount);
       await commit("setIsOpen", { name, pass });
-      return true;
     } catch (e) {
       alert("Wrong password");
       console.error("wrong password", e);
+      return;
     }
+
+    await wc.restore();
+    return true;
   },
   async createWallet({ dispatch, commit }, { name, pass }) {
     if (!name) {
       alert("Plase set wallet name");
       return false;
     }
-    const db = new Dexie("AWallet");
-    db.version(2).stores({ wallets: "++id,name,addr,data" });
-
     if ((await db.wallets.toArray()).map((v) => v.name).includes(name)) {
       alert("Wallet with the same name already exists");
       return false;
@@ -341,7 +336,6 @@ const actions = {
     await commit("setIsOpen", { name, pass });
   },
   async getWallets() {
-    const db = new Dexie("AWallet");
     if (!localStorage.getItem("rs1"))
       localStorage.setItem(
         "rs1",
@@ -352,7 +346,6 @@ const actions = {
         "rs2",
         cryptoRandomString({ length: 30, type: "alphanumeric" })
       );
-    db.version(2).stores({ wallets: "++id,name,addr,data" });
     //db.wallets.clear();
     //db.wallets.drop();
     try {
@@ -370,8 +363,6 @@ const actions = {
         alert("Wallet name not found");
         return;
       }
-      const db = new Dexie("AWallet");
-      db.version(2).stores({ wallets: "++id,name,addr,data" });
       const walletRecord = await db.wallets.get({ name });
       //console.log("walletRecord.data", walletRecord.data);
       return btoa(walletRecord.data);
@@ -393,8 +384,6 @@ const actions = {
           " and all private keys within it?"
       )
     ) {
-      const db = new Dexie("AWallet");
-      db.version(2).stores({ wallets: "++id,name,addr,data" });
       const walletRecord = await db.wallets.get({ name });
       await db.wallets.delete(walletRecord.id);
       commit("logout");
@@ -409,8 +398,6 @@ const actions = {
       alert("Wallet data not found");
       return;
     }
-    const db = new Dexie("AWallet");
-    db.version(2).stores({ wallets: "++id,name,addr,data" });
     const walletRecord = await db.wallets.get({ name });
     if (walletRecord) {
       alert("Wallet with the same name already exists");
@@ -420,6 +407,31 @@ const actions = {
     localStorage.setItem("lastUsedWallet", name);
     console.log("ok", commit);
     return true;
+  },
+  encrypt: async (store, { data }) => {
+    const encryptedPass = store.state.pass;
+    const decryptedData = await CryptoJS.AES.decrypt(
+      encryptedPass,
+      localStorage.getItem("rs1")
+    );
+
+    const pass = decryptedData.toString(CryptoJS.enc.Utf8);
+    const cipher = CryptoJS.AES.encrypt(data, pass).toString();
+    return cipher;
+  },
+  decrypt: async (store, { data }) => {
+    const encryptedPass = store.state.pass;
+    const decryptedData = await CryptoJS.AES.decrypt(
+      encryptedPass,
+      localStorage.getItem("rs1")
+    );
+
+    const pass = decryptedData.toString(CryptoJS.enc.Utf8);
+    const plain = CryptoJS.AES.decrypt(data, pass).toString(CryptoJS.enc.Utf8);
+    return plain;
+  },
+  getName: (store) => {
+    return store.state.name;
   },
 };
 export default {

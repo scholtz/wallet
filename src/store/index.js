@@ -10,6 +10,7 @@ import publicData from "./publicData";
 import kmd from "./kmd";
 import arc14 from "./arc14";
 import signer from "./signer";
+import wc from "./wc";
 
 const debugStrict = process.env.NODE_ENV !== "production";
 
@@ -26,6 +27,7 @@ export default createStore({
     kmd,
     arc14,
     signer,
+    wc,
   },
   strict: debugStrict,
 });
