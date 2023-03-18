@@ -858,6 +858,8 @@ export default {
       setEnv: "config/setEnv",
       openSuccess: "toast/openSuccess",
       openError: "toast/openError",
+      signerSignMultisig: "signer/signMultisig",
+      signerCreateMultisigTransaction: "signer/createMultisigTransaction",
     }),
     isBase64(str) {
       try {
@@ -978,62 +980,104 @@ export default {
       }
       console.log("this.signMultisigWith", this.signMultisigWith);
       const selected = Object.values(this.signMultisigWith);
+      if (
+        this.multisigParams &&
+        typeof this.multisigParams.threshold === "string"
+      ) {
+        this.multisigParams.threshold = parseInt(this.multisigParams.threshold);
+      }
+      if (rawSignedTxn == null) {
+        rawSignedTxn = await this.signerCreateMultisigTransaction({
+          txn: this.txn,
+          from: this.payFrom,
+        });
+        // const sk = await this.getSK({
+        //   addr: this.accountsFromMultisig[0].addr,
+        // });
+        // console.log(
+        //   "before signMultisigTransaction",
+        //   this.txn,
+        //   this.account,
+        //   this.multisigParams,
+        //   sk
+        // );
+        // rawSignedTxn = algosdk.signMultisigTransaction(
+        //   this.txn,
+        //   this.multisigParams,
+        //   sk
+        // ).blob;
+      }
+      console.log(
+        "rawSignedTxn.toSign",
+        rawSignedTxn,
+        algosdk.decodeObj(rawSignedTxn)
+      );
+      console.log("this.accountsFromMultisig", this.accountsFromMultisig);
       for (const acc in this.accountsFromMultisig) {
         if (!selected.includes(this.accountsFromMultisig[acc].addr)) {
           continue;
         }
-        console.log("this.multisigParams", this.multisigParams);
-        if (
-          this.multisigParams &&
-          typeof this.multisigParams.threshold === "string"
-        ) {
-          this.multisigParams.threshold = parseInt(
-            this.multisigParams.threshold
-          );
-        }
-        if (rawSignedTxn == null) {
-          const sk = await this.getSK({
-            addr: this.accountsFromMultisig[acc].addr,
-          });
-          console.log(
-            "before signMultisigTransaction",
+        console.log("signing with ", acc);
+        // if (rawSignedTxn == null) {
+        //   const sk = await this.getSK({
+        //     addr: this.accountsFromMultisig[acc].addr,
+        //   });
+        //   console.log(
+        //     "before signMultisigTransaction",
 
-            this.txn,
-            this.account,
-            this.multisigParams,
-            sk
-          );
-          rawSignedTxn = algosdk.signMultisigTransaction(
-            this.txn,
-            this.multisigParams,
-            sk
-          ).blob;
-          console.log("rawSignedTxn", rawSignedTxn);
-        } else {
-          const sk = await this.getSK({
-            addr: this.accountsFromMultisig[acc].addr,
-          });
-          if (sk) {
-            console.log(
-              "before appendSignMultisigTransaction",
-              rawSignedTxn,
-              this.multisigParams,
-              sk
-            );
-            rawSignedTxn = algosdk.appendSignMultisigTransaction(
-              rawSignedTxn,
-              this.multisigParams,
-              sk
-            ).blob;
-            console.log("rawSignedTxn", rawSignedTxn);
-          } else {
-            this.error = "You do not have private key to this account.";
-          }
-        }
+        //     this.txn,
+        //     this.account,
+        //     this.multisigParams,
+        //     sk
+        //   );
+        //   rawSignedTxn = algosdk.signMultisigTransaction(
+        //     this.txn,
+        //     this.multisigParams,
+        //     sk
+        //   ).blob;
+        //   console.log("rawSignedTxn", rawSignedTxn);
+        // } else {
+        // const sk = await this.getSK({
+        //   addr: this.accountsFromMultisig[acc].addr,
+        // });
+        // if (sk) {
+        //   console.log(
+        //     "before appendSignMultisigTransaction",
+        //     rawSignedTxn,
+        //     this.multisigParams,
+        //     sk
+        //   );
+        //   rawSignedTxn = algosdk.appendSignMultisigTransaction(
+        //     rawSignedTxn,
+        //     this.multisigParams,
+        //     sk
+        //   ).blob;
+        //   console.log("rawSignedTxn", rawSignedTxn);
+        // } else {
+        //   this.error = "You do not have private key to this account.";
+        // }
+        // }
+        rawSignedTxn = await this.signerSignMultisig({
+          msigTx: rawSignedTxn,
+          signator: this.accountsFromMultisig[acc].addr,
+          txn: this.txn,
+        }).catch((e) => {
+          console.error("e", e);
+          this.openError(e.message ?? e);
+        });
+        // console.log(
+        //   "rawSignedTxn",
+        //   rawSignedTxn,
+        //   algosdk.decodeSignedTransaction(rawSignedTxn)
+        // );
       }
       this.rawSignedTxn = this._arrayBufferToBase64(rawSignedTxn);
       console.log("this.rawSignedTxn", this.rawSignedTxn);
       this.rawSignedTxnInput = this.rawSignedTxn;
+
+      this.multisigDecoded = algosdk.decodeSignedTransaction(
+        this._base64ToArrayBuffer(this.rawSignedTxnInput)
+      );
       /*
       var reader = new FileReader();
       reader.readAsDataURL(new Blob(rawSignedTxn));

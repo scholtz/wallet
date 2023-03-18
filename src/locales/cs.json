@@ -380,7 +380,7 @@
     "signed": "Podpísaný",
     "not_signed": "Nepodpísaný",
     "sign_with": "Podpísaný s",
-    "sign": "Podpísaný",
+    "sign": "Podpísať",
     "send_to_other_signators": "Pošlite ďalším podpisovateľom",
     "send_to_network": "Odoslať transakciu do siete",
     "state_sending": "Odosielam prevod validátorom do siete",

@@ -558,10 +558,24 @@ export default {
     async reloadAccount() {
       await this.accountInformation({
         addr: this.$route.params.account,
-      }).then((info) => {
+      }).then(async (info) => {
         if (info) {
           console.log("info", info);
           this.updateAccount({ info });
+          if (this.account.rekeyedTo != this.account["auth-addr"]) {
+            const rekeyedTo = this.account["auth-addr"];
+            console.error(
+              `New rekey information detected: ${this.account.rekeyedTo} -> ${rekeyedTo}`
+            );
+            const info2 = {};
+            info2.address = this.account.addr;
+            info2.rekeyedTo = rekeyedTo;
+            console.log("rekeyedTo", rekeyedTo);
+            await this.updateAccount({ info: info2 });
+            await this.openSuccess(
+              `Information about rekeying to address ${rekeyedTo} has been stored`
+            );
+          }
         }
       });
       const searchData = await this.searchForTransactions({
