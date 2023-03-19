@@ -22,18 +22,6 @@
         </select>
       </div>
       <div>
-        <h2>{{ $t("connect.authaddr") }}</h2>
-        <select v-model="auth" class="form-control" :disabled="loadingAuth">
-          <option
-            v-for="option in $store.state.wallet.privateAccounts"
-            :key="option.addr"
-            :value="option.addr"
-          >
-            {{ option.name + " - " + option.addr }}
-          </option>
-        </select>
-      </div>
-      <div>
         <h2>{{ $t("connect.uri") }}</h2>
         <input
           id="uri"
@@ -80,14 +68,6 @@
             >
               <template #body="slotProps">
                 {{ slotProps.data.address }}
-                <p
-                  v-if="
-                    slotProps.data.auth &&
-                    slotProps.data.auth != slotProps.data.address
-                  "
-                >
-                  ({{ $t("connect.authaddr") }}: {{ slotProps.data.auth }})
-                </p>
               </template>
             </Column>
             <Column :header="$t('connect.peer')">
@@ -170,7 +150,7 @@
                 >
                   {{ $t("connect.sendBack") }}
                 </button>
-                <span class="m-2" v-if="!allTxsAreSigned(slotProps.data)">
+                <span v-if="!allTxsAreSigned(slotProps.data)" class="m-2">
                   {{ $t("connect.sign_txs") }}
                 </span>
                 <button
@@ -430,8 +410,6 @@ export default {
   data() {
     return {
       uri: "",
-      auth: "",
-      loadingAuth: true,
       addr: "",
       note: "",
       error: "",
@@ -451,7 +429,7 @@ export default {
       return this.$store.state.wc.requests;
     },
     connectable() {
-      return this.addr && this.auth;
+      return this.addr;
     },
   },
   watch: {
@@ -532,21 +510,14 @@ export default {
       return Buffer.from(genesisHash).toString("base64");
     },
     async reloadAccount() {
-      try {
-        if (this.$route.params.account) {
-          await this.accountInformation({
-            addr: this.$route.params.account,
-          }).then(async (info) => {
-            if (info) {
-              await this.updateAccount({ info });
-              this.auth = info["auth-addr"] ?? this.addr;
-            }
-          });
-        }
-      } catch {
-        this.auth = this.addr;
-      } finally {
-        this.loadingAuth = false;
+      if (this.$route.params.account) {
+        await this.accountInformation({
+          addr: this.$route.params.account,
+        }).then(async (info) => {
+          if (info) {
+            await this.updateAccount({ info });
+          }
+        });
       }
     },
     async clickSign(data) {
@@ -625,7 +596,7 @@ export default {
     },
     async clickConnect(uri) {
       this.prolong();
-      wc.createConnector(uri, this.auth, this.addr);
+      wc.createConnector(uri, this.addr);
 
       this.$toast.add({
         severity: "info",
