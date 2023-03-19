@@ -286,8 +286,22 @@ export default (() => {
       for (const item of payload.params[0]) {
         console.log("item", item);
         const txn = item["txn"];
+        console.log("txn", txn);
+        const txnBuffer = Buffer.from(txn, "base64");
+        console.log("txnBuffer", txnBuffer);
+        const decodedObj = algosdk.decodeObj(txnBuffer);
+        let decodedTx = decodedObj;
+        console.log("decodedTx", decodedTx);
+        if (!decodedTx.type && decodedTx.txn.type) {
+          if (decodedTx.sig) {
+            state.store.dispatch("signer/setSigned", {
+              signed: new Uint8Array(txnBuffer),
+            });
+          }
+          decodedTx = decodedTx.txn;
+        }
         const decoded = algosdk.decodeUnsignedTransaction(
-          Buffer.from(txn, "base64")
+          algosdk.encodeObj(decodedTx)
         );
         console.log(
           "state.store._state.data.signer.signed",
