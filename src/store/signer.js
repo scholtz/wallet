@@ -12,6 +12,7 @@ const mutations = {
     const tx = algosdk.decodeSignedTransaction(signed);
     const txId = tx.txn.txID();
     state.signed[txId] = signed;
+    console.log(`Tx ${txId} set to signed ${signed.length}`);
   },
   toSign(state, tx) {
     state.toSign = tx;
@@ -91,7 +92,7 @@ const actions = {
         (a) => a.addr == from
       );
       if (!fromAccount) {
-        throw new Error("The from address is not in the list of accounts.");
+        return "?";
       }
 
       if (fromAccount.rekeyedTo && fromAccount.rekeyedTo != from) {
