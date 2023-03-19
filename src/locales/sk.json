@@ -546,5 +546,34 @@
     "a8_2": "Prejdite na vytvorenie novej adresy a vyberte adresu s viacerými podpismi.",
     "a8_3": "Vyberte všetky účty, ktoré môžu podpisovať transakcie, a vyberte počet podpisov, ktoré sú minimálne na to, aby sieť mohla akceptovať multipodpisovú platbu.",
     "a8_4": "Po vytvorení účtu s viacerými podpismi k nemu získate prístup zo stránky so zoznamom účtov."
+  },
+
+  "connect": {
+    "title": "Pripojenie k decenralizovanej aplikácii použitím WalletConnect",
+    "uri": "WalletConnect URI",
+    "connect": "Pripojiť",
+    "disconnect": "Odpojiť",
+    "sendBack": "Odoslať spať do aplikácie",
+    "reject": "Zamietnuť",
+    "address": "Adresa",
+    "authaddr": "Autorizačná adresa",
+    "index": "Index",
+    "type": "Typ",
+    "from": "Od",
+    "asset": "Aktívum",
+    "amount": "Čiastka",
+    "rekeyto": "Zmena autorizačnej adresy",
+    "method": "Method",
+    "client_id": "ID klienta",
+    "request_id": "ID requestu",
+    "remove": "Zruš",
+    "peer": "Peer",
+    "connected": "Pripojené",
+    "sessions": "Relácia",
+    "requests": "Requesty",
+    "fee": "Poplatok",
+    "total_fee": "Celkový poplatok",
+    "sign": "Podpísať",
+    "clipboard": "Pripojiť zo schárnky"
   }
 }

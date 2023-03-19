@@ -546,5 +546,34 @@
     "a8_2": "Andate su crea nuovo indirizzo e selezionate l'indirizzo multifirma.",
     "a8_3": "Seleziona tutti i gli account che possono firmare le transazioni e seleziona quante firme sono necessarie come minimo perché la rete accetti il pagamento multifirma.",
     "a8_4": "Dopo aver creato l'account multifirma, puoi accedervi dalla pagina dell'elenco degli account."
+  },
+
+  "connect": {
+    "title": "Connect to DApps using WalletConnect",
+    "uri": "WalletConnect URI",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "sendBack": "Send back to DApp",
+    "reject": "Reject",
+    "address": "Address",
+    "authaddr": "Authorized Address",
+    "index": "Index",
+    "type": "Type",
+    "from": "From",
+    "asset": "Asset",
+    "amount": "Amount",
+    "rekeyto": "Rekey To",
+    "method": "Method",
+    "client_id": "Client ID",
+    "request_id": "Request ID",
+    "remove": "Remove",
+    "peer": "Peer",
+    "connected": "Connected",
+    "sessions": "Sessions",
+    "requests": "Requests",
+    "fee": "Fee",
+    "total_fee": "Total Fee",
+    "sign": "Sign",
+    "clipboard": "Connect from clipboard"
   }
 }

@@ -122,7 +122,7 @@
                   disabled
                 />
                 <button
-                  class="btn btn-primary m-1"
+                  class="btn btn-light m-1"
                   @click="clickDisconnect(slotProps.data.id)"
                 >
                   {{ $t("connect.disconnect") }}
@@ -162,13 +162,19 @@
               <template #body="slotProps">
                 <button
                   class="btn btn-primary m-1"
-                  :disabled="!$store.state.wallet.isOpen"
+                  :disabled="
+                    !$store.state.wallet.isOpen ||
+                    !allTxsAreSigned(slotProps.data)
+                  "
                   @click="clickAccept(slotProps.data.id)"
                 >
-                  {{ $t("connect.accept") }}
+                  {{ $t("connect.sendBack") }}
                 </button>
+                <span class="m-2" v-if="!allTxsAreSigned(slotProps.data)">
+                  Please sign individual transactions
+                </span>
                 <button
-                  class="btn btn-primary m-1"
+                  class="btn btn-light m-1"
                   :disabled="!$store.state.wallet.isOpen"
                   @click="clickReject(slotProps.data.id)"
                 >
@@ -185,6 +191,19 @@
                   selection-mode="single"
                 >
                   <Column expander style="width: 5rem" />
+                  <Column>
+                    <template #body="slotProps">
+                      <button
+                        v-if="!isSigned(slotProps.data)"
+                        class="btn btn-primary m-1"
+                        :disabled="!$store.state.wallet.isOpen"
+                        @click="clickSign(slotProps.data)"
+                      >
+                        {{ $t("connect.sign") }}
+                      </button>
+                      <span v-else class="badge bg-success">Signed</span>
+                    </template>
+                  </Column>
                   <Column
                     field="index"
                     :header="$t('connect.index')"
@@ -222,72 +241,151 @@
                   />
                   <template #expansion="txProps">
                     <div class="p-3">
-                      <p>
-                        Validity: {{ txProps.data.txn.firstRound }} -
-                        {{ txProps.data.txn.lastRound }} ({{
-                          txProps.data.txn.lastRound -
-                          txProps.data.txn.firstRound +
-                          1
-                        }}
-                        rounds)
-                      </p>
-                      <p>Type: {{ txProps.data.type }}</p>
-                      <p>Note: {{ formatNote(txProps.data.txn.note) }}</p>
-                      <p v-if="txProps.data.txn.group">
-                        Group: {{ formatGroup(txProps.data.txn.group) }}
-                      </p>
-                      <div v-if="txProps.data.type == 'appl'">
-                        <p>App Index: {{ txProps.data.txn.appIndex }}</p>
-                        <div v-if="txProps.data.txn.appArgs">
-                          <p>App Args:</p>
-                          <ol>
-                            <li
-                              v-for="arg in txProps.data.txn.appArgs"
-                              :key="arg"
-                            >
-                              {{ formatAppArg(arg) }}
-                            </li>
-                          </ol>
-                        </div>
-                        <div v-if="txProps.data.txn.appAccounts">
-                          <p>App Accounts:</p>
-                          <ol>
-                            <li
-                              v-for="acc in txProps.data.txn.appAccounts"
-                              :key="acc"
-                            >
-                              {{ formatAppAccount(acc) }}
-                            </li>
-                          </ol>
-                        </div>
-                        <div v-if="txProps.data.txn.appForeignAssets">
-                          <p>App Foreign Assets:</p>
-                          <ol>
-                            <li
-                              v-for="asset in txProps.data.txn.appForeignAssets"
-                              :key="asset"
-                            >
-                              {{ asset }}
-                            </li>
-                          </ol>
-                        </div>
-                      </div>
-                      <div v-if="txProps.data.txn.boxes">
-                        <p>Boxes:</p>
-                        <ol>
-                          <li
-                            v-for="box in txProps.data.txn.boxes"
-                            :key="box.name"
-                          >
-                            App Index: {{ box.appIndex }}, Name: {{ box.name }}
-                          </li>
-                        </ol>
-                      </div>
-                      <p>Genesis ID: {{ txProps.data.txn.genesisID }}</p>
-                      <p>
-                        Genesis Hash:
-                        {{ formatGenesisHash(txProps.data.txn.genesisHash) }}
-                      </p>
+                      <table>
+                        <tr>
+                          <td>Validity:</td>
+                          <td>
+                            {{ txProps.data.txn.firstRound }} -
+                            {{ txProps.data.txn.lastRound }} ({{
+                              txProps.data.txn.lastRound -
+                              txProps.data.txn.firstRound +
+                              1
+                            }}
+                            rounds)
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Type:</td>
+                          <td>{{ txProps.data.type }}</td>
+                        </tr>
+                        <tr>
+                          <td>Note:</td>
+                          <td>
+                            <table>
+                              <tr>
+                                <td>
+                                  {{
+                                    formatData(txProps.data.txn.note, "Text")
+                                  }}
+                                </td>
+                                <td>
+                                  {{
+                                    formatData(txProps.data.txn.note, "UInt")
+                                  }}
+                                </td>
+                                <td>
+                                  {{ formatData(txProps.data.txn.note, "Hex") }}
+                                </td>
+                                <td>
+                                  {{ formatData(txProps.data.txn.note, "B64") }}
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+
+                        <tr v-if="txProps.data.txn.group">
+                          <td>Group:</td>
+                          <td>{{ formatGroup(txProps.data.txn.group) }}</td>
+                        </tr>
+
+                        <tr v-if="txProps.data.type == 'appl'">
+                          <td>App Index:</td>
+                          <td>{{ txProps.data.txn.appIndex }}</td>
+                        </tr>
+
+                        <tr
+                          v-if="
+                            txProps.data.type == 'appl' &&
+                            txProps.data.txn.appArgs
+                          "
+                        >
+                          <td>App Args:</td>
+                          <td>
+                            <table>
+                              <tr
+                                v-for="(arg, index) in txProps.data.txn.appArgs"
+                                :key="arg"
+                              >
+                                <td>{{ index + 1 }}.</td>
+                                <td>{{ formatData(arg, "Text") }}</td>
+                                <td>{{ formatData(arg, "UInt") }}</td>
+                                <td>{{ formatData(arg, "Hex") }}</td>
+                                <td>{{ formatData(arg, "B64") }}</td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr
+                          v-if="
+                            txProps.data.type == 'appl' &&
+                            txProps.data.txn.appAccounts
+                          "
+                        >
+                          <td>App Accounts:</td>
+                          <td>
+                            <ol>
+                              <li
+                                v-for="acc in txProps.data.txn.appAccounts"
+                                :key="acc"
+                              >
+                                {{ formatAppAccount(acc) }}
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+
+                        <tr
+                          v-if="
+                            txProps.data.type == 'appl' &&
+                            txProps.data.txn.appForeignAssets
+                          "
+                        >
+                          <td>App Foreign Assets:</td>
+                          <td>
+                            <ol>
+                              <li
+                                v-for="asset in txProps.data.txn
+                                  .appForeignAssets"
+                                :key="asset"
+                              >
+                                {{ asset }}
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                        <tr
+                          v-if="
+                            txProps.data.type == 'appl' &&
+                            txProps.data.txn.boxes
+                          "
+                        >
+                          <td>Boxes:</td>
+                          <td>
+                            <ol>
+                              <li
+                                v-for="box in txProps.data.txn.boxes"
+                                :key="box.name"
+                              >
+                                App Index: {{ box.appIndex }}, Name:
+                                {{ box.name }}
+                              </li>
+                            </ol>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Genesis ID:</td>
+                          <td>{{ txProps.data.txn.genesisID }}</td>
+                        </tr>
+                        <tr>
+                          <td>Genesis Hash:</td>
+                          <td>
+                            {{
+                              formatGenesisHash(txProps.data.txn.genesisHash)
+                            }}
+                          </td>
+                        </tr>
+                      </table>
                     </div>
                   </template>
                 </DataTable>
@@ -365,6 +463,8 @@ export default {
       getTransactionParams: "algod/getTransactionParams",
       sendRawTransaction: "algod/sendRawTransaction",
       waitForConfirmation: "algod/waitForConfirmation",
+      getSignerType: "signer/getSignerType",
+      signerSignTransaction: "signer/signTransaction",
     }),
     formatNote(note) {
       try {
@@ -373,9 +473,27 @@ export default {
         return note;
       }
     },
-    formatAppArg(arg) {
+    isASCIIText(str) {
+      return /^[\x20-\x7E]*$/.test(str);
+    },
+
+    formatData(arg, type) {
       try {
-        return Buffer.from(arg).toString("base64");
+        if (Buffer.from(arg).length == 0) return "";
+        if (type == "Text") {
+          if (!this.isASCIIText(Buffer.from(arg).toString("utf-8")))
+            return "-- Non ASCII --";
+          return `${Buffer.from(arg).toString("utf-8")}`;
+        }
+        if (type == "UInt") {
+          if (Buffer.from(arg).length != 8) return "";
+          return `Num: ${algosdk.decodeUint64(
+            new Uint8Array(Buffer.from(arg))
+          )}`;
+        }
+        if (type == "Hex") return `Hex: 0x${Buffer.from(arg).toString("hex")}`;
+        if (type == "B64") return `B64: ${Buffer.from(arg).toString("base64")}`;
+        return arg;
       } catch {
         return arg;
       }
@@ -414,6 +532,22 @@ export default {
       } finally {
         this.loadingAuth = false;
       }
+    },
+    async clickSign(data) {
+      console.log("data", data);
+
+      const type = await this.getSignerType({
+        from: data.from,
+      });
+      if (type != "msig") {
+        const signed = await this.signerSignTransaction({
+          from: data.from,
+          signator: data.from,
+          tx: data.txn,
+        });
+        console.log("signed", signed);
+      }
+      console.log("data", type, data);
     },
     async clickAccept(id) {
       this.prolong();
@@ -493,7 +627,17 @@ export default {
       if (this.$store.state.config.env == "testnet") {
         return "testnet";
       }
-      return false;
+      return this.$store.state.config.env;
+    },
+    isSigned(data) {
+      return data.txn.txID() in this.$store.state.signer.signed;
+    },
+    allTxsAreSigned(data) {
+      console.log("data", data);
+      for (let tx of data.transactions) {
+        if (!(tx.txn.txID() in this.$store.state.signer.signed)) return false;
+      }
+      return true;
     },
   },
 };

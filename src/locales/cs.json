@@ -545,5 +545,34 @@
     "a8_2": "Prejdite na vytvorenie novej adresy a vyberte adresu s viacerými podpismi.",
     "a8_3": "Vyberte všetky účty, ktoré môžu podpisovať transakcie, a vyberte počet podpisov, ktoré sú minimálne na to, aby sieť mohla akceptovať multipodpisovú platbu.",
     "a8_4": "Po vytvorení účtu s viacerými podpismi k nemu získate prístup zo stránky so zoznamom účtov."
+  },
+
+  "connect": {
+    "title": "Connect to DApps using WalletConnect",
+    "uri": "WalletConnect URI",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "sendBack": "Send back to DApp",
+    "reject": "Reject",
+    "address": "Address",
+    "authaddr": "Authorized Address",
+    "index": "Index",
+    "type": "Type",
+    "from": "From",
+    "asset": "Asset",
+    "amount": "Amount",
+    "rekeyto": "Rekey To",
+    "method": "Method",
+    "client_id": "Client ID",
+    "request_id": "Request ID",
+    "remove": "Remove",
+    "peer": "Peer",
+    "connected": "Connected",
+    "sessions": "Sessions",
+    "requests": "Requests",
+    "fee": "Fee",
+    "total_fee": "Total Fee",
+    "sign": "Sign",
+    "clipboard": "Connect from clipboard"
   }
 }

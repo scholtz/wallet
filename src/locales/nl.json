@@ -546,5 +546,34 @@
     "a8_2": "Ga naar nieuw adres aanmaken en selecteer adres met meerdere handtekeningen.",
     "a8_3": "Selecteer alle accounts die de transacties kunnen ondertekenen en selecteer hoeveel handtekeningen minimaal zijn voor het netwerk om de multisig-betaling te accepteren.",
     "a8_4": "Nadat u de multisignature-rekening hebt aangemaakt, kunt u deze openen via de rekeningenlijstpagina."
+  },
+
+  "connect": {
+    "title": "Connect to DApps using WalletConnect",
+    "uri": "WalletConnect URI",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "sendBack": "Send back to DApp",
+    "reject": "Reject",
+    "address": "Address",
+    "authaddr": "Authorized Address",
+    "index": "Index",
+    "type": "Type",
+    "from": "From",
+    "asset": "Asset",
+    "amount": "Amount",
+    "rekeyto": "Rekey To",
+    "method": "Method",
+    "client_id": "Client ID",
+    "request_id": "Request ID",
+    "remove": "Remove",
+    "peer": "Peer",
+    "connected": "Connected",
+    "sessions": "Sessions",
+    "requests": "Requests",
+    "fee": "Fee",
+    "total_fee": "Total Fee",
+    "sign": "Sign",
+    "clipboard": "Connect from clipboard"
   }
 }

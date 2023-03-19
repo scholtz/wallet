@@ -557,7 +557,7 @@
     "uri": "WalletConnect URI",
     "connect": "Connect",
     "disconnect": "Disconnect",
-    "accept": "Accept",
+    "sendBack": "Send back to DApp",
     "reject": "Reject",
     "address": "Address",
     "authaddr": "Authorized Address",

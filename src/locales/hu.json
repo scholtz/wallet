@@ -545,5 +545,34 @@
     "a8_2": "Menj az 'Új cím létrehozásá'-hoz, és válaszd ki a többszörösen aláírt számlát.",
     "a8_3": "Válaszd ki az összes számlát, amely aláírhatja a tranzakciókat, és határozd meg, hogy minimum hány aláírásra legyen szükség ahhoz, hogy a hálózat elfogadja a többszörösen aláírt tranzakciót.",
     "a8_4": "A többszörösen aláírt számla a létrehozása után a 'Számlák listázása' lapról érhető el."
+  },
+
+  "connect": {
+    "title": "Connect to DApps using WalletConnect",
+    "uri": "WalletConnect URI",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "sendBack": "Send back to DApp",
+    "reject": "Reject",
+    "address": "Address",
+    "authaddr": "Authorized Address",
+    "index": "Index",
+    "type": "Type",
+    "from": "From",
+    "asset": "Asset",
+    "amount": "Amount",
+    "rekeyto": "Rekey To",
+    "method": "Method",
+    "client_id": "Client ID",
+    "request_id": "Request ID",
+    "remove": "Remove",
+    "peer": "Peer",
+    "connected": "Connected",
+    "sessions": "Sessions",
+    "requests": "Requests",
+    "fee": "Fee",
+    "total_fee": "Total Fee",
+    "sign": "Sign",
+    "clipboard": "Connect from clipboard"
   }
 }

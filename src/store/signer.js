@@ -2,6 +2,17 @@ import algosdk from "algosdk";
 import Algorand from "@ledgerhq/hw-app-algorand";
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 
+const state = () => ({
+  signed: {},
+});
+
+const mutations = {
+  setSigned(state, signed) {
+    const tx = algosdk.decodeSignedTransaction(signed);
+    const txId = tx.txn.txID();
+    state.signed[txId] = signed;
+  },
+};
 const actions = {
   /**
    * Sign transaction
@@ -13,6 +24,8 @@ const actions = {
    */
   async signTransaction({ dispatch }, { from, signator, tx }) {
     try {
+      console.log("tx", tx);
+      const txObj = tx; //algosdk.decodeUnsignedTransaction(algosdk.encodeObj(tx));
       let fromAccount = this.state.wallet.privateAccounts.find(
         (a) => a.addr == from
       );
@@ -33,17 +46,55 @@ const actions = {
 
       if (fromAccount.type == "ledger") {
         // sign with ledger
-        return await dispatch("signByLedger", { from: fromAccount.addr, tx });
+        return await dispatch("signByLedger", {
+          from: fromAccount.addr,
+          tx: txObj,
+        });
       } else if (fromAccount.params) {
         // multisig account
         const msigTx = algosdk.createMultisigTransaction(
-          tx,
+          txObj,
           fromAccount.params
         );
         return await dispatch("signMultisig", { msigTx, signator });
       } else if (fromAccount.sk) {
         // standard account
-        return await dispatch("signBySk", { from, tx });
+        return await dispatch("signBySk", { from, tx: txObj });
+      }
+    } catch (error) {
+      console.error("error", error, dispatch);
+      const msg = error.response ? error.response : error.message;
+      dispatch("toast/openError", msg, {
+        root: true,
+      });
+    }
+  },
+  async getSignerType({ dispatch }, { from }) {
+    try {
+      let fromAccount = this.state.wallet.privateAccounts.find(
+        (a) => a.addr == from
+      );
+      if (!fromAccount) {
+        throw new Error("The from address is not in the list of accounts.");
+      }
+
+      if (fromAccount.rekeyedTo && fromAccount.rekeyedTo != from) {
+        fromAccount = this.state.wallet.privateAccounts.find(
+          (a) => a.addr == fromAccount.rekeyedTo
+        );
+        if (!fromAccount) {
+          throw new Error(
+            "The rekeyed signator address from is not in the list of accounts."
+          );
+        }
+      }
+
+      if (fromAccount.type == "ledger") {
+        return "ledger";
+      } else if (fromAccount.params) {
+        return "msig";
+      } else if (fromAccount.sk) {
+        return "sk";
       }
     } catch (error) {
       console.error("error", error, dispatch);
@@ -68,13 +119,15 @@ const actions = {
       );
       console.log("signature", signature);
       const sigBytes = new Uint8Array(signature).slice(0, 64);
-      return tx.attachSignature(from, sigBytes);
+      const ret = tx.attachSignature(from, sigBytes);
+      commit("setSigned", ret);
+      return ret;
     } catch (e) {
       console.error("signByLedger.e", e);
       throw e;
     }
   },
-  async signBySk({ dispatch }, { from, tx }) {
+  async signBySk({ dispatch, commit }, { from, tx }) {
     const sk = await dispatch(
       "wallet/getSK",
       { addr: from },
@@ -85,7 +138,9 @@ const actions = {
 
     if (sk) {
       // if we have private key, sign tx
-      return tx.signTxn(sk);
+      const ret = tx.signTxn(sk);
+      commit("setSigned", ret);
+      return ret;
     }
     throw new Error("Private key not found");
   },
@@ -165,7 +220,7 @@ const actions = {
       return await dispatch("signMultisigBySk", { msigTx, signator, txn });
     }
   },
-  async signMultisigBySk({ dispatch }, { msigTx, signator, txn }) {
+  async signMultisigBySk({ dispatch, commit }, { msigTx, signator, txn }) {
     let signatorAccount = this.state.wallet.privateAccounts.find(
       (a) => a.addr == signator
     );
@@ -217,9 +272,12 @@ const actions = {
     if (!keyExist) {
       throw new Error(`Multisig key is missing for address ${signator}`);
     }
-    return algosdk.encodeObj(signedTxn);
+    const ret = algosdk.encodeObj(signedTxn);
+
+    commit("setSigned", ret);
+    return ret;
   },
-  async signMultisigByLedger({ dispatch }, { msigTx, signator }) {
+  async signMultisigByLedger({ dispatch, commit }, { msigTx, signator }) {
     const signedTxn = algosdk.decodeObj(msigTx);
     const txn = algosdk.decodeUnsignedTransaction(
       algosdk.encodeObj(signedTxn.txn)
@@ -242,10 +300,14 @@ const actions = {
     if (!keyExist) {
       throw new Error(`Multisig key is missing for address ${signator}`);
     }
-    return algosdk.encodeObj(signedTxn);
+    const ret = algosdk.encodeObj(signedTxn);
+    commit("setSigned", ret);
+    return ret;
   },
 };
 export default {
   namespaced: true,
+  state,
+  mutations,
   actions,
 };
