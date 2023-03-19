@@ -45,7 +45,9 @@
     "faq": "GYIK",
     "privacy_policy": "Adatvédelem",
     "logout": "Kijelentkezés",
-    "swap": "SWAP"
+    "vote": "Voting",
+    "swap": "SWAP",
+    "connect": "WalletConnect"
   },
   "swap": {
     "title": "Swap assets using Deflex protocol",
@@ -174,7 +176,8 @@
     "cancel_payment": "Fizetés törölve",
     "payment_received": "A küldött összeg megérkezett",
     "go_back_to_merchant": "Vissza a kereskedőhöz",
-    "waiting_for_payment": "Várakozás a fizetségre"
+    "waiting_for_payment": "Várakozás a fizetségre",
+    "error_asset": "Error fetching asset: "
   },
   "gateway": {
     "title": "Szabadon használható, nyílt forráskódú, közvetítők nélküli fizetési gateway",
@@ -227,7 +230,6 @@
     "pay": "Új kifizetés létrehozása",
     "receive_payment": "Fizetés fogadása",
     "name": "Név",
-
     "address": "Cím",
     "amount": "Összeg",
     "amount_without_pending": "Összeg a függő jutalmak nélkül",
@@ -263,7 +265,9 @@
     "rekey": "Rekey account",
     "rekeyedTo": "Rekeyed to account",
     "account0": "Ledger primary account",
-    "slot": "Account at ledger slot"
+    "slot": "Account at ledger slot",
+    "connect": "WalletConnect",
+    "payment_gateway": "Payment gateway"
   },
   "optin": {
     "title": "Egy adott pénzeszköz fogadásának engedélyezése, számla:",
@@ -297,7 +301,8 @@
     "account_name": "Számla neve",
     "amount": "Összeg",
     "address": "Cím",
-    "pay": "Kifizetés"
+    "pay": "Kifizetés",
+    "connect": "WalletConnect"
   },
   "newacc": {
     "title": "Új számla",
@@ -400,7 +405,10 @@
     "rekey_to_wallet_account": "Rekey to wallet account",
     "rekey_to_external_account": "Rekey to external account",
     "rekey_title": "Rekey account",
-    "rekey_warning": "Please take a special attention to this transaction. From now on, the account will use different private key to be able to do the transactions. If you do not have private key of the new account, you will most likely loose ability to sign transactions."
+    "rekey_warning": "Please take a special attention to this transaction. From now on, the account will use different private key to be able to do the transactions. If you do not have private key of the new account, you will most likely loose ability to sign transactions.",
+    "combine_title": "Combine signatures from other signator",
+    "combine_action": "Combine signatures",
+    "return_to_wc": "Return to WalletConnect"
   },
   "settings": {
     "title": "Beállítások",
@@ -546,7 +554,6 @@
     "a8_3": "Válaszd ki az összes számlát, amely aláírhatja a tranzakciókat, és határozd meg, hogy minimum hány aláírásra legyen szükség ahhoz, hogy a hálózat elfogadja a többszörösen aláírt tranzakciót.",
     "a8_4": "A többszörösen aláírt számla a létrehozása után a 'Számlák listázása' lapról érhető el."
   },
-
   "connect": {
     "title": "Connect to DApps using WalletConnect",
     "uri": "WalletConnect URI",
@@ -555,6 +562,7 @@
     "sendBack": "Send back to DApp",
     "reject": "Reject",
     "address": "Address",
+    "or": "or",
     "authaddr": "Authorized Address",
     "index": "Index",
     "type": "Type",
@@ -573,6 +581,21 @@
     "fee": "Fee",
     "total_fee": "Total Fee",
     "sign": "Sign",
-    "clipboard": "Connect from clipboard"
+    "clipboard": "Connect from clipboard",
+    "sign_txs": "Please sign individual transactions",
+    "signed": "Signed",
+    "to": "To",
+    "validity": "Validity",
+    "rounds": "rounds",
+    "note": "Note",
+    "group": "Group",
+    "app": "App Index",
+    "app_args": "App Args",
+    "app_accounts": "App Accounts",
+    "app_assets": "App Foreign Assets",
+    "boxes": "Boxes",
+    "name": "Name",
+    "genesis": "Genesis ID",
+    "genesis_hash": "Genesis Hash"
   }
 }

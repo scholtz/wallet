@@ -50,7 +50,7 @@
           >
             {{ $t("connect.connect") }}
           </button>
-          or
+          {{ $t("connect.or") }}
           <button
             class="btn btn-primary m-1"
             :disabled="!connectable"
@@ -86,7 +86,7 @@
                     slotProps.data.auth != slotProps.data.address
                   "
                 >
-                  (authorized address: {{ slotProps.data.auth }})
+                  ({{ $t("connect.authaddr") }}: {{ slotProps.data.auth }})
                 </p>
               </template>
             </Column>
@@ -171,14 +171,14 @@
                   {{ $t("connect.sendBack") }}
                 </button>
                 <span class="m-2" v-if="!allTxsAreSigned(slotProps.data)">
-                  Please sign individual transactions
+                  {{ $t("connect.sign_txs") }}
                 </span>
                 <button
                   class="btn btn-light m-1"
                   :disabled="!$store.state.wallet.isOpen"
                   @click="clickReject(slotProps.data.id)"
                 >
-                  Reject
+                  {{ $t("connect.reject") }}
                 </button>
               </template>
             </Column>
@@ -194,14 +194,16 @@
                   <Column>
                     <template #body="slotProps">
                       <button
-                        v-if="!isSigned(slotProps.data)"
+                        v-if="toBeSigned(slotProps.data)"
                         class="btn btn-primary m-1"
                         :disabled="!$store.state.wallet.isOpen"
                         @click="clickSign(slotProps.data)"
                       >
                         {{ $t("connect.sign") }}
                       </button>
-                      <span v-else class="badge bg-success">Signed</span>
+                      <span v-else class="badge bg-success">{{
+                        $t("connect.signed")
+                      }}</span>
                     </template>
                   </Column>
                   <Column
@@ -242,8 +244,20 @@
                   <template #expansion="txProps">
                     <div class="p-3">
                       <table>
+                        <tr v-if="txProps.data.txn.from">
+                          <td>{{ $t("connect.from") }}:</td>
+                          <td>
+                            {{ encodeAddress(txProps.data.txn.from) }}
+                          </td>
+                        </tr>
+                        <tr v-if="txProps.data.txn.to">
+                          <td>{{ $t("connect.to") }}:</td>
+                          <td>
+                            {{ encodeAddress(txProps.data.txn.to) }}
+                          </td>
+                        </tr>
                         <tr>
-                          <td>Validity:</td>
+                          <td>{{ $t("connect.validity") }}:</td>
                           <td>
                             {{ txProps.data.txn.firstRound }} -
                             {{ txProps.data.txn.lastRound }} ({{
@@ -251,15 +265,15 @@
                               txProps.data.txn.firstRound +
                               1
                             }}
-                            rounds)
+                            {{ $t("connect.rounds") }})
                           </td>
                         </tr>
                         <tr>
-                          <td>Type:</td>
+                          <td>{{ $t("connect.type") }}:</td>
                           <td>{{ txProps.data.type }}</td>
                         </tr>
                         <tr>
-                          <td>Note:</td>
+                          <td>{{ $t("connect.note") }}:</td>
                           <td>
                             <table>
                               <tr>
@@ -285,12 +299,12 @@
                         </tr>
 
                         <tr v-if="txProps.data.txn.group">
-                          <td>Group:</td>
+                          <td>{{ $t("connect.group") }}:</td>
                           <td>{{ formatGroup(txProps.data.txn.group) }}</td>
                         </tr>
 
                         <tr v-if="txProps.data.type == 'appl'">
-                          <td>App Index:</td>
+                          <td>{{ $t("connect.app") }}:</td>
                           <td>{{ txProps.data.txn.appIndex }}</td>
                         </tr>
 
@@ -300,7 +314,7 @@
                             txProps.data.txn.appArgs
                           "
                         >
-                          <td>App Args:</td>
+                          <td>{{ $t("connect.app_args") }}:</td>
                           <td>
                             <table>
                               <tr
@@ -322,7 +336,7 @@
                             txProps.data.txn.appAccounts
                           "
                         >
-                          <td>App Accounts:</td>
+                          <td>{{ $t("connect.app_accounts") }}:</td>
                           <td>
                             <ol>
                               <li
@@ -341,7 +355,7 @@
                             txProps.data.txn.appForeignAssets
                           "
                         >
-                          <td>App Foreign Assets:</td>
+                          <td>{{ $t("connect.app_assets") }}:</td>
                           <td>
                             <ol>
                               <li
@@ -360,25 +374,26 @@
                             txProps.data.txn.boxes
                           "
                         >
-                          <td>Boxes:</td>
+                          <td>{{ $t("connect.boxes") }}:</td>
                           <td>
                             <ol>
                               <li
                                 v-for="box in txProps.data.txn.boxes"
                                 :key="box.name"
                               >
-                                App Index: {{ box.appIndex }}, Name:
+                                {{ $t("connect.app") }}: {{ box.appIndex }},
+                                {{ $t("connect.name") }}:
                                 {{ box.name }}
                               </li>
                             </ol>
                           </td>
                         </tr>
                         <tr>
-                          <td>Genesis ID:</td>
+                          <td>{{ $t("connect.genesis") }}:</td>
                           <td>{{ txProps.data.txn.genesisID }}</td>
                         </tr>
                         <tr>
-                          <td>Genesis Hash:</td>
+                          <td>{{ $t("connect.genesis_hash") }}:</td>
                           <td>
                             {{
                               formatGenesisHash(txProps.data.txn.genesisHash)
@@ -465,6 +480,7 @@ export default {
       waitForConfirmation: "algod/waitForConfirmation",
       getSignerType: "signer/getSignerType",
       signerSignTransaction: "signer/signTransaction",
+      signerToSign: "signer/toSign",
     }),
     formatNote(note) {
       try {
@@ -539,7 +555,10 @@ export default {
       const type = await this.getSignerType({
         from: data.from,
       });
-      if (type != "msig") {
+      if (type == "msig") {
+        this.signerToSign({ tx: data.txn });
+        this.$router.push("/payWC/");
+      } else {
         const signed = await this.signerSignTransaction({
           from: data.from,
           signator: data.from,
@@ -629,8 +648,38 @@ export default {
       }
       return this.$store.state.config.env;
     },
-    isSigned(data) {
-      return data.txn.txID() in this.$store.state.signer.signed;
+    toBeSigned(data) {
+      console.log("isSigned.data", data);
+      const txId = data.txn.txID();
+      console.log("isSigned.txId", txId);
+      const signed = txId in this.$store.state.signer.signed;
+      console.log("isSigned.signed", signed);
+      if (!signed) return true; // if not signed return true to show sign button
+      console.log("data.txn", data.txn);
+      const from = this.encodeAddress(data.txn.from);
+      console.log("from", from);
+      const type = this.getSignerType({
+        from: from,
+      });
+      console.log("type", type);
+      if (type == "msig") {
+        // check sign threshold
+        const signedTx = algosdk.decodeSignedTransaction(
+          this.$store.state.signer.signed[txId]
+        );
+        console.log("signedTx.msig", signedTx.msig);
+        console.log(
+          "signedTx.msig.subsig.filter((s) => !!s.s).length",
+          signedTx.msig.subsig.filter((s) => !!s.s).length,
+          signedTx.msig.thr
+        );
+        const ret =
+          signedTx.msig.subsig.filter((s) => !!s.s).length < signedTx.msig.thr;
+        console.log("ret", ret);
+        return ret;
+      } else {
+        return !signed;
+      }
     },
     allTxsAreSigned(data) {
       console.log("data", data);
@@ -638,6 +687,10 @@ export default {
         if (!(tx.txn.txID() in this.$store.state.signer.signed)) return false;
       }
       return true;
+    },
+    encodeAddress(addr) {
+      if (!addr || !addr.publicKey) return "-";
+      return algosdk.encodeAddress(addr.publicKey);
     },
   },
 };

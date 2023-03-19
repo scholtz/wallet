@@ -160,6 +160,11 @@ const routes = [
     component: Pay,
   },
   {
+    path: "/payWC/",
+    name: "PayFromWalletConnect",
+    component: Pay,
+  },
+  {
     path: "/multisig/:account/:rawSignedTxnInput",
     name: "PayMultisig",
     component: Pay,

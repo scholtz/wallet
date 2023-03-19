@@ -230,7 +230,6 @@
     "pay": "Make new payment",
     "receive_payment": "Receive payment",
     "name": "Name",
-    "payment_gateway": "Payment gateway",
     "address": "Address",
     "amount": "Amount",
     "amount_without_pending": "Amount without pending rewards",
@@ -267,7 +266,8 @@
     "rekeyedTo": "Rekeyed to account",
     "account0": "Ledger primary account",
     "slot": "Account at ledger slot",
-    "connect": "WalletConnect"
+    "connect": "WalletConnect",
+    "payment_gateway": "Payment gateway"
   },
   "optin": {
     "title": "Accept transfers of asset in account",
@@ -405,7 +405,10 @@
     "rekey_to_wallet_account": "Rekey to wallet account",
     "rekey_to_external_account": "Rekey to external account",
     "rekey_title": "Rekey account",
-    "rekey_warning": "Please pay special attention to this transaction. From now on, the account will use a different private key to be able to complete transactions. If you do not have the private key of the new account, you will most likely lose the ability to sign transactions."
+    "rekey_warning": "Please pay special attention to this transaction. From now on, the account will use a different private key to be able to complete transactions. If you do not have the private key of the new account, you will most likely lose the ability to sign transactions.",
+    "combine_title": "Combine signatures from other signator",
+    "combine_action": "Combine signatures",
+    "return_to_wc": "Return to WalletConnect"
   },
   "settings": {
     "title": "Settings",
@@ -560,6 +563,7 @@
     "sendBack": "Send back to DApp",
     "reject": "Reject",
     "address": "Address",
+    "or": "or",
     "authaddr": "Authorized Address",
     "index": "Index",
     "type": "Type",
@@ -578,6 +582,21 @@
     "fee": "Fee",
     "total_fee": "Total Fee",
     "sign": "Sign",
-    "clipboard": "Connect from clipboard"
+    "clipboard": "Connect from clipboard",
+    "sign_txs": "Please sign individual transactions",
+    "signed": "Signed",
+    "to": "To",
+    "validity": "Validity",
+    "rounds": "rounds",
+    "note": "Note",
+    "group": "Group",
+    "app": "App Index",
+    "app_args": "App Args",
+    "app_accounts": "App Accounts",
+    "app_assets": "App Foreign Assets",
+    "boxes": "Boxes",
+    "name": "Name",
+    "genesis": "Genesis ID",
+    "genesis_hash": "Genesis Hash"
   }
 }

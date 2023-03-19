@@ -4,6 +4,7 @@ import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 
 const state = () => ({
   signed: {},
+  toSign: {},
 });
 
 const mutations = {
@@ -11,6 +12,9 @@ const mutations = {
     const tx = algosdk.decodeSignedTransaction(signed);
     const txId = tx.txn.txID();
     state.signed[txId] = signed;
+  },
+  toSign(state, tx) {
+    state.toSign = tx;
   },
 };
 const actions = {
@@ -69,7 +73,19 @@ const actions = {
       });
     }
   },
-  async getSignerType({ dispatch }, { from }) {
+  /**
+   * Set the transaction to be signed. It is used by wallet connect page to set the tx for signature for custom view pages such as multisig or 2fa
+   *
+   * @param {*} tx
+   * @returns
+   */
+  async toSign({ commit }, { tx }) {
+    await commit("toSign", tx);
+  },
+  async setSigned({ commit }, { signed }) {
+    await commit("setSigned", signed);
+  },
+  getSignerType({ dispatch }, { from }) {
     try {
       let fromAccount = this.state.wallet.privateAccounts.find(
         (a) => a.addr == from
@@ -88,7 +104,7 @@ const actions = {
           );
         }
       }
-
+      console.log("fromAccount", fromAccount);
       if (fromAccount.type == "ledger") {
         return "ledger";
       } else if (fromAccount.params) {
@@ -96,6 +112,7 @@ const actions = {
       } else if (fromAccount.sk) {
         return "sk";
       }
+      return "?";
     } catch (error) {
       console.error("error", error, dispatch);
       const msg = error.response ? error.response : error.message;
