@@ -49,6 +49,12 @@
           >
             {{ $t("acc_type.multisig_account") }}
           </div>
+          <div
+            v-else-if="slotProps.data.type == 'ledger'"
+            class="badge bg-success text-light"
+          >
+            {{ $t("acc_type.ledger_account") }}
+          </div>
           <div v-else class="badge bg-info text-dark">
             {{ $t("acc_type.public_account") }}
           </div>
@@ -59,9 +65,15 @@
           <router-link
             v-if="slotProps.data.sk || slotProps.data.params"
             :to="'/accounts/pay/' + slotProps.data.addr"
-            class="btn btn-light btn-xs"
+            class="btn btn-light btn-xs me-2"
           >
             {{ $t("accounts.pay") }}
+          </router-link>
+          <router-link
+            :to="'/account/connect/' + slotProps.data.addr"
+            class="btn btn-light btn-xs me-2"
+          >
+            {{ $t("accounts.connect") }}
           </router-link>
         </template>
       </Column>

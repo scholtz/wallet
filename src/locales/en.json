@@ -46,7 +46,8 @@
     "privacy_policy": "Privacy policy",
     "logout": "Logout",
     "vote": "Voting",
-    "swap": "SWAP"
+    "swap": "SWAP",
+    "connect": "WalletConnect"
   },
   "swap": {
     "title": "Swap assets using Deflex protocol",
@@ -229,7 +230,6 @@
     "pay": "Make new payment",
     "receive_payment": "Receive payment",
     "name": "Name",
-    "payment_gateway": "Payment gateway",
     "address": "Address",
     "amount": "Amount",
     "amount_without_pending": "Amount without pending rewards",
@@ -263,7 +263,11 @@
     "asset_optin": "Opt in to asset",
     "ask_question": "Ask a question",
     "rekey": "Rekey account",
-    "rekeyedTo": "Rekeyed to account"
+    "rekeyedTo": "Rekeyed to account",
+    "account0": "Ledger primary account",
+    "slot": "Account at ledger slot",
+    "connect": "WalletConnect",
+    "payment_gateway": "Payment gateway"
   },
   "optin": {
     "title": "Accept transfers of asset in account",
@@ -297,7 +301,8 @@
     "account_name": "Account name",
     "amount": "Amount",
     "address": "Address",
-    "pay": "Pay"
+    "pay": "Pay",
+    "connect": "WalletConnect"
   },
   "newacc": {
     "title": "New account",
@@ -344,7 +349,8 @@
     "basic_account": "Basic account",
     "multisig_account": "Multisignature account",
     "public_account": "Public account",
-    "rekeyed": "Rekeyed account"
+    "rekeyed": "Rekeyed account",
+    "ledger_account": "HW ledger account"
   },
   "pay": {
     "title": "Make payment - from",
@@ -399,7 +405,10 @@
     "rekey_to_wallet_account": "Rekey to wallet account",
     "rekey_to_external_account": "Rekey to external account",
     "rekey_title": "Rekey account",
-    "rekey_warning": "Please pay special attention to this transaction. From now on, the account will use a different private key to be able to complete transactions. If you do not have the private key of the new account, you will most likely lose the ability to sign transactions."
+    "rekey_warning": "Please pay special attention to this transaction. From now on, the account will use a different private key to be able to complete transactions. If you do not have the private key of the new account, you will most likely lose the ability to sign transactions.",
+    "combine_title": "Combine signatures from other signator",
+    "combine_action": "Combine signatures",
+    "return_to_wc": "Return to WalletConnect"
   },
   "settings": {
     "title": "Settings",
@@ -503,7 +512,17 @@
     "note": "Note set in the create transaction",
     "create_button": "Create NFT / ASA"
   },
-
+  "new_account_ledger": {
+    "header": "Add Ledger account",
+    "description": "Ledger is a physical device - HW wallet which can store your private key. The maximum security for storing the assets on algorand is multisig account with all signators secured by ledger devices.",
+    "last_error": "Last error",
+    "connect": "Connect ledger and load algorand address",
+    "slot": "Slot",
+    "address": "Address",
+    "primary_address": "Primary address",
+    "account_name": "Account name",
+    "save_address": "Save the address to the wallet"
+  },
   "faq": {
     "title": "Frequently asked questions",
     "q1": "About AWallet",
@@ -534,5 +553,50 @@
     "a8_2": "Go to create a new address and select multisignature address.",
     "a8_3": "Select all accounts that can sign the transactions and select how many signatures that adhere to the minimum for the network to accept the multisig payment.",
     "a8_4": "After you create the multisignature account, you can access it from the accounts list page."
+  },
+
+  "connect": {
+    "title": "Connect to DApps using WalletConnect",
+    "uri": "WalletConnect URI",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "sendBack": "Send back to DApp",
+    "reject": "Reject",
+    "address": "Address",
+    "or": "or",
+    "authaddr": "Authorized Address",
+    "index": "Index",
+    "type": "Type",
+    "from": "From",
+    "asset": "Asset",
+    "amount": "Amount",
+    "rekeyto": "Rekey To",
+    "method": "Method",
+    "client_id": "Client ID",
+    "request_id": "Request ID",
+    "remove": "Remove",
+    "peer": "Peer",
+    "connected": "Connected",
+    "sessions": "Sessions",
+    "requests": "Requests",
+    "fee": "Fee",
+    "total_fee": "Total Fee",
+    "sign": "Sign",
+    "clipboard": "Connect from clipboard",
+    "sign_txs": "Please sign individual transactions",
+    "signed": "Signed",
+    "to": "To",
+    "validity": "Validity",
+    "rounds": "rounds",
+    "note": "Note",
+    "group": "Group",
+    "app": "App Index",
+    "app_args": "App Args",
+    "app_accounts": "App Accounts",
+    "app_assets": "App Foreign Assets",
+    "boxes": "Boxes",
+    "name": "Name",
+    "genesis": "Genesis ID",
+    "genesis_hash": "Genesis Hash"
   }
 }

@@ -26,17 +26,16 @@ const actions = {
       };
       const authTxn =
         algosdk.makePaymentTxnWithSuggestedParamsFromObject(authObj);
-      const sk = await dispatch(
-        "wallet/getSK",
-        { addr: account },
+      let signedAuthTxn = await dispatch(
+        "signer/signTransaction",
+        { from: account, tx: authTxn },
         {
           root: true,
         }
       );
-      if (!sk) {
-        throw new Error("You can sign txs only if you have private key to it");
+      if (!signedAuthTxn) {
+        throw new Error("Error signing the transaction");
       }
-      let signedAuthTxn = authTxn.signTxn(sk);
       const b64 = Buffer.from(signedAuthTxn).toString("base64");
       const auth = "SigTx " + b64;
       return auth;

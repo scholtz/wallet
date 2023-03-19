@@ -1,14 +1,14 @@
 <template>
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-      <a class="navbar-brand" href="/" v-if="$store.state.config.LOGO"
+      <a v-if="$store.state.config.LOGO" class="navbar-brand" href="/"
         ><img
           :src="$store.state.config.LOGO"
           height="30"
           :alt="$t('navbar.logo')"
         />
       </a>
-      <a class="navbar-brand" href="/" v-else>{{ $t("navbar.logo") }}</a>
+      <a v-else class="navbar-brand" href="/">{{ $t("navbar.logo") }}</a>
 
       <button
         class="navbar-toggler"
@@ -19,62 +19,74 @@
         aria-expanded="false"
         :aria-label="$t('navbar.toggle_nav')"
       >
-        <span class="navbar-toggler-icon"></span>
+        <span class="navbar-toggler-icon" />
       </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <div id="navbarSupportedContent" class="collapse navbar-collapse">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item active" v-if="$store.state.wallet.isOpen">
-            <v-link class="nav-link" href="/accounts">{{
-              $t("navbar.list_accounts")
-            }}</v-link>
+          <li v-if="$store.state.wallet.isOpen" class="nav-item active">
+            <v-link class="nav-link" href="/accounts">
+              {{ $t("navbar.list_accounts") }}
+            </v-link>
           </li>
           <li
-            class="nav-item active"
             v-if="$store.state.wallet.lastActiveAccountName"
+            class="nav-item active"
           >
             <v-link
               class="nav-link"
               :href="'/account/' + $store.state.wallet.lastActiveAccount"
-              >{{ $store.state.wallet.lastActiveAccountName }}</v-link
             >
+              {{ $store.state.wallet.lastActiveAccountName }}
+            </v-link>
           </li>
           <li
-            class="nav-item active"
             v-if="$store.state.wallet.lastActiveAccountName"
+            class="nav-item active"
           >
             <v-link
               class="nav-link"
               :href="'/swap/' + $store.state.wallet.lastActiveAccount"
-              >{{ $t("navbar.swap") }}</v-link
             >
+              {{ $t("navbar.swap") }}
+            </v-link>
           </li>
-          <li class="nav-item active" v-if="$store.state.wallet.isOpen">
-            <v-link class="nav-link" href="/new-account">{{
-              $t("navbar.new_account")
-            }}</v-link>
+          <li v-if="$store.state.wallet.isOpen" class="nav-item active">
+            <v-link class="nav-link" href="/new-account">
+              {{ $t("navbar.new_account") }}
+            </v-link>
           </li>
-          <li class="nav-item active" v-if="$store.state.wallet.isOpen">
-            <v-link class="nav-link" href="/asset/create">{{
-              $t("navbar.asset_create")
-            }}</v-link>
+          <li v-if="$store.state.wallet.isOpen" class="nav-item active">
+            <v-link class="nav-link" href="/asset/create">
+              {{ $t("navbar.asset_create") }}
+            </v-link>
           </li>
-          <li class="nav-item active" v-if="$store.state.wallet.isOpen">
-            <v-link class="nav-link" href="/vote/governance/optin">{{
-              $t("navbar.vote")
-            }}</v-link>
+          <li v-if="$store.state.wallet.isOpen" class="nav-item active">
+            <v-link class="nav-link" href="/vote/governance/optin">
+              {{ $t("navbar.vote") }}
+            </v-link>
+          </li>
+          <li v-if="$store.state.wallet.isOpen" class="nav-item active">
+            <v-link class="nav-link" href="/connect#requests">
+              {{ $t("navbar.connect") }}
+              <span v-if="wcRequestsCount" class="m-1"
+                >({{ wcRequestsCount }})</span
+              >
+            </v-link>
           </li>
           <li class="nav-item active">
-            <v-link class="nav-link" href="/payment-gateway">{{
-              $t("merchant.make_payment")
-            }}</v-link>
+            <v-link class="nav-link" href="/payment-gateway">
+              {{ $t("merchant.make_payment") }}
+            </v-link>
           </li>
           <li class="nav-item active">
-            <v-link class="nav-link" href="/faq">{{ $t("navbar.faq") }}</v-link>
+            <v-link class="nav-link" href="/faq">
+              {{ $t("navbar.faq") }}
+            </v-link>
           </li>
           <li class="nav-item active">
-            <v-link class="nav-link" href="/privacy-policy">{{
-              $t("navbar.privacy_policy")
-            }}</v-link>
+            <v-link class="nav-link" href="/privacy-policy">
+              {{ $t("navbar.privacy_policy") }}
+            </v-link>
           </li>
         </ul>
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
@@ -82,8 +94,8 @@
             v-if="!$store.state.wallet.isOpen"
             v-model="$i18n.locale"
             :options="$store.state.config.languages"
-            @change="languageUpdated"
             style="min-width: 100px"
+            @change="languageUpdated"
           >
             <template #value="slotProps">
               <div v-if="slotProps.value" class="border-dark">
@@ -110,15 +122,15 @@
               </div>
             </template>
           </Dropdown>
-          <li class="nav-item active" v-if="$store.state.wallet.isOpen">
-            <v-link class="nav-link" href="/settings">{{
-              $t("navbar.settings")
-            }}</v-link>
+          <li v-if="$store.state.wallet.isOpen" class="nav-item active">
+            <v-link class="nav-link" href="/settings">
+              {{ $t("navbar.settings") }}
+            </v-link>
           </li>
-          <li class="nav-item active" v-if="$store.state.wallet.isOpen">
-            <v-link class="nav-link" href="/" @click="logoutClick">{{
-              $t("navbar.logout")
-            }}</v-link>
+          <li v-if="$store.state.wallet.isOpen" class="nav-item active">
+            <v-link class="nav-link" href="/" @click="logoutClick">
+              {{ $t("navbar.logout") }}
+            </v-link>
           </li>
         </ul>
       </div>
@@ -135,6 +147,11 @@ export default {
   },
   data() {
     return {};
+  },
+  computed: {
+    wcRequestsCount() {
+      return this.$store.state.wc.requests.length;
+    },
   },
   methods: {
     ...mapActions({

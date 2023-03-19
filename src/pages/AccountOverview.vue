@@ -37,21 +37,21 @@
         </template>
       </Dialog>
       <router-link
-        v-if="account && (account.sk || account.params)"
+        v-if="canSign"
         :to="'/accounts/pay/' + $route.params.account"
         class="btn btn-light btn-xs me-2 my-2"
       >
         {{ $t("acc_overview.pay") }}
       </router-link>
       <router-link
-        v-if="account && (account.sk || account.params)"
+        v-if="canSign"
         :to="'/accounts/rekey/' + $route.params.account"
         class="btn btn-light btn-xs me-2 my-2"
       >
         {{ $t("acc_overview.rekey") }}
       </router-link>
       <router-link
-        v-if="account && (account.sk || account.params)"
+        v-if="canSign"
         :to="'/account/optin/' + $route.params.account"
         class="btn btn-light btn-xs me-2 my-2"
       >
@@ -68,6 +68,13 @@
         class="btn btn-light btn-xs me-2 my-2"
       >
         {{ $t("acc_overview.payment_gateway") }}
+      </router-link>
+      <router-link
+        v-if="canSign"
+        :to="'/account/connect/' + $route.params.account"
+        class="btn btn-light btn-xs me-2 my-2"
+      >
+        {{ $t("acc_overview.connect") }}
       </router-link>
       <router-link
         v-if="account && (account.sk || account.params)"
@@ -111,6 +118,12 @@
           </div>
           <div v-else-if="account.params" class="badge bg-warning text-dark">
             {{ $t("acc_type.multisig_account") }}
+          </div>
+          <div
+            v-else-if="account.type == 'ledger'"
+            class="badge bg-success text-light"
+          >
+            {{ $t("acc_type.ledger_account") }}
           </div>
           <div v-else class="badge bg-info text-dark">
             {{ $t("acc_type.public_account") }}
@@ -164,6 +177,14 @@
           </div>
         </td>
       </tr>
+      <tr v-if="account.type == 'ledger'">
+        <th>{{ $t("acc_overview.account0") }}:</th>
+        <td>{{ account.addr0 }}</td>
+      </tr>
+      <tr v-if="account.type == 'ledger'">
+        <th>{{ $t("acc_overview.slot") }}:</th>
+        <td>{{ account.slot }}</td>
+      </tr>
       <tr>
         <th>{{ $t("acc_overview.amount") }}:</th>
         <td>{{ $filters.formatCurrency(account.amount) }}</td>
@@ -204,7 +225,7 @@
             class="spinner-grow spinner-grow-sm"
             role="status"
             aria-hidden="true"
-          ></span>
+          />
           Setting your account to online state. Please wait a while
         </td>
       </tr>
@@ -441,6 +462,12 @@ export default {
     };
   },
   computed: {
+    canSign() {
+      if (!this.account) return false;
+      return (
+        this.account.sk || this.account.params || this.account.type == "ledger"
+      );
+    },
     account() {
       return this.$store.state.wallet.privateAccounts.find(
         (a) => a.addr == this.$route.params.account
@@ -538,10 +565,23 @@ export default {
     async reloadAccount() {
       await this.accountInformation({
         addr: this.$route.params.account,
-      }).then((info) => {
+      }).then(async (info) => {
         if (info) {
-          console.log("info", info);
           this.updateAccount({ info });
+          if (this.account.rekeyedTo != this.account["auth-addr"]) {
+            const rekeyedTo = this.account["auth-addr"];
+            console.error(
+              `New rekey information detected: ${this.account.rekeyedTo} -> ${rekeyedTo}`
+            );
+            const info2 = {};
+            info2.address = this.account.addr;
+            info2.rekeyedTo = rekeyedTo;
+            console.log("rekeyedTo", rekeyedTo);
+            await this.updateAccount({ info: info2 });
+            await this.openSuccess(
+              `Information about rekeying to address ${rekeyedTo} has been stored`
+            );
+          }
         }
       });
       const searchData = await this.searchForTransactions({

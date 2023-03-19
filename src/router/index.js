@@ -10,6 +10,7 @@ import FAQ from "@/pages/FAQ.vue";
 import Pay from "@/pages/Pay.vue";
 import Merchant from "@/pages/Merchant.vue";
 import ReceivePayment from "@/pages/ReceivePayment.vue";
+import Connect from "@/pages/Connect.vue";
 import Settings from "@/pages/Settings.vue";
 import Asset from "@/pages/AssetList.vue";
 import AssetCreate from "@/pages/Asset/Create.vue";
@@ -30,6 +31,7 @@ import Donation from "@/pages/Donation.vue";
 import Success from "@/pages/Success.vue";
 import Swap from "@/pages/Swap.vue";
 import Arc14 from "@/pages/Arc14.vue";
+import NewAccountLedger from "@/pages/NewAccount/Ledger.vue";
 
 const routes = [
   {
@@ -41,6 +43,11 @@ const routes = [
     path: "/privacy-policy",
     name: "Privacy",
     component: Privacy,
+  },
+  {
+    path: "/new-account/ledger",
+    name: "NewAccountLedger",
+    component: NewAccountLedger,
   },
   {
     path: "/swap/:account",
@@ -98,6 +105,16 @@ const routes = [
     component: ReceivePayment,
   },
   {
+    path: "/account/connect/:account",
+    name: "ConnectWithAccount",
+    component: Connect,
+  },
+  {
+    path: "/connect",
+    name: "Connect",
+    component: Connect,
+  },
+  {
     path: "/asset/freeze/:assetId",
     name: "AssetFreeze",
     component: AssetFreeze,
@@ -140,6 +157,11 @@ const routes = [
   {
     path: "/pay/:toAccount",
     name: "Pay",
+    component: Pay,
+  },
+  {
+    path: "/payWC/",
+    name: "PayFromWalletConnect",
     component: Pay,
   },
   {

@@ -46,7 +46,8 @@
     "privacy_policy": "Ochrana osob. údajov",
     "logout": "Odhlásenie",
     "vote": "Voting",
-    "swap": "SWAP"
+    "swap": "SWAP",
+    "connect": "WalletConnect"
   },
   "swap": {
     "title": "Swapnúť tokeny pomocou Deflex protokolu",
@@ -175,7 +176,8 @@
     "cancel_payment": "Zrušiť platbu",
     "payment_received": "Platba bola prijatá.",
     "go_back_to_merchant": "Ísť späť na webstránku obchodníka",
-    "waiting_for_payment": "Čaká sa na platbu. Zaplaťte prosím."
+    "waiting_for_payment": "Čaká sa na platbu. Zaplaťte prosím.",
+    "error_asset": "Error fetching asset: "
   },
   "gateway": {
     "title": "Free opensource payment gateway without middleman",
@@ -228,7 +230,6 @@
     "pay": "Odoslať platbu",
     "receive_payment": "Prijať platbu",
     "name": "Názov",
-
     "address": "Adresa",
     "amount": "Čiastka",
     "amount_without_pending": "Čiastka bez neprijatých odmien",
@@ -262,7 +263,11 @@
     "asset_optin": "Pridať aktívum",
     "ask_question": "Ask question",
     "rekey": "Rekey account",
-    "rekeyedTo": "Rekeyed to account"
+    "rekeyedTo": "Rekeyed to account",
+    "account0": "Ledger primary account",
+    "slot": "Account at ledger slot",
+    "connect": "WalletConnect",
+    "payment_gateway": "Payment gateway"
   },
   "optin": {
     "title": "Prijímať aktívum (ASA alebo NFT) na účte",
@@ -296,7 +301,8 @@
     "account_name": "Názov účtu",
     "amount": "Čiastka",
     "address": "Adresa",
-    "pay": "Platba"
+    "pay": "Platba",
+    "connect": "WalletConnect"
   },
   "newacc": {
     "title": "Nový účet",
@@ -343,7 +349,8 @@
     "basic_account": "Bežný účet",
     "multisig_account": "Multipodpisový účet",
     "public_account": "Verejný účet",
-    "rekeyed": "Rekeyed account"
+    "rekeyed": "Rekeyed account",
+    "ledger_account": "HW ledger účet"
   },
   "pay": {
     "title": "Nová platba - od",
@@ -377,8 +384,8 @@
     "signatures": "Podpisy",
     "signed": "Podpísaný",
     "not_signed": "Nepodpísaný",
-    "sign_with": "Podpísaný s",
-    "sign": "Podpísaný",
+    "sign_with": "Podpísať s",
+    "sign": "Podpísať",
     "send_to_other_signators": "Pošlite ďalším podpisovateľom",
     "send_to_network": "Odoslať transakciu do siete",
     "state_sending": "Odosielam prevod validátorom do siete",
@@ -398,7 +405,10 @@
     "rekey_to_wallet_account": "Rekey to wallet account",
     "rekey_to_external_account": "Rekey to external account",
     "rekey_title": "Rekey account",
-    "rekey_warning": "Please take a special attention to this transaction. From now on, the account will use different private key to be able to do the transactions. If you do not have private key of the new account, you will most likely loose ability to sign transactions."
+    "rekey_warning": "Please take a special attention to this transaction. From now on, the account will use different private key to be able to do the transactions. If you do not have private key of the new account, you will most likely loose ability to sign transactions.",
+    "combine_title": "Combine signatures from other signator",
+    "combine_action": "Combine signatures",
+    "return_to_wc": "Return to WalletConnect"
   },
   "settings": {
     "title": "Nastavenia",
@@ -502,7 +512,17 @@
     "note": "Poznámka uvedená v transakcii vytvorenia",
     "create_button": "Vytvoriť NFT / ASA"
   },
-
+  "new_account_ledger": {
+    "header": "Pridať HW ledger účet",
+    "description": "Ledger is a physical device - HW wallet which can store your private key. The maximum security for storing the assets on algorand is multisig account with all signators secured by ledger devices.",
+    "last_error": "Posledná chyba",
+    "connect": "Pripojiť ledger a načítať adresu",
+    "slot": "Slot",
+    "address": "Adresa",
+    "primary_address": "Primárna adresa",
+    "account_name": "Názov účtu",
+    "save_address": "Pridať účet do peňaženky"
+  },
   "faq": {
     "title": "Často kladené otázky",
     "q1": "O peňaženke",
@@ -533,5 +553,49 @@
     "a8_2": "Prejdite na vytvorenie novej adresy a vyberte adresu s viacerými podpismi.",
     "a8_3": "Vyberte všetky účty, ktoré môžu podpisovať transakcie, a vyberte počet podpisov, ktoré sú minimálne na to, aby sieť mohla akceptovať multipodpisovú platbu.",
     "a8_4": "Po vytvorení účtu s viacerými podpismi k nemu získate prístup zo stránky so zoznamom účtov."
+  },
+  "connect": {
+    "title": "Pripojenie k decenralizovanej aplikácii použitím WalletConnect",
+    "uri": "WalletConnect URI",
+    "connect": "Pripojiť",
+    "disconnect": "Odpojiť",
+    "sendBack": "Odoslať spať do aplikácie",
+    "reject": "Zamietnuť",
+    "address": "Adresa",
+    "authaddr": "Autorizačná adresa",
+    "index": "Index",
+    "type": "Typ",
+    "from": "Od",
+    "asset": "Aktívum",
+    "amount": "Čiastka",
+    "rekeyto": "Zmena autorizačnej adresy",
+    "method": "Method",
+    "client_id": "ID klienta",
+    "request_id": "ID requestu",
+    "remove": "Zruš",
+    "peer": "Peer",
+    "connected": "Pripojené",
+    "sessions": "Relácia",
+    "requests": "Requesty",
+    "fee": "Poplatok",
+    "total_fee": "Celkový poplatok",
+    "sign": "Podpísať",
+    "clipboard": "Pripojiť zo schárnky",
+    "or": "alebo",
+    "sign_txs": "Podpíšte každú transakciu",
+    "signed": "Podpísané",
+    "to": "Príjemca",
+    "validity": "Validita",
+    "rounds": "blokov",
+    "note": "Poznámka",
+    "group": "ID skupiny transakcií",
+    "app": "ID aplikácie",
+    "app_args": "Argumenty aplikácie",
+    "app_accounts": "Účty aplikácie",
+    "app_assets": "ID aktív aplikácie",
+    "boxes": "Boxy",
+    "name": "Názov",
+    "genesis": "Genesis ID",
+    "genesis_hash": "Genesis Hash"
   }
 }

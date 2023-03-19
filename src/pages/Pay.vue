@@ -316,13 +316,13 @@
               </div>
             </td>
           </tr>
-          <tr>
+          <tr v-if="payTo">
             <th>{{ $t("pay.pay_to") }}:</th>
             <td>{{ payTo }}</td>
           </tr>
-          <tr>
+          <tr v-if="paynote">
             <th>{{ $t("pay.note") }}:</th>
-            <td v-if="!paynote || paynote.length < 50">
+            <td v-if="paynote.length < 50">
               {{ paynote }}
             </td>
             <td v-else>
@@ -416,19 +416,26 @@
               <th>{{ $t("pay.tag") }}</th>
               <td>{{ multisigDecoded.txn.tag }}</td>
             </tr>
-            <tr v-if="multisigDecoded.txn.reKeyTo">
+            <tr
+              v-if="
+                multisigDecoded.txn.reKeyTo &&
+                multisigDecoded.txn.reKeyTo.publicKey
+              "
+            >
               <th>{{ $t("pay.rekey_to") }}</th>
               <td class="alert alert-danger">
                 {{ encodeAddress(multisigDecoded.txn.reKeyTo.publicKey) }}
               </td>
             </tr>
-            <tr>
+            <tr
+              v-if="multisigDecoded.txn.to && multisigDecoded.txn.to.publicKey"
+            >
               <th>{{ $t("pay.to_account") }}</th>
               <td>{{ encodeAddress(multisigDecoded.txn.to.publicKey) }}</td>
             </tr>
           </table>
 
-          <h2>{{ $t("pay.signatures") }}</h2>
+          <h2>{{ $t("pay.signatures") }} {{ showSignaturesCount }}</h2>
           <table class="w-100">
             <tr v-for="sig in multisigDecoded.msig.subsig" :key="sig">
               <th>
@@ -457,18 +464,30 @@
           value="Process payment"
         />
         <input
-          v-if="isMultisig"
+          v-if="isMultisig && this.$route.name != 'PayFromWalletConnect'"
           class="btn btn-primary"
           type="submit"
           value="Create multisig proposal"
         />
 
         <input
+          v-if="this.$route.name != 'PayFromWalletConnect'"
           class="btn btn-light mx-2"
           value="Go back"
           @click="page = 'design'"
         />
-        <textarea v-if="txn" v-model="txn" class="form-control my-2" rows="5" />
+        <textarea
+          v-if="
+            txn &&
+            $store &&
+            $store.state &&
+            $store.state.config &&
+            $store.state.config.dev
+          "
+          v-model="txn"
+          class="form-control my-2"
+          rows="5"
+        />
         <div v-if="isMultisig && multisigDecoded.txn">
           <label>{{ $t("pay.sign_with") }}</label>
           <select v-model="signMultisigWith" class="form-control" multiple>
@@ -492,14 +511,38 @@
             v-if="rawSignedTxn"
             v-model="rawSignedTxn"
             class="form-control my-2"
-            rows="8"
+            rows="4"
+          />
+          <p v-if="rawSignedTxn">{{ $t("pay.combine_title") }}:</p>
+          <textarea
+            v-if="rawSignedTxn"
+            v-model="rawSignedTxnFriend"
+            class="form-control my-2"
+            rows="4"
           />
           <button
+            v-if="rawSignedTxnFriend"
+            class="btn btn-primary m-2"
+            :disabled="!rawSignedTxn && !rawSignedTxnInput"
+            @click="combineSignatures"
+          >
+            {{ $t("pay.combine_action") }}
+          </button>
+          <button
+            v-if="this.$route.name != 'PayFromWalletConnect'"
             class="btn btn-primary m-2"
             :disabled="!rawSignedTxn && !rawSignedTxnInput"
             @click="sendMultisig"
           >
             {{ $t("pay.send_to_network") }}
+          </button>
+          <button
+            v-if="this.$route.name == 'PayFromWalletConnect'"
+            class="btn btn-primary m-2"
+            :disabled="!thresholdMet"
+            @click="retToWalletConnect"
+          >
+            {{ $t("pay.return_to_wc") }}
           </button>
         </div>
         <div
@@ -610,6 +653,7 @@ export default {
       subpage: "",
       txn: null,
       rawSignedTxn: null,
+      rawSignedTxnFriend: null,
       rawSignedTxnInput: null,
       signMultisigWith: [],
       multisigDecoded: {},
@@ -720,6 +764,14 @@ export default {
       return this.$store.state.wallet.isOpen;
     },
     malformedAddress() {
+      if (
+        this.multisigDecoded &&
+        this.multisigDecoded.txn &&
+        this.multisigDecoded.txn.type &&
+        this.multisigDecoded.txn.type == "appl"
+      ) {
+        return false;
+      }
       return !algosdk.isValidAddress(this.payTo);
     },
     rekeyedToInfo() {
@@ -739,6 +791,17 @@ export default {
       );
       if (!rekeyedInfo) return;
       return rekeyedInfo.params;
+    },
+    showSignaturesCount() {
+      return `${
+        this.multisigDecoded.msig.subsig.filter((s) => !!s.s).length
+      } / ${this.multisigDecoded.msig.thr}`;
+    },
+    thresholdMet() {
+      return (
+        this.multisigDecoded.msig.subsig.filter((s) => !!s.s).length >=
+        this.multisigDecoded.msig.thr
+      );
     },
   },
   watch: {
@@ -801,6 +864,36 @@ export default {
     if (this.$route.params.toAccount) {
       this.parseToAccount();
     }
+    console.log("this.$route", this.$route);
+    if (this.$route.name == "PayFromWalletConnect") {
+      try {
+        this.txn = this.$store.state.signer.toSign;
+        if (this.txn.to) {
+          this.payTo = algosdk.encodeAddress(this.txn.to.publicKey);
+        }
+        this.payFromDirect = algosdk.encodeAddress(this.txn.from.publicKey);
+
+        const rawSignedTxn = await this.signerCreateMultisigTransaction({
+          txn: this.txn,
+          from: this.payFrom,
+        });
+        this.rawSignedTxn = this._arrayBufferToBase64(rawSignedTxn);
+        console.log("this.rawSignedTxn", this.rawSignedTxn);
+        this.rawSignedTxnInput = this.rawSignedTxn;
+
+        this.multisigDecoded = algosdk.decodeSignedTransaction(
+          this._base64ToArrayBuffer(this.rawSignedTxnInput)
+        );
+        console.log("this.multisigDecoded", this.multisigDecoded);
+        this.note = this.txn.note;
+        this.asset = this.txn.assetIndex;
+        console.log("this.txn", this.txn);
+        this.page = "review";
+        console.log("this.payFromDirect", this.payFromDirect);
+      } catch (e) {
+        console.error("Input is not valid base64-url format ", e);
+      }
+    }
     if (this.$route.params.rawSignedTxnInput) {
       try {
         const encoded = this.$route.params.rawSignedTxnInput;
@@ -858,6 +951,9 @@ export default {
       setEnv: "config/setEnv",
       openSuccess: "toast/openSuccess",
       openError: "toast/openError",
+      signerSignMultisig: "signer/signMultisig",
+      signerCreateMultisigTransaction: "signer/createMultisigTransaction",
+      signerSetSigned: "signer/setSigned",
     }),
     isBase64(str) {
       try {
@@ -978,62 +1074,104 @@ export default {
       }
       console.log("this.signMultisigWith", this.signMultisigWith);
       const selected = Object.values(this.signMultisigWith);
+      if (
+        this.multisigParams &&
+        typeof this.multisigParams.threshold === "string"
+      ) {
+        this.multisigParams.threshold = parseInt(this.multisigParams.threshold);
+      }
+      if (rawSignedTxn == null) {
+        rawSignedTxn = await this.signerCreateMultisigTransaction({
+          txn: this.txn,
+          from: this.payFrom,
+        });
+        // const sk = await this.getSK({
+        //   addr: this.accountsFromMultisig[0].addr,
+        // });
+        // console.log(
+        //   "before signMultisigTransaction",
+        //   this.txn,
+        //   this.account,
+        //   this.multisigParams,
+        //   sk
+        // );
+        // rawSignedTxn = algosdk.signMultisigTransaction(
+        //   this.txn,
+        //   this.multisigParams,
+        //   sk
+        // ).blob;
+      }
+      console.log(
+        "rawSignedTxn.toSign",
+        rawSignedTxn,
+        algosdk.decodeObj(rawSignedTxn)
+      );
+      console.log("this.accountsFromMultisig", this.accountsFromMultisig);
       for (const acc in this.accountsFromMultisig) {
         if (!selected.includes(this.accountsFromMultisig[acc].addr)) {
           continue;
         }
-        console.log("this.multisigParams", this.multisigParams);
-        if (
-          this.multisigParams &&
-          typeof this.multisigParams.threshold === "string"
-        ) {
-          this.multisigParams.threshold = parseInt(
-            this.multisigParams.threshold
-          );
-        }
-        if (rawSignedTxn == null) {
-          const sk = await this.getSK({
-            addr: this.accountsFromMultisig[acc].addr,
-          });
-          console.log(
-            "before signMultisigTransaction",
+        console.log("signing with ", acc);
+        // if (rawSignedTxn == null) {
+        //   const sk = await this.getSK({
+        //     addr: this.accountsFromMultisig[acc].addr,
+        //   });
+        //   console.log(
+        //     "before signMultisigTransaction",
 
-            this.txn,
-            this.account,
-            this.multisigParams,
-            sk
-          );
-          rawSignedTxn = algosdk.signMultisigTransaction(
-            this.txn,
-            this.multisigParams,
-            sk
-          ).blob;
-          console.log("rawSignedTxn", rawSignedTxn);
-        } else {
-          const sk = await this.getSK({
-            addr: this.accountsFromMultisig[acc].addr,
-          });
-          if (sk) {
-            console.log(
-              "before appendSignMultisigTransaction",
-              rawSignedTxn,
-              this.multisigParams,
-              sk
-            );
-            rawSignedTxn = algosdk.appendSignMultisigTransaction(
-              rawSignedTxn,
-              this.multisigParams,
-              sk
-            ).blob;
-            console.log("rawSignedTxn", rawSignedTxn);
-          } else {
-            this.error = "You do not have private key to this account.";
-          }
-        }
+        //     this.txn,
+        //     this.account,
+        //     this.multisigParams,
+        //     sk
+        //   );
+        //   rawSignedTxn = algosdk.signMultisigTransaction(
+        //     this.txn,
+        //     this.multisigParams,
+        //     sk
+        //   ).blob;
+        //   console.log("rawSignedTxn", rawSignedTxn);
+        // } else {
+        // const sk = await this.getSK({
+        //   addr: this.accountsFromMultisig[acc].addr,
+        // });
+        // if (sk) {
+        //   console.log(
+        //     "before appendSignMultisigTransaction",
+        //     rawSignedTxn,
+        //     this.multisigParams,
+        //     sk
+        //   );
+        //   rawSignedTxn = algosdk.appendSignMultisigTransaction(
+        //     rawSignedTxn,
+        //     this.multisigParams,
+        //     sk
+        //   ).blob;
+        //   console.log("rawSignedTxn", rawSignedTxn);
+        // } else {
+        //   this.error = "You do not have private key to this account.";
+        // }
+        // }
+        rawSignedTxn = await this.signerSignMultisig({
+          msigTx: rawSignedTxn,
+          signator: this.accountsFromMultisig[acc].addr,
+          txn: this.txn,
+        }).catch((e) => {
+          console.error("e", e);
+          this.openError(e.message ?? e);
+        });
+        // console.log(
+        //   "rawSignedTxn",
+        //   rawSignedTxn,
+        //   algosdk.decodeSignedTransaction(rawSignedTxn)
+        // );
       }
       this.rawSignedTxn = this._arrayBufferToBase64(rawSignedTxn);
       console.log("this.rawSignedTxn", this.rawSignedTxn);
       this.rawSignedTxnInput = this.rawSignedTxn;
+
+      this.multisigDecoded = algosdk.decodeSignedTransaction(
+        this._base64ToArrayBuffer(this.rawSignedTxnInput)
+      );
       /*
       var reader = new FileReader();
       reader.readAsDataURL(new Blob(rawSignedTxn));
@@ -1404,6 +1542,22 @@ export default {
     setMaxAmount(e) {
       e.preventDefault();
       this.payamount = this.maxAmount;
+    },
+    async combineSignatures() {
+      const tx1 = new Uint8Array(Buffer.from(this.rawSignedTxn, "base64"));
+      const tx2 = new Uint8Array(
+        Buffer.from(this.rawSignedTxnFriend, "base64")
+      );
+      const merged = algosdk.mergeMultisigTransactions([tx1, tx2]);
+      this.rawSignedTxn = Buffer.from(merged).toString("base64");
+      this.multisigDecoded = algosdk.decodeSignedTransaction(
+        this._base64ToArrayBuffer(this.rawSignedTxn)
+      );
+      console.log("multisigDecoded", this.multisigDecoded);
+      await signerSetSigned(merged);
+    },
+    retToWalletConnect() {
+      this.$router.push({ name: "Connect" });
     },
   },
 };

@@ -28,19 +28,17 @@ const actions = {
       };
       const authTxn =
         algosdk.makePaymentTxnWithSuggestedParamsFromObject(authObj);
-      const sk = await dispatch(
-        "wallet/getSK",
-        { addr: account },
+      let signedAuthTxn = await dispatch(
+        "signer/signTransaction",
+        { from: account, tx: authTxn },
         {
           root: true,
         }
       );
-      if (!sk) {
-        throw new Error(
-          "You can make the account online only if you have the private key to it"
-        );
+      if (!signedAuthTxn) {
+        throw new Error("Unable to to sign the transaction for authentication");
       }
-      let signedAuthTxn = authTxn.signTxn(sk);
+
       const b64 = Buffer.from(signedAuthTxn).toString("base64");
       const auth = "SigTx " + b64;
 
@@ -73,8 +71,14 @@ const actions = {
       const txn =
         algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(toSignData);
 
-      console.log("txn", txn, sk);
-      let signedTxn = txn.signTxn(sk);
+      console.log("txn", txn);
+      let signedTxn = await dispatch(
+        "signer/signTransaction",
+        { from: account, tx: txn },
+        {
+          root: true,
+        }
+      );
       console.log("signedTxn", signedTxn);
       let txId = txn.txID().toString();
       console.log("txId", txId);

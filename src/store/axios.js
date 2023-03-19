@@ -29,7 +29,7 @@ axios.interceptors.response.use(
 );
 
 const actions = {
-  async get({ dispatch }, { url, params, headers }) {
+  async get({ dispatch }, { url, params, headers, silent }) {
     let response = null;
     try {
       let shown = false;
@@ -71,7 +71,7 @@ const actions = {
             for (const index in error.response.data.errors) {
               for (const index2 in error.response.data.errors[index]) {
                 const err = error.response.data.errors[index][index2];
-                if (err) {
+                if (!silent && err) {
                   shown = true;
                   dispatch("toast/openError", err, {
                     root: true,
@@ -84,12 +84,14 @@ const actions = {
             error.response.data &&
             error.response.data.detail
           ) {
-            shown = true;
-            dispatch("toast/openError", error.response.data.detail, {
-              root: true,
-            });
+            if (!silent) {
+              shown = true;
+              dispatch("toast/openError", error.response.data.detail, {
+                root: true,
+              });
+            }
           }
-          if (!shown) {
+          if (!shown && !silent) {
             shown = true;
             dispatch(
               "toast/openError",
@@ -107,14 +109,16 @@ const actions = {
         return false; // no content
       }
 
-      if (!shown) {
+      if (!shown && !silent) {
         dispatch("toast/openError", "Error occured, please try again later", {
           root: true,
         });
       }
     } catch (e) {
-      console.log("catch.e", e);
-      dispatch("toast/openError", e.message, { root: true });
+      if (!silent) {
+        console.log("catch.e", e);
+        dispatch("toast/openError", e.message, { root: true });
+      }
     }
   },
   async download({ dispatch }, { url, params, type, name }) {

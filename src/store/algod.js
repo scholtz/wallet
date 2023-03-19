@@ -97,20 +97,14 @@ const actions = {
         reKeyTo,
       });
 
-      let sk = null;
-      if (payFrom.sk) {
-        sk = payFrom.sk;
-      } else {
-        sk = await dispatch(
-          "wallet/getSK",
-          { addr: payFrom },
-          {
-            root: true,
-          }
-        );
-      }
-      console.log("txn", txn, sk);
-      let signedTxn = txn.signTxn(sk);
+      let signedTxn = await dispatch(
+        "signer/signTransaction",
+        { from: payFrom, tx: txn },
+        {
+          root: true,
+        }
+      );
+
       console.log("signedTxn", signedTxn);
       let txId = txn.txID().toString();
       console.log("txId", txId);
@@ -170,13 +164,6 @@ const actions = {
       this.state.config.algod,
       url.port
     );
-    const sk = await dispatch(
-      "wallet/getSK",
-      { addr: asset.addr },
-      {
-        root: true,
-      }
-    );
     let params = await algodclient.getTransactionParams().do();
     if (!asset.manager) asset.manager = asset.addr;
 
@@ -218,8 +205,14 @@ const actions = {
       params
     );
 
-    let rawSignedTxn = txn.signTxn(sk);
-    const ret = await algodclient.sendRawTransaction(rawSignedTxn).do();
+    let signedTxn = await dispatch(
+      "signer/signTransaction",
+      { from: asset.addr, tx: txn },
+      {
+        root: true,
+      }
+    );
+    const ret = await algodclient.sendRawTransaction(signedTxn).do();
     console.log("sent to network", ret);
     return ret;
   },

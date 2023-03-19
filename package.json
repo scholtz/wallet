@@ -14,10 +14,13 @@
     "test:open": "run-p -r server cypress:open"
   },
   "dependencies": {
+    "@ledgerhq/hw-app-algorand": "^6.27.12",
+    "@ledgerhq/hw-transport-webusb": "^6.27.12",
     "@popperjs/core": "^2.11.6",
     "@reach-sh/stdlib": "*",
     "@revolist/vue3-datagrid": "^3.2.17",
-    "algosdk": "^1.22.0",
+    "@walletconnect/client": "^1.8.0",
+    "algosdk": "^2.1.0",
     "axios": "^0.21.4",
     "base64url": "^3.0.1",
     "bootstrap": "^5.2.2",

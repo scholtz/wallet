@@ -46,7 +46,8 @@
     "privacy_policy": "Privacy policy",
     "logout": "Logout",
     "vote": "Voting",
-    "swap": "SWAP"
+    "swap": "SWAP",
+    "connect": "WalletConnect"
   },
   "swap": {
     "title": "Swap assets using Deflex protocol",
@@ -175,7 +176,8 @@
     "cancel_payment": "Cancel payment",
     "payment_received": "Payment received",
     "go_back_to_merchant": "Go back to merchant",
-    "waiting_for_payment": "Waiting for the payment"
+    "waiting_for_payment": "Waiting for the payment",
+    "error_asset": "Error fetching asset: "
   },
   "gateway": {
     "title": "Free opensource payment gateway without middleman",
@@ -228,7 +230,6 @@
     "pay": "Nuovo pagamento",
     "receive_payment": "Ricevi pagamento",
     "name": "Nome",
-
     "address": "Indirizzo",
     "amount": "Importo",
     "amount_without_pending": "Importo senza le ricompense in attesa",
@@ -262,7 +263,11 @@
     "asset_optin": "Opt in to asset",
     "ask_question": "Ask question",
     "rekey": "Rekey account",
-    "rekeyedTo": "Rekeyed to account"
+    "rekeyedTo": "Rekeyed to account",
+    "account0": "Ledger primary account",
+    "slot": "Account at ledger slot",
+    "connect": "WalletConnect",
+    "payment_gateway": "Payment gateway"
   },
   "optin": {
     "title": "Accept transfers of asset in account",
@@ -296,7 +301,8 @@
     "account_name": "Nome account",
     "amount": "Importo",
     "address": "Indirizzo",
-    "pay": "Paga"
+    "pay": "Paga",
+    "connect": "WalletConnect"
   },
   "newacc": {
     "title": "Nuovo account",
@@ -343,7 +349,8 @@
     "basic_account": "Account di base",
     "multisig_account": "Account multifirma",
     "public_account": "Account pubblico",
-    "rekeyed": "Rekeyed account"
+    "rekeyed": "Rekeyed account",
+    "ledger_account": "HW ledger account"
   },
   "pay": {
     "title": "Effettua pagamento - da",
@@ -398,7 +405,10 @@
     "rekey_to_wallet_account": "Rekey to wallet account",
     "rekey_to_external_account": "Rekey to external account",
     "rekey_title": "Rekey account",
-    "rekey_warning": "Please take a special attention to this transaction. From now on, the account will use different private key to be able to do the transactions. If you do not have private key of the new account, you will most likely loose ability to sign transactions."
+    "rekey_warning": "Please take a special attention to this transaction. From now on, the account will use different private key to be able to do the transactions. If you do not have private key of the new account, you will most likely loose ability to sign transactions.",
+    "combine_title": "Combine signatures from other signator",
+    "combine_action": "Combine signatures",
+    "return_to_wc": "Return to WalletConnect"
   },
   "settings": {
     "title": "Impostazioni",
@@ -502,7 +512,17 @@
     "note": "Nota impostata nella transazione di creazione",
     "create_button": "Crea NFT / ASA"
   },
-
+  "new_account_ledger": {
+    "header": "Add Ledger account",
+    "description": "Ledger is a physical device - HW wallet which can store your private key. The maximum security for storing the assets on algorand is multisig account with all signators secured by ledger devices.",
+    "last_error": "Last error",
+    "connect": "Connect ledger and load algorand address",
+    "slot": "Slot",
+    "address": "Address",
+    "primary_address": "Primary address",
+    "account_name": "Account name",
+    "save_address": "Save the address to the wallet"
+  },
   "faq": {
     "title": "Domande frequenti",
     "q1": "Riguardo al wallet",
@@ -533,5 +553,49 @@
     "a8_2": "Andate su crea nuovo indirizzo e selezionate l'indirizzo multifirma.",
     "a8_3": "Seleziona tutti i gli account che possono firmare le transazioni e seleziona quante firme sono necessarie come minimo perché la rete accetti il pagamento multifirma.",
     "a8_4": "Dopo aver creato l'account multifirma, puoi accedervi dalla pagina dell'elenco degli account."
+  },
+  "connect": {
+    "title": "Connect to DApps using WalletConnect",
+    "uri": "WalletConnect URI",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "sendBack": "Send back to DApp",
+    "reject": "Reject",
+    "address": "Address",
+    "or": "or",
+    "authaddr": "Authorized Address",
+    "index": "Index",
+    "type": "Type",
+    "from": "From",
+    "asset": "Asset",
+    "amount": "Amount",
+    "rekeyto": "Rekey To",
+    "method": "Method",
+    "client_id": "Client ID",
+    "request_id": "Request ID",
+    "remove": "Remove",
+    "peer": "Peer",
+    "connected": "Connected",
+    "sessions": "Sessions",
+    "requests": "Requests",
+    "fee": "Fee",
+    "total_fee": "Total Fee",
+    "sign": "Sign",
+    "clipboard": "Connect from clipboard",
+    "sign_txs": "Please sign individual transactions",
+    "signed": "Signed",
+    "to": "To",
+    "validity": "Validity",
+    "rounds": "rounds",
+    "note": "Note",
+    "group": "Group",
+    "app": "App Index",
+    "app_args": "App Args",
+    "app_accounts": "App Accounts",
+    "app_assets": "App Foreign Assets",
+    "boxes": "Boxes",
+    "name": "Name",
+    "genesis": "Genesis ID",
+    "genesis_hash": "Genesis Hash"
   }
 }
