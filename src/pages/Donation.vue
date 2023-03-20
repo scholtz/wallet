@@ -25,16 +25,6 @@
         </p>
         <ol>
           <li>
-            We would like to purchase Ledger devices and implement ledger
-            support to a-wallet. We request 500 USDt prior starting working on
-            this support.
-            <a
-              href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9NTAwMDAwMDAwJmFzc2V0PTMxMjc2OQ/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0L3N1Y2Nlc3MiLCJjYW5jZWwiOiJodHRwczovL3d3dy5hLXdhbGxldC5uZXQvZG9uYXRlIn0"
-              class="btn btn-primary"
-              >Donate now</a
-            >
-          </li>
-          <li>
             We would like to hire graphics designer to improve the Look&amp;Feel
             of the AWallet. We expect costs approximately 1000 USDt.
             <a
