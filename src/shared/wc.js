@@ -33,7 +33,7 @@ export default (() => {
     await db.wc.delete(id);
   };
 
-  const addConnector = (connector, auth, address) => {
+  const addConnector = (connector, address) => {
     const id = connector.clientId;
 
     state.connectorById[id] = {
@@ -74,7 +74,6 @@ export default (() => {
         id: id,
         name: state.store.state.wallet.name,
         addr: address,
-        auth: auth,
         data: cipher,
       });
     });
@@ -170,7 +169,6 @@ export default (() => {
       state.requestById[payload.id] = {
         payload: payload,
         connector: connector,
-        auth: auth,
         address: address,
       };
 
@@ -200,13 +198,12 @@ export default (() => {
     state.store.commit("wc/addConnector", {
       id: connector.clientId,
       address: address,
-      auth: auth,
       connected: connector.connected,
       requests: [],
     });
   };
 
-  const restoreConnector = (auth, address, session) => {
+  const restoreConnector = (address, session) => {
     const connector = new WalletConnect({
       session: session,
       sessionStorage: {
@@ -216,7 +213,7 @@ export default (() => {
       },
     });
 
-    addConnector(connector, auth, address);
+    addConnector(connector, address);
 
     const meta = session.peerMeta;
 
@@ -258,13 +255,13 @@ export default (() => {
     restore: async () => {
       clear();
       const name = state.store.state.wallet.name;
-      await db.wc.where({ name: name }).each(async ({ auth, addr, data }) => {
+      await db.wc.where({ name: name }).each(async ({ addr, data }) => {
         const plain = await state.store.dispatch("wallet/decrypt", { data });
         const session = JSON.parse(plain);
-        restoreConnector(auth, addr, session);
+        restoreConnector(addr, session);
       });
     },
-    createConnector: (uri, auth, address) => {
+    createConnector: (uri, address) => {
       const connector = new WalletConnect({
         uri: uri,
         session: {},
@@ -275,12 +272,12 @@ export default (() => {
         },
       });
 
-      addConnector(connector, auth, address);
+      addConnector(connector, address);
     },
     addConnector,
     removeConnector,
     acceptRequest: async (id) => {
-      const { payload, connector, auth, address } = state.requestById[id];
+      const { payload, connector } = state.requestById[id];
       const signedTxns = [];
       console.log(state.store);
       for (const item of payload.params[0]) {
