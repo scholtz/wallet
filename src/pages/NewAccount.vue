@@ -7,6 +7,10 @@
           HW Wallet - Ledger
         </router-link>
 
+        <router-link to="/new-account/wc" class="btn btn-primary m-1">
+          Wallet Connect
+        </router-link>
+
         <button v-if="!w" class="btn btn-primary m-1" @click="createAccount">
           {{ $t("newacc.create_basic") }}</button
         ><button v-if="!w" class="btn btn-primary m-1" @click="createVanity">
@@ -39,12 +43,12 @@
           <div :class="scanMnemonic ? 'col-8' : 'col-12'">
             <p>{{ $t("newacc.write_mnemonic") }}</p>
             <Password
-              inputClass="form-control my-1 w-100"
-              style="width: 100%"
-              inputStyle="width:100%"
-              :feedback="false"
-              :toggleMask="true"
               v-model="w"
+              input-class="form-control my-1 w-100"
+              style="width: 100%"
+              input-style="width:100%"
+              :feedback="false"
+              :toggle-mask="true"
             />
 
             <p>{{ $t("newacc.name") }}</p>
@@ -98,7 +102,9 @@
             vanityRPS
           }}/s)
         </div>
-        <div class="alert alert-success my-2" v-if="a">{{ a }}</div>
+        <div v-if="a" class="alert alert-success my-2">
+          {{ a }}
+        </div>
         <button
           v-if="!vanityRunning"
           class="btn my-1"
@@ -147,10 +153,10 @@
         </p>
         <p>{{ $t("newacc.select_account_from_list") }}:</p>
         <select
+          v-model="multisigaccts"
           class="select form-control"
           multiple
           rows="20"
-          v-model="multisigaccts"
           style="min-height: 150px"
         >
           <option
@@ -163,8 +169,8 @@
         </select>
         <p class="my-2">{{ $t("newacc.add_other_accounts") }}:</p>
         <textarea
-          class="form-control my-1"
           v-model="friendaccounts"
+          class="form-control my-1"
           style="min-height: 150px"
         />
 
@@ -174,21 +180,21 @@
           }}):
         </p>
         <input
+          id="customRange2"
+          v-model="multisignum"
           type="range"
           class="form-range"
           min="1"
           :max="countAccounts()"
-          v-model="multisignum"
-          id="customRange2"
         />
 
         <input
+          id="customRange2"
+          v-model="multisignum"
           type="number"
           class="form-control"
           min="1"
           :max="countAccounts()"
-          v-model="multisignum"
-          id="customRange2"
         />
 
         <p>{{ $t("newacc.name") }}</p>
@@ -201,51 +207,47 @@
           {{ $t("global.go_back") }}
         </button>
       </div>
-      <div v-if="!this.s && page == 'newaccount'">
+      <div v-if="!s && page == 'newaccount'">
         <p>
           {{ $t("newacc.create_account_help") }}
         </p>
-        <button v-if="!this.s" class="btn btn-primary" @click="this.s = true">
+        <button v-if="!s" class="btn btn-primary" @click="s = true">
           {{ $t("newacc.show_mnemonic") }}
         </button>
       </div>
-      <div v-if="this.s && this.challenge">
+      <div v-if="s && challenge">
         <p>{{ $t("newacc.position_question") }} {{ r }}?</p>
-        <input class="form-control" v-model="guess" />
+        <input v-model="guess" class="form-control" />
         <p>{{ $t("newacc.name") }}</p>
         <input v-model="name" class="form-control" />
-        <button
-          v-if="this.s"
-          class="btn btn-primary m-1"
-          @click="confirmCreate"
-        >
+        <button v-if="s" class="btn btn-primary m-1" @click="confirmCreate">
           {{ $t("newacc.create_account") }}
         </button>
         <button
-          v-if="this.s"
+          v-if="s"
           class="btn btn-primary m-1"
           @click="
-            this.challenge = false;
-            this.s = false;
+            challenge = false;
+            s = false;
           "
         >
           {{ $t("global.go_back") }}
         </button>
       </div>
-      <div v-if="this.s && !this.challenge && page == 'newaccount'">
+      <div v-if="s && !challenge && page == 'newaccount'">
         <p>
           {{ $t("newacc.mnemonic_help") }}
         </p>
 
-        <textarea class="form-control my-1" v-model="w" />
-        <input class="form-control my-1" v-model="a" />
+        <textarea v-model="w" class="form-control my-1" />
+        <input v-model="a" class="form-control my-1" />
 
         <QRCodeVue3
           :width="500"
           :height="500"
           :value="w"
-          :cornersSquareOptions="{ type: 'square', color: '#333' }"
-          :cornersDotOptions="{
+          :corners-square-options="{ type: 'square', color: '#333' }"
+          :corners-dot-options="{
             type: 'square',
             color: '#333',
             gradient: {
@@ -257,7 +259,7 @@
               ],
             },
           }"
-          :dotsOptions="{
+          :dots-options="{
             type: 'square',
             color: '#333',
             gradient: {
@@ -271,16 +273,16 @@
           }"
         />
 
-        <button v-if="this.s" class="btn btn-primary m-1" @click="makeRandom">
+        <button v-if="s" class="btn btn-primary m-1" @click="makeRandom">
           {{ $t("newacc.start_challenge") }}
         </button>
-        <button v-if="this.s" class="btn btn-light m-1" @click="createAccount">
+        <button v-if="s" class="btn btn-light m-1" @click="createAccount">
           {{ $t("newacc.create_new") }}
         </button>
-        <button v-if="this.s" class="btn btn-light m-1" @click="this.s = false">
+        <button v-if="s" class="btn btn-light m-1" @click="s = false">
           {{ $t("newacc.hide_mnemonic") }}
         </button>
-        <button v-if="this.s" class="btn btn-light m-1" @click="reset">
+        <button v-if="s" class="btn btn-light m-1" @click="reset">
           {{ $t("newacc.drop_phrase") }}
         </button>
       </div>
@@ -298,6 +300,11 @@ import moment from "moment";
 import Worker from "worker-loader!../workers/vanity";
 
 export default {
+  components: {
+    MainLayout,
+    QRCodeVue3,
+    QrcodeStream,
+  },
   data() {
     return {
       r: 0,
@@ -324,11 +331,6 @@ export default {
       vanityTime: "",
       vanityRPS: "", // results per second
     };
-  },
-  components: {
-    MainLayout,
-    QRCodeVue3,
-    QrcodeStream,
   },
   mounted() {
     this.reset();
