@@ -524,15 +524,6 @@
     "account_name": "Account name",
     "save_address": "Save the address to the wallet"
   },
-  "new_account_wc": {
-    "title": "Add WalletConnect account",
-    "account_name": "Account name",
-    "last_error": "Last error",
-    "scan": "Scan the QR code",
-    "address": "Address",
-    "save_address": "Save the address to the wallet",
-    "copy": "Copy URI to clipboard"
-  },
   "faq": {
     "title": "Frequently asked questions",
     "q1": "About AWallet",
@@ -608,5 +599,14 @@
     "name": "Name",
     "genesis": "Genesis ID",
     "genesis_hash": "Genesis Hash"
+  },
+  "new_account_wc": {
+    "title": "Add WalletConnect account",
+    "account_name": "Account name",
+    "last_error": "Last error",
+    "scan": "Scan the QR code",
+    "address": "Address",
+    "save_address": "Save the address to the wallet",
+    "copy": "Copy URI to clipboard"
   }
 }

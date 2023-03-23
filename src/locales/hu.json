@@ -350,7 +350,8 @@
     "multisig_account": "Többszörösen aláírt számla",
     "public_account": "Nyilvános számla",
     "rekeyed": "Rekeyed account",
-    "ledger_account": "HW ledger account"
+    "ledger_account": "HW ledger account",
+    "wc_account": "WalletConnect account"
   },
   "pay": {
     "title": "Kifizetés indítása innen: ",
@@ -597,5 +598,14 @@
     "name": "Name",
     "genesis": "Genesis ID",
     "genesis_hash": "Genesis Hash"
+  },
+  "new_account_wc": {
+    "title": "Add WalletConnect account",
+    "account_name": "Account name",
+    "last_error": "Last error",
+    "scan": "Scan the QR code",
+    "address": "Address",
+    "save_address": "Save the address to the wallet",
+    "copy": "Copy URI to clipboard"
   }
 }

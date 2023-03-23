@@ -350,7 +350,8 @@
     "multisig_account": "Multipodpisový účet",
     "public_account": "Verejný účet",
     "rekeyed": "Rekeyed account",
-    "ledger_account": "HW ledger účet"
+    "ledger_account": "HW ledger účet",
+    "wc_account": "WalletConnect account"
   },
   "pay": {
     "title": "Nová platba - od",
@@ -597,5 +598,14 @@
     "name": "Názov",
     "genesis": "Genesis ID",
     "genesis_hash": "Genesis Hash"
+  },
+  "new_account_wc": {
+    "title": "Add WalletConnect account",
+    "account_name": "Account name",
+    "last_error": "Last error",
+    "scan": "Scan the QR code",
+    "address": "Address",
+    "save_address": "Save the address to the wallet",
+    "copy": "Copy URI to clipboard"
   }
 }
