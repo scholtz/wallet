@@ -55,7 +55,7 @@
             <input v-model="name" class="form-control" />
 
             <button class="btn btn-primary m-1" @click="importAccountClick">
-              {{ $t("newacc.create_account") }}
+              {{ $t("newacc.import_account") }}
             </button>
 
             <button
