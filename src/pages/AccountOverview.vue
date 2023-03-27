@@ -125,6 +125,12 @@
           >
             {{ $t("acc_type.ledger_account") }}
           </div>
+          <div
+            v-else-if="account.type == 'wc'"
+            class="badge bg-success text-light"
+          >
+            {{ $t("acc_type.wc_account") }}
+          </div>
           <div v-else class="badge bg-info text-dark">
             {{ $t("acc_type.public_account") }}
           </div>

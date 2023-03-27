@@ -350,7 +350,8 @@
     "multisig_account": "Multisignature account",
     "public_account": "Public account",
     "rekeyed": "Rekeyed account",
-    "ledger_account": "HW ledger account"
+    "ledger_account": "HW ledger account",
+    "wc_account": "WalletConnect account"
   },
   "pay": {
     "title": "Make payment - from",
@@ -598,5 +599,14 @@
     "name": "Name",
     "genesis": "Genesis ID",
     "genesis_hash": "Genesis Hash"
+  },
+  "new_account_wc": {
+    "title": "Add WalletConnect account",
+    "account_name": "Account name",
+    "last_error": "Last error",
+    "scan": "Scan the QR code",
+    "address": "Address",
+    "save_address": "Save the address to the wallet",
+    "copy": "Copy URI to clipboard"
   }
 }

@@ -69,6 +69,10 @@ const mutations = {
     const account = { name, addr, addr0, slot, type: "ledger" };
     state.privateAccounts.push(account);
   },
+  addWalletConnectAccount(state, { name, addr, session }) {
+    const account = { name, addr, session, type: "wc" };
+    state.privateAccounts.push(account);
+  },
   setPrivateAccounts(state, accts) {
     if (accts) {
       state.privateAccounts = accts;
@@ -216,6 +220,20 @@ const actions = {
     }
     try {
       await commit("addLedgerAccount", { name, addr, addr0, slot });
+      await dispatch("saveWallet");
+      return true;
+    } catch (e) {
+      console.error("error", e);
+      alert("Account has not been created");
+    }
+  },
+  async addWalletConnectAccount({ dispatch, commit }, { name, addr, session }) {
+    if (!name) {
+      alert("Plase set account name");
+      return false;
+    }
+    try {
+      await commit("addWalletConnectAccount", { name, addr, session });
       await dispatch("saveWallet");
       return true;
     } catch (e) {
