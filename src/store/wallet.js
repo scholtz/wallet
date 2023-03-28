@@ -385,7 +385,7 @@ const actions = {
       //console.log("walletRecord.data", walletRecord.data);
       return btoa(walletRecord.data);
     } catch (e) {
-      alert("Error occured: " + e);
+      alert("Error occurred: " + e);
       console.log("error", e);
     }
   },
