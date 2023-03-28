@@ -20,6 +20,7 @@ export default {
     return {
       t: "",
       b: "white",
+      envStatus: "",
     };
   },
   mounted() {
@@ -30,6 +31,7 @@ export default {
       }.bind(this),
       1000
     );
+    this.setEnvStatus();
   },
   methods: {
     ...mapActions({
@@ -64,6 +66,27 @@ export default {
           this.logout();
         }
         this.t = "";
+      }
+    },
+    setEnvStatus() {
+      const configStatus = this.$store.state.config.env;
+      switch (configStatus) {
+        case "mainnet":
+          return;
+        case "aramidmain":
+          this.envStatus = " on Aramid Mainnet";
+          return;
+        case "testnet":
+          this.envStatus = " on Testnet";
+          return;
+        case "devnet":
+          this.envStatus = " on Devnet";
+          return;
+        case "sandbox":
+          this.envStatus = " on Sandbox";
+          return;
+        default:
+          break;
       }
     },
   },
