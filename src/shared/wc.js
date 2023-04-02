@@ -307,7 +307,8 @@ export default (() => {
         console.log("state", state);
         const txId = decoded.txID();
         if (!(txId in state.store._state.data.signer.signed)) {
-          throw new Error(`Tx with id ${txId} has not been signed yet`);
+          console.log(`Tx with id ${txId} has not been signed yet, skipped`);
+          continue
         }
         const signedUint8 = state.store._state.data.signer.signed[txId];
         const b64 = Buffer.from(signedUint8).toString("base64");
