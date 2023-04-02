@@ -144,13 +144,13 @@
                   class="btn btn-primary m-1"
                   :disabled="
                     !$store.state.wallet.isOpen ||
-                    !allTxsAreSigned(slotProps.data)
+                    !atLeastOneSigned(slotProps.data)
                   "
                   @click="clickAccept(slotProps.data.id)"
                 >
                   {{ $t("connect.sendBack") }}
                 </button>
-                <span v-if="!allTxsAreSigned(slotProps.data)" class="m-2">
+                <span v-if="!atLeastOneSigned(slotProps.data)" class="m-2">
                   {{ $t("connect.sign_txs") }}
                 </span>
                 <button
@@ -652,12 +652,12 @@ export default {
         return !signed;
       }
     },
-    allTxsAreSigned(data) {
+    atLeastOneSigned(data) {
       console.log("data", data);
       for (let tx of data.transactions) {
-        if (!(tx.txn.txID() in this.$store.state.signer.signed)) return false;
+        if (tx.txn.txID() in this.$store.state.signer.signed) return true;
       }
-      return true;
+      return false;
     },
     encodeAddress(addr) {
       if (!addr || !addr.publicKey) return "-";
