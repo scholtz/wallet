@@ -95,7 +95,7 @@ const actions = {
             shown = true;
             dispatch(
               "toast/openError",
-              "Error occured, please try again later",
+              "Error occurred, please try again later",
               {
                 root: true,
               }
@@ -110,7 +110,7 @@ const actions = {
       }
 
       if (!shown && !silent) {
-        dispatch("toast/openError", "Error occured, please try again later", {
+        dispatch("toast/openError", "Error occurred, please try again later", {
           root: true,
         });
       }
@@ -211,7 +211,7 @@ const actions = {
               shown = true;
               dispatch(
                 "toast/openError",
-                "Error occured, please try again later",
+                "Error occurred, please try again later",
                 { root: true }
               );
             }
@@ -288,7 +288,7 @@ const actions = {
               shown = true;
               dispatch(
                 "toast/openError",
-                "Error occured, please try again later",
+                "Error occurred, please try again later",
                 { root: true }
               );
             }
@@ -302,7 +302,7 @@ const actions = {
       }
 
       if (!shown) {
-        dispatch("toast/openError", "Error occured, please try again later", {
+        dispatch("toast/openError", "Error occurred, please try again later", {
           root: true,
         });
       }
@@ -379,9 +379,13 @@ const actions = {
         }
         if (!shown) {
           shown = true;
-          dispatch("toast/openError", "Error occured, please try again later", {
-            root: true,
-          });
+          dispatch(
+            "toast/openError",
+            "Error occurred, please try again later",
+            {
+              root: true,
+            }
+          );
         }
       });
 
@@ -393,7 +397,7 @@ const actions = {
       }
 
       if (!shown) {
-        dispatch("toast/openError", "Error occured, please try again later", {
+        dispatch("toast/openError", "Error occurred, please try again later", {
           root: true,
         });
       }
