@@ -1,9 +1,9 @@
 import Dexie from "dexie";
 
 const db = new Dexie("AWallet");
-db.version(4).stores({
-  wallets: "++id,name,addr,data",
-  wc: "&id,name,addr,data",
+db.version(5).stores({
+  wallets: "++id,name",
+  wc: "&id,name",
 });
 
 export default db;
