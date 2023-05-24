@@ -9,7 +9,7 @@
           class="spinner-grow spinner-grow-sm"
           role="status"
           aria-hidden="true"
-        ></span>
+        />
         {{ $t("global.loading") }}
       </div>
     </div>
@@ -31,8 +31,12 @@
       </p>
       <div v-for="(delegation, category) in delegations" :key="category">
         <hr />
-        <h2 v-if="category == 'any'">{{ $t("votedelegate.category_any") }}</h2>
-        <h2 v-else>{{ category }}</h2>
+        <h2 v-if="category == 'any'">
+          {{ $t("votedelegate.category_any") }}
+        </h2>
+        <h2 v-else>
+          {{ category }}
+        </h2>
         <div v-for="(weight, account) in delegation" :key="account">
           <div class="row">
             <div class="col-8">
@@ -44,13 +48,13 @@
             <div class="col-4">
               <InputText
                 :id="'A' + category + account"
-                class="w1"
                 v-model.number="delegation[account]"
+                class="w1"
                 style="width: 14rem"
               />
               <Slider
-                class="w1"
                 v-model="delegation[account]"
+                class="w1"
                 style="width: 14rem"
               />
               <div class="m-2">
@@ -70,10 +74,10 @@
           <div class="col-1">
             <div class="form-check m-1">
               <input
+                :id="'custom-' + category"
+                v-model="walletAddress"
                 class="form-check-input"
                 type="checkbox"
-                v-model="walletAddress"
-                :id="'custom-' + category"
               />
               <label class="form-check-label" :for="'custom-' + category">
                 {{ $t("votedelegate.wallet_address") }}
@@ -88,9 +92,9 @@
               class="form-control"
             />
             <select
-              class="form-control"
-              :ref="'add-select-' + category"
               v-if="walletAddress"
+              :ref="'add-select-' + category"
+              class="form-control"
             >
               <option
                 v-for="option in $store.state.wallet.privateAccounts"
@@ -126,7 +130,7 @@
         <div class="col-2">
           <button
             class="btn btn-light btn-outline-primary"
-            @click="this.delegations[this.newCategory] = {}"
+            @click="delegations[newCategory] = {}"
           >
             {{ $t("votedelegate.add_category") }}
           </button>
@@ -146,8 +150,8 @@
           </div>
           <button
             class="btn btn-primary"
-            @click="submitDelegation"
             :disabled="!note || processing"
+            @click="submitDelegation"
           >
             {{
               $t("votedelegate.submit_text", {
@@ -163,7 +167,7 @@
           class="spinner-grow spinner-grow-sm"
           role="status"
           aria-hidden="true"
-        ></span>
+        />
         {{ $t("pay.state_sending") }}
       </p>
       <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
@@ -171,7 +175,7 @@
           class="spinner-grow spinner-grow-sm"
           role="status"
           aria-hidden="true"
-        ></span>
+        />
         {{ $t("pay.state_sent") }}: {{ tx }}.
         {{ $t("pay.state_waiting_confirm") }}
       </p>

@@ -1,7 +1,7 @@
 <template>
   <MainLayout>
     <h1>{{ $t("transaction.title") }}</h1>
-    <table class="w-100" v-if="transaction">
+    <table v-if="transaction" class="w-100">
       <tr>
         <th>{{ $t("transaction.tr_id") }}:</th>
         <td>{{ transaction["id"] }}</td>
@@ -49,10 +49,9 @@
               transaction['asset-config-transaction']['params']['creator']
             "
             class="btn btn-xs btn-light"
-            >{{
-              transaction["asset-config-transaction"]["params"]["creator"]
-            }}</router-link
           >
+            {{ transaction["asset-config-transaction"]["params"]["creator"] }}
+          </router-link>
         </td>
       </tr>
       <tr v-if="transaction['asset-config-transaction']">
@@ -69,10 +68,9 @@
               transaction['asset-config-transaction']['params']['manager']
             "
             class="btn btn-xs btn-light"
-            >{{
-              transaction["asset-config-transaction"]["params"]["manager"]
-            }}</router-link
           >
+            {{ transaction["asset-config-transaction"]["params"]["manager"] }}
+          </router-link>
         </td>
       </tr>
       <tr v-if="transaction['asset-config-transaction']">
@@ -89,10 +87,9 @@
               transaction['asset-config-transaction']['params']['reserve']
             "
             class="btn btn-xs btn-light"
-            >{{
-              transaction["asset-config-transaction"]["params"]["reserve"]
-            }}</router-link
           >
+            {{ transaction["asset-config-transaction"]["params"]["reserve"] }}
+          </router-link>
         </td>
       </tr>
       <tr v-if="transaction['asset-config-transaction']">
@@ -109,10 +106,9 @@
               transaction['asset-config-transaction']['params']['freeze']
             "
             class="btn btn-xs btn-light"
-            >{{
-              transaction["asset-config-transaction"]["params"]["freeze"]
-            }}</router-link
           >
+            {{ transaction["asset-config-transaction"]["params"]["freeze"] }}
+          </router-link>
         </td>
       </tr>
       <tr v-if="transaction['asset-config-transaction']">
@@ -129,10 +125,9 @@
               transaction['asset-config-transaction']['params']['clawback']
             "
             class="btn btn-xs btn-light"
-            >{{
-              transaction["asset-config-transaction"]["params"]["clawback"]
-            }}</router-link
           >
+            {{ transaction["asset-config-transaction"]["params"]["clawback"] }}
+          </router-link>
         </td>
       </tr>
       <tr v-if="transaction['asset-config-transaction']">
@@ -238,10 +233,9 @@
               transaction['asset-transfer-transaction']['receiver']
             "
             class="btn btn-xs btn-light"
-            >{{
-              transaction["asset-transfer-transaction"]["receiver"]
-            }}</router-link
           >
+            {{ transaction["asset-transfer-transaction"]["receiver"] }}
+          </router-link>
         </td>
       </tr>
       <tr v-if="transaction['payment-transaction']">
@@ -280,8 +274,9 @@
           <router-link
             :to="'/account/' + transaction['payment-transaction']['receiver']"
             class="btn btn-xs btn-light"
-            >{{ transaction["payment-transaction"]["receiver"] }}</router-link
           >
+            {{ transaction["payment-transaction"]["receiver"] }}
+          </router-link>
         </td>
       </tr>
       <tr>
@@ -294,8 +289,9 @@
           <router-link
             :to="'/account/' + transaction['sender']"
             class="btn btn-xs btn-light"
-            >{{ transaction["sender"] }}</router-link
           >
+            {{ transaction["sender"] }}
+          </router-link>
         </td>
       </tr>
       <tr>

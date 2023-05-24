@@ -9,25 +9,27 @@
           class="spinner-grow spinner-grow-sm"
           role="status"
           aria-hidden="true"
-        ></span>
+        />
         {{ $t("global.loading") }}
       </div>
     </div>
     <div v-else>
       <DataTable
-        :value="questions"
-        responsiveLayout="scroll"
-        selectionMode="single"
         v-model:selection="selection"
+        :value="questions"
+        responsive-layout="scroll"
+        selection-mode="single"
         :paginator="true"
         :rows="20"
       >
-        <template #empty> {{ $t("voteanswerslist.no_answers") }} </template>
+        <template #empty>
+          {{ $t("voteanswerslist.no_answers") }}
+        </template>
         <Column
           field="round"
           :header="$t('voteanswerslist.round')"
           :sortable="true"
-        ></Column>
+        />
         <Column
           field="round-time"
           :header="$t('voteanswerslist.time')"
@@ -47,8 +49,8 @@
           field="sender"
           :header="$t('voteanswerslist.sender')"
           :sortable="true"
-          styleClass="not-show-at-start"
-        ></Column>
+          style-class="not-show-at-start"
+        />
         <Column field="response" :header="$t('voteanswerslist.response')">
           <template #body="slotProps">
             <div v-if="slotProps.column.props.field in slotProps.data">
@@ -83,6 +85,15 @@ export default {
       error: "",
     };
   },
+  computed: {
+    isASAVote() {
+      if (!this.currentToken) return false;
+      return parseInt(this.currentToken) > 0;
+    },
+    currentToken() {
+      return this.$store.state.vote.assetId;
+    },
+  },
   watch: {
     async selection() {
       this.$emit("update:selectedAnswer", this.selection);
@@ -94,15 +105,6 @@ export default {
     },
     currentToken() {
       this.loadTableItems();
-    },
-  },
-  computed: {
-    isASAVote() {
-      if (!this.currentToken) return false;
-      return parseInt(this.currentToken) > 0;
-    },
-    currentToken() {
-      return this.$store.state.vote.assetId;
     },
   },
   async mounted() {

@@ -1,6 +1,6 @@
 <template>
   <div class="container-fluid">
-    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+    <div id="nav-tab" class="nav nav-tabs" role="tablist">
       <v-link
         class="nav-item nav-link"
         :class="current == 'gen' ? 'active' : ''"
@@ -9,8 +9,9 @@
         role="tab"
         aria-controls="nav-home"
         aria-selected="true"
-        >{{ $t("govtoolsmenu.gen") }}</v-link
       >
+        {{ $t("govtoolsmenu.gen") }}
+      </v-link>
       <v-link
         class="nav-item nav-link"
         :class="current == 'distribute' ? 'active' : ''"
@@ -19,8 +20,9 @@
         role="tab"
         aria-controls="nav-home"
         aria-selected="true"
-        >{{ $t("govtoolsmenu.distribute") }}</v-link
       >
+        {{ $t("govtoolsmenu.distribute") }}
+      </v-link>
       <v-link
         class="nav-item nav-link"
         :class="current == 'optin' ? 'active' : ''"
@@ -29,8 +31,9 @@
         role="tab"
         aria-controls="nav-home"
         aria-selected="true"
-        >{{ $t("govtoolsmenu.optin") }}</v-link
       >
+        {{ $t("govtoolsmenu.optin") }}
+      </v-link>
       <v-link
         class="nav-item nav-link"
         :class="current == 'pay' ? 'active' : ''"
@@ -39,8 +42,9 @@
         role="tab"
         aria-controls="nav-home"
         aria-selected="true"
-        >{{ $t("govtoolsmenu.pay") }}</v-link
       >
+        {{ $t("govtoolsmenu.pay") }}
+      </v-link>
       <!--
       <v-link
         class="nav-item nav-link"

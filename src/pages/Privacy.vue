@@ -1,8 +1,7 @@
-  
 <template>
   <PublicLayout>
     <h1>{{ $t("privacy.title") }}</h1>
-    <Accordion :activeIndex="0">
+    <Accordion :active-index="0">
       <AccordionTab :header="$t('privacy.q1')">
         <p>
           {{ $t("privacy.a1") }}

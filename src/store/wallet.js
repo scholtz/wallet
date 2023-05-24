@@ -31,23 +31,52 @@ const mutations = {
       state.lastActiveAccountName = current.name;
     }
   },
-  addPrivateAccount(state, { name, secret }) {
+  addPrivateAccount(state, { name, secret, network }) {
     secret.name = name;
+    secret.network = network;
     state.privateAccounts.push(secret);
   },
   addPublicAccount(state, { name, addr }) {
-    const acc = { name, addr };
+    const acc = { name, addr, address: addr, network: state.config.env };
     state.privateAccounts.push(acc);
   },
-  deleteAccount(state, { name, addr }) {
+  deleteAccount(state, { name, addr, network }) {
     const index = state.privateAccounts.findIndex(
-      (acc) => acc.name == name && acc.addr == addr
+      (acc) =>
+        acc.name == name &&
+        acc.addr == addr &&
+        (acc.network === undefined || acc.network === network)
     );
     //console.log("deleting", index);
     state.privateAccounts.splice(index, 1);
   },
   setPrivateAccount(state, { info }) {
-    const acc = state.privateAccounts.find((x) => x.addr == info.address);
+    console.log("state.privateAccounts", state.privateAccounts);
+    console.log("setPrivateAccount.mutation", info);
+    if (!info.address) {
+      if (!info.addr) return;
+      info.address = info.addr;
+    }
+    if (!info.addr) {
+      if (!info.address) return;
+      info.addr = info.address;
+    }
+    let acc = state.privateAccounts.find(
+      (x) =>
+        x.addr == info.address &&
+        (x.network === undefined || x.network === info.network)
+    );
+    if (!acc) {
+      // to change the network we match the account by address and name
+      acc = state.privateAccounts.find(
+        (x) => x.addr == info.address && x.name == info.name
+      );
+    }
+    if (!acc) {
+      // fallback
+      acc = state.privateAccounts.find((x) => x.addr == info.address);
+    }
+    console.log("acc", acc, state.privateAccounts);
     if (!acc || !acc.addr)
       throw `Error storing account. Address ${info.address} not found`;
     if (acc) {
@@ -59,18 +88,76 @@ const mutations = {
         }
       }
     }
-    //console.log("setPrivateAccount", info, acc);
+    console.log("setPrivateAccount", info, acc);
   },
-  addMultiAccount(state, { addr, params, name }) {
-    const multsigaddr = { addr, name, params, type: "msig" };
+  addMultiAccount(state, { addr, params, name, network }) {
+    const multsigaddr = {
+      addr,
+      address: addr,
+      name,
+      params,
+      network,
+      type: "msig",
+    };
     state.privateAccounts.push(multsigaddr);
   },
-  addLedgerAccount(state, { name, addr, addr0, slot }) {
-    const account = { name, addr, addr0, slot, type: "ledger" };
+  add2FAAccount(
+    state,
+    {
+      params,
+      addr,
+      name,
+      primaryAccount,
+      recoveryAccount,
+      twoFactorAccount,
+      network,
+    }
+  ) {
+    const multsigaddr = {
+      addr,
+      address: addr,
+      name,
+      params,
+      type: "2fa",
+      primaryAccount,
+      recoveryAccount,
+      twoFactorAccount,
+      network,
+    };
+    state.privateAccounts.push(multsigaddr);
+  },
+  add2FAApiAccount(
+    state,
+    {
+      addr,
+      name,
+      primaryAccount,
+      recoveryAccount,
+      multisigAccount,
+      network,
+      twoFactorAuthProvider,
+    }
+  ) {
+    const multsigaddr = {
+      addr,
+      address: addr,
+      name: `2FA ${name}`,
+      type: "2faApi",
+      primaryAccount,
+      recoveryAccount,
+      multisigAccount,
+      network,
+      isHidden: true,
+      twoFactorAuthProvider,
+    };
+    state.privateAccounts.push(multsigaddr);
+  },
+  addLedgerAccount(state, { name, addr, addr0, slot, network }) {
+    const account = { name, addr, addr0, slot, network, type: "ledger" };
     state.privateAccounts.push(account);
   },
-  addWalletConnectAccount(state, { name, addr, session }) {
-    const account = { name, addr, session, type: "wc" };
+  addWalletConnectAccount(state, { name, addr, session, network }) {
+    const account = { name, addr, session, network, type: "wc" };
     state.privateAccounts.push(account);
   },
   setPrivateAccounts(state, accts) {
@@ -156,7 +243,11 @@ const actions = {
     }
     try {
       const secret = algosdk.mnemonicToSecretKey(mn);
-      await commit("addPrivateAccount", { name, secret });
+      await commit("addPrivateAccount", {
+        name,
+        secret,
+        network: this.state.config.env,
+      });
       await dispatch("saveWallet");
       return true;
     } catch (e) {
@@ -171,7 +262,11 @@ const actions = {
       return false;
     }
     try {
-      await commit("addPublicAccount", { name, addr });
+      await commit("addPublicAccount", {
+        name,
+        addr,
+        network: this.state.config.env,
+      });
       await dispatch("saveWallet");
       return true;
     } catch (e) {
@@ -189,7 +284,11 @@ const actions = {
       return false;
     }
     try {
-      await commit("deleteAccount", { name, addr });
+      await commit("deleteAccount", {
+        name,
+        addr,
+        network: this.state.config.env,
+      });
       await dispatch("saveWallet");
       return true;
     } catch (e) {
@@ -205,7 +304,61 @@ const actions = {
     try {
       const multsigaddr = algosdk.multisigAddress(params);
 
-      await commit("addMultiAccount", { addr: multsigaddr, params, name });
+      await commit("addMultiAccount", {
+        addr: multsigaddr,
+        params,
+        name,
+        network: this.state.config.env,
+      });
+      await dispatch("saveWallet");
+      return true;
+    } catch (e) {
+      console.error("error", e);
+      alert("Account has not been created");
+    }
+  },
+  async add2FAAccount(
+    { dispatch, commit },
+    {
+      name,
+      primaryAccount,
+      recoveryAccount,
+      twoFactorAccount,
+      twoFactorAuthProvider,
+    }
+  ) {
+    if (!name) {
+      alert("Plase set account name");
+      return false;
+    }
+    try {
+      const addrs = [primaryAccount, recoveryAccount, twoFactorAccount].sort();
+      const params = {
+        version: 1,
+        threshold: 2,
+        addrs,
+      };
+      const multisigAccount = algosdk.multisigAddress(params);
+
+      await commit("add2FAApiAccount", {
+        addr: twoFactorAccount,
+        name,
+        primaryAccount,
+        recoveryAccount,
+        multisigAccount,
+        twoFactorAuthProvider,
+        network: this.state.config.env,
+      });
+
+      await commit("add2FAAccount", {
+        addr: multisigAccount,
+        params,
+        name,
+        primaryAccount,
+        recoveryAccount,
+        twoFactorAccount,
+        network: this.state.config.env,
+      });
       await dispatch("saveWallet");
       return true;
     } catch (e) {
@@ -219,7 +372,13 @@ const actions = {
       return false;
     }
     try {
-      await commit("addLedgerAccount", { name, addr, addr0, slot });
+      await commit("addLedgerAccount", {
+        name,
+        addr,
+        addr0,
+        slot,
+        network: this.state.config.env,
+      });
       await dispatch("saveWallet");
       return true;
     } catch (e) {
@@ -233,7 +392,12 @@ const actions = {
       return false;
     }
     try {
-      await commit("addWalletConnectAccount", { name, addr, session });
+      await commit("addWalletConnectAccount", {
+        name,
+        addr,
+        session,
+        network: this.state.config.env,
+      });
       await dispatch("saveWallet");
       return true;
     } catch (e) {

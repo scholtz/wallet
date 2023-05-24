@@ -10,6 +10,7 @@ const state = () => ({
 
 const mutations = {
   setSigned(state, signed) {
+    console.log("signed", signed);
     const tx = algosdk.decodeSignedTransaction(signed);
     const txId = tx.txn.txID();
     state.signed[txId] = signed;
@@ -287,6 +288,7 @@ const actions = {
     }
   },
   async signMultisigBySk({ dispatch, commit }, { msigTx, signator, txn }) {
+    if (!txn) throw Error("Txn cannot be empty");
     let signatorAccount = this.state.wallet.privateAccounts.find(
       (a) => a.addr == signator
     );

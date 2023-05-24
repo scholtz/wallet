@@ -21,8 +21,8 @@
         <div>
           <button
             class="btn my-2 btn-primary"
-            @click="clickSign"
             :disabled="processingSigning"
+            @click="clickSign"
           >
             Sign authentication transaction
             <span
@@ -30,16 +30,11 @@
               class="spinner-grow spinner-grow-sm"
               role="status"
               aria-hidden="true"
-            ></span>
+            />
           </button>
         </div>
         <div>
-          <textarea
-            disabled
-            class="form-control"
-            v-model="output"
-            rows="5"
-          ></textarea>
+          <textarea v-model="output" disabled class="form-control" rows="5" />
         </div>
       </div>
     </div>
@@ -76,7 +71,6 @@ export default {
       setAccountOnline: "kmd/setAccountOnline",
       openSuccess: "toast/openSuccess",
       axiosGet: "axios/get",
-      axiosPost: "axios/post",
       getSK: "wallet/getSK",
       getTransactionParams: "algod/getTransactionParams",
       sendRawTransaction: "algod/sendRawTransaction",

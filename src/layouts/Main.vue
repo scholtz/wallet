@@ -6,7 +6,7 @@
       v-if="$store.state.wallet.isOpen"
       class="container-fluid d-flex flex-column flex-grow-1"
     >
-      <slot></slot>
+      <slot />
     </div>
     <div v-else class="d-flex flex-column flex-grow-1">
       <Login />
@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import Toast from 'primevue/toast';
+import Toast from "primevue/toast";
 import Navbar from "../components/Navbar.vue";
 import Footer from "../components/Footer.vue";
 import Login from "../components/Login.vue";
@@ -26,18 +26,18 @@ export default {
     Navbar,
     Login,
     Footer,
-    Toast
+    Toast,
   },
-  created(){
-    this.setVM({_vm:this})
+  created() {
+    this.setVM({ _vm: this });
   },
-  mounted(){
-    this.setVM({_vm:this})
+  mounted() {
+    this.setVM({ _vm: this });
   },
-  methods:{
+  methods: {
     ...mapActions({
       setVM: "toast/setVM",
-    })
-  }
+    }),
+  },
 };
 </script>

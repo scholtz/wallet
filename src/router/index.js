@@ -33,6 +33,7 @@ import Swap from "@/pages/Swap.vue";
 import Arc14 from "@/pages/Arc14.vue";
 import NewAccountLedger from "@/pages/NewAccount/Ledger.vue";
 import NewAccountWalletConnect from "@/pages/NewAccount/WalletConnect.vue";
+import NewAccount2FA from "@/pages/NewAccount/2FA.vue";
 
 const routes = [
   {
@@ -49,6 +50,11 @@ const routes = [
     path: "/new-account/ledger",
     name: "NewAccountLedger",
     component: NewAccountLedger,
+  },
+  {
+    path: "/new-account/2fa",
+    name: "NewAccount2fa",
+    component: NewAccount2FA,
   },
   {
     path: "/new-account/wc",

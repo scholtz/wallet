@@ -353,6 +353,9 @@
     "ledger_account": "HW ledger účet",
     "wc_account": "WalletConnect account"
   },
+  "account": {
+    "select_account": "Vyberte si účet"
+  },
   "pay": {
     "title": "Nová platba - od",
     "toggle_camera": "Zapnúť/Vypnúť kameru",

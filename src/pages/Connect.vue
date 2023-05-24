@@ -452,7 +452,6 @@ export default {
       setAccountOnline: "kmd/setAccountOnline",
       openSuccess: "toast/openSuccess",
       axiosGet: "axios/get",
-      axiosPost: "axios/post",
       getTransactionParams: "algod/getTransactionParams",
       sendRawTransaction: "algod/sendRawTransaction",
       waitForConfirmation: "algod/waitForConfirmation",

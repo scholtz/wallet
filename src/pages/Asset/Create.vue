@@ -5,16 +5,16 @@
         {{ $t("assetcreate.title") }}
 
         <button
+          v-if="!advanced"
           class="btn btn-light btn-xs"
           @click="advanced = true"
-          v-if="!advanced"
         >
           {{ $t("assetcreate.show_advanced") }}
         </button>
         <button
+          v-if="advanced"
           class="btn btn-light btn-xs"
           @click="advanced = false"
-          v-if="advanced"
         >
           {{ $t("assetcreate.hide_advanced") }}
         </button>
@@ -24,8 +24,8 @@
         $t("assetcreate.assetName")
       }}</label>
       <input
-        v-model="asset.assetName"
         id="assetName"
+        v-model="asset.assetName"
         class="form-control m-1"
       />
       <label for="addr " class="m-1">{{ $t("assetcreate.creator") }} </label>
@@ -34,8 +34,8 @@
       </div>
       <select
         v-if="hasPrivate"
-        class="select form-control m-1"
         v-model="asset.addr"
+        class="select form-control m-1"
       >
         <option
           v-for="option in accountsWithPrivateKey"
@@ -45,24 +45,24 @@
           {{ option.name }} - {{ option.addr }}
         </option>
       </select>
-      <div class="form-check m-1" v-if="advanced">
+      <div v-if="advanced" class="form-check m-1">
         <input
+          id="defaultFrozen"
+          v-model="asset.defaultFrozen"
           class="form-check-input"
           type="checkbox"
-          v-model="asset.defaultFrozen"
-          id="defaultFrozen"
         />
         <label class="form-check-label" for="defaultFrozen">
           {{ $t("assetcreate.default_fronzen") }}
         </label>
       </div>
-      <label for="decimals" class="m-1" v-if="advanced"
+      <label v-if="advanced" for="decimals" class="m-1"
         >{{ $t("assetcreate.decimals") }}
       </label>
       <input
         v-if="advanced"
-        v-model="asset.decimals"
         id="decimals"
+        v-model="asset.decimals"
         class="form-control m-1"
         type="number"
         min="0"
@@ -77,49 +77,49 @@
         >)
       </label>
       <input
-        v-model="asset.totalIssuance"
         id="totalIssuance"
+        v-model="asset.totalIssuance"
         class="form-control m-1"
         type="number"
         min="0"
         max="1000000000000"
         step="1"
       />
-      <label for="unitName" class="m-1" v-if="advanced"
+      <label v-if="advanced" for="unitName" class="m-1"
         >{{ $t("assetcreate.unitName") }}
       </label>
       <input
-        v-model="asset.unitName"
-        id="unitName"
-        class="form-control m-1"
         v-if="advanced"
+        id="unitName"
+        v-model="asset.unitName"
+        class="form-control m-1"
       />
-      <label for="assetURL" class="m-1" v-if="advanced"
+      <label v-if="advanced" for="assetURL" class="m-1"
         >{{ $t("assetcreate.assetURL") }}
       </label>
       <input
-        v-model="asset.assetURL"
-        id="assetURL"
-        class="form-control m-1"
         v-if="advanced"
+        id="assetURL"
+        v-model="asset.assetURL"
+        class="form-control m-1"
       />
-      <label for="assetMetadataHash" class="m-1" v-if="advanced"
+      <label v-if="advanced" for="assetMetadataHash" class="m-1"
         >{{ $t("assetcreate.assetMetadataHash") }}
       </label>
       <input
         v-if="advanced"
-        v-model="asset.assetMetadataHash"
         id="assetMetadataHash"
+        v-model="asset.assetMetadataHash"
         class="form-control m-1"
       />
 
-      <label for="manager " class="m-1" v-if="advanced"
+      <label v-if="advanced" for="manager " class="m-1"
         >{{ $t("assetcreate.manager") }}
       </label>
       <select
-        class="select form-control m-1"
-        v-model="asset.manager"
         v-if="advanced"
+        v-model="asset.manager"
+        class="select form-control m-1"
       >
         <option
           v-for="option in $store.state.wallet.privateAccounts"
@@ -129,13 +129,13 @@
           {{ option.name }} - {{ option.addr }}
         </option>
       </select>
-      <label for="reserve " class="m-1" v-if="advanced"
+      <label v-if="advanced" for="reserve " class="m-1"
         >{{ $t("assetcreate.reserve") }}
       </label>
       <select
-        class="select form-control m-1"
-        v-model="asset.reserve"
         v-if="advanced"
+        v-model="asset.reserve"
+        class="select form-control m-1"
       >
         <option
           v-for="option in $store.state.wallet.privateAccounts"
@@ -145,13 +145,13 @@
           {{ option.name }} - {{ option.addr }}
         </option>
       </select>
-      <label for="freeze " class="m-1" v-if="advanced"
+      <label v-if="advanced" for="freeze " class="m-1"
         >{{ $t("assetcreate.freeze") }}
       </label>
       <select
-        class="select form-control m-1"
-        v-model="asset.freeze"
         v-if="advanced"
+        v-model="asset.freeze"
+        class="select form-control m-1"
       >
         <option
           v-for="option in $store.state.wallet.privateAccounts"
@@ -161,13 +161,13 @@
           {{ option.name }} - {{ option.addr }}
         </option>
       </select>
-      <label for="clawback " class="m-1" v-if="advanced"
+      <label v-if="advanced" for="clawback " class="m-1"
         >{{ $t("assetcreate.clawback") }}
       </label>
       <select
-        class="select form-control m-1"
-        v-model="asset.clawback"
         v-if="advanced"
+        v-model="asset.clawback"
+        class="select form-control m-1"
       >
         <option
           v-for="option in $store.state.wallet.privateAccounts"
@@ -177,14 +177,14 @@
           {{ option.name }} - {{ option.addr }}
         </option>
       </select>
-      <label for="note" class="m-1" v-if="advanced"
+      <label v-if="advanced" for="note" class="m-1"
         >{{ $t("assetcreate.note") }}
       </label>
       <input
-        v-model="asset.note"
-        id="note"
-        class="form-control m-1"
         v-if="advanced"
+        id="note"
+        v-model="asset.note"
+        class="form-control m-1"
       />
       <input
         type="submit"

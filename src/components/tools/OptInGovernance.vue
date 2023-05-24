@@ -13,11 +13,11 @@
             >List of mnemonic phrases for governance accounts</label
           >
           <textarea
-            v-model="accounts"
             id="accounts"
+            v-model="accounts"
             class="form-control"
             rows="6"
-          ></textarea>
+          />
         </div>
         <!--
         <div class="form-check m-1">
@@ -32,19 +32,19 @@
           </label>
         </div>
         -->
-        <div class="m-1" v-if="!current">
+        <div v-if="!current" class="m-1">
           <label for="amount"
             >How much algo do you want to allocate for governance each
             account?</label
           >
           <div class="input-group">
             <input
+              id="amount"
               v-model="amount"
               type="number"
               min="0"
               max="1999999999"
               step="0.000001"
-              id="amount"
               class="form-control"
               rows="6"
             />
@@ -56,7 +56,7 @@
             >Sent to account. Mainnet:
             <span
               @click="
-                this.sendTo =
+                sendTo =
                   'GULDQIEZ2CUPBSHKXRWUW7X3LCYL44AI5GGSHHOQDGKJAZ2OANZJ43S72U'
               "
               >GULDQIEZ2CUPBSHKXRWUW7X3LCYL44AI5GGSHHOQDGKJAZ2OANZJ43S72U</span
@@ -65,12 +65,12 @@
           Testnet:
           <span
             @click="
-              this.sendTo =
+              sendTo =
                 'AYP7GCB34L4QG3NY3YPGLIGJ7WQC4ERQEDOYXTO75BYH3G76RRSJIFFEGA'
             "
             >AYP7GCB34L4QG3NY3YPGLIGJ7WQC4ERQEDOYXTO75BYH3G76RRSJIFFEGA</span
           >
-          <input v-model="sendTo" id="sendTo" class="form-control" rows="6" />
+          <input id="sendTo" v-model="sendTo" class="form-control" rows="6" />
         </div>
         <div class="m-1">
           <div>
@@ -84,14 +84,14 @@
             Send transactions
           </button>
         </div>
-        <div class="m-1" v-if="results">
+        <div v-if="results" class="m-1">
           <label for="results">Results</label>
           <textarea
-            v-model="results"
             id="results"
+            v-model="results"
             class="form-control"
             rows="6"
-          ></textarea>
+          />
         </div>
       </div>
     </div>
@@ -102,14 +102,6 @@
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
 export default {
-  computed: {
-    note() {
-      return 'af/gov1:j{"com":' + Math.round(this.amount * 1000000) + "}";
-    },
-  },
-  mounted() {
-    this.prolong();
-  },
   data() {
     return {
       accounts: "",
@@ -118,6 +110,14 @@ export default {
       sending: false,
       sendTo: "",
     };
+  },
+  computed: {
+    note() {
+      return 'af/gov1:j{"com":' + Math.round(this.amount * 1000000) + "}";
+    },
+  },
+  mounted() {
+    this.prolong();
   },
   methods: {
     ...mapActions({

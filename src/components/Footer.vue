@@ -1,17 +1,17 @@
 <template>
   <footer class="container-fluid pr-0 pl-0">
     <div class="row">
-      <div class="col-1"></div>
-      <div v-if="this.$store.state.wallet.isOpen" class="col-10">
+      <div class="col-1" />
+      <div v-if="$store.state.wallet.isOpen" class="col-10">
         <p class="text-center m-0">
-          {{ $t("footer.text") + this.envStatus }}
+          {{ $t("footer.text") + envStatus }}
         </p>
       </div>
       <div class="col-1">
         <a
-          @click="prolong"
           class="btn btn-xs btn-light float-end"
-          :style="'background:' + this.b"
+          :style="'background:' + b"
+          @click="prolong"
         >
           {{ t }}
         </a>

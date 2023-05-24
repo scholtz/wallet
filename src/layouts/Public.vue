@@ -5,7 +5,7 @@
     </slot>
     <Toast />
     <div class="container-fluid d-flex flex-column flex-grow-1">
-      <slot></slot>
+      <slot />
     </div>
     <slot name="header">
       <Footer />

@@ -2,37 +2,29 @@
   <main-layout>
     <h1>{{ $t("settings.title") }}</h1>
     <h2>{{ $t("settings.server") }}</h2>
-    <label for="env">{{ $t("settings.environment") }}</label>
-    <select id="env" v-model="env" class="form-control">
-      <option value="mainnet">{{ $t("settings.mainnet") }}</option>
-      <option value="aramidmain">Aramid Algo Co-chain</option>
-      <option value="testnet">{{ $t("settings.testnet") }}</option>
-      <option value="sandbox">{{ $t("settings.sandbox") }}</option>
-      <option value="devnet">{{ $t("settings.devnet") }}</option>
-      <option value="custom">{{ $t("settings.custom") }}</option>
-    </select>
+
     <div v-if="publicList">
-      <label for="env2">Public {{ $t("settings.environment") }}</label>
+      <label for="env2">{{ $t("settings.environment") }}</label>
 
       <select id="env2" v-model="env" class="form-control">
         <option
           v-for="value in publicList"
-          :value="value.network"
           :key="value.network"
+          :value="value.network"
         >
           {{ value.name }}
         </option>
       </select>
     </div>
     <table>
-      <tr v-if="algodList && algodList.length > 0">
+      <tr v-if="algodList && algodList.length > 0 && env != 'custom'">
         <td><label for="algodProvider">Public AlgoD provider</label>:</td>
         <td>
           <select id="algodProvider" v-model="algodHost" class="form-control">
             <option
               v-for="value in algodList"
-              :value="value.host"
               :key="value.host"
+              :value="value.host"
             >
               {{ value.providerName }}
             </option>
@@ -43,9 +35,9 @@
         <td>AlgoD {{ $t("settings.host") }}:</td>
         <td>
           <input
+            v-model="algodHost"
             type="text"
             :disabled="env != 'custom'"
-            v-model="algodHost"
             class="form-control"
           />
         </td>
@@ -54,21 +46,33 @@
         <td>AlgoD {{ $t("settings.token") }}:</td>
         <td>
           <input
+            v-model="algodToken"
             type="text"
             :disabled="env != 'custom'"
-            v-model="algodToken"
             class="form-control"
           />
         </td>
       </tr>
-      <tr v-if="kmdList && kmdList.length > 0">
-        <td><label for="kmdProvider">Public KMD provider</label>:</td>
+      <tr
+        v-if="
+          participationList && participationList.length > 0 && env != 'custom'
+        "
+      >
         <td>
-          <select id="kmdProvider" v-model="kmdHost" class="form-control">
+          <label for="participationProvider"
+            >Public participation provider</label
+          >:
+        </td>
+        <td>
+          <select
+            id="participationProvider"
+            v-model="participationHost"
+            class="form-control"
+          >
             <option
-              v-for="value in kmdList"
-              :value="value.host"
+              v-for="value in participationList"
               :key="value.host"
+              :value="value.host"
             >
               {{ value.providerName }}
             </option>
@@ -76,17 +80,17 @@
         </td>
       </tr>
       <tr>
-        <td>KMD {{ $t("settings.host") }}:</td>
+        <td>Participation {{ $t("settings.host") }}:</td>
         <td>
           <input
+            v-model="participationHost"
             type="text"
             :disabled="env != 'custom'"
-            v-model="kmdHost"
             class="form-control"
           />
         </td>
       </tr>
-      <tr v-if="indexerList && indexerList.length > 0">
+      <tr v-if="indexerList && indexerList.length > 0 && env != 'custom'">
         <td><label for="indexerProvider">Public Indexer provider</label>:</td>
         <td>
           <select
@@ -96,8 +100,8 @@
           >
             <option
               v-for="value in indexerList"
-              :value="value.host"
               :key="value.host"
+              :value="value.host"
             >
               {{ value.providerName }}
             </option>
@@ -108,9 +112,9 @@
         <td>Indexer {{ $t("settings.host") }}:</td>
         <td>
           <input
+            v-model="indexerHost"
             type="text"
             :disabled="env != 'custom'"
-            v-model="indexerHost"
             class="form-control"
           />
         </td>
@@ -119,9 +123,9 @@
         <td>Indexer {{ $t("settings.token") }}:</td>
         <td>
           <input
+            v-model="indexerToken"
             type="text"
             :disabled="env != 'custom'"
-            v-model="indexerToken"
             class="form-control"
           />
         </td>
@@ -129,7 +133,7 @@
     </table>
     <div>
       <h2>{{ $t("settings.protocol_title") }}</h2>
-      <button @click="registerProtocolClick" class="btn btn-light">
+      <button class="btn btn-light" @click="registerProtocolClick">
         {{ $t("settings.protocol_button") }}
       </button>
     </div>
@@ -139,8 +143,8 @@
     <Dropdown
       v-model="$i18n.locale"
       :options="$store.state.config.languages"
-      @change="languageUpdated"
       style="min-width: 100px"
+      @change="languageUpdated"
     >
       <template #value="slotProps">
         <div v-if="slotProps.value" class="border-dark">
@@ -170,16 +174,16 @@
     <h2>{{ $t("settings.pass") }}</h2>
     <form @submit="changePasswordClick">
       <label>{{ $t("settings.oldpass") }}</label>
-      <input type="password" class="form-control my-2" v-model="passw1" />
+      <input v-model="passw1" type="password" class="form-control my-2" />
       <label
         >{{ $t("settings.newpass") }}
         <span v-if="strength" :class="strengthClass">{{
           strength
         }}</span></label
       >
-      <input type="password" class="form-control my-2" v-model="passw2" />
+      <input v-model="passw2" type="password" class="form-control my-2" />
       <label>{{ $t("settings.repeatpass") }}</label>
-      <input type="password" class="form-control my-2" v-model="passw3" />
+      <input v-model="passw3" type="password" class="form-control my-2" />
       <input type="submit" class="btn btn-light my-2" value="Update password" />
     </form>
     <h2>{{ $t("settings.dev_settings") }}</h2>
@@ -189,7 +193,7 @@
     <h2>{{ $t("settings.backup") }}</h2>
     <p>{{ $t("settings.backup_help") }}</p>
     <p>
-      <a v-if="!b64wallet" @click="makeBackupDataClick" class="btn btn-light">
+      <a v-if="!b64wallet" class="btn btn-light" @click="makeBackupDataClick">
         {{ $t("settings.create_backup") }}
       </a>
       <a
@@ -203,13 +207,13 @@
       </a>
       <a
         v-if="b64wallet"
-        @click="destroyWalletClick"
         class="btn btn-danger mx-2"
+        @click="destroyWalletClick"
       >
         {{ $t("settings.delete") }}
       </a>
-    </p></main-layout
-  >
+    </p>
+  </main-layout>
 </template>
 
 <script>
@@ -218,6 +222,9 @@ import MainLayout from "../layouts/Main.vue";
 import { passwordStrength } from "check-password-strength";
 
 export default {
+  components: {
+    MainLayout,
+  },
   data() {
     return {
       env: "mainnet",
@@ -227,123 +234,17 @@ export default {
       b64wallet: "",
       algodHost: "",
       algodToken: "",
-      kmdHost: "",
-      kmdToken: "",
+      participationHost: "",
+      participationToken: "",
       indexerHost: "",
       indexerToken: "",
       dev: false,
       publicList: [],
       publicListItem: null,
       algodList: [],
-      kmdList: [],
+      participationList: [],
       indexerList: [],
     };
-  },
-
-  watch: {
-    async env() {
-      await this.loadPublicData();
-      if (this.env == "mainnet") {
-        this.setHosts({
-          env: "mainnet",
-          algod: "https://node.algoexplorerapi.io",
-          kmd: "https://kmd.h2.a-wallet.net",
-          indexer: "https://algoindexer.algoexplorerapi.io",
-        });
-      }
-      if (this.env == "aramidmain") {
-        this.setHosts({
-          env: "aramidmain",
-          algod: "https://algod.aramidmain.a-wallet.net",
-          kmd: "?",
-          indexer: "https://indexer.aramidmain.a-wallet.net",
-          algodToken:
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          kmdToken:
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          indexerToken:
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        });
-      }
-      if (this.env == "testnet") {
-        this.setHosts({
-          env: "testnet",
-          algod: "https://node.testnet.algoexplorerapi.io",
-          kmd: "?",
-          indexer: "https://algoindexer.testnet.algoexplorerapi.io",
-        });
-      }
-      if (this.env == "devnet") {
-        this.setHosts({
-          env: "devnet",
-          algod: "http://localhost:4180",
-          kmd: "http://localhost:4002",
-          indexer: "http://localhost:8980",
-          algodToken:
-            "c87f5580d7a866317b4bfe9e8b8d1dda955636ccebfa88c12b414db208dd9705",
-          indexerToken: "reach-devnet",
-        });
-      }
-      if (this.env == "sandbox") {
-        this.setHosts({
-          env: "sandbox",
-          algod: "http://localhost:4001",
-          kmd: "http://localhost:4002",
-          indexer: "http://localhost:8980",
-          algodToken:
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          kmdToken:
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          indexerToken:
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        });
-      }
-      localStorage.setItem("env", this.env);
-    },
-    algodHostConfig() {
-      if (this.algodHost != this.algodHostConfig)
-        this.algodHost = this.algodHostConfig;
-    },
-    algodTokenConfig() {
-      if (this.algodToken != this.algodTokenConfig)
-        this.algodToken = this.algodTokenConfig;
-    },
-    kmdHostConfig() {
-      if (this.kmdHost != this.kmdHostConfig) this.kmdHost = this.kmdHostConfig;
-    },
-    kmdTokenConfig() {
-      if (this.kmdToken != this.kmdTokenConfig)
-        this.kmdToken = this.kmdTokenConfig;
-    },
-    indexerHostConfig() {
-      if (this.indexerHost != this.indexerHostConfig)
-        this.indexerHost = this.indexerHostConfig;
-    },
-    indexerTokenConfig() {
-      if (this.indexerToken != this.indexerTokenConfig)
-        this.indexerToken = this.indexerTokenConfig;
-    },
-    algodHost() {
-      if (this.algodHost != this.algodHostConfig) this.updateConfig();
-    },
-    algodToken() {
-      if (this.algodToken != this.algodTokenConfig) this.updateConfig();
-    },
-    kmdHost() {
-      if (this.kmdHost != this.kmdHostConfig) this.updateConfig();
-    },
-    kmdToken() {
-      if (this.kmdToken != this.kmdTokenConfig) this.updateConfig();
-    },
-    indexerHost() {
-      if (this.indexerHost != this.indexerHostConfig) this.updateConfig();
-    },
-    indexerToken() {
-      if (this.indexerToken != this.indexerTokenConfig) this.updateConfig();
-    },
-    dev() {
-      this.setDev({ dev: this.dev });
-    },
   },
   computed: {
     envConfig() {
@@ -355,11 +256,11 @@ export default {
     algodTokenConfig() {
       return this.$store.state.config.algodToken;
     },
-    kmdHostConfig() {
-      return this.$store.state.config.kmd;
+    participationHostConfig() {
+      return this.$store.state.config.participation;
     },
-    kmdTokenConfig() {
-      return this.$store.state.config.kmdToken;
+    participationTokenConfig() {
+      return this.$store.state.config.participationToken;
     },
     indexerHostConfig() {
       return this.$store.state.config.indexer;
@@ -388,8 +289,61 @@ export default {
       return this.$t("strength") + ": " + ret.value;
     },
   },
-  components: {
-    MainLayout,
+
+  watch: {
+    async env() {
+      if (this.env != "custom") {
+        await this.loadPublicData();
+      }
+      localStorage.setItem("env", this.env);
+    },
+    algodHostConfig() {
+      if (this.algodHost != this.algodHostConfig)
+        this.algodHost = this.algodHostConfig;
+    },
+    algodTokenConfig() {
+      if (this.algodToken != this.algodTokenConfig)
+        this.algodToken = this.algodTokenConfig;
+    },
+    participationHostConfig() {
+      if (this.participationHost != this.participationHostConfig)
+        this.participationHost = this.participationHostConfig;
+    },
+    participationTokenConfig() {
+      if (this.participationToken != this.participationTokenConfig)
+        this.participationToken = this.participationTokenConfig;
+    },
+    indexerHostConfig() {
+      if (this.indexerHost != this.indexerHostConfig)
+        this.indexerHost = this.indexerHostConfig;
+    },
+    indexerTokenConfig() {
+      if (this.indexerToken != this.indexerTokenConfig)
+        this.indexerToken = this.indexerTokenConfig;
+    },
+    algodHost() {
+      if (this.algodHost != this.algodHostConfig) this.updateConfig();
+    },
+    algodToken() {
+      if (this.algodToken != this.algodTokenConfig) this.updateConfig();
+    },
+    participationHost() {
+      if (this.participationHost != this.participationHostConfig)
+        this.updateConfig();
+    },
+    participationToken() {
+      if (this.participationToken != this.participationTokenConfig)
+        this.updateConfig();
+    },
+    indexerHost() {
+      if (this.indexerHost != this.indexerHostConfig) this.updateConfig();
+    },
+    indexerToken() {
+      if (this.indexerToken != this.indexerTokenConfig) this.updateConfig();
+    },
+    dev() {
+      this.setDev({ dev: this.dev });
+    },
   },
   async mounted() {
     if (this.envConfig) {
@@ -397,13 +351,15 @@ export default {
     }
     this.algodHost = this.algodHostConfig;
     this.algodToken = this.algodTokenConfig;
-    this.kmdHost = this.kmdHostConfig;
-    this.kmdToken = this.kmdTokenConfig;
+    this.participationHost = this.participationHostConfig;
+    this.participationToken = this.participationTokenConfig;
     this.indexerHost = this.indexerHostConfig;
     this.indexerToken = this.indexerTokenConfig;
     this.dev = this.$store.state.config.dev;
-    this.publicList = await this.getGenesisList();
-    await this.loadPublicData();
+    await this.fillGenesisList();
+    if (this.env != "custom") {
+      await this.loadPublicData();
+    }
   },
   methods: {
     ...mapActions({
@@ -416,7 +372,7 @@ export default {
       openSuccess: "toast/openSuccess",
       getGenesisList: "publicData/getGenesisList",
       getAlgodList: "publicData/getAlgodList",
-      getKMDList: "publicData/getKMDList",
+      getParticipationList: "publicData/getParticipationList",
       getIndexerList: "publicData/getIndexerList",
     }),
     changePasswordClick(e) {
@@ -430,6 +386,14 @@ export default {
         alert(this.$t("settings.updated_password"));
       }
     },
+    async fillGenesisList() {
+      const list = [...(await this.getGenesisList())];
+      list.push({
+        name: "Custom",
+        network: "custom",
+      });
+      this.publicList = list;
+    },
     async makeBackupDataClick() {
       this.b64wallet = await this.backupWallet();
     },
@@ -440,22 +404,31 @@ export default {
       localStorage.setItem("lang", this.$i18n.locale);
     },
     updateConfig() {
+      const publicListItem1 = this.publicList.find(
+        (pl) => pl.network == this.env
+      );
+      let envName = this.env;
+      if (publicListItem1) {
+        envName = publicListItem1.name;
+      }
       console.log("update", {
         env: this.env,
+        envName: envName,
         algod: this.algodHost,
-        kmd: this.kmdHost,
+        participation: this.participationHost,
         indexer: this.indexerHost,
         algodToken: this.algodToken,
-        kmdToken: this.kmdToken,
+        participationToken: this.participationToken,
         indexerToken: this.indexerToken,
       });
       this.setHosts({
         env: this.env,
+        envName: envName,
         algod: this.algodHost,
-        kmd: this.kmdHost,
+        participation: this.participationHost,
         indexer: this.indexerHost,
         algodToken: this.algodToken,
-        kmdToken: this.kmdToken,
+        participationToken: this.participationToken,
         indexerToken: this.indexerToken,
       });
     },
@@ -489,14 +462,20 @@ export default {
             }
           }
 
-          const listKMD = await this.getKMDList({ chainId: this.env });
-          this.kmdList = listKMD.filter((i) => !i.registrationRequired);
-          if (this.kmdList.length > 0) {
-            const alreadySet = this.kmdList.find((i) =>
-              i.host ? i.host == this.kmdHost : i.kmdHost == this.kmdHost
+          const listParticipation = await this.getParticipationList({
+            chainId: this.env,
+          });
+          this.participationList = listParticipation.filter(
+            (i) => !i.registrationRequired
+          );
+          if (this.participationList.length > 0) {
+            const alreadySet = this.participationList.find((i) =>
+              i.host
+                ? i.host == this.participationHost
+                : i.participationHost == this.participationHost
             );
             if (!alreadySet) {
-              this.kmdHost = this.kmdList[0].host;
+              this.participationHost = this.participationList[0].host;
             }
           }
 
@@ -516,15 +495,15 @@ export default {
           this.setHosts({
             env: this.env,
             algod: this.algodHost,
-            kmd: this.kmdHost,
+            participation: this.participationHost,
             indexer: this.indexerHost,
             algodToken: this.algodToken,
-            kmdToken: this.kmdToken,
+            participationToken: this.participationToken,
             indexerToken: this.indexerToken,
           });
         } else {
           this.algodList = [];
-          this.kmdList = [];
+          this.participationList = [];
           this.indexerList = [];
         }
       }

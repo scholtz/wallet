@@ -353,6 +353,9 @@
     "ledger_account": "HW ledger account",
     "wc_account": "WalletConnect account"
   },
+  "account": {
+    "select_account": "Select account"
+  },
   "pay": {
     "title": "Effettua pagamento - da",
     "toggle_camera": "Attiva fotocamera",

@@ -79,7 +79,7 @@
               :width="400"
               :height="400"
               value="AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
-              :qrOptions="{ errorCorrectionLevel: 'H' }"
+              :qr-options="{ errorCorrectionLevel: 'H' }"
               image="/img/algorand-algo-logo-96.png"
             />
           </a>

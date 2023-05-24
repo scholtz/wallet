@@ -4,10 +4,10 @@
     <form @submit="findAssetClick">
       <div class="form-check m-1">
         <input
+          id="searchById"
+          v-model="searchById"
           class="form-check-input"
           type="checkbox"
-          v-model="searchById"
-          id="searchById"
         />
         <label class="form-check-label" for="searchById">
           {{ $t("optin.searchById") }}
@@ -15,11 +15,11 @@
       </div>
       <div v-if="searchById">
         <label for="assetId">{{ $t("optin.assetId") }}</label>
-        <input v-model="assetId" id="assetId" class="form-control" />
+        <input id="assetId" v-model="assetId" class="form-control" />
       </div>
       <div v-else>
         <label for="assetName">{{ $t("optin.assetName") }}</label>
-        <input v-model="assetName" id="assetName" class="form-control" />
+        <input id="assetName" v-model="assetName" class="form-control" />
       </div>
       <input
         type="submit"
@@ -31,40 +31,38 @@
 
     <DataTable
       v-if="assets && assets.length > 0"
-      :value="assets"
-      responsiveLayout="scroll"
-      selectionMode="single"
       v-model:selection="selection"
+      :value="assets"
+      responsive-layout="scroll"
+      selection-mode="single"
       :paginator="true"
       :rows="20"
     >
-      <Column
-        field="index"
-        :header="$t('optin.assetId')"
-        :sortable="true"
-      ></Column>
+      <Column field="index" :header="$t('optin.assetId')" :sortable="true" />
       <Column
         field="params.name"
         :header="$t('optin.assetName')"
         :sortable="true"
-      ></Column>
+      />
     </DataTable>
 
     <Dialog
-      :header="$t('optin.dialog_header')"
       v-model:visible="displayOptInDialog"
+      :header="$t('optin.dialog_header')"
       :modal="true"
     >
       <p>{{ $t("optin.optin_confirm") }}</p>
       <p v-if="account">
         <b>{{ account.name }}</b>
       </p>
-      <p v-if="account">{{ account.addr }}</p>
-      <template #footer
-        ><button
+      <p v-if="account">
+        {{ account.addr }}
+      </p>
+      <template #footer>
+        <button
           v-if="!optInProcessing"
-          @click="displayOptInDialog = false"
           class="btn btn-xs btn-light"
+          @click="displayOptInDialog = false"
         >
           {{ $t("global.cancel") }}</button
         ><button
@@ -79,10 +77,10 @@
           @click="optInMultisigConfirmClick"
         >
           {{ $t("optin.optin_confirm_button") }} - MultiSig
-        </button></template
-      >
+        </button>
+      </template>
     </Dialog>
-    <div class="card" v-if="asset && asset['asset-id']">
+    <div v-if="asset && asset['asset-id']" class="card">
       <div class="card-header">
         {{ $t("optin.assetInfo") }}
       </div>
@@ -132,11 +130,11 @@
             <td>
               <div class="form-check m-1">
                 <input
+                  id="defaultFrozen"
+                  v-model="asset['default-frozen']"
                   disabled
                   class="form-check-input"
                   type="checkbox"
-                  v-model="asset['default-frozen']"
-                  id="defaultFrozen"
                 />
                 {{
                   asset["default-frozen"] ? $t("global.yes") : $t("global.no")
@@ -150,8 +148,9 @@
               <router-link
                 :to="'/account/' + asset['creator']"
                 class="btn btn-xs btn-light"
-                >{{ asset["creator"] }}</router-link
               >
+                {{ asset["creator"] }}
+              </router-link>
             </td>
           </tr>
           <tr>
@@ -161,8 +160,9 @@
                 v-if="asset['manager']"
                 :to="'/account/' + asset['manager']"
                 class="btn btn-xs btn-light"
-                >{{ asset["manager"] }}</router-link
               >
+                {{ asset["manager"] }}
+              </router-link>
               <span v-else>-</span>
             </td>
           </tr>
@@ -173,8 +173,9 @@
                 v-if="asset['clawback']"
                 :to="'/account/' + asset['clawback']"
                 class="btn btn-xs btn-light"
-                >{{ asset["clawback"] }}</router-link
               >
+                {{ asset["clawback"] }}
+              </router-link>
               <span v-else>-</span>
             </td>
           </tr>
@@ -185,8 +186,9 @@
                 v-if="asset['freeze']"
                 :to="'/account/' + asset['freeze']"
                 class="btn btn-xs btn-light"
-                >{{ asset["freeze"] }}</router-link
               >
+                {{ asset["freeze"] }}
+              </router-link>
               <span v-else>-</span>
             </td>
           </tr>
@@ -197,8 +199,9 @@
                 v-if="asset['reserve']"
                 :to="'/account/' + asset['reserve']"
                 class="btn btn-xs btn-light"
-                >{{ asset["reserve"] }}</router-link
               >
+                {{ asset["reserve"] }}
+              </router-link>
               <span v-else>-</span>
             </td>
           </tr>
@@ -217,13 +220,6 @@ import algosdk from "algosdk";
 export default {
   components: {
     MainLayout,
-  },
-  watch: {
-    async selection() {
-      if (this.selection.index) {
-        this.asset = await this.getAsset({ assetIndex: this.selection.index });
-      }
-    },
   },
   data() {
     return {
@@ -263,6 +259,13 @@ export default {
       );
       if (!rekeyedInfo) return;
       return rekeyedInfo.params;
+    },
+  },
+  watch: {
+    async selection() {
+      if (this.selection.index) {
+        this.asset = await this.getAsset({ assetIndex: this.selection.index });
+      }
     },
   },
   methods: {

@@ -7,12 +7,12 @@
           <label for="amount">How many accounts you want to generate?</label>
           <div class="input-group">
             <input
+              id="amount"
               v-model="amount"
               type="number"
               min="1"
               max="10000"
               step="1"
-              id="amount"
               class="form-control"
               rows="6"
             />
@@ -23,7 +23,7 @@
             Create {{ amount }} accounts
           </button>
         </div>
-        <div class="m-1" v-if="results">
+        <div v-if="results" class="m-1">
           <p>
             Please copy the content in the textarea to password protected area,
             for example encrypted excel file. If this data will be stolen from
@@ -32,11 +32,11 @@
           </p>
           <label for="results">Results</label>
           <textarea
-            v-model="results"
             id="results"
+            v-model="results"
             class="form-control"
             rows="20"
-          ></textarea>
+          />
         </div>
       </div>
     </div>

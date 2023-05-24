@@ -353,6 +353,9 @@
     "ledger_account": "HW ledger account",
     "wc_account": "WalletConnect account"
   },
+  "account": {
+    "select_account": "Select account"
+  },
   "pay": {
     "title": "Kifizetés indítása innen: ",
     "toggle_camera": "Fényképezőgép be/kikapcsolása",
