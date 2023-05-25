@@ -1,7 +1,7 @@
 <template>
   <main-layout>
     <div v-if="!$route.params.account">
-      <h1>Select account from which you want to make the payment</h1>
+      <h1>{{ $t("pay.select_account_for_payment") }}</h1>
 
       <select v-model="payFromDirect" class="form-control">
         <option
@@ -483,13 +483,13 @@
             v-if="isMultisig && $route.name != 'PayFromWalletConnect'"
             class="btn btn-primary"
             type="submit"
-            value="Create multisig proposal"
+            :value="$t('pay.create_multisig_proposal')"
           />
 
           <input
             v-if="$route.name != 'PayFromWalletConnect'"
             class="btn btn-light mx-2"
-            value="Go back"
+            :value="$t('global.go_back')"
             @click="page = 'design'"
           />
         </div>
@@ -512,7 +512,7 @@
             isMultisig && txn && accountFor2FA && !isSignedByAccountFor2FAAddr
           "
         >
-          <h2>2FA code</h2>
+          <h2>{{ $t("pay.2fa_code") }}</h2>
           <div v-if="accountFor2FAAuthToken">
             <div>
               <InputMask itemid="txtCode" v-model="txtCode" mask="999-999" />
@@ -532,7 +532,7 @@
               class="btn btn-primary my-2"
               @click="authorizePrimaryAccountClick"
             >
-              Sign authorization request
+              {{ $t("pay.sign_arc14_request") }}
             </button>
           </div>
         </div>
@@ -605,10 +605,10 @@
             class="btn btn-light m-2"
             @click="toggleShowFormSend"
           >
-            Toggle Send to others form
+            {{ $t("pay.toggle_send_to_others_form") }}
           </button>
           <button class="btn btn-light m-2" @click="toggleShowFormCombine">
-            Toggle Combine with others form
+            {{ $t("pay.toggle_combine_with_others_form") }}
           </button>
         </div>
 
@@ -637,7 +637,7 @@
           {{ $t("pay.error") }}: {{ error }}
         </p>
         <p v-if="$store.state.toast.lastError" class="alert alert-danger my-2">
-          Last error: {{ $store.state.toast.lastError }}
+          {{ $t("global.last_error") }}: {{ $store.state.toast.lastError }}
         </p>
       </form>
     </div>
@@ -1576,6 +1576,7 @@ export default {
       this.payamount = this.maxAmount;
     },
     async addSignature(base64Tx) {
+      if (!base64Tx) return;
       const tx1 = new Uint8Array(Buffer.from(this.rawSignedTxn, "base64"));
       const tx2 = new Uint8Array(Buffer.from(base64Tx, "base64"));
       const merged = algosdk.mergeMultisigTransactions([tx1, tx2]);
