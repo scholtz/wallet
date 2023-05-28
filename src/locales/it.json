@@ -303,7 +303,7 @@
     "address": "Indirizzo",
     "pay": "Paga",
     "connect": "WalletConnect",
-    "show_on_netowrk_accounts": "Show accounts for network"
+    "show_on_netowork_accounts": "Show accounts for network"
   },
   "newacc": {
     "title": "Nuovo account",

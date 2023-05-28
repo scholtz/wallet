@@ -8,7 +8,7 @@
         <div class="flex align-items-end">
           <div class="text-end">
             <label for="showAll" class="my-3"
-              >{{ $t("accounts.show_on_netowrk_accounts") }}:
+              >{{ $t("accounts.show_on_netowork_accounts") }}:
               {{ this.$store.state.config.env }}</label
             ><Checkbox
               inputId="showAll"
@@ -155,8 +155,12 @@ export default {
   },
   mounted() {
     this.updateBalance();
-    this.showNetworkAccounts =
-      localStorage.getItem("showNetworkAccounts") == "true";
+    if (localStorage.getItem("showNetworkAccounts") === null) {
+      this.showNetworkAccounts = true;
+    } else {
+      this.showNetworkAccounts =
+        localStorage.getItem("showNetworkAccounts") == "true";
+    }
     this.fillAccounts();
   },
   methods: {
