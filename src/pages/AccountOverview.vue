@@ -12,6 +12,15 @@
         <div>{{ $t("acc_overview.delete") }}</div>
       </button>
 
+      <button
+        v-if="account"
+        class="btn btn-light btn-xs m-2 float-end"
+        @click="hideAccountClick"
+      >
+        <div v-if="account.isHidden">Unhide account</div>
+        <div v-else>Hide account</div>
+      </button>
+
       <Dialog
         v-model:visible="displayDeleteDialog"
         :header="$t('acc_overview.delete_header')"
@@ -92,6 +101,18 @@
         ARC14
       </router-link>
     </p>
+    <div
+      v-if="account && account.network != this.$store.state.config.env"
+      class="alert alert-danger"
+    >
+      <div v-if="account.network">
+        This account is assigned to network {{ account.network }}.
+      </div>
+      <div v-else>This account is not assigned to any network.</div>
+      <button class="btn btn-primary my-2" @click="assignToCurrentNetwork">
+        Assign account to {{ this.$store.state.config.env }}
+      </button>
+    </div>
     <table v-if="account" class="w-100">
       <tr>
         <th>{{ $t("acc_overview.name") }}:</th>
@@ -104,6 +125,11 @@
             :value="account.addr"
             :qr-options="{ errorCorrectionLevel: 'H' }"
             image="/img/algorand-algo-logo-96.png"
+            :image-options="{
+              hideBackgroundDots: true,
+              imageSize: 0.4,
+              margin: 10,
+            }"
           />
         </td>
       </tr>
@@ -115,6 +141,18 @@
           </div>
           <div v-else-if="account.sk" class="badge bg-primary">
             {{ $t("acc_type.basic_account") }}
+          </div>
+          <div
+            v-else-if="account.type == '2fa'"
+            class="badge bg-primary text-light"
+          >
+            2FA Multisig
+          </div>
+          <div
+            v-else-if="account.type == '2faApi'"
+            class="badge bg-light text-dark"
+          >
+            2FA API technical account
           </div>
           <div v-else-if="account.params" class="badge bg-warning text-dark">
             {{ $t("acc_type.multisig_account") }}
@@ -142,11 +180,11 @@
           <button
             class="btn btn-xs btn-light m-1"
             :title="$t('global.copy_address')"
-            @click="copyToClipboard(account.address)"
+            @click="copyToClipboard(account.addr)"
           >
             <i class="pi pi-copy" />
           </button>
-          {{ account.address }}
+          {{ account.addr }}
         </td>
       </tr>
       <tr v-if="account.rekeyedTo">
@@ -223,7 +261,7 @@
         <th>{{ $t("acc_overview.status") }}:</th>
         <td v-if="!changeOnline">
           <button class="btn btn-light btn-xs" @click="onStatusClick">
-            {{ account["status"] }}
+            {{ account["status"] ?? "?" }}
           </button>
         </td>
         <td v-else>
@@ -451,6 +489,7 @@ import { PrimeIcons } from "primevue/api";
 import copy from "copy-to-clipboard";
 
 import QRCodeVue3 from "qrcode-vue3";
+
 export default {
   components: {
     MainLayout,
@@ -475,6 +514,12 @@ export default {
       );
     },
     account() {
+      var acc = this.$store.state.wallet.privateAccounts.find(
+        (a) =>
+          a.addr == this.$route.params.account &&
+          (a.network === undefined || a.network == this.$store.state.config.env)
+      );
+      if (acc) return acc;
       return this.$store.state.wallet.privateAccounts.find(
         (a) => a.addr == this.$route.params.account
       );
@@ -484,12 +529,16 @@ export default {
     },
     rekeyedToInfo() {
       return this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.account.rekeyedTo
+        (a) =>
+          a.addr == this.account.rekeyedTo &&
+          (a.network === undefined || a.network == this.$store.state.config.env)
       );
     },
     rekeyedMultisigParams() {
       const rekeyedInfo = this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.account.rekeyedTo
+        (a) =>
+          a.addr == this.account.rekeyedTo &&
+          (a.network === undefined || a.network == this.$store.state.config.env)
       );
       if (!rekeyedInfo) return null;
       return rekeyedInfo.params;
@@ -511,6 +560,10 @@ export default {
     await this.reloadAccount();
     await this.makeAssets();
     this.prolong();
+
+    if (this.account && !this.account.network) {
+      await this.assignToCurrentNetwork();
+    }
   },
   methods: {
     ...mapActions({
@@ -525,7 +578,14 @@ export default {
       setAccountOnline: "kmd/setAccountOnline",
       openSuccess: "toast/openSuccess",
     }),
-
+    async assignToCurrentNetwork() {
+      if (this.account) {
+        // add to current network automatically
+        const info = { ...this.account };
+        info.network = this.$store.state.config.env;
+        await this.updateAccount({ info });
+      }
+    },
     async makeAssets() {
       this.assets = [];
       if (this.account && this.account.amount > 0) {
@@ -574,7 +634,10 @@ export default {
       }).then(async (info) => {
         if (info) {
           this.updateAccount({ info });
-          if (this.account.rekeyedTo != this.account["auth-addr"]) {
+          if (
+            this.account &&
+            this.account.rekeyedTo != this.account["auth-addr"]
+          ) {
             const rekeyedTo = this.account["auth-addr"];
             console.error(
               `New rekey information detected: ${this.account.rekeyedTo} -> ${rekeyedTo}`
@@ -600,7 +663,7 @@ export default {
     },
     copyToClipboard(text) {
       if (copy(text)) {
-        alert(this.$t("global.copied_to_clipboard"));
+        this.openSuccess(this.$t("global.copied_to_clipboard"));
       }
     },
     async deleteAccountClick() {
@@ -609,6 +672,14 @@ export default {
         addr: this.account.addr,
       });
       this.$router.push("/accounts");
+    },
+    async hideAccountClick() {
+      if (this.account) {
+        // add to current network automatically
+        const info = { ...this.account };
+        info.isHidden = !this.account.isHidden;
+        await this.updateAccount({ info });
+      }
     },
     sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));

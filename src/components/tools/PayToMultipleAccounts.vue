@@ -15,15 +15,15 @@
             Use internal account from which to distribute algos
           </label>
         </div>-->
-        <div class="m-1" v-if="current">
+        <div v-if="current" class="m-1">
           <label for="payFromDirect"
             >Select internal account from which you want to distribute
             algos</label
           >
           <select
-            class="form-control"
             id="payFromDirect"
             v-model="payFromDirect"
+            class="form-control"
           >
             <option
               v-for="option in $store.state.wallet.privateAccounts"
@@ -35,7 +35,7 @@
           </select>
         </div>
 
-        <div class="m-1" v-if="!current">
+        <div v-if="!current" class="m-1">
           <label for="fromAccount"
             >Write mnemonic phrase of the account from which you want to
             distribute algos</label
@@ -43,8 +43,8 @@
           <div class="input-group">
             <input
               id="fromAccount"
-              class="form-control"
               v-model="fromAccount"
+              class="form-control"
             />
           </div>
         </div>
@@ -54,12 +54,12 @@
           >
           <div class="input-group">
             <input
+              id="amount"
               v-model="amount"
               type="number"
               min="0"
               max="1999999999"
               step="0.000001"
-              id="amount"
               class="form-control"
               rows="6"
             />
@@ -72,11 +72,11 @@
             accounts</label
           >
           <textarea
-            v-model="accounts"
             id="accounts"
+            v-model="accounts"
             class="form-control"
             rows="6"
-          ></textarea>
+          />
         </div>
       </div>
       <div class="m-1">
@@ -84,14 +84,14 @@
           Send transactions
         </button>
       </div>
-      <div class="m-1" v-if="results">
+      <div v-if="results" class="m-1">
         <label for="results">Results</label>
         <textarea
-          v-model="results"
           id="results"
+          v-model="results"
           class="form-control"
           rows="20"
-        ></textarea>
+        />
       </div>
     </div>
   </div>

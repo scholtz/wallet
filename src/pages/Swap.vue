@@ -9,7 +9,7 @@
       <div v-else class="alert alert-danger">
         {{ $t("swap.network_not_supported") }}
       </div>
-      <div v-if="this.hasSK === false" class="alert alert-danger">
+      <div v-if="hasSK === false" class="alert alert-danger">
         {{ $t("swap.has_sk") }}
       </div>
       <div>
@@ -19,16 +19,16 @@
         <Dropdown
           v-model="asset"
           :options="assets"
-          optionLabel="name"
-          optionValue="asset-id"
+          option-label="name"
+          option-value="asset-id"
           placeholder="Source asset"
         />
         <h2>{{ $t("swap.swap_asset_from") }}</h2>
         <Dropdown
           v-model="toAsset"
           :options="assets"
-          optionLabel="name"
-          optionValue="asset-id"
+          option-label="name"
+          option-value="asset-id"
           placeholder="Destination asset"
         />
         <h2>{{ $t("swap.swap_amount") }}</h2>
@@ -44,11 +44,11 @@
         <div>
           <button
             class="btn my-2"
-            @click="clickGetQuote"
             :disabled="processingQuote"
             :class="
               allowExecute || requiresOptIn ? 'btn-light' : 'btn-primary '
             "
+            @click="clickGetQuote"
           >
             {{ $t("swap.get_quote") }}
 
@@ -57,51 +57,57 @@
               class="spinner-grow spinner-grow-sm"
               role="status"
               aria-hidden="true"
-            ></span>
+            />
           </button>
         </div>
         <div v-if="requiresOptIn">
           <h2>{{ $t("swap.apps_optin") }}</h2>
           <ul>
-            <li v-for="app in appsToOptIn" :key="app">{{ app }}</li>
+            <li v-for="app in appsToOptIn" :key="app">
+              {{ app }}
+            </li>
           </ul>
           <button
             class="btn my-2 btn-primary"
-            @click="clickOptInToApps"
             :disabled="processingOptin"
+            @click="clickOptInToApps"
           >
             <span
               v-if="processingOptin"
               class="spinner-grow spinner-grow-sm"
               role="status"
               aria-hidden="true"
-            ></span>
+            />
             {{ $t("swap.apps_optin_button") }}
           </button>
         </div>
         <div>
           <textarea
+            v-model="txsDetails"
             disabled
             class="form-control"
-            v-model="txsDetails"
             rows="5"
-          ></textarea>
+          />
         </div>
-        <div v-if="note" class="alert alert-success my-2">{{ note }}</div>
-        <div v-if="error" class="alert alert-danger my-2">{{ error }}</div>
+        <div v-if="note" class="alert alert-success my-2">
+          {{ note }}
+        </div>
+        <div v-if="error" class="alert alert-danger my-2">
+          {{ error }}
+        </div>
         <div>
           <button
             class="btn my-2"
-            @click="clickExecute"
             :disabled="!allowExecute || processingTrade"
             :class="allowExecute ? 'btn-primary' : 'btn-light '"
+            @click="clickExecute"
           >
             <span
               v-if="processingTrade"
               class="spinner-grow spinner-grow-sm"
               role="status"
               aria-hidden="true"
-            ></span>
+            />
             {{ $t("swap.execute_button") }}
           </button>
         </div>
@@ -264,7 +270,6 @@ export default {
       setAccountOnline: "kmd/setAccountOnline",
       openSuccess: "toast/openSuccess",
       axiosGet: "axios/get",
-      axiosPost: "axios/post",
       getSK: "wallet/getSK",
       getTransactionParams: "algod/getTransactionParams",
       sendRawTransaction: "algod/sendRawTransaction",
@@ -379,16 +384,16 @@ export default {
     },
     checkNetwork() {
       if (this.$store.state.config.env == "mainnet-v1.0") {
-        return "mainnet";
+        return "mainnet-v1.0";
       }
       if (this.$store.state.config.env == "mainnet") {
-        return "mainnet";
+        return "mainnet-v1.0";
       }
       if (this.$store.state.config.env == "testnet-v1.0") {
-        return "testnet";
+        return "testnet-v1.0";
       }
       if (this.$store.state.config.env == "testnet") {
-        return "testnet";
+        return "testnet-v1.0";
       }
       return false;
     },

@@ -30,7 +30,39 @@ const actions = {
         this.state.config.indexer,
         url.port
       );
-      const ret = await indexerClient.lookupAccountByID(addr).do();
+      const ret = await indexerClient
+        .lookupAccountByID(addr)
+        .do()
+        .catch((e) => {
+          console.error("lookupAccountByID", e);
+        });
+      if (!ret)
+        return {
+          account: {
+            address: addr,
+            amount: 0,
+            "amount-without-pending-rewards": 0,
+            "apps-local-state": [],
+            "apps-total-schema": {},
+            assets: [],
+            "created-apps": [],
+            "created-at-round": 0,
+            deleted: false,
+            "pending-rewards": 0,
+            "reward-base": 0,
+            rewards: 0,
+            round: 0,
+            "sig-type": "sig",
+            status: "Offline",
+            "total-apps-opted-in": 0,
+            "total-assets-opted-in": 0,
+            "total-box-bytes": 0,
+            "total-boxes": 0,
+            "total-created-apps": 0,
+            "total-created-assets": 0,
+          },
+          "current-round": 0,
+        };
       console.log("ret", ret);
       return ret.account;
     } catch (error) {
@@ -54,13 +86,19 @@ const actions = {
           .searchForTransactions()
           .address(addr)
           .notePrefix(noteenc)
-          .do();
+          .do()
+          .catch((e) => {
+            console.error("searchForTransactions", e);
+          });
         return searchForTransactions;
       } else {
         const searchForTransactions = await indexerClient
           .searchForTransactions()
           .address(addr)
-          .do();
+          .do()
+          .catch((e) => {
+            console.error("searchForTransactions", e);
+          });
         return searchForTransactions;
       }
     } catch (error) {
@@ -190,7 +228,7 @@ const actions = {
   async getAsset({ commit }, { assetIndex }) {
     try {
       let env = this.state.config.env;
-      if (env == "mainnet") {
+      if (env == "mainnet" || env == "mainnet-v1.0") {
         env = "";
       } else {
         env += "-";
@@ -270,7 +308,10 @@ const actions = {
       const accountInfo = await indexerClient
         .lookupAccountByID(account)
         .round(round)
-        .do();
+        .do()
+        .catch((e) => {
+          console.error("lookupAccountByID", e);
+        });
 
       let balance = 0;
       if (!assetId || assetId <= 0) {

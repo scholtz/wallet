@@ -1,7 +1,7 @@
 <template>
   <main-layout>
     <div v-if="!$route.params.account">
-      <h1>Select account from which you want to make the payment</h1>
+      <h1>{{ $t("pay.select_account_for_payment") }}</h1>
 
       <select v-model="payFromDirect" class="form-control">
         <option
@@ -29,7 +29,10 @@
         <p>{{ $t("pay.selected_account") }}: {{ account.addr }}</p>
         <div v-if="isMultisig && !subpage">
           <h2>{{ $t("pay.multisig_account") }}</h2>
-          <button class="btn btn-primary my-2" @click="subpage = 'proposal'">
+          <button
+            class="btn btn-primary my-2"
+            @click="this.subpage = 'proposal'"
+          >
             {{ $t("pay.create_proposal") }}
           </button>
           <button class="btn btn-primary m-2" @click="subpage = 'sign'">
@@ -304,178 +307,193 @@
       <form v-if="page == 'review'" @submit="payPaymentClick">
         <h1>{{ $t("pay.review_payment") }}</h1>
         <p>{{ $t("pay.review_payment_help") }}</p>
-        <table v-if="!multisigDecoded.txn" class="w-100">
-          <tr>
-            <th>{{ $t("pay.from_account") }}:</th>
-            <td>{{ payFrom }}</td>
-          </tr>
-          <tr v-if="malformedAddress">
-            <td colspan="2">
-              <div class="alert alert-danger">
-                {{ $t("pay.pay_to_address_malformed") }}
-              </div>
-            </td>
-          </tr>
-          <tr v-if="payTo">
-            <th>{{ $t("pay.pay_to") }}:</th>
-            <td>{{ payTo }}</td>
-          </tr>
-          <tr v-if="paynote">
-            <th>{{ $t("pay.note") }}:</th>
-            <td v-if="paynote.length < 50">
-              {{ paynote }}
-            </td>
-            <td v-else>
-              <textarea
-                v-model="paynote"
-                class="form-control"
-                rows="5"
-                :disabled="true"
-              />
-            </td>
-          </tr>
-          <tr>
-            <th>{{ $t("pay.environment") }}:</th>
-            <td>{{ $store.state.config.env }}</td>
-          </tr>
-          <tr v-if="assetObj">
-            <th>{{ $t("optin.assetId") }}:</th>
-            <td>
-              {{ assetObj["asset-id"] ? assetObj["asset-id"] : "Algo" }}
-            </td>
-          </tr>
-          <tr>
-            <th>{{ $t("pay.amount") }}:</th>
-            <td v-if="assetObj">
-              {{
-                $filters.formatCurrency(
-                  amountLong,
-                  assetObj.name,
-                  assetObj.decimals
-                )
-              }}
-            </td>
-            <td v-else>
-              {{ $filters.formatCurrency(amountLong) }}
-            </td>
-          </tr>
-          <tr>
-            <th>{{ $t("pay.fee") }}:</th>
-            <td>{{ $filters.formatCurrency(feeLong) }}</td>
-          </tr>
-          <tr v-if="!asset">
-            <th>{{ $t("pay.total") }}:</th>
-            <td>{{ $filters.formatCurrency(amountLong + feeLong) }}</td>
-          </tr>
-          <tr v-if="rekeyTo">
-            <th>{{ $t("pay.rekey_to") }}:</th>
-            <td class="alert alert-danger">
-              {{ rekeyTo }}
-            </td>
-          </tr>
-        </table>
+        <div class="row">
+          <div class="col">
+            <table v-if="!multisigDecoded.txn" class="w-100">
+              <tr>
+                <th>{{ $t("pay.from_account") }}:</th>
+                <td>{{ payFrom }}</td>
+              </tr>
+              <tr v-if="malformedAddress">
+                <td colspan="2">
+                  <div class="alert alert-danger">
+                    {{ $t("pay.pay_to_address_malformed") }}
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="payTo">
+                <th>{{ $t("pay.pay_to") }}:</th>
+                <td>{{ payTo }}</td>
+              </tr>
+              <tr v-if="paynote">
+                <th>{{ $t("pay.note") }}:</th>
+                <td v-if="paynote.length < 50">
+                  {{ paynote }}
+                </td>
+                <td v-else>
+                  <textarea
+                    v-model="paynote"
+                    class="form-control"
+                    rows="5"
+                    :disabled="true"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th>{{ $t("pay.environment") }}:</th>
+                <td>{{ $store.state.config.env }}</td>
+              </tr>
+              <tr v-if="assetObj">
+                <th>{{ $t("optin.assetId") }}:</th>
+                <td>
+                  {{ assetObj["asset-id"] ? assetObj["asset-id"] : "Algo" }}
+                </td>
+              </tr>
+              <tr>
+                <th>{{ $t("pay.amount") }}:</th>
+                <td v-if="assetObj">
+                  {{
+                    $filters.formatCurrency(
+                      amountLong,
+                      assetObj.name,
+                      assetObj.decimals
+                    )
+                  }}
+                </td>
+                <td v-else>
+                  {{ $filters.formatCurrency(amountLong) }}
+                </td>
+              </tr>
+              <tr>
+                <th>{{ $t("pay.fee") }}:</th>
+                <td>{{ $filters.formatCurrency(feeLong) }}</td>
+              </tr>
+              <tr v-if="!asset">
+                <th>{{ $t("pay.total") }}:</th>
+                <td>{{ $filters.formatCurrency(amountLong + feeLong) }}</td>
+              </tr>
+              <tr v-if="rekeyTo">
+                <th>{{ $t("pay.rekey_to") }}:</th>
+                <td class="alert alert-danger">
+                  {{ rekeyTo }}
+                </td>
+              </tr>
+            </table>
 
-        <div v-if="multisigDecoded.txn">
-          <h2>{{ $t("pay.transaction_details") }}</h2>
-          <table class="w-100">
-            <tr>
-              <th>{{ $t("pay.type") }}</th>
-              <td>{{ multisigDecoded.txn.type }}</td>
-            </tr>
-            <tr>
-              <th>{{ $t("pay.name") }}</th>
-              <td>{{ multisigDecoded.txn.name }}</td>
-            </tr>
-            <tr v-if="multisigDecoded.txn.amount">
-              <th>{{ $t("pay.amount") }}</th>
-              <td>{{ $filters.formatCurrency(multisigDecoded.txn.amount) }}</td>
-            </tr>
-            <tr>
-              <th>{{ $t("pay.fee") }}</th>
-              <td>{{ $filters.formatCurrency(multisigDecoded.txn.fee) }}</td>
-            </tr>
-            <tr>
-              <th>{{ $t("pay.first_round") }}</th>
-              <td>{{ multisigDecoded.txn.firstRound }}</td>
-            </tr>
-            <tr>
-              <th>{{ $t("pay.last_round") }}</th>
-              <td>{{ multisigDecoded.txn.lastRound }}</td>
-            </tr>
-            <tr>
-              <th>{{ $t("pay.genesis") }}</th>
-              <td>{{ multisigDecoded.txn.genesisID }}</td>
-            </tr>
-            <tr>
-              <th>{{ $t("pay.note") }}</th>
-              <td v-if="multisigDecoded.txn.note">
-                {{ msigNote }}
-              </td>
-            </tr>
-            <tr>
-              <th>{{ $t("pay.tag") }}</th>
-              <td>{{ multisigDecoded.txn.tag }}</td>
-            </tr>
-            <tr
-              v-if="
-                multisigDecoded.txn.reKeyTo &&
-                multisigDecoded.txn.reKeyTo.publicKey
-              "
-            >
-              <th>{{ $t("pay.rekey_to") }}</th>
-              <td class="alert alert-danger">
-                {{ encodeAddress(multisigDecoded.txn.reKeyTo.publicKey) }}
-              </td>
-            </tr>
-            <tr
-              v-if="multisigDecoded.txn.to && multisigDecoded.txn.to.publicKey"
-            >
-              <th>{{ $t("pay.to_account") }}</th>
-              <td>{{ encodeAddress(multisigDecoded.txn.to.publicKey) }}</td>
-            </tr>
-          </table>
-
-          <h2>{{ $t("pay.signatures") }} {{ showSignaturesCount }}</h2>
-          <table class="w-100">
-            <tr v-for="sig in multisigDecoded.msig.subsig" :key="sig">
-              <th>
-                <span v-if="sig.s" class="badge bg-success">{{
-                  encodeAddress(sig.pk)
-                }}</span>
-                <span v-if="!sig.s" class="badge bg-danger">{{
-                  encodeAddress(sig.pk)
-                }}</span>
-              </th>
-              <td>
-                <span v-if="sig.s" class="badge bg-success">{{
-                  $t("pay.signed")
-                }}</span
-                ><span v-if="!sig.s" class="badge bg-danger">{{
-                  $t("pay.not_signed")
-                }}</span>
-              </td>
-            </tr>
-          </table>
+            <div v-if="multisigDecoded.txn">
+              <h2>{{ $t("pay.transaction_details") }}</h2>
+              <table class="w-100">
+                <tr>
+                  <th>{{ $t("pay.type") }}</th>
+                  <td>{{ multisigDecoded.txn.type }}</td>
+                </tr>
+                <tr>
+                  <th>{{ $t("pay.name") }}</th>
+                  <td>{{ multisigDecoded.txn.name }}</td>
+                </tr>
+                <tr v-if="multisigDecoded.txn.amount">
+                  <th>{{ $t("pay.amount") }}</th>
+                  <td>
+                    {{ $filters.formatCurrency(multisigDecoded.txn.amount) }}
+                  </td>
+                </tr>
+                <tr>
+                  <th>{{ $t("pay.fee") }}</th>
+                  <td>
+                    {{ $filters.formatCurrency(multisigDecoded.txn.fee) }}
+                  </td>
+                </tr>
+                <tr>
+                  <th>{{ $t("pay.first_round") }}</th>
+                  <td>{{ multisigDecoded.txn.firstRound }}</td>
+                </tr>
+                <tr>
+                  <th>{{ $t("pay.last_round") }}</th>
+                  <td>{{ multisigDecoded.txn.lastRound }}</td>
+                </tr>
+                <tr>
+                  <th>{{ $t("pay.genesis") }}</th>
+                  <td>{{ multisigDecoded.txn.genesisID }}</td>
+                </tr>
+                <tr>
+                  <th>{{ $t("pay.note") }}</th>
+                  <td v-if="multisigDecoded.txn.note">
+                    {{ msigNote }}
+                  </td>
+                </tr>
+                <tr>
+                  <th>{{ $t("pay.tag") }}</th>
+                  <td>{{ multisigDecoded.txn.tag }}</td>
+                </tr>
+                <tr
+                  v-if="
+                    multisigDecoded.txn.reKeyTo &&
+                    multisigDecoded.txn.reKeyTo.publicKey
+                  "
+                >
+                  <th>{{ $t("pay.rekey_to") }}</th>
+                  <td class="alert alert-danger">
+                    {{ encodeAddress(multisigDecoded.txn.reKeyTo.publicKey) }}
+                  </td>
+                </tr>
+                <tr
+                  v-if="
+                    multisigDecoded.txn.to && multisigDecoded.txn.to.publicKey
+                  "
+                >
+                  <th>{{ $t("pay.to_account") }}</th>
+                  <td>{{ encodeAddress(multisigDecoded.txn.to.publicKey) }}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="col" v-if="multisigDecoded && multisigDecoded.msig">
+            <h2>{{ $t("pay.signatures") }} {{ showSignaturesCount }}</h2>
+            <table class="w-100">
+              <tr v-for="sig in multisigDecoded.msig.subsig" :key="sig">
+                <th>
+                  <span v-if="sig.s" class="badge bg-success">{{
+                    encodeAddress(sig.pk)
+                  }}</span>
+                  <span v-if="!sig.s" class="badge bg-danger">{{
+                    encodeAddress(sig.pk)
+                  }}</span>
+                </th>
+                <td>
+                  <span v-if="sig.s" class="badge bg-success">{{
+                    $t("pay.signed")
+                  }}</span
+                  ><span v-if="!sig.s" class="badge bg-danger">{{
+                    $t("pay.not_signed")
+                  }}</span>
+                </td>
+              </tr>
+            </table>
+          </div>
         </div>
+
         <input
           v-if="!isMultisig"
           class="btn btn-primary"
           type="submit"
           value="Process payment"
         />
-        <input
-          v-if="isMultisig && this.$route.name != 'PayFromWalletConnect'"
-          class="btn btn-primary"
-          type="submit"
-          value="Create multisig proposal"
-        />
+        <div v-if="!rawSignedTxn">
+          <input
+            v-if="isMultisig && $route.name != 'PayFromWalletConnect'"
+            class="btn btn-primary"
+            type="submit"
+            :value="$t('pay.create_multisig_proposal')"
+          />
 
-        <input
-          v-if="this.$route.name != 'PayFromWalletConnect'"
-          class="btn btn-light mx-2"
-          value="Go back"
-          @click="page = 'design'"
-        />
+          <input
+            v-if="$route.name != 'PayFromWalletConnect'"
+            class="btn btn-light mx-2"
+            :value="$t('global.go_back')"
+            @click="page = 'design'"
+          />
+        </div>
+
         <textarea
           v-if="
             txn &&
@@ -488,103 +506,110 @@
           class="form-control my-2"
           rows="5"
         />
-        <div v-if="isMultisig && multisigDecoded.txn">
-          <label>{{ $t("pay.sign_with") }}</label>
-          <select v-model="signMultisigWith" class="form-control" multiple>
-            <option
-              v-for="option in accountsFromMultisig"
-              :key="option.addr"
-              :value="option.addr"
+
+        <div
+          v-if="
+            isMultisig && txn && accountFor2FA && !isSignedByAccountFor2FAAddr
+          "
+        >
+          <h2>{{ $t("pay.2fa_code") }}</h2>
+          <div v-if="accountFor2FAAuthToken">
+            <div>
+              <InputMask itemid="txtCode" v-model="txtCode" mask="999-999" />
+            </div>
+            <div>
+              <button
+                class="btn btn-primary my-2"
+                :disabled="!txtCode || txtCode.indexOf('_') >= 0"
+                @click="sign2FAClick"
+              >
+                {{ $t("pay.sign") }}
+              </button>
+            </div>
+          </div>
+          <div v-else>
+            <button
+              class="btn btn-primary my-2"
+              @click="authorizePrimaryAccountClick"
             >
-              {{ option.name + "  - " + option.addr }}
-            </option>
-          </select>
+              {{ $t("pay.sign_arc14_request") }}
+            </button>
+          </div>
+        </div>
+
+        <div v-if="isMultisig && multisigDecoded.txn">
+          <div v-if="accountsFromMultisig && accountsFromMultisig.length > 0">
+            <h2>{{ $t("pay.sign_with") }}</h2>
+            <select v-model="signMultisigWith" class="form-control" multiple>
+              <option
+                v-for="option in accountsFromMultisig"
+                :key="option.addr"
+                :value="option.addr"
+              >
+                {{ option.name + "  - " + option.addr }}
+              </option>
+            </select>
+            <button
+              class="btn btn-primary my-2"
+              :disabled="signMultisigWith.length == 0"
+              @click="signMultisig"
+            >
+              {{ $t("pay.sign") }}
+            </button>
+          </div>
+          <div v-if="isSignedByAny && showFormSend">
+            <h2>{{ $t("pay.send_to_other_signators") }}</h2>
+            <textarea
+              v-if="rawSignedTxn"
+              v-model="rawSignedTxn"
+              class="form-control my-2"
+              rows="4"
+            />
+          </div>
+          <div v-if="showFormCombine">
+            <h2 v-if="rawSignedTxn">{{ $t("pay.combine_title") }}:</h2>
+            <textarea
+              v-if="rawSignedTxn"
+              v-model="rawSignedTxnFriend"
+              class="form-control my-2"
+              rows="4"
+            />
+            <button
+              v-if="rawSignedTxnFriend"
+              class="btn btn-primary m-2"
+              :disabled="!rawSignedTxn && !rawSignedTxnInput"
+              @click="combineSignatures"
+            >
+              {{ $t("pay.combine_action") }}
+            </button>
+          </div>
+
           <button
-            class="btn btn-primary my-2"
-            :disabled="signMultisigWith.length == 0"
-            @click="signMultisig"
-          >
-            {{ $t("pay.sign") }}
-          </button>
-          <p v-if="rawSignedTxn">{{ $t("pay.send_to_other_signators") }}:</p>
-          <textarea
-            v-if="rawSignedTxn"
-            v-model="rawSignedTxn"
-            class="form-control my-2"
-            rows="4"
-          />
-          <p v-if="rawSignedTxn">{{ $t("pay.combine_title") }}:</p>
-          <textarea
-            v-if="rawSignedTxn"
-            v-model="rawSignedTxnFriend"
-            class="form-control my-2"
-            rows="4"
-          />
-          <button
-            v-if="rawSignedTxnFriend"
+            v-if="$route.name != 'PayFromWalletConnect'"
             class="btn btn-primary m-2"
-            :disabled="!rawSignedTxn && !rawSignedTxnInput"
-            @click="combineSignatures"
-          >
-            {{ $t("pay.combine_action") }}
-          </button>
-          <button
-            v-if="this.$route.name != 'PayFromWalletConnect'"
-            class="btn btn-primary m-2"
-            :disabled="!rawSignedTxn && !rawSignedTxnInput"
+            :disabled="!thresholdMet"
             @click="sendMultisig"
           >
             {{ $t("pay.send_to_network") }}
           </button>
           <button
-            v-if="this.$route.name == 'PayFromWalletConnect'"
+            v-if="$route.name == 'PayFromWalletConnect'"
             class="btn btn-primary m-2"
             :disabled="!thresholdMet"
             @click="retToWalletConnect"
           >
             {{ $t("pay.return_to_wc") }}
           </button>
-        </div>
-        <div
-          v-if="
-            isMultisig &&
-            !multisigDecoded.txn &&
-            txn &&
-            accountsFromMultisig &&
-            accountsFromMultisig.length > 0
-          "
-        >
-          <label>{{ $t("pay.sign_with") }}</label>
-          <select v-model="signMultisigWith" class="form-control" multiple>
-            <option
-              v-for="option in accountsFromMultisig"
-              :key="option.addr"
-              :value="option.addr"
-            >
-              {{ option.name + "  - " + option.addr }}
-            </option>
-          </select>
           <button
-            class="btn btn-primary my-2"
-            :disabled="signMultisigWith.length == 0"
-            @click="signMultisig"
+            v-if="isSignedByAny"
+            class="btn btn-light m-2"
+            @click="toggleShowFormSend"
           >
-            {{ $t("pay.sign") }}
+            {{ $t("pay.toggle_send_to_others_form") }}
           </button>
-          <button
-            class="btn btn-primary m-2"
-            :disabled="!rawSignedTxn && !rawSignedTxnInput"
-            @click="sendMultisig"
-          >
-            {{ $t("pay.send_to_network") }}
+          <button class="btn btn-light m-2" @click="toggleShowFormCombine">
+            {{ $t("pay.toggle_combine_with_others_form") }}
           </button>
-          <p v-if="rawSignedTxn">{{ $t("pay.send_to_other_signators") }}:</p>
-          <textarea
-            v-if="rawSignedTxn"
-            v-model="rawSignedTxn"
-            class="form-control my-2"
-            rows="8"
-          />
         </div>
 
         <p v-if="!tx && processing" class="alert alert-primary my-2">
@@ -612,7 +637,7 @@
           {{ $t("pay.error") }}: {{ error }}
         </p>
         <p v-if="$store.state.toast.lastError" class="alert alert-danger my-2">
-          Last error: {{ $store.state.toast.lastError }}
+          {{ $t("global.last_error") }}: {{ $store.state.toast.lastError }}
         </p>
       </form>
     </div>
@@ -624,6 +649,7 @@ import { QrcodeStream } from "qrcode-reader-vue3";
 import aprotocol from "../shared/algorand-protocol-parse";
 
 import MainLayout from "../layouts/Main.vue";
+import InputMask from "primevue/inputmask";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
 //import base64url from "base64url";
@@ -632,6 +658,7 @@ export default {
   components: {
     QrcodeStream,
     MainLayout,
+    InputMask,
   },
   data() {
     return {
@@ -662,6 +689,11 @@ export default {
       assetObj: {},
       scan: false,
       forceAsset: false,
+      txtCode: "",
+      accountFor2FARealm: "",
+      accountFor2FAAuthToken: "",
+      showFormSend: false,
+      showFormCombine: false,
     };
   },
   computed: {
@@ -699,9 +731,49 @@ export default {
       return !!this.multisigParams;
     },
     accountsFromMultisig() {
-      return this.$store.state.wallet.privateAccounts.filter((a) =>
-        this.multisigParams.addrs.includes(a.addr)
+      const list = this.$store.state.wallet.privateAccounts.filter(
+        (a) =>
+          this.multisigParams.addrs.includes(a.addr) &&
+          (!!a.sk || a.type == "ledger")
       );
+      console.log("accountsFromMultisig.list", list);
+      const nonSigned = list.filter(
+        (s) =>
+          !!this.multisigDecoded.msig.subsig.find(
+            (a) => s.addr == algosdk.encodeAddress(a.pk) && !a.s
+          )
+      );
+
+      return nonSigned;
+    },
+    accountFor2FA() {
+      return this.$store.state.wallet.privateAccounts.find(
+        (a) => this.multisigParams.addrs.includes(a.addr) && a.type == "2faApi"
+      );
+    },
+    accountFor2FAAddr() {
+      if (!this.accountFor2FA) return "";
+      return this.accountFor2FA.addr;
+    },
+    isSignedByAccountFor2FAAddr() {
+      if (!this.accountFor2FA) return false;
+      if (!this.multisigDecoded) return false;
+      if (!this.multisigDecoded.msig) return false;
+      if (!this.multisigDecoded.msig.subsig) return false;
+      const sig = this.multisigDecoded.msig.subsig.find(
+        (s) => algosdk.encodeAddress(s.pk) == this.accountFor2FAAddr
+      );
+      if (!sig) return false;
+
+      return !!sig.s;
+    },
+    accountFor2FAAddrPrimary() {
+      if (!this.accountFor2FA) return "";
+      return this.accountFor2FA.primaryAccount;
+    },
+    accountFor2FAProvider() {
+      if (!this.accountFor2FA) return "";
+      return this.accountFor2FA.twoFactorAuthProvider;
     },
     showDesignScreen() {
       return (
@@ -797,7 +869,16 @@ export default {
         this.multisigDecoded.msig.subsig.filter((s) => !!s.s).length
       } / ${this.multisigDecoded.msig.thr}`;
     },
+    isSignedByAny() {
+      if (!this.multisigDecoded) return false;
+      if (!this.multisigDecoded.msig) return false;
+      if (!this.multisigDecoded.msig.subsig) return false;
+      return this.multisigDecoded.msig.subsig.filter((s) => !!s.s).length > 0;
+    },
     thresholdMet() {
+      if (!this.multisigDecoded) return false;
+      if (!this.multisigDecoded.msig) return false;
+      if (!this.multisigDecoded.msig.subsig) return false;
       return (
         this.multisigDecoded.msig.subsig.filter((s) => !!s.s).length >=
         this.multisigDecoded.msig.thr
@@ -858,7 +939,7 @@ export default {
     if (!this.payFrom) {
       this.setNoRedirect();
     }
-
+    this.resetError();
     this.payTo = this.$store.state.wallet.lastpayTo;
 
     if (this.$route.params.toAccount) {
@@ -934,6 +1015,14 @@ export default {
     if (this.payTo && !this.payFromDirect) {
       this.payFromDirect = this.payTo;
     }
+
+    if (this.accountFor2FAProvider) {
+      this.accountFor2FARealm = await this.getRealm({
+        twoFactorAuthProvider: this.accountFor2FAProvider,
+      });
+      console.log("accountFor2FARealm", this.accountFor2FARealm);
+      this.loadAuthToken();
+    }
   },
   methods: {
     ...mapActions({
@@ -954,6 +1043,10 @@ export default {
       signerSignMultisig: "signer/signMultisig",
       signerCreateMultisigTransaction: "signer/createMultisigTransaction",
       signerSetSigned: "signer/setSigned",
+      signAuthTx: "arc14/signAuthTx",
+      getRealm: "fa2/getRealm",
+      signTwoFactor: "fa2/signTwoFactor",
+      resetError: "toast/resetError",
     }),
     isBase64(str) {
       try {
@@ -1063,6 +1156,17 @@ export default {
       }
       this.txn = await this.preparePayment(data);
 
+      const rawSignedTxn = algosdk.createMultisigTransaction(
+        this.txn,
+        this.multisigParams
+      );
+      this.rawSignedTxn = this._arrayBufferToBase64(rawSignedTxn);
+      console.log("this.rawSignedTxn", this.rawSignedTxn);
+      this.rawSignedTxnInput = this.rawSignedTxn;
+
+      this.multisigDecoded = algosdk.decodeSignedTransaction(
+        this._base64ToArrayBuffer(this.rawSignedTxnInput)
+      );
       //let txId = txn.txID().toString();
     },
     async signMultisig(e) {
@@ -1085,21 +1189,6 @@ export default {
           txn: this.txn,
           from: this.payFrom,
         });
-        // const sk = await this.getSK({
-        //   addr: this.accountsFromMultisig[0].addr,
-        // });
-        // console.log(
-        //   "before signMultisigTransaction",
-        //   this.txn,
-        //   this.account,
-        //   this.multisigParams,
-        //   sk
-        // );
-        // rawSignedTxn = algosdk.signMultisigTransaction(
-        //   this.txn,
-        //   this.multisigParams,
-        //   sk
-        // ).blob;
       }
       console.log(
         "rawSignedTxn.toSign",
@@ -1108,79 +1197,21 @@ export default {
       );
       console.log("this.accountsFromMultisig", this.accountsFromMultisig);
       for (const acc in this.accountsFromMultisig) {
-        if (!selected.includes(this.accountsFromMultisig[acc].addr)) {
-          continue;
-        }
-        console.log("signing with ", acc);
-        // if (rawSignedTxn == null) {
-        //   const sk = await this.getSK({
-        //     addr: this.accountsFromMultisig[acc].addr,
-        //   });
-        //   console.log(
-        //     "before signMultisigTransaction",
-
-        //     this.txn,
-        //     this.account,
-        //     this.multisigParams,
-        //     sk
-        //   );
-        //   rawSignedTxn = algosdk.signMultisigTransaction(
-        //     this.txn,
-        //     this.multisigParams,
-        //     sk
-        //   ).blob;
-        //   console.log("rawSignedTxn", rawSignedTxn);
-        // } else {
-        // const sk = await this.getSK({
-        //   addr: this.accountsFromMultisig[acc].addr,
-        // });
-        // if (sk) {
-        //   console.log(
-        //     "before appendSignMultisigTransaction",
-        //     rawSignedTxn,
-        //     this.multisigParams,
-        //     sk
-        //   );
-        //   rawSignedTxn = algosdk.appendSignMultisigTransaction(
-        //     rawSignedTxn,
-        //     this.multisigParams,
-        //     sk
-        //   ).blob;
-        //   console.log("rawSignedTxn", rawSignedTxn);
-        // } else {
-        //   this.error = "You do not have private key to this account.";
-        // }
-        // }
-        rawSignedTxn = await this.signerSignMultisig({
-          msigTx: rawSignedTxn,
-          signator: this.accountsFromMultisig[acc].addr,
-          txn: this.txn,
-        }).catch((e) => {
-          console.error("e", e);
+        try {
+          if (!this.accountsFromMultisig[acc]) continue;
+          if (!selected.includes(this.accountsFromMultisig[acc].addr)) {
+            continue;
+          }
+          const newTx = await this.signerSignMultisig({
+            msigTx: rawSignedTxn,
+            signator: this.accountsFromMultisig[acc].addr,
+            txn: this.txn,
+          });
+          await this.addSignature(newTx);
+        } catch (e) {
           this.openError(e.message ?? e);
-        });
-        // console.log(
-        //   "rawSignedTxn",
-        //   rawSignedTxn,
-        //   algosdk.decodeSignedTransaction(rawSignedTxn)
-        // );
+        }
       }
-      this.rawSignedTxn = this._arrayBufferToBase64(rawSignedTxn);
-      console.log("this.rawSignedTxn", this.rawSignedTxn);
-      this.rawSignedTxnInput = this.rawSignedTxn;
-
-      this.multisigDecoded = algosdk.decodeSignedTransaction(
-        this._base64ToArrayBuffer(this.rawSignedTxnInput)
-      );
-      /*
-      var reader = new FileReader();
-      reader.readAsDataURL(new Blob(rawSignedTxn));
-      const that = this;
-      reader.onloadend = function () {
-        var base64 = reader.result.split(",")[1];
-        that.rawSignedTxn = base64;
-        console.log("rawSignedTxn", that.rawSignedTxn);
-      };/**/
     },
     _arrayBufferToBase64(buffer) {
       var binary = "";
@@ -1338,6 +1369,7 @@ export default {
       this.multisigDecoded = algosdk.decodeSignedTransaction(
         this._base64ToArrayBuffer(this.rawSignedTxnInput)
       );
+      this.txn = this.multisigDecoded.txn;
       this.rawSignedTxn = this.rawSignedTxnInput;
       this.page = "review";
       if (
@@ -1543,21 +1575,91 @@ export default {
       e.preventDefault();
       this.payamount = this.maxAmount;
     },
-    async combineSignatures() {
+    async addSignature(base64Tx) {
+      if (!base64Tx) return;
       const tx1 = new Uint8Array(Buffer.from(this.rawSignedTxn, "base64"));
-      const tx2 = new Uint8Array(
-        Buffer.from(this.rawSignedTxnFriend, "base64")
-      );
+      const tx2 = new Uint8Array(Buffer.from(base64Tx, "base64"));
       const merged = algosdk.mergeMultisigTransactions([tx1, tx2]);
       this.rawSignedTxn = Buffer.from(merged).toString("base64");
       this.multisigDecoded = algosdk.decodeSignedTransaction(
         this._base64ToArrayBuffer(this.rawSignedTxn)
       );
       console.log("multisigDecoded", this.multisigDecoded);
-      await signerSetSigned(merged);
+      await this.signerSetSigned({ signed: merged });
+    },
+    async combineSignatures(e) {
+      this.prolong();
+      e.preventDefault();
+      try {
+        await this.addSignature(this.rawSignedTxnFriend);
+        this.showFormCombine = false;
+      } catch (e) {
+        this.openError(e.message);
+      }
     },
     retToWalletConnect() {
       this.$router.push({ name: "Connect" });
+    },
+    async sign2FAClick(e) {
+      this.prolong();
+      e.preventDefault();
+      console.log("this.txtCode", this.txtCodem, this.accountFor2FA);
+      const newTx = await this.signTwoFactor({
+        rawSignedTxnInput: this.rawSignedTxnInput,
+        secondaryAccount: this.accountFor2FA.recoveryAccount,
+        txtCode: this.txtCode,
+        authToken: this.accountFor2FAAuthToken,
+        twoFactorAuthProvider: this.accountFor2FAProvider,
+      });
+      console.log("newTx", newTx);
+      await this.addSignature(newTx);
+    },
+    loadAuthToken() {
+      if (!this.accountFor2FARealm) return false;
+      if (!this.$store.state.arc14.address2chain2realm2token) return false;
+      if (
+        !this.$store.state.arc14.address2chain2realm2token[
+          this.$store.state.config.env
+        ]
+      )
+        return false;
+      if (
+        !this.$store.state.arc14.address2chain2realm2token[
+          this.$store.state.config.env
+        ][this.accountFor2FAAddr]
+      )
+        return false;
+      if (
+        !this.$store.state.arc14.address2chain2realm2token[
+          this.$store.state.config.env
+        ][this.accountFor2FAAddr][this.accountFor2FARealm]
+      )
+        return false;
+      var token =
+        this.$store.state.arc14.address2chain2realm2token[
+          this.$store.state.config.env
+        ][this.accountFor2FAAddr][this.accountFor2FARealm];
+      this.accountFor2FAAuthToken = token;
+    },
+
+    async authorizePrimaryAccountClick(e) {
+      this.prolong();
+      e.preventDefault();
+      this.accountFor2FAAuthToken = await this.signAuthTx({
+        account: this.accountFor2FAAddrPrimary,
+        realm: this.accountFor2FARealm,
+      });
+      console.log("accountFor2FAAuthToken", this.accountFor2FAAuthToken);
+    },
+    toggleShowFormSend(e) {
+      this.prolong();
+      e.preventDefault();
+      this.showFormSend = !this.showFormSend;
+    },
+    toggleShowFormCombine(e) {
+      this.prolong();
+      e.preventDefault();
+      this.showFormCombine = !this.showFormCombine;
     },
   },
 };

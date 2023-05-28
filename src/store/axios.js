@@ -389,7 +389,11 @@ const actions = {
         }
       });
 
-      if (response && response.status === 200 && response.data) {
+      if (
+        response &&
+        response.status === 200 &&
+        (response.data || response.data === false || response.data === "")
+      ) {
         return response.data;
       }
       if (response && response.status === 204) {

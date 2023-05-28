@@ -1,22 +1,24 @@
 <template>
-  <PublicLayout
-    ><div class="d-flex align-items-center justify-content-center h-100">
+  <PublicLayout>
+    <div class="d-flex align-items-center justify-content-center h-100">
       <div class="card w-25">
-        <div class="card-header">{{ $t("import.title") }}</div>
+        <div class="card-header">
+          {{ $t("import.title") }}
+        </div>
         <div class="card-body">
           <form @submit="createWalletClick">
             <label for="newwallet-name">{{ $t("import.wallet_name") }}</label>
             <input
-              v-model="name"
               id="newwallet-name"
+              v-model="name"
               class="form-control my-2"
             />
             <label for="newwallet-file">{{ $t("import.wallet_file") }}</label>
             <input
               id="newwallet-file"
+              ref="walletFile"
               type="file"
               class="form-control my-2"
-              ref="walletFile"
               @change="fileChanged"
             />
             <input
@@ -25,9 +27,9 @@
               :value="$t('import.import_wallet_button')"
               :disabled="!name || !file"
             />
-            <router-link to="/" class="btn btn-light mx-2">{{
-              $t("global.go_home")
-            }}</router-link>
+            <router-link to="/" class="btn btn-light mx-2">
+              {{ $t("global.go_home") }}
+            </router-link>
             <p class="my-2">
               {{ $t("import.help") }}
             </p>

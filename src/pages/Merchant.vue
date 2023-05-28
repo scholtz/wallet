@@ -1,47 +1,51 @@
 <template>
   <PublicLayout>
-    <template v-slot:header><span></span></template>
-    <template v-slot:footer><span></span></template>
+    <template #header>
+      <span />
+    </template>
+    <template #footer>
+      <span />
+    </template>
     <div class="container">
       <h1>
         {{ $t("merchant.make_payment") }}
         <span v-if="asset">{{ asset.name }}</span>
       </h1>
-      <div v-if="this.b64decode && !this.b64decode.error" class="my-3">
-        {{ $t("merchant.pay") }} {{ this.b64decode.payamount }}
+      <div v-if="b64decode && !b64decode.error" class="my-3">
+        {{ $t("merchant.pay") }} {{ b64decode.payamount }}
         <span v-if="asset">{{ asset["unit-name"] }}</span>
-        {{ $t("merchant.to_address") }} {{ this.b64decode.payTo }}
+        {{ $t("merchant.to_address") }} {{ b64decode.payTo }}
         {{ $t("merchant.please") }}
         <table class="w-100">
-          <tr v-if="this.b64decode.network">
+          <tr v-if="b64decode.network">
             <td>{{ $t("merchant.network") }}:</td>
             <td>
-              <code>{{ this.b64decode.network }}</code>
+              <code>{{ b64decode.network }}</code>
             </td>
           </tr>
-          <tr v-if="this.b64decode.paynote">
+          <tr v-if="b64decode.paynote">
             <td>{{ $t("merchant.matching_symbol") }}:</td>
             <td>
-              <code>{{ this.b64decode.paynote }}</code>
+              <code>{{ b64decode.paynote }}</code>
             </td>
           </tr>
-          <tr v-if="this.b64decode.fee">
+          <tr v-if="b64decode.fee">
             <td>{{ $t("merchant.network_fee") }}:</td>
             <td>
-              <code>{{ this.b64decode.fee }} ALGO</code>
+              <code>{{ b64decode.fee }} ALGO</code>
             </td>
           </tr>
         </table>
       </div>
-      <div v-else-if="this.b64decode.error" class="my-3">
-        {{ this.b64decode.error }}
+      <div v-else-if="b64decode.error" class="my-3">
+        {{ b64decode.error }}
       </div>
       <div v-else>
         <span
           class="spinner-grow spinner-grow-sm"
           role="status"
           aria-hidden="true"
-        ></span>
+        />
       </div>
       <div v-if="!isPaid">
         <a
@@ -64,53 +68,53 @@
           >{{ $t("merchant.pay_webwallet") }}</a
         >
         <a
+          v-if="settings.cancel"
           :href="settings.cancel"
           class="btn btn-light btn-xl mb-3"
-          v-if="settings.cancel"
           >{{ $t("merchant.cancel_payment") }}</a
         >
       </div>
 
-      <p class="alert alert-success mb-3" v-if="isPaid">
+      <p v-if="isPaid" class="alert alert-success mb-3">
         {{ $t("merchant.payment_received") }}
       </p>
 
       <form
+        v-if="isPaid && settings.success"
         ref="sendToMerchant"
         :action="settings.success"
         method="POST"
-        v-if="isPaid && settings.success"
       >
         <input
           type="hidden"
           name="txId"
-          :value="this.transactions.transactions[0].id"
+          :value="transactions.transactions[0].id"
         />
         <input
           type="submit"
           class="btn btn-primary btn-xl my-2"
           :value="$t('merchant.go_back_to_merchant')"
         />
-        <span class="badge bg-info text-dark m-2">({{ this.countDown }})</span>
+        <span class="badge bg-info text-dark m-2">({{ countDown }})</span>
       </form>
 
-      <p class="alert alert-primary mb-3" v-if="!isPaid">
+      <p v-if="!isPaid" class="alert alert-primary mb-3">
         <span
           class="spinner-grow spinner-grow-sm"
           role="status"
           aria-hidden="true"
-        ></span>
+        />
         {{ $t("merchant.waiting_for_payment") }}
       </p>
       <div class="row">
         <div class="col-12 col-lg-6">
           <QRCodeVue3
-            :title="origcode"
             v-if="!isPaid"
+            :title="origcode"
             :width="400"
             :height="400"
-            :value="this.origcode"
-            :qrOptions="{ errorCorrectionLevel: 'H' }"
+            :value="origcode"
+            :qr-options="{ errorCorrectionLevel: 'H' }"
             :image="assetImage"
           />
         </div>
@@ -119,8 +123,8 @@
             v-for="lang in $store.state.config.languages"
             :key="lang"
             class="m-2 d-inline-block"
-            @click="setLanguage(lang)"
             role="button"
+            @click="setLanguage(lang)"
           >
             <img
               :src="'/flags/3x2/' + lang + '.svg'"
@@ -261,7 +265,8 @@ export default {
         if (newAsset && newAsset.decimals !== undefined) {
           this.asset = newAsset;
         } else {
-          const errorMsg = this.$t('merchant.error_asset') + this.b64decode.asset;
+          const errorMsg =
+            this.$t("merchant.error_asset") + this.b64decode.asset;
           this.openError(errorMsg);
           this.b64decode.error = errorMsg;
           return;
@@ -292,11 +297,14 @@ export default {
     },
     setNetwork() {
       console.log("this.b64decode.network", this.b64decode.network);
-      if (this.b64decode.network == "mainnet") {
+      if (
+        this.b64decode.network == "mainnet" ||
+        this.b64decode.network == "mainnet-v1.0"
+      ) {
         this.setHosts({
-          algod: "https://node.algoexplorerapi.io",
+          algod: "https://mainnet-api.algonode.cloud",
           kmd: "https://kmd.h2.a-wallet.net",
-          indexer: "https://algoindexer.algoexplorerapi.io",
+          indexer: "https://mainnet-idx.algonode.cloud",
         });
       }
       if (this.b64decode.network == "aramidmain") {
@@ -306,12 +314,15 @@ export default {
           indexer: "https://indexer.aramidmain.a-wallet.net",
         });
       }
-      if (this.b64decode.network == "testnet") {
+      if (
+        this.b64decode.network == "testnet" ||
+        this.b64decode.network == "testnet-v1.0"
+      ) {
         console.log("setting testnet");
         this.setHosts({
-          algod: "https://node.testnet.algoexplorerapi.io",
+          algod: "https://testnet-api.algonode.cloud",
           kmd: "?",
-          indexer: "https://algoindexer.testnet.algoexplorerapi.io",
+          indexer: "https://testnet-idx.algonode.cloud",
         });
       }
       if (this.b64decode.network == "sandbox") {

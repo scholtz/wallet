@@ -1,6 +1,6 @@
 <template>
   <div class="container-fluid">
-    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+    <div id="nav-tab" class="nav nav-tabs" role="tablist">
       <v-link
         class="nav-item nav-link"
         :class="current == 'governance' ? 'active' : ''"
@@ -9,8 +9,9 @@
         role="tab"
         aria-controls="nav-home"
         aria-selected="true"
-        >{{ $t("votemenu.governance") }}</v-link
       >
+        {{ $t("votemenu.governance") }}
+      </v-link>
       <v-link
         class="nav-item nav-link"
         :class="current == 'ams01' ? 'active' : ''"
@@ -19,8 +20,9 @@
         role="tab"
         aria-controls="nav-profile"
         aria-selected="false"
-        >{{ $t("votemenu.ams01") }}</v-link
       >
+        {{ $t("votemenu.ams01") }}
+      </v-link>
     </div>
     <div v-if="current == 'governance'">
       <h1>Algorand foundation governance</h1>
@@ -50,23 +52,21 @@
         services.
       </p>
       <a
-        class="btn m-2"
-        :class="
-          this.currentToken == token.assetId ? 'btn-primary' : 'btn-light'
-        "
         v-for="token in voteTokens"
         :key="token.assetId"
+        class="btn m-2"
+        :class="currentToken == token.assetId ? 'btn-primary' : 'btn-light'"
         @click="
           setToken({ assetId: token.assetId });
           showCustom = false;
-          this.customToken = token.assetId;
+          customToken = token.assetId;
         "
         >{{ token.name }}</a
       >
       <a
         class="btn m-2"
-        :class="this.showCustom ? 'btn-primary' : 'btn-light'"
-        @click="this.showCustom = true"
+        :class="showCustom ? 'btn-primary' : 'btn-light'"
+        @click="showCustom = true"
         >Custom token</a
       >
 
@@ -74,7 +74,7 @@
         v-if="showCustom"
         v-model="customToken"
         class="form-control m-2"
-        @change="setToken({ assetId: this.customToken })"
+        @change="setToken({ assetId: customToken })"
       />
     </div>
   </div>
@@ -84,11 +84,14 @@
 import VLink from "./VLink.vue";
 import { mapActions } from "vuex";
 export default {
-  data() {
-    return { showCustom: false, customToken: 0 };
-  },
   components: {
     VLink,
+  },
+  props: {
+    current: String,
+  },
+  data() {
+    return { showCustom: false, customToken: 0 };
   },
   computed: {
     env() {
@@ -108,9 +111,6 @@ export default {
     this.setToken({ assetId: this.customToken });
     if (!this.voteTokens.find((t) => t.assetId == this.customToken))
       this.showCustom = true;
-  },
-  props: {
-    current: String,
   },
   methods: {
     ...mapActions({

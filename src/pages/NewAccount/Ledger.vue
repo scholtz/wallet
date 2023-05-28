@@ -21,8 +21,8 @@
     <div>
       <button
         class="btn my-2"
+        :class="address ? 'btn-light' : 'btn-primary'"
         @click="clickAddress"
-        :class="this.address ? 'btn-light' : 'btn-primary'"
       >
         {{ $t("new_account_ledger.connect") }}
       </button>
@@ -32,7 +32,7 @@
         {{ $t("new_account_ledger.slot") }} {{ loadedSlot }}
         {{ $t("new_account_ledger.address") }}: {{ address }}
       </div>
-      <div v-if="this.address0 != this.address">
+      <div v-if="address0 != address">
         {{ $t("new_account_ledger.primary_address") }}: {{ address0 }}
       </div>
       <h3>{{ $t("new_account_ledger.account_name") }}</h3>
@@ -51,6 +51,9 @@ import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 
 import { mapActions } from "vuex";
 export default {
+  components: {
+    MainLayout,
+  },
   data() {
     return {
       slot: 0,
@@ -61,18 +64,9 @@ export default {
       name: "",
     };
   },
-  components: {
-    MainLayout,
-  },
   mounted() {
     this.lastError = "";
     this.prolong();
-  },
-  watch: {
-    slot() {
-      if (this.address && this.address0) {
-      }
-    },
   },
   methods: {
     ...mapActions({
@@ -101,11 +95,13 @@ export default {
           }
         }
       } catch (Error) {
-        if (Error.message == "Ledger device: UNKNOWN_ERROR (0x6b0c)") {
-          Error = "Please connect your Ledger device (0x6b0c)";
+        let err = Error.message ?? Error;
+
+        if (err == "Ledger device: UNKNOWN_ERROR (0x6b0c)") {
+          err = "Please connect your Ledger device (0x6b0c)";
         }
         console.error(Error);
-        this.lastError = Error;
+        this.lastError = err;
         this.openError(this.lastError);
       }
     },
@@ -134,11 +130,12 @@ export default {
         });
         this.$router.push({ name: "Accounts" });
       } catch (Error) {
-        console.error(Error.message);
-        if (Error.message == "Ledger device: UNKNOWN_ERROR (0x6b0c)") {
-          Error = "Please connect your Ledger device (0x6b0c)";
+        let err = Error.message ?? Error;
+        console.error(Error);
+        if (err == "Ledger device: UNKNOWN_ERROR (0x6b0c)") {
+          err = "Please connect your Ledger device (0x6b0c)";
         }
-        this.lastError = Error;
+        this.lastError = err;
       }
     },
   },

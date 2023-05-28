@@ -302,7 +302,9 @@
     "amount": "Importo",
     "address": "Indirizzo",
     "pay": "Paga",
-    "connect": "WalletConnect"
+    "connect": "WalletConnect",
+    "show_on_netowork_accounts": "Show accounts for network",
+    "2fa_code": "2FA code"
   },
   "newacc": {
     "title": "Nuovo account",
@@ -336,7 +338,10 @@
     "vanity_button_stop": "Stop searching",
     "vanity_workers": "Number of threads to use",
     "vanity_use": "Use this account",
-    "auto_lock_off": "Auto lock feature is turned off"
+    "auto_lock_off": "Auto lock feature is turned off",
+    "ledger_account": "HW Wallet - Ledger Account",
+    "wc_account": "Wallet Connect Account",
+    "twofa_account": "2FA Account"
   },
   "import": {
     "title": "Importa wallet",
@@ -352,6 +357,9 @@
     "rekeyed": "Rekeyed account",
     "ledger_account": "HW ledger account",
     "wc_account": "WalletConnect account"
+  },
+  "account": {
+    "select_account": "Select account"
   },
   "pay": {
     "title": "Effettua pagamento - da",
@@ -409,7 +417,13 @@
     "rekey_warning": "Please take a special attention to this transaction. From now on, the account will use different private key to be able to do the transactions. If you do not have private key of the new account, you will most likely loose ability to sign transactions.",
     "combine_title": "Combine signatures from other signator",
     "combine_action": "Combine signatures",
-    "return_to_wc": "Return to WalletConnect"
+    "return_to_wc": "Return to WalletConnect",
+    "select_account_for_payment": "Select account from which you want to make the payment",
+    "create_multisig_proposal": "Create multisig proposal",
+    "2fa_code": "2FA code",
+    "sign_arc14_request": "Sign authorization request",
+    "toggle_send_to_others_form": "Toggle Send to others form",
+    "toggle_combine_with_others_form": "Toggle Combine with others form"
   },
   "settings": {
     "title": "Impostazioni",
@@ -607,5 +621,21 @@
     "address": "Address",
     "save_address": "Save the address to the wallet",
     "copy": "Copy URI to clipboard"
+  },
+  "new_account_2fa": {
+    "title": "2FA Account",
+    "help1": "2FA account allows you to create multisig account with 3 accounts setup with threshold of 2 required for signature.",
+    "help2": "First account may be password protected account where in the case of the hack of your wallet the hacker cannot sign the transactions on your behalf. If your 2FA device gets broken, or 2FA service gets down, you can rekey your account to another 2FA multisig with your first and second account.",
+    "help3": "2FA service is third party service which might be compromised. If hacker receives your private key and receives the private key of the 2fa service, he may sign transactions on your behalf. By using the 2fa service you increase chance that hacker who receive ability to sign transactions with your primary or recovery account is not able to sign transactions from your multisig account.",
+    "2fa_provider": "2FA provider",
+    "hot_account": "Hot account",
+    "cold_account": "Cold storage account",
+    "request_qr_code": "Request 2FA QR code",
+    "scan_qr": "Please scan the QR code with your 2FA app",
+    "manual_entry_key": "Manual entry key",
+    "confirm_2fa": "Confirm setup",
+    "confirm_help": "Please write 2FA code from your auth app to confirm the setup. After confirmation it is not possible to request the 2fa secret code again.",
+    "2fa_code": "2FA code",
+    "save_button": "Save address"
   }
 }

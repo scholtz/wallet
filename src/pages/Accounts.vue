@@ -1,7 +1,26 @@
 <template>
   <main-layout>
-    <h1>{{ $t("accounts.title") }}</h1>
-
+    <div class="row">
+      <div class="col-6">
+        <h1>{{ $t("accounts.title") }}</h1>
+      </div>
+      <div class="col-6">
+        <div class="flex align-items-end">
+          <div class="text-end">
+            <label for="showAll" class="my-3"
+              >{{ $t("accounts.show_on_netowork_accounts") }}:
+              {{ this.$store.state.config.env }}</label
+            ><Checkbox
+              inputId="showAll"
+              type="checkbox"
+              class="mx-2 my-3"
+              v-model="showNetworkAccounts"
+              :binary="true"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
     <DataTable
       v-model:selection="selection"
       :value="accounts"
@@ -40,9 +59,22 @@
           <div v-if="slotProps.data.rekeyedTo" class="badge bg-danger">
             {{ $t("acc_type.rekeyed") }}
           </div>
+          <div
+            v-else-if="slotProps.data.type == '2fa'"
+            class="badge bg-primary text-light"
+          >
+            2FA Multisig
+          </div>
+          <div
+            v-else-if="slotProps.data.type == '2faApi'"
+            class="badge bg-light text-dark"
+          >
+            2FA API technical account
+          </div>
           <div v-else-if="slotProps.data.sk" class="badge bg-primary">
             {{ $t("acc_type.basic_account") }}
           </div>
+
           <div
             v-else-if="slotProps.data.params"
             class="badge bg-warning text-dark"
@@ -90,6 +122,7 @@
 <script>
 import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
+import Checkbox from "primevue/checkbox";
 
 //import VGrid, { VGridVueTemplate } from "@revolist/vue3-datagrid";
 //import VGridButton from "../components/VGridButton.vue";
@@ -98,17 +131,15 @@ export default {
   components: {
     //VGrid,
     MainLayout,
+    Checkbox,
   },
   data() {
     return {
       gridEditors: { button: false },
       selection: null,
+      showNetworkAccounts: true,
+      accounts: [],
     };
-  },
-  computed: {
-    accounts() {
-      return this.$store.state.wallet.privateAccounts;
-    },
   },
   watch: {
     async selection() {
@@ -117,9 +148,20 @@ export default {
         this.$router.push("/account/" + this.selection.addr);
       }
     },
+    showNetworkAccounts() {
+      localStorage.setItem("showNetworkAccounts", this.showNetworkAccounts);
+      this.fillAccounts();
+    },
   },
   mounted() {
     this.updateBalance();
+    if (localStorage.getItem("showNetworkAccounts") === null) {
+      this.showNetworkAccounts = true;
+    } else {
+      this.showNetworkAccounts =
+        localStorage.getItem("showNetworkAccounts") == "true";
+    }
+    this.fillAccounts();
   },
   methods: {
     ...mapActions({
@@ -127,6 +169,22 @@ export default {
       updateAccount: "wallet/updateAccount",
       lastActiveAccount: "wallet/lastActiveAccount",
     }),
+    fillAccounts() {
+      if (this.showNetworkAccounts) {
+        console.log(
+          "this.$store.state.wallet.privateAccounts",
+          this.$store.state.wallet.privateAccounts,
+          Object.values(this.$store.state.wallet.privateAccounts)
+        );
+        this.accounts = Object.values(
+          this.$store.state.wallet.privateAccounts
+        ).filter(
+          (a) => a.network == this.$store.state.config.env && !a.isHidden
+        );
+      } else {
+        this.accounts = Object.values(this.$store.state.wallet.privateAccounts);
+      }
+    },
     sleep(ms) {
       return new Promise((resolve) => {
         setTimeout(resolve, ms);

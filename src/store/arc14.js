@@ -1,10 +1,25 @@
 import algosdk from "algosdk";
+const state = () => ({
+  address2chain2realm2token: {},
+});
 
+const mutations = {
+  storeArc14Auth(state, { chain, addr, realm, token }) {
+    if (state.address2chain2realm2token[chain] === undefined) {
+      state.address2chain2realm2token[chain] = {};
+    }
+    if (state.address2chain2realm2token[chain][addr] === undefined) {
+      state.address2chain2realm2token[chain][addr] = {};
+    }
+    state.address2chain2realm2token[chain][addr][realm] = token;
+    console.log("address2chain2realm2token", state.address2chain2realm2token);
+  },
+};
 const actions = {
   async signAuthTx({ dispatch, commit }, { account, realm }) {
     try {
       if (!account) throw new Error("Address not found.");
-
+      console.log("signAuthTx", account);
       const url = new URL(this.state.config.algod);
       let algodclient = new algosdk.Algodv2(
         this.state.config.algodToken,
@@ -24,8 +39,10 @@ const actions = {
         note: new Uint8Array(note),
         suggestedParams: authParams,
       };
+      console.log("authObj", authObj);
       const authTxn =
         algosdk.makePaymentTxnWithSuggestedParamsFromObject(authObj);
+
       let signedAuthTxn = await dispatch(
         "signer/signTransaction",
         { from: account, tx: authTxn },
@@ -38,6 +55,12 @@ const actions = {
       }
       const b64 = Buffer.from(signedAuthTxn).toString("base64");
       const auth = "SigTx " + b64;
+      commit("storeArc14Auth", {
+        chain: this.state.config.env,
+        addr: account,
+        realm,
+        token: auth,
+      });
       return auth;
     } catch (error) {
       console.error("error", error, dispatch);
@@ -50,5 +73,7 @@ const actions = {
 };
 export default {
   namespaced: true,
+  state,
+  mutations,
   actions,
 };

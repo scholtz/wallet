@@ -1,7 +1,7 @@
 import Dexie from "dexie";
 
 const db = new Dexie("AWallet");
-db.version(5).stores({
+db.version(6).stores({
   wallets: "++id,name",
   wc: "&id,name",
 });

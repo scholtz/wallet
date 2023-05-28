@@ -302,7 +302,9 @@
     "amount": "Čiastka",
     "address": "Adresa",
     "pay": "Platba",
-    "connect": "WalletConnect"
+    "connect": "WalletConnect",
+    "show_on_netowork_accounts": "Zobraziť iba účty pre blockchain",
+    "2fa_code": "Kód dvoj úrovňovej autorizácie"
   },
   "newacc": {
     "title": "Nový účet",
@@ -336,7 +338,10 @@
     "vanity_button_stop": "Stop",
     "vanity_workers": "Počet vlákien",
     "vanity_use": "Použiť tento účet",
-    "auto_lock_off": "Auto zamykanie peňaženky je vypnuté"
+    "auto_lock_off": "Auto zamykanie peňaženky je vypnuté",
+    "ledger_account": "HW Zariadenie - Ledger účet",
+    "wc_account": "Wallet Connect účet",
+    "twofa_account": "2FA účet"
   },
   "import": {
     "title": "Import peňaženky",
@@ -352,6 +357,9 @@
     "rekeyed": "Rekeyed account",
     "ledger_account": "HW ledger účet",
     "wc_account": "WalletConnect account"
+  },
+  "account": {
+    "select_account": "Vyberte si účet"
   },
   "pay": {
     "title": "Nová platba - od",
@@ -399,17 +407,23 @@
     "state_error_not_sent": "Platba pravdepodobne nedorazila do siete. Máte prístup k internetu? Skontroolujte si stav na účte.",
     "set_max": "Nastaviť maxium",
     "environment": "Prostredie",
-    "pay_to_address_malformed": "Address Pay To seems to be malformed.",
-    "asset_failed_to_load": "It seems that desired asset has failed to load",
-    "asset_too_small_balance": "It seems your balance is below desired pay amount",
-    "rekey_to": "Rekey to account",
-    "rekey_to_wallet_account": "Rekey to wallet account",
-    "rekey_to_external_account": "Rekey to external account",
-    "rekey_title": "Rekey account",
-    "rekey_warning": "Please take a special attention to this transaction. From now on, the account will use different private key to be able to do the transactions. If you do not have private key of the new account, you will most likely loose ability to sign transactions.",
-    "combine_title": "Combine signatures from other signator",
-    "combine_action": "Combine signatures",
-    "return_to_wc": "Return to WalletConnect"
+    "pay_to_address_malformed": "Adresa príjemcu platby vyzerá byť chybná.",
+    "asset_failed_to_load": "Aktívum sa nepodarilo načítať",
+    "asset_too_small_balance": "Vyzerá, že nemáte dostatočný zostatok pre vykonanie platby",
+    "rekey_to": "Prekľúčovať (rekey) na účet",
+    "rekey_to_wallet_account": "Prekľúčovať na účet v peňaženke",
+    "rekey_to_external_account": "Prekľúčovať na externý účet",
+    "rekey_title": "Prekľúčovať účet",
+    "rekey_warning": "Prosím zvýšte pozornosť pre túto transakciu. Od podpísania tejto transakcie zmeníte oprávnenia k podpisovaniu transakcií na Vašom účte. Ak nemáte prístup k privátnemu kľúču novej adresy, nebudete môcť podpisovať ďalšie transakcie a je možné, že aktíva na účte nebude možné už nikdy použiť.",
+    "combine_title": "Skobinujte podpisy od ostatných signatárov",
+    "combine_action": "Skobninovať podpisy",
+    "return_to_wc": "Naspäť do wallet connect",
+    "select_account_for_payment": "Vyberte si účet z ktorého chcete vykonať platbu",
+    "create_multisig_proposal": "Navrhnite mulitipodpisovú transakciu",
+    "2fa_code": "Kód dvoj úrovňovej autorizácie",
+    "sign_arc14_request": "Podpísať autorizačný request",
+    "toggle_send_to_others_form": "Zapnúť/Vypnúť Formulár odoslať ostatným",
+    "toggle_combine_with_others_form": "Zapnúť/Vypnúť Skombinovať podpisy"
   },
   "settings": {
     "title": "Nastavenia",
@@ -600,12 +614,28 @@
     "genesis_hash": "Genesis Hash"
   },
   "new_account_wc": {
-    "title": "Add WalletConnect account",
-    "account_name": "Account name",
-    "last_error": "Last error",
-    "scan": "Scan the QR code",
-    "address": "Address",
-    "save_address": "Save the address to the wallet",
-    "copy": "Copy URI to clipboard"
+    "title": "Pridať WalletConnect účet",
+    "account_name": "Názov účtu",
+    "last_error": "Posledná chyba",
+    "scan": "Nascanovať QR kód",
+    "address": "Adresa",
+    "save_address": "Uložiť adresu do peňaženky",
+    "copy": "Skopírovať URI do schránky"
+  },
+  "new_account_2fa": {
+    "title": "Účet dvojúrovňovej autorizácie",
+    "help1": "Účet dvojúrovňovej autorizácie Vám umožní vytvoriť multipodpisový účet s 3mi účtami s 2mi podpismi vyžadujúcimi oprávnenie vykonať transakciu.",
+    "help2": "Prvý účet môže byť štandadný účet uložený v peňaženke. Druhý účet je api účet dvoj-úrovňovej autorizácie ktorý po overení totožnosti prvého účtu a zadaním správneho kódu môže podpísať ľubovoľnú transakciu. Tretí účet považujte za účet pre obnovenie prístupu.",
+    "help3": "Ak stratíte prístup k prvému účtu, alebo služba dvojúrovňovej autorizácie nebude fungovať, môžete prekľúčovať váš účet na ďalší účet a naďalej disponovať prostriedkami. Používaním dvojúrovňovej autorizácie zvyšujete bezbečnosť uloženia primárneho účtu. Pre maximálnu bezpečnosť účet pre obnovenie nemajte nikdy v online priestore.",
+    "2fa_provider": "Poskytovateľ dvojúrovňovej autorizácie",
+    "hot_account": "Primárny účet",
+    "cold_account": "Účet pre obnovenie prístupu",
+    "request_qr_code": "Vyžiadať QR kód dvojúrovňovej autorizácie",
+    "scan_qr": "Nascanujte QR kód s Vašou 2FA aplikáciou",
+    "manual_entry_key": "Kľúč pre manuálne zadanie",
+    "confirm_2fa": "Potvrdiť nastavenie",
+    "confirm_help": "Zadajte kód dvojúrovňovej autorizácie. Po tomto potvrdení, nebude možné pre kombináciu primárneho účtu a účtu pre obnovenie zobraziť tieto nastavenia.",
+    "2fa_code": "Kód dvoj úrovňovej autorizácie",
+    "save_button": "Uložiť účet"
   }
 }

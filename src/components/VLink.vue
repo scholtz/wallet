@@ -1,6 +1,6 @@
 <template>
   <RouterLink :to="href">
-    <slot></slot>
+    <slot />
   </RouterLink>
 </template>
 

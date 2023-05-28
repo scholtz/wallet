@@ -9,39 +9,41 @@
           class="spinner-grow spinner-grow-sm"
           role="status"
           aria-hidden="true"
-        ></span>
+        />
         {{ $t("global.loading") }}
       </div>
     </div>
     <div v-else>
       <DataTable
         v-if="!selection"
-        :value="questions"
-        responsiveLayout="scroll"
-        selectionMode="single"
         v-model:selection="selection"
+        :value="questions"
+        responsive-layout="scroll"
+        selection-mode="single"
         :paginator="true"
         :rows="20"
-        sortField="round"
-        :sortOrder="-1"
-        removableSort
+        sort-field="round"
+        :sort-order="-1"
+        removable-sort
       >
-        <template #empty> {{ $t("votequestionlist.no_questions") }} </template>
+        <template #empty>
+          {{ $t("votequestionlist.no_questions") }}
+        </template>
         <Column
           field="note.t"
           :header="$t('votequestionlist.question_title')"
           :sortable="true"
-        ></Column>
+        />
         <Column
           field="round"
           :header="$t('votequestionlist.round')"
           :sortable="true"
-        ></Column>
+        />
         <Column
           field="note.max"
           :header="$t('votequestionlist.maxround')"
           :sortable="true"
-        ></Column>
+        />
         <Column
           field="round-time"
           :header="$t('votequestionlist.time')"
@@ -61,74 +63,70 @@
           field="note.category"
           :header="$t('votequestionlist.category')"
           :sortable="true"
-        ></Column>
+        />
         <Column
           field="sender"
           :header="$t('votequestionlist.sender')"
           :sortable="true"
-          styleClass="not-show-at-start"
-        ></Column>
+          style-class="not-show-at-start"
+        />
       </DataTable>
       <div v-if="selection">
         <button
           class="btn btn-xs btn-default btn-outline-primary"
-          @click="this.selection = null"
+          @click="selection = null"
         >
           {{ $t("votequestionlist.list") }}
         </button>
         <table class="w-100">
           <tr>
             <th>{{ $t("votequestionlist.id") }}:</th>
-            <td>{{ this.selection["id"] }}</td>
+            <td>{{ selection["id"] }}</td>
           </tr>
           <tr>
             <th>{{ $t("votequestionlist.round") }}:</th>
-            <td>{{ this.selection.round }}</td>
+            <td>{{ selection.round }}</td>
           </tr>
-          <tr v-if="this.selection && this.selection.note">
+          <tr v-if="selection && selection.note">
             <th>{{ $t("votequestionlist.maxround") }}:</th>
-            <td>{{ this.max }}</td>
+            <td>{{ max }}</td>
           </tr>
-          <tr v-if="this.params">
+          <tr v-if="params">
             <th>{{ $t("votequestionlist.current_round") }}:</th>
-            <td>{{ this.params.firstRound }}</td>
+            <td>{{ params.firstRound }}</td>
           </tr>
           <tr>
             <th>{{ $t("votequestionlist.round_time") }}:</th>
             <td>
-              {{ $filters.formatDateTime(this.selection["round-time"]) }}
+              {{ $filters.formatDateTime(selection["round-time"]) }}
             </td>
           </tr>
           <tr>
             <th>{{ $t("votequestionlist.sender") }}:</th>
-            <td>{{ this.selection["sender"] }}</td>
+            <td>{{ selection["sender"] }}</td>
           </tr>
           <tr>
             <th>{{ $t("votequestionlist.question_title") }}:</th>
-            <td>{{ this.selection.note.t }}</td>
+            <td>{{ selection.note.t }}</td>
           </tr>
           <tr>
             <th>{{ $t("votequestionlist.question_text") }}:</th>
             <td>
-              <pre>{{ this.selection.note.q }}</pre>
+              <pre>{{ selection.note.q }}</pre>
             </td>
           </tr>
           <tr>
             <th>{{ $t("votequestionlist.category") }}:</th>
-            <td>{{ this.selection.note["category"] }}</td>
+            <td>{{ selection.note["category"] }}</td>
           </tr>
           <tr>
             <th>{{ $t("votequestionlist.url") }}:</th>
-            <td>{{ this.selection.note["url"] }}</td>
+            <td>{{ selection.note["url"] }}</td>
           </tr>
-          <tr
-            v-if="
-              this.selection && this.selection.note && this.selection.note.o
-            "
-          >
+          <tr v-if="selection && selection.note && selection.note.o">
             <th>{{ $t("votequestionlist.options") }}:</th>
             <td>
-              <div v-for="(o, index) in this.selection.note.o" :key="index">
+              <div v-for="(o, index) in selection.note.o" :key="index">
                 <div class="row">
                   <div class="col-3">
                     <label :for="'R' + index">
@@ -136,22 +134,22 @@
                     </label>
                   </div>
                   <div
-                    class="col-9"
                     v-if="
                       !votingFinished ||
                       (selectedAnswer && selectedAnswer.latest)
                     "
+                    class="col-9"
                   >
                     <InputText
                       :id="'R' + index"
-                      class="w1"
                       v-model.number="results[index]"
+                      class="w1"
                       style="width: 14rem"
                       :disabled="votingFinished"
                     />
                     <Slider
-                      class="w1"
                       v-model="results[index]"
+                      class="w1"
                       style="width: 14rem"
                       :disabled="votingFinished"
                     />
@@ -164,7 +162,7 @@
             </td>
           </tr>
           <tr>
-            <th></th>
+            <th />
             <td>
               <div v-if="votingFinished" class="alert alert-danger">
                 {{ $t("votequestionlist.voting_closed") }}
@@ -216,7 +214,7 @@
                   <h2>{{ $t("votequestionlist.trusted_list_results") }}</h2>
                   {{ $t("votequestionlist.sum_trusted") }}:
                   {{ resultsFirstCalcSum }}
-                  <div v-for="(o, index) in this.selection.note.o" :key="index">
+                  <div v-for="(o, index) in selection.note.o" :key="index">
                     <div class="row">
                       <div class="col-3">
                         <label :for="'R1-' + index">
@@ -226,14 +224,14 @@
                       <div class="col-9">
                         <InputText
                           :id="'R1-' + index"
-                          class="w1"
                           v-model.number="resultsFirstCalc[index]"
+                          class="w1"
                           style="width: 14rem"
                           :disabled="true"
                         />
                         <Slider
-                          class="w1"
                           v-model="resultsFirstCalc[index]"
+                          class="w1"
                           style="width: 14rem"
                           :disabled="true"
                         />
@@ -252,7 +250,7 @@
                   <h2>{{ $t("votequestionlist.hypercapitalism_results") }}</h2>
                   {{ $t("votequestionlist.sum_coins") }}:
                   {{ resultsSecondCalcSum }}
-                  <div v-for="(o, index) in this.selection.note.o" :key="index">
+                  <div v-for="(o, index) in selection.note.o" :key="index">
                     <div class="row">
                       <div class="col-3">
                         <label :for="'R2-' + index">
@@ -262,14 +260,14 @@
                       <div class="col-9">
                         <InputText
                           :id="'R2-' + index"
-                          class="w1"
                           v-model.number="resultsSecondCalc[index]"
+                          class="w1"
                           style="width: 14rem"
                           :disabled="true"
                         />
                         <Slider
-                          class="w1"
                           v-model="resultsSecondCalc[index]"
+                          class="w1"
                           style="width: 14rem"
                           :disabled="true"
                         />
@@ -297,7 +295,7 @@
             class="spinner-grow spinner-grow-sm"
             role="status"
             aria-hidden="true"
-          ></span>
+          />
           {{ $t("pay.state_sending") }}
         </p>
         <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
@@ -305,7 +303,7 @@
             class="spinner-grow spinner-grow-sm"
             role="status"
             aria-hidden="true"
-          ></span>
+          />
           {{ $t("pay.state_sent") }}: {{ tx }}.
           {{ $t("pay.state_waiting_confirm") }}
         </p>
@@ -321,8 +319,8 @@
         </div>
         <AnswersList
           v-if="selection && selection.id"
-          :question="selection.id"
           v-model:selectedAnswer="selectedAnswer"
+          :question="selection.id"
         />
       </div>
     </div>
@@ -356,38 +354,6 @@ export default {
       selectedAnswer: {},
       processingResults: false,
     };
-  },
-  watch: {
-    async selection() {
-      this.results = {};
-      if (this.selection && this.selection.note && this.selection.note.o) {
-        for (let index in this.selection.note.o) {
-          this.results[index] = 0;
-        }
-      }
-    },
-    selectedAnswer() {
-      if (this.selectedAnswer && this.selectedAnswer.response) {
-        this.results = JSON.parse(JSON.stringify(this.selectedAnswer.response));
-      }
-    },
-    sum() {
-      if (this.selectedAnswer && this.selectedAnswer.latest) {
-        let s = 0;
-        for (let index in this.selectedAnswer.response) {
-          s += this.selectedAnswer.response[index];
-        }
-        if (this.sum != s) {
-          this.selectedAnswer.latest = false;
-        }
-      }
-    },
-    votingFinished() {
-      console.log("votingFinished", this.votingFinished);
-    },
-    currentToken() {
-      this.initLoad();
-    },
   },
   computed: {
     max() {
@@ -447,6 +413,38 @@ export default {
     },
     currentToken() {
       return this.$store.state.vote.assetId;
+    },
+  },
+  watch: {
+    async selection() {
+      this.results = {};
+      if (this.selection && this.selection.note && this.selection.note.o) {
+        for (let index in this.selection.note.o) {
+          this.results[index] = 0;
+        }
+      }
+    },
+    selectedAnswer() {
+      if (this.selectedAnswer && this.selectedAnswer.response) {
+        this.results = JSON.parse(JSON.stringify(this.selectedAnswer.response));
+      }
+    },
+    sum() {
+      if (this.selectedAnswer && this.selectedAnswer.latest) {
+        let s = 0;
+        for (let index in this.selectedAnswer.response) {
+          s += this.selectedAnswer.response[index];
+        }
+        if (this.sum != s) {
+          this.selectedAnswer.latest = false;
+        }
+      }
+    },
+    votingFinished() {
+      console.log("votingFinished", this.votingFinished);
+    },
+    currentToken() {
+      this.initLoad();
     },
   },
 

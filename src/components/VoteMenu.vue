@@ -1,6 +1,6 @@
 <template>
   <div class="container-fluid">
-    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+    <div id="nav-tab" class="nav nav-tabs" role="tablist">
       <v-link
         class="nav-item nav-link"
         :class="current == 'overview' ? 'active' : ''"
@@ -9,8 +9,9 @@
         role="tab"
         aria-controls="nav-home"
         aria-selected="true"
-        >{{ $t("votemenu.overview") }}</v-link
       >
+        {{ $t("votemenu.overview") }}
+      </v-link>
       <!--
       <v-link
         class="nav-item nav-link"
@@ -30,8 +31,9 @@
         role="tab"
         aria-controls="nav-profile"
         aria-selected="false"
-        >{{ $t("votemenu.ask_question") }}</v-link
       >
+        {{ $t("votemenu.ask_question") }}
+      </v-link>
       <v-link
         class="nav-item nav-link"
         :class="current == 'delegate' ? 'active' : ''"
@@ -40,8 +42,9 @@
         role="tab"
         aria-controls="nav-contact"
         aria-selected="false"
-        >{{ $t("votemenu.delegation") }}</v-link
       >
+        {{ $t("votemenu.delegation") }}
+      </v-link>
       <!--
       <v-link
         class="nav-item nav-link"
@@ -61,8 +64,9 @@
         role="tab"
         aria-controls="nav-contact"
         aria-selected="false"
-        >{{ $t("votemenu.trusted_list") }}</v-link
       >
+        {{ $t("votemenu.trusted_list") }}
+      </v-link>
     </div>
   </div>
 </template>

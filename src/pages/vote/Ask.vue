@@ -12,8 +12,8 @@
           <label for="title">{{ $t("voteask.question_title") }}</label>
           <input
             id="title"
-            class="form-control my-2"
             v-model="title"
+            class="form-control my-2"
             rows="8"
             :placeholder="$t('voteask.title_placeholder')"
           />
@@ -22,17 +22,17 @@
           <label for="question">{{ $t("voteask.question_text") }}</label>
           <textarea
             id="question"
-            class="form-control my-2"
             v-model="question"
+            class="form-control my-2"
             rows="8"
-          ></textarea>
+          />
         </div>
 
         <div class="col-12">
           <label for="url">{{ $t("voteask.url") }}</label>
           <input
-            class="form-control my-2"
             v-model="url"
+            class="form-control my-2"
             rows="8"
             :placeholder="$t('voteask.url_placeholder')"
           />
@@ -41,12 +41,12 @@
           <label for="duration">{{ $t("voteask.max_round") }}</label>
           <input
             id="duration"
+            v-model="duration"
             class="form-control my-2"
             min="1"
             max="9999999"
             step="1"
             type="number"
-            v-model="duration"
           />
         </div>
         <div class="col-12">
@@ -54,18 +54,18 @@
           {{ $t("voteask.calculated_time") }}: {{ max_blockTime }}
         </div>
         <p>{{ $t("voteask.responses_help") }}</p>
-        <div class="row" v-for="(option, index) in options" :key="index">
+        <div v-for="(option, index) in options" :key="index" class="row">
           <div class="col-2">
             <input
-              class="form-control my-2"
               v-model="option.code"
+              class="form-control my-2"
               :placeholder="$t('voteask.code')"
             />
           </div>
           <div class="col-9">
             <input
-              class="form-control my-2"
               v-model="option.text"
+              class="form-control my-2"
               :placeholder="$t('voteask.response_text')"
             />
           </div>
@@ -73,7 +73,7 @@
             <button
               class="form-control my-2"
               @click="
-                this.options = this.options.filter(function (item) {
+                options = options.filter((item) => {
                   return item !== option;
                 })
               "
@@ -94,8 +94,8 @@
           <label for="category">{{ $t("voteask.category") }}</label>
           <input
             id="category"
-            class="form-control my-2"
             v-model="category"
+            class="form-control my-2"
             rows="8"
             :placeholder="$t('voteask.category_placeholder')"
           />
@@ -109,12 +109,12 @@
             type="submit"
             :disabled="!note || processing"
             class="btn btn-primary my-2"
-            @click="loadMultisig"
             :value="
               $t('voteask.submit_question', {
                 accountName: $store.state.wallet.lastActiveAccountName,
               })
             "
+            @click="loadMultisig"
           />
         </div>
 
@@ -123,7 +123,7 @@
             class="spinner-grow spinner-grow-sm"
             role="status"
             aria-hidden="true"
-          ></span>
+          />
           {{ $t("pay.state_sending") }}
         </p>
         <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
@@ -131,7 +131,7 @@
             class="spinner-grow spinner-grow-sm"
             role="status"
             aria-hidden="true"
-          ></span>
+          />
           {{ $t("pay.state_sent") }}: {{ tx }}.
           {{ $t("pay.state_waiting_confirm") }}
         </p>

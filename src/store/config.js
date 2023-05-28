@@ -1,15 +1,19 @@
 const state = () => ({
   debug: false,
   LOGO: "/img/logo.svg",
-  env: "mainnet",
+  env: "mainnet-v1.0",
+  envName: "Mainnet",
   algod: "https://mainnet-api.algonode.cloud",
-  kmd: "",
+  participation: "",
   indexer: "https://mainnet-idx.algonode.cloud",
   algodToken:
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  kmdToken: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  participationToken:
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   indexerToken:
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  twoFactorServer: "",
+
   languages: ["en", "hu", "it", "nl", "sk", "cs"],
   noredirect: false, // redirect to account page after successfull login
   dev: false,
@@ -39,8 +43,8 @@ const mutations = {
     if (value.algod) {
       state.algod = value.algod;
     }
-    if (value.kmd) {
-      state.kmd = value.kmd;
+    if (value.participation) {
+      state.participation = value.participation;
     }
     if (value.languages) {
       state.languages = value.languages;
@@ -51,8 +55,8 @@ const mutations = {
     if (value.algodToken) {
       state.algodToken = value.algodToken;
     }
-    if (value.kmdToken) {
-      state.kmdToken = value.kmdToken;
+    if (value.participationToken) {
+      state.participationToken = value.participationToken;
     }
     if (value.indexerToken) {
       state.indexerToken = value.indexerToken;
@@ -70,9 +74,13 @@ const mutations = {
     if (env) {
       state.env = env;
     }
-    const kmdHost = localStorage.getItem("kmdHost");
-    if (kmdHost) {
-      state.kmd = kmdHost;
+    const envName = localStorage.getItem("envName");
+    if (envName) {
+      state.envName = envName;
+    }
+    const participationHost = localStorage.getItem("participationHost");
+    if (participationHost) {
+      state.participation = participationHost;
     }
     const indexerHost = localStorage.getItem("indexerHost");
     if (indexerHost) {
@@ -83,31 +91,44 @@ const mutations = {
     if (algodToken) {
       state.algodToken = algodToken;
     }
-    const kmdToken = localStorage.getItem("kmdToken");
-    if (kmdToken) {
-      state.kmdToken = kmdToken;
+    const participationToken = localStorage.getItem("participationToken");
+    if (participationToken) {
+      state.participationToken = participationToken;
     }
     const indexerToken = localStorage.getItem("indexerToken");
     if (indexerToken) {
       state.indexerToken = indexerToken;
     }
-    console.log("hosts", algodHost, kmdHost, indexerHost);
+    console.log("hosts", algodHost, participationHost, indexerHost);
   },
   setHosts(
     state,
-    { env, algod, kmd, indexer, algodToken, kmdToken, indexerToken }
+    {
+      env,
+      envName,
+      algod,
+      participation,
+      indexer,
+      algodToken,
+      participationToken,
+      indexerToken,
+    }
   ) {
     if (env) {
       state.env = env;
       localStorage.setItem("env", env);
     }
+    if (envName) {
+      state.envName = envName;
+      localStorage.setItem("envName", envName);
+    }
     if (algod) {
       state.algod = algod;
       localStorage.setItem("algodHost", algod);
     }
-    if (kmd) {
-      state.kmd = kmd;
-      localStorage.setItem("kmdHost", kmd);
+    if (participation) {
+      state.participation = participation;
+      localStorage.setItem("participationHost", participation);
     }
     if (indexer) {
       state.indexer = indexer;
@@ -117,9 +138,9 @@ const mutations = {
       state.algodToken = algodToken;
       localStorage.setItem("algodToken", algodToken);
     }
-    if (kmdToken) {
-      state.kmdToken = kmdToken;
-      localStorage.setItem("kmdToken", kmdToken);
+    if (participationToken) {
+      state.participationToken = participationToken;
+      localStorage.setItem("participationToken", participationToken);
     }
     if (indexerToken) {
       state.indexerToken = indexerToken;
@@ -134,15 +155,25 @@ const mutations = {
 const actions = {
   async setHosts(
     { commit },
-    { env, algod, kmd, indexer, algodToken, kmdToken, indexerToken }
+    {
+      env,
+      envName,
+      algod,
+      participation,
+      indexer,
+      algodToken,
+      participationToken,
+      indexerToken,
+    }
   ) {
     await commit("setHosts", {
       env,
+      envName,
       algod,
-      kmd,
+      participation,
       indexer,
       algodToken,
-      kmdToken,
+      participationToken,
       indexerToken,
     });
   },
@@ -150,8 +181,9 @@ const actions = {
     if (env == "mainnet" || env == "mainnet-v1.0") {
       dispatch("setHosts", {
         env: "mainnet",
+        envName: "Mainnet",
         algod: "https://mainnet-api.algonode.cloud",
-        kmd: "https://kmd.h2.a-wallet.net",
+        participation: "https://kmd.h2.a-wallet.net",
         indexer: "https://mainnet-idx.algonode.cloud",
       });
     }
@@ -159,12 +191,13 @@ const actions = {
     if (this.env == "aramidmain" || env == "aramidmain-v1.0") {
       dispatch("setHosts", {
         env: "aramidmain",
+        envName: "Aramid Mainnet",
         algod: "https://algod.aramidmain.a-wallet.net",
-        kmd: "?",
+        participation: "",
         indexer: "https://indexer.aramidmain.a-wallet.net",
         algodToken:
           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        kmdToken:
+        participationToken:
           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         indexerToken:
           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -173,31 +206,34 @@ const actions = {
     if (env == "testnet" || env == "testnet-v1.0") {
       dispatch("setHosts", {
         env: "testnet",
+        envName: "Testnet",
         algod: "https://testnet-api.algonode.cloud",
-        kmd: "?",
+        participation: "",
         indexer: "https://testnet-idx.algonode.cloud",
       });
     }
     if (env == "devnet") {
       dispatch("setHosts", {
         env: "devnet",
+        envName: "Devnet",
         algod: "http://localhost:4180",
-        kmd: "http://localhost:4002",
+        participation: "",
         indexer: "http://localhost:8980",
         algodToken:
           "c87f5580d7a866317b4bfe9e8b8d1dda955636ccebfa88c12b414db208dd9705",
         indexerToken: "reach-devnet",
       });
     }
-    if (env == "sandbox") {
+    if (env == "sandbox" || env == "sandnet-v1") {
       dispatch("setHosts", {
         env: "sandbox",
+        envName: "Sandbox",
         algod: "http://localhost:4001",
-        kmd: "http://localhost:4002",
+        participation: "",
         indexer: "http://localhost:8980",
         algodToken:
           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        kmdToken:
+        participationToken:
           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         indexerToken:
           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

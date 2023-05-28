@@ -1,22 +1,17 @@
 <template>
   <div
-    class="
-      d-flex
-      flex-column
-      align-items-center
-      justify-content-center
-      h-100
-      m-2
-    "
+    class="d-flex flex-column align-items-center justify-content-center h-100 m-2"
   >
-    <div class="card col-12 col-md-6 col-lg-4" v-if="newWalletForm">
-      <div class="card-header">{{ $t("login.new_wallet") }}</div>
+    <div v-if="newWalletForm" class="card col-12 col-md-6 col-lg-4">
+      <div class="card-header">
+        {{ $t("login.new_wallet") }}
+      </div>
       <div class="card-body">
-        <form @submit="createWalletClick" autocomplete="off">
+        <form autocomplete="off" @submit="createWalletClick">
           <label for="newwallet-name">{{ $t("login.new_wallet_name") }}</label>
           <input
-            v-model="newname"
             id="newwallet-name"
+            v-model="newname"
             class="form-control my-2"
             autocomplete="off"
           />
@@ -27,8 +22,8 @@
             }}</span></label
           >
           <input
-            v-model="pass"
             id="newwallet-pass"
+            v-model="pass"
             type="password"
             class="form-control my-2"
             autocomplete="off"
@@ -38,13 +33,13 @@
             class="btn btn-primary"
             :value="$t('login.new_wallet_button_create')"
           />
-          <router-link to="/import-wallet" class="btn btn-light mx-2">{{
-            $t("login.new_wallet_button_import")
-          }}</router-link>
+          <router-link to="/import-wallet" class="btn btn-light mx-2">
+            {{ $t("login.new_wallet_button_import") }}
+          </router-link>
           <button
+            v-if="wallets.length > 0"
             class="btn btn-light mx-2"
-            @click="this.newWalletForm = false"
-            v-if="this.wallets.length > 0"
+            @click="newWalletForm = false"
           >
             {{ $t("global.go_back") }}
           </button>
@@ -57,21 +52,23 @@
         </form>
       </div>
     </div>
-    <div class="card col-12 col-md-6 col-lg-4" v-if="!newWalletForm">
-      <div class="card-header">{{ $t("login.open_wallet") }}</div>
+    <div v-if="!newWalletForm" class="card col-12 col-md-6 col-lg-4">
+      <div class="card-header">
+        {{ $t("login.open_wallet") }}
+      </div>
       <div class="card-body">
         <form @submit="auth">
           <label for="wallet-select">{{ $t("login.select_wallet") }}</label>
-          <select class="form-control my-2" id="wallet-select" v-model="wallet">
+          <select id="wallet-select" v-model="wallet" class="form-control my-2">
             <option v-for="option in wallets" :key="option">
               {{ option }}
             </option>
           </select>
           <label for="wallet-pass">{{ $t("login.wallet_password") }}</label>
           <input
+            id="wallet-pass"
             v-model="pass"
             type="password"
-            id="wallet-pass"
             class="form-control my-2"
             autocomplete="on"
           />
@@ -98,8 +95,8 @@
         v-for="lang in $store.state.config.languages"
         :key="lang"
         class="m-2 d-inline-block"
-        @click="setLanguage(lang)"
         role="button"
+        @click="setLanguage(lang)"
       >
         <img
           :src="'/flags/3x2/' + lang + '.svg'"

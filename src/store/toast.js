@@ -40,6 +40,9 @@ const actions = {
     }
     commit("setLastError", m);
   },
+  async resetError({ commit }, m) {
+    commit("setLastError", "");
+  },
 };
 
 export default {

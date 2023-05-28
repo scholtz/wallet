@@ -1,7 +1,7 @@
 <template>
   <PublicLayout>
     <h1>{{ $t("faq.title") }}</h1>
-    <Accordion :activeIndex="0">
+    <Accordion :active-index="0">
       <AccordionTab :header="$t('faq.q1')">
         <p>
           {{ $t("faq.a1") }}

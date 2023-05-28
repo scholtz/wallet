@@ -4,11 +4,15 @@
       <h1>{{ $t("newacc.title") }}</h1>
       <div v-if="page == 'new'">
         <router-link to="/new-account/ledger" class="btn btn-primary m-1">
-          HW Wallet - Ledger
+          {{ $t("newacc.ledger_account") }}
         </router-link>
 
         <router-link to="/new-account/wc" class="btn btn-primary m-1">
-          Wallet Connect
+          {{ $t("newacc.wc_account") }}
+        </router-link>
+
+        <router-link to="/new-account/2fa" class="btn btn-primary m-1">
+          {{ $t("newacc.twofa_account") }}
         </router-link>
 
         <button v-if="!w" class="btn btn-primary m-1" @click="createAccount">

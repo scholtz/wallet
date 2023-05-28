@@ -18,7 +18,9 @@ export default (() => {
 
       try {
         await connector.killSession();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
 
       delete state.connectorById[id];
 
@@ -308,7 +310,7 @@ export default (() => {
         const txId = decoded.txID();
         if (!(txId in state.store._state.data.signer.signed)) {
           console.log(`Tx with id ${txId} has not been signed yet, skipped`);
-          continue
+          continue;
         }
         const signedUint8 = state.store._state.data.signer.signed[txId];
         const b64 = Buffer.from(signedUint8).toString("base64");

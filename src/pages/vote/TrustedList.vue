@@ -1,6 +1,6 @@
 <template>
-  <MainLayout
-    ><div v-if="loading || error">
+  <MainLayout>
+    <div v-if="loading || error">
       <div v-if="error" class="alert alert-danger">
         {{ error }}
       </div>
@@ -9,7 +9,7 @@
           class="spinner-grow spinner-grow-sm"
           role="status"
           aria-hidden="true"
-        ></span>
+        />
         {{ $t("global.loading") }}
       </div>
     </div>
@@ -21,15 +21,18 @@
       <div class="row">
         <div class="col-12">
           <label for="add">{{ $t("votetl.add") }}</label>
-          <textarea v-model="add" id="add" rows="10" class="form-control">
-          </textarea>
+          <textarea id="add" v-model="add" rows="10" class="form-control" />
         </div>
       </div>
       <div class="row">
         <div class="col-12">
           <label for="remove">{{ $t("votetl.remove") }}</label>
-          <textarea v-model="remove" id="remove" rows="10" class="form-control">
-          </textarea>
+          <textarea
+            id="remove"
+            v-model="remove"
+            rows="10"
+            class="form-control"
+          />
         </div>
       </div>
       <div class="row my-2">
@@ -53,7 +56,7 @@
           class="spinner-grow spinner-grow-sm"
           role="status"
           aria-hidden="true"
-        ></span>
+        />
         {{ $t("pay.state_sending") }}
       </p>
       <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
@@ -61,7 +64,7 @@
           class="spinner-grow spinner-grow-sm"
           role="status"
           aria-hidden="true"
-        ></span>
+        />
         {{ $t("pay.state_sent") }}: {{ tx }}.
         {{ $t("pay.state_waiting_confirm") }}
       </p>
@@ -73,10 +76,10 @@
         {{ $t("pay.error") }}: {{ error }}
       </p>
       <DataTable
-        :value="tl"
-        responsiveLayout="scroll"
-        selectionMode="single"
         v-model:selection="selection"
+        :value="tl"
+        responsive-layout="scroll"
+        selection-mode="single"
         :paginator="true"
         :rows="20"
       >
@@ -91,12 +94,11 @@
           field="round"
           :header="$t('votetl.round')"
           :sortable="true"
-        ></Column
-        ><Column
+        /><Column
           field="account"
           :header="$t('votetl.account')"
           :sortable="true"
-        ></Column>
+        />
       </DataTable>
     </div>
   </MainLayout>
@@ -133,12 +135,6 @@ export default {
       error: "",
     };
   },
-  watch: {
-    async selection() {
-      this.$emit("update:selectedAnswer", this.selection);
-      this.prolong();
-    },
-  },
   computed: {
     note() {
       const data = {};
@@ -158,6 +154,12 @@ export default {
     },
     currentToken() {
       return this.$store.state.vote.assetId;
+    },
+  },
+  watch: {
+    async selection() {
+      this.$emit("update:selectedAnswer", this.selection);
+      this.prolong();
     },
   },
 

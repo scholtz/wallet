@@ -20,7 +20,7 @@ import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import InputText from "primevue/inputtext";
 import Slider from "primevue/slider";
-import Dialog from "primevue/dialog";
+import PrimeDialog from "primevue/dialog";
 import Toast from "primevue/toast";
 import Accordion from "primevue/accordion";
 import AccordionTab from "primevue/accordiontab";
@@ -65,7 +65,7 @@ myApp.component("DataTable", DataTable);
 myApp.component("Column", Column);
 myApp.component("InputText", InputText);
 myApp.component("Slider", Slider);
-myApp.component("Dialog", Dialog);
+myApp.component("Dialog", PrimeDialog);
 myApp.component("Toast", Toast);
 myApp.component("Accordion", Accordion);
 myApp.component("AccordionTab", AccordionTab);
@@ -75,7 +75,7 @@ myApp.component("InputSwitch", InputSwitch);
 
 myApp.config.globalProperties.$filters = {
   formatCurrency(
-    value,
+    value = 0,
     currency = "ALG",
     minimumFractionDigits = 6,
     multiply = true,
@@ -104,8 +104,8 @@ myApp.config.globalProperties.$filters = {
     }*/
   },
   formatDateTime(
-    value,
-    separator,
+    value = 0,
+    separator = " ",
     showSeconds = true,
     locale = "cs",
     alwaysShowDate = false
@@ -128,7 +128,7 @@ myApp.config.globalProperties.$filters = {
       valueMoment.format(showSeconds ? "LTS" : "LT")
     );
   },
-  formatPercent(value) {
+  formatPercent(value = 0) {
     if (!value) return "0 %";
     return Math.round(value * 1000) / 10 + " %";
   },
