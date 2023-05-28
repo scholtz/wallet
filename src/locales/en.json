@@ -304,7 +304,8 @@
     "address": "Address",
     "pay": "Pay",
     "connect": "WalletConnect",
-    "show_on_netowork_accounts": "Show accounts for network"
+    "show_on_netowork_accounts": "Show accounts for network",
+    "2fa_code": "2FA code"
   },
   "newacc": {
     "title": "New account",
