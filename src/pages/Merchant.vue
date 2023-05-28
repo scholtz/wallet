@@ -297,11 +297,14 @@ export default {
     },
     setNetwork() {
       console.log("this.b64decode.network", this.b64decode.network);
-      if (this.b64decode.network == "mainnet") {
+      if (
+        this.b64decode.network == "mainnet" ||
+        this.b64decode.network == "mainnet-v1.0"
+      ) {
         this.setHosts({
-          algod: "https://node.algoexplorerapi.io",
+          algod: "https://mainnet-api.algonode.cloud",
           kmd: "https://kmd.h2.a-wallet.net",
-          indexer: "https://algoindexer.algoexplorerapi.io",
+          indexer: "https://mainnet-idx.algonode.cloud",
         });
       }
       if (this.b64decode.network == "aramidmain") {
@@ -311,12 +314,15 @@ export default {
           indexer: "https://indexer.aramidmain.a-wallet.net",
         });
       }
-      if (this.b64decode.network == "testnet") {
+      if (
+        this.b64decode.network == "testnet" ||
+        this.b64decode.network == "testnet-v1.0"
+      ) {
         console.log("setting testnet");
         this.setHosts({
-          algod: "https://node.testnet.algoexplorerapi.io",
+          algod: "https://testnet-api.algonode.cloud",
           kmd: "?",
-          indexer: "https://algoindexer.testnet.algoexplorerapi.io",
+          indexer: "https://testnet-idx.algonode.cloud",
         });
       }
       if (this.b64decode.network == "sandbox") {

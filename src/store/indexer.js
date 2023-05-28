@@ -228,7 +228,7 @@ const actions = {
   async getAsset({ commit }, { assetIndex }) {
     try {
       let env = this.state.config.env;
-      if (env == "mainnet") {
+      if (env == "mainnet" || env == "mainnet-v1.0") {
         env = "";
       } else {
         env += "-";

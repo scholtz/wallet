@@ -1,14 +1,14 @@
 const state = () => ({
   assetId: "",
   voteTokens: [
-    { name: "Algo", assetId: "-1", env: "mainnet" },
-    { name: "Vote Coin", assetId: "452399768", env: "mainnet" },
-    { name: "ASA Stats", assetId: "393537671", env: "mainnet" },
-    { name: "Algo", assetId: "-1", env: "testnet" },
-    { name: "Vote Coin", assetId: "48806985", env: "testnet" },
-    { name: "ASA Stats", assetId: "51768942", env: "testnet" },
-    { name: "Algo", assetId: "-1", env: "sandbox" },
-    { name: "Vote Coin", assetId: "12", env: "sandbox" },
+    { name: "Algo", assetId: "-1", env: "mainnet-v1.0" },
+    { name: "Vote Coin", assetId: "452399768", env: "mainnet-v1.0" },
+    { name: "ASA Stats", assetId: "393537671", env: "mainnet-v1.0" },
+    { name: "Algo", assetId: "-1", env: "testnet-v1.0" },
+    { name: "Vote Coin", assetId: "48806985", env: "testnet-v1.0" },
+    { name: "ASA Stats", assetId: "51768942", env: "testnet-v1.0" },
+    { name: "Algo", assetId: "-1", env: "sandnet-v1" },
+    { name: "Vote Coin", assetId: "12", env: "sandnet-v1" },
   ],
 });
 

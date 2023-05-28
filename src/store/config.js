@@ -1,7 +1,7 @@
 const state = () => ({
   debug: false,
   LOGO: "/img/logo.svg",
-  env: "mainnet",
+  env: "mainnet-v1.0",
   envName: "Mainnet",
   algod: "https://mainnet-api.algonode.cloud",
   participation: "",

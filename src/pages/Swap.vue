@@ -384,16 +384,16 @@ export default {
     },
     checkNetwork() {
       if (this.$store.state.config.env == "mainnet-v1.0") {
-        return "mainnet";
+        return "mainnet-v1.0";
       }
       if (this.$store.state.config.env == "mainnet") {
-        return "mainnet";
+        return "mainnet-v1.0";
       }
       if (this.$store.state.config.env == "testnet-v1.0") {
-        return "testnet";
+        return "testnet-v1.0";
       }
       if (this.$store.state.config.env == "testnet") {
-        return "testnet";
+        return "testnet-v1.0";
       }
       return false;
     },
