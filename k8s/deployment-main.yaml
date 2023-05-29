@@ -22,7 +22,7 @@ spec:
       - name: regcred
       containers:
         - name: awallet-web-main-landing
-          image: scholtz2/a-wallet:1.2023.05.28-main
+          image: scholtz2/a-wallet:1.2023.05.29-main
           imagePullPolicy: Always
           ports: 
             - containerPort: 8080
