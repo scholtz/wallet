@@ -244,7 +244,7 @@
           v-if="!showQR"
           @click="showQR = true"
           class="btn btn-light btn-xs m-1"
-          >Show QR Code</Button
+          >{{ $t("newacc.show_qr_code") }}</Button
         >
         <QRCodeVue3
           v-if="showQR"
