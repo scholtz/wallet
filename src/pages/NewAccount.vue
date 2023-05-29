@@ -211,42 +211,43 @@
           {{ $t("global.go_back") }}
         </button>
       </div>
-      <div v-if="!s && page == 'newaccount'">
-        <p>
-          {{ $t("newacc.create_account_help") }}
-        </p>
-        <button v-if="!s" class="btn btn-primary" @click="s = true">
-          {{ $t("newacc.show_mnemonic") }}
-        </button>
-      </div>
-      <div v-if="s && challenge">
+      <div v-if="challenge">
         <p>{{ $t("newacc.position_question") }} {{ r }}?</p>
         <input v-model="guess" class="form-control" />
         <p>{{ $t("newacc.name") }}</p>
         <input v-model="name" class="form-control" />
-        <button v-if="s" class="btn btn-primary m-1" @click="confirmCreate">
+        <button class="btn btn-primary m-1" @click="confirmCreate">
           {{ $t("newacc.create_account") }}
         </button>
-        <button
-          v-if="s"
-          class="btn btn-primary m-1"
-          @click="
-            challenge = false;
-            s = false;
-          "
-        >
+        <button class="btn btn-primary m-1" @click="challenge = false">
           {{ $t("global.go_back") }}
         </button>
       </div>
-      <div v-if="s && !challenge && page == 'newaccount'">
+      <div v-if="!challenge && page == 'newaccount'">
+        <p>
+          {{ $t("newacc.create_account_help") }}
+        </p>
         <p>
           {{ $t("newacc.mnemonic_help") }}
         </p>
+        <Password
+          v-model="w"
+          input-class="form-control my-1 w-100"
+          style="width: 100%"
+          input-style="width:100%"
+          :feedback="false"
+          :toggle-mask="true"
+        />
 
-        <textarea v-model="w" class="form-control my-1" />
         <input v-model="a" class="form-control my-1" />
-
+        <Button
+          v-if="!showQR"
+          @click="showQR = true"
+          class="btn btn-light btn-xs m-1"
+          >Show QR Code</Button
+        >
         <QRCodeVue3
+          v-if="showQR"
           :width="500"
           :height="500"
           :value="w"
@@ -277,16 +278,13 @@
           }"
         />
 
-        <button v-if="s" class="btn btn-primary m-1" @click="makeRandom">
+        <button class="btn btn-primary m-1" @click="makeRandom">
           {{ $t("newacc.start_challenge") }}
         </button>
-        <button v-if="s" class="btn btn-light m-1" @click="createAccount">
+        <button class="btn btn-light m-1" @click="createAccount">
           {{ $t("newacc.create_new") }}
         </button>
-        <button v-if="s" class="btn btn-light m-1" @click="s = false">
-          {{ $t("newacc.hide_mnemonic") }}
-        </button>
-        <button v-if="s" class="btn btn-light m-1" @click="reset">
+        <button class="btn btn-light m-1" @click="reset">
           {{ $t("newacc.drop_phrase") }}
         </button>
       </div>
@@ -315,9 +313,9 @@ export default {
       a: "",
       w: "",
       guess: "",
-      s: false,
       challenge: false,
       scanMnemonic: false,
+      showQR: false,
       page: "new",
       multisignum: 2,
       multisigaccts: [],
