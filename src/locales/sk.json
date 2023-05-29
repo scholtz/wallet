@@ -341,7 +341,8 @@
     "auto_lock_off": "Auto zamykanie peňaženky je vypnuté",
     "ledger_account": "HW Zariadenie - Ledger účet",
     "wc_account": "Wallet Connect účet",
-    "twofa_account": "2FA účet"
+    "twofa_account": "2FA účet",
+    "show_qr_code": "Zobraz QR kód"
   },
   "import": {
     "title": "Import peňaženky",

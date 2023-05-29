@@ -341,7 +341,8 @@
     "auto_lock_off": "Auto lock feature is turned off",
     "ledger_account": "HW Wallet - Ledger Account",
     "wc_account": "Wallet Connect Account",
-    "twofa_account": "2FA Account"
+    "twofa_account": "2FA Account",
+    "show_qr_code": "Show QR Code"
   },
   "import": {
     "title": "Importa wallet",
