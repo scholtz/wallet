@@ -309,7 +309,12 @@ export default (() => {
         console.log("state", state);
         const txId = decoded.txID();
         if (!(txId in state.store._state.data.signer.signed)) {
-          console.log(`Tx with id ${txId} has not been signed yet, skipped`);
+          console.error(
+            `Tx with id ${txId} has not been signed yet, skipped`,
+            txn
+          );
+          signedTxns.push(null); // send back original txn because it is probably logicsig, or user decided not to sign some specific tx
+          // should return null https://github.com/algorandfoundation/ARCs/blob/40d5e9c0f60826e495090a10d278db69233b3063/ARCs/arc-0025.md
           continue;
         }
         const signedUint8 = state.store._state.data.signer.signed[txId];
@@ -321,7 +326,7 @@ export default (() => {
         id: id,
         result: signedTxns,
       };
-
+      console.log("response", response);
       connector.approveRequest(response);
 
       delete state.requestById[id];
