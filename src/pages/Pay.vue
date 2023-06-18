@@ -282,7 +282,7 @@
                 :disabled="isNotValid"
                 class="btn btn-primary my-2"
                 type="submit"
-                value="Preview payment"
+                :value="$t('pay.review_payment')"
               />
               <input
                 v-if="isMultisig"
@@ -476,9 +476,9 @@
           v-if="!isMultisig"
           class="btn btn-primary"
           type="submit"
-          value="Process payment"
+          :value="$t('pay.process_payment')"
         />
-        <div v-if="!rawSignedTxn">
+        <span v-if="!rawSignedTxn">
           <input
             v-if="isMultisig && $route.name != 'PayFromWalletConnect'"
             class="btn btn-primary"
@@ -492,7 +492,7 @@
             :value="$t('global.go_back')"
             @click="page = 'design'"
           />
-        </div>
+        </span>
 
         <textarea
           v-if="
@@ -748,7 +748,7 @@ export default {
     },
     accountFor2FA() {
       return this.$store.state.wallet.privateAccounts.find(
-        (a) => this.multisigParams.addrs.includes(a.addr) && a.type == "2faApi"
+        (a) => this.multisigParams && this.multisigParams.addrs && this.multisigParams.addrs.includes(a.addr) && a.type == "2faApi"
       );
     },
     accountFor2FAAddr() {
@@ -1017,11 +1017,17 @@ export default {
     }
 
     if (this.accountFor2FAProvider) {
-      this.accountFor2FARealm = await this.getRealm({
-        twoFactorAuthProvider: this.accountFor2FAProvider,
-      });
-      console.log("accountFor2FARealm", this.accountFor2FARealm);
-      this.loadAuthToken();
+      try {
+        this.accountFor2FARealm = await this.getRealm({
+          twoFactorAuthProvider: this.accountFor2FAProvider,
+        });
+        console.log("accountFor2FARealm", this.accountFor2FARealm);
+        this.loadAuthToken();
+      } catch (err) {
+        const error = err.message ?? err;
+        console.error("failed to request realm", error, err);
+        await this.openError(error);
+      }
     }
   },
   methods: {
@@ -1059,10 +1065,18 @@ export default {
     },
     async makeAssets() {
       this.assets = [];
-      if (this.account && this.account.amount >= 0) {
+      if (this.account) {
         this.assets.push({
           "asset-id": "",
           amount: this.account.amount,
+          name: "ALG",
+          decimals: 6,
+          "unit-name": "",
+        });
+      } else {
+        this.assets.push({
+          "asset-id": "",
+          amount: 0,
           name: "ALG",
           decimals: 6,
           "unit-name": "",
@@ -1601,18 +1615,24 @@ export default {
       this.$router.push({ name: "Connect" });
     },
     async sign2FAClick(e) {
-      this.prolong();
-      e.preventDefault();
-      console.log("this.txtCode", this.txtCodem, this.accountFor2FA);
-      const newTx = await this.signTwoFactor({
-        rawSignedTxnInput: this.rawSignedTxnInput,
-        secondaryAccount: this.accountFor2FA.recoveryAccount,
-        txtCode: this.txtCode,
-        authToken: this.accountFor2FAAuthToken,
-        twoFactorAuthProvider: this.accountFor2FAProvider,
-      });
-      console.log("newTx", newTx);
-      await this.addSignature(newTx);
+      try {
+        this.prolong();
+        e.preventDefault();
+        console.log("this.txtCode", this.txtCodem, this.accountFor2FA);
+        const newTx = await this.signTwoFactor({
+          rawSignedTxnInput: this.rawSignedTxnInput,
+          secondaryAccount: this.accountFor2FA.recoveryAccount,
+          txtCode: this.txtCode,
+          authToken: this.accountFor2FAAuthToken,
+          twoFactorAuthProvider: this.accountFor2FAProvider,
+        });
+        console.log("newTx", newTx);
+        await this.addSignature(newTx);
+      } catch (err) {
+        const error = err.message ?? err;
+        console.error("failed to sign 2fa tx", error, err);
+        await this.openError(error);
+      }
     },
     loadAuthToken() {
       if (!this.accountFor2FARealm) return false;

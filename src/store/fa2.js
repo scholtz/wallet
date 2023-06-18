@@ -17,7 +17,7 @@ const actions = {
       console.error(
         "getRealm triggered but not provided twoFactorAuthProvider"
       );
-      return "";
+      throw Error("TwoFactorAuthProvider not found");
     }
     if (this.state.fa2.provider2realm[twoFactorAuthProvider]) {
       return this.state.fa2.provider2realm[twoFactorAuthProvider];
@@ -30,7 +30,11 @@ const actions = {
     );
     console.log("list", twoFactorAuthProvider, list);
     const provider = list.find((p) => p.id == twoFactorAuthProvider);
-    if (!provider) return "";
+    if (!provider) {
+      throw Error(
+        `Provider with id ${twoFactorAuthProvider} has not been found in the public list for this network`
+      );
+    }
     const ret = await dispatch(
       "axios/get",
       {
@@ -38,6 +42,9 @@ const actions = {
       },
       { root: true }
     );
+    if (!ret) {
+      throw Error("Unable to fetch realm from the provider");
+    }
     await commit("storeRealm", twoFactorAuthProvider, ret);
     return ret;
     //return "2FA#ARC14";
@@ -58,7 +65,7 @@ const actions = {
       { root: true }
     );
     const provider = list.find((p) => p.id == twoFactorAuthProvider);
-    if (!provider) throw "Provider not found";
+    if (!provider) throw "2FA provider not found for current network";
     console.log("config", config);
     if (!account) return;
     console.log("provider", provider);
@@ -96,7 +103,7 @@ const actions = {
       { root: true }
     );
     const provider = list.find((p) => p.id == twoFactorAuthProvider);
-    if (!provider) throw "Provider not found";
+    if (!provider) throw "2FA provider not found for current network";
     return await dispatch(
       "axios/post",
       {
@@ -117,49 +124,43 @@ const actions = {
       twoFactorAuthProvider,
     }
   ) {
-    try {
-      const config = {
-        headers: {
-          Authorization: authToken,
-        },
-      };
-      const chainId = this.state.config.env;
-      const list = await dispatch(
-        "publicData/getTwoFactorAuthList",
-        { chainId },
-        { root: true }
-      );
+    const config = {
+      headers: {
+        Authorization: authToken,
+      },
+    };
+    const chainId = this.state.config.env;
+    const list = await dispatch(
+      "publicData/getTwoFactorAuthList",
+      { chainId },
+      { root: true }
+    );
 
-      const provider = list.find((p) => p.id == twoFactorAuthProvider);
-      const signedTxMsgPack = rawSignedTxnInput;
+    const provider = list.find((p) => p.id == twoFactorAuthProvider);
+    const signedTxMsgPack = rawSignedTxnInput;
 
-      if (!provider) {
-        console.error(
-          "Provider not found",
-          provider,
-          twoFactorAuthProvider,
-          list
-        );
-        throw "Provider not found";
-      }
-      return await dispatch(
-        "axios/post",
-        {
-          url: `${provider.host}/v1/Multisig/SignWithTwoFactorPINMsigTx`,
-          params: {
-            txtCode,
-            signedTxMsgPack,
-            secondaryAccount,
-          },
-          config,
-        },
-        { root: true }
+    if (!provider) {
+      console.error(
+        "Provider not found",
+        provider,
+        twoFactorAuthProvider,
+        list
       );
-    } catch (e) {
-      dispatch("toast/openError", e.message, {
-        root: true,
-      });
+      throw "2FA provider not found for current network";
     }
+    return await dispatch(
+      "axios/post",
+      {
+        url: `${provider.host}/v1/Multisig/SignWithTwoFactorPINMsigTx`,
+        params: {
+          txtCode,
+          signedTxMsgPack,
+          secondaryAccount,
+        },
+        config,
+      },
+      { root: true }
+    );
   },
 };
 export default {

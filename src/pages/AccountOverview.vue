@@ -295,7 +295,7 @@
         <th>{{ $t("acc_overview.apps_total_schema") }}:</th>
         <td>{{ account["apps-total-schema"] }}</td>
       </tr>
-      <tr v-if="account['assets'] && account['assets'].length > 0">
+      <tr v-if="account && account['assets'] && account['assets'].length > 0">
         <th>{{ $t("acc_overview.assets") }}:</th>
         <td>
           <table class="w-100">
@@ -598,14 +598,15 @@ export default {
         });
       }
       if (this.account && this.account.assets) {
-        for (let index in this.account.assets) {
+        for (const accountAsset of this.account.assets) {
+          if (!accountAsset["asset-id"]) continue;
           const asset = await this.getAsset({
-            assetIndex: this.account.assets[index]["asset-id"],
+            assetIndex: accountAsset["asset-id"],
           });
           if (asset) {
             this.assets.push({
-              "asset-id": this.account.assets[index]["asset-id"],
-              amount: this.account.assets[index]["amount"],
+              "asset-id": accountAsset["asset-id"],
+              amount: accountAsset["amount"],
               name: asset["name"],
               decimals: asset["decimals"],
               "unit-name": asset["unit-name"],

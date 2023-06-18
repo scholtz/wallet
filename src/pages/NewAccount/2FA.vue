@@ -30,45 +30,57 @@ const store = useStore();
 const router = useRouter();
 
 async function arc14Request() {
-  const realm = await store.dispatch("fa2/getRealm", {
-    twoFactorAuthProvider: state.server,
-  });
-  console.log("sending", { account: state.account1, realm });
-  state.authToken = await store.dispatch("arc14/signAuthTx", {
-    account: state.account1,
-    realm,
-  });
-  if (!state.authToken) return;
-  console.log("authToken", state.authToken);
-  state.auth2FAResp = await store.dispatch("fa2/setupAuthenticator", {
-    authToken: state.authToken,
-    account: state.account1,
-    secondaryAccount: state.account2,
-    twoFactorAuthProvider: state.server,
-  });
-  console.log("setupAuthenticator", state.auth2FAResp);
-}
-async function confirmRequest() {
-  if (!state.authToken) return;
-
-  state.confirmResp = await store.dispatch("fa2/confirmAuthenticator", {
-    authToken: state.authToken,
-    secondaryAccount: state.account2,
-    txtCode: state.txtCode,
-    twoFactorAuthProvider: state.server,
-  });
-  console.log("state.confirmResp", state.confirmResp);
-  if (state.confirmResp) {
-    await store.dispatch("wallet/add2FAAccount", {
-      name: state.name,
-      primaryAccount: state.account1,
-      recoveryAccount: state.account2,
-      twoFactorAccount: state.confirmResp,
+  try {
+    const realm = await store.dispatch("fa2/getRealm", {
       twoFactorAuthProvider: state.server,
     });
-    router.push({ name: "Accounts" });
+    console.log("sending", { account: state.account1, realm });
+    state.authToken = await store.dispatch("arc14/signAuthTx", {
+      account: state.account1,
+      realm,
+    });
+    if (!state.authToken) return;
+    console.log("authToken", state.authToken);
+    state.auth2FAResp = await store.dispatch("fa2/setupAuthenticator", {
+      authToken: state.authToken,
+      account: state.account1,
+      secondaryAccount: state.account2,
+      twoFactorAuthProvider: state.server,
+    });
+    console.log("setupAuthenticator", state.auth2FAResp);
+  } catch (err: any) {
+    const error = err.message ?? err;
+    console.error("failed to do arc14Request", error, err);
+    await store.dispatch("toast/openError", error);
   }
-  console.log("state.confirmResp", state.confirmResp);
+}
+async function confirmRequest() {
+  try {
+    if (!state.authToken) return;
+
+    state.confirmResp = await store.dispatch("fa2/confirmAuthenticator", {
+      authToken: state.authToken,
+      secondaryAccount: state.account2,
+      txtCode: state.txtCode,
+      twoFactorAuthProvider: state.server,
+    });
+    console.log("state.confirmResp", state.confirmResp);
+    if (state.confirmResp) {
+      await store.dispatch("wallet/add2FAAccount", {
+        name: state.name,
+        primaryAccount: state.account1,
+        recoveryAccount: state.account2,
+        twoFactorAccount: state.confirmResp,
+        twoFactorAuthProvider: state.server,
+      });
+      router.push({ name: "Accounts" });
+    }
+    console.log("state.confirmResp", state.confirmResp);
+  } catch (err: any) {
+    const error = err.message ?? err;
+    console.error("failed to confirmRequest", error, err);
+    await store.dispatch("toast/openError", error);
+  }
 }
 </script>
 <template>

@@ -3,6 +3,7 @@ import CryptoJS from "crypto-js";
 import cryptoRandomString from "crypto-random-string";
 import db from "../shared/db";
 import wc from "../shared/wc";
+var pbkdf2 = require("pbkdf2");
 
 const state = () => ({
   name: "w2",
@@ -90,11 +91,31 @@ const mutations = {
     }
     console.log("setPrivateAccount", info, acc);
   },
+  addEmailPasswordAccount(
+    state,
+    { name, savePassword, email, genAccount, network }
+  ) {
+    const account = {
+      addr: genAccount.addr,
+      address: genAccount.addr,
+      savePassword,
+      name,
+      email,
+      network,
+      type: "emailPwd",
+    };
+    if (savePassword) {
+      account.sk = genAccount.sk;
+    }
+    console.log("new account", account);
+    state.privateAccounts.push(account);
+  },
   addMultiAccount(state, { addr, params, name, network }) {
     const multsigaddr = {
       addr,
       address: addr,
       name,
+      email,
       params,
       network,
       type: "msig",
@@ -252,8 +273,9 @@ const actions = {
       return true;
     } catch (e) {
       console.error("error", e);
-
-      alert("Account has not been created");
+      dispatch("toast/openError", "Account has not been created", {
+        root: true,
+      });
     }
   },
   async addPublicAccount({ dispatch, commit }, { name, addr }) {
@@ -271,7 +293,9 @@ const actions = {
       return true;
     } catch (e) {
       console.error("error", e);
-      alert("Account has not been created");
+      dispatch("toast/openError", "Account has not been created", {
+        root: true,
+      });
     }
   },
   async deleteAccount({ dispatch, commit }, { name, addr }) {
@@ -293,7 +317,61 @@ const actions = {
       return true;
     } catch (e) {
       console.error("error", e);
-      alert("Account has not been deleted");
+      dispatch("toast/openError", "Account has not been created", {
+        root: true,
+      });
+    }
+  },
+  async addEmailPasswordAccount(
+    { dispatch, commit },
+    { name, savePassword, email, password }
+  ) {
+    if (!name) {
+      throw Error("Plase set account name");
+    }
+    try {
+      const init = `ARC-0076-${email}-${password}-0-PBKDF2-999999`;
+      const salt = `ARC-0076-${email}-0-PBKDF2-999999`;
+      const iterations = 999999;
+      if (!window || !window.crypto || !window.crypto.subtle) {
+        throw Error("Crypto API in browser is not available");
+      }
+      const cryptoKey = await window.crypto.subtle.importKey(
+        "raw",
+        Buffer.from(init, "utf-8"),
+        "PBKDF2",
+        false,
+        ["deriveBits", "deriveKey"]
+      );
+      const masterBits = await window.crypto.subtle.deriveBits(
+        {
+          name: "PBKDF2",
+          hash: "SHA-256",
+          salt: Buffer.from(salt, "utf-8"),
+          iterations: iterations,
+        },
+        cryptoKey,
+        256
+      );
+      console.log("masterBits", masterBits);
+      const uint8 = new Uint8Array(masterBits);
+      const mnemonic = algosdk.mnemonicFromSeed(uint8);
+      const genAccount = algosdk.mnemonicToSecretKey(mnemonic);
+      await await commit("addEmailPasswordAccount", {
+        name,
+        savePassword,
+        email,
+        genAccount,
+        network: this.state.config.env,
+      });
+      await dispatch("saveWallet");
+      return true;
+    } catch (e) {
+      console.error("error", e);
+      dispatch("toast/openError", "Account has not been created", {
+        root: true,
+      });
+      throw e;
     }
   },
   async addMultiAccount({ dispatch, commit }, { params, name }) {
@@ -314,7 +392,10 @@ const actions = {
       return true;
     } catch (e) {
       console.error("error", e);
-      alert("Account has not been created");
+
+      dispatch("toast/openError", "Account has not been created", {
+        root: true,
+      });
     }
   },
   async add2FAAccount(
@@ -363,7 +444,9 @@ const actions = {
       return true;
     } catch (e) {
       console.error("error", e);
-      alert("Account has not been created");
+      dispatch("toast/openError", "Account has not been created", {
+        root: true,
+      });
     }
   },
   async addLedgerAccount({ dispatch, commit }, { name, addr, addr0, slot }) {
@@ -383,7 +466,9 @@ const actions = {
       return true;
     } catch (e) {
       console.error("error", e);
-      alert("Account has not been created");
+      dispatch("toast/openError", "Account has not been created", {
+        root: true,
+      });
     }
   },
   async addWalletConnectAccount({ dispatch, commit }, { name, addr, session }) {
@@ -402,7 +487,9 @@ const actions = {
       return true;
     } catch (e) {
       console.error("error", e);
-      alert("Account has not been created");
+      dispatch("toast/openError", "Account has not been created", {
+        root: true,
+      });
     }
   },
   async updateAccount({ dispatch, commit }, { info }) {

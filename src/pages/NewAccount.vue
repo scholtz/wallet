@@ -15,6 +15,13 @@
           {{ $t("newacc.twofa_account") }}
         </router-link>
 
+        <router-link
+          to="/new-account/email-password"
+          class="btn btn-primary m-1"
+        >
+          {{ $t("newacc.email_pass_account") }}
+        </router-link>
+
         <button v-if="!w" class="btn btn-primary m-1" @click="createAccount">
           {{ $t("newacc.create_basic") }}</button
         ><button v-if="!w" class="btn btn-primary m-1" @click="createVanity">

@@ -343,7 +343,19 @@
     "ledger_account": "HW Wallet - Ledger Account",
     "wc_account": "Wallet Connect Account",
     "twofa_account": "2FA Account",
-    "show_qr_code": "Show QR Code"
+    "show_qr_code": "Show QR Code",
+    "email_pass_account": "Email & Password account"
+  },
+  "arc76account":{
+    "title":"Email and password account (ARC-0076)",
+    "description": "Hash of combination of your email and your password will generate seed bytes for your first algorand account. You can change the password or email only by rekeying to another account.",
+    "description2":"ARC-0076 standard will be used with algorithm PBKDF2-999999-SHA256. We recommend the password length to be at least 50 characters long. This type of account may be served as secondary type of random number generator and may strengthen your security. Please keep the secret secure and do not reuse it.",
+    "arc_draft": "ARC-0076 is in the DRAFT state. The specification can change. Please consider this implementation for experimental usage.",
+    "email": "Email",
+    "select_password": "Please select very very very secure password.",
+    "save_password_switch": "Save password",
+    "password_not_stored": "Watch out. We do not store your password. We will store only the account public address and email to the secure storage. When you will be doing transactions with this account you will be prompted to enter the password.",
+    "gui_not_implemented": "GUI for signing transaction without stored password is not currently implemented."
   },
   "import": {
     "title": "Import wallet",
@@ -425,7 +437,8 @@
     "2fa_code": "2FA code",
     "sign_arc14_request": "Sign authorization request",
     "toggle_send_to_others_form": "Toggle Send to others form",
-    "toggle_combine_with_others_form": "Toggle Combine with others form"
+    "toggle_combine_with_others_form": "Toggle Combine with others form",
+    "process_payment": "Process payment"
   },
   "settings": {
     "title": "Settings",

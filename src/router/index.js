@@ -34,6 +34,7 @@ import Arc14 from "@/pages/Arc14.vue";
 import NewAccountLedger from "@/pages/NewAccount/Ledger.vue";
 import NewAccountWalletConnect from "@/pages/NewAccount/WalletConnect.vue";
 import NewAccount2FA from "@/pages/NewAccount/2FA.vue";
+import NewAccountEmailPass from "@/pages/NewAccount/EmailPassword.vue";
 
 const routes = [
   {
@@ -55,6 +56,11 @@ const routes = [
     path: "/new-account/2fa",
     name: "NewAccount2fa",
     component: NewAccount2FA,
+  },
+  {
+    path: "/new-account/email-password",
+    name: "NewAccount2emailpass",
+    component: NewAccountEmailPass,
   },
   {
     path: "/new-account/wc",

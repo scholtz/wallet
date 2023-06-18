@@ -308,14 +308,15 @@ export default {
         });
       }
       if (this.account && this.account.assets) {
-        for (let index in this.account.assets) {
+        for (let accountAsset of this.account.assets) {
+          if (!accountAsset["asset-id"]) continue;
           const asset = await this.getAsset({
-            assetIndex: this.account.assets[index]["asset-id"],
+            assetIndex: accountAsset["asset-id"],
           });
           if (asset) {
             this.assets.push({
-              "asset-id": this.account.assets[index]["asset-id"],
-              amount: this.account.assets[index]["amount"],
+              "asset-id": accountAsset["asset-id"],
+              amount: accountAsset["amount"],
               name: asset["name"],
               decimals: asset["decimals"],
               "unit-name": asset["unit-name"],

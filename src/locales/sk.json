@@ -342,7 +342,19 @@
     "ledger_account": "HW Zariadenie - Ledger účet",
     "wc_account": "Wallet Connect účet",
     "twofa_account": "2FA účet",
-    "show_qr_code": "Zobraz QR kód"
+    "show_qr_code": "Zobraz QR kód",
+    "email_pass_account": "Účet z emailu a hesla"
+  },
+  "arc76account":{
+    "title":"Účet z emailu a hesla (ARC-0076)",
+    "description": "Kombinácia hashu emailu a hesla je použitá pre vygenerovanie účtu. Heslo alebo email môžete zmeniť iba pomocou rekeying metódy.",
+    "description2":"ARC-0076 štandard bude použitý s algoritmom PBKDF2-999999-SHA256. Odporúčame silu hesla aby mala aspoň 50 znakov. Tento účet môže slúžiť ako alternatíva k ostatným účtom kde počítač generuje náhodné číslo a môže zvýšiť Vašu bezpečnosť. Heslo udržujte vo v prísnej tajnosti a neprepoužívajte ho.",
+    "arc_draft": "ARC-0076 je v stavu draftu a štandard sa môže zmeniť. Považujte aktuálnu implementáciu za experimentálnu.",
+    "email": "Email",
+    "select_password": "Zadajte veľmi veľmi silné a náhodné heslo",
+    "save_password_switch": "Uložiť heslo",
+    "password_not_stored": "Pozor! Neuložíme Vaše heslo do zabezpečeného úložiska. Uložíme tam iba email a adresu Vášho účtu. Pri každom podpisovaní transakcií budete vyzvaný na zadanie hesla.",
+    "gui_not_implemented": "GUI pre podpisovanie na základe opýtania hesla NIE je aktuálne implementované."
   },
   "import": {
     "title": "Import peňaženky",
@@ -424,7 +436,8 @@
     "2fa_code": "Kód dvoj úrovňovej autorizácie",
     "sign_arc14_request": "Podpísať autorizačný request",
     "toggle_send_to_others_form": "Zapnúť/Vypnúť Formulár odoslať ostatným",
-    "toggle_combine_with_others_form": "Zapnúť/Vypnúť Skombinovať podpisy"
+    "toggle_combine_with_others_form": "Zapnúť/Vypnúť Skombinovať podpisy",
+    "process_payment": "Sprocesovať platbu"
   },
   "settings": {
     "title": "Nastavenia",
