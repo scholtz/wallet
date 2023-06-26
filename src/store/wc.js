@@ -4,6 +4,8 @@ import { parseUri } from "@walletconnect/utils";
 import wc from "../shared/wc";
 import WCKeyValueStore from "../shared/WCKeyValueStore";
 
+import algosdk from "algosdk";
+
 const state = () => ({
   connectors: [],
   requests: [],
@@ -89,6 +91,107 @@ const actions = {
     web3wallet.on("session_request", async (sessionRequest) => {
       console.log("on session_request", sessionRequest);
       await commit("addSessionRequest", sessionRequest);
+
+      if (
+        sessionRequest &&
+        sessionRequest.params &&
+        sessionRequest.params.request
+      ) {
+        const request = sessionRequest.params.request;
+        if (request.method === "algo_signTxn") {
+          console.log("request", request);
+          const transactions = request.params[0].map((item, index) => {
+            const txn = item["txn"];
+            console.log("txn", txn);
+            const txnBuffer = Buffer.from(txn, "base64");
+            console.log("txnBuffer", txnBuffer);
+            const decodedObj = algosdk.decodeObj(txnBuffer);
+            let decodedTx = decodedObj;
+            console.log("decodedTx", decodedTx);
+            if (!decodedTx.type && decodedTx.txn.type) {
+              if (decodedTx.sig) {
+                state.store.dispatch("signer/setSigned", {
+                  signed: new Uint8Array(txnBuffer),
+                });
+              }
+              decodedTx = decodedTx.txn;
+            }
+            const decoded = algosdk.decodeUnsignedTransaction(
+              algosdk.encodeObj(decodedTx)
+            );
+
+            let asset = "";
+            switch (decoded.type) {
+              case "pay":
+                asset = "ALGO";
+                break;
+              case "axfer":
+                asset = decoded.assetIndex;
+                break;
+            }
+
+            let amount = decoded.amount;
+            switch (decoded.type) {
+              case "pay":
+              case "axfer":
+                if (!amount) {
+                  amount = "0";
+                }
+                break;
+            }
+
+            let from = decoded.from;
+            if (from) {
+              from = algosdk.encodeAddress(decoded.from.publicKey);
+            }
+
+            let rekeyto = decoded.rekeyTo;
+            if (rekeyto) {
+              rekeyto = algosdk.encodeAddress(rekeyto.publicKey);
+            }
+
+            return {
+              index: index,
+              type: decoded.type,
+              from: from,
+              fee: decoded.fee,
+              asset: asset,
+              amount: amount,
+              rekeyTo: rekeyto,
+              txn: decoded,
+            };
+          });
+
+          let totalFee = 0;
+
+          for (const tx of transactions) {
+            if (tx.fee) {
+              totalFee += tx.fee;
+            }
+          }
+
+          const requestToStore = {
+            id: sessionRequest.id,
+            method: request.method,
+            transactions: transactions,
+            fee: totalFee,
+            ver: "2",
+          };
+
+          await commit("addRequest", { request: requestToStore });
+        } else {
+          console.error("request.method not implemented", request.method);
+          // TODO
+          // const response = {
+          //   id: sessionRequest.id,
+          //   error: {
+          //     code: 4300,
+          //     message: "Unsupported request.",
+          //   },
+          // };
+          // web3wallet.rejectRequest(response);
+        }
+      }
     });
     web3wallet.on("auth_request", async (authRequest) => {
       console.log("on auth_request", authRequest);
