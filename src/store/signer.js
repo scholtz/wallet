@@ -1,7 +1,7 @@
 import algosdk from "algosdk";
 import Algorand from "@ledgerhq/hw-app-algorand";
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
-import WalletConnect from "@walletconnect/client";
+import WalletConnect from "@walletconnect/client"; // wc ver 1
 
 const state = () => ({
   signed: {},
@@ -57,8 +57,13 @@ const actions = {
           from: fromAccount.addr,
           tx: txObj,
         });
+      } else if (fromAccount.type == "wc" && fromAccount.ver == "2") {
+        return await dispatch("signByWC2", {
+          from: fromAccount.addr,
+          tx: txObj,
+        });
       } else if (fromAccount.type == "wc") {
-        return await dispatch("signByWC", {
+        return await dispatch("signByWC1", {
           from: fromAccount.addr,
           tx: txObj,
         });
@@ -152,7 +157,7 @@ const actions = {
       throw e;
     }
   },
-  async signByWC({ dispatch, commit }, { from, tx }) {
+  async signByWC1({ dispatch, commit }, { from, tx }) {
     try {
       console.log("signByWC", { from, tx });
 
@@ -183,6 +188,61 @@ const actions = {
       };
 
       const response = await connector.sendCustomRequest(request);
+
+      const ret = Buffer.from(response[0], "base64");
+      commit("setSigned", ret);
+      return ret;
+    } catch (e) {
+      console.error("signByWC.e", e);
+      throw e;
+    }
+  },
+  async signByWC2({ dispatch, commit }, { from, tx }) {
+    try {
+      console.log("signByWC2", { from, tx });
+
+      const fromAccount = this.state.wallet.privateAccounts.find(
+        (a) => a.addr == from
+      );
+      const provider = await dispatch("wcClient/init", null, { root: true });
+
+      // const connect = await provider.connect({
+      //   namespaces: fromAccount.session.namespaces,
+      //   pairingTopic: fromAccount.session.pairingTopic,
+      // });
+      // console.log("signByWC2.connect", connect);
+
+      const currentChain = await dispatch(
+        "publicData/getCurrentChainId",
+        null,
+        {
+          root: true,
+        }
+      );
+      console.log("currentChain", currentChain);
+      //provider.setDefaultChain(`algorand`);
+
+      const request = {
+        method: "algo_signTxn",
+        params: [
+          [
+            {
+              txn: Buffer.from(algosdk.encodeUnsignedTransaction(tx)).toString(
+                "base64"
+              ),
+              authAddr: from,
+            },
+          ],
+        ],
+      };
+
+      console.log("provider.request(request)", request);
+      const response = await provider.request(
+        request,
+        `algorand:${currentChain}`
+      );
+      if (!response) throw Error("Transaction has not been signed");
+      console.log("signByWC2.response", response);
 
       const ret = Buffer.from(response[0], "base64");
       commit("setSigned", ret);

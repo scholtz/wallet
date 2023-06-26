@@ -510,7 +510,10 @@ export default {
     canSign() {
       if (!this.account) return false;
       return (
-        this.account.sk || this.account.params || this.account.type == "ledger"
+        this.account.sk ||
+        this.account.params ||
+        this.account.type == "ledger" ||
+        this.account.type == "wc"
       );
     },
     account() {

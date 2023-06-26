@@ -3,7 +3,8 @@ import CryptoJS from "crypto-js";
 import cryptoRandomString from "crypto-random-string";
 import db from "../shared/db";
 import wc from "../shared/wc";
-var pbkdf2 = require("pbkdf2");
+import { parseEntry } from "@walletconnect/keyvaluestorage";
+import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
 
 const state = () => ({
   name: "w2",
@@ -16,6 +17,7 @@ const state = () => ({
   lastActiveAccount: "",
   lastActiveAccountName: "",
   transaction: {},
+  wc: {},
 });
 
 const mutations = {
@@ -178,7 +180,11 @@ const mutations = {
     state.privateAccounts.push(account);
   },
   addWalletConnectAccount(state, { name, addr, session, network }) {
-    const account = { name, addr, session, network, type: "wc" };
+    const account = { name, addr, session, network, ver: "1", type: "wc" };
+    state.privateAccounts.push(account);
+  },
+  addWalletConnect2Account(state, { name, addr, session, network }) {
+    const account = { name, addr, session, network, ver: "2", type: "wc" };
     state.privateAccounts.push(account);
   },
   setPrivateAccounts(state, accts) {
@@ -186,6 +192,13 @@ const mutations = {
       state.privateAccounts = accts;
     } else {
       state.privateAccounts = [];
+    }
+  },
+  setWC(state, wc) {
+    if (wc) {
+      state.wc = wc;
+    } else {
+      state.wc = {};
     }
   },
   logout(state) {
@@ -217,6 +230,12 @@ const mutations = {
     state.pass = dataencoded.toString();
 
     state.time = new Date();
+  },
+  wcSetItem(state, { key, value }) {
+    state.wc[key] = safeJsonStringify(value);
+  },
+  wcRemoveItem(state, { key }) {
+    delete state.wc[key];
   },
 };
 const actions = {
@@ -259,7 +278,6 @@ const actions = {
       dispatch("toast/openError", "Plase set account name", {
         root: true,
       });
-      alert("Plase set account name");
       return false;
     }
     try {
@@ -280,7 +298,9 @@ const actions = {
   },
   async addPublicAccount({ dispatch, commit }, { name, addr }) {
     if (!name) {
-      alert("Plase set account name");
+      dispatch("toast/openError", "Plase set account name", {
+        root: true,
+      });
       return false;
     }
     try {
@@ -300,11 +320,15 @@ const actions = {
   },
   async deleteAccount({ dispatch, commit }, { name, addr }) {
     if (!name) {
-      alert("Plase define account name");
+      dispatch("toast/openError", "Plase define account name", {
+        root: true,
+      });
       return false;
     }
     if (!addr) {
-      alert("Plase define account addr");
+      dispatch("toast/openError", "Plase define account addr", {
+        root: true,
+      });
       return false;
     }
     try {
@@ -376,7 +400,9 @@ const actions = {
   },
   async addMultiAccount({ dispatch, commit }, { params, name }) {
     if (!name) {
-      alert("Plase set account name");
+      dispatch("toast/openError", "Plase set account name", {
+        root: true,
+      });
       return false;
     }
     try {
@@ -409,7 +435,9 @@ const actions = {
     }
   ) {
     if (!name) {
-      alert("Plase set account name");
+      dispatch("toast/openError", "Plase set account name", {
+        root: true,
+      });
       return false;
     }
     try {
@@ -451,7 +479,9 @@ const actions = {
   },
   async addLedgerAccount({ dispatch, commit }, { name, addr, addr0, slot }) {
     if (!name) {
-      alert("Plase set account name");
+      dispatch("toast/openError", "Plase set account name", {
+        root: true,
+      });
       return false;
     }
     try {
@@ -473,11 +503,51 @@ const actions = {
   },
   async addWalletConnectAccount({ dispatch, commit }, { name, addr, session }) {
     if (!name) {
-      alert("Plase set account name");
+      dispatch("toast/openError", "Plase set account name", {
+        root: true,
+      });
       return false;
     }
     try {
       await commit("addWalletConnectAccount", {
+        name,
+        addr,
+        session,
+        network: this.state.config.env,
+      });
+      await dispatch("saveWallet");
+      return true;
+    } catch (e) {
+      console.error("error", e);
+      dispatch("toast/openError", "Account has not been created", {
+        root: true,
+      });
+    }
+  },
+  async addWalletConnect2Account(
+    { dispatch, commit },
+    { name, addr, session }
+  ) {
+    if (!name) {
+      dispatch("toast/openError", "Plase set account name", {
+        root: true,
+      });
+      return false;
+    }
+    if (!addr) {
+      dispatch("toast/openError", "Address is missing", {
+        root: true,
+      });
+      return false;
+    }
+    if (!session) {
+      dispatch("toast/openError", "Session data is missing", {
+        root: true,
+      });
+      return false;
+    }
+    try {
+      await commit("addWalletConnect2Account", {
         name,
         addr,
         session,
@@ -502,18 +572,24 @@ const actions = {
   },
   async changePassword({ dispatch }, { passw1, passw2, passw3 }) {
     if (passw2 != passw3) {
-      alert("Passwords does not match");
+      dispatch("toast/openError", "Passwords does not match", {
+        root: true,
+      });
       return;
     }
     const name = this.state.wallet.name;
     if (!name) {
-      alert("Wallet name not found");
+      dispatch("toast/openError", "Wallet name not found", {
+        root: true,
+      });
       return;
     }
 
     const check = await dispatch("openWallet", { name, pass: passw1 });
     if (!check) {
-      alert("Password is incorrect");
+      dispatch("toast/openError", "Password is incorrect", {
+        root: true,
+      });
       return;
     }
 
@@ -525,7 +601,7 @@ const actions = {
     await db.wallets.update(walletRecord.id, walletRecord);
     return true;
   },
-  async saveWallet() {
+  async saveWallet({ dispatch }) {
     const encryptedPass = this.state.wallet.pass;
     const decryptedData = await CryptoJS.AES.decrypt(
       encryptedPass,
@@ -539,7 +615,10 @@ const actions = {
     }
 
     if (!this.state.wallet.name) {
-      alert("Wallet not found");
+      dispatch("toast/openError", "Wallet not found", {
+        root: true,
+      });
+      return false;
     }
 
     if (
@@ -551,18 +630,22 @@ const actions = {
     const walletRecord = await db.wallets.get({ name: this.state.wallet.name });
     if (!walletRecord) return;
     if (!walletRecord || !walletRecord.id) {
-      alert("Error in wallet record update");
+      dispatch("toast/openError", "Error in wallet record update", {
+        root: true,
+      });
+      return false;
     }
-
-    const data = JSON.stringify(this.state.wallet);
-    const dataencoded = CryptoJS.AES.encrypt(data, pass);
-    if (walletRecord && dataencoded) {
-      walletRecord.data = dataencoded.toString();
-      await db.wallets.update(walletRecord.id, walletRecord);
+    if (this.state.wallet) {
+      const data = JSON.stringify(this.state.wallet);
+      const dataencoded = CryptoJS.AES.encrypt(data, pass);
+      if (walletRecord && dataencoded) {
+        walletRecord.data = dataencoded.toString();
+        await db.wallets.update(walletRecord.id, walletRecord);
+      }
     }
     //console.log("saved", this.state.wallet);
   },
-  async openWallet({ commit }, { name, pass }) {
+  async openWallet({ commit, dispatch }, { name, pass }) {
     const walletRecord = await db.wallets.get({ name });
     const encryptedData = walletRecord.data;
     try {
@@ -571,9 +654,12 @@ const actions = {
       await commit("setPrivateAccounts", json.privateAccounts);
       await commit("lastPayTo", json.lastPayTo);
       await commit("lastActiveAccount", json.lastActiveAccount);
+      await commit("setWC", json.wc);
       await commit("setIsOpen", { name, pass });
     } catch (e) {
-      alert("Wrong password");
+      dispatch("toast/openError", "Wrong password", {
+        root: true,
+      });
       console.error("wrong password", e);
       return;
     }
@@ -583,11 +669,15 @@ const actions = {
   },
   async createWallet({ dispatch, commit }, { name, pass }) {
     if (!name) {
-      alert("Plase set wallet name");
+      dispatch("toast/openError", "Plase set wallet name", {
+        root: true,
+      });
       return false;
     }
     if ((await db.wallets.toArray()).map((v) => v.name).includes(name)) {
-      alert("Wallet with the same name already exists");
+      dispatch("toast/openError", "Wallet with the same name already exists", {
+        root: true,
+      });
       return false;
     }
     const data = JSON.stringify(this.state.wallet);
@@ -599,7 +689,9 @@ const actions = {
         return true;
       })
       .catch(function (e) {
-        alert("Error: " + (e.stack || e));
+        dispatch("toast/openError", "Error: " + (e.stack || e), {
+          root: true,
+        });
       });
     await dispatch("saveWallet");
     await commit("setIsOpen", { name, pass });
@@ -625,25 +717,31 @@ const actions = {
       return [];
     }
   },
-  async backupWallet() {
+  async backupWallet({ dispatch }) {
     try {
       const name = this.state.wallet.name;
       if (!name) {
-        alert("Wallet name not found");
+        dispatch("toast/openError", "Wallet name not found", {
+          root: true,
+        });
         return;
       }
       const walletRecord = await db.wallets.get({ name });
       //console.log("walletRecord.data", walletRecord.data);
       return btoa(walletRecord.data);
     } catch (e) {
-      alert("Error occurred: " + e);
+      dispatch("toast/openError", "Error occurred: " + e, {
+        root: true,
+      });
       console.log("error", e);
     }
   },
-  async destroyWallet({ commit }) {
+  async destroyWallet({ commit, dispatch }) {
     const name = this.state.wallet.name;
     if (!name) {
-      alert("Wallet name not found");
+      dispatch("toast/openError", "Wallet name not found", {
+        root: true,
+      });
       return;
     }
     if (
@@ -658,18 +756,24 @@ const actions = {
       commit("logout");
     }
   },
-  async importWallet({ commit }, { name, data }) {
+  async importWallet({ commit, dispatch }, { name, data }) {
     if (!name) {
-      alert("Wallet name not found");
+      dispatch("toast/openError", "Wallet name not found", {
+        root: true,
+      });
       return;
     }
     if (!data) {
-      alert("Wallet data not found");
+      dispatch("toast/openError", "Wallet data not found", {
+        root: true,
+      });
       return;
     }
     const walletRecord = await db.wallets.get({ name });
     if (walletRecord) {
-      alert("Wallet with the same name already exists");
+      dispatch("toast/openError", "Wallet with the same name already exists", {
+        root: true,
+      });
       return;
     }
     await db.wallets.add({ name, data });
@@ -701,6 +805,34 @@ const actions = {
   },
   getName: (store) => {
     return store.state.name;
+  },
+  async wcGetKeys() {
+    console.log("getKeys", Object.keys(this.state.wallet.wc));
+    return Object.keys(this.state.wallet.wc);
+  },
+  async wcGetEntries() {
+    console.log(
+      "getEntries",
+      Object.entries(this.state.wallet.wc).map(parseEntry)
+    );
+    return Object.entries(this.state.wallet.wc).map(parseEntry);
+  },
+  async wcGetItem({ dispatch }, { key }) {
+    const item = this.state.wallet.wc[key];
+    if (!item) {
+      return undefined;
+    }
+    return safeJsonParse(item);
+  },
+  async wcSetItem({ dispatch, commit }, { key, value }) {
+    console.log("setItem", key, value);
+    await commit("wcSetItem", { key, value });
+    await dispatch("saveWallet");
+  },
+  async wcRemoveItem({ dispatch }, { key }) {
+    console.log("removeItem", key);
+    await commit("wcRemoveItem", { key });
+    await dispatch("saveWallet");
   },
 };
 export default {

@@ -11,6 +11,7 @@ import kmd from "./kmd";
 import arc14 from "./arc14";
 import signer from "./signer";
 import wc from "./wc";
+import wcClient from "./wcClient";
 import fa2 from "./fa2";
 
 const debugStrict = process.env.NODE_ENV !== "production";
@@ -29,6 +30,7 @@ export default createStore({
     arc14,
     signer,
     wc,
+    wcClient,
     fa2,
   },
   strict: debugStrict,

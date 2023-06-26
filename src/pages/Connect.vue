@@ -1,6 +1,6 @@
 <template>
-  <PublicLayout>
-    <div class="container-fluid">
+  <MainLayout>
+    <div class="container-fluid" v-if="$store.state.wc.web3wallet">
       <h1>{{ $t("connect.title") }}</h1>
 
       <div v-if="checkNetwork()">
@@ -387,25 +387,157 @@
               </div>
             </template>
           </DataTable>
-          <Toast />
+        </div>
+
+        <div>
+          <h2>{{ $t("connect.sessions") }}</h2>
+          <DataTable
+            :value="$store.state.wc.connectors"
+            responsive-layout="scroll"
+            selection-mode="single"
+            :paginator="true"
+            :rows="20"
+          >
+            <Column
+              field="id"
+              :header="$t('connect.client_id')"
+              :sortable="true"
+            />
+            <Column
+              field="address"
+              :header="$t('connect.address')"
+              :sortable="true"
+            >
+              <template #body="slotProps">
+                {{ slotProps.data.address }}
+              </template>
+            </Column>
+            <Column :header="$t('connect.peer')">
+              <template #body="slotProps">
+                <div v-if="slotProps.data.peer">
+                  <img
+                    v-if="
+                      slotProps.data.peer.icons &&
+                      slotProps.data.peer.icons.length
+                    "
+                    :src="slotProps.data.peer.icons[0]"
+                    width="24"
+                    height="24"
+                  />
+                  <a
+                    target="_blank"
+                    class="m-1"
+                    :href="slotProps.data.peer.url"
+                    :title="slotProps.data.peer.description"
+                  >
+                    {{ slotProps.data.peer.name }}
+                  </a>
+                </div>
+              </template>
+            </Column>
+            <Column :header="$t('connect.connected')" :sortable="true">
+              <template #body="slotProps">
+                <input
+                  class="form-check-input me-1"
+                  type="checkbox"
+                  :checked="slotProps.data.connected"
+                  disabled
+                />
+                <button
+                  class="btn btn-light m-1"
+                  @click="clickDisconnect(slotProps.data.id)"
+                >
+                  {{ $t("connect.disconnect") }}
+                </button>
+              </template>
+            </Column>
+          </DataTable>
+          <h2 id="requests">Session proposals</h2>
+          <DataTable
+            :value="$store.state.wc.sessionProposals"
+            :paginator="true"
+            :rows="20"
+          >
+            <Column
+              field="id"
+              :header="$t('connect.request_id')"
+              :sortable="true"
+            />
+            <Column :header="$t('connect.proposer')">
+              <template #body="slotProps">
+                <div
+                  v-if="
+                    slotProps.data.params.proposer &&
+                    slotProps.data.params.proposer.metadata
+                  "
+                >
+                  <img
+                    v-if="
+                      slotProps.data.params.proposer.metadata &&
+                      slotProps.data.params.proposer.metadata.icons &&
+                      slotProps.data.params.proposer.metadata.icons.length
+                    "
+                    :src="slotProps.data.params.proposer.metadata.icons[0]"
+                    width="24"
+                    height="24"
+                  />
+
+                  <a
+                    target="_blank"
+                    class="m-1"
+                    :href="
+                      normalizeUrl(slotProps.data.params.proposer.metadata.url)
+                    "
+                    :title="slotProps.data.params.proposer.metadata.description"
+                    v-if="
+                      slotProps.data.params.proposer &&
+                      slotProps.data.params.proposer.metadata &&
+                      slotProps.data.params.proposer.metadata.url
+                    "
+                  >
+                    {{ slotProps.data.params.proposer.metadata.name }}
+                  </a>
+                  <div v-else>
+                    {{ slotProps.data.params.proposer.metadata.name }}
+                  </div>
+                </div>
+              </template>
+            </Column>
+            <Column :header="$t('connect.connected')" :sortable="true">
+              <template #body="slotProps">
+                <button
+                  class="btn btn-light m-1"
+                  @click="clickApproveSession(slotProps.data.id)"
+                >
+                  {{ $t("connect.connect") }}
+                </button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
         <div v-if="error" class="alert alert-danger my-2">
           {{ error }}
         </div>
       </div>
     </div>
-  </PublicLayout>
+    <div class="container-fluid" v-else>
+      <h1>{{ $t("connect.title") }}</h1>
+      <Button class="btn btn-primary" @click="initConnection"
+        >Initialize connection to Wallet Connect</Button
+      >
+    </div>
+  </MainLayout>
 </template>
 
 <script>
-import PublicLayout from "../layouts/Public.vue";
+import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
 import wc from "../shared/wc";
 
 export default {
   components: {
-    PublicLayout,
+    MainLayout,
   },
   data() {
     return {
@@ -451,6 +583,7 @@ export default {
       prolong: "wallet/prolong",
       setAccountOnline: "kmd/setAccountOnline",
       openSuccess: "toast/openSuccess",
+      openError: "toast/openError",
       axiosGet: "axios/get",
       getTransactionParams: "algod/getTransactionParams",
       sendRawTransaction: "algod/sendRawTransaction",
@@ -458,7 +591,19 @@ export default {
       getSignerType: "signer/getSignerType",
       signerSignTransaction: "signer/signTransaction",
       signerToSign: "signer/toSign",
+      wcInit: "wc/init",
+      connectUri: "wc/connectUri",
+      approveSession: "wc/approveSession",
     }),
+    normalizeUrl(url) {
+      console.log("url", url);
+      if (url.indexOf("http") === 0) return url;
+      if (url.indexOf("//") == 0) return url;
+      return "https://" + url;
+    },
+    initConnection() {
+      this.wcInit();
+    },
     formatNote(note) {
       try {
         return Buffer.from(note).toString();
@@ -544,13 +689,13 @@ export default {
       try {
         await wc.acceptRequest(id);
 
-        this.$toast.add({
+        this.openSuccess({
           severity: "info",
           summary: "Request accepted",
           life: 3000,
         });
       } catch (ex) {
-        this.$toast.add({
+        this.openSuccess({
           severity: "error",
           summary: "Accept request failed",
           detail: ex,
@@ -563,7 +708,7 @@ export default {
 
       wc.rejectRequest(id);
 
-      this.$toast.add({
+      this.openSuccess({
         severity: "info",
         summary: "Request rejected",
         life: 3000,
@@ -572,7 +717,7 @@ export default {
     async clickDisconnect(id) {
       this.prolong();
       await wc.removeConnector(id);
-      this.$toast.add({
+      this.openSuccess({
         severity: "info",
         summary: "Session removed",
         life: 3000,
@@ -584,7 +729,7 @@ export default {
       try {
         await this.clickConnect(uri);
       } catch (ex) {
-        this.$toast.add({
+        this.openSuccess({
           severity: "error",
           summary: "Connect from Clipboard",
           life: 5000,
@@ -595,13 +740,22 @@ export default {
     },
     async clickConnect(uri) {
       this.prolong();
-      wc.createConnector(uri, this.addr);
+      this.connectUri({ uri });
 
-      this.$toast.add({
+      this.openSuccess({
         severity: "info",
         summary: "Session added",
         life: 3000,
       });
+    },
+    async clickApproveSession(id) {
+      console.log("clickApproveSession", id);
+      try {
+        await this.approveSession({ id });
+      } catch (err) {
+        const error = err.message ?? err;
+        this.openError(error);
+      }
     },
     checkNetwork() {
       if (this.$store.state.config.env == "mainnet-v1.0") {

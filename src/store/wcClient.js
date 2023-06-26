@@ -1,8 +1,9 @@
-import { Core } from "@walletconnect/core";
-import { Web3Wallet } from "@walletconnect/web3wallet";
 import { parseUri } from "@walletconnect/utils";
 import wc from "../shared/wc";
 import WCKeyValueStore from "../shared/WCKeyValueStore";
+import UniversalProvider from "universal-provider-with-algorand"; // wc ver 2
+import SignClient from "@walletconnect/sign-client"; // wc ver 2
+import { Core } from "@walletconnect/core"; // wc ver 2
 
 const state = () => ({
   connectors: [],
@@ -69,43 +70,53 @@ const actions = {
       throw Error("WalletConnect ProjectId Not initialized");
 
     const store = new WCKeyValueStore(dispatch);
+    console.log("store", store);
 
-    const core = new Core({
+    const core = await new Core({
       projectId: walletConnectProjectId,
       storage: store,
     });
-
-    const web3wallet = await Web3Wallet.init({
-      core,
+    var client = await SignClient.init({
+      logger: "debug",
+      projectId: walletConnectProjectId,
       metadata: walletConnectMetadata,
+      storage: store,
+      core: core,
+    });
+    console.log("client", client);
+    const provider = await UniversalProvider.init({
+      logger: "debug",
+      projectId: walletConnectProjectId,
+      metadata: walletConnectMetadata,
+      client: client,
     });
 
-    await commit("setWeb3wallet", web3wallet);
-
-    web3wallet.on("session_proposal", async (sessionProposal) => {
-      console.log("on session_proposal", sessionProposal);
+    provider.on("session_proposal", async (sessionProposal) => {
+      console.log("wcclient.on session_proposal", sessionProposal);
       await commit("addSessionProposal", sessionProposal);
     });
-    web3wallet.on("session_request", async (sessionRequest) => {
-      console.log("on session_request", sessionRequest);
+    provider.on("session_request", async (sessionRequest) => {
+      console.log("wcclient.on session_request", sessionRequest);
       await commit("addSessionRequest", sessionRequest);
     });
-    web3wallet.on("auth_request", async (authRequest) => {
-      console.log("on auth_request", authRequest);
+    provider.on("auth_request", async (authRequest) => {
+      console.log("wcclient.on auth_request", authRequest);
       await commit("addAuthRequest", authRequest);
     });
-    web3wallet.on("call_request", async (callRequest) => {
-      console.log("on call_request", callRequest);
+    provider.on("call_request", async (callRequest) => {
+      console.log("wcclient.on call_request", callRequest);
       await commit("addCallRequest", callRequest);
     });
-    web3wallet.on("subscription_created", async (subscription) => {
-      console.log("on subscription_created", subscription);
+    provider.on("subscription_created", async (subscription) => {
+      console.log("wcclient.on subscription_created", subscription);
       await commit("addSubscription", subscription);
     });
-    web3wallet.on("algo_signTxn", async (algoSignTxn) => {
-      console.log("on algo_signTxn", algoSignTxn);
+    provider.on("algo_signTxn", async (algoSignTxn) => {
+      console.log("wcclient.on algo_signTxn", algoSignTxn);
       await commit("addAlgoSignTxn", algoSignTxn);
     });
+
+    return provider;
   },
   async approveSession({ commit, dispatch }, { id }) {
     console.log("wc.approveSession", id);

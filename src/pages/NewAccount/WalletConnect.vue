@@ -6,8 +6,9 @@
         {{ $t("new_account_wc.last_error") }}: {{ lastError }}
       </div>
     </div>
-    <h3>{{ $t("new_account_wc.account_name") }}</h3>
-    <input v-model="name" class="form-control my-2" />
+    <button v-if="!uri" class="btn btn-primary" @click="initWalletConnect">
+      Show QR code
+    </button>
 
     <div v-if="scannable">
       <h3>{{ $t("new_account_wc.scan") }}</h3>
@@ -21,9 +22,11 @@
         {{ $t("new_account_wc.copy") }}
       </button>
     </div>
-    <div v-if="params">
-      <div v-if="params.accounts[0]">
-        {{ $t("new_account_wc.address") }}: {{ params.accounts[0] }}
+    <div v-if="session">
+      <h3>{{ $t("new_account_wc.account_name") }}</h3>
+      <input v-model="name" class="form-control my-2" />
+      <div v-if="account">
+        {{ $t("new_account_wc.address") }}: {{ account }}
       </div>
       <button class="btn btn-primary my-2" @click="clickSave">
         {{ $t("new_account_wc.save_address") }}
@@ -35,10 +38,10 @@
 <script>
 import MainLayout from "../../layouts/Main.vue";
 import QRCodeVue3 from "qrcode-vue3";
-import WalletConnect from "@walletconnect/client";
 import copy from "copy-to-clipboard";
 
 import { mapActions } from "vuex";
+
 export default {
   components: {
     MainLayout,
@@ -49,46 +52,51 @@ export default {
       lastError: "",
       name: "",
       uri: "",
-      params: null,
+      session: null,
       connector: null,
+      currentChain: "",
     };
   },
   computed: {
     scannable() {
-      return this.uri && !this.params;
+      return this.uri && !this.session;
+    },
+    account() {
+      if (!this.session) return "";
+      if (!this.session.namespaces) return "";
+      if (!this.session.namespaces.algorand) return "";
+      if (!this.session.namespaces.algorand.accounts) return "";
+      const accountKeys = Object.keys(
+        this.session.namespaces.algorand.accounts
+      );
+      if (accountKeys.length <= 0) return "";
+      return this.session.namespaces.algorand.accounts[accountKeys[0]].replace(
+        `algorand:${this.currentChain}:`,
+        ""
+      );
     },
   },
-  mounted() {
+  async mounted() {
     this.lastError = "";
     this.prolong();
-
-    this.connector = new WalletConnect({
-      bridge: "https://bridge.walletconnect.org",
-      session: {},
-    });
-
-    this.connector.createSession().then(() => {
-      this.uri = this.connector.uri;
-    });
-
-    // Subscribe to connection events
-    this.connector.on("connect", (error, payload) => {
-      if (error) {
-        throw error;
-      }
-
-      this.params = payload.params[0];
-    });
+    this.currentChain = await this.getCurrentChainId();
+    this.initWalletConnect();
   },
   methods: {
     ...mapActions({
       prolong: "wallet/prolong",
+      openSuccess: "toast/openSuccess",
       openError: "toast/openError",
-      addWalletConnectAccount: "wallet/addWalletConnectAccount",
+      getCurrentChainId: "publicData/getCurrentChainId",
+      addWalletConnect2Account: "wallet/addWalletConnect2Account",
+      initWC: "wcClient/init",
     }),
+    onSessionEvent(e) {
+      console.log("onSessionEvent", e);
+    },
     async clickCopy() {
       if (copy(this.uri)) {
-        alert(this.$t("global.copied_to_clipboard"));
+        this.openSuccess(this.$t("global.copied_to_clipboard"));
       }
     },
     async clickSave() {
@@ -98,16 +106,40 @@ export default {
 
       try {
         this.lastError = "";
-        await this.addWalletConnectAccount({
+        await this.addWalletConnect2Account({
           name: this.name,
-          addr: this.params.accounts[0],
-          session: this.connector.session,
+          addr: this.account,
+          session: this.session,
         });
         this.$router.push({ name: "Accounts" });
       } catch (Error) {
         console.error(Error.message);
         this.lastError = Error;
       }
+    },
+    async initWalletConnect() {
+      console.log("initWalletConnect");
+
+      const provider = await this.initWC();
+      console.log("got provider, going to request session", provider);
+
+      provider.on("display_uri", (uri) => {
+        console.log("display_uri", uri);
+        this.uri = uri;
+      });
+
+      const session = await provider.connect({
+        namespaces: {
+          algorand: {
+            methods: ["algo_signTxn"],
+            chains: [`algorand:${this.currentChain}`],
+            events: ["chainChanged", "accountsChanged"],
+          },
+          //skipPairing: true, // optional to skip pairing ( later it can be resumed by invoking .pair())
+        },
+      });
+      console.log("session", session);
+      this.session = session;
     },
   },
 };
