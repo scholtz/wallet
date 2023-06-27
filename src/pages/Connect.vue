@@ -156,7 +156,7 @@
                 <button
                   class="btn btn-light m-1"
                   :disabled="!$store.state.wallet.isOpen"
-                  @click="clickReject(slotProps.data.id)"
+                  @click="clickReject(slotProps.data)"
                 >
                   {{ $t("connect.reject") }}
                 </button>
@@ -626,6 +626,7 @@ export default {
       connectUri: "wc/connectUri",
       approveSession: "wc/approveSession",
       sendResult: "wc/sendResult",
+      cancelRequest: "wc/cancelRequest",
     }),
     normalizeUrl(url) {
       console.log("url", url);
@@ -739,10 +740,11 @@ export default {
         });
       }
     },
-    async clickReject(id) {
+    async clickReject(data) {
       this.prolong();
 
-      wc.rejectRequest(id);
+      this.cancelRequest({ data });
+      //wc.rejectRequest(data.id);
 
       this.openSuccess({
         severity: "info",

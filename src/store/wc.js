@@ -299,6 +299,35 @@ const actions = {
       throw err;
     }
   },
+  async cancelRequest({ commit }, { data }) {
+    try {
+      console.log("cancelRequest", data);
+      //data.id, data.transactions
+      //const session = await this.state.wc.web3wallet.approveSession({
+
+      const response = {
+        id: data.id,
+        jsonrpc: "2.0",
+        error: {
+          code: 5000,
+          message: "User rejected.",
+        },
+      };
+      console.log("response", response);
+      this.state.wc.web3wallet.respondSessionRequest({
+        topic: data.topic,
+        response,
+      });
+
+      commit("removeRequest", data.id);
+    } catch (err) {
+      console.error(
+        "Error while sending result back to wc2",
+        err.Message ?? err
+      );
+      throw err;
+    }
+  },
 };
 export default {
   namespaced: true,
