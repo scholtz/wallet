@@ -135,7 +135,7 @@
             />
             <Column :header="$t('connect.total_fee')">
               <template #body="slotProps">
-                {{ slotProps.data.fee }}
+                {{ $filters.formatCurrency(slotProps.data.fee) }}
               </template>
             </Column>
             <Column>
@@ -210,12 +210,43 @@
                     field="amount"
                     :header="$t('connect.amount')"
                     :sortable="true"
-                  />
+                  >
+                    <template #body="slotProps">
+                      <div v-if="slotProps.data.txn">
+                        <div
+                          v-if="slotProps.data.txn['type'] == 'pay'"
+                          class="text-end"
+                        >
+                          {{
+                            $filters.formatCurrency(
+                              slotProps.data.txn["amount"]
+                            )
+                          }}
+                        </div>
+                        <div
+                          v-else-if="slotProps.data.txn['type'] == 'axfer'"
+                          class="text-end"
+                        >
+                          {{
+                            $filters.formatCurrency(
+                              slotProps.data.txn["amount"],
+                              getAssetName(slotProps.data.txn["assetIndex"]),
+                              getAssetDecimals(slotProps.data.txn["assetIndex"])
+                            )
+                          }}
+                        </div>
+                      </div>
+                    </template>
+                  </Column>
                   <Column
                     field="fee"
                     :header="$t('connect.fee')"
                     :sortable="true"
-                  />
+                  >
+                    <template #body="slotProps">
+                      {{ $filters.formatCurrency(slotProps.data["fee"]) }}
+                    </template>
+                  </Column>
                   <Column
                     field="rekeyTo"
                     :header="$t('connect.rekeyto')"
@@ -820,6 +851,20 @@ export default {
     encodeAddress(addr) {
       if (!addr || !addr.publicKey) return "-";
       return algosdk.encodeAddress(addr.publicKey);
+    },
+    getAssetSync(id) {
+      const ret = this.$store.state.indexer.assets.find(
+        (a) => a["asset-id"] == id
+      );
+      return ret;
+    },
+    getAssetName(id) {
+      const asset = this.getAssetSync(id);
+      if (asset) return asset["name"];
+    },
+    getAssetDecimals(id) {
+      const asset = this.getAssetSync(id);
+      if (asset) return asset["decimals"];
     },
   },
 };

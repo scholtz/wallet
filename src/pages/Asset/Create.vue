@@ -224,7 +224,9 @@ export default {
   },
   computed: {
     accountsWithPrivateKey() {
-      return this.$store.state.wallet.privateAccounts.filter((a) => !!a.sk);
+      return this.$store.state.wallet.privateAccounts.filter(
+        (a) => !!a.sk || !!a.params || a.type == "ledger" || a.type == "wc"
+      );
     },
     hasPrivate() {
       return (

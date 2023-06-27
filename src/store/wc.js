@@ -119,7 +119,7 @@ const actions = {
             const decoded = algosdk.decodeUnsignedTransaction(
               algosdk.encodeObj(decodedTx)
             );
-
+            console.log("decoded", decoded);
             let asset = "";
             switch (decoded.type) {
               case "pay":
@@ -131,6 +131,7 @@ const actions = {
             }
 
             let amount = decoded.amount;
+
             switch (decoded.type) {
               case "pay":
               case "axfer":
