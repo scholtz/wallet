@@ -679,7 +679,7 @@ export default {
           life: 3000,
         });
       } catch (ex) {
-        this.openSuccess({
+        this.openError({
           severity: "error",
           summary: "Accept request failed",
           detail: ex,
@@ -714,7 +714,7 @@ export default {
       try {
         await this.clickConnect(uri);
       } catch (ex) {
-        this.openSuccess({
+        this.openError({
           severity: "error",
           summary: "Connect from Clipboard",
           life: 5000,

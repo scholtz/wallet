@@ -254,7 +254,7 @@ const actions = {
   async connectUri({ commit }, { uri }) {
     console.log("connectUri", uri);
     const { version } = parseUri(uri);
-    const last = localStorage.getItem("lastUsedWallet");
+    const last = this.state.wallet.lastActiveAccount;
     if (version === 1) {
       console.log("wc connect v1 ", uri, last);
       wc.createConnector(uri, last);
@@ -271,6 +271,12 @@ const actions = {
   async sendResult({ commit }, { data }) {
     try {
       console.log("sendResult", data);
+
+      if (data.ver != 2) {
+        // use WC 1
+        return await wc.acceptRequest(data.id);
+      }
+
       //data.id, data.transactions
       //const session = await this.state.wc.web3wallet.approveSession({
       const signedTxns = [];
@@ -322,6 +328,10 @@ const actions = {
       //data.id, data.transactions
       //const session = await this.state.wc.web3wallet.approveSession({
 
+      if (data.ver != 2) {
+        // use WC 1
+        return await wc.rejectRequest(data.id);
+      }
       const response = {
         id: data.id,
         jsonrpc: "2.0",
