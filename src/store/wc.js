@@ -159,6 +159,7 @@ const actions = {
               amount: amount,
               rekeyTo: rekeyto,
               txn: decoded,
+              txnB64: txn,
             };
           });
 
@@ -176,6 +177,7 @@ const actions = {
             transactions: transactions,
             fee: totalFee,
             ver: "2",
+            topic: sessionRequest.topic,
           };
 
           await commit("addRequest", { request: requestToStore });
@@ -246,6 +248,54 @@ const actions = {
         console.error("unable to pair", err);
       }
       console.log("after pair", this.state.wc.web3wallet);
+    }
+  },
+  async sendResult({ commit }, { data }) {
+    try {
+      console.log("sendResult", data);
+      //data.id, data.transactions
+      //const session = await this.state.wc.web3wallet.approveSession({
+      const signedTxns = [];
+      for (const item of data.transactions) {
+        console.log("item", item);
+        const txnBuffer = Buffer.from(item.txnB64, "base64");
+        console.log("txnBuffer", txnBuffer);
+        const decodedTx = algosdk.decodeUnsignedTransaction(txnBuffer);
+        console.log("decodedTx", decodedTx);
+        const txId = decodedTx.txID();
+        console.log("this.state.signer.signed", this.state.signer.signed);
+        if (!(txId in this.state.signer.signed)) {
+          console.error(
+            `Tx with id ${txId} has not been signed yet, skipped`,
+            txn
+          );
+          signedTxns.push(null); // send back original txn because it is probably logicsig, or user decided not to sign some specific tx
+          // should return null https://github.com/algorandfoundation/ARCs/blob/40d5e9c0f60826e495090a10d278db69233b3063/ARCs/arc-0025.md
+          continue;
+        }
+        const signedUint8 = this.state.signer.signed[txId];
+        const b64 = Buffer.from(signedUint8).toString("base64");
+        signedTxns.push(b64);
+      }
+
+      const response = {
+        id: data.id,
+        result: signedTxns,
+        jsonrpc: "2.0",
+      };
+      console.log("response", response);
+      this.state.wc.web3wallet.respondSessionRequest({
+        topic: data.topic,
+        response,
+      });
+
+      commit("removeRequest", data.id);
+    } catch (err) {
+      console.error(
+        "Error while sending result back to wc2",
+        err.Message ?? err
+      );
+      throw err;
     }
   },
 };

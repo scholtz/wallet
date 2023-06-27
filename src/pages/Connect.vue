@@ -146,7 +146,7 @@
                     !$store.state.wallet.isOpen ||
                     !atLeastOneSigned(slotProps.data)
                   "
-                  @click="clickAccept(slotProps.data.id)"
+                  @click="clickAccept(slotProps.data)"
                 >
                   {{ $t("connect.sendBack") }}
                 </button>
@@ -594,6 +594,7 @@ export default {
       wcInit: "wc/init",
       connectUri: "wc/connectUri",
       approveSession: "wc/approveSession",
+      sendResult: "wc/sendResult",
     }),
     normalizeUrl(url) {
       console.log("url", url);
@@ -683,12 +684,16 @@ export default {
       }
       console.log("data", type, data);
     },
-    async clickAccept(id) {
+    async clickAccept(data) {
       this.prolong();
 
       try {
-        await wc.acceptRequest(id);
+        await this.sendResult({ data });
+        // if (data.ver == 2) {
+        // } else {
 
+        //   await wc.acceptRequest(id);
+        // }
         this.openSuccess({
           severity: "info",
           summary: "Request accepted",
