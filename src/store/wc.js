@@ -47,6 +47,10 @@ const mutations = {
   addSessionProposal(state, sessionProposal) {
     state.sessionProposals.push(sessionProposal);
   },
+  removeSessionProposal(state, id) {
+    const index = state.sessionProposals.findIndex((r) => r.id == id);
+    state.sessionProposals.splice(index, 1);
+  },
   addSessionRequest(state, sessionRequest) {
     state.sessionRequests.push(sessionRequest);
   },
@@ -233,6 +237,19 @@ const actions = {
       },
     });
     console.log("approveSession", session);
+    commit("removeSessionProposal", id);
+  },
+  async rejectSession({ commit, dispatch }, { id }) {
+    console.log("wc.rejectSession", id);
+    const session = await this.state.wc.web3wallet.rejectSession({
+      id,
+      reason: {
+        message: "User rejected methods.",
+        code: 5002,
+      },
+    });
+    console.log("rejectSession", session);
+    commit("removeSessionProposal", id);
   },
   async connectUri({ commit }, { uri }) {
     console.log("connectUri", uri);

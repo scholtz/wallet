@@ -2,52 +2,12 @@
   <MainLayout>
     <div class="container-fluid" v-if="$store.state.wc.web3wallet">
       <h1>{{ $t("connect.title") }}</h1>
-
-      <div v-if="checkNetwork()">
-        {{ $t("swap.network") }}: {{ checkNetwork() }}
-      </div>
-      <div v-else class="alert alert-danger">
-        {{ $t("connect.network_not_supported") }}
-      </div>
       <div>
-        <h2>{{ $t("connect.address") }}</h2>
-        <select v-model="addr" class="form-control">
-          <option
-            v-for="option in $store.state.wallet.privateAccounts"
-            :key="option.addr"
-            :value="option.addr"
-          >
-            {{ option.name + " - " + option.addr }}
-          </option>
-        </select>
-      </div>
-      <div>
-        <h2>{{ $t("connect.uri") }}</h2>
-        <input
-          id="uri"
-          v-model="uri"
-          type="text"
-          class="form-control"
-          autocomplete="off"
-        />
-        <div>
-          <button
-            class="btn btn-primary m-1"
-            :disabled="uri && !connectable"
-            @click="clickConnect(uri)"
-          >
-            {{ $t("connect.connect") }}
-          </button>
-          {{ $t("connect.or") }}
-          <button
-            class="btn btn-primary m-1"
-            :disabled="!connectable"
-            @click="clickPaste"
-          >
-            {{ $t("connect.clipboard") }}
-          </button>
-        </div>
-        <div>
+        <div
+          v-if="
+            $store.state.wc.connectors && $store.state.wc.connectors.length > 0
+          "
+        >
           <h2>{{ $t("connect.sessions") }}</h2>
           <DataTable
             :value="$store.state.wc.connectors"
@@ -110,385 +70,328 @@
               </template>
             </Column>
           </DataTable>
-          <h2 id="requests">
-            {{ $t("connect.requests") }}
-          </h2>
-          <DataTable
-            v-model:expandedRows="expandedRequests"
-            v-model:selection="selectedRequest"
-            :value="requests"
-            responsive-layout="scroll"
-            selection-mode="single"
-            :paginator="true"
-            :rows="20"
-          >
-            <Column expander style="width: 5rem" />
-            <Column
-              field="id"
-              :header="$t('connect.request_id')"
-              :sortable="true"
-            />
-            <Column
-              field="method"
-              :header="$t('connect.method')"
-              :sortable="true"
-            />
-            <Column :header="$t('connect.total_fee')">
-              <template #body="slotProps">
-                {{ $filters.formatCurrency(slotProps.data.fee) }}
-              </template>
-            </Column>
-            <Column>
-              <template #body="slotProps">
-                <button
-                  class="btn btn-primary m-1"
-                  :disabled="
-                    !$store.state.wallet.isOpen ||
-                    !atLeastOneSigned(slotProps.data)
-                  "
-                  @click="clickAccept(slotProps.data)"
-                >
-                  {{ $t("connect.sendBack") }}
-                </button>
-                <span v-if="!atLeastOneSigned(slotProps.data)" class="m-2">
-                  {{ $t("connect.sign_txs") }}
-                </span>
-                <button
-                  class="btn btn-light m-1"
-                  :disabled="!$store.state.wallet.isOpen"
-                  @click="clickReject(slotProps.data)"
-                >
-                  {{ $t("connect.reject") }}
-                </button>
-              </template>
-            </Column>
-            <template #expansion="slotProps">
-              <div class="p-3">
-                <DataTable
-                  v-model:expandedRows="expandedTransactions"
-                  v-model:selection="selectedTransaction"
-                  :value="slotProps.data.transactions"
-                  selection-mode="single"
-                >
-                  <Column expander style="width: 5rem" />
-                  <Column>
-                    <template #body="slotProps">
-                      <button
-                        v-if="toBeSigned(slotProps.data)"
-                        class="btn btn-primary m-1"
-                        :disabled="!$store.state.wallet.isOpen"
-                        @click="clickSign(slotProps.data)"
-                      >
-                        {{ $t("connect.sign") }}
-                      </button>
-                      <span v-else class="badge bg-success">{{
-                        $t("connect.signed")
-                      }}</span>
-                    </template>
-                  </Column>
-                  <Column
-                    field="index"
-                    :header="$t('connect.index')"
-                    :sortable="true"
-                  />
-                  <Column
-                    field="type"
-                    :header="$t('connect.type')"
-                    :sortable="true"
-                  />
-                  <Column
-                    field="from"
-                    :header="$t('connect.from')"
-                    :sortable="true"
-                  />
-                  <Column
-                    field="asset"
-                    :header="$t('connect.asset')"
-                    :sortable="true"
-                  />
-                  <Column
-                    field="amount"
-                    :header="$t('connect.amount')"
-                    :sortable="true"
+          <div v-if="requests.length > 0">
+            <h2 id="requests">
+              {{ $t("connect.requests") }}
+            </h2>
+            <DataTable
+              v-model:expandedRows="expandedRequests"
+              v-model:selection="selectedRequest"
+              :value="requests"
+              responsive-layout="scroll"
+              selection-mode="single"
+              :paginator="true"
+              :rows="20"
+            >
+              <Column expander style="width: 5rem" />
+              <Column
+                field="id"
+                :header="$t('connect.request_id')"
+                :sortable="true"
+              />
+              <Column
+                field="method"
+                :header="$t('connect.method')"
+                :sortable="true"
+              />
+              <Column :header="$t('connect.total_fee')">
+                <template #body="slotProps">
+                  {{ $filters.formatCurrency(slotProps.data.fee) }}
+                </template>
+              </Column>
+              <Column>
+                <template #body="slotProps">
+                  <button
+                    class="btn btn-primary m-1"
+                    :disabled="
+                      !$store.state.wallet.isOpen ||
+                      !atLeastOneSigned(slotProps.data)
+                    "
+                    @click="clickAccept(slotProps.data)"
                   >
-                    <template #body="slotProps">
-                      <div v-if="slotProps.data.txn">
-                        <div
-                          v-if="slotProps.data.txn['type'] == 'pay'"
-                          class="text-end"
+                    {{ $t("connect.sendBack") }}
+                  </button>
+                  <span v-if="!atLeastOneSigned(slotProps.data)" class="m-2">
+                    {{ $t("connect.sign_txs") }}
+                  </span>
+                  <button
+                    class="btn btn-light m-1"
+                    :disabled="!$store.state.wallet.isOpen"
+                    @click="clickReject(slotProps.data)"
+                  >
+                    {{ $t("connect.reject") }}
+                  </button>
+                </template>
+              </Column>
+              <template #expansion="slotProps">
+                <div class="p-3">
+                  <DataTable
+                    v-model:expandedRows="expandedTransactions"
+                    v-model:selection="selectedTransaction"
+                    :value="slotProps.data.transactions"
+                    selection-mode="single"
+                  >
+                    <Column expander style="width: 5rem" />
+                    <Column>
+                      <template #body="slotProps">
+                        <button
+                          v-if="toBeSigned(slotProps.data)"
+                          class="btn btn-primary m-1"
+                          :disabled="!$store.state.wallet.isOpen"
+                          @click="clickSign(slotProps.data)"
                         >
-                          {{
-                            $filters.formatCurrency(
-                              slotProps.data.txn["amount"]
-                            )
-                          }}
+                          {{ $t("connect.sign") }}
+                        </button>
+                        <span v-else class="badge bg-success">{{
+                          $t("connect.signed")
+                        }}</span>
+                      </template>
+                    </Column>
+                    <Column
+                      field="index"
+                      :header="$t('connect.index')"
+                      :sortable="true"
+                    />
+                    <Column
+                      field="type"
+                      :header="$t('connect.type')"
+                      :sortable="true"
+                    />
+                    <Column
+                      field="from"
+                      :header="$t('connect.from')"
+                      :sortable="true"
+                    />
+                    <Column
+                      field="asset"
+                      :header="$t('connect.asset')"
+                      :sortable="true"
+                    />
+                    <Column
+                      field="amount"
+                      :header="$t('connect.amount')"
+                      :sortable="true"
+                    >
+                      <template #body="slotProps">
+                        <div v-if="slotProps.data.txn">
+                          <div
+                            v-if="slotProps.data.txn['type'] == 'pay'"
+                            class="text-end"
+                          >
+                            {{
+                              $filters.formatCurrency(
+                                slotProps.data.txn["amount"]
+                              )
+                            }}
+                          </div>
+                          <div
+                            v-else-if="slotProps.data.txn['type'] == 'axfer'"
+                            class="text-end"
+                          >
+                            {{
+                              $filters.formatCurrency(
+                                slotProps.data.txn["amount"],
+                                getAssetName(slotProps.data.txn["assetIndex"]),
+                                getAssetDecimals(
+                                  slotProps.data.txn["assetIndex"]
+                                )
+                              )
+                            }}
+                          </div>
                         </div>
-                        <div
-                          v-else-if="slotProps.data.txn['type'] == 'axfer'"
-                          class="text-end"
-                        >
-                          {{
-                            $filters.formatCurrency(
-                              slotProps.data.txn["amount"],
-                              getAssetName(slotProps.data.txn["assetIndex"]),
-                              getAssetDecimals(slotProps.data.txn["assetIndex"])
-                            )
-                          }}
-                        </div>
+                      </template>
+                    </Column>
+                    <Column
+                      field="fee"
+                      :header="$t('connect.fee')"
+                      :sortable="true"
+                    >
+                      <template #body="slotProps">
+                        {{ $filters.formatCurrency(slotProps.data["fee"]) }}
+                      </template>
+                    </Column>
+                    <Column
+                      field="rekeyTo"
+                      :header="$t('connect.rekeyto')"
+                      :sortable="true"
+                    />
+                    <template #expansion="txProps">
+                      <div class="p-3">
+                        <table>
+                          <tr v-if="txProps.data.txn.from">
+                            <td>{{ $t("connect.from") }}:</td>
+                            <td>
+                              {{ encodeAddress(txProps.data.txn.from) }}
+                            </td>
+                          </tr>
+                          <tr v-if="txProps.data.txn.to">
+                            <td>{{ $t("connect.to") }}:</td>
+                            <td>
+                              {{ encodeAddress(txProps.data.txn.to) }}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>{{ $t("connect.validity") }}:</td>
+                            <td>
+                              {{ txProps.data.txn.firstRound }} -
+                              {{ txProps.data.txn.lastRound }} ({{
+                                txProps.data.txn.lastRound -
+                                txProps.data.txn.firstRound +
+                                1
+                              }}
+                              {{ $t("connect.rounds") }})
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>{{ $t("connect.type") }}:</td>
+                            <td>{{ txProps.data.type }}</td>
+                          </tr>
+                          <tr>
+                            <td>{{ $t("connect.note") }}:</td>
+                            <td>
+                              <table>
+                                <tr>
+                                  <td>
+                                    {{
+                                      formatData(txProps.data.txn.note, "Text")
+                                    }}
+                                  </td>
+                                  <td>
+                                    {{
+                                      formatData(txProps.data.txn.note, "UInt")
+                                    }}
+                                  </td>
+                                  <td>
+                                    {{
+                                      formatData(txProps.data.txn.note, "Hex")
+                                    }}
+                                  </td>
+                                  <td>
+                                    {{
+                                      formatData(txProps.data.txn.note, "B64")
+                                    }}
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+
+                          <tr v-if="txProps.data.txn.group">
+                            <td>{{ $t("connect.group") }}:</td>
+                            <td>{{ formatGroup(txProps.data.txn.group) }}</td>
+                          </tr>
+
+                          <tr v-if="txProps.data.type == 'appl'">
+                            <td>{{ $t("connect.app") }}:</td>
+                            <td>{{ txProps.data.txn.appIndex }}</td>
+                          </tr>
+
+                          <tr
+                            v-if="
+                              txProps.data.type == 'appl' &&
+                              txProps.data.txn.appArgs
+                            "
+                          >
+                            <td>{{ $t("connect.app_args") }}:</td>
+                            <td>
+                              <table>
+                                <tr
+                                  v-for="(arg, index) in txProps.data.txn
+                                    .appArgs"
+                                  :key="arg"
+                                >
+                                  <td>{{ index + 1 }}.</td>
+                                  <td>{{ formatData(arg, "Text") }}</td>
+                                  <td>{{ formatData(arg, "UInt") }}</td>
+                                  <td>{{ formatData(arg, "Hex") }}</td>
+                                  <td>{{ formatData(arg, "B64") }}</td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                          <tr
+                            v-if="
+                              txProps.data.type == 'appl' &&
+                              txProps.data.txn.appAccounts
+                            "
+                          >
+                            <td>{{ $t("connect.app_accounts") }}:</td>
+                            <td>
+                              <ol>
+                                <li
+                                  v-for="acc in txProps.data.txn.appAccounts"
+                                  :key="acc"
+                                >
+                                  {{ formatAppAccount(acc) }}
+                                </li>
+                              </ol>
+                            </td>
+                          </tr>
+
+                          <tr
+                            v-if="
+                              txProps.data.type == 'appl' &&
+                              txProps.data.txn.appForeignAssets
+                            "
+                          >
+                            <td>{{ $t("connect.app_assets") }}:</td>
+                            <td>
+                              <ol>
+                                <li
+                                  v-for="asset in txProps.data.txn
+                                    .appForeignAssets"
+                                  :key="asset"
+                                >
+                                  {{ asset }}
+                                </li>
+                              </ol>
+                            </td>
+                          </tr>
+                          <tr
+                            v-if="
+                              txProps.data.type == 'appl' &&
+                              txProps.data.txn.boxes
+                            "
+                          >
+                            <td>{{ $t("connect.boxes") }}:</td>
+                            <td>
+                              <ol>
+                                <li
+                                  v-for="box in txProps.data.txn.boxes"
+                                  :key="box.name"
+                                >
+                                  {{ $t("connect.app") }}: {{ box.appIndex }},
+                                  {{ $t("connect.name") }}:
+                                  {{ box.name }}
+                                </li>
+                              </ol>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>{{ $t("connect.genesis") }}:</td>
+                            <td>{{ txProps.data.txn.genesisID }}</td>
+                          </tr>
+                          <tr>
+                            <td>{{ $t("connect.genesis_hash") }}:</td>
+                            <td>
+                              {{
+                                formatGenesisHash(txProps.data.txn.genesisHash)
+                              }}
+                            </td>
+                          </tr>
+                        </table>
                       </div>
                     </template>
-                  </Column>
-                  <Column
-                    field="fee"
-                    :header="$t('connect.fee')"
-                    :sortable="true"
-                  >
-                    <template #body="slotProps">
-                      {{ $filters.formatCurrency(slotProps.data["fee"]) }}
-                    </template>
-                  </Column>
-                  <Column
-                    field="rekeyTo"
-                    :header="$t('connect.rekeyto')"
-                    :sortable="true"
-                  />
-                  <template #expansion="txProps">
-                    <div class="p-3">
-                      <table>
-                        <tr v-if="txProps.data.txn.from">
-                          <td>{{ $t("connect.from") }}:</td>
-                          <td>
-                            {{ encodeAddress(txProps.data.txn.from) }}
-                          </td>
-                        </tr>
-                        <tr v-if="txProps.data.txn.to">
-                          <td>{{ $t("connect.to") }}:</td>
-                          <td>
-                            {{ encodeAddress(txProps.data.txn.to) }}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>{{ $t("connect.validity") }}:</td>
-                          <td>
-                            {{ txProps.data.txn.firstRound }} -
-                            {{ txProps.data.txn.lastRound }} ({{
-                              txProps.data.txn.lastRound -
-                              txProps.data.txn.firstRound +
-                              1
-                            }}
-                            {{ $t("connect.rounds") }})
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>{{ $t("connect.type") }}:</td>
-                          <td>{{ txProps.data.type }}</td>
-                        </tr>
-                        <tr>
-                          <td>{{ $t("connect.note") }}:</td>
-                          <td>
-                            <table>
-                              <tr>
-                                <td>
-                                  {{
-                                    formatData(txProps.data.txn.note, "Text")
-                                  }}
-                                </td>
-                                <td>
-                                  {{
-                                    formatData(txProps.data.txn.note, "UInt")
-                                  }}
-                                </td>
-                                <td>
-                                  {{ formatData(txProps.data.txn.note, "Hex") }}
-                                </td>
-                                <td>
-                                  {{ formatData(txProps.data.txn.note, "B64") }}
-                                </td>
-                              </tr>
-                            </table>
-                          </td>
-                        </tr>
-
-                        <tr v-if="txProps.data.txn.group">
-                          <td>{{ $t("connect.group") }}:</td>
-                          <td>{{ formatGroup(txProps.data.txn.group) }}</td>
-                        </tr>
-
-                        <tr v-if="txProps.data.type == 'appl'">
-                          <td>{{ $t("connect.app") }}:</td>
-                          <td>{{ txProps.data.txn.appIndex }}</td>
-                        </tr>
-
-                        <tr
-                          v-if="
-                            txProps.data.type == 'appl' &&
-                            txProps.data.txn.appArgs
-                          "
-                        >
-                          <td>{{ $t("connect.app_args") }}:</td>
-                          <td>
-                            <table>
-                              <tr
-                                v-for="(arg, index) in txProps.data.txn.appArgs"
-                                :key="arg"
-                              >
-                                <td>{{ index + 1 }}.</td>
-                                <td>{{ formatData(arg, "Text") }}</td>
-                                <td>{{ formatData(arg, "UInt") }}</td>
-                                <td>{{ formatData(arg, "Hex") }}</td>
-                                <td>{{ formatData(arg, "B64") }}</td>
-                              </tr>
-                            </table>
-                          </td>
-                        </tr>
-                        <tr
-                          v-if="
-                            txProps.data.type == 'appl' &&
-                            txProps.data.txn.appAccounts
-                          "
-                        >
-                          <td>{{ $t("connect.app_accounts") }}:</td>
-                          <td>
-                            <ol>
-                              <li
-                                v-for="acc in txProps.data.txn.appAccounts"
-                                :key="acc"
-                              >
-                                {{ formatAppAccount(acc) }}
-                              </li>
-                            </ol>
-                          </td>
-                        </tr>
-
-                        <tr
-                          v-if="
-                            txProps.data.type == 'appl' &&
-                            txProps.data.txn.appForeignAssets
-                          "
-                        >
-                          <td>{{ $t("connect.app_assets") }}:</td>
-                          <td>
-                            <ol>
-                              <li
-                                v-for="asset in txProps.data.txn
-                                  .appForeignAssets"
-                                :key="asset"
-                              >
-                                {{ asset }}
-                              </li>
-                            </ol>
-                          </td>
-                        </tr>
-                        <tr
-                          v-if="
-                            txProps.data.type == 'appl' &&
-                            txProps.data.txn.boxes
-                          "
-                        >
-                          <td>{{ $t("connect.boxes") }}:</td>
-                          <td>
-                            <ol>
-                              <li
-                                v-for="box in txProps.data.txn.boxes"
-                                :key="box.name"
-                              >
-                                {{ $t("connect.app") }}: {{ box.appIndex }},
-                                {{ $t("connect.name") }}:
-                                {{ box.name }}
-                              </li>
-                            </ol>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>{{ $t("connect.genesis") }}:</td>
-                          <td>{{ txProps.data.txn.genesisID }}</td>
-                        </tr>
-                        <tr>
-                          <td>{{ $t("connect.genesis_hash") }}:</td>
-                          <td>
-                            {{
-                              formatGenesisHash(txProps.data.txn.genesisHash)
-                            }}
-                          </td>
-                        </tr>
-                      </table>
-                    </div>
-                  </template>
-                </DataTable>
-              </div>
-            </template>
-          </DataTable>
-        </div>
-
-        <div>
-          <h2>{{ $t("connect.sessions") }}</h2>
-          <DataTable
-            :value="$store.state.wc.connectors"
-            responsive-layout="scroll"
-            selection-mode="single"
-            :paginator="true"
-            :rows="20"
-          >
-            <Column
-              field="id"
-              :header="$t('connect.client_id')"
-              :sortable="true"
-            />
-            <Column
-              field="address"
-              :header="$t('connect.address')"
-              :sortable="true"
-            >
-              <template #body="slotProps">
-                {{ slotProps.data.address }}
-              </template>
-            </Column>
-            <Column :header="$t('connect.peer')">
-              <template #body="slotProps">
-                <div v-if="slotProps.data.peer">
-                  <img
-                    v-if="
-                      slotProps.data.peer.icons &&
-                      slotProps.data.peer.icons.length
-                    "
-                    :src="slotProps.data.peer.icons[0]"
-                    width="24"
-                    height="24"
-                  />
-                  <a
-                    target="_blank"
-                    class="m-1"
-                    :href="slotProps.data.peer.url"
-                    :title="slotProps.data.peer.description"
-                  >
-                    {{ slotProps.data.peer.name }}
-                  </a>
+                  </DataTable>
                 </div>
               </template>
-            </Column>
-            <Column :header="$t('connect.connected')" :sortable="true">
-              <template #body="slotProps">
-                <input
-                  class="form-check-input me-1"
-                  type="checkbox"
-                  :checked="slotProps.data.connected"
-                  disabled
-                />
-                <button
-                  class="btn btn-light m-1"
-                  @click="clickDisconnect(slotProps.data.id)"
-                >
-                  {{ $t("connect.disconnect") }}
-                </button>
-              </template>
-            </Column>
-          </DataTable>
+            </DataTable>
+          </div>
+        </div>
+
+        <div v-else-if="sessionProposals && sessionProposals.length > 0">
           <h2 id="requests">Session proposals</h2>
-          <DataTable
-            :value="$store.state.wc.sessionProposals"
-            :paginator="true"
-            :rows="20"
-          >
+          <DataTable :value="sessionProposals" :paginator="true" :rows="20">
             <Column
               field="id"
               :header="$t('connect.request_id')"
@@ -542,9 +445,45 @@
                 >
                   {{ $t("connect.connect") }}
                 </button>
+                <button
+                  class="btn btn-light m-1"
+                  @click="clickRejectSession(slotProps.data.id)"
+                >
+                  Reject
+                </button>
               </template>
             </Column>
           </DataTable>
+        </div>
+        <div v-else>
+          <h2>{{ $t("connect.uri") }}</h2>
+          <input
+            id="uri"
+            v-model="uri"
+            type="text"
+            class="form-control"
+            autocomplete="off"
+          />
+          <div v-if="scan" class="col-12 m-2">
+            <QrcodeStream @decode="onDecodeQR" />
+          </div>
+          <div>
+            <button
+              class="btn btn-primary m-1"
+              :disabled="uri && !connectable"
+              @click="clickConnect(uri)"
+            >
+              {{ $t("connect.connect") }}
+            </button>
+            {{ $t("connect.or") }}
+            <button class="btn btn-primary m-1" @click="clickPaste">
+              {{ $t("connect.clipboard") }}
+            </button>
+            {{ $t("connect.or") }}
+            <button class="btn btn-primary m-1" @click="scan = !scan">
+              Toggle camera
+            </button>
+          </div>
         </div>
         <div v-if="error" class="alert alert-danger my-2">
           {{ error }}
@@ -565,10 +504,12 @@ import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
 import wc from "../shared/wc";
+import { QrcodeStream } from "qrcode-reader-vue3";
 
 export default {
   components: {
     MainLayout,
+    QrcodeStream,
   },
   data() {
     return {
@@ -580,6 +521,7 @@ export default {
       selectedTransaction: null,
       expandedRequests: [],
       expandedTransactions: [],
+      scan: false,
     };
   },
   computed: {
@@ -592,7 +534,11 @@ export default {
       return this.$store.state.wc.requests;
     },
     connectable() {
-      return this.addr;
+      return this.uri;
+    },
+    sessionProposals() {
+      console.log("sessionProposals", this.$store.state.wc.sessionProposals);
+      return this.$store.state.wc.sessionProposals;
     },
   },
   watch: {
@@ -625,6 +571,7 @@ export default {
       wcInit: "wc/init",
       connectUri: "wc/connectUri",
       approveSession: "wc/approveSession",
+      rejectSession: "wc/rejectSession",
       sendResult: "wc/sendResult",
       cancelRequest: "wc/cancelRequest",
     }),
@@ -795,20 +742,14 @@ export default {
         this.openError(error);
       }
     },
-    checkNetwork() {
-      if (this.$store.state.config.env == "mainnet-v1.0") {
-        return "mainnet-v1.0";
+    async clickRejectSession(id) {
+      console.log("clickRejectSession", id);
+      try {
+        await this.rejectSession({ id });
+      } catch (err) {
+        const error = err.message ?? err;
+        this.openError(error);
       }
-      if (this.$store.state.config.env == "mainnet") {
-        return "mainnet-v1.0";
-      }
-      if (this.$store.state.config.env == "testnet-v1.0") {
-        return "testnet-v1.0";
-      }
-      if (this.$store.state.config.env == "testnet") {
-        return "testnet-v1.0";
-      }
-      return this.$store.state.config.env;
     },
     toBeSigned(data) {
       console.log("isSigned.data", data);
@@ -867,6 +808,12 @@ export default {
     getAssetDecimals(id) {
       const asset = this.getAssetSync(id);
       if (asset) return asset["decimals"];
+    },
+    onDecodeQR(result) {
+      if (result) {
+        this.uri = result;
+        this.scan = false;
+      }
     },
   },
 };

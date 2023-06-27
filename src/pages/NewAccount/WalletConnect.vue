@@ -118,28 +118,34 @@ export default {
       }
     },
     async initWalletConnect() {
-      console.log("initWalletConnect");
+      try {
+        console.log("initWalletConnect");
 
-      const provider = await this.initWC();
-      console.log("got provider, going to request session", provider);
+        const provider = await this.initWC();
+        console.log("got provider, going to request session", provider);
 
-      provider.on("display_uri", (uri) => {
-        console.log("display_uri", uri);
-        this.uri = uri;
-      });
+        provider.on("display_uri", (uri) => {
+          console.log("display_uri", uri);
+          this.uri = uri;
+        });
 
-      const session = await provider.connect({
-        namespaces: {
-          algorand: {
-            methods: ["algo_signTxn"],
-            chains: [`algorand:${this.currentChain}`],
-            events: ["chainChanged", "accountsChanged"],
+        const session = await provider.connect({
+          namespaces: {
+            algorand: {
+              methods: ["algo_signTxn"],
+              chains: [`algorand:${this.currentChain}`],
+              events: ["chainChanged", "accountsChanged"],
+            },
+            //skipPairing: true, // optional to skip pairing ( later it can be resumed by invoking .pair())
           },
-          //skipPairing: true, // optional to skip pairing ( later it can be resumed by invoking .pair())
-        },
-      });
-      console.log("session", session);
-      this.session = session;
+        });
+        console.log("session", session);
+        this.session = session;
+      } catch (err) {
+        console.error("error in initWalletConnect", err);
+        this.uri = "";
+        this.openError(`Error occured: ${err.message ?? err}`);
+      }
     },
   },
 };
