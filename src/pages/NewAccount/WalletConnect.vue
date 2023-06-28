@@ -7,7 +7,7 @@
       </div>
     </div>
     <button v-if="!uri" class="btn btn-primary" @click="initWalletConnect">
-      Show QR code
+      {{ $t("new_account_wc.show_qr_code") }}
     </button>
 
     <div v-if="scannable">

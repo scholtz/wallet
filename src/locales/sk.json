@@ -345,10 +345,10 @@
     "show_qr_code": "Zobraz QR kód",
     "email_pass_account": "Účet z emailu a hesla"
   },
-  "arc76account":{
-    "title":"Účet z emailu a hesla (ARC-0076)",
+  "arc76account": {
+    "title": "Účet z emailu a hesla (ARC-0076)",
     "description": "Kombinácia hashu emailu a hesla je použitá pre vygenerovanie účtu. Heslo alebo email môžete zmeniť iba pomocou rekeying metódy.",
-    "description2":"ARC-0076 štandard bude použitý s algoritmom PBKDF2-999999-SHA256. Odporúčame silu hesla aby mala aspoň 50 znakov. Tento účet môže slúžiť ako alternatíva k ostatným účtom kde počítač generuje náhodné číslo a môže zvýšiť Vašu bezpečnosť. Heslo udržujte vo v prísnej tajnosti a neprepoužívajte ho.",
+    "description2": "ARC-0076 štandard bude použitý s algoritmom PBKDF2-999999-SHA256. Odporúčame silu hesla aby mala aspoň 50 znakov. Tento účet môže slúžiť ako alternatíva k ostatným účtom kde počítač generuje náhodné číslo a môže zvýšiť Vašu bezpečnosť. Heslo udržujte vo v prísnej tajnosti a neprepoužívajte ho.",
     "arc_draft": "ARC-0076 je v stavu draftu a štandard sa môže zmeniť. Považujte aktuálnu implementáciu za experimentálnu.",
     "email": "Email",
     "select_password": "Zadajte veľmi veľmi silné a náhodné heslo",
@@ -625,7 +625,10 @@
     "boxes": "Boxy",
     "name": "Názov",
     "genesis": "Genesis ID",
-    "genesis_hash": "Genesis Hash"
+    "genesis_hash": "Genesis Hash",
+    "session_proposals": "Návrhy pre reláciu",
+    "toggle_camera": "Zapnúť/Vypnúť kameru",
+    "init_wc": "Vytvoriť spojenie na Wallet Connect"
   },
   "new_account_wc": {
     "title": "Pridať WalletConnect účet",
@@ -634,7 +637,8 @@
     "scan": "Nascanovať QR kód",
     "address": "Adresa",
     "save_address": "Uložiť adresu do peňaženky",
-    "copy": "Skopírovať URI do schránky"
+    "copy": "Skopírovať URI do schránky",
+    "show_qr_code": "Show QR code"
   },
   "new_account_2fa": {
     "title": "Účet dvojúrovňovej autorizácie",

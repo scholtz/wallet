@@ -378,7 +378,7 @@
           </DataTable>
         </div>
         <div v-else-if="sessionProposals && sessionProposals.length > 0">
-          <h2 id="requests">Session proposals</h2>
+          <h2 id="session_proposals">{{ $t("connect.session_proposals") }}</h2>
           <DataTable :value="sessionProposals" :paginator="true" :rows="20">
             <Column
               field="id"
@@ -437,7 +437,7 @@
                   class="btn btn-light m-1"
                   @click="clickRejectSession(slotProps.data.id)"
                 >
-                  Reject
+                  {{ $t("connect.reject") }}
                 </button>
               </template>
             </Column>
@@ -469,7 +469,7 @@
             </button>
             {{ $t("connect.or") }}
             <button class="btn btn-primary m-1" @click="scan = !scan">
-              Toggle camera
+              {{ $t("connect.toggle_camera") }}
             </button>
           </div>
         </div>
@@ -480,9 +480,9 @@
     </div>
     <div class="container-fluid" v-else>
       <h1>{{ $t("connect.title") }}</h1>
-      <Button class="btn btn-primary" @click="initConnection"
-        >Initialize connection to Wallet Connect</Button
-      >
+      <Button class="btn btn-primary" @click="initConnection">{{
+        $t("connect.init_wc")
+      }}</Button>
     </div>
   </MainLayout>
 </template>
