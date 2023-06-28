@@ -35,6 +35,20 @@ const mutations = {
   },
 };
 const actions = {
+  async getCurrentChainId({ dispatch }) {
+    await dispatch("getGenesisList");
+    console.log(
+      "this.state.publicData.genesisList",
+      this.state.publicData.genesisList
+    );
+    console.log("this.state.config.env", this.state.config.env);
+    const network = this.state.publicData.genesisList.find(
+      (n) => n.network == this.state.config.env
+    );
+    console.log("network", network);
+    if (!network) return "SandBox"; // random algorand chain id
+    return network.CAIP10;
+  },
   async getGenesisList({ dispatch, commit }) {
     try {
       if (this.state.publicData.genesisList.length == 0) {

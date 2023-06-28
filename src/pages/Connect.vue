@@ -1,56 +1,12 @@
 <template>
-  <PublicLayout>
-    <div class="container-fluid">
+  <MainLayout>
+    <div class="container-fluid" v-if="$store.state.wc.web3wallet">
       <h1>{{ $t("connect.title") }}</h1>
-
-      <div v-if="checkNetwork()">
-        {{ $t("swap.network") }}: {{ checkNetwork() }}
-      </div>
-      <div v-else class="alert alert-danger">
-        {{ $t("connect.network_not_supported") }}
-      </div>
       <div>
-        <h2>{{ $t("connect.address") }}</h2>
-        <select v-model="addr" class="form-control">
-          <option
-            v-for="option in $store.state.wallet.privateAccounts"
-            :key="option.addr"
-            :value="option.addr"
-          >
-            {{ option.name + " - " + option.addr }}
-          </option>
-        </select>
-      </div>
-      <div>
-        <h2>{{ $t("connect.uri") }}</h2>
-        <input
-          id="uri"
-          v-model="uri"
-          type="text"
-          class="form-control"
-          autocomplete="off"
-        />
-        <div>
-          <button
-            class="btn btn-primary m-1"
-            :disabled="uri && !connectable"
-            @click="clickConnect(uri)"
-          >
-            {{ $t("connect.connect") }}
-          </button>
-          {{ $t("connect.or") }}
-          <button
-            class="btn btn-primary m-1"
-            :disabled="!connectable"
-            @click="clickPaste"
-          >
-            {{ $t("connect.clipboard") }}
-          </button>
-        </div>
-        <div>
+        <div v-if="connectors && connectors.length > 0">
           <h2>{{ $t("connect.sessions") }}</h2>
           <DataTable
-            :value="$store.state.wc.connectors"
+            :value="connectors"
             responsive-layout="scroll"
             selection-mode="single"
             :paginator="true"
@@ -110,6 +66,8 @@
               </template>
             </Column>
           </DataTable>
+        </div>
+        <div v-if="requests.length > 0">
           <h2 id="requests">
             {{ $t("connect.requests") }}
           </h2>
@@ -135,7 +93,7 @@
             />
             <Column :header="$t('connect.total_fee')">
               <template #body="slotProps">
-                {{ slotProps.data.fee }}
+                {{ $filters.formatCurrency(slotProps.data.fee) }}
               </template>
             </Column>
             <Column>
@@ -146,7 +104,7 @@
                     !$store.state.wallet.isOpen ||
                     !atLeastOneSigned(slotProps.data)
                   "
-                  @click="clickAccept(slotProps.data.id)"
+                  @click="clickAccept(slotProps.data)"
                 >
                   {{ $t("connect.sendBack") }}
                 </button>
@@ -156,7 +114,7 @@
                 <button
                   class="btn btn-light m-1"
                   :disabled="!$store.state.wallet.isOpen"
-                  @click="clickReject(slotProps.data.id)"
+                  @click="clickReject(slotProps.data)"
                 >
                   {{ $t("connect.reject") }}
                 </button>
@@ -210,12 +168,43 @@
                     field="amount"
                     :header="$t('connect.amount')"
                     :sortable="true"
-                  />
+                  >
+                    <template #body="slotProps">
+                      <div v-if="slotProps.data.txn">
+                        <div
+                          v-if="slotProps.data.txn['type'] == 'pay'"
+                          class="text-end"
+                        >
+                          {{
+                            $filters.formatCurrency(
+                              slotProps.data.txn["amount"]
+                            )
+                          }}
+                        </div>
+                        <div
+                          v-else-if="slotProps.data.txn['type'] == 'axfer'"
+                          class="text-end"
+                        >
+                          {{
+                            $filters.formatCurrency(
+                              slotProps.data.txn["amount"],
+                              getAssetName(slotProps.data.txn["assetIndex"]),
+                              getAssetDecimals(slotProps.data.txn["assetIndex"])
+                            )
+                          }}
+                        </div>
+                      </div>
+                    </template>
+                  </Column>
                   <Column
                     field="fee"
                     :header="$t('connect.fee')"
                     :sortable="true"
-                  />
+                  >
+                    <template #body="slotProps">
+                      {{ $filters.formatCurrency(slotProps.data["fee"]) }}
+                    </template>
+                  </Column>
                   <Column
                     field="rekeyTo"
                     :header="$t('connect.rekeyto')"
@@ -387,25 +376,128 @@
               </div>
             </template>
           </DataTable>
-          <Toast />
+        </div>
+        <div v-else-if="sessionProposals && sessionProposals.length > 0">
+          <h2 id="session_proposals">{{ $t("connect.session_proposals") }}</h2>
+          <DataTable :value="sessionProposals" :paginator="true" :rows="20">
+            <Column
+              field="id"
+              :header="$t('connect.request_id')"
+              :sortable="true"
+            />
+            <Column :header="$t('connect.proposer')">
+              <template #body="slotProps">
+                <div
+                  v-if="
+                    slotProps.data.params.proposer &&
+                    slotProps.data.params.proposer.metadata
+                  "
+                >
+                  <img
+                    v-if="
+                      slotProps.data.params.proposer.metadata &&
+                      slotProps.data.params.proposer.metadata.icons &&
+                      slotProps.data.params.proposer.metadata.icons.length
+                    "
+                    :src="slotProps.data.params.proposer.metadata.icons[0]"
+                    width="24"
+                    height="24"
+                  />
+
+                  <a
+                    target="_blank"
+                    class="m-1"
+                    :href="
+                      normalizeUrl(slotProps.data.params.proposer.metadata.url)
+                    "
+                    :title="slotProps.data.params.proposer.metadata.description"
+                    v-if="
+                      slotProps.data.params.proposer &&
+                      slotProps.data.params.proposer.metadata &&
+                      slotProps.data.params.proposer.metadata.url
+                    "
+                  >
+                    {{ slotProps.data.params.proposer.metadata.name }}
+                  </a>
+                  <div v-else>
+                    {{ slotProps.data.params.proposer.metadata.name }}
+                  </div>
+                </div>
+              </template>
+            </Column>
+            <Column :header="$t('connect.connected')" :sortable="true">
+              <template #body="slotProps">
+                <button
+                  class="btn btn-light m-1"
+                  @click="clickApproveSession(slotProps.data.id)"
+                >
+                  {{ $t("connect.connect") }}
+                </button>
+                <button
+                  class="btn btn-light m-1"
+                  @click="clickRejectSession(slotProps.data.id)"
+                >
+                  {{ $t("connect.reject") }}
+                </button>
+              </template>
+            </Column>
+          </DataTable>
+        </div>
+        <div v-else>
+          <h2>{{ $t("connect.uri") }}</h2>
+          <input
+            id="uri"
+            v-model="uri"
+            type="text"
+            class="form-control"
+            autocomplete="off"
+          />
+          <div v-if="scan" class="col-12 m-2">
+            <QrcodeStream @decode="onDecodeQR" />
+          </div>
+          <div>
+            <button
+              class="btn btn-primary m-1"
+              :disabled="uri && !connectable"
+              @click="clickConnect(uri)"
+            >
+              {{ $t("connect.connect") }}
+            </button>
+            {{ $t("connect.or") }}
+            <button class="btn btn-primary m-1" @click="clickPaste">
+              {{ $t("connect.clipboard") }}
+            </button>
+            {{ $t("connect.or") }}
+            <button class="btn btn-primary m-1" @click="scan = !scan">
+              {{ $t("connect.toggle_camera") }}
+            </button>
+          </div>
         </div>
         <div v-if="error" class="alert alert-danger my-2">
           {{ error }}
         </div>
       </div>
     </div>
-  </PublicLayout>
+    <div class="container-fluid" v-else>
+      <h1>{{ $t("connect.title") }}</h1>
+      <Button class="btn btn-primary" @click="initConnection">{{
+        $t("connect.init_wc")
+      }}</Button>
+    </div>
+  </MainLayout>
 </template>
 
 <script>
-import PublicLayout from "../layouts/Public.vue";
+import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
 import wc from "../shared/wc";
+import { QrcodeStream } from "qrcode-reader-vue3";
 
 export default {
   components: {
-    PublicLayout,
+    MainLayout,
+    QrcodeStream,
   },
   data() {
     return {
@@ -417,6 +509,7 @@ export default {
       selectedTransaction: null,
       expandedRequests: [],
       expandedTransactions: [],
+      scan: false,
     };
   },
   computed: {
@@ -429,7 +522,15 @@ export default {
       return this.$store.state.wc.requests;
     },
     connectable() {
-      return this.addr;
+      return this.uri;
+    },
+    sessionProposals() {
+      console.log("sessionProposals", this.$store.state.wc.sessionProposals);
+      return this.$store.state.wc.sessionProposals;
+    },
+    connectors() {
+      console.log("sessionProposals", this.$store.state.wc.connectors);
+      return this.$store.state.wc.connectors;
     },
   },
   watch: {
@@ -451,6 +552,7 @@ export default {
       prolong: "wallet/prolong",
       setAccountOnline: "kmd/setAccountOnline",
       openSuccess: "toast/openSuccess",
+      openError: "toast/openError",
       axiosGet: "axios/get",
       getTransactionParams: "algod/getTransactionParams",
       sendRawTransaction: "algod/sendRawTransaction",
@@ -458,7 +560,22 @@ export default {
       getSignerType: "signer/getSignerType",
       signerSignTransaction: "signer/signTransaction",
       signerToSign: "signer/toSign",
+      wcInit: "wc/init",
+      connectUri: "wc/connectUri",
+      approveSession: "wc/approveSession",
+      rejectSession: "wc/rejectSession",
+      sendResult: "wc/sendResult",
+      cancelRequest: "wc/cancelRequest",
     }),
+    normalizeUrl(url) {
+      console.log("url", url);
+      if (url.indexOf("http") === 0) return url;
+      if (url.indexOf("//") == 0) return url;
+      return "https://" + url;
+    },
+    initConnection() {
+      this.wcInit();
+    },
     formatNote(note) {
       try {
         return Buffer.from(note).toString();
@@ -538,19 +655,23 @@ export default {
       }
       console.log("data", type, data);
     },
-    async clickAccept(id) {
+    async clickAccept(data) {
       this.prolong();
 
       try {
-        await wc.acceptRequest(id);
+        await this.sendResult({ data });
+        // if (data.ver == 2) {
+        // } else {
 
-        this.$toast.add({
+        //   await wc.acceptRequest(id);
+        // }
+        this.openSuccess({
           severity: "info",
           summary: "Request accepted",
           life: 3000,
         });
       } catch (ex) {
-        this.$toast.add({
+        this.openError({
           severity: "error",
           summary: "Accept request failed",
           detail: ex,
@@ -558,12 +679,13 @@ export default {
         });
       }
     },
-    async clickReject(id) {
+    async clickReject(data) {
       this.prolong();
 
-      wc.rejectRequest(id);
+      this.cancelRequest({ data });
+      //wc.rejectRequest(data.id);
 
-      this.$toast.add({
+      this.openSuccess({
         severity: "info",
         summary: "Request rejected",
         life: 3000,
@@ -572,7 +694,7 @@ export default {
     async clickDisconnect(id) {
       this.prolong();
       await wc.removeConnector(id);
-      this.$toast.add({
+      this.openSuccess({
         severity: "info",
         summary: "Session removed",
         life: 3000,
@@ -584,7 +706,7 @@ export default {
       try {
         await this.clickConnect(uri);
       } catch (ex) {
-        this.$toast.add({
+        this.openError({
           severity: "error",
           summary: "Connect from Clipboard",
           life: 5000,
@@ -595,28 +717,31 @@ export default {
     },
     async clickConnect(uri) {
       this.prolong();
-      wc.createConnector(uri, this.addr);
+      this.connectUri({ uri });
 
-      this.$toast.add({
+      this.openSuccess({
         severity: "info",
         summary: "Session added",
         life: 3000,
       });
     },
-    checkNetwork() {
-      if (this.$store.state.config.env == "mainnet-v1.0") {
-        return "mainnet-v1.0";
+    async clickApproveSession(id) {
+      console.log("clickApproveSession", id);
+      try {
+        await this.approveSession({ id });
+      } catch (err) {
+        const error = err.message ?? err;
+        this.openError(error);
       }
-      if (this.$store.state.config.env == "mainnet") {
-        return "mainnet-v1.0";
+    },
+    async clickRejectSession(id) {
+      console.log("clickRejectSession", id);
+      try {
+        await this.rejectSession({ id });
+      } catch (err) {
+        const error = err.message ?? err;
+        this.openError(error);
       }
-      if (this.$store.state.config.env == "testnet-v1.0") {
-        return "testnet-v1.0";
-      }
-      if (this.$store.state.config.env == "testnet") {
-        return "testnet-v1.0";
-      }
-      return this.$store.state.config.env;
     },
     toBeSigned(data) {
       console.log("isSigned.data", data);
@@ -661,6 +786,26 @@ export default {
     encodeAddress(addr) {
       if (!addr || !addr.publicKey) return "-";
       return algosdk.encodeAddress(addr.publicKey);
+    },
+    getAssetSync(id) {
+      const ret = this.$store.state.indexer.assets.find(
+        (a) => a["asset-id"] == id
+      );
+      return ret;
+    },
+    getAssetName(id) {
+      const asset = this.getAssetSync(id);
+      if (asset) return asset["name"];
+    },
+    getAssetDecimals(id) {
+      const asset = this.getAssetSync(id);
+      if (asset) return asset["decimals"];
+    },
+    onDecodeQR(result) {
+      if (result) {
+        this.uri = result;
+        this.scan = false;
+      }
     },
   },
 };

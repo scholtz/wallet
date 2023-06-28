@@ -346,10 +346,10 @@
     "show_qr_code": "Show QR Code",
     "email_pass_account": "Email & Password account"
   },
-  "arc76account":{
-    "title":"Email and password account (ARC-0076)",
+  "arc76account": {
+    "title": "Email and password account (ARC-0076)",
     "description": "Hash of combination of your email and your password will generate seed bytes for your first algorand account. You can change the password or email only by rekeying to another account.",
-    "description2":"ARC-0076 standard will be used with algorithm PBKDF2-999999-SHA256. We recommend the password length to be at least 50 characters long. This type of account may be served as secondary type of random number generator and may strengthen your security. Please keep the secret secure and do not reuse it.",
+    "description2": "ARC-0076 standard will be used with algorithm PBKDF2-999999-SHA256. We recommend the password length to be at least 50 characters long. This type of account may be served as secondary type of random number generator and may strengthen your security. Please keep the secret secure and do not reuse it.",
     "arc_draft": "ARC-0076 is in the DRAFT state. The specification can change. Please consider this implementation for experimental usage.",
     "email": "Email",
     "select_password": "Please select very very very secure password.",
@@ -627,7 +627,10 @@
     "boxes": "Boxes",
     "name": "Name",
     "genesis": "Genesis ID",
-    "genesis_hash": "Genesis Hash"
+    "genesis_hash": "Genesis Hash",
+    "session_proposals": "Session proposals",
+    "toggle_camera": "Toggle camera",
+    "init_wc": "Initialize connection to Wallet Connect"
   },
   "new_account_wc": {
     "title": "Add WalletConnect account",
@@ -636,7 +639,8 @@
     "scan": "Scan the QR code",
     "address": "Address",
     "save_address": "Save the address to the wallet",
-    "copy": "Copy URI to clipboard"
+    "copy": "Copy URI to clipboard",
+    "show_qr_code": "Show QR code"
   },
   "new_account_2fa": {
     "title": "2FA Account",

@@ -13,7 +13,13 @@ const state = () => ({
   indexerToken:
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   twoFactorServer: "",
-
+  walletConnectProjectId: "372941d972266817e1a8d1e403769ac0",
+  walletConnectMetadata: {
+    name: 'AWallet',
+    description: 'Open source community algorand wallet',
+    url: 'www.a-wallet.net',
+    icons: []
+  },
   languages: ["en", "hu", "it", "nl", "sk", "cs"],
   noredirect: false, // redirect to account page after successfull login
   dev: false,
@@ -37,6 +43,12 @@ const mutations = {
       }
     }
 
+    if (value.walletConnectProjectId) {
+      state.walletConnectProjectId = value.walletConnectProjectId;
+    }
+    if (value.walletConnectMetadata) {
+      state.walletConnectMetadata = value.walletConnectMetadata;
+    }
     if (value.LOGO) {
       state.LOGO = value.LOGO;
     }

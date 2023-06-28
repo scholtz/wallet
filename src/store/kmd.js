@@ -3,8 +3,8 @@ import algosdk from "algosdk";
 const actions = {
   async setAccountOnline({ dispatch, commit }, { account }) {
     try {
-      if (!this.state.config || !this.state.config.kmd)
-        throw new Error("Please setup KMD server in your settings.");
+      if (!this.state.config || !this.state.config.participation)
+        throw new Error("Please setup participation server in your settings.");
       if (!account) throw new Error("Address not found.");
 
       const url = new URL(this.state.config.algod);
@@ -43,11 +43,11 @@ const actions = {
       const auth = "SigTx " + b64;
 
       const voteFirst = suggestedParams.firstRound + 2;
-      const voteLast = voteFirst + 1000000;
+      const voteLast = voteFirst + 500000;
       const data = await dispatch(
         "axios/get",
         {
-          url: `${this.state.config.kmd}/v1/KMD/addpartkey?roundFirstValid=${voteFirst}&roundLastValid=${voteLast}&address=${account}`,
+          url: `${this.state.config.participation}/v1/KMD/addpartkey?roundFirstValid=${voteFirst}&roundLastValid=${voteLast}&address=${account}`,
           headers: {
             Authorization: auth,
           },

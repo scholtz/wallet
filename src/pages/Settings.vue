@@ -383,7 +383,7 @@ export default {
         passw3: this.passw3,
       });
       if (result) {
-        alert(this.$t("settings.updated_password"));
+        this.openSuccess(this.$t("settings.updated_password"));
       }
     },
     async fillGenesisList() {
