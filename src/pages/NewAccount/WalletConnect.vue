@@ -13,10 +13,23 @@
     <div v-if="scannable">
       <h3>{{ $t("new_account_wc.scan") }}</h3>
       <QRCodeVue3
-        :width="400"
-        :height="400"
+        :width="275"
+        :height="275"
         :value="uri"
-        :qr-options="{ errorCorrectionLevel: 'H' }"
+        :dotsOptions="{
+          type: 'dots',
+          color: '#26249a',
+          gradient: {
+            type: 'linear',
+            rotation: 0,
+            colorStops: [
+              { offset: 0, color: '#3396ff' },
+              { offset: 1, color: '#3396ff' },
+            ],
+          },
+        }"
+        :qr-options="{ errorCorrectionLevel: 'L' }"
+        image="/img/wc-logo.png"
       />
       <button class="btn btn-primary m-1" @click="clickCopy">
         {{ $t("new_account_wc.copy") }}
