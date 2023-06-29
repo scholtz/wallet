@@ -348,6 +348,7 @@ const actions = {
 
       commit("removeRequest", data.id);
     } catch (err) {
+      commit("removeRequest", data.id);
       console.error(
         "Error while sending result back to wc2",
         err.Message ?? err
