@@ -289,10 +289,7 @@ const actions = {
         const txId = decodedTx.txID();
         console.log("this.state.signer.signed", this.state.signer.signed);
         if (!(txId in this.state.signer.signed)) {
-          console.error(
-            `Tx with id ${txId} has not been signed yet, skipped`,
-            txn
-          );
+          console.error(`Tx with id ${txId} has not been signed yet, skipped`);
           signedTxns.push(null); // send back original txn because it is probably logicsig, or user decided not to sign some specific tx
           // should return null https://github.com/algorandfoundation/ARCs/blob/40d5e9c0f60826e495090a10d278db69233b3063/ARCs/arc-0025.md
           continue;
