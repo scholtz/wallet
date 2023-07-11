@@ -39,8 +39,8 @@ const mutations = {
     secret.network = network;
     state.privateAccounts.push(secret);
   },
-  addPublicAccount(state, { name, addr }) {
-    const acc = { name, addr, address: addr, network: state.config.env };
+  addPublicAccount(state, { name, addr, network }) {
+    const acc = { name, addr, address: addr, network };
     state.privateAccounts.push(acc);
   },
   deleteAccount(state, { name, addr, network }) {
