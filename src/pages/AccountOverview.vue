@@ -193,35 +193,38 @@
           {{ account.rekeyedTo }}
 
           <div v-if="rekeyedToInfo">
-            <div v-if="account.rekeyedTo" class="badge bg-danger">
+            <div v-if="rekeyedToInfo.rekeyedTo" class="badge bg-danger">
               {{ $t("acc_type.rekeyed") }}
             </div>
-            <div v-else-if="account.sk" class="badge bg-primary">
+            <div v-else-if="rekeyedToInfo.sk" class="badge bg-primary">
               {{ $t("acc_type.basic_account") }}
             </div>
             <div
-              v-else-if="account.type == '2fa'"
+              v-else-if="rekeyedToInfo.type == '2fa'"
               class="badge bg-primary text-light"
             >
               2FA Multisig
             </div>
             <div
-              v-else-if="account.type == '2faApi'"
+              v-else-if="rekeyedToInfo.type == '2faApi'"
               class="badge bg-light text-dark"
             >
               2FA API technical account
             </div>
-            <div v-else-if="account.params" class="badge bg-warning text-dark">
+            <div
+              v-else-if="rekeyedToInfo.params"
+              class="badge bg-warning text-dark"
+            >
               {{ $t("acc_type.multisig_account") }}
             </div>
             <div
-              v-else-if="account.type == 'ledger'"
+              v-else-if="rekeyedToInfo.type == 'ledger'"
               class="badge bg-success text-light"
             >
               {{ $t("acc_type.ledger_account") }}
             </div>
             <div
-              v-else-if="account.type == 'wc'"
+              v-else-if="rekeyedToInfo.type == 'wc'"
               class="badge bg-success text-light"
             >
               {{ $t("acc_type.wc_account") }}
