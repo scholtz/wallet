@@ -194,6 +194,9 @@ export default {
       console.log("updating");
       for (let index in this.$store.state.wallet.privateAccounts) {
         await this.sleep(100);
+        if (!this.$store.state.wallet.privateAccounts[index]) {
+          return;
+        }
         this.accountInformation({
           addr: this.$store.state.wallet.privateAccounts[index].addr,
         })

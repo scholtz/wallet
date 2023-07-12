@@ -628,7 +628,8 @@
     "genesis_hash": "Genesis Hash",
     "session_proposals": "Session proposals",
     "toggle_camera": "Toggle camera",
-    "init_wc": "Initialize connection to Wallet Connect"
+    "init_wc": "Initialize connection to Wallet Connect",
+    "sign_all": "Sign all"
   },
   "new_account_wc": {
     "title": "Add WalletConnect account",

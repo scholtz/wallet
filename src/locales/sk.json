@@ -628,7 +628,8 @@
     "genesis_hash": "Genesis Hash",
     "session_proposals": "Návrhy pre reláciu",
     "toggle_camera": "Zapnúť/Vypnúť kameru",
-    "init_wc": "Vytvoriť spojenie na Wallet Connect"
+    "init_wc": "Vytvoriť spojenie na Wallet Connect",
+    "sign_all": "Podpísať všetky"
   },
   "new_account_wc": {
     "title": "Pridať WalletConnect účet",

@@ -16,13 +16,17 @@ const actions = {
     commit("setVM", _vm);
   },
   async openSuccess({ commit }, m) {
+    let message = m;
+    if (m.summary) {
+      message = m.summary;
+    }
     if (!this.state.toast._vm) {
       alert(m);
       console.log("this", this, commit);
     } else {
       this.state.toast._vm.$toast.add({
         severity: "success",
-        detail: m,
+        detail: message,
         life: 3000,
       });
     }

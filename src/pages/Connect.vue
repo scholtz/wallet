@@ -100,6 +100,13 @@
               <template #body="slotProps">
                 <button
                   class="btn btn-primary m-1"
+                  v-if="!atLeastOneSigned(slotProps.data)"
+                  @click="clickSignAll(slotProps.data)"
+                >
+                  {{ $t("connect.sign_all") }}
+                </button>
+                <button
+                  class="btn btn-primary m-1"
                   :disabled="
                     !$store.state.wallet.isOpen ||
                     !atLeastOneSigned(slotProps.data)
@@ -636,9 +643,26 @@ export default {
         });
       }
     },
+    async clickSignAll(data) {
+      if (!data.transactions) {
+        console.error("No transactions to sign");
+        return;
+      }
+      for (const tx of data.transactions) {
+        await this.clickSign(tx);
+      }
+    },
     async clickSign(data) {
       console.log("data", data);
 
+      console.log("isSigned.data", data);
+      const txId = data.txn.txID();
+      console.log("isSigned.txId", txId);
+      const isSigned = txId in this.$store.state.signer.signed;
+      if (isSigned) {
+        console.log("clickSign - already signed", txId);
+        return;
+      }
       const type = await this.getSignerType({
         from: data.from,
       });
