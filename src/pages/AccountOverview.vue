@@ -535,6 +535,8 @@ export default {
       if (!this.account) return false;
 
       if (this.account.rekeyedTo) {
+        if (!this.rekeyedToInfo) return false;
+
         return (
           this.rekeyedToInfo.sk ||
           this.rekeyedToInfo.params ||
