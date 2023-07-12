@@ -3,70 +3,6 @@
     <div class="container-fluid" v-if="$store.state.wc.web3wallet">
       <h1>{{ $t("connect.title") }}</h1>
       <div>
-        <div v-if="connectors && connectors.length > 0">
-          <h2>{{ $t("connect.sessions") }}</h2>
-          <DataTable
-            :value="connectors"
-            responsive-layout="scroll"
-            selection-mode="single"
-            :paginator="true"
-            :rows="20"
-          >
-            <Column
-              field="id"
-              :header="$t('connect.client_id')"
-              :sortable="true"
-            />
-            <Column
-              field="address"
-              :header="$t('connect.address')"
-              :sortable="true"
-            >
-              <template #body="slotProps">
-                {{ slotProps.data.address }}
-              </template>
-            </Column>
-            <Column :header="$t('connect.peer')">
-              <template #body="slotProps">
-                <div v-if="slotProps.data.peer">
-                  <img
-                    v-if="
-                      slotProps.data.peer.icons &&
-                      slotProps.data.peer.icons.length
-                    "
-                    :src="slotProps.data.peer.icons[0]"
-                    width="24"
-                    height="24"
-                  />
-                  <a
-                    target="_blank"
-                    class="m-1"
-                    :href="slotProps.data.peer.url"
-                    :title="slotProps.data.peer.description"
-                  >
-                    {{ slotProps.data.peer.name }}
-                  </a>
-                </div>
-              </template>
-            </Column>
-            <Column :header="$t('connect.connected')" :sortable="true">
-              <template #body="slotProps">
-                <input
-                  class="form-check-input me-1"
-                  type="checkbox"
-                  :checked="slotProps.data.connected"
-                  disabled
-                />
-                <button
-                  class="btn btn-light m-1"
-                  @click="clickDisconnect(slotProps.data.id)"
-                >
-                  {{ $t("connect.disconnect") }}
-                </button>
-              </template>
-            </Column>
-          </DataTable>
-        </div>
         <div v-if="requests.length > 0">
           <h2 id="requests">
             {{ $t("connect.requests") }}
@@ -479,6 +415,71 @@
               {{ $t("connect.toggle_camera") }}
             </button>
           </div>
+        </div>
+
+        <div v-if="connectors && connectors.length > 0">
+          <h2>{{ $t("connect.sessions") }}</h2>
+          <DataTable
+            :value="connectors"
+            responsive-layout="scroll"
+            selection-mode="single"
+            :paginator="true"
+            :rows="20"
+          >
+            <Column
+              field="id"
+              :header="$t('connect.client_id')"
+              :sortable="true"
+            />
+            <Column
+              field="address"
+              :header="$t('connect.address')"
+              :sortable="true"
+            >
+              <template #body="slotProps">
+                {{ slotProps.data.address }}
+              </template>
+            </Column>
+            <Column :header="$t('connect.peer')">
+              <template #body="slotProps">
+                <div v-if="slotProps.data.peer">
+                  <img
+                    v-if="
+                      slotProps.data.peer.icons &&
+                      slotProps.data.peer.icons.length
+                    "
+                    :src="slotProps.data.peer.icons[0]"
+                    width="24"
+                    height="24"
+                  />
+                  <a
+                    target="_blank"
+                    class="m-1"
+                    :href="slotProps.data.peer.url"
+                    :title="slotProps.data.peer.description"
+                  >
+                    {{ slotProps.data.peer.name }}
+                  </a>
+                </div>
+              </template>
+            </Column>
+            <Column :header="$t('connect.connected')" :sortable="true">
+              <template #body="slotProps">
+                <input
+                  class="form-check-input me-1"
+                  type="checkbox"
+                  :checked="slotProps.data.connected"
+                  disabled
+                />
+                <button
+                  class="btn btn-light m-1"
+                  @click="clickDisconnect(slotProps.data.id)"
+                >
+                  {{ $t("connect.disconnect") }}
+                </button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
         <div v-if="error" class="alert alert-danger my-2">
           {{ error }}
