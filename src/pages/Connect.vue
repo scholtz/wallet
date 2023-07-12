@@ -651,6 +651,7 @@ export default {
       }
       for (const tx of data.transactions) {
         await this.clickSign(tx);
+        await this.sleep(200);
       }
     },
     async clickSign(data) {
@@ -831,6 +832,9 @@ export default {
         this.uri = result;
         this.scan = false;
       }
+    },
+    sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
     },
   },
 };

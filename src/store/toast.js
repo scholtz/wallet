@@ -32,13 +32,18 @@ const actions = {
     }
   },
   async openError({ commit }, m) {
+    let message = m;
+    if (m.summary) {
+      message = m.summary;
+    }
+    console.error("Error:", m);
     if (!this.state.toast._vm) {
-      alert(m);
+      alert(message);
       console.log("this", this, commit);
     } else {
       this.state.toast._vm.$toast.add({
         severity: "error",
-        detail: m,
+        detail: message,
         life: 10000,
       });
     }
