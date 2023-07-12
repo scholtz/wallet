@@ -533,6 +533,16 @@ export default {
   computed: {
     canSign() {
       if (!this.account) return false;
+
+      if (this.account.rekeyedTo) {
+        return (
+          this.rekeyedToInfo.sk ||
+          this.rekeyedToInfo.params ||
+          this.rekeyedToInfo.type == "ledger" ||
+          this.rekeyedToInfo.type == "wc"
+        );
+      }
+
       return (
         this.account.sk ||
         this.account.params ||
