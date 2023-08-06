@@ -269,7 +269,9 @@ export default {
       prolong: "wallet/prolong",
       setAccountOnline: "kmd/setAccountOnline",
       openSuccess: "toast/openSuccess",
+      openError: "toast/openError",
       axiosGet: "axios/get",
+      axiosPost: "axios/post",
       getSK: "wallet/getSK",
       getTransactionParams: "algod/getTransactionParams",
       sendRawTransaction: "algod/sendRawTransaction",
@@ -327,6 +329,7 @@ export default {
       //console.log("this.assets", this.assets);
     },
     async clickGetQuote() {
+      this.prolong();
       this.note = "";
       this.error = "";
       this.processingQuote = true;
@@ -341,7 +344,16 @@ export default {
         this.processingQuote = false;
         return;
       }
-      const request = `https://app.alammex.com/api/quote?chain=${chain}&fromASAID=${fromAsset}&toASAID=${toAsset}&atomicOnly=true&amount=${amount}&type=fixed-input&disabledProtocols=&referrerAddress=AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y`;
+      var algodUri = encodeURIComponent("https://mainnet-api.algonode.cloud");
+      var algodToken = "";
+      var algodPort = 443;
+      if (chain == "testnet") {
+        algodUri = encodeURIComponent("https://testnet-api.algonode.cloud");
+        algodToken = "";
+        algodPort = 443;
+      }
+
+      const request = `https://api.deflex.fi/api/fetchQuote?chain=${chain}&algodUri=${algodUri}&algodToken=${algodToken}&algodPort=${algodPort}&fromASAID=${fromAsset}&toASAID=${toAsset}&atomicOnly=true&amount=${amount}&type=fixed-input&disabledProtocols=&referrerAddress=AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y`;
       const quotes = await this.axiosGet({ url: request }).catch((e) => {
         this.error = "No quotes available " + e.message;
         this.processingQuote = false;
@@ -366,7 +378,7 @@ export default {
       };
 
       const txs = await this.axiosPost({
-        url: "https://app.alammex.com/api/txns",
+        url: "https://api.deflex.fi/api/fetchExecuteSwapTxns",
         body: params,
         config,
       });
@@ -385,20 +397,21 @@ export default {
     },
     checkNetwork() {
       if (this.$store.state.config.env == "mainnet-v1.0") {
-        return "mainnet-v1.0";
+        return "mainnet";
       }
       if (this.$store.state.config.env == "mainnet") {
-        return "mainnet-v1.0";
+        return "mainnet";
       }
       if (this.$store.state.config.env == "testnet-v1.0") {
-        return "testnet-v1.0";
+        return "testnet";
       }
       if (this.$store.state.config.env == "testnet") {
-        return "testnet-v1.0";
+        return "testnet";
       }
       return false;
     },
     async clickExecute() {
+      this.prolong();
       this.processingTrade = true;
       this.note = "";
       this.error = "";
@@ -440,15 +453,17 @@ export default {
           this.processingTrade = false;
           return;
         }
-        //console.log("signedTxns", signedTxns);
+        console.log("signedTxns", signedTxns);
         const tx = await this.sendRawTransaction({
           signedTxn: signedTxns,
         }).catch((e) => {
           //console.error("error doing swap", e);
           this.error = e.message;
           this.processingTrade = false;
+          this.openError(e.message);
           return;
         });
+        if (!tx || !tx.txId) return;
         const confirmation = await this.waitForConfirmation({
           txId: tx.txId,
           timeout: 4,
@@ -489,7 +504,7 @@ export default {
           this.processingTrade = false;
           return;
         });
-        if (!tx) {
+        if (!tx || !tx.txId) {
           this.processingOptin = false;
           await this.reloadAccount();
           return;
