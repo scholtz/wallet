@@ -658,5 +658,12 @@
     "confirm_help": "Please write 2FA code from your auth app to confirm the setup. After confirmation it is not possible to request the 2fa secret code again.",
     "2fa_code": "2FA code",
     "save_button": "Save address"
+  },
+  "onlineofflinedialog": {
+    "header": "Protect the network with your account's balance",
+    "warning": "You can select public participation node in order to verify the blocks in the network. You will generate new participation keys at the public algod server and sign the transaction to allow these participation keys collect blocks data. This will cost you as one transaction on the network (0.001 algo). Online account state does not mean that your private key is exposed to the internet. It means that your account is registered at the online algod node which is protecting blockchain.",
+    "makeOnline": "Make account online",
+    "makeOffline": "Make account offline",
+    "host": "Algod host"
   }
 }
