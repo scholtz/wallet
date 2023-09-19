@@ -284,7 +284,7 @@
       <tr>
         <th>{{ $t("acc_overview.status") }}:</th>
         <td v-if="!changeOnline">
-          <button class="btn btn-light btn-xs" @click="onStatusClick">
+          <button class="btn btn-light btn-xs" >
             {{ account["status"] ?? "?" }}
           </button>
         </td>
