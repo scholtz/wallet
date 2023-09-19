@@ -45,6 +45,44 @@
           </button>
         </template>
       </Dialog>
+      <Dialog
+        v-model:visible="displayOnlineOfflineDialog"
+        :header="$t('onlineofflinedialog.header')"
+        :modal="true"
+      >
+        <p>{{ $t("onlineofflinedialog.warning") }}</p>
+        <input
+          v-model="onlineRounds"
+          class="form-control"
+          type="number"
+          min="0"
+          max="2000000"
+          step="10000"
+        />
+        <p>
+          {{ $t("onlineofflinedialog.host") }}:
+          {{ $store.state.config.participation }}
+        </p>
+        <template #footer>
+          <button
+            class="btn btn-xs btn-light"
+            @click="displayOnlineOfflineDialog = false"
+          >
+            {{ $t("global.cancel") }}</button
+          ><button
+            class="btn btn-xs btn-primary"
+            @click="setAccountOnlineAtParticipationNode"
+          >
+            {{ $t("onlineofflinedialog.makeOnline") }}</button
+          ><button
+            v-if="account['status'] == 'Online'"
+            class="btn btn-xs btn-danger"
+            @click="setAccountOfflineAtParticipationNode"
+          >
+            {{ $t("onlineofflinedialog.makeOffline") }}
+          </button>
+        </template>
+      </Dialog>
       <router-link
         v-if="canSign"
         :to="'/accounts/pay/' + $route.params.account"
@@ -283,18 +321,32 @@
       </tr>
       <tr>
         <th>{{ $t("acc_overview.status") }}:</th>
-        <td v-if="!changeOnline">
-          <button class="btn btn-light btn-xs" @click="onStatusClick">
-            {{ account["status"] ?? "?" }}
-          </button>
-        </td>
-        <td v-else>
+        <td v-if="changeOnline">
           <span
             class="spinner-grow spinner-grow-sm"
             role="status"
             aria-hidden="true"
           />
           Setting your account to online state. Please wait a while
+        </td>
+        <td v-else-if="changeOffline">
+          <span
+            class="spinner-grow spinner-grow-sm"
+            role="status"
+            aria-hidden="true"
+          />
+          Setting your account to offline state. Please wait a while
+        </td>
+        <td v-else-if="$store.state.config.participation">
+          <button
+            class="btn btn-light btn-xs"
+            @click="displayOnlineOfflineDialog = true"
+          >
+            {{ account["status"] ?? "?" }}
+          </button>
+        </td>
+        <td v-else>
+          {{ account["status"] ?? "?" }}
         </td>
       </tr>
       <tr
@@ -513,7 +565,6 @@ import { PrimeIcons } from "primevue/api";
 import copy from "copy-to-clipboard";
 
 import QRCodeVue3 from "qrcode-vue3";
-
 export default {
   components: {
     MainLayout,
@@ -522,12 +573,14 @@ export default {
   data() {
     return {
       displayDeleteDialog: false,
+      displayOnlineOfflineDialog: false,
       transactions: [],
       selection: null,
       assets: [],
       asset: "",
       icons: [PrimeIcons.COPY],
       changeOnline: false,
+      onlineRounds: 500000,
     };
   },
   computed: {
@@ -615,6 +668,7 @@ export default {
       getAsset: "indexer/getAsset",
       prolong: "wallet/prolong",
       setAccountOnline: "kmd/setAccountOnline",
+      setAccountOffline: "kmd/setAccountOffline",
       openSuccess: "toast/openSuccess",
     }),
     async assignToCurrentNetwork() {
@@ -724,10 +778,14 @@ export default {
     sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     },
-    async onStatusClick() {
+    async setAccountOnlineAtParticipationNode() {
+      this.displayOnlineOfflineDialog = false;
       this.changeOnline = true;
       if (
-        await this.setAccountOnline({ account: this.$route.params.account })
+        await this.setAccountOnline({
+          account: this.$route.params.account,
+          rounds: this.onlineRounds,
+        })
       ) {
         await this.sleep(5000);
         this.changeOnline = false;
@@ -735,6 +793,20 @@ export default {
         this.openSuccess("You have set the account to online mode");
       } else {
         this.changeOnline = false;
+      }
+    },
+    async setAccountOfflineAtParticipationNode() {
+      this.displayOnlineOfflineDialog = false;
+      this.changeOffline = true;
+      if (
+        await this.setAccountOffline({ account: this.$route.params.account })
+      ) {
+        await this.sleep(5000);
+        this.changeOffline = false;
+        await this.reloadAccount();
+        this.openSuccess("You have set the account to offline mode");
+      } else {
+        this.changeOffline = false;
       }
     },
   },
