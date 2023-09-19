@@ -1,7 +1,7 @@
 import algosdk from "algosdk";
 
 const actions = {
-  async setAccountOnline({ dispatch, commit }, { account, rounds }) {
+  async setAccountOnline({ dispatch }, { account, rounds }) {
     try {
       if (!this.state.config || !this.state.config.participation)
         throw new Error("Please setup participation server in your settings.");
@@ -66,7 +66,7 @@ const actions = {
         voteLast: voteLast,
         voteKey: data.voteKey,
         voteKeyDilution: data.voteKeyDilution,
-        nonParticipation: false,
+        //nonParticipation: false,
       };
       const txn =
         algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(toSignData);
@@ -128,7 +128,7 @@ const actions = {
       const toSignData = {
         from: account,
         suggestedParams: suggestedParams,
-        nonParticipation: true,
+        //nonParticipation: true, // TRAP
       };
       const txn =
         algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(toSignData);
