@@ -779,6 +779,7 @@ export default {
       return new Promise((resolve) => setTimeout(resolve, ms));
     },
     async setAccountOnlineAtParticipationNode() {
+      this.displayOnlineOfflineDialog = false;
       this.changeOnline = true;
       if (
         await this.setAccountOnline({
@@ -795,6 +796,7 @@ export default {
       }
     },
     async setAccountOfflineAtParticipationNode() {
+      this.displayOnlineOfflineDialog = false;
       this.changeOffline = true;
       if (
         await this.setAccountOffline({ account: this.$route.params.account })
