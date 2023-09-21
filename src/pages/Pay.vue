@@ -710,7 +710,7 @@ export default {
       return false;
     },
     amountLong() {
-      return this.payamount * this.decimalsPower;
+      return Math.round(this.payamount * this.decimalsPower);
     },
     decimalsPower() {
       let decimals = 6;
@@ -748,7 +748,11 @@ export default {
     },
     accountFor2FA() {
       return this.$store.state.wallet.privateAccounts.find(
-        (a) => this.multisigParams && this.multisigParams.addrs && this.multisigParams.addrs.includes(a.addr) && a.type == "2faApi"
+        (a) =>
+          this.multisigParams &&
+          this.multisigParams.addrs &&
+          this.multisigParams.addrs.includes(a.addr) &&
+          a.type == "2faApi"
       );
     },
     accountFor2FAAddr() {
