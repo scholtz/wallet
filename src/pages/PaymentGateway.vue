@@ -68,7 +68,7 @@
     <div class="row">
       <div class="col-md-12 my-2">
         <button v-if="!build" class="btn btn-primary" @click="build = true">
-          {{ $t("gateway.turn_off_build_tool") }}
+          {{ $t("gateway.turn_on_build_tool") }}
         </button>
         <button v-if="build" class="btn btn-primary" @click="build = false">
           {{ $t("gateway.turn_off_build_tool") }}
@@ -85,24 +85,39 @@
         <h2>{{ $t("gateway.payment_info_params") }}</h2>
         <ul class="list-group">
           <li class="list-group-item">
+            <label for="asset">{{ $t("gateway.asset") }}</label>
             <select
               v-if="build"
+              id="asset"
               v-model="asset"
               class="form-control"
               :title="$t('gateway.asset')"
             >
-              <option value="312769">
-                {{ $t("gateway.tether") }}
-              </option>
               <option value="">Algorand</option>
+              <option value="312769">USDt</option>
+              <option value="31566704">USDc</option>
+              <option value="793124631">gAlgo</option>
+              <option value="386192725">goBTC</option>
+              <option value="386195940">goETH</option>
+              <option value="672913181">goUSD</option>
+              <option value="760037151">xUSD</option>
+              <option value="388592191">Chips</option>
+              <option value="470842789">Defly</option>
+              <option value="287867876">Opulous</option>
+              <option value="700965019">Vestige</option>
+              <option value="796425061">CoopCoin</option>
+              <option value="1138500612">Gora</option>
+              <option value="452399768">VoteCoin</option>
             </select>
             <span v-if="!build">
               <code>asset</code> - {{ $t("gateway.asset") }}
             </span>
           </li>
           <li class="list-group-item">
+            <label for="pay_to">{{ $t("pay.pay_to") }}</label>
             <input
               v-if="build"
+              id="pay_to"
               v-model="payTo"
               class="form-control"
               :placeholder="$t('pay.pay_to')"
@@ -113,8 +128,10 @@
             </span>
           </li>
           <li class="list-group-item">
+            <label for="amount">{{ $t("pay.amount") }}</label>
             <div v-if="build" class="input-group">
               <input
+                id="amount"
                 v-model="amount"
                 class="form-control"
                 :placeholder="$t('pay.amount')"
@@ -132,8 +149,12 @@
             </span>
           </li>
           <li class="list-group-item">
+            <label for="matching_symbol">{{
+              $t("merchant.matching_symbol")
+            }}</label>
             <input
               v-if="build"
+              id="matching_symbol"
               v-model="xnote"
               class="form-control"
               :placeholder="$t('merchant.matching_symbol')"
@@ -144,9 +165,11 @@
             </span>
           </li>
           <li class="list-group-item">
+            <label for="fee">{{ $t("pay.fee") }}</label>
             <div v-if="build" class="input-group">
               <input
                 v-if="build"
+                id="fee"
                 v-model="fee"
                 class="form-control"
                 :placeholder="$t('pay.fee')"
@@ -168,8 +191,10 @@
         <h2>{{ $t("gateway.settings_params") }}</h2>
         <ul class="list-group">
           <li class="list-group-item">
+            <label for="success">{{ $t("gateway.success") }}</label>
             <input
               v-if="build"
+              id="success"
               v-model="success"
               class="form-control"
               :placeholder="$t('gateway.success')"
@@ -179,7 +204,9 @@
             </span>
           </li>
           <li class="list-group-item">
+            <label for="cancel">{{ $t("gateway.cancel") }}</label>
             <input
+              id="cancel"
               v-if="build"
               v-model="cancel"
               class="form-control"
@@ -373,6 +400,9 @@ export default {
       if (!this.callbackConfig) return "";
       return base64url(this.callbackConfig);
     },
+  },
+  mounted() {
+    this.payTo = this.$store.state.wallet.lastActiveAccount;
   },
 };
 </script>

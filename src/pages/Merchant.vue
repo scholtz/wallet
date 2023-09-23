@@ -114,6 +114,7 @@
             :width="400"
             :height="400"
             :value="origcode"
+            :key="origcode"
             :qr-options="{ errorCorrectionLevel: 'H' }"
             :image="assetImage"
           />
