@@ -80,8 +80,10 @@ const mutations = {
       acc = state.privateAccounts.find((x) => x.addr == info.address);
     }
     console.log("acc", acc, state.privateAccounts);
-    if (!acc || !acc.addr)
-      throw `Error storing account. Address ${info.address} not found`;
+    if (!acc || !acc.addr) {
+      console.error(`Error storing account. Address ${info.address} not found`);
+      return;
+    }
     if (acc) {
       for (let index in info) {
         acc[index] = info[index];
