@@ -524,22 +524,22 @@ export default {
       }
       //console.log("senderSK", senderSK);
       const unsignedTxns = this.folksTxns.map((txn) =>
-        decodeUnsignedTransaction(Buffer.from(txn, "base64"))
+        algosdk.decodeUnsignedTransaction(Buffer.from(txn, "base64"))
       );
       const signedTxns = unsignedTxns.map((txn) => txn.signTxn(senderSK));
       if (!signedTxns) {
         this.processingTrade = false;
         return;
       }
-      let tx = await this.sendRawTransaction(signedTxns)
-        .do()
-        .catch((e) => {
-          //console.error("error doing swap", e);
-          this.error = e.message;
-          this.processingTrade = false;
-          this.openError(e.message);
-          return;
-        });
+      let tx = await this.sendRawTransaction({
+        signedTxn: signedTxns,
+      }).catch((e) => {
+        //console.error("error doing swap", e);
+        this.error = e.message;
+        this.processingTrade = false;
+        this.openError(e.message);
+        return;
+      });
 
       let ret = "Processed in txs: ";
 
