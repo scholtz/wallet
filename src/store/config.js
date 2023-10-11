@@ -75,7 +75,7 @@ const mutations = {
       state.indexerToken = value.indexerToken;
     }
     if (value.d) {
-      state.deflex = Buffer.from(value.d, "hex");
+      state.deflex = Buffer.from(value.d, "hex").toString("utf8");
     }
     const dev = localStorage.getItem("dev");
     if (dev && dev != "false") {

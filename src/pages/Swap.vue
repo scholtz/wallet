@@ -19,7 +19,7 @@
         <Dropdown
           v-model="asset"
           :options="assets"
-          option-label="name"
+          option-label="label"
           option-value="asset-id"
           placeholder="Source asset"
         />
@@ -27,7 +27,7 @@
         <Dropdown
           v-model="toAsset"
           :options="assets"
-          option-label="name"
+          option-label="label"
           option-value="asset-id"
           placeholder="Destination asset"
         />
@@ -108,7 +108,7 @@
         <div>
           <button
             v-if="useDeflex"
-            class="btn my-2"
+            class="btn my-2 mx-1"
             :disabled="!allowExecuteDeflex || processingTrade"
             :class="allowExecuteDeflex ? 'btn-primary' : 'btn-light '"
             @click="clickExecuteDeflex"
@@ -330,6 +330,7 @@ export default {
           name: "ALG",
           decimals: 6,
           "unit-name": "",
+          label: "Algorand native token",
         });
       }
       if (this.account && this.account.assets) {
@@ -345,6 +346,7 @@ export default {
               name: asset["name"],
               decimals: asset["decimals"],
               "unit-name": asset["unit-name"],
+              label: `${asset["name"]} (${accountAsset["asset-id"]})`,
             });
           }
         }
@@ -358,7 +360,8 @@ export default {
         const toAsset = this.toAsset > 0 ? this.toAsset : 0;
         const chain = this.checkNetwork();
         if (!chain) {
-          this.txsDetails += "DEFLEX: Wrong network selected";
+          this.txsDetails += "\nDEFLEX: Wrong network selected";
+          this.txsDetails = this.txsDetails.trim();
           this.processingQuote = false;
           return;
         }
@@ -414,7 +417,8 @@ export default {
           .map((tx) => tx.labelText)
           .join(",\n");
         //console.log("ret2", ret2);
-        this.txsDetails += "DEFLEX: " + ret2;
+        this.txsDetails += "\nDEFLEX: " + ret2;
+        this.txsDetails = this.txsDetails.trim();
       } catch (e) {
         this.openError("Error fetching quote from deflex: " + e.message);
       }
@@ -448,7 +452,7 @@ export default {
         this.folksQuote = await folksRouterClient.fetchSwapQuote(
           fromAsset,
           toAsset,
-          BigInt(amount),
+          amount,
           SwapMode.FIXED_INPUT,
           15,
           10,
@@ -456,18 +460,23 @@ export default {
         );
         this.folksTxns = await folksRouterClient.prepareSwapTransactions(
           this.$route.params.account,
-          BigInt(50),
+          50,
           this.folksQuote
         );
-        this.txsDetails +=
-          "FOLKS ROUTER: " +
-          JSON.stringify({
-            quoteAmount: this.folksQuote.quoteAmount,
-            priceImpact: this.folksQuote.priceImpact,
-            microalgoTxnsFee: this.folksQuote.microalgoTxnsFee,
-          });
+        const token = await this.getAsset({
+          assetIndex: toAsset,
+        });
+        console.log("token", toAsset, token);
+        this.txsDetails += `\nFOLKS ROUTER: Quote Amount: ${
+          Number(this.folksQuote.quoteAmount) / 10 ** token.decimals
+        }, Price Impact: ${
+          Math.round(Number(this.folksQuote.priceImpact) * 10000) / 100
+        }%, Txs fees: ${
+          Number(this.folksQuote.microalgoTxnsFee) / 10 ** 6
+        } Algo`;
+        this.txsDetails = this.txsDetails.trim();
       } catch (e) {
-        this.openError("Error fetching quote from folks: " + e.message);
+        this.openError(`Error fetching quote from folks: ${e.message}`);
       }
     },
     async clickGetQuote() {
