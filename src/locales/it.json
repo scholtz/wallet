@@ -61,7 +61,8 @@
     "apps_optin": "SWAP requires your account to opt in to the applications",
     "apps_optin_button": "Opt in to the apps",
     "execute_button_deflex": "Execute using Deflex",
-    "execute_button_folks": "Execute using Folks router"
+    "execute_button_folks": "Execute using Folks router",
+    "slippage": "Slippage percentage"
   },
   "votemenu": {
     "overview": "Overview",

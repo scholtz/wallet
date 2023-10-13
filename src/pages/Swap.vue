@@ -41,6 +41,16 @@
           :step="stepAmount"
           class="form-control"
         />
+        <h2>{{ $t("swap.slippage") }}</h2>
+        <input
+          id="slippage"
+          v-model="slippage"
+          type="number"
+          min="0"
+          max="1"
+          step="0.01"
+          class="form-control"
+        />
         <div>
           <div>
             <input id="useFolksCheckbox" type="checkbox" v-model="useFolks" />
@@ -172,6 +182,7 @@ export default {
       error: "",
       useFolks: true,
       useDeflex: true,
+      slippage: 0.1,
     };
   },
   computed: {
@@ -388,7 +399,7 @@ export default {
         this.quotes = quotes;
         const params = JSON.stringify({
           address: this.account.addr,
-          slippage: 1,
+          slippage: this.slippage, // 1 = 1%
           txnPayloadJSON: this.quotes.txnPayload,
           apiKey,
         });
@@ -449,6 +460,7 @@ export default {
           );
         const fromAsset = this.asset > 0 ? this.asset : 0;
         const toAsset = this.toAsset > 0 ? this.toAsset : 0;
+
         this.folksQuote = await folksRouterClient.fetchSwapQuote(
           fromAsset,
           toAsset,
@@ -458,9 +470,10 @@ export default {
           10,
           "AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
         );
+        const slippage = Math.round(this.slippage * 100);
         this.folksTxns = await folksRouterClient.prepareSwapTransactions(
           this.$route.params.account,
-          50,
+          slippage,
           this.folksQuote
         );
         const token = await this.getAsset({

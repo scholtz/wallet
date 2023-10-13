@@ -61,7 +61,8 @@
     "apps_optin": "SWAP vyžaduje aby ste za zaregistrovali k aplikáciám",
     "apps_optin_button": "Zaregistrujte sa k aplikáciám (optin)",
     "execute_button_deflex": "Vykonať swap cez Deflex",
-    "execute_button_folks": "Vykonať swap cez Folks router"
+    "execute_button_folks": "Vykonať swap cez Folks router",
+    "slippage": "Slippage percentage"
   },
   "votemenu": {
     "overview": "Overview",
