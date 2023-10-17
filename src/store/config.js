@@ -16,14 +16,15 @@ const state = () => ({
   twoFactorServer: "",
   walletConnectProjectId: "372941d972266817e1a8d1e403769ac0",
   walletConnectMetadata: {
-    name: 'AWallet',
-    description: 'Open source community algorand wallet',
-    url: 'www.a-wallet.net',
-    icons: []
+    name: "AWallet",
+    description: "Open source community algorand wallet",
+    url: "www.a-wallet.net",
+    icons: [],
   },
   languages: ["en", "hu", "it", "nl", "sk", "cs"],
   noredirect: false, // redirect to account page after successfull login
   dev: false,
+  deflex: "",
   language: "en-US"
 });
 
@@ -75,7 +76,9 @@ const mutations = {
     if (value.indexerToken) {
       state.indexerToken = value.indexerToken;
     }
-
+    if (value.d) {
+      state.deflex = Buffer.from(value.d, "hex").toString("utf8");
+    }
     const dev = localStorage.getItem("dev");
     if (dev && dev != "false") {
       state.dev = true;

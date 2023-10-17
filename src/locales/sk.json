@@ -50,7 +50,7 @@
     "connect": "WalletConnect"
   },
   "swap": {
-    "title": "Swapnúť tokeny pomocou Deflex protokolu",
+    "title": "Swapnúť tokeny",
     "network": "Sieť",
     "network_not_supported": "Sieť nie je podporovaná",
     "has_sk": "Iba štandardné účty s privátnym kľúčom sú aktuálne podporované",
@@ -60,7 +60,9 @@
     "get_quote": "Získať kotáciu",
     "apps_optin": "SWAP vyžaduje aby ste za zaregistrovali k aplikáciám",
     "apps_optin_button": "Zaregistrujte sa k aplikáciám (optin)",
-    "execute_button": "Vykonať swap"
+    "execute_button_deflex": "Vykonať swap cez Deflex",
+    "execute_button_folks": "Vykonať swap cez Folks router",
+    "slippage": "Slippage percentage"
   },
   "votemenu": {
     "overview": "Overview",

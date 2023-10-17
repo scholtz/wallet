@@ -1,5 +1,5 @@
 <template>
-  <PublicLayout>
+  <MainLayout>
     <div class="container-fluid">
       <h1>ARC14 developer page</h1>
       <p>
@@ -38,16 +38,16 @@
         </div>
       </div>
     </div>
-  </PublicLayout>
+  </MainLayout>
 </template>
 
 <script>
-import PublicLayout from "../layouts/Public.vue";
+import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
 
 export default {
   components: {
-    PublicLayout,
+    MainLayout,
   },
   data() {
     return {
