@@ -227,6 +227,19 @@ const actions = {
   },
   async getAsset({ commit }, { assetIndex }) {
     try {
+      console.log("assetIndex", assetIndex, !assetIndex);
+      if (!assetIndex) {
+        const native = {
+          "asset-id": "-1",
+          amount: 0,
+          name: "ALG",
+          decimals: 6,
+          "unit-name": "",
+          label: "Algorand native token",
+        };
+        console.log("returning native token", native);
+        return native;
+      }
       let env = this.state.config.env;
       if (env == "mainnet" || env == "mainnet-v1.0") {
         env = "";

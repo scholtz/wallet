@@ -1,5 +1,5 @@
 <template>
-  <PublicLayout>
+  <MainLayout>
     <div class="container-fluid">
       <h1>{{ $t("swap.title") }}</h1>
 
@@ -119,12 +119,12 @@
           <button
             v-if="useDeflex"
             class="btn my-2 mx-1"
-            :disabled="!allowExecuteDeflex || processingTrade"
+            :disabled="!allowExecuteDeflex || processingTradeDeflex"
             :class="allowExecuteDeflex ? 'btn-primary' : 'btn-light '"
             @click="clickExecuteDeflex"
           >
             <span
-              v-if="processingTrade"
+              v-if="processingTradeDeflex"
               class="spinner-grow spinner-grow-sm"
               role="status"
               aria-hidden="true"
@@ -134,12 +134,12 @@
           <button
             v-if="useFolks"
             class="btn my-2"
-            :disabled="!allowExecuteFolks || processingTrade"
+            :disabled="!allowExecuteFolks || processingTradeFolks"
             :class="allowExecuteFolks ? 'btn-primary' : 'btn-light '"
             @click="clickExecuteFolks"
           >
             <span
-              v-if="processingTrade"
+              v-if="processingTradeFolks"
               class="spinner-grow spinner-grow-sm"
               role="status"
               aria-hidden="true"
@@ -149,18 +149,18 @@
         </div>
       </div>
     </div>
-  </PublicLayout>
+  </MainLayout>
 </template>
 
 <script>
-import PublicLayout from "../layouts/Public.vue";
+import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
 import { FolksRouterClient, Network, SwapMode } from "@folks-router/js-sdk";
 
 export default {
   components: {
-    PublicLayout,
+    MainLayout,
   },
   data() {
     return {
@@ -177,7 +177,8 @@ export default {
       hasSK: null,
       processingQuote: false,
       processingOptin: false,
-      processingTrade: false,
+      processingTradeDeflex: false,
+      processingTradeFolks: false,
       note: "",
       error: "",
       useFolks: true,
@@ -272,13 +273,16 @@ export default {
     },
     account() {
       this.deflexTxs = { groupMetadata: [] };
+      this.folksTxns = [];
       this.makeAssets();
     },
     toAsset() {
       this.deflexTxs = { groupMetadata: [] };
+      this.folksTxns = [];
     },
     payamount() {
       this.deflexTxs = { groupMetadata: [] };
+      this.folksTxns = [];
     },
   },
   async mounted() {
@@ -497,8 +501,9 @@ export default {
       this.note = "";
       this.error = "";
       this.processingQuote = true;
-      this.txs = { groupMetadata: [] };
       this.txsDetails = "";
+      this.deflexTxs = { groupMetadata: [] };
+      this.folksTxns = [];
       var promises = [];
       if (this.useDeflex) promises.push(this.requestDeflexQuote());
       if (this.useFolks) promises.push(this.fetchFolksRouterQuotes());
@@ -522,7 +527,7 @@ export default {
     },
     async clickExecuteFolks() {
       this.prolong();
-      this.processingTrade = true;
+      this.processingTradeFolks = true;
       this.note = "";
       this.error = "";
       //console.log("execute clicked");
@@ -532,7 +537,7 @@ export default {
         addr: this.account.addr,
       });
       if (!senderSK) {
-        this.processingTrade = false;
+        this.processingTradeFolks = false;
         return;
       }
       //console.log("senderSK", senderSK);
@@ -541,7 +546,7 @@ export default {
       );
       const signedTxns = unsignedTxns.map((txn) => txn.signTxn(senderSK));
       if (!signedTxns) {
-        this.processingTrade = false;
+        this.processingTradeFolks = false;
         return;
       }
       let tx = await this.sendRawTransaction({
@@ -549,7 +554,7 @@ export default {
       }).catch((e) => {
         //console.error("error doing swap", e);
         this.error = e.message;
-        this.processingTrade = false;
+        this.processingTradeFolks = false;
         this.openError(e.message);
         return;
       });
@@ -570,11 +575,11 @@ export default {
       }
       this.note = ret.trim().trim(",");
       //console.log("note", this.note, ret);
-      this.processingTrade = false;
+      this.processingTradeFolks = false;
     },
     async clickExecuteDeflex() {
       this.prolong();
-      this.processingTrade = true;
+      this.processingTradeDeflex = true;
       this.note = "";
       this.error = "";
       //console.log("execute clicked");
@@ -584,7 +589,7 @@ export default {
         addr: this.account.addr,
       });
       if (!senderSK) {
-        this.processingTrade = false;
+        this.processingTradeDeflex = false;
         return;
       }
       //console.log("senderSK", senderSK);
@@ -609,7 +614,7 @@ export default {
           }
         });
         if (!signedTxns) {
-          this.processingTrade = false;
+          this.processingTradeDeflex = false;
           return;
         }
         console.log("signedTxns", signedTxns);
@@ -618,7 +623,7 @@ export default {
         }).catch((e) => {
           //console.error("error doing swap", e);
           this.error = e.message;
-          this.processingTrade = false;
+          this.processingTradeDeflex = false;
           this.openError(e.message);
           return;
         });
@@ -638,7 +643,7 @@ export default {
       }
       this.note = ret.trim().trim(",");
       //console.log("note", this.note, ret);
-      this.processingTrade = false;
+      this.processingTradeDeflex = false;
     },
 
     async clickOptInToApps() {
@@ -660,7 +665,7 @@ export default {
         const tx = await this.sendRawTransaction({ signedTxn }).catch((e) => {
           //console.error("error doing swap", e);
           this.error = e.message;
-          this.processingTrade = false;
+          this.processingTradeDeflex = false;
           return;
         });
         if (!tx || !tx.txId) {
