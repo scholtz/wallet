@@ -76,10 +76,10 @@ myApp.component("InputSwitch", InputSwitch);
 myApp.config.globalProperties.$filters = {
   formatCurrency(
     value = 0,
-    currency = "ALG",
+    currency = store.state.config.tokenSymbol,
     minimumFractionDigits = 6,
     multiply = true,
-    language = "sk-SK"
+    language = store.state.config.language
   ) {
     if (multiply) {
       value = value / Math.pow(10, minimumFractionDigits);

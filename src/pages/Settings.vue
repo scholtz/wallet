@@ -364,6 +364,7 @@ export default {
   methods: {
     ...mapActions({
       setHosts: "config/setHosts",
+      setLanguage: "config/setLanguage",
       setDev: "config/setDev",
       changePassword: "wallet/changePassword",
       backupWallet: "wallet/backupWallet",
@@ -401,7 +402,7 @@ export default {
       await this.destroyWallet();
     },
     languageUpdated() {
-      localStorage.setItem("lang", this.$i18n.locale);
+      this.setLanguage(this.$i18n.locale);
     },
     updateConfig() {
       const publicListItem1 = this.publicList.find(

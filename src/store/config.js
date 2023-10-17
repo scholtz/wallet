@@ -3,6 +3,7 @@ const state = () => ({
   LOGO: "/img/logo.svg",
   env: "mainnet-v1.0",
   envName: "Mainnet",
+  tokenSymbol: "Algo",
   algod: "https://mainnet-api.algonode.cloud",
   participation: "",
   indexer: "https://mainnet-idx.algonode.cloud",
@@ -24,6 +25,7 @@ const state = () => ({
   noredirect: false, // redirect to account page after successfull login
   dev: false,
   deflex: "",
+  language: "en-US"
 });
 
 const mutations = {
@@ -93,6 +95,12 @@ const mutations = {
     if (envName) {
       state.envName = envName;
     }
+
+    const tokenSymbol = localStorage.getItem("tokenSymbol");
+    if (tokenSymbol) {
+      state.tokenSymbol = tokenSymbol;
+    }
+
     const participationHost = localStorage.getItem("participationHost");
     if (participationHost) {
       state.participation = participationHost;
@@ -121,6 +129,7 @@ const mutations = {
     {
       env,
       envName,
+      tokenSymbol,
       algod,
       participation,
       indexer,
@@ -136,6 +145,10 @@ const mutations = {
     if (envName) {
       state.envName = envName;
       localStorage.setItem("envName", envName);
+    }
+    if (tokenSymbol) {
+      state.tokenSymbol = tokenSymbol;
+      localStorage.setItem("tokenSymbol", tokenSymbol);
     }
     if (algod) {
       state.algod = algod;
@@ -162,6 +175,10 @@ const mutations = {
       localStorage.setItem("indexerToken", indexerToken);
     }
   },
+  setLanguage(state, value){
+    state.language = value;
+    localStorage.setItem("lang", value);
+  },
   setNoRedirect(state) {
     state.noredirect = true;
     console.log("state.noredirect", state.noredirect);
@@ -181,9 +198,34 @@ const actions = {
       indexerToken,
     }
   ) {
+
+    let tokenSymbol = this.tokenSymbol;
+    if (env == "mainnet" || env == "mainnet-v1.0") {
+      tokenSymbol = "Algo";
+    }
+    else if (env == "aramidmain" || env == "aramidmain-v1.0") {
+      tokenSymbol = "aAlgo";
+    }
+    else if (env == "voitestnet" || env == "voitest-v1") {
+      tokenSymbol = "Voi";
+    }
+    else if (this.env == "voi" || env == "voi-v1.0") {//TODO - Support Voi Mainnet
+      tokenSymbol = "Voi";
+    }
+    else if (env == "testnet" || env == "testnet-v1.0") {
+      tokenSymbol = "Algo";
+    }
+    else if (env == "devnet") {
+      tokenSymbol = "Algo";
+    }
+    else if (env == "sandbox" || env == "sandnet-v1") {
+      tokenSymbol = "Algo";
+    }
+    
     await commit("setHosts", {
       env,
       envName,
+      tokenSymbol,
       algod,
       participation,
       indexer,
@@ -191,6 +233,9 @@ const actions = {
       participationToken,
       indexerToken,
     });
+  },
+  async setLanguage({ commit }, value){
+    await commit("setLanguage", value)
   },
   async setEnv({ dispatch }, { env }) {
     if (env == "mainnet" || env == "mainnet-v1.0") {
@@ -218,6 +263,34 @@ const actions = {
           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       });
     }
+    
+    if (this.env == "voitestnet" || env == "voitest-v1") {
+      dispatch("setHosts", {
+        env: "voitestnet",
+        envName: "Voi Testnet",
+        algod: "https://testnet-api.voi.nodly.io/",
+        participation: "",
+        indexer: "https://testnet-idx.voi.nodly.io/",
+      });
+    }
+
+    //TODO: Add Voi Mainnet when live
+    // if (this.env == "voi" || env == "") {
+    //   dispatch("setHosts", {
+    //     env: "voi",
+    //     envName: "Voi Mainnet",
+    //     algod: "",
+    //     participation: "",
+    //     indexer: "",
+    //     algodToken:
+    //       "",
+    //     participationToken:
+    //       "",
+    //     indexerToken:
+    //       "",
+    //   });
+    // }
+
     if (env == "testnet" || env == "testnet-v1.0") {
       dispatch("setHosts", {
         env: "testnet",
