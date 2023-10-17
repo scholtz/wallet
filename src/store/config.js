@@ -200,28 +200,22 @@ const actions = {
     if (env == "mainnet" || env == "mainnet-v1.0") {
       tokenSymbol = "Algo";
     }
-
-    if (this.env == "aramidmain" || env == "aramidmain-v1.0") {
+    else if (env == "aramidmain" || env == "aramidmain-v1.0") {
       tokenSymbol = "aAlgo";
     }
-    
-    if (this.env == "voitestnet" || env == "voitest-v1") {
+    else if (env == "voitestnet" || env == "voitest-v1") {
       tokenSymbol = "Voi";
     }
-
-    if (this.env == "voi" || env == "") {//TODO - Support Voi Mainnet
+    else if (this.env == "voi" || env == "") {//TODO - Support Voi Mainnet
       tokenSymbol = "Voi";
     }
-
-    if (env == "testnet" || env == "testnet-v1.0") {
+    else if (env == "testnet" || env == "testnet-v1.0") {
       tokenSymbol = "Algo";
     }
-
-    if (env == "devnet") {
+    else if (env == "devnet") {
       tokenSymbol = "Algo";
     }
-
-    if (env == "sandbox" || env == "sandnet-v1") {
+    else if (env == "sandbox" || env == "sandnet-v1") {
       tokenSymbol = "Algo";
     }
     
