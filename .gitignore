@@ -25,5 +25,5 @@ public/config.json
 cypress/videos
 cypress/screenshots
 
-k8s/conf/config.json
-k8s/stable/config.json
+k8s/conf
+k8s/stable
