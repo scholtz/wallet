@@ -72,7 +72,7 @@
     "@vue/compiler-sfc": "*",
     "@vue/eslint-config-typescript": "^11.0.3",
     "browser-sync": "^2.29.3",
-    "cypress": "^12.16.0",
+    "cypress": "^13.3.1",
     "eslint": "^8.44.0",
     "eslint-plugin-vue": "^9.15.1",
     "glob-parent": "^6.0.2",
