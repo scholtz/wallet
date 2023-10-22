@@ -240,16 +240,21 @@ const actions = {
     commit("removeSessionProposal", id);
   },
   async rejectSession({ commit, dispatch }, { id }) {
-    console.log("wc.rejectSession", id);
-    const session = await this.state.wc.web3wallet.rejectSession({
-      id,
-      reason: {
-        message: "User rejected methods.",
-        code: 5002,
-      },
-    });
-    console.log("rejectSession", session);
-    commit("removeSessionProposal", id);
+    try {
+      console.log("wc.rejectSession", id);
+      const session = await this.state.wc.web3wallet.rejectSession({
+        id,
+        reason: {
+          message: "User rejected methods.",
+          code: 5002,
+        },
+      });
+      console.log("rejectSession", session);
+      commit("removeSessionProposal", id);
+    } catch (e) {
+      commit("removeSessionProposal", id); // remove session even if we are not able to send it to wc
+      throw e;
+    }
   },
   async connectUri({ commit }, { uri }) {
     console.log("connectUri", uri);
