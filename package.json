@@ -35,7 +35,7 @@
     "copy-to-clipboard": "^3.3.3",
     "core-js": "^3.33.0",
     "crypto-browserify": "^3.12.0",
-    "crypto-js": "^4.1.1",
+    "crypto-js": "^4.2.0",
     "crypto-random-string": "^4.0.0",
     "cryptojs": "^2.5.3",
     "dexie": "^3.2.4",
