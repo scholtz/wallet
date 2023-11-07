@@ -164,7 +164,7 @@ export default {
       if (!this.asset) {
         this.assetObj = {
           "asset-id": undefined,
-          name: "ALGO",
+          name: this.$store.state.config.tokenSymbol,
           decimals: 6,
         };
       } else {
@@ -197,7 +197,7 @@ export default {
         this.assets.push({
           "asset-id": "",
           amount: this.account.amount,
-          name: "ALG",
+          name: this.$store.state.config.tokenSymbol,
           decimals: 6,
           "unit-name": "",
         });
