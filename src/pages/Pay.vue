@@ -248,7 +248,7 @@
                   step="0.001"
                   class="form-control"
                 />
-                <input disabled value="Algo" class="col-4" />
+                <input disabled :value="this.$store.state.config.tokenSymbol" class="col-4" />
               </div>
             </div>
             <div>
@@ -647,7 +647,6 @@
 <script>
 import { QrcodeStream } from "qrcode-reader-vue3";
 import aprotocol from "../shared/algorand-protocol-parse";
-
 import MainLayout from "../layouts/Main.vue";
 import InputMask from "primevue/inputmask";
 import { mapActions } from "vuex";
@@ -913,8 +912,8 @@ export default {
       if (!this.asset) {
         this.assetObj = {
           "asset-id": undefined,
-          name: "ALGO",
-          "unit-name": "Algo",
+          name: this.$store.state.config.tokenSymbol,
+          "unit-name": this.$store.state.config.tokenSymbol,
           decimals: 6,
         };
       } else {
@@ -1073,7 +1072,7 @@ export default {
         this.assets.push({
           "asset-id": "",
           amount: this.account.amount,
-          name: "ALG",
+          name: this.$store.state.config.tokenSymbol,
           decimals: 6,
           "unit-name": "",
         });
@@ -1081,7 +1080,7 @@ export default {
         this.assets.push({
           "asset-id": "",
           amount: 0,
-          name: "ALG",
+          name: this.$store.state.config.tokenSymbol,
           decimals: 6,
           "unit-name": "",
         });
