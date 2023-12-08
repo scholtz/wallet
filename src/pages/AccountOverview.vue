@@ -132,6 +132,14 @@
       </router-link>
 
       <router-link
+        v-if="account"
+        :to="'/account/export/' + $route.params.account"
+        class="btn btn-light btn-xs me-2 my-2"
+      >
+        {{ $t("acc_overview.export") }}
+      </router-link>
+
+      <router-link
         v-if="$store.state.config.dev"
         :to="'/arc14/' + $route.params.account"
         class="btn btn-light btn-xs me-2 my-2"
@@ -580,6 +588,7 @@ export default {
       asset: "",
       icons: [PrimeIcons.COPY],
       changeOnline: false,
+      changeOffline: false,
       onlineRounds: 500000,
     };
   },

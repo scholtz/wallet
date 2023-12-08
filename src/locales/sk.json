@@ -269,7 +269,8 @@
     "account0": "Ledger primary account",
     "slot": "Account at ledger slot",
     "connect": "WalletConnect",
-    "payment_gateway": "Payment gateway"
+    "payment_gateway": "Payment gateway",
+    "export": "Export"
   },
   "optin": {
     "title": "Prijímať aktívum (ASA alebo NFT) na účte",
@@ -345,7 +346,8 @@
     "wc_account": "Wallet Connect účet",
     "twofa_account": "2FA účet",
     "show_qr_code": "Zobraz QR kód",
-    "email_pass_account": "Účet z emailu a hesla"
+    "email_pass_account": "Účet z emailu a hesla",
+    "shamir_account": "Shamir backup recovery"
   },
   "arc76account": {
     "title": "Účet z emailu a hesla (ARC-0076)",
@@ -665,5 +667,31 @@
     "makeOnline": "Make account online",
     "makeOffline": "Make account offline",
     "host": "Algod host"
+  },
+  "new_account_shamir": {
+    "header": "Obnova účtu pomocou shamir backup",
+    "help": "Shamir backup je metóda ktorou sa môže privátny kľúč bezpečne rozdiliť na niekoľko časti s ďalším nastavením minimálneho počtu častí pre obnovu.",
+    "mnemonic": "Mnemonic",
+    "add_mnemnic": "Pridať mnemonic",
+    "account_name": "Názov účtu",
+    "recover": "Obnoviť"
+  },
+  "account_export": {
+    "header": "Export účtu",
+    "help": "Na tejto stránke môžete exportovať svoj privátny kľúč ku Vášmu účtu pomocou mnemotechnickej pomôcky od algorandu alebo pomocou vygenerovania niekoľkých kľúčov pre obnovu - shamir backup.",
+    "password": "Zadajte heslo k Vašej peňaženke",
+    "continue": "Pokračovať",
+    "algo_mnemonic": "Algorand mnemonic",
+    "shamir_backup": "Shamir backup",
+    "toggle_qr": "Zapnúť/Vypnúť QR code",
+    "recovery_threshold": "Počet častí pre obnovu",
+    "number_of_mnemonics": "Rozdeliť na počet častí",
+    "generate_shamir": "Vygenerovať shamir backup časti",
+    "previous": "Predchádzajúca časť",
+    "next": "Ďalšia čast",
+    "index": "Časť",
+    "shamir_help": "Uložte si mnemotechnické pomôcky na veľmi bezpečných miestach. Uistite sa, že máte všetky časti správne zapísané a že v jednom mieste nebudete držať viac ako počet častí pre obnovu.",
+    "algo_help": "Uložte si mnemotechnickú pomôcku na veľmi bezpečnom mieste.",
+    "dev_info": "Informácie pre developerov"
   }
 }

@@ -34,6 +34,9 @@
         >
           {{ $t("newacc.import_account") }}
         </button>
+        <router-link to="/new-account/shamir" class="btn btn-primary m-1">
+          {{ $t("newacc.shamir_account") }}
+        </router-link>
         <button
           v-if="!w"
           class="btn btn-primary m-1"
