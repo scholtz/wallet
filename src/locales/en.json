@@ -270,7 +270,8 @@
     "account0": "Ledger primary account",
     "slot": "Account at ledger slot",
     "connect": "WalletConnect",
-    "payment_gateway": "Payment gateway"
+    "payment_gateway": "Payment gateway",
+    "export": "Export"
   },
   "optin": {
     "title": "Accept transfers of asset in account",
@@ -346,7 +347,8 @@
     "wc_account": "Wallet Connect Account",
     "twofa_account": "2FA Account",
     "show_qr_code": "Show QR Code",
-    "email_pass_account": "Email & Password account"
+    "email_pass_account": "Email & Password account",
+    "shamir_account": "Shamir backup recovery"
   },
   "arc76account": {
     "title": "Email and password account (ARC-0076)",
@@ -667,5 +669,31 @@
     "makeOnline": "Make account online",
     "makeOffline": "Make account offline",
     "host": "Algod host"
+  },
+  "new_account_shamir": {
+    "header": "Shamir backup account recovery",
+    "help": "Shamir backup is the method to split mnemonic into N parts where M accounts is the recovery threshold.",
+    "mnemonic": "Mnemonic",
+    "add_mnemnic": "Add mnemonic",
+    "account_name": "Name of the account",
+    "recover": "Recover"
+  },
+  "account_export": {
+    "header": "Export account",
+    "help": "On this page you can export your private key in form of algorand's mnemonic or shamir backup.",
+    "password": "Please provide your wallet password",
+    "continue": "Continue",
+    "algo_mnemonic": "Algorand mnemonic",
+    "shamir_backup": "Shamir backup",
+    "toggle_qr": "Toggle QR code",
+    "recovery_threshold": "Recovery threshold",
+    "number_of_mnemonics": "Number of mnemonics",
+    "generate_shamir": "Generate shamir mnemonics",
+    "previous": "Previous",
+    "next": "Next",
+    "index": "Shamir Index",
+    "shamir_help": "Please secure mnemonic at very secure place. Make sure you write down all parts of shamir backup and do not store the recovery threshold at one place.",
+    "algo_help": "Please secure mnemonic at very secure place.",
+    "dev_info": "Developer info"
   }
 }

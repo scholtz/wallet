@@ -35,6 +35,8 @@ import NewAccountLedger from "@/pages/NewAccount/Ledger.vue";
 import NewAccountWalletConnect from "@/pages/NewAccount/WalletConnect.vue";
 import NewAccount2FA from "@/pages/NewAccount/2FA.vue";
 import NewAccountEmailPass from "@/pages/NewAccount/EmailPassword.vue";
+import NewAccountShamir from "@/pages/NewAccount/Shamir.vue";
+import AccountExport from "@/pages/Account/Export.vue";
 
 const routes = [
   {
@@ -66,6 +68,11 @@ const routes = [
     path: "/new-account/wc",
     name: "NewAccountWalletConnect",
     component: NewAccountWalletConnect,
+  },
+  {
+    path: "/new-account/shamir",
+    name: "NewAccountShamir",
+    component: NewAccountShamir,
   },
   {
     path: "/swap/:account",
@@ -156,6 +163,11 @@ const routes = [
     path: "/account/:account",
     name: "AccountOverview",
     component: AccountOverview,
+  },
+  {
+    path: "/account/export/:account",
+    name: "AccountExport",
+    component: AccountExport,
   },
   {
     path: "/account/optin/:account",

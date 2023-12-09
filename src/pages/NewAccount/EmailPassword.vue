@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import MainLayout from "../../layouts/Main.vue";
-import { computed, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import Password from "primevue/password";
 import InputText from "primevue/inputtext";
@@ -55,6 +55,9 @@ async function createAccount() {
     await store.dispatch("toast/openError", error);
   }
 }
+onMounted(async () => {
+  await store.dispatch("wallet/prolong");
+});
 </script>
 <template>
   <MainLayout>
@@ -114,7 +117,7 @@ async function createAccount() {
         @click="createAccount"
         :disabled="!canCreatePassword"
       >
-      {{ $t("newacc.create_account") }}
+        {{ $t("newacc.create_account") }}
       </button>
     </div>
   </MainLayout>

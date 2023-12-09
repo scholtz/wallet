@@ -11,6 +11,9 @@ const DefaultComponent = markRaw({
   render: () => h("div", "Loading…"),
 });
 /**/
+
+import "vue3-json-viewer/dist/index.css";
+
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./registerServiceWorker";

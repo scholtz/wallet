@@ -252,6 +252,9 @@ const actions = {
     commit("lastActiveAccount", addr);
     await dispatch("saveWallet");
   },
+  async getAccount({ dispatch }, { addr }) {
+    return this.state.wallet.privateAccounts.find((a) => a.addr == addr);
+  },
   async getSK({ dispatch }, { addr }) {
     const address = this.state.wallet.privateAccounts.find(
       (a) => a.addr == addr
@@ -668,6 +671,18 @@ const actions = {
 
     await wc.restore();
     return true;
+  },
+  async checkPassword({ dispatch }, { pass }) {
+    const name = await dispatch("getName");
+    const walletRecord = await db.wallets.get({ name });
+    const encryptedData = walletRecord.data;
+    try {
+      const decryptedData = CryptoJS.AES.decrypt(encryptedData, pass);
+      const json = JSON.parse(decryptedData.toString(CryptoJS.enc.Utf8));
+      return !!json;
+    } catch (e) {
+      return false;
+    }
   },
   async createWallet({ dispatch, commit }, { name, pass }) {
     if (!name) {
