@@ -115,11 +115,11 @@ const mutations = {
     state.privateAccounts.push(account);
   },
   addMultiAccount(state, { addr, params, name, network }) {
+    console.log("addMultiAccount", { addr, params, name, network });
     const multsigaddr = {
       addr,
       address: addr,
       name,
-      email,
       params,
       network,
       type: "msig",
