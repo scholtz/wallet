@@ -248,7 +248,11 @@
                   step="0.001"
                   class="form-control"
                 />
-                <input disabled :value="this.$store.state.config.tokenSymbol" class="col-4" />
+                <input
+                  disabled
+                  :value="this.$store.state.config.tokenSymbol"
+                  class="col-4"
+                />
               </div>
             </div>
             <div>
@@ -321,6 +325,10 @@
                   </div>
                 </td>
               </tr>
+              <tr v-if="txn.type">
+                <th>{{ $t("pay.tx_type") }}:</th>
+                <td>{{ txn.type }}</td>
+              </tr>
               <tr v-if="payTo">
                 <th>{{ $t("pay.pay_to") }}:</th>
                 <td>{{ payTo }}</td>
@@ -331,12 +339,7 @@
                   {{ paynote }}
                 </td>
                 <td v-else>
-                  <textarea
-                    v-model="paynote"
-                    class="form-control"
-                    rows="5"
-                    :disabled="true"
-                  />
+                  <JsonViewer :value="paynote" copyable boxed sort />
                 </td>
               </tr>
               <tr>
@@ -494,7 +497,7 @@
           />
         </span>
 
-        <textarea
+        <JsonViewer
           v-if="
             txn &&
             $store &&
@@ -502,9 +505,10 @@
             $store.state.config &&
             $store.state.config.dev
           "
-          v-model="txn"
-          class="form-control my-2"
-          rows="5"
+          :value="txn"
+          copyable
+          boxed
+          sort
         />
 
         <div
@@ -652,12 +656,14 @@ import InputMask from "primevue/inputmask";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
 //import base64url from "base64url";
+import { JsonViewer } from "vue3-json-viewer";
 
 export default {
   components: {
     QrcodeStream,
     MainLayout,
     InputMask,
+    JsonViewer,
   },
   data() {
     return {
@@ -843,7 +849,16 @@ export default {
         this.multisigDecoded &&
         this.multisigDecoded.txn &&
         this.multisigDecoded.txn.type &&
-        this.multisigDecoded.txn.type == "appl"
+        (this.multisigDecoded.txn.type == "appl" ||
+          this.multisigDecoded.txn.type == "acfg")
+      ) {
+        return false;
+      }
+      if (
+        this.txn &&
+        this.txn &&
+        this.txn.type &&
+        (this.txn.type == "appl" || this.txn.type == "acfg")
       ) {
         return false;
       }
@@ -952,6 +967,7 @@ export default {
     if (this.$route.name == "PayFromWalletConnect") {
       try {
         this.txn = this.$store.state.signer.toSign;
+
         if (this.txn.to) {
           this.payTo = algosdk.encodeAddress(this.txn.to.publicKey);
         }
@@ -987,6 +1003,7 @@ export default {
         console.log("uint8buffer", uint8buffer);
 
         this.txn = algosdk.decodeUnsignedTransaction(uint8buffer);
+        console.log("this.txn", this.txn);
         if (this.txn.to) {
           this.payTo = algosdk.encodeAddress(this.txn.to.publicKey);
         }
@@ -1159,20 +1176,20 @@ export default {
       this.prolong();
       const enc = new TextEncoder();
       const note = enc.encode(this.paynote);
-
-      const data = {
-        payTo: this.payTo,
-        payFrom: this.payFrom,
-        amount: this.amountLong,
-        noteEnc: note,
-        fee: 1000,
-        asset: this.assetObj["asset-id"],
-      };
-      if (this.rekeyTo) {
-        data.reKeyTo = this.rekeyTo;
+      if (!this.txn) {
+        const data = {
+          payTo: this.payTo,
+          payFrom: this.payFrom,
+          amount: this.amountLong,
+          noteEnc: note,
+          fee: 1000,
+          asset: this.assetObj["asset-id"],
+        };
+        if (this.rekeyTo) {
+          data.reKeyTo = this.rekeyTo;
+        }
+        this.txn = await this.preparePayment(data);
       }
-      this.txn = await this.preparePayment(data);
-
       const rawSignedTxn = algosdk.createMultisigTransaction(
         this.txn,
         this.multisigParams

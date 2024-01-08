@@ -156,6 +156,56 @@ const actions = {
     console.log("sent to network", dispatch);
     return ret;
   },
+  async makeAssetCreateTxnWithSuggestedParamsTx({ dispatch }, { asset }) {
+    const url = new URL(this.state.config.algod);
+
+    let algodclient = new algosdk.Algodv2(
+      this.state.config.algodToken,
+      this.state.config.algod,
+      url.port
+    );
+    let params = await algodclient.getTransactionParams().do();
+    if (!asset.manager) asset.manager = asset.addr;
+
+    const enc = new TextEncoder();
+    const noteEnc = enc.encode(asset.note);
+    const issueBase = BigInt(asset.totalIssuance);
+    const issuePower = BigInt(Math.pow(10, asset.decimals));
+    const issueBigInt = issueBase * issuePower;
+    console.log("sending", [
+      asset.addr,
+      noteEnc,
+      issueBigInt,
+      parseInt(asset.decimals),
+      asset.defaultFrozen,
+      asset.manager ? asset.manager : undefined,
+      asset.reserve ? asset.reserve : undefined,
+      asset.freeze ? asset.freeze : undefined,
+      asset.clawback ? asset.clawback : undefined,
+      asset.unitName,
+      asset.assetName,
+      asset.assetURL,
+      asset.assetMetadataHash,
+      params,
+    ]);
+    const txn = algosdk.makeAssetCreateTxnWithSuggestedParams(
+      asset.addr,
+      noteEnc,
+      issueBigInt,
+      parseInt(asset.decimals),
+      asset.defaultFrozen,
+      asset.manager ? asset.manager : undefined,
+      asset.reserve ? asset.reserve : undefined,
+      asset.freeze ? asset.freeze : undefined,
+      asset.clawback ? asset.clawback : undefined,
+      asset.unitName,
+      asset.assetName,
+      asset.assetURL,
+      new Uint8Array(Buffer.from(asset.assetMetadataHash, "base64")),
+      params
+    );
+    return txn;
+  },
   async makeAssetCreateTxnWithSuggestedParams({ dispatch }, { asset }) {
     const url = new URL(this.state.config.algod);
 
