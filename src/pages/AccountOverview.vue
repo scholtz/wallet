@@ -615,7 +615,7 @@ export default {
       );
     },
     account() {
-      var acc = this.$store.state.wallet.privateAccounts.find(
+      const acc = this.$store.state.wallet.privateAccounts.find(
         (a) =>
           a.addr == this.$route.params.account &&
           (a.network === undefined || a.network == this.$store.state.config.env)
@@ -629,10 +629,14 @@ export default {
       return this.$store.state.wallet.lastActiveAccount;
     },
     rekeyedToInfo() {
-      return this.$store.state.wallet.privateAccounts.find(
+      const acc = this.$store.state.wallet.privateAccounts.find(
         (a) =>
           a.addr == this.account.rekeyedTo &&
           (a.network === undefined || a.network == this.$store.state.config.env)
+      );
+      if (acc) return acc;
+      return this.$store.state.wallet.privateAccounts.find(
+        (a) => a.addr == this.account.rekeyedTo
       );
     },
     rekeyedMultisigParams() {
