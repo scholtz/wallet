@@ -325,7 +325,7 @@
                   </div>
                 </td>
               </tr>
-              <tr v-if="txn.type">
+              <tr v-if="txn && txn.type">
                 <th>{{ $t("pay.tx_type") }}:</th>
                 <td>{{ txn.type }}</td>
               </tr>
