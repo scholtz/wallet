@@ -12,14 +12,12 @@ const mutations = {
       state.address2chain2realm2token[chain][addr] = {};
     }
     state.address2chain2realm2token[chain][addr][realm] = token;
-    console.log("address2chain2realm2token", state.address2chain2realm2token);
   },
 };
 const actions = {
   async signAuthTx({ dispatch, commit }, { account, realm }) {
     try {
       if (!account) throw new Error("Address not found.");
-      console.log("signAuthTx", account);
       const url = new URL(this.state.config.algod);
       let algodclient = new algosdk.Algodv2(
         this.state.config.algodToken,
@@ -39,7 +37,6 @@ const actions = {
         note: new Uint8Array(note),
         suggestedParams: authParams,
       };
-      console.log("authObj", authObj);
       const authTxn =
         algosdk.makePaymentTxnWithSuggestedParamsFromObject(authObj);
 

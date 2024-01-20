@@ -39,15 +39,6 @@ const actions = {
       let params = await algodclient.getTransactionParams().do();
       params.fee = fee;
       params.flatFee = true;
-      console.log("going to sign ", {
-        fromAcct,
-        payTo,
-        amount,
-        assetId,
-        note: noteEnc,
-        params,
-        reKeyTo,
-      });
       let txn = null;
       if (assetId) {
         const transactionOptionsAsa = {
@@ -59,7 +50,6 @@ const actions = {
           suggestedParams: params,
           rekeyTo: reKeyTo,
         };
-        console.log("transactionOptionsAsa", transactionOptionsAsa);
         txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
           transactionOptionsAsa
         );
@@ -72,7 +62,6 @@ const actions = {
           suggestedParams: params,
           rekeyTo: reKeyTo,
         };
-        console.log("transactionOptionsAlg", transactionOptionsAlg);
         txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(
           transactionOptionsAlg
         );
@@ -105,9 +94,7 @@ const actions = {
         }
       );
 
-      console.log("signedTxn", signedTxn);
       let txId = txn.txID().toString();
-      console.log("txId", txId);
 
       const url = new URL(this.state.config.algod);
 
@@ -125,11 +112,7 @@ const actions = {
               root: true,
             });
           }
-          console.log("e", e, e.message, e.data);
-
-          for (var key in e) {
-            console.log("e.key", key, e[key]);
-          }
+          console.error("e", e, e.message, e.data);
         });
       await dispatch(
         "wallet/lastPayTo",
@@ -153,7 +136,6 @@ const actions = {
     );
 
     const ret = await algodclient.sendRawTransaction(signedTxn).do();
-    console.log("sent to network", dispatch);
     return ret;
   },
   async makeAssetCreateTxnWithSuggestedParamsTx({ dispatch }, { asset }) {
@@ -172,22 +154,6 @@ const actions = {
     const issueBase = BigInt(asset.totalIssuance);
     const issuePower = BigInt(Math.pow(10, asset.decimals));
     const issueBigInt = issueBase * issuePower;
-    console.log("sending", [
-      asset.addr,
-      noteEnc,
-      issueBigInt,
-      parseInt(asset.decimals),
-      asset.defaultFrozen,
-      asset.manager ? asset.manager : undefined,
-      asset.reserve ? asset.reserve : undefined,
-      asset.freeze ? asset.freeze : undefined,
-      asset.clawback ? asset.clawback : undefined,
-      asset.unitName,
-      asset.assetName,
-      asset.assetURL,
-      asset.assetMetadataHash,
-      params,
-    ]);
     const txn = algosdk.makeAssetCreateTxnWithSuggestedParams(
       asset.addr,
       noteEnc,
@@ -222,22 +188,7 @@ const actions = {
     const issueBase = BigInt(asset.totalIssuance);
     const issuePower = BigInt(Math.pow(10, asset.decimals));
     const issueBigInt = issueBase * issuePower;
-    console.log("sending", [
-      asset.addr,
-      noteEnc,
-      issueBigInt,
-      parseInt(asset.decimals),
-      asset.defaultFrozen,
-      asset.manager ? asset.manager : undefined,
-      asset.reserve ? asset.reserve : undefined,
-      asset.freeze ? asset.freeze : undefined,
-      asset.clawback ? asset.clawback : undefined,
-      asset.unitName,
-      asset.assetName,
-      asset.assetURL,
-      asset.assetMetadataHash,
-      params,
-    ]);
+
     const txn = algosdk.makeAssetCreateTxnWithSuggestedParams(
       asset.addr,
       noteEnc,
@@ -263,12 +214,10 @@ const actions = {
       }
     );
     const ret = await algodclient.sendRawTransaction(signedTxn).do();
-    console.log("sent to network", ret);
     return ret;
   },
   async waitForConfirmation({ dispatch }, { txId, timeout }) {
     try {
-      console.log("txId, timeout", { txId, timeout });
       const url = new URL(this.state.config.algod);
 
       let algodclient = new algosdk.Algodv2(

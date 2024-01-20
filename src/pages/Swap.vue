@@ -234,7 +234,6 @@ export default {
     appsToOptIn() {
       const requiredAppOptIns = this.quotes?.requiredAppOptIns ?? [];
       const ret = [];
-      //console.log("requiredAppOptIns", requiredAppOptIns);
       if (!this.account) return false;
       const optedInAppIds =
         "apps-local-state" in this.account
@@ -268,7 +267,6 @@ export default {
           decimals: 6,
         };
       }
-      //console.log("assetObj", this.assetObj);
       this.payamount = 0;
     },
     account() {
@@ -286,7 +284,6 @@ export default {
     },
   },
   async mounted() {
-    //console.log("mounted swap");
     await this.reloadAccount();
     await this.makeAssets();
     this.prolong();
@@ -294,7 +291,6 @@ export default {
     this.asset = -1;
     this.toAsset = 452399768;
     this.payamount = 1;
-    //console.log("this.assets from mount", this.assets);
   },
   methods: {
     ...mapActions({
@@ -322,7 +318,6 @@ export default {
         addr: this.$route.params.account,
       }).then((info) => {
         if (info) {
-          //console.log("info", info);
           this.updateAccount({ info });
         }
       });
@@ -334,7 +329,6 @@ export default {
       } else {
         this.hasSK = false;
       }
-      //console.log("senderSK", senderSK);
     },
     async makeAssets() {
       this.assets = [];
@@ -366,7 +360,6 @@ export default {
           }
         }
       }
-      //console.log("this.assets", this.assets);
     },
     async requestDeflexQuote() {
       try {
@@ -431,13 +424,11 @@ export default {
         const ret2 = this.deflexTxs.groupMetadata
           .map((tx) => tx.labelText)
           .join(",\n");
-        //console.log("ret2", ret2);
         this.txsDetails += "\nDEFLEX: " + ret2;
         this.txsDetails = this.txsDetails.trim();
       } catch (e) {
         this.openError("Error fetching quote from deflex: " + e.message);
       }
-      //console.log("txs", params, this.txs, config);
     },
     getFolksClient() {
       if (this.$store.state.config.env == "mainnet-v1.0") {
@@ -483,7 +474,6 @@ export default {
         const token = await this.getAsset({
           assetIndex: toAsset,
         });
-        console.log("token", toAsset, token);
         this.txsDetails += `\nFOLKS ROUTER: Quote Amount: ${
           Number(this.folksQuote.quoteAmount) / 10 ** token.decimals
         }, Price Impact: ${
@@ -530,9 +520,6 @@ export default {
       this.processingTradeFolks = true;
       this.note = "";
       this.error = "";
-      //console.log("execute clicked");
-      //console.log("this.account", this.account);
-
       const senderSK = await this.getSK({
         addr: this.account.addr,
       });
@@ -540,7 +527,6 @@ export default {
         this.processingTradeFolks = false;
         return;
       }
-      //console.log("senderSK", senderSK);
       const unsignedTxns = this.folksTxns.map((txn) =>
         algosdk.decodeUnsignedTransaction(Buffer.from(txn, "base64"))
       );
@@ -552,7 +538,6 @@ export default {
       let tx = await this.sendRawTransaction({
         signedTxn: signedTxns,
       }).catch((e) => {
-        //console.error("error doing swap", e);
         this.error = e.message;
         this.processingTradeFolks = false;
         this.openError(e.message);
@@ -574,7 +559,6 @@ export default {
         return;
       }
       this.note = ret.trim().trim(",");
-      //console.log("note", this.note, ret);
       this.processingTradeFolks = false;
     },
     async clickExecuteDeflex() {
@@ -582,9 +566,6 @@ export default {
       this.processingTradeDeflex = true;
       this.note = "";
       this.error = "";
-      //console.log("execute clicked");
-      //console.log("this.account", this.account);
-
       const senderSK = await this.getSK({
         addr: this.account.addr,
       });
@@ -592,7 +573,6 @@ export default {
         this.processingTradeDeflex = false;
         return;
       }
-      //console.log("senderSK", senderSK);
       const byGroup = this.deflexTxs.txns.reduce(
         (entryMap, e) =>
           entryMap.set(e.group, [...(entryMap.get(e.group) || []), e]),
@@ -602,14 +582,12 @@ export default {
 
       let ret = "Processed in txs: ";
       for (let group of byGroupMap) {
-        //console.log("group", group);
         const signedTxns = group.map((txn) => {
           if (txn.logicSigBlob !== false) {
             return Uint8Array.from(Object.values(txn.logicSigBlob));
           } else {
             let bytes = new Uint8Array(Buffer.from(txn.data, "base64"));
             const decoded = algosdk.decodeUnsignedTransaction(bytes);
-            //console.log("decoded", decoded);
             return algosdk.signTransaction(decoded, senderSK).blob;
           }
         });
@@ -617,11 +595,9 @@ export default {
           this.processingTradeDeflex = false;
           return;
         }
-        console.log("signedTxns", signedTxns);
         const tx = await this.sendRawTransaction({
           signedTxn: signedTxns,
         }).catch((e) => {
-          //console.error("error doing swap", e);
           this.error = e.message;
           this.processingTradeDeflex = false;
           this.openError(e.message);
@@ -639,10 +615,8 @@ export default {
           await this.reloadAccount();
           return;
         }
-        //console.log("confirmation", confirmation); /**/
       }
       this.note = ret.trim().trim(",");
-      //console.log("note", this.note, ret);
       this.processingTradeDeflex = false;
     },
 
@@ -684,12 +658,9 @@ export default {
           await this.reloadAccount();
           return;
         }
-
-        //console.log("confirmation", confirmation);
       }
 
       this.note = ret.trim().trim(",");
-      //console.log("note", this.note, ret);
       await this.reloadAccount();
       this.processingOptin = false;
     },

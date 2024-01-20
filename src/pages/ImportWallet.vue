@@ -58,8 +58,6 @@ export default {
       importWallet: "wallet/importWallet",
     }),
     fileChanged() {
-      //console.log("this.$refs.walletFile.files", this.$refs.walletFile.files);
-      console.log("this.file", this.file);
       this.readFile(this.$refs.walletFile.files[0]);
     },
     readFile(file) {
@@ -67,7 +65,6 @@ export default {
       reader.onload = (e) => {
         //this.file = btoa(unescape(encodeURIComponent(e.target.result)));
         this.file = e.target.result;
-        console.log("this.file", this.file);
       };
       reader.readAsText(file);
     },

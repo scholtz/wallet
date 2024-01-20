@@ -8,7 +8,6 @@ const state = () => ({
 const mutations = {
   storeRealm(state, provider, realm) {
     state.provider2realm[provider] = realm;
-    console.log("state.provider2realm", state.provider2realm);
   },
 };
 const actions = {
@@ -28,7 +27,6 @@ const actions = {
       { chainId },
       { root: true }
     );
-    console.log("list", twoFactorAuthProvider, list);
     const provider = list.find((p) => p.id == twoFactorAuthProvider);
     if (!provider) {
       throw Error(
@@ -66,9 +64,7 @@ const actions = {
     );
     const provider = list.find((p) => p.id == twoFactorAuthProvider);
     if (!provider) throw "2FA provider not found for current network";
-    console.log("config", config);
     if (!account) return;
-    console.log("provider", provider);
     const addrSubstr =
       account.substring(0, 2) + account.substring(account.length - 2);
     const addr2Substr =

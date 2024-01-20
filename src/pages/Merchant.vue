@@ -184,7 +184,6 @@ export default {
     },
   },
   mounted() {
-    console.log("qrcode", this.qrcode, this.account);
     try {
       try {
         this.origcode = atob(this.$route.params.b64);
@@ -210,7 +209,6 @@ export default {
       this.b64decode.paynote = "a-wallet/" + uuidv4();
       this.origcode = this.origcode + "&xnote=" + this.b64decode.paynote;
     }
-    console.log("this.b64decode ", this.b64decode, this.asset, this.settings);
     window.setInterval(() => {
       this.getNotifications();
     }, 5000);
@@ -255,7 +253,6 @@ export default {
           }
         }
       }
-      console.log("transactions", this.transactions);
     },
     async makeAsset() {
       this.asset = {};
@@ -297,7 +294,6 @@ export default {
       }
     },
     setNetwork() {
-      console.log("this.b64decode.network", this.b64decode.network);
       if (
         this.b64decode.network == "mainnet" ||
         this.b64decode.network == "mainnet-v1.0"
@@ -319,7 +315,6 @@ export default {
         this.b64decode.network == "testnet" ||
         this.b64decode.network == "testnet-v1.0"
       ) {
-        console.log("setting testnet");
         this.setHosts({
           algod: "https://testnet-api.algonode.cloud",
           kmd: "?",
@@ -327,7 +322,6 @@ export default {
         });
       }
       if (this.b64decode.network == "sandbox") {
-        console.log("setting sandbox");
         this.setHosts({
           algod: "http://localhost:4001",
           kmd: "http://localhost:4002",

@@ -10,11 +10,9 @@ const state = () => ({
 
 const mutations = {
   setSigned(state, signed) {
-    console.log("signed", signed);
     const tx = algosdk.decodeSignedTransaction(signed);
     const txId = tx.txn.txID();
     state.signed[txId] = signed;
-    console.log(`Tx ${txId} set to signed ${signed.length}`);
   },
   toSign(state, tx) {
     state.toSign = tx;
@@ -31,7 +29,6 @@ const actions = {
    */
   async signTransaction({ dispatch }, { from, signator, tx }) {
     try {
-      console.log("tx", tx);
       const txObj = tx; //algosdk.decodeUnsignedTransaction(algosdk.encodeObj(tx));
       let fromAccount = this.state.wallet.privateAccounts.find(
         (a) => a.addr == from
@@ -117,7 +114,6 @@ const actions = {
           );
         }
       }
-      console.log("fromAccount", fromAccount);
       if (fromAccount.type == "ledger") {
         return "ledger";
       } else if (fromAccount.params) {
@@ -136,7 +132,6 @@ const actions = {
   },
   async signByLedger({ dispatch, commit }, { from, tx }) {
     try {
-      console.log("signByLedger", { from, tx });
       let fromAccount = this.state.wallet.privateAccounts.find(
         (a) => a.addr == from
       );
@@ -147,7 +142,6 @@ const actions = {
         `44'/283'/${fromAccount.slot}'/0/0`,
         Buffer.from(tx.toByte()).toString("hex")
       );
-      console.log("signature", signature);
       const sigBytes = new Uint8Array(signature).slice(0, 64);
       const ret = tx.attachSignature(from, sigBytes);
       commit("setSigned", ret);
@@ -159,8 +153,6 @@ const actions = {
   },
   async signByWC1({ dispatch, commit }, { from, tx }) {
     try {
-      console.log("signByWC", { from, tx });
-
       const fromAccount = this.state.wallet.privateAccounts.find(
         (a) => a.addr == from
       );
@@ -199,8 +191,6 @@ const actions = {
   },
   async signByWC2({ dispatch, commit }, { from, tx }) {
     try {
-      console.log("signByWC2", { from, tx });
-
       const fromAccount = this.state.wallet.privateAccounts.find(
         (a) => a.addr == from
       );
@@ -210,7 +200,6 @@ const actions = {
       //   namespaces: fromAccount.session.namespaces,
       //   pairingTopic: fromAccount.session.pairingTopic,
       // });
-      // console.log("signByWC2.connect", connect);
 
       const currentChain = await dispatch(
         "publicData/getCurrentChainId",
@@ -219,7 +208,6 @@ const actions = {
           root: true,
         }
       );
-      console.log("currentChain", currentChain);
       //provider.setDefaultChain(`algorand`);
 
       const request = {
@@ -236,13 +224,11 @@ const actions = {
         ],
       };
 
-      console.log("provider.request(request)", request);
       const response = await provider.request(
         request,
         `algorand:${currentChain}`
       );
       if (!response) throw Error("Transaction has not been signed");
-      console.log("signByWC2.response", response);
 
       const ret = Buffer.from(response[0], "base64");
       commit("setSigned", ret);
@@ -304,12 +290,10 @@ const actions = {
   //   return await dispatch("signMultisig", { msigTx, signator });
   // },
   async createMultisigTransaction({ dispatch }, { txn }) {
-    console.log("signerCreateMultisigTransaction", { txn });
     if (!txn || !txn.from || !txn.from.publicKey) {
       throw new Error("Transaction object is not correct");
     }
     const from = algosdk.encodeAddress(txn.from.publicKey);
-    console.log("from", from);
     let fromAccount = this.state.wallet.privateAccounts.find(
       (a) => a.addr == from
     );
@@ -328,11 +312,9 @@ const actions = {
     if (!fromAccount.params) {
       throw new Error(`Address is not multisig: ${fromAccount.addr}`);
     }
-    console.log("fromAccount.params", fromAccount.params);
     return algosdk.createMultisigTransaction(txn, fromAccount.params);
   },
   async signMultisig({ dispatch }, { msigTx, signator, txn }) {
-    console.log("signer.signMultisig", { msigTx, signator });
     let signatorAccount = this.state.wallet.privateAccounts.find(
       (a) => a.addr == signator
     );
@@ -368,27 +350,15 @@ const actions = {
         );
       }
     }
-    console.log("signatorAccount", signatorAccount);
     const sk = new Uint8Array(Buffer.from(Object.values(signatorAccount.sk)));
-    console.log(
-      "append",
-      // sender,
-      // signedTxn,
-      // signatorAccount,
-      msigTx,
-      fromAccount.params,
-      sk
-    );
     // return algosdk.appendSignMultisigTransaction(msigTx, fromAccount.params, sk)
     //   .blob;
     // const txn = algosdk.decodeUnsignedTransaction(
     //   algosdk.encodeObj(signedTxn.txn)
     // );
-    console.log("tosign", { txn, sk });
     //const sigInnerTx = txn.signTxn(sk);
     const sigInnerTx = algosdk.signTransaction(txn, sk);
     const sigInnerTxObj = algosdk.decodeSignedTransaction(sigInnerTx.blob);
-    console.log("sigInnerTxObj", sigInnerTxObj);
     let keyExist = false;
     signedTxn.msig.subsig.forEach((subsig, i) => {
       const subsigAddr = algosdk.encodeAddress(subsig.pk);
@@ -414,9 +384,7 @@ const actions = {
       from: signator,
       tx: txn,
     });
-    console.log("signMultisigByLedger.sigInnerTx", sigInnerTx);
     const sigInnerTxObj = algosdk.decodeSignedTransaction(sigInnerTx);
-    console.log("sigInnerTxObj", sigInnerTxObj);
     let keyExist = false;
     signedTxn.msig.subsig.forEach((subsig, i) => {
       const subsigAddr = algosdk.encodeAddress(subsig.pk);
@@ -441,9 +409,7 @@ const actions = {
       from: signator,
       tx: txn,
     });
-    console.log("signMultisigByWC.sigInnerTx", sigInnerTx);
     const sigInnerTxObj = algosdk.decodeSignedTransaction(sigInnerTx);
-    console.log("sigInnerTxObj", sigInnerTxObj);
     let keyExist = false;
     signedTxn.msig.subsig.forEach((subsig, i) => {
       const subsigAddr = algosdk.encodeAddress(subsig.pk);

@@ -163,10 +163,8 @@ export default {
             account = secret.addr;
           } catch (e) {
             this.results += "Mnemonic is invalid: " + line + "\n";
-            console.log("e", arrayOfLines, words, mn, e);
             continue;
           }
-          console.log("account", account);
 
           const enc = new TextEncoder();
           let noteEnc = enc.encode(this.note);
@@ -176,14 +174,6 @@ export default {
           let fee = 1000;
           let asset = null;
           toSend++;
-          console.log("topay", {
-            payTo,
-            payFrom,
-            amount,
-            noteEnc,
-            fee,
-            asset,
-          });
           try {
             this.makePayment({
               payTo,
@@ -216,7 +206,7 @@ export default {
               }
             });
           } catch (e) {
-            console.log("error", e);
+            console.error("error", e);
           }
         }
       }

@@ -104,9 +104,7 @@ export default {
       addWalletConnect2Account: "wallet/addWalletConnect2Account",
       initWC: "wcClient/init",
     }),
-    onSessionEvent(e) {
-      console.log("onSessionEvent", e);
-    },
+    onSessionEvent(e) {},
     async clickCopy() {
       if (copy(this.uri)) {
         this.openSuccess(this.$t("global.copied_to_clipboard"));
@@ -132,13 +130,9 @@ export default {
     },
     async initWalletConnect() {
       try {
-        console.log("initWalletConnect");
-
         const provider = await this.initWC();
-        console.log("got provider, going to request session", provider);
 
         provider.on("display_uri", (uri) => {
-          console.log("display_uri", uri);
           this.uri = uri;
         });
 
@@ -152,7 +146,6 @@ export default {
             //skipPairing: true, // optional to skip pairing ( later it can be resumed by invoking .pair())
           },
         });
-        console.log("session", session);
         this.session = session;
       } catch (err) {
         console.error("error in initWalletConnect", err);

@@ -368,7 +368,6 @@ export default {
     },
     createAccount() {
       try {
-        console.log("this", this);
         this.page = "newaccount";
         let account = algosdk.generateAccount();
         this.a = account.addr;
@@ -378,7 +377,6 @@ export default {
       }
     },
     createVanity() {
-      console.log("this", this);
       this.page = "vanity";
       this.a = "";
     },
@@ -463,7 +461,6 @@ export default {
             }
           });
         } else {
-          console.log("error");
           this.openError("error");
         }
       } catch (e) {
@@ -485,7 +482,6 @@ export default {
           threshold: this.multisignum,
           addrs: accts,
         };
-        console.log("mparams", mparams, this.multisigaccts, accts);
         this.addMultiAccount({ params: mparams, name: this.name });
         this.$router.push({ name: "Accounts" });
       } catch (e) {

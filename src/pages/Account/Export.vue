@@ -43,12 +43,10 @@ function concatTypedArrays(a, b) {
 const shamirBackup = async () => {
   try {
     await store.dispatch("wallet/prolong");
-    console.log("route", route);
     state.json = await store.dispatch("wallet/getAccount", {
       addr: route.params.account,
     });
-    console.log("state.json", state.json);
-    if (!state.json.sk) {
+    if (!state.json || !state.json.sk) {
       throw new Error("Private key is not stored for this account");
     }
 
@@ -59,7 +57,6 @@ const shamirBackup = async () => {
       state.shamirMin
     );
     state.sh = shares;
-    console.log("state.sh", state.sh, state.sh.length);
     setShamirIndex(0);
   } catch (err) {
     const error = err.message ?? err;
@@ -130,20 +127,17 @@ const setShamirIndex = (index: number) => {
   // const mn0 = mn0_1 + " " + mn0_2 + " " + mn0_3;
   // state.mn = mn0;
   // state.shIndex = index;
-  // console.log("mn0", mn0);
   // state.state = "shamir2";
 };
 const algorandMnemonics = async () => {
   try {
     await store.dispatch("wallet/prolong");
-    console.log("route", route);
     state.json = await store.dispatch("wallet/getAccount", {
       addr: route.params.account,
     });
     if (!state.json.sk) {
       throw new Error("Private key is not stored for this account");
     }
-    console.log("state.json", state.json);
     state.mn = algosdk.secretKeyToMnemonic(
       new Uint8Array(Buffer.from(Object.values(state.json.sk)))
     );

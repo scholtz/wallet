@@ -325,7 +325,6 @@ export default {
   },
   computed: {
     transaction() {
-      console.log("transaction", this.$store.state.wallet.transaction);
       return this.$store.state.wallet.transaction;
     },
     asset() {
@@ -375,7 +374,6 @@ export default {
             this.transaction["asset-transfer-transaction"]["asset-id"],
         });
       }
-      console.log("this.assetObj", this.assetObj);
     },
   },
 };

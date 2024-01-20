@@ -652,7 +652,6 @@ export default {
   watch: {
     async selection() {
       await this.setTransaction({ transaction: this.selection });
-      console.log("this.selection", this.selection);
       if (this.selection.id) {
         this.$router.push("/transaction/" + this.selection.id);
       }
@@ -752,7 +751,6 @@ export default {
             const info2 = {};
             info2.address = this.account.addr;
             info2.rekeyedTo = rekeyedTo;
-            console.log("rekeyedTo", rekeyedTo);
             await this.updateAccount({ info: info2 });
             await this.openSuccess(
               `Information about rekeying to address ${rekeyedTo} has been stored`
@@ -766,7 +764,6 @@ export default {
       if (searchData) {
         this.transactions = searchData.transactions;
       }
-      console.log("this.transactions", this.transactions);
     },
     copyToClipboard(text) {
       if (copy(text)) {

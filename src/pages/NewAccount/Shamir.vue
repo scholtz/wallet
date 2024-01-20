@@ -63,7 +63,6 @@ function seedFromMnemonic(mnemonic: string) {
   // Convert the key to uint8Array
   let uint8Array = toUint8Array(uint11Array);
   const data = uint8Array.slice(0, 33);
-  console.log("uint8Array", key, uint8Array, data);
   // We dont need to chop the last byte - the shamir adds one byte extra to the array
 
   // compute checksum
@@ -120,11 +119,8 @@ const recover = async () => {
     const bytesArr = state.mn
       .filter((mn) => !!mn)
       .map((mn) => seedFromMnemonic(mn));
-    console.log("bytesArr", bytesArr);
     const reassembled = Shamir.combine(bytesArr);
-    console.log("reassembled", reassembled);
     const mn = algosdk.mnemonicFromSeed(reassembled);
-    console.log("mn", mn);
 
     await store.dispatch("wallet/addPrivateAccount", {
       mn: mn,

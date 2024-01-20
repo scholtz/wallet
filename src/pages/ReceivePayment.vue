@@ -147,7 +147,6 @@ export default {
       if (this.asset) {
         ret += "&asset=" + this.asset;
       }
-      console.log("qrcode", ret);
       return ret;
     },
     account() {
@@ -176,8 +175,6 @@ export default {
     },
   },
   mounted() {
-    console.log("qrcode", this.qrcode, this.account);
-
     this.makeAssets();
   },
   methods: {
@@ -207,7 +204,6 @@ export default {
           const asset = await this.getAsset({
             assetIndex: this.account.assets[index]["asset-id"],
           });
-          console.log("asset", asset);
           if (asset) {
             this.assets.push({
               "asset-id": this.account.assets[index]["asset-id"],
@@ -219,7 +215,6 @@ export default {
           }
         }
       }
-      console.log("this.assets", this.assets);
     },
     reset() {
       this.subpage = "";
@@ -265,7 +260,6 @@ export default {
       if (this.rawSignedTxnInput) {
         rawSignedTxn = this._base64ToArrayBuffer(this.rawSignedTxnInput);
       }
-      console.log("this.signMultisigWith", this.signMultisigWith);
       const selected = Object.values(this.signMultisigWith);
       for (const acc in this.accountsFromMultisig) {
         if (!selected.includes(this.accountsFromMultisig[acc].addr)) {
@@ -276,40 +270,23 @@ export default {
           const sk = await this.getSK({
             addr: this.accountsFromMultisig[acc].addr,
           });
-          console.log(
-            "before signMultisigTransaction",
-            algosdk,
-            this.txn,
-            this.account,
-            this.account.params,
-            sk
-          );
           rawSignedTxn = algosdk.signMultisigTransaction(
             this.txn,
             this.account.params,
             sk
           ).blob;
-          console.log("rawSignedTxn", rawSignedTxn);
         } else {
           const sk = await this.getSK({
             addr: this.accountsFromMultisig[acc].addr,
           });
-          console.log(
-            "before appendSignMultisigTransaction",
-            rawSignedTxn,
-            this.account.params,
-            sk
-          );
           rawSignedTxn = algosdk.appendSignMultisigTransaction(
             rawSignedTxn,
             this.account.params,
             sk
           ).blob;
-          console.log("rawSignedTxn", rawSignedTxn);
         }
       }
       this.rawSignedTxn = this._arrayBufferToBase64(rawSignedTxn);
-      console.log("this.rawSignedTxn", this.rawSignedTxn);
       this.rawSignedTxnInput = this.rawSignedTxn;
       /*
       var reader = new FileReader();
@@ -318,7 +295,6 @@ export default {
       reader.onloadend = function () {
         var base64 = reader.result.split(",")[1];
         that.rawSignedTxn = base64;
-        console.log("rawSignedTxn", that.rawSignedTxn);
       };/**/
     },
     _arrayBufferToBase64(buffer) {
@@ -346,7 +322,6 @@ export default {
         this._base64ToArrayBuffer(this.rawSignedTxnInput)
       );
       this.page = "review";
-      console.log("this.multisigDecoded", this.multisigDecoded);
     },
     encodeAddress(a) {
       return algosdk.encodeAddress(a);
@@ -359,9 +334,7 @@ export default {
       try {
         e.preventDefault();
         const signedTxn = this._base64ToArrayBuffer(this.rawSignedTxn);
-        console.log("signedTxn tosend", signedTxn, this.rawSignedTxn);
         const transaction = await this.sendRawTransaction({ signedTxn });
-        console.log("transaction", transaction);
         this.tx = transaction.txId;
         const confirmation = await this.waitForConfirmation({
           txId: this.tx,

@@ -21,10 +21,8 @@ const mutations = {
 const actions = {
   async accountInformation({ dispatch }, { addr }) {
     try {
-      console.log("accountInformation", addr);
       const url = new URL(this.state.config.indexer);
 
-      console.log("this, this.state", this, this.state.config.algod, url.port);
       let indexerClient = new algosdk.Indexer(
         this.state.config.indexerToken,
         this.state.config.indexer,
@@ -63,7 +61,6 @@ const actions = {
           },
           "current-round": 0,
         };
-      console.log("ret", ret);
       return ret.account;
     } catch (error) {
       console.error("error", error, dispatch);
@@ -79,7 +76,6 @@ const actions = {
         url.port
       );
       if (note) {
-        console.log("searching for addr and note", addr, note);
         const enc = new TextEncoder();
         const noteenc = enc.encode(note);
         const searchForTransactions = await indexerClient
@@ -102,7 +98,7 @@ const actions = {
         return searchForTransactions;
       }
     } catch (error) {
-      console.log("error", error, dispatch);
+      console.error("error", error, dispatch);
     }
   },
   async searchForTransactionsWithAddrAndAsset({ dispatch }, { addr, asset }) {
@@ -113,7 +109,6 @@ const actions = {
         this.state.config.indexer,
         url.port
       );
-      console.log("searching for addr and asset", addr, asset);
       const searchForTransactions = await indexerClient
         .searchForTransactions()
         .address(addr)
@@ -121,7 +116,7 @@ const actions = {
         .do();
       return searchForTransactions;
     } catch (error) {
-      console.log("error", error, dispatch);
+      console.error("error", error, dispatch);
     }
   },
   async searchForTransactionsWithNoteAndAmount(
@@ -146,7 +141,7 @@ const actions = {
         .do();
       return searchForTransactions;
     } catch (error) {
-      console.log("error", error, dispatch, note);
+      console.error("error", error, dispatch, note);
     }
   },
   async searchForTokenTransactionsWithNoteAndAmount(
@@ -171,7 +166,7 @@ const actions = {
         .do();
       return searchForTransactions;
     } catch (error) {
-      console.log("error", error, dispatch, note);
+      console.error("error", error, dispatch, note);
     }
   },
   async searchForTransactionsWithNoteAndAmountAndAccount(
@@ -196,7 +191,7 @@ const actions = {
         .do();
       return searchForTransactions;
     } catch (error) {
-      console.log("error", error, dispatch);
+      console.error("error", error, dispatch);
     }
   },
   async searchForTokenTransactionsWithNoteAndAmountAndAccount(
@@ -222,12 +217,11 @@ const actions = {
         .do();
       return searchForTransactions;
     } catch (error) {
-      console.log("error", error, dispatch);
+      console.error("error", error, dispatch);
     }
   },
   async getAsset({ commit }, { assetIndex }) {
     try {
-      console.log("assetIndex", assetIndex, !assetIndex);
       if (!assetIndex) {
         const native = {
           "asset-id": "-1",
@@ -237,7 +231,6 @@ const actions = {
           "unit-name": "",
           label: "Algorand native token",
         };
-        console.log("returning native token", native);
         return native;
       }
       let env = this.state.config.env;
@@ -256,7 +249,7 @@ const actions = {
           }
         }
       } catch (e) {
-        console.log("error", e);
+        console.error("error", e);
       }
 
       const url = new URL(this.state.config.indexer);
@@ -275,7 +268,6 @@ const actions = {
         .searchForAssets()
         .index(assetIndex)
         .do();
-      console.log("assetInfo", assetInfo);
       if (
         assetInfo &&
         assetInfo.assets &&
@@ -292,17 +284,11 @@ const actions = {
         return assetInfoData;
       }
     } catch (error) {
-      console.log("error", error);
+      console.error("error", error);
     }
   },
   async getAccountBalanceAtRound({ commit }, { account, round, assetId }) {
     try {
-      console.log(
-        "this.state.indexer.balance is undefined",
-        round,
-        this.state.indexer.balance,
-        this.state.indexer.balance[round] !== undefined
-      );
       if (this.state.indexer.balance[round] !== undefined) {
         if (this.state.indexer.balance[round][account] !== undefined) {
           if (
@@ -346,7 +332,7 @@ const actions = {
         return balance;
       }
     } catch (error) {
-      console.log("error", error);
+      console.error("error", error);
     }
   },
   async getAssetsByName({ commit }, { name }) {
@@ -358,10 +344,9 @@ const actions = {
         url.port
       );
       const assetInfo = await indexerClient.searchForAssets().name(name).do();
-      console.log("assetInfo", assetInfo);
       return assetInfo.assets;
     } catch (error) {
-      console.log("error", error, commit);
+      console.error("error", error, commit);
     }
   },
 };

@@ -171,11 +171,6 @@ export default {
     }),
     fillAccounts() {
       if (this.showNetworkAccounts) {
-        console.log(
-          "this.$store.state.wallet.privateAccounts",
-          this.$store.state.wallet.privateAccounts,
-          Object.values(this.$store.state.wallet.privateAccounts)
-        );
         this.accounts = Object.values(
           this.$store.state.wallet.privateAccounts
         ).filter(
@@ -191,7 +186,6 @@ export default {
       });
     },
     async updateBalance() {
-      console.log("updating");
       for (let index in this.$store.state.wallet.privateAccounts) {
         await this.sleep(100);
         if (!this.$store.state.wallet.privateAccounts[index]) {

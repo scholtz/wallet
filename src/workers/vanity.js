@@ -2,7 +2,6 @@ import algosdk from "algosdk";
 
 self.addEventListener("message", (e) => {
   const max = 50;
-  console.log("starting thread", e);
   for (let i = 0; i < max; i++) {
     let account = algosdk.generateAccount();
     let found = false;

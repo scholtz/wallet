@@ -5,7 +5,6 @@ export default {
   },
   parseAlgorandProtocolParameters(result) {
     let ret = {};
-    console.log("onDecodeQR", result);
     if (result) {
       if (
         result.startsWith("algorand://") ||

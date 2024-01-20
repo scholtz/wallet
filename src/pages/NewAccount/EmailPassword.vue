@@ -19,12 +19,6 @@ const state = reactive({
 });
 
 const canCreatePassword = computed(() => {
-  console.log(
-    "canCreatePassword",
-    state.emailIsValid,
-    !!state.name,
-    state.password.length >= 16
-  );
   return state.emailIsValid && !!state.name && state.password.length >= 16;
 });
 const { t } = useI18n(); // use as global scope
@@ -36,7 +30,6 @@ function checkEmailValidity() {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   state.emailIsValid = emailRegex.test(state.email);
-  console.log("email validation", state.email, state.emailIsValid);
 }
 
 async function createAccount() {

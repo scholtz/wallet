@@ -97,15 +97,11 @@ export default (() => {
         connector.rejectRequest(response);
         return;
       }
-      console.log("payload", payload);
       const transactions = payload.params[0].map((item, index) => {
         const txn = item["txn"];
-        console.log("txn", txn);
         const txnBuffer = Buffer.from(txn, "base64");
-        console.log("txnBuffer", txnBuffer);
         const decodedObj = algosdk.decodeObj(txnBuffer);
         let decodedTx = decodedObj;
-        console.log("decodedTx", decodedTx);
         if (!decodedTx.type && decodedTx.txn.type) {
           if (decodedTx.sig) {
             state.store.dispatch("signer/setSigned", {
@@ -281,16 +277,11 @@ export default (() => {
     acceptRequest: async (id) => {
       const { payload, connector } = state.requestById[id];
       const signedTxns = [];
-      console.log(state.store);
       for (const item of payload.params[0]) {
-        console.log("item", item);
         const txn = item["txn"];
-        console.log("txn", txn);
         const txnBuffer = Buffer.from(txn, "base64");
-        console.log("txnBuffer", txnBuffer);
         const decodedObj = algosdk.decodeObj(txnBuffer);
         let decodedTx = decodedObj;
-        console.log("decodedTx", decodedTx);
         if (!decodedTx.type && decodedTx.txn.type) {
           if (decodedTx.sig) {
             state.store.dispatch("signer/setSigned", {
@@ -302,11 +293,7 @@ export default (() => {
         const decoded = algosdk.decodeUnsignedTransaction(
           algosdk.encodeObj(decodedTx)
         );
-        console.log(
-          "state.store._state.data.signer.signed",
-          state.store._state.data.signer.signed
-        );
-        console.log("state", state);
+
         const txId = decoded.txID();
         if (!(txId in state.store._state.data.signer.signed)) {
           console.error(
@@ -326,7 +313,6 @@ export default (() => {
         id: id,
         result: signedTxns,
       };
-      console.log("response", response);
       connector.approveRequest(response);
 
       delete state.requestById[id];

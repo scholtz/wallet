@@ -706,7 +706,6 @@ export default {
       if (!this.multisigDecoded) return "";
       if (!this.multisigDecoded.txn) return "";
       if (!this.multisigDecoded.txn.note) return "";
-      //console.log("multisigDecoded.txn.note", this.multisigDecoded.txn.note);
       return Buffer.from(this.multisigDecoded.txn.note).toString("utf8");
     },
     isNotValid() {
@@ -741,7 +740,6 @@ export default {
           this.multisigParams.addrs.includes(a.addr) &&
           (!!a.sk || a.type == "ledger")
       );
-      console.log("accountsFromMultisig.list", list);
       const nonSigned = list.filter(
         (s) =>
           !!this.multisigDecoded.msig.subsig.find(
@@ -904,23 +902,12 @@ export default {
     },
   },
   watch: {
-    payamount() {
-      /*
-      console.log(
-        "this.stepAmount",
-        this.stepAmount,
-        this.assetObj,
-        this.account["assets"]
-      );
-      */
-    },
     payFromDirect() {
       if (this.payFromDirect) {
         this.lastActiveAccount({ addr: this.payFromDirect });
       }
     },
     account() {
-      console.log("account changed ", this.account);
       this.makeAssets();
     },
     async asset() {
@@ -936,7 +923,6 @@ export default {
           assetIndex: this.asset,
         });
       }
-      console.log("assetObj", this.assetObj);
       this.payamount = 0;
       if (this.$route.params.toAccount) {
         this.parseToAccount();
@@ -963,7 +949,6 @@ export default {
     if (this.$route.params.toAccount) {
       this.parseToAccount();
     }
-    console.log("this.$route", this.$route);
     if (this.$route.name == "PayFromWalletConnect") {
       try {
         this.txn = this.$store.state.signer.toSign;
@@ -978,18 +963,14 @@ export default {
           from: this.payFrom,
         });
         this.rawSignedTxn = this._arrayBufferToBase64(rawSignedTxn);
-        console.log("this.rawSignedTxn", this.rawSignedTxn);
         this.rawSignedTxnInput = this.rawSignedTxn;
 
         this.multisigDecoded = algosdk.decodeSignedTransaction(
           this._base64ToArrayBuffer(this.rawSignedTxnInput)
         );
-        console.log("this.multisigDecoded", this.multisigDecoded);
         this.note = this.txn.note;
         this.asset = this.txn.assetIndex;
-        console.log("this.txn", this.txn);
         this.page = "review";
-        console.log("this.payFromDirect", this.payFromDirect);
       } catch (e) {
         console.error("Input is not valid base64-url format ", e);
       }
@@ -997,19 +978,15 @@ export default {
     if (this.$route.params.rawSignedTxnInput) {
       try {
         const encoded = this.$route.params.rawSignedTxnInput;
-        console.log("encoded", encoded);
         const b64 = this.base64url2base64(encoded);
         const uint8buffer = this._base64ToArrayBuffer(b64);
-        console.log("uint8buffer", uint8buffer);
 
         this.txn = algosdk.decodeUnsignedTransaction(uint8buffer);
-        console.log("this.txn", this.txn);
         if (this.txn.to) {
           this.payTo = algosdk.encodeAddress(this.txn.to.publicKey);
         }
         this.note = this.txn.note;
         this.asset = this.txn.assetIndex;
-        console.log("this.txn", JSON.stringify(this.txn));
         this.page = "review";
       } catch (e) {
         console.error("Input is not valid base64-url format ", e);
@@ -1018,7 +995,6 @@ export default {
     if (this.$route.params.account) {
       this.lastActiveAccount({ addr: this.$route.params.account });
     }
-    console.log("account", this.account);
     await this.makeAssets();
 
     if (
@@ -1041,7 +1017,6 @@ export default {
         this.accountFor2FARealm = await this.getRealm({
           twoFactorAuthProvider: this.accountFor2FAProvider,
         });
-        console.log("accountFor2FARealm", this.accountFor2FARealm);
         this.loadAuthToken();
       } catch (err) {
         const error = err.message ?? err;
@@ -1108,7 +1083,6 @@ export default {
           const asset = await this.getAsset({
             assetIndex: this.account.assets[index]["asset-id"],
           });
-          console.log("asset", asset);
           if (asset) {
             this.assets.push({
               "asset-id": this.account.assets[index]["asset-id"],
@@ -1118,14 +1092,13 @@ export default {
               "unit-name": asset["unit-name"],
             });
           } else {
-            console.log(
+            console.error(
               "Asset not loaded",
               this.account.assets[index]["asset-id"]
             );
           }
         }
       }
-      console.log("this.assets", this.assets);
 
       if (this.$route.params.toAccount) {
         this.parseToAccount();
@@ -1195,7 +1168,6 @@ export default {
         this.multisigParams
       );
       this.rawSignedTxn = this._arrayBufferToBase64(rawSignedTxn);
-      console.log("this.rawSignedTxn", this.rawSignedTxn);
       this.rawSignedTxnInput = this.rawSignedTxn;
 
       this.multisigDecoded = algosdk.decodeSignedTransaction(
@@ -1210,7 +1182,6 @@ export default {
       if (this.rawSignedTxnInput) {
         rawSignedTxn = this._base64ToArrayBuffer(this.rawSignedTxnInput);
       }
-      console.log("this.signMultisigWith", this.signMultisigWith);
       const selected = Object.values(this.signMultisigWith);
       if (
         this.multisigParams &&
@@ -1224,12 +1195,6 @@ export default {
           from: this.payFrom,
         });
       }
-      console.log(
-        "rawSignedTxn.toSign",
-        rawSignedTxn,
-        algosdk.decodeObj(rawSignedTxn)
-      );
-      console.log("this.accountsFromMultisig", this.accountsFromMultisig);
       for (const acc in this.accountsFromMultisig) {
         try {
           if (!this.accountsFromMultisig[acc]) continue;
@@ -1309,17 +1274,9 @@ export default {
               noteEnc = enc.encode(note);
             }
           } catch (e) {
-            console.log("Error converting b64 to array");
+            console.error("Error converting b64 to array");
           }
         }
-        console.log("sending payment", {
-          payTo,
-          payFrom,
-          amount,
-          noteEnc,
-          fee,
-          asset,
-        });
         if (!this.isRekey) this.rekeyTo = undefined;
         this.tx = await this.makePayment({
           payTo,
@@ -1351,7 +1308,6 @@ export default {
               const info = {};
               info.address = this.payFrom;
               info.rekeyedTo = rekeyedTo;
-              console.log("rekeyedTo", rekeyedTo);
               await this.updateAccount({ info });
               await this.openSuccess(
                 `Information about rekeying to address ${rekeyedTo} has been stored`
@@ -1379,7 +1335,6 @@ export default {
             const info = {};
             info.address = this.payFrom;
             info.rekeyedTo = this.rekeyTo;
-            console.log("rekeyedTo", this.rekeyTo);
             await this.updateAccount({ info });
             await this.openSuccess(
               `Information about rekeying to address ${this.rekeyTo} has been stored`
@@ -1390,7 +1345,6 @@ export default {
           this.processing = false;
           this.error = confirmation["pool-error"];
         }
-        console.log("confirmation", this.tx, this.confirmation);
       } catch (exc) {
         this.error = exc;
       }
@@ -1413,7 +1367,6 @@ export default {
       ) {
         this.multisigDecoded.msig.thr = parseInt(this.multisigDecoded.msig.thr);
       }
-      console.log("this.multisigDecoded", this.multisigDecoded);
     },
     encodeAddress(a) {
       return algosdk.encodeAddress(a);
@@ -1426,11 +1379,9 @@ export default {
       try {
         e.preventDefault();
         const signedTxn = this._base64ToArrayBuffer(this.rawSignedTxn);
-        console.log("signedTxn tosend", signedTxn, this.rawSignedTxn);
         let error = "";
         try {
           const transaction = await this.sendRawTransaction({ signedTxn });
-          console.log("transaction", transaction);
           this.tx = transaction.txId;
         } catch (e) {
           await this.openError(e.message);
@@ -1452,7 +1403,6 @@ export default {
               const info = {};
               info.address = this.payFrom;
               info.rekeyedTo = rekeyedTo;
-              console.log("rekeyedTo", rekeyedTo);
               await this.updateAccount({ info });
               await this.openSuccess(
                 `Information about rekeying to address ${rekeyedTo} has been stored`
@@ -1484,7 +1434,6 @@ export default {
       if (this.scan) {
         this.payTo = "";
       }
-      console.log("camera", this.scan);
     },
     test(e) {
       e.preventDefault();
@@ -1496,18 +1445,7 @@ export default {
         "algorand://046LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?note=SGVsbG8=&noteB64=1&fee=0.001&amount=1",
       ];
       for (let index in tests) {
-        console.log("testing", tests[index]);
         this.onDecodeQR(tests[index]);
-        console.log(
-          "result",
-          tests[index],
-          this.payTo,
-          this.paynote,
-          this.paynoteB64,
-          this.payamount,
-          this.fee,
-          this.asset
-        );
       }
     },
     isEncoded(uri) {
@@ -1515,7 +1453,6 @@ export default {
       return uri !== decodeURIComponent(uri);
     },
     onDecodeQR(result) {
-      console.log("onDecodeQR", result);
       if (this.scan && result) {
         if (
           result.startsWith("algorand://") ||
@@ -1600,7 +1537,6 @@ export default {
           this.payTo = this.payTo.replace(/[^\w\s]/gi, "");
         }
       }
-      console.log("onDecodeQR.out", result, this.payTo);
       if (this.payTo) {
         this.scan = false;
       }
@@ -1618,7 +1554,6 @@ export default {
       this.multisigDecoded = algosdk.decodeSignedTransaction(
         this._base64ToArrayBuffer(this.rawSignedTxn)
       );
-      console.log("multisigDecoded", this.multisigDecoded);
       await this.signerSetSigned({ signed: merged });
     },
     async combineSignatures(e) {
@@ -1638,7 +1573,6 @@ export default {
       try {
         this.prolong();
         e.preventDefault();
-        console.log("this.txtCode", this.txtCodem, this.accountFor2FA);
         const newTx = await this.signTwoFactor({
           rawSignedTxnInput: this.rawSignedTxnInput,
           secondaryAccount: this.accountFor2FA.recoveryAccount,
@@ -1646,7 +1580,6 @@ export default {
           authToken: this.accountFor2FAAuthToken,
           twoFactorAuthProvider: this.accountFor2FAProvider,
         });
-        console.log("newTx", newTx);
         await this.addSignature(newTx);
       } catch (err) {
         const error = err.message ?? err;
@@ -1689,7 +1622,6 @@ export default {
         account: this.accountFor2FAAddrPrimary,
         realm: this.accountFor2FARealm,
       });
-      console.log("accountFor2FAAuthToken", this.accountFor2FAAuthToken);
     },
     toggleShowFormSend(e) {
       this.prolong();

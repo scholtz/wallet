@@ -533,11 +533,9 @@ export default {
       return this.uri;
     },
     sessionProposals() {
-      console.log("sessionProposals", this.$store.state.wc.sessionProposals);
       return this.$store.state.wc.sessionProposals;
     },
     connectors() {
-      console.log("sessionProposals", this.$store.state.wc.connectors);
       return this.$store.state.wc.connectors;
     },
   },
@@ -576,7 +574,6 @@ export default {
       cancelRequest: "wc/cancelRequest",
     }),
     normalizeUrl(url) {
-      console.log("url", url);
       if (url.indexOf("http") === 0) return url;
       if (url.indexOf("//") == 0) return url;
       return "https://" + url;
@@ -655,14 +652,9 @@ export default {
       }
     },
     async clickSign(data) {
-      console.log("data", data);
-
-      console.log("isSigned.data", data);
       const txId = data.txn.txID();
-      console.log("isSigned.txId", txId);
       const isSigned = txId in this.$store.state.signer.signed;
       if (isSigned) {
-        console.log("clickSign - already signed", txId);
         return;
       }
       const type = await this.getSignerType({
@@ -677,9 +669,7 @@ export default {
           signator: data.from,
           tx: data.txn,
         });
-        console.log("signed", signed);
       }
-      console.log("data", type, data);
     },
     async clickAccept(data) {
       this.prolong();
@@ -752,7 +742,6 @@ export default {
       });
     },
     async clickApproveSession(id) {
-      console.log("clickApproveSession", id);
       try {
         await this.approveSession({ id });
       } catch (err) {
@@ -761,7 +750,6 @@ export default {
       }
     },
     async clickRejectSession(id) {
-      console.log("clickRejectSession", id);
       try {
         await this.rejectSession({ id });
       } catch (err) {
@@ -770,40 +758,27 @@ export default {
       }
     },
     toBeSigned(data) {
-      console.log("isSigned.data", data);
       const txId = data.txn.txID();
-      console.log("isSigned.txId", txId);
       const signed = txId in this.$store.state.signer.signed;
-      console.log("isSigned.signed", signed);
       if (!signed) return true; // if not signed return true to show sign button
-      console.log("data.txn", data.txn);
       const from = this.encodeAddress(data.txn.from);
-      console.log("from", from);
       const type = this.getSignerType({
         from: from,
       });
-      console.log("type", type);
       if (type == "msig") {
         // check sign threshold
         const signedTx = algosdk.decodeSignedTransaction(
           this.$store.state.signer.signed[txId]
         );
-        console.log("signedTx.msig", signedTx.msig);
-        console.log(
-          "signedTx.msig.subsig.filter((s) => !!s.s).length",
-          signedTx.msig.subsig.filter((s) => !!s.s).length,
-          signedTx.msig.thr
-        );
+
         const ret =
           signedTx.msig.subsig.filter((s) => !!s.s).length < signedTx.msig.thr;
-        console.log("ret", ret);
         return ret;
       } else {
         return !signed;
       }
     },
     atLeastOneSigned(data) {
-      console.log("data", data);
       for (let tx of data.transactions) {
         if (tx.txn.txID() in this.$store.state.signer.signed) return true;
       }
