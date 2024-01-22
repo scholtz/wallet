@@ -31,7 +31,6 @@ const options = await store.dispatch("publicData/getTwoFactorAuthList", {
 if (options && options.length == 1) {
   model.value = options[0].id;
 }
-console.log("options", options);
 </script>
 <template>
   <Dropdown

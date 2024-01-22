@@ -70,7 +70,6 @@ const actions = {
       throw Error("WalletConnect ProjectId Not initialized");
 
     const store = new WCKeyValueStore(dispatch);
-    console.log("store", store);
 
     const core = await new Core({
       projectId: walletConnectProjectId,
@@ -83,7 +82,6 @@ const actions = {
       storage: store,
       core: core,
     });
-    console.log("client", client);
     const provider = await UniversalProvider.init({
       logger: "debug",
       projectId: walletConnectProjectId,
@@ -92,38 +90,30 @@ const actions = {
     });
 
     provider.on("session_proposal", async (sessionProposal) => {
-      console.log("wcclient.on session_proposal", sessionProposal);
       await commit("addSessionProposal", sessionProposal);
     });
     provider.on("session_request", async (sessionRequest) => {
-      console.log("wcclient.on session_request", sessionRequest);
       await commit("addSessionRequest", sessionRequest);
     });
     provider.on("auth_request", async (authRequest) => {
-      console.log("wcclient.on auth_request", authRequest);
       await commit("addAuthRequest", authRequest);
     });
     provider.on("call_request", async (callRequest) => {
-      console.log("wcclient.on call_request", callRequest);
       await commit("addCallRequest", callRequest);
     });
     provider.on("subscription_created", async (subscription) => {
-      console.log("wcclient.on subscription_created", subscription);
       await commit("addSubscription", subscription);
     });
     provider.on("algo_signTxn", async (algoSignTxn) => {
-      console.log("wcclient.on algo_signTxn", algoSignTxn);
       await commit("addAlgoSignTxn", algoSignTxn);
     });
 
     return provider;
   },
   async approveSession({ commit, dispatch }, { id }) {
-    console.log("wc.approveSession", id);
     const currentChain = await dispatch("publicData/getCurrentChainId", null, {
       root: true,
     });
-    console.log("currentChain", currentChain);
     const lastActive = this.state.wallet.lastActiveAccount;
     const session = await this.state.wc.web3wallet.approveSession({
       id,
@@ -137,23 +127,18 @@ const actions = {
         //skipPairing: true, // optional to skip pairing ( later it can be resumed by invoking .pair())
       },
     });
-    console.log("approveSession", session);
   },
   async connectUri({ commit }, { uri }) {
-    console.log("connectUri", uri);
     const { version } = parseUri(uri);
     const last = localStorage.getItem("lastUsedWallet");
     if (version === 1) {
-      console.log("wc connect v1 ", uri, last);
       wc.createConnector(uri, last);
     } else {
-      console.log("wc connect v2 ", uri);
       try {
         await this.state.wc.web3wallet.pair({ uri, activatePairing: true });
       } catch (err) {
         console.error("unable to pair", err);
       }
-      console.log("after pair", this.state.wc.web3wallet);
     }
   },
 };

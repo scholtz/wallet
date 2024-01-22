@@ -287,7 +287,6 @@ export default {
     },
   },
   mounted() {
-    console.log("accountsWithPrivateKey", this.accountsWithPrivateKey);
     this.addr = localStorage.getItem("lastUsedWallet");
   },
   methods: {
@@ -300,7 +299,6 @@ export default {
     }),
     async createAsset(e) {
       e.preventDefault();
-      console.log("asset", this.asset);
       const asset = await this.makeAssetCreateTxnWithSuggestedParams({
         asset: this.asset,
       });
@@ -325,7 +323,6 @@ export default {
     },
     async createAssetMultisig(e) {
       e.preventDefault();
-      console.log("asset", this.asset);
       const assetCreateTx = await this.makeAssetCreateTxnWithSuggestedParamsTx({
         asset: this.asset,
       });
@@ -333,14 +330,6 @@ export default {
       const urldataB64 = this._arrayBufferToBase64(encodedtxn);
       const urldataB64url = this.base642base64url(urldataB64);
       const pushTo = `/multisig/${this.asset.addr}/${urldataB64url}`;
-      console.log(
-        "txn",
-        assetCreateTx,
-        encodedtxn,
-        urldataB64,
-        urldataB64url,
-        pushTo
-      );
       this.$router.push(pushTo);
     },
   },

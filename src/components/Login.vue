@@ -182,7 +182,6 @@ export default {
     strength() {
       if (!this.pass) return "";
       const ret = passwordStrength(this.pass);
-      console.log("ret", ret);
       return this.$t("login.strength") + ": " + ret.value;
     },
   },
@@ -210,7 +209,6 @@ export default {
         const redirectTo =
           "/account/" + this.$store.state.wallet.lastActiveAccount;
         this.$router.push(redirectTo);
-        console.log("to", redirectTo);
       } else {
         this.$router.push("/accounts");
       }

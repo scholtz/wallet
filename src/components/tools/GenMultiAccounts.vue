@@ -55,14 +55,11 @@ export default {
   methods: {
     async generate() {
       this.results = "";
-      console.log("generating accounts");
       for (let index = 0; index < this.amount; index++) {
         let account = algosdk.generateAccount();
-        console.log(account.addr);
         this.results +=
           algosdk.secretKeyToMnemonic(account.sk) + " " + account.addr + "\n";
       }
-      console.log(this.results);
     },
   },
 };

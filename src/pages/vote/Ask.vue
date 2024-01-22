@@ -216,7 +216,6 @@ export default {
     },
     max_block() {
       if (!this.params) return;
-      console.log("this.params", this.params, this.params.firstRound);
       if (!this.params.firstRound) return;
       return parseInt(this.params.firstRound) + parseInt(this.duration);
     },
@@ -235,11 +234,9 @@ export default {
     },
   },
   async mounted() {
-    console.log("accountsWithPrivateKey", this.accountsWithPrivateKey);
     this.prolong();
     this.params = await this.getTransactionParams();
     this.paramsTime = new Date();
-    console.log("params", this.params);
   },
   methods: {
     ...mapActions({
@@ -267,14 +264,6 @@ export default {
         const note = this.note;
         if (!note) return;
         let noteEnc = enc.encode(note);
-        console.log("sending payment", {
-          payTo,
-          payFrom,
-          amount,
-          noteEnc,
-          fee,
-          asset,
-        });
         this.tx = await this.makePayment({
           payTo,
           payFrom,
@@ -301,7 +290,6 @@ export default {
           this.processing = false;
           this.error = confirmation["pool-error"];
         }
-        console.log("confirmation", this.tx, this.confirmation);
       } catch (exc) {
         this.error = exc;
       }

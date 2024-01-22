@@ -100,7 +100,6 @@ myApp.config.globalProperties.$filters = {
         maximumFractionDigits: minimumFractionDigits,
       });
       const ret = formatter.format();
-      console.log("currency", currency, minimumFractionDigits, value, ret);
 
       return ret;
     } else {

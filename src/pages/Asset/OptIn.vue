@@ -293,7 +293,6 @@ export default {
         this.assets = await this.getAssetsByName({
           name: this.assetName,
         });
-        console.log("this.assets.length", this.assets.length);
         if (this.assets.length === 0) {
           this.openError(this.$t("optin.asset_not_found"));
         }
@@ -303,7 +302,6 @@ export default {
           });
         }
       }
-      console.log("asset", this.asset);
     },
     async optInConfirmClick() {
       this.optInProcessing = true;
@@ -315,9 +313,7 @@ export default {
         fee: 1000,
         asset: this.asset["asset-id"],
       };
-      console.log("payment.data", data);
       const result = await this.makePayment(data);
-      console.log("result", result);
       if (result) {
         this.openSuccess(this.$t("optin.asset_opt_in_success"));
         await this.sleep(2000);
@@ -342,7 +338,6 @@ export default {
       const urldataB64 = this._arrayBufferToBase64(encodedtxn);
       const urldataB64url = this.base642base64url(urldataB64);
       const pushTo = `/multisig/${this.$route.params.account}/${urldataB64url}`;
-      console.log("txn", txn, encodedtxn, urldataB64, urldataB64url, pushTo);
       this.$router.push(pushTo);
     },
     _arrayBufferToBase64(buffer) {

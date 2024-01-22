@@ -71,7 +71,6 @@ const actions = {
       const txn =
         algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(toSignData);
 
-      console.log("txn", txn);
       let signedTxn = await dispatch(
         "signer/signTransaction",
         { from: account, tx: txn },
@@ -79,9 +78,6 @@ const actions = {
           root: true,
         }
       );
-      console.log("signedTxn", signedTxn);
-      let txId = txn.txID().toString();
-      console.log("txId", txId);
       const ret = await algodclient
         .sendRawTransaction(signedTxn)
         .do()
@@ -91,11 +87,7 @@ const actions = {
               root: true,
             });
           }
-          console.log("e", e, e.message, e.data);
-
-          for (var key in e) {
-            console.log("e.key", key, e[key]);
-          }
+          console.error("e", e, e.message, e.data);
         });
       return ret.txId;
     } catch (error) {
@@ -133,7 +125,6 @@ const actions = {
       const txn =
         algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(toSignData);
 
-      console.log("txn", txn);
       let signedTxn = await dispatch(
         "signer/signTransaction",
         { from: account, tx: txn },
@@ -141,9 +132,6 @@ const actions = {
           root: true,
         }
       );
-      console.log("signedTxn", signedTxn);
-      let txId = txn.txID().toString();
-      console.log("txId", txId);
       const ret = await algodclient
         .sendRawTransaction(signedTxn)
         .do()
@@ -153,11 +141,7 @@ const actions = {
               root: true,
             });
           }
-          console.log("e", e, e.message, e.data);
-
-          for (var key in e) {
-            console.log("e.key", key, e[key]);
-          }
+          console.error("e", e, e.message, e.data);
         });
       return ret.txId;
     } catch (error) {

@@ -301,15 +301,13 @@ export default {
             continue;
           }
           note = note.replace(searchWithJ, "");
-          console.log("note", note);
           let noteJson = {};
           try {
             noteJson = JSON.parse(note);
           } catch (e) {
-            console.log("error parsing", tx);
+            console.error("error parsing", tx);
             continue;
           }
-          console.log("noteJson", noteJson);
           const answ = {
             round: tx["confirmed-round"],
             d: noteJson.d,
@@ -319,13 +317,11 @@ export default {
         }
       } else {
         this.error = "Error while loading data from the blockchain";
-        console.log("no transactions found");
+        console.error("no transactions found");
       }
-      console.log("latest", latest);
       if (latest) {
         this.delegations = latest.d;
       }
-      console.log("txs", txs, this.questions);
     },
     sum(delegation) {
       if (!delegation) return 0;
@@ -381,14 +377,6 @@ export default {
         const note = this.note;
         if (!note) return;
         let noteEnc = enc.encode(note);
-        console.log("sending payment", {
-          payTo,
-          payFrom,
-          amount,
-          noteEnc,
-          fee,
-          asset,
-        });
         this.tx = await this.makePayment({
           payTo,
           payFrom,
@@ -415,7 +403,6 @@ export default {
           this.processing = false;
           this.error = confirmation["pool-error"];
         }
-        console.log("confirmation", this.tx, this.confirmation);
       } catch (exc) {
         this.error = exc;
       }

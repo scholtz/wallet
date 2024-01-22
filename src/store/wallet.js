@@ -50,12 +50,9 @@ const mutations = {
         acc.addr == addr &&
         (acc.network === undefined || acc.network === network)
     );
-    //console.log("deleting", index);
     state.privateAccounts.splice(index, 1);
   },
   setPrivateAccount(state, { info }) {
-    console.log("state.privateAccounts", state.privateAccounts);
-    console.log("setPrivateAccount.mutation", info);
     if (!info.address) {
       if (!info.addr) return;
       info.address = info.addr;
@@ -79,7 +76,6 @@ const mutations = {
       // fallback
       acc = state.privateAccounts.find((x) => x.addr == info.address);
     }
-    console.log("acc", acc, state.privateAccounts);
     if (!acc || !acc.addr) {
       console.error(`Error storing account. Address ${info.address} not found`);
       return;
@@ -93,7 +89,6 @@ const mutations = {
         }
       }
     }
-    console.log("setPrivateAccount", info, acc);
   },
   addEmailPasswordAccount(
     state,
@@ -111,11 +106,9 @@ const mutations = {
     if (savePassword) {
       account.sk = genAccount.sk;
     }
-    console.log("new account", account);
     state.privateAccounts.push(account);
   },
   addMultiAccount(state, { addr, params, name, network }) {
-    console.log("addMultiAccount", { addr, params, name, network });
     const multsigaddr = {
       addr,
       address: addr,
@@ -259,9 +252,7 @@ const actions = {
     const address = this.state.wallet.privateAccounts.find(
       (a) => a.addr == addr
     );
-    //console.log("privateAccounts", address);
     if (address) {
-      //console.log("address", address);
       if (address.rekeyedTo && address.rekeyedTo != addr) {
         return await dispatch("getSK", { addr: address.rekeyedTo });
       }
@@ -382,7 +373,6 @@ const actions = {
         cryptoKey,
         256
       );
-      console.log("masterBits", masterBits);
       const uint8 = new Uint8Array(masterBits);
       const mnemonic = algosdk.mnemonicFromSeed(uint8);
       const genAccount = algosdk.mnemonicToSecretKey(mnemonic);
@@ -568,7 +558,6 @@ const actions = {
     }
   },
   async updateAccount({ dispatch, commit }, { info }) {
-    console.log("updateAccount", info);
     if (!info) {
       return false;
     }
@@ -648,7 +637,6 @@ const actions = {
         await db.wallets.update(walletRecord.id, walletRecord);
       }
     }
-    //console.log("saved", this.state.wallet);
   },
   async openWallet({ commit, dispatch }, { name, pass }) {
     const walletRecord = await db.wallets.get({ name });
@@ -744,13 +732,12 @@ const actions = {
         return;
       }
       const walletRecord = await db.wallets.get({ name });
-      //console.log("walletRecord.data", walletRecord.data);
       return btoa(walletRecord.data);
     } catch (e) {
       dispatch("toast/openError", "Error occurred: " + e, {
         root: true,
       });
-      console.log("error", e);
+      console.error("error", e);
     }
   },
   async destroyWallet({ commit, dispatch }) {
@@ -795,7 +782,6 @@ const actions = {
     }
     await db.wallets.add({ name, data });
     localStorage.setItem("lastUsedWallet", name);
-    console.log("ok", commit);
     return true;
   },
   encrypt: async (store, { data }) => {
@@ -824,14 +810,9 @@ const actions = {
     return store.state.name;
   },
   async wcGetKeys() {
-    console.log("getKeys", Object.keys(this.state.wallet.wc));
     return Object.keys(this.state.wallet.wc);
   },
   async wcGetEntries() {
-    console.log(
-      "getEntries",
-      Object.entries(this.state.wallet.wc).map(parseEntry)
-    );
     return Object.entries(this.state.wallet.wc).map(parseEntry);
   },
   async wcGetItem({ dispatch }, { key }) {
@@ -842,12 +823,10 @@ const actions = {
     return safeJsonParse(item);
   },
   async wcSetItem({ dispatch, commit }, { key, value }) {
-    console.log("setItem", key, value);
     await commit("wcSetItem", { key, value });
     await dispatch("saveWallet");
   },
   async wcRemoveItem({ dispatch }, { key }) {
-    console.log("removeItem", key);
     await commit("wcRemoveItem", { key });
     await dispatch("saveWallet");
   },

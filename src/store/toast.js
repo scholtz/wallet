@@ -22,7 +22,6 @@ const actions = {
     }
     if (!this.state.toast._vm) {
       alert(m);
-      console.log("this", this, commit);
     } else {
       this.state.toast._vm.$toast.add({
         severity: "success",
@@ -39,7 +38,6 @@ const actions = {
     console.error("Error:", m);
     if (!this.state.toast._vm) {
       alert(message);
-      console.log("this", this, commit);
     } else {
       this.state.toast._vm.$toast.add({
         severity: "error",

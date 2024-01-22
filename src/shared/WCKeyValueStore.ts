@@ -11,7 +11,6 @@ export class WCKeyValueStore implements IKeyValueStorage {
     const ret = await this.dispatch("wallet/wcGetKeys", null, {
       root: true,
     });
-    console.log("getKeys", ret);
     return ret;
   }
 
@@ -19,7 +18,6 @@ export class WCKeyValueStore implements IKeyValueStorage {
     const ret = await this.dispatch("wallet/wcGetEntries", null, {
       root: true,
     });
-    console.log("getEntries", ret);
     return ret;
   }
 
@@ -31,12 +29,10 @@ export class WCKeyValueStore implements IKeyValueStorage {
         root: true,
       }
     );
-    console.log("getItem", key, ret);
     return ret;
   }
 
   public async setItem<T = any>(key: string, value: T): Promise<void> {
-    console.log("setItem", key, value);
     return await this.dispatch(
       "wallet/wcSetItem",
       { key, value },
@@ -47,7 +43,6 @@ export class WCKeyValueStore implements IKeyValueStorage {
   }
 
   public async removeItem(key: string): Promise<void> {
-    console.log("removeItem", key);
     return await this.dispatch(
       "wallet/wcRemoveItem",
       { key },

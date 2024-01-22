@@ -25,7 +25,7 @@ const state = () => ({
   noredirect: false, // redirect to account page after successfull login
   dev: false,
   deflex: "",
-  language: "en-US"
+  language: "en-US",
 });
 
 const mutations = {
@@ -122,7 +122,6 @@ const mutations = {
     if (indexerToken) {
       state.indexerToken = indexerToken;
     }
-    console.log("hosts", algodHost, participationHost, indexerHost);
   },
   setHosts(
     state,
@@ -175,13 +174,12 @@ const mutations = {
       localStorage.setItem("indexerToken", indexerToken);
     }
   },
-  setLanguage(state, value){
+  setLanguage(state, value) {
     state.language = value;
     localStorage.setItem("lang", value);
   },
   setNoRedirect(state) {
     state.noredirect = true;
-    console.log("state.noredirect", state.noredirect);
   },
 };
 const actions = {
@@ -198,30 +196,24 @@ const actions = {
       indexerToken,
     }
   ) {
-
     let tokenSymbol = this.tokenSymbol;
     if (env == "mainnet" || env == "mainnet-v1.0") {
       tokenSymbol = "Algo";
-    }
-    else if (env == "aramidmain" || env == "aramidmain-v1.0") {
+    } else if (env == "aramidmain" || env == "aramidmain-v1.0") {
       tokenSymbol = "aAlgo";
-    }
-    else if (env == "voitestnet" || env == "voitest-v1") {
+    } else if (env == "voitestnet" || env == "voitest-v1") {
       tokenSymbol = "Voi";
-    }
-    else if (this.env == "voi" || env == "voi-v1.0") {//TODO - Support Voi Mainnet
+    } else if (this.env == "voi" || env == "voi-v1.0") {
+      //TODO - Support Voi Mainnet
       tokenSymbol = "Voi";
-    }
-    else if (env == "testnet" || env == "testnet-v1.0") {
+    } else if (env == "testnet" || env == "testnet-v1.0") {
+      tokenSymbol = "Algo";
+    } else if (env == "devnet") {
+      tokenSymbol = "Algo";
+    } else if (env == "sandbox" || env == "sandnet-v1") {
       tokenSymbol = "Algo";
     }
-    else if (env == "devnet") {
-      tokenSymbol = "Algo";
-    }
-    else if (env == "sandbox" || env == "sandnet-v1") {
-      tokenSymbol = "Algo";
-    }
-    
+
     await commit("setHosts", {
       env,
       envName,
@@ -234,8 +226,8 @@ const actions = {
       indexerToken,
     });
   },
-  async setLanguage({ commit }, value){
-    await commit("setLanguage", value)
+  async setLanguage({ commit }, value) {
+    await commit("setLanguage", value);
   },
   async setEnv({ dispatch }, { env }) {
     if (env == "mainnet" || env == "mainnet-v1.0") {
@@ -263,7 +255,7 @@ const actions = {
           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       });
     }
-    
+
     if (this.env == "voitestnet" || env == "voitest-v1") {
       dispatch("setHosts", {
         env: "voitestnet",

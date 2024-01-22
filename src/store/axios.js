@@ -20,7 +20,6 @@ axios.interceptors.response.use(
   function (error) {
     if (401 === error.response.status) {
       // handle error: inform user, go to login, etc
-      console.log("401", error);
       return Promise.reject(error);
     } else {
       return Promise.reject(error);
@@ -116,7 +115,7 @@ const actions = {
       }
     } catch (e) {
       if (!silent) {
-        console.log("catch.e", e);
+        console.error("catch.e", e);
         dispatch("toast/openError", e.message, { root: true });
       }
     }
@@ -133,7 +132,6 @@ const actions = {
           axios.defaults.headers.common["Accept-Language"] = lang;
         }
       }
-      console.log("Downloading..");
 
       if (type === "post") {
         let fd = new FormData();
@@ -143,7 +141,6 @@ const actions = {
         response = await axios
           .post(url, fd, { responseType: "blob" })
           .then((response) => {
-            console.log("response", response);
             if (response.data) {
               var blob = new Blob([response.data]);
               var downloadElement = document.createElement("a");
@@ -165,7 +162,7 @@ const actions = {
             return response;
           })
           .catch(function (error) {
-            console.log("error", error.response.data);
+            console.error("error", error.response.data);
 
             if (error.response && error.response.status == 401) {
               dispatch("toast/openError", "Session timeout - unauthenticated", {
@@ -222,7 +219,6 @@ const actions = {
         response = await axios
           .get(url, { params })
           .then((response) => {
-            console.log("response", response);
             if (response.data) {
               var blob = new Blob([response.data]);
               var downloadElement = document.createElement("a");
@@ -307,13 +303,12 @@ const actions = {
         });
       }
     } catch (e) {
-      console.log("catch.e", e);
+      console.error("catch.e", e);
       dispatch("toast/openError", e.message, { root: true });
     }
   },
   async post({ dispatch }, { url, params, body, config }) {
     let response = null;
-    // console.log('post', url, params)
     try {
       let fd = new FormData();
       for (const index in params) {
@@ -329,7 +324,6 @@ const actions = {
         }
       }
       let shown = false;
-      console.log("post", url, fd, config);
       response = await axios.post(url, fd, config).catch(function (error) {
         if (error.response && error.response && error.response.status == 401) {
           dispatch("toast/openError", "Session timeout - unauthenticated", {
@@ -406,7 +400,7 @@ const actions = {
         });
       }
     } catch (e) {
-      console.log("catch.e", e);
+      console.error("catch.e", e);
       dispatch("toast/openError", e.message, { root: true });
     }
   },

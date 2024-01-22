@@ -412,16 +412,6 @@ export default {
       if (publicListItem1) {
         envName = publicListItem1.name;
       }
-      console.log("update", {
-        env: this.env,
-        envName: envName,
-        algod: this.algodHost,
-        participation: this.participationHost,
-        indexer: this.indexerHost,
-        algodToken: this.algodToken,
-        participationToken: this.participationToken,
-        indexerToken: this.indexerToken,
-      });
       this.setHosts({
         env: this.env,
         envName: envName,

@@ -50,9 +50,6 @@ export default {
       );
     },
   },
-  mounted() {
-    console.log("accountsWithPrivateKey", this.accountsWithPrivateKey);
-  },
   methods: {
     ...mapActions({
       openSuccess: "toast/openSuccess",

@@ -34,20 +34,17 @@ async function arc14Request() {
     const realm = await store.dispatch("fa2/getRealm", {
       twoFactorAuthProvider: state.server,
     });
-    console.log("sending", { account: state.account1, realm });
     state.authToken = await store.dispatch("arc14/signAuthTx", {
       account: state.account1,
       realm,
     });
     if (!state.authToken) return;
-    console.log("authToken", state.authToken);
     state.auth2FAResp = await store.dispatch("fa2/setupAuthenticator", {
       authToken: state.authToken,
       account: state.account1,
       secondaryAccount: state.account2,
       twoFactorAuthProvider: state.server,
     });
-    console.log("setupAuthenticator", state.auth2FAResp);
   } catch (err: any) {
     const error = err.message ?? err;
     console.error("failed to do arc14Request", error, err);
@@ -64,7 +61,6 @@ async function confirmRequest() {
       txtCode: state.txtCode,
       twoFactorAuthProvider: state.server,
     });
-    console.log("state.confirmResp", state.confirmResp);
     if (state.confirmResp) {
       await store.dispatch("wallet/add2FAAccount", {
         name: state.name,
@@ -75,7 +71,6 @@ async function confirmRequest() {
       });
       router.push({ name: "Accounts" });
     }
-    console.log("state.confirmResp", state.confirmResp);
   } catch (err: any) {
     const error = err.message ?? err;
     console.error("failed to confirmRequest", error, err);

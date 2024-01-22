@@ -440,9 +440,7 @@ export default {
         }
       }
     },
-    votingFinished() {
-      console.log("votingFinished", this.votingFinished);
-    },
+    votingFinished() {},
     currentToken() {
       this.initLoad();
     },

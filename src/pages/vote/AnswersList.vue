@@ -126,7 +126,6 @@ export default {
       prolong: "wallet/prolong",
     }),
     async loadTableItems() {
-      console.log("this.question", this.question);
       this.loading = true;
       this.params = await this.getTransactionParams();
       const search = "avote-vote/v1/" + this.question.substring(0, 10);
@@ -154,21 +153,18 @@ export default {
           if (this.isBase64(tx.note)) {
             note = atob(tx.note);
           }
-          console.log("note", note);
           const searchWithJ = search + ":j";
           if (!note.startsWith(searchWithJ)) {
             continue;
           }
           note = note.replace(searchWithJ, "");
-          console.log("note", note);
           let noteJson = {};
           try {
             noteJson = JSON.parse(note);
           } catch (e) {
-            console.log("error parsing", tx);
+            console.error("error parsing", tx);
             continue;
           }
-          console.log("noteJson", noteJson);
           const answ = {
             round: tx["confirmed-round"],
             "round-time": tx["round-time"],
@@ -184,13 +180,12 @@ export default {
         }
       } else {
         this.error = "Error while loading data from the blockchain";
-        console.log("no transactions found");
+        console.error("no transactions found");
       }
       if (latest) {
         latest.latest = true;
         this.$emit("update:selectedAnswer", latest);
       }
-      console.log("txs", txs, this.questions);
     },
     isBase64(str) {
       if (!str) return false;

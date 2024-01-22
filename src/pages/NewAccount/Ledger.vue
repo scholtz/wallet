@@ -80,18 +80,14 @@ export default {
         const transport = await TransportWebUSB.request();
         const algo = new Algorand(transport);
         const getAddressOfSlot = `44'/283'/${slot}'/0/0`;
-        console.log(`Sending to ledger: ${getAddressOfSlot}`);
         const address = await algo.getAddress(getAddressOfSlot);
         if (storeZero) {
           this.address0 = address.address;
-          console.log("this.address0", this.address0);
         } else {
           this.address = address.address;
-          console.log("address", this.address);
 
           if (slot == 0) {
             this.address0 = address.address;
-            console.log("this.address0", this.address0);
           }
         }
       } catch (Error) {

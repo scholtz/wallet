@@ -89,11 +89,9 @@ const actions = {
     await commit("setWeb3wallet", web3wallet);
 
     web3wallet.on("session_proposal", async (sessionProposal) => {
-      console.log("on session_proposal", sessionProposal);
       await commit("addSessionProposal", sessionProposal);
     });
     web3wallet.on("session_request", async (sessionRequest) => {
-      console.log("on session_request", sessionRequest);
       await commit("addSessionRequest", sessionRequest);
 
       if (
@@ -103,15 +101,11 @@ const actions = {
       ) {
         const request = sessionRequest.params.request;
         if (request.method === "algo_signTxn") {
-          console.log("request", request);
           const transactions = request.params[0].map((item, index) => {
             const txn = item["txn"];
-            console.log("txn", txn);
             const txnBuffer = Buffer.from(txn, "base64");
-            console.log("txnBuffer", txnBuffer);
             const decodedObj = algosdk.decodeObj(txnBuffer);
             let decodedTx = decodedObj;
-            console.log("decodedTx", decodedTx);
             if (!decodedTx.type && decodedTx.txn.type) {
               if (decodedTx.sig) {
                 state.store.dispatch("signer/setSigned", {
@@ -123,7 +117,6 @@ const actions = {
             const decoded = algosdk.decodeUnsignedTransaction(
               algosdk.encodeObj(decodedTx)
             );
-            console.log("decoded", decoded);
             let asset = "";
             switch (decoded.type) {
               case "pay":
@@ -201,28 +194,22 @@ const actions = {
       }
     });
     web3wallet.on("auth_request", async (authRequest) => {
-      console.log("on auth_request", authRequest);
       await commit("addAuthRequest", authRequest);
     });
     web3wallet.on("call_request", async (callRequest) => {
-      console.log("on call_request", callRequest);
       await commit("addCallRequest", callRequest);
     });
     web3wallet.on("subscription_created", async (subscription) => {
-      console.log("on subscription_created", subscription);
       await commit("addSubscription", subscription);
     });
     web3wallet.on("algo_signTxn", async (algoSignTxn) => {
-      console.log("on algo_signTxn", algoSignTxn);
       await commit("addAlgoSignTxn", algoSignTxn);
     });
   },
   async approveSession({ commit, dispatch }, { id }) {
-    console.log("wc.approveSession", id);
     const currentChain = await dispatch("publicData/getCurrentChainId", null, {
       root: true,
     });
-    console.log("currentChain", currentChain);
     const lastActive = this.state.wallet.lastActiveAccount;
     const session = await this.state.wc.web3wallet.approveSession({
       id,
@@ -236,12 +223,10 @@ const actions = {
         //skipPairing: true, // optional to skip pairing ( later it can be resumed by invoking .pair())
       },
     });
-    console.log("approveSession", session);
     commit("removeSessionProposal", id);
   },
   async rejectSession({ commit, dispatch }, { id }) {
     try {
-      console.log("wc.rejectSession", id);
       const session = await this.state.wc.web3wallet.rejectSession({
         id,
         reason: {
@@ -249,7 +234,6 @@ const actions = {
           code: 5002,
         },
       });
-      console.log("rejectSession", session);
       commit("removeSessionProposal", id);
     } catch (e) {
       commit("removeSessionProposal", id); // remove session even if we are not able to send it to wc
@@ -257,26 +241,20 @@ const actions = {
     }
   },
   async connectUri({ commit }, { uri }) {
-    console.log("connectUri", uri);
     const { version } = parseUri(uri);
     const last = this.state.wallet.lastActiveAccount;
     if (version === 1) {
-      console.log("wc connect v1 ", uri, last);
       wc.createConnector(uri, last);
     } else {
-      console.log("wc connect v2 ", uri);
       try {
         await this.state.wc.web3wallet.pair({ uri, activatePairing: true });
       } catch (err) {
         console.error("unable to pair", err);
       }
-      console.log("after pair", this.state.wc.web3wallet);
     }
   },
   async sendResult({ commit }, { data }) {
     try {
-      console.log("sendResult", data);
-
       if (data.ver != 2) {
         // use WC 1
         return await wc.acceptRequest(data.id);
@@ -286,13 +264,9 @@ const actions = {
       //const session = await this.state.wc.web3wallet.approveSession({
       const signedTxns = [];
       for (const item of data.transactions) {
-        console.log("item", item);
         const txnBuffer = Buffer.from(item.txnB64, "base64");
-        console.log("txnBuffer", txnBuffer);
         const decodedTx = algosdk.decodeUnsignedTransaction(txnBuffer);
-        console.log("decodedTx", decodedTx);
         const txId = decodedTx.txID();
-        console.log("this.state.signer.signed", this.state.signer.signed);
         if (!(txId in this.state.signer.signed)) {
           console.error(`Tx with id ${txId} has not been signed yet, skipped`);
           signedTxns.push(null); // send back original txn because it is probably logicsig, or user decided not to sign some specific tx
@@ -309,7 +283,6 @@ const actions = {
         result: signedTxns,
         jsonrpc: "2.0",
       };
-      console.log("response", response);
       this.state.wc.web3wallet.respondSessionRequest({
         topic: data.topic,
         response,
@@ -326,7 +299,6 @@ const actions = {
   },
   async cancelRequest({ commit }, { data }) {
     try {
-      console.log("cancelRequest", data);
       //data.id, data.transactions
       //const session = await this.state.wc.web3wallet.approveSession({
 
@@ -342,7 +314,6 @@ const actions = {
           message: "User rejected.",
         },
       };
-      console.log("response", response);
       this.state.wc.web3wallet.respondSessionRequest({
         topic: data.topic,
         response,
