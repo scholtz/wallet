@@ -67,12 +67,12 @@
     </div>
     <div class="row">
       <div class="col-md-12 my-2">
-        <button v-if="!build" class="btn btn-primary" @click="build = true">
+        <Button v-if="!build" @click="build = true">
           {{ $t("gateway.turn_on_build_tool") }}
-        </button>
-        <button v-if="build" class="btn btn-primary" @click="build = false">
+        </Button>
+        <Button v-if="build" @click="build = false">
           {{ $t("gateway.turn_off_build_tool") }}
-        </button>
+        </Button>
       </div>
     </div>
     <div class="row">
@@ -86,29 +86,16 @@
         <ul class="list-group">
           <li class="list-group-item">
             <label for="asset">{{ $t("gateway.asset") }}</label>
-            <select
+            <Dropdown
               v-if="build"
               id="asset"
               v-model="asset"
-              class="form-control"
+              :options="assets"
               :title="$t('gateway.asset')"
+              optionLabel="name"
+              optionValue="code"
             >
-              <option value="">Algorand</option>
-              <option value="312769">USDt</option>
-              <option value="31566704">USDc</option>
-              <option value="793124631">gAlgo</option>
-              <option value="386192725">goBTC</option>
-              <option value="386195940">goETH</option>
-              <option value="672913181">goUSD</option>
-              <option value="760037151">xUSD</option>
-              <option value="388592191">Chips</option>
-              <option value="470842789">Defly</option>
-              <option value="287867876">Opulous</option>
-              <option value="700965019">Vestige</option>
-              <option value="796425061">CoopCoin</option>
-              <option value="1138500612">Gora</option>
-              <option value="452399768">VoteCoin</option>
-            </select>
+            </Dropdown>
             <span v-if="!build">
               <code>asset</code> - {{ $t("gateway.asset") }}
             </span>
@@ -286,15 +273,13 @@
           <label>{{ $t("gateway.html_example") }}</label>
           <div>
             <code>
-              &lt;a href="{{ url }}" class="btn btn-primary" &gt;{{
-                $t("merchant.pay")
-              }}&lt;/a&gt;
+              &lt;a href="{{ url }}" &gt;{{ $t("merchant.pay") }}&lt;/a&gt;
             </code>
           </div>
         </div>
         <br />
-        <a :href="url" target="_blank" rel="noreferrer" class="btn btn-primary">
-          Try it out
+        <a :href="url" target="_blank" rel="noreferrer">
+          <Button>Try it out</Button>
         </a>
       </div>
     </div>
@@ -304,14 +289,13 @@
         <code>
           &lt;a
           href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9MTAwMDAwMDAmYXNzZXQ9MzEyNzY5/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0LyIsImNhbmNlbCI6Imh0dHBzOi8vd3d3LmEtd2FsbGV0Lm5ldC8ifQ=="
-          class="btn btn-primary" &gt;{{ $t("merchant.pay") }}&lt;/a&gt;
+          &gt;{{ $t("merchant.pay") }}&lt;/a&gt;
         </code>
         <br />
         <a
           href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9MTAwMDAwMDAmYXNzZXQ9MzEyNzY5/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0LyIsImNhbmNlbCI6Imh0dHBzOi8vd3d3LmEtd2FsbGV0Lm5ldC8ifQ=="
-          class="btn btn-primary"
         >
-          Pay
+          <Button> Pay </Button>
         </a>
       </div>
     </div>
@@ -338,6 +322,23 @@ export default {
       fee: 0.001,
       success: "",
       cancel: "",
+      assets: [
+        { name: "Algorand", code: "" },
+        { name: "USDt", code: "312769" },
+        { name: "USDc", code: "31566704" },
+        { name: "gAlgo", code: "793124631" },
+        { name: "goBTC", code: "386192725" },
+        { name: "goETH", code: "386195940" },
+        { name: "goUSD", code: "672913181" },
+        { name: "xUSD", code: "760037151" },
+        { name: "Chips", code: "388592191" },
+        { name: "Defly", code: "470842789" },
+        { name: "Opulous", code: "287867876" },
+        { name: "Vestige", code: "700965019" },
+        { name: "CoopCoin", code: "796425061" },
+        { name: "Gora", code: "1138500612" },
+        { name: "VoteCoin", code: "452399768" },
+      ],
     };
   },
   computed: {

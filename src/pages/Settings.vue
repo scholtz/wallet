@@ -6,29 +6,29 @@
     <div v-if="publicList">
       <label for="env2">{{ $t("settings.environment") }}</label>
 
-      <select id="env2" v-model="env" class="form-control">
-        <option
-          v-for="value in publicList"
-          :key="value.network"
-          :value="value.network"
-        >
-          {{ value.name }}
-        </option>
-      </select>
+      <Dropdown
+        id="env2"
+        v-model="env"
+        class="form-control"
+        :options="publicList"
+        optionLabel="name"
+        optionValue="network"
+      >
+      </Dropdown>
     </div>
     <table>
       <tr v-if="algodList && algodList.length > 0 && env != 'custom'">
         <td><label for="algodProvider">Public AlgoD provider</label>:</td>
         <td>
-          <select id="algodProvider" v-model="algodHost" class="form-control">
-            <option
-              v-for="value in algodList"
-              :key="value.host"
-              :value="value.host"
-            >
-              {{ value.providerName }}
-            </option>
-          </select>
+          <Dropdown
+            id="algodProvider"
+            v-model="algodHost"
+            class="form-control"
+            :options="algodList"
+            optionLabel="providerName"
+            optionValue="host"
+          >
+          </Dropdown>
         </td>
       </tr>
       <tr>
@@ -64,19 +64,15 @@
           >:
         </td>
         <td>
-          <select
+          <Dropdown
             id="participationProvider"
             v-model="participationHost"
             class="form-control"
+            :options="participationList"
+            optionLabel="providerName"
+            optionValue="host"
           >
-            <option
-              v-for="value in participationList"
-              :key="value.host"
-              :value="value.host"
-            >
-              {{ value.providerName }}
-            </option>
-          </select>
+          </Dropdown>
         </td>
       </tr>
       <tr>
@@ -93,19 +89,15 @@
       <tr v-if="indexerList && indexerList.length > 0 && env != 'custom'">
         <td><label for="indexerProvider">Public Indexer provider</label>:</td>
         <td>
-          <select
+          <Dropdown
             id="indexerProvider"
             v-model="indexerHost"
             class="form-control"
+            :options="indexerList"
+            optionLabel="providerName"
+            optionValue="host"
           >
-            <option
-              v-for="value in indexerList"
-              :key="value.host"
-              :value="value.host"
-            >
-              {{ value.providerName }}
-            </option>
-          </select>
+          </Dropdown>
         </td>
       </tr>
       <tr>
@@ -133,9 +125,9 @@
     </table>
     <div>
       <h2>{{ $t("settings.protocol_title") }}</h2>
-      <button class="btn btn-light" @click="registerProtocolClick">
+      <Button @click="registerProtocolClick" severity="secondary">
         {{ $t("settings.protocol_button") }}
-      </button>
+      </Button>
     </div>
 
     <h2>{{ $t("settings.language") }}</h2>
@@ -184,7 +176,9 @@
       <input v-model="passw2" type="password" class="form-control my-2" />
       <label>{{ $t("settings.repeatpass") }}</label>
       <input v-model="passw3" type="password" class="form-control my-2" />
-      <input type="submit" class="btn btn-light my-2" value="Update password" />
+      <Button type="submit" severity="secondary" class="my-2">
+        {{ $t("settings.update_password") }}
+      </Button>
     </form>
     <h2>{{ $t("settings.dev_settings") }}</h2>
     <div>
@@ -193,25 +187,31 @@
     <h2>{{ $t("settings.backup") }}</h2>
     <p>{{ $t("settings.backup_help") }}</p>
     <p>
-      <a v-if="!b64wallet" class="btn btn-light" @click="makeBackupDataClick">
+      <Button
+        v-if="!b64wallet"
+        severity="secondary"
+        @click="makeBackupDataClick"
+      >
         {{ $t("settings.create_backup") }}
-      </a>
+      </Button>
       <a
         v-if="b64wallet"
         :href="'data:image/png;base64,' + b64wallet"
         :download="downloadableWalletName"
         target="_blank"
-        class="btn btn-primary"
       >
-        {{ $t("settings.download") }}
+        <Button>
+          {{ $t("settings.download") }}
+        </Button>
       </a>
-      <a
+      <Button
         v-if="b64wallet"
-        class="btn btn-danger mx-2"
+        severity="danger"
+        class="mx-2"
         @click="destroyWalletClick"
       >
         {{ $t("settings.delete") }}
-      </a>
+      </Button>
     </p>
   </main-layout>
 </template>

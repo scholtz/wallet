@@ -20,19 +20,10 @@
             >Select internal account from which you want to distribute
             algos</label
           >
-          <select
-            id="payFromDirect"
+          <SelectAccount
+            itemId="payFromDirect"
             v-model="payFromDirect"
-            class="form-control"
-          >
-            <option
-              v-for="option in $store.state.wallet.privateAccounts"
-              :key="option.addr"
-              :value="option.addr"
-            >
-              {{ option.name + "  - " + option.addr }}
-            </option>
-          </select>
+          ></SelectAccount>
         </div>
 
         <div v-if="!current" class="m-1">
@@ -80,9 +71,7 @@
         </div>
       </div>
       <div class="m-1">
-        <button class="btn btn-primary" :disabled="sending" @click="send">
-          Send transactions
-        </button>
+        <Button :disabled="sending" @click="send"> Send transactions </Button>
       </div>
       <div v-if="results" class="m-1">
         <label for="results">Results</label>
@@ -100,7 +89,7 @@
 <script>
 import algosdk from "algosdk";
 import { mapActions } from "vuex";
-
+import SelectAccount from "../../components/SelectAccount.vue";
 export default {
   data() {
     return {
@@ -113,6 +102,7 @@ export default {
       results: "",
     };
   },
+  components: { SelectAccount },
   mounted() {
     this.prolong();
   },

@@ -1,5 +1,5 @@
 <template>
-  <RouterLink to="/" class="btn btn-light"> Go </RouterLink>
+  <RouterLink to="/"><Button severity="secondary">Go</Button> </RouterLink>
 </template>
 <script>
 import { RouterLink } from "vue-router";

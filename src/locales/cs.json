@@ -470,7 +470,8 @@
     "protocol_title": "Registrácia protokolu",
     "protocol_button": "Zaregistrovať protokol web+algorand://",
     "protocol_change_success": "Protokol bol úspešne zaregistrovaný",
-    "dev_settings": "Zobrazovať informácie pre vývojárov"
+    "dev_settings": "Zobrazovať informácie pre vývojárov",
+    "update_password": "Update password"
   },
   "transaction": {
     "title": "Detail transakcie",

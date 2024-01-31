@@ -19,9 +19,7 @@
           </div>
         </div>
         <div class="m-1">
-          <button class="btn btn-primary" @click="generate">
-            Create {{ amount }} accounts
-          </button>
+          <Button @click="generate"> Create {{ amount }} accounts </Button>
         </div>
         <div v-if="results" class="m-1">
           <p>

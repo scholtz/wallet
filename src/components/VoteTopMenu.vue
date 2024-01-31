@@ -51,24 +51,24 @@
         is governance token for this specification and provides auditing
         services.
       </p>
-      <a
+      <Button
         v-for="token in voteTokens"
         :key="token.assetId"
-        class="btn m-2"
-        :class="currentToken == token.assetId ? 'btn-primary' : 'btn-light'"
+        class="m-2"
+        :severity="currentToken == token.assetId ? 'primary' : 'secondary'"
         @click="
           setToken({ assetId: token.assetId });
           showCustom = false;
           customToken = token.assetId;
         "
-        >{{ token.name }}</a
-      >
-      <a
-        class="btn m-2"
-        :class="showCustom ? 'btn-primary' : 'btn-light'"
+        >{{ token.name }}
+      </Button>
+      <Button
+        class="m-2"
+        :severity="showCustom ? 'primary' : 'secondary'"
         @click="showCustom = true"
-        >Custom token</a
-      >
+        >Custom token
+      </Button>
 
       <input
         v-if="showCustom"

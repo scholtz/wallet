@@ -48,9 +48,10 @@
               '/account/' +
               transaction['asset-config-transaction']['params']['creator']
             "
-            class="btn btn-xs btn-light"
           >
-            {{ transaction["asset-config-transaction"]["params"]["creator"] }}
+            <Button severity="secondary" size="small">
+              {{ transaction["asset-config-transaction"]["params"]["creator"] }}
+            </Button>
           </router-link>
         </td>
       </tr>
@@ -67,9 +68,10 @@
               '/account/' +
               transaction['asset-config-transaction']['params']['manager']
             "
-            class="btn btn-xs btn-light"
           >
-            {{ transaction["asset-config-transaction"]["params"]["manager"] }}
+            <Button severity="secondary" size="small">
+              {{ transaction["asset-config-transaction"]["params"]["manager"] }}
+            </Button>
           </router-link>
         </td>
       </tr>
@@ -86,9 +88,10 @@
               '/account/' +
               transaction['asset-config-transaction']['params']['reserve']
             "
-            class="btn btn-xs btn-light"
           >
-            {{ transaction["asset-config-transaction"]["params"]["reserve"] }}
+            <Button severity="secondary" size="small">
+              {{ transaction["asset-config-transaction"]["params"]["reserve"] }}
+            </Button>
           </router-link>
         </td>
       </tr>
@@ -105,9 +108,10 @@
               '/account/' +
               transaction['asset-config-transaction']['params']['freeze']
             "
-            class="btn btn-xs btn-light"
           >
-            {{ transaction["asset-config-transaction"]["params"]["freeze"] }}
+            <Button severity="secondary" size="small">
+              {{ transaction["asset-config-transaction"]["params"]["freeze"] }}
+            </Button>
           </router-link>
         </td>
       </tr>
@@ -124,9 +128,12 @@
               '/account/' +
               transaction['asset-config-transaction']['params']['clawback']
             "
-            class="btn btn-xs btn-light"
           >
-            {{ transaction["asset-config-transaction"]["params"]["clawback"] }}
+            <Button severity="secondary" size="small">
+              {{
+                transaction["asset-config-transaction"]["params"]["clawback"]
+              }}
+            </Button>
           </router-link>
         </td>
       </tr>
@@ -232,9 +239,10 @@
               '/account/' +
               transaction['asset-transfer-transaction']['receiver']
             "
-            class="btn btn-xs btn-light"
           >
-            {{ transaction["asset-transfer-transaction"]["receiver"] }}
+            <Button severity="secondary" size="small">
+              {{ transaction["asset-transfer-transaction"]["receiver"] }}
+            </Button>
           </router-link>
         </td>
       </tr>
@@ -273,9 +281,10 @@
         <td>
           <router-link
             :to="'/account/' + transaction['payment-transaction']['receiver']"
-            class="btn btn-xs btn-light"
           >
-            {{ transaction["payment-transaction"]["receiver"] }}
+            <Button severity="secondary" size="small">
+              {{ transaction["payment-transaction"]["receiver"] }}
+            </Button>
           </router-link>
         </td>
       </tr>
@@ -286,11 +295,10 @@
       <tr>
         <th>{{ $t("transaction.sender") }}:</th>
         <td>
-          <router-link
-            :to="'/account/' + transaction['sender']"
-            class="btn btn-xs btn-light"
-          >
-            {{ transaction["sender"] }}
+          <router-link :to="'/account/' + transaction['sender']">
+            <Button severity="secondary" size="small">
+              {{ transaction["sender"] }}
+            </Button>
           </router-link>
         </td>
       </tr>

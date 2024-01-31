@@ -2,16 +2,7 @@
   <main-layout>
     <div v-if="!$route.params.account">
       <h1>{{ $t("pay.select_account_for_payment") }}</h1>
-
-      <select v-model="payFromDirect" class="form-control">
-        <option
-          v-for="option in $store.state.wallet.privateAccounts"
-          :key="option.addr"
-          :value="option.addr"
-        >
-          {{ option.name + "  - " + option.addr }}
-        </option>
-      </select>
+      <SelectAccount v-model="payFromDirect"></SelectAccount>
     </div>
     <div v-if="account">
       <form v-if="page == 'design'" @submit="previewPaymentClick">
@@ -29,15 +20,12 @@
         <p>{{ $t("pay.selected_account") }}: {{ account.addr }}</p>
         <div v-if="isMultisig && !subpage">
           <h2>{{ $t("pay.multisig_account") }}</h2>
-          <button
-            class="btn btn-primary my-2"
-            @click="this.subpage = 'proposal'"
-          >
+          <Button class="my-2" @click="this.subpage = 'proposal'">
             {{ $t("pay.create_proposal") }}
-          </button>
-          <button class="btn btn-primary m-2" @click="subpage = 'sign'">
+          </Button>
+          <Button class="m-2" @click="subpage = 'sign'">
             {{ $t("pay.sign_proposal") }}
-          </button>
+          </Button>
         </div>
         <div v-if="subpage == 'sign'" class="row">
           <div class="col-12">
@@ -47,9 +35,9 @@
               class="form-control my-2"
               rows="8"
             />
-            <button class="btn btn-primary my-2" @click="loadMultisig">
+            <Button class="my-2" @click="loadMultisig">
               {{ $t("pay.load_multisig_data") }}
-            </button>
+            </Button>
           </div>
         </div>
         <div v-if="showDesignScreen" class="row">
@@ -100,26 +88,15 @@
                   v-model="payTo"
                   class="form-control"
                 />
-                <select
+                <SelectAccount
                   v-if="!genericaccount"
                   v-model="payTo"
-                  class="form-control"
-                >
-                  <option
-                    v-for="option in $store.state.wallet.privateAccounts"
-                    :key="option.addr"
-                    :value="option.addr"
-                  >
-                    {{ option.name + "  - " + option.addr }}
-                  </option>
-                </select>
+                ></SelectAccount>
+
                 <div v-if="genericaccount">
-                  <button
-                    class="btn btn-primary btn-xs m-2"
-                    @click="toggleCamera"
-                  >
+                  <Button size="small" class="m-2" @click="toggleCamera">
                     {{ $t("pay.toggle_camera") }}
-                  </button>
+                  </Button>
                   <p>
                     {{ $t("pay.store_other_help") }}
                   </p>
@@ -158,26 +135,15 @@
                 v-model="rekeyTo"
                 class="form-control"
               />
-              <select
+              <SelectAccount
                 v-if="!genericaccountRekey"
                 v-model="rekeyTo"
-                class="form-control"
-              >
-                <option
-                  v-for="option in $store.state.wallet.privateAccounts"
-                  :key="option.addr"
-                  :value="option.addr"
-                >
-                  {{ option.name + "  - " + option.addr }}
-                </option>
-              </select>
+              ></SelectAccount>
+
               <div v-if="genericaccountRekey">
-                <button
-                  class="btn btn-primary btn-xs m-2"
-                  @click="toggleCamera"
-                >
+                <Button size="small" class="m-2" @click="toggleCamera">
                   {{ $t("pay.toggle_camera") }}
-                </button>
+                </Button>
                 <p>
                   {{ $t("pay.store_other_help") }}
                 </p>
@@ -191,21 +157,46 @@
                 class="form-control"
                 disabled
               />
-              <select v-else id="asset" v-model="asset" class="form-control">
-                <option
-                  v-for="assetInfo in assets"
-                  :key="assetInfo['asset-id']"
-                  :value="assetInfo['asset-id']"
-                >
-                  {{ assetInfo["name"] }} ({{
-                    $filters.formatCurrency(
-                      assetInfo["amount"],
-                      assetInfo["name"],
-                      assetInfo["decimals"]
-                    )
-                  }})
-                </option>
-              </select>
+              <Dropdown
+                v-else
+                id="asset"
+                v-model="asset"
+                filter
+                :options="assets"
+                optionLabel="asset-id"
+                optionValue="asset-id"
+                :placeholder="$t('pay.asset')"
+              >
+                <template #value="slotProps">
+                  <div v-if="slotProps.value" class="flex align-items-center">
+                    <div>
+                      {{
+                        assets.find((a) => a["asset-id"] == slotProps.value)
+                          ?.name
+                      }}
+                      (
+                      {{ slotProps.value }}
+                      )
+                    </div>
+                  </div>
+                  <span v-else>
+                    {{ slotProps.placeholder }}
+                  </span>
+                </template>
+                <template #option="slotProps">
+                  <div v-if="slotProps.option" class="flex align-items-center">
+                    <div>
+                      {{ slotProps.option.name }} : ({{
+                        $filters.formatCurrency(
+                          slotProps.option["amount"],
+                          slotProps.option["name"],
+                          slotProps.option["decimals"]
+                        )
+                      }})
+                    </div>
+                  </div>
+                </template>
+              </Dropdown>
             </div>
             <div v-if="payamountGtMaxAmount" class="alert alert-danger my-2">
               {{ $t("pay.asset_too_small_balance") }}
@@ -228,12 +219,13 @@
                   :value="assetUnit"
                   class="col-2"
                 />
-                <button
-                  class="col-2 btn btn-outline-secondary"
+                <Button
+                  severity="secondary"
+                  class="col-2"
                   @click="setMaxAmount"
                 >
                   {{ $t("pay.set_max") }}
-                </button>
+                </Button>
               </div>
             </div>
             <div>
@@ -282,24 +274,27 @@
               />
             </div>
             <div>
-              <input
-                :disabled="isNotValid"
-                class="btn btn-primary my-2"
-                type="submit"
-                :value="$t('pay.review_payment')"
-              />
-              <input
+              <Button :disabled="isNotValid" class="my-2">
+                {{ $t("pay.review_payment") }}
+              </Button>
+              <Button
                 v-if="isMultisig"
-                class="btn btn-light m-2"
+                severity="secondary"
+                class="m-2"
                 value="Cancel"
                 @click="subpage = ''"
-              />
-              <input
+              >
+                {{ $t("global.cancel") }}
+              </Button>
+              <Button
                 v-if="!isMultisig"
-                class="btn btn-light m-2"
+                severity="secondary"
+                class="m-2"
                 value="Cancel"
                 @click="$router.push('/accounts')"
-              />
+              >
+                {{ $t("global.cancel") }}
+              </Button>
             </div>
           </div>
 
@@ -475,26 +470,25 @@
           </div>
         </div>
 
-        <input
-          v-if="!isMultisig"
-          class="btn btn-primary"
-          type="submit"
-          :value="$t('pay.process_payment')"
-        />
+        <Button v-if="!isMultisig" type="submit">
+          {{ $t("pay.process_payment") }}
+        </Button>
         <span v-if="!rawSignedTxn">
-          <input
+          <Button
             v-if="isMultisig && $route.name != 'PayFromWalletConnect'"
-            class="btn btn-primary"
             type="submit"
-            :value="$t('pay.create_multisig_proposal')"
-          />
+          >
+            {{ $t("pay.create_multisig_proposal") }}
+          </Button>
 
-          <input
+          <Button
             v-if="$route.name != 'PayFromWalletConnect'"
-            class="btn btn-light mx-2"
-            :value="$t('global.go_back')"
+            severity="secondary"
+            class="mx-2"
             @click="page = 'design'"
-          />
+          >
+            {{ $t("global.go_back") }}
+          </Button>
         </span>
 
         <JsonViewer
@@ -522,22 +516,19 @@
               <InputMask itemid="txtCode" v-model="txtCode" mask="999-999" />
             </div>
             <div>
-              <button
-                class="btn btn-primary my-2"
+              <Button
+                class="my-2"
                 :disabled="!txtCode || txtCode.indexOf('_') >= 0"
                 @click="sign2FAClick"
               >
                 {{ $t("pay.sign") }}
-              </button>
+              </Button>
             </div>
           </div>
           <div v-else>
-            <button
-              class="btn btn-primary my-2"
-              @click="authorizePrimaryAccountClick"
-            >
+            <Button class="my-2" @click="authorizePrimaryAccountClick">
               {{ $t("pay.sign_arc14_request") }}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -553,13 +544,13 @@
                 {{ option.name + "  - " + option.addr }}
               </option>
             </select>
-            <button
-              class="btn btn-primary my-2"
+            <Button
+              class="my-2"
               :disabled="signMultisigWith.length == 0"
               @click="signMultisig"
             >
               {{ $t("pay.sign") }}
-            </button>
+            </Button>
           </div>
           <div v-if="isSignedByAny && showFormSend">
             <h2>{{ $t("pay.send_to_other_signators") }}</h2>
@@ -578,42 +569,47 @@
               class="form-control my-2"
               rows="4"
             />
-            <button
+            <Button
               v-if="rawSignedTxnFriend"
-              class="btn btn-primary m-2"
+              class="m-2"
               :disabled="!rawSignedTxn && !rawSignedTxnInput"
               @click="combineSignatures"
             >
               {{ $t("pay.combine_action") }}
-            </button>
+            </Button>
           </div>
 
-          <button
+          <Button
             v-if="$route.name != 'PayFromWalletConnect'"
-            class="btn btn-primary m-2"
+            class="m-2"
             :disabled="!thresholdMet"
             @click="sendMultisig"
           >
             {{ $t("pay.send_to_network") }}
-          </button>
-          <button
+          </Button>
+          <Button
             v-if="$route.name == 'PayFromWalletConnect'"
-            class="btn btn-primary m-2"
+            class="m-2"
             :disabled="!thresholdMet"
             @click="retToWalletConnect"
           >
             {{ $t("pay.return_to_wc") }}
-          </button>
-          <button
+          </Button>
+          <Button
             v-if="isSignedByAny"
-            class="btn btn-light m-2"
+            severity="secondary"
+            class="m-2"
             @click="toggleShowFormSend"
           >
             {{ $t("pay.toggle_send_to_others_form") }}
-          </button>
-          <button class="btn btn-light m-2" @click="toggleShowFormCombine">
+          </Button>
+          <Button
+            severity="secondary"
+            class="m-2"
+            @click="toggleShowFormCombine"
+          >
             {{ $t("pay.toggle_combine_with_others_form") }}
-          </button>
+          </Button>
         </div>
 
         <p v-if="!tx && processing" class="alert alert-primary my-2">
@@ -657,6 +653,7 @@ import { mapActions } from "vuex";
 import algosdk from "algosdk";
 //import base64url from "base64url";
 import { JsonViewer } from "vue3-json-viewer";
+import SelectAccount from "../components/SelectAccount.vue";
 
 export default {
   components: {
@@ -664,6 +661,7 @@ export default {
     MainLayout,
     InputMask,
     JsonViewer,
+    SelectAccount,
   },
   data() {
     return {

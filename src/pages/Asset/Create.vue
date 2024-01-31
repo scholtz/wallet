@@ -3,20 +3,22 @@
     <h1>
       {{ $t("assetcreate.title") }}
 
-      <button
+      <Button
         v-if="!advanced"
-        class="btn btn-light btn-xs"
+        severity="secondary"
+        size="small"
         @click="advanced = true"
       >
         {{ $t("assetcreate.show_advanced") }}
-      </button>
-      <button
+      </Button>
+      <Button
         v-if="advanced"
-        class="btn btn-light btn-xs"
+        severity="secondary"
+        size="small"
         @click="advanced = false"
       >
         {{ $t("assetcreate.hide_advanced") }}
-      </button>
+      </Button>
     </h1>
 
     <label for="assetName" class="m-1">{{ $t("assetcreate.assetName") }}</label>
@@ -25,19 +27,8 @@
     <div v-if="!hasPrivate" class="alert alert-danger">
       {{ $t("assetcreate.creator_not_found") }}
     </div>
-    <select
-      v-if="hasPrivate"
-      v-model="asset.addr"
-      class="select form-control m-1"
-    >
-      <option
-        v-for="option in accountsWithPrivateKey"
-        :key="option.addr"
-        :value="option.addr"
-      >
-        {{ option.name }} - {{ option.addr }}
-      </option>
-    </select>
+
+    <SelectAccount v-if="hasPrivate" v-model="asset.addr"></SelectAccount>
     <div v-if="advanced" class="form-check m-1">
       <input
         id="defaultFrozen"
@@ -107,67 +98,20 @@
     <label v-if="advanced" for="manager " class="m-1"
       >{{ $t("assetcreate.manager") }}
     </label>
-    <select
-      v-if="advanced"
-      v-model="asset.manager"
-      class="select form-control m-1"
-    >
-      <option
-        v-for="option in $store.state.wallet.privateAccounts"
-        :key="option.addr"
-        :value="option.addr"
-      >
-        {{ option.name }} - {{ option.addr }}
-      </option>
-    </select>
+    <SelectAccount v-if="advanced" v-model="asset.manager"></SelectAccount>
+
     <label v-if="advanced" for="reserve " class="m-1"
       >{{ $t("assetcreate.reserve") }}
     </label>
-    <select
-      v-if="advanced"
-      v-model="asset.reserve"
-      class="select form-control m-1"
-    >
-      <option
-        v-for="option in $store.state.wallet.privateAccounts"
-        :key="option.addr"
-        :value="option.addr"
-      >
-        {{ option.name }} - {{ option.addr }}
-      </option>
-    </select>
+    <SelectAccount v-if="advanced" v-model="asset.reserve"></SelectAccount>
     <label v-if="advanced" for="freeze " class="m-1"
       >{{ $t("assetcreate.freeze") }}
     </label>
-    <select
-      v-if="advanced"
-      v-model="asset.freeze"
-      class="select form-control m-1"
-    >
-      <option
-        v-for="option in $store.state.wallet.privateAccounts"
-        :key="option.addr"
-        :value="option.addr"
-      >
-        {{ option.name }} - {{ option.addr }}
-      </option>
-    </select>
+    <SelectAccount v-if="advanced" v-model="asset.freeze"></SelectAccount>
     <label v-if="advanced" for="clawback " class="m-1"
       >{{ $t("assetcreate.clawback") }}
     </label>
-    <select
-      v-if="advanced"
-      v-model="asset.clawback"
-      class="select form-control m-1"
-    >
-      <option
-        v-for="option in $store.state.wallet.privateAccounts"
-        :key="option.addr"
-        :value="option.addr"
-      >
-        {{ option.name }} - {{ option.addr }}
-      </option>
-    </select>
+    <SelectAccount v-if="advanced" v-model="asset.clawback"></SelectAccount>
     <label v-if="advanced" for="note" class="m-1"
       >{{ $t("assetcreate.note") }}
     </label>
@@ -178,7 +122,7 @@
       class="form-control m-1"
     />
 
-    <input
+    <Button
       @click="createAssetMultisig"
       v-if="isMultisig"
       :disabled="
@@ -188,10 +132,10 @@
         !this.asset.assetName
       "
       type="submit"
-      class="btn btn-primary"
-      :value="`${$t('assetcreate.create_button')} - Multisig`"
-    />
-    <input
+    >
+      {{ $t("assetcreate.create_button") }} - Multisig
+    </Button>
+    <Button
       @click="createAsset"
       v-else
       :disabled="
@@ -201,9 +145,10 @@
         !this.asset.assetName
       "
       type="submit"
-      class="btn btn-primary"
       :value="$t('assetcreate.create_button')"
-    />
+    >
+      {{ $t("assetcreate.create_button") }}
+    </Button>
   </MainLayout>
 </template>
 
@@ -211,10 +156,12 @@
 import MainLayout from "../../layouts/Main.vue";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
+import SelectAccount from "../../components/SelectAccount.vue";
 
 export default {
   components: {
     MainLayout,
+    SelectAccount,
   },
   data() {
     return {

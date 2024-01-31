@@ -8,13 +8,16 @@
         </p>
       </div>
       <div class="col-1">
-        <a
-          class="btn btn-xs btn-light float-end"
-          :style="'background:' + b"
+        <Button
+          v-if="t"
+          size="small"
+          severity="secondary"
+          class="float-end"
+          :style="'background:' + b + '; color: black'"
           @click="prolong"
         >
           {{ t }}
-        </a>
+        </Button>
       </div>
     </div>
   </footer>

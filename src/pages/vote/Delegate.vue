@@ -106,12 +106,9 @@
             </select>
           </div>
           <div class="col-2">
-            <button
-              class="btn btn-light btn-outline-primary"
-              @click="addDelegation(category)"
-            >
+            <Button severity="secondary" @click="addDelegation(category)">
               {{ $t("votedelegate.delegate") }}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -128,12 +125,9 @@
           />
         </div>
         <div class="col-2">
-          <button
-            class="btn btn-light btn-outline-primary"
-            @click="delegations[newCategory] = {}"
-          >
+          <Button severity="secondary" @click="delegations[newCategory] = {}">
             {{ $t("votedelegate.add_category") }}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -148,17 +142,13 @@
               {{ note }}
             </code>
           </div>
-          <button
-            class="btn btn-primary"
-            :disabled="!note || processing"
-            @click="submitDelegation"
-          >
+          <Button :disabled="!note || processing" @click="submitDelegation">
             {{
               $t("votedelegate.submit_text", {
                 accountName: $store.state.wallet.lastActiveAccountName,
               })
             }}
-          </button>
+          </Button>
         </div>
       </div>
 

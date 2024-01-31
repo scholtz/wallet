@@ -6,9 +6,9 @@
         {{ $t("new_account_wc.last_error") }}: {{ lastError }}
       </div>
     </div>
-    <button v-if="!uri" class="btn btn-primary" @click="initWalletConnect">
+    <Button v-if="!uri" @click="initWalletConnect">
       {{ $t("new_account_wc.show_qr_code") }}
-    </button>
+    </Button>
 
     <div v-if="scannable">
       <h3>{{ $t("new_account_wc.scan") }}</h3>
@@ -31,9 +31,9 @@
         :qr-options="{ errorCorrectionLevel: 'L' }"
         image="/img/wc-logo.png"
       />
-      <button class="btn btn-primary m-1" @click="clickCopy">
+      <Button class="m-1" @click="clickCopy">
         {{ $t("new_account_wc.copy") }}
-      </button>
+      </Button>
     </div>
     <div v-if="session">
       <h3>{{ $t("new_account_wc.account_name") }}</h3>
@@ -41,9 +41,9 @@
       <div v-if="account">
         {{ $t("new_account_wc.address") }}: {{ account }}
       </div>
-      <button class="btn btn-primary my-2" @click="clickSave">
+      <Button class="my-2" @click="clickSave">
         {{ $t("new_account_wc.save_address") }}
-      </button>
+      </Button>
     </div>
   </MainLayout>
 </template>

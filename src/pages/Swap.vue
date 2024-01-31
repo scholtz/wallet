@@ -62,11 +62,11 @@
           </div>
         </div>
         <div>
-          <button
-            class="btn my-2"
+          <Button
+            class="my-2"
             :disabled="processingQuote"
-            :class="
-              allowExecuteDeflex || requiresOptIn ? 'btn-light' : 'btn-primary '
+            :severity="
+              allowExecuteDeflex || requiresOptIn ? 'secondary' : 'primary'
             "
             @click="clickGetQuote"
           >
@@ -78,7 +78,7 @@
               role="status"
               aria-hidden="true"
             />
-          </button>
+          </Button>
         </div>
         <div v-if="requiresOptIn">
           <h2>{{ $t("swap.apps_optin") }}</h2>
@@ -87,8 +87,8 @@
               {{ app }}
             </li>
           </ul>
-          <button
-            class="btn my-2 btn-primary"
+          <Button
+            class="my-2"
             :disabled="processingOptin"
             @click="clickOptInToApps"
           >
@@ -99,7 +99,7 @@
               aria-hidden="true"
             />
             {{ $t("swap.apps_optin_button") }}
-          </button>
+          </Button>
         </div>
         <div>
           <textarea
@@ -116,11 +116,11 @@
           {{ error }}
         </div>
         <div>
-          <button
+          <Button
             v-if="useDeflex"
-            class="btn my-2 mx-1"
+            class="my-2 mx-1"
             :disabled="!allowExecuteDeflex || processingTradeDeflex"
-            :class="allowExecuteDeflex ? 'btn-primary' : 'btn-light '"
+            :severity="allowExecuteDeflex ? 'primary' : 'secondary'"
             @click="clickExecuteDeflex"
           >
             <span
@@ -130,12 +130,12 @@
               aria-hidden="true"
             />
             {{ $t("swap.execute_button_deflex") }}
-          </button>
-          <button
+          </Button>
+          <Button
             v-if="useFolks"
-            class="btn my-2"
+            class="my-2"
             :disabled="!allowExecuteFolks || processingTradeFolks"
-            :class="allowExecuteFolks ? 'btn-primary' : 'btn-light '"
+            :class="allowExecuteFolks ? 'primary' : 'secondary'"
             @click="clickExecuteFolks"
           >
             <span
@@ -145,7 +145,7 @@
               aria-hidden="true"
             />
             {{ $t("swap.execute_button_folks") }}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

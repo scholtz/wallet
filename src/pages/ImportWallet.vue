@@ -1,41 +1,35 @@
 <template>
   <PublicLayout>
     <div class="d-flex align-items-center justify-content-center h-100">
-      <div class="card w-25">
-        <div class="card-header">
+      <Panel class="w-25">
+        <template #header>
           {{ $t("import.title") }}
-        </div>
-        <div class="card-body">
-          <form @submit="createWalletClick">
-            <label for="newwallet-name">{{ $t("import.wallet_name") }}</label>
-            <input
-              id="newwallet-name"
-              v-model="name"
-              class="form-control my-2"
-            />
-            <label for="newwallet-file">{{ $t("import.wallet_file") }}</label>
-            <input
-              id="newwallet-file"
-              ref="walletFile"
-              type="file"
-              class="form-control my-2"
-              @change="fileChanged"
-            />
-            <input
-              type="submit"
-              class="btn btn-primary"
-              :value="$t('import.import_wallet_button')"
-              :disabled="!name || !file"
-            />
-            <router-link to="/" class="btn btn-light mx-2">
+        </template>
+
+        <form @submit="createWalletClick">
+          <label for="newwallet-name">{{ $t("import.wallet_name") }}</label>
+          <input id="newwallet-name" v-model="name" class="form-control my-2" />
+          <label for="newwallet-file">{{ $t("import.wallet_file") }}</label>
+          <input
+            id="newwallet-file"
+            ref="walletFile"
+            type="file"
+            class="form-control my-2"
+            @change="fileChanged"
+          />
+          <Button type="submit" :disabled="!name || !file">
+            {{ $t("import.import_wallet_button") }}
+          </Button>
+          <RouterLink to="/">
+            <Button variant="secondary" class="mx-2">
               {{ $t("global.go_home") }}
-            </router-link>
-            <p class="my-2">
-              {{ $t("import.help") }}
-            </p>
-          </form>
-        </div>
-      </div>
+            </Button>
+          </RouterLink>
+          <p class="my-2">
+            {{ $t("import.help") }}
+          </p>
+        </form>
+      </Panel>
     </div>
   </PublicLayout>
 </template>
@@ -43,9 +37,11 @@
 <script>
 import { mapActions } from "vuex";
 import PublicLayout from "../layouts/Public.vue";
+import { RouterLink } from "vue-router";
 export default {
   components: {
     PublicLayout,
+    RouterLink,
   },
   data() {
     return {

@@ -55,13 +55,9 @@
           <div>
             <code class="m-1">{{ note }}</code>
           </div>
-          <button
-            class="btn btn-primary"
-            :disabled="sending || !sendTo || sent"
-            @click="send"
-          >
+          <Button :disabled="sending || !sendTo || sent" @click="send">
             Send transactions
-          </button>
+          </Button>
           <div v-if="sent" class="alert alert-success my-1">
             Payments has been sent
           </div>

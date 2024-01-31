@@ -37,13 +37,13 @@
       </div>
       <div class="row my-2">
         <div class="col-12">
-          <button class="btn btn-primary" @click="submitTL">
+          <Button @click="submitTL">
             {{
               $t("votetl.submit_text", {
                 accountName: $store.state.wallet.lastActiveAccountName,
               })
             }}
-          </button>
+          </Button>
         </div>
       </div>
       <div class="row my-2">

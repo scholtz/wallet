@@ -470,7 +470,8 @@
     "protocol_title": "Protokoll kezelő regisztrálása",
     "protocol_button": "web+algorand:// kezelő regisztrálása",
     "protocol_change_success": "A protokoll kezelő módosítása sikeres volt",
-    "dev_settings": "Show information for developers"
+    "dev_settings": "Show information for developers",
+    "update_password": "Update password"
   },
   "transaction": {
     "title": "Tranzakció részletei",

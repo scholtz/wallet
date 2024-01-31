@@ -14,13 +14,16 @@ const DefaultComponent = markRaw({
 
 import "vue3-json-viewer/dist/index.css";
 
-import "bootstrap";
-import "bootstrap/dist/css/bootstrap.min.css";
+//import "bootstrap";
+//import "bootstrap/dist/css/bootstrap.min.css";
+import "primeflex/primeflex.css";
+
 import "./registerServiceWorker";
 
 import moment from "moment";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
+import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import Slider from "primevue/slider";
 import PrimeDialog from "primevue/dialog";
@@ -31,6 +34,12 @@ import ToastService from "primevue/toastservice";
 import Dropdown from "primevue/dropdown";
 import Password from "primevue/password";
 import InputSwitch from "primevue/inputswitch";
+import Menubar from "primevue/menubar";
+import Badge from "primevue/badge";
+import Avatar from "primevue/avatar";
+import MultiSelect from "primevue/multiselect";
+import Panel from "primevue/panel";
+
 import "primevue/resources/themes/saga-blue/theme.css";
 
 import "primevue/resources/primevue.min.css";
@@ -64,6 +73,7 @@ myApp.use(store);
 myApp.use(router);
 myApp.use(PrimeVue);
 myApp.use(ToastService);
+myApp.component("Button", Button);
 myApp.component("DataTable", DataTable);
 myApp.component("Column", Column);
 myApp.component("InputText", InputText);
@@ -75,6 +85,11 @@ myApp.component("AccordionTab", AccordionTab);
 myApp.component("Dropdown", Dropdown);
 myApp.component("Password", Password);
 myApp.component("InputSwitch", InputSwitch);
+myApp.component("Menubar", Menubar);
+myApp.component("Badge", Badge);
+myApp.component("Avatar", Avatar);
+myApp.component("MultiSelect", MultiSelect);
+myApp.component("Panel", Panel);
 
 myApp.config.globalProperties.$filters = {
   formatCurrency(

@@ -48,31 +48,26 @@
         />
       </div>
       <div v-if="!isPaid">
-        <a
-          :href="origcode"
-          :title="origcode"
-          role="button"
-          class="btn btn-primary btn-xl mb-3"
-          >{{ $t("merchant.pay_qr") }}</a
-        >
-        <a
-          :href="origcode"
-          :title="origcode"
-          class="btn btn-light btn-xl mx-3 mb-3"
-          >{{ $t("merchant.pay_nativewallet") }}</a
-        >
-        <a
-          :href="codeP2"
-          :title="codeP2"
-          class="btn btn-light btn-xl mx-3 mb-3"
-          >{{ $t("merchant.pay_webwallet") }}</a
-        >
-        <a
-          v-if="settings.cancel"
-          :href="settings.cancel"
-          class="btn btn-light btn-xl mb-3"
-          >{{ $t("merchant.cancel_payment") }}</a
-        >
+        <a :href="origcode" :title="origcode" role="button">
+          <Button severity="primary" size="large" class="mb-3">
+            {{ $t("merchant.pay_qr") }}
+          </Button>
+        </a>
+        <a :href="origcode" :title="origcode">
+          <Button severity="secondary" size="large" class="mx-3 mb-3">
+            {{ $t("merchant.pay_nativewallet") }}
+          </Button>
+        </a>
+        <a :href="codeP2" :title="codeP2">
+          <Button severity="secondary" size="large" class="mx-3 mb-3">
+            {{ $t("merchant.pay_webwallet") }}
+          </Button>
+        </a>
+        <a v-if="settings.cancel" :href="settings.cancel">
+          <Button severity="secondary" size="large" class="mx-3 mb-3">
+            {{ $t("merchant.cancel_payment") }}
+          </Button>
+        </a>
       </div>
 
       <p v-if="isPaid" class="alert alert-success mb-3">
@@ -90,11 +85,9 @@
           name="txId"
           :value="transactions.transactions[0].id"
         />
-        <input
-          type="submit"
-          class="btn btn-primary btn-xl my-2"
-          :value="$t('merchant.go_back_to_merchant')"
-        />
+        <Button type="submit" class="my-2" size="large">
+          {{ $t("merchant.go_back_to_merchant") }}
+        </Button>
         <span class="badge bg-info text-dark m-2">({{ countDown }})</span>
       </form>
 

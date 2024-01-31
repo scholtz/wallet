@@ -19,13 +19,13 @@
       class="form-control my-2"
     />
     <div>
-      <button
-        class="btn my-2"
-        :class="address ? 'btn-light' : 'btn-primary'"
+      <Button
+        class="my-2"
+        :severity="address ? 'secondary' : 'primary'"
         @click="clickAddress"
       >
         {{ $t("new_account_ledger.connect") }}
-      </button>
+      </Button>
     </div>
     <div v-if="address">
       <div>
@@ -37,9 +37,9 @@
       </div>
       <h3>{{ $t("new_account_ledger.account_name") }}</h3>
       <input v-model="name" class="form-control my-2" />
-      <button class="btn btn-primary my-2" @click="clickSave">
+      <Button class="my-2" @click="clickSave">
         {{ $t("new_account_ledger.save_address") }}
-      </button>
+      </Button>
     </div>
   </MainLayout>
 </template>

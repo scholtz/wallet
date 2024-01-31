@@ -5,21 +5,25 @@
       {{ $store.state.wallet.lastActiveAccountName }}
     </h1>
     <p>
-      <button
-        class="btn btn-light btn-xs m-2 float-end"
+      <Button
+        severity="danger"
+        size="small"
+        class="m-2 align-items-end"
         @click="displayDeleteDialog = true"
       >
         <div>{{ $t("acc_overview.delete") }}</div>
-      </button>
+      </Button>
 
-      <button
+      <Button
+        severity="secondary"
+        size="small"
         v-if="account"
-        class="btn btn-light btn-xs m-2 float-end"
+        class="m-2 align-items-end"
         @click="hideAccountClick"
       >
         <div v-if="account.isHidden">Unhide account</div>
         <div v-else>Hide account</div>
-      </button>
+      </Button>
 
       <Dialog
         v-model:visible="displayDeleteDialog"
@@ -35,14 +39,12 @@
         </p>
 
         <template #footer>
-          <button
-            class="btn btn-xs btn-primary"
-            @click="displayDeleteDialog = false"
-          >
-            {{ $t("global.cancel") }}</button
-          ><button class="btn btn-xs btn-danger" @click="deleteAccountClick">
+          <Button size="small" @click="displayDeleteDialog = false">
+            {{ $t("global.cancel") }}
+          </Button>
+          <Button size="small" severity="danger" @click="deleteAccountClick">
             {{ $t("acc_overview.delete_confirm_button") }}
-          </button>
+          </Button>
         </template>
       </Dialog>
       <Dialog
@@ -64,87 +66,107 @@
           {{ $store.state.config.participation }}
         </p>
         <template #footer>
-          <button
-            class="btn btn-xs btn-light"
+          <Button
+            severity="secondary"
+            size="small"
             @click="displayOnlineOfflineDialog = false"
           >
-            {{ $t("global.cancel") }}</button
-          ><button
-            class="btn btn-xs btn-primary"
+            {{ $t("global.cancel") }} </Button
+          ><Button
+            severity="primary"
+            size="small"
             @click="setAccountOnlineAtParticipationNode"
           >
-            {{ $t("onlineofflinedialog.makeOnline") }}</button
-          ><button
+            {{ $t("onlineofflinedialog.makeOnline") }}
+          </Button>
+          <Button
+            severity="danger"
+            size="small"
             v-if="account['status'] == 'Online'"
-            class="btn btn-xs btn-danger"
             @click="setAccountOfflineAtParticipationNode"
           >
             {{ $t("onlineofflinedialog.makeOffline") }}
-          </button>
+          </Button>
         </template>
       </Dialog>
       <router-link
         v-if="canSign"
         :to="'/accounts/pay/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
+        class="ml-2 my-2"
       >
-        {{ $t("acc_overview.pay") }}
+        <Button severity="secondary" size="small">
+          {{ $t("acc_overview.pay") }}
+        </Button>
       </router-link>
       <router-link
         v-if="canSign"
         :to="'/accounts/rekey/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
+        class="ml-2 my-2"
       >
-        {{ $t("acc_overview.rekey") }}
+        <Button severity="secondary" size="small">
+          {{ $t("acc_overview.rekey") }}
+        </Button>
       </router-link>
       <router-link
         v-if="canSign"
         :to="'/account/optin/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
+        class="ml-2 my-2"
       >
-        {{ $t("acc_overview.asset_optin") }}
+        <Button severity="secondary" size="small">
+          {{ $t("acc_overview.asset_optin") }}
+        </Button>
       </router-link>
       <router-link
         :to="'/receive-payment/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
+        class="ml-2 my-2"
       >
-        {{ $t("acc_overview.receive_payment") }}
+        <Button severity="secondary" size="small">
+          {{ $t("acc_overview.receive_payment") }}
+        </Button>
       </router-link>
       <router-link
         :to="'/payment-gateway/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
+        class="ml-2 my-2"
       >
-        {{ $t("acc_overview.payment_gateway") }}
+        <Button severity="secondary" size="small">
+          {{ $t("acc_overview.payment_gateway") }}
+        </Button>
       </router-link>
       <router-link
         v-if="canSign"
         :to="'/account/connect/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
+        class="ml-2 my-2"
       >
-        {{ $t("acc_overview.connect") }}
+        <Button severity="secondary" size="small">
+          {{ $t("acc_overview.connect") }}
+        </Button>
       </router-link>
       <router-link
         v-if="account && (account.sk || account.params)"
         :to="'/vote/ask/'"
-        class="btn btn-light btn-xs me-2 my-2"
+        class="ml-2 my-2"
       >
-        {{ $t("acc_overview.ask_question") }}
+        <Button severity="secondary" size="small">
+          {{ $t("acc_overview.ask_question") }}
+        </Button>
       </router-link>
 
       <router-link
         v-if="account"
         :to="'/account/export/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
+        class="ml-2 my-2"
       >
-        {{ $t("acc_overview.export") }}
+        <Button severity="secondary" size="small">
+          {{ $t("acc_overview.export") }}
+        </Button>
       </router-link>
 
       <router-link
         v-if="$store.state.config.dev"
         :to="'/arc14/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
+        class="ml-2 my-2"
       >
-        ARC14
+        <Button severity="secondary" size="small"> ARC14 </Button>
       </router-link>
     </p>
     <div
@@ -155,9 +177,9 @@
         This account is assigned to network {{ account.network }}.
       </div>
       <div v-else>This account is not assigned to any network.</div>
-      <button class="btn btn-primary my-2" @click="assignToCurrentNetwork">
+      <Button class="my-2" @click="assignToCurrentNetwork">
         Assign account to {{ this.$store.state.config.env }}
-      </button>
+      </Button>
     </div>
     <table v-if="account" class="w-100">
       <tr>
@@ -223,13 +245,15 @@
       <tr>
         <th>{{ $t("acc_overview.address") }}:</th>
         <td>
-          <button
-            class="btn btn-xs btn-light m-1"
+          <Button
+            size="small"
+            severity="secondary"
+            class="m-1"
             :title="$t('global.copy_address')"
             @click="copyToClipboard(account.addr)"
           >
             <i class="pi pi-copy" />
-          </button>
+          </Button>
           {{ account.addr }}
         </td>
       </tr>
@@ -346,12 +370,13 @@
           Setting your account to offline state. Please wait a while
         </td>
         <td v-else-if="$store.state.config.participation">
-          <button
-            class="btn btn-light btn-xs"
+          <Button
+            severity="secondary"
+            size="small"
             @click="displayOnlineOfflineDialog = true"
           >
             {{ account["status"] ?? "?" }}
-          </button>
+          </Button>
         </td>
         <td v-else>
           {{ account["status"] ?? "?" }}
@@ -432,9 +457,9 @@
       <tr>
         <th />
         <td>
-          <button class="btn btn-light btn-xs" @click="reloadAccount">
+          <Button size="small" severity="secondary" @click="reloadAccount">
             {{ $t("acc_overview.refresh") }}
-          </button>
+          </Button>
         </td>
       </tr>
     </table>

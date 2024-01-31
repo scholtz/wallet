@@ -470,7 +470,8 @@
     "protocol_title": "Register protocol handler",
     "protocol_button": "Register web+algorand:// handler",
     "protocol_change_success": "Successfully updated the protocol handler",
-    "dev_settings": "Show information for developers"
+    "dev_settings": "Show information for developers",
+    "update_password": "Update password"
   },
   "transaction": {
     "title": "Transactie details",

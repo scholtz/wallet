@@ -283,13 +283,15 @@ async function copyToClipboard(text) {
             <b>{{ $t("account_export.algo_help") }}</b>
           </div>
         </div>
-        <button
-          class="btn btn-xs btn-light m-1"
+        <Button
+          severity="secondary"
+          size="small"
+          class="m-1"
           title="Copy mnemonic to clipboard"
           @click="copyToClipboard(state.mn)"
         >
           <i class="pi pi-copy" />
-        </button>
+        </Button>
         <code>{{ state.mn }}</code>
       </div>
       <div v-if="state.qr" class="m-3">

@@ -2,94 +2,108 @@
   <div
     class="d-flex flex-column align-items-center justify-content-center h-100 m-2"
   >
-    <div v-if="newWalletForm" class="card col-12 col-md-6 col-lg-4">
-      <div class="card-header">
+    <Panel v-if="newWalletForm" class="col-12 col-md-6 col-lg-4">
+      <template #header>
         {{ $t("login.new_wallet") }}
-      </div>
-      <div class="card-body">
-        <form autocomplete="off" @submit="createWalletClick">
-          <label for="newwallet-name">{{ $t("login.new_wallet_name") }}</label>
-          <input
-            id="newwallet-name"
-            v-model="newname"
-            class="form-control my-2"
-            autocomplete="off"
-          />
-          <label for="newwallet-pass"
+      </template>
+      <form autocomplete="off" @submit="createWalletClick">
+        <div class="field grid">
+          <label for="newwallet-name" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("login.new_wallet_name")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <InputText
+              id="newwallet-name"
+              v-model="newname"
+              class="w-full my-2"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="newwallet-pass" class="col-12 mb-2 md:col-2 md:mb-0"
             >{{ $t("login.new_wallet_pass") }}
-            <span v-if="strength" :class="strengthClass">{{
-              strength
-            }}</span></label
-          >
-          <input
-            id="newwallet-pass"
-            v-model="pass"
-            type="password"
-            class="form-control my-2"
-            autocomplete="off"
-          />
-          <input
-            type="submit"
-            class="btn btn-primary"
-            :value="$t('login.new_wallet_button_create')"
-          />
-          <router-link to="/import-wallet" class="btn btn-light mx-2">
-            {{ $t("login.new_wallet_button_import") }}
-          </router-link>
-          <button
-            v-if="wallets.length > 0"
-            class="btn btn-light mx-2"
-            @click="newWalletForm = false"
-          >
-            {{ $t("global.go_back") }}
-          </button>
-          <p class="my-2">
-            {{ $t("login.new_wallet_help1") }}
-          </p>
-          <p class="my-2">
-            {{ $t("login.new_wallet_help2") }}
-          </p>
-        </form>
-      </div>
-    </div>
-    <div v-if="!newWalletForm" class="card col-12 col-md-6 col-lg-4">
-      <div class="card-header">
+          </label>
+          <div class="col-12 md:col-10">
+            <Password
+              id="newwallet-pass"
+              v-model="pass"
+              type="password"
+              class="w-full"
+              inputClass="w-full"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="field grid">
+          <div class="col-12 mb-2 md:col-2 md:mb-0"></div>
+          <div class="col-12 md:col-10">
+            <Button type="submit">
+              {{ $t("login.new_wallet_button_create") }}
+            </Button>
+            <router-link to="/import-wallet" class="mx-2">
+              <Button severity="secondary">
+                {{ $t("login.new_wallet_button_import") }}
+              </Button>
+            </router-link>
+            <Button
+              v-if="wallets.length > 0"
+              severity="secondary"
+              class="mx-2"
+              @click="newWalletForm = false"
+            >
+              {{ $t("global.go_back") }}
+            </Button>
+            <p class="my-2">
+              {{ $t("login.new_wallet_help1") }}
+            </p>
+            <p class="my-2">
+              {{ $t("login.new_wallet_help2") }}
+            </p>
+          </div>
+        </div>
+      </form>
+    </Panel>
+    <Panel v-if="!newWalletForm" class="col-12 col-md-6 col-lg-4">
+      <template #header>
         {{ $t("login.open_wallet") }}
-      </div>
-      <div class="card-body">
-        <form @submit="auth">
-          <label for="wallet-select">{{ $t("login.select_wallet") }}</label>
-          <select id="wallet-select" v-model="wallet" class="form-control my-2">
-            <option v-for="option in wallets" :key="option">
-              {{ option }}
-            </option>
-          </select>
-          <label for="wallet-pass">{{ $t("login.wallet_password") }}</label>
-          <input
-            id="wallet-pass"
-            v-model="pass"
-            type="password"
-            class="form-control my-2"
-            autocomplete="on"
-          />
-          <input
-            type="submit"
-            class="btn btn-primary"
-            :value="$t('login.new_wallet_button_open')"
-          />
-          <button
-            class="btn btn-light mx-2"
-            @click="
-              newWalletForm = true;
-              newname = '';
-              pass = '';
-            "
-          >
-            {{ $t("login.new_wallet") }}
-          </button>
-        </form>
-      </div>
-    </div>
+      </template>
+      <form @submit="auth">
+        <label for="wallet-select">{{ $t("login.select_wallet") }}</label>
+        <Dropdown
+          id="wallet-select"
+          v-model="wallet"
+          :options="wallets"
+          filter
+          class="my-2"
+          optionLabel="name"
+          optionValue="code"
+          :placeholder="$t('login.select_wallet')"
+        />
+        <label for="wallet-pass">{{ $t("login.wallet_password") }}</label>
+        <input
+          id="wallet-pass"
+          v-model="pass"
+          type="password"
+          class="form-control my-2"
+          autocomplete="on"
+        />
+        <Button type="submit">
+          {{ $t("login.new_wallet_button_open") }}
+        </Button>
+        <Button
+          severity="secondary"
+          class="mx-2"
+          @click="
+            newWalletForm = true;
+            newname = '';
+            pass = '';
+          "
+        >
+          {{ $t("login.new_wallet") }}
+        </Button>
+      </form>
+    </Panel>
     <div class="my-5">
       <a
         v-for="lang in $store.state.config.languages"
@@ -98,11 +112,13 @@
         role="button"
         @click="setLanguage(lang)"
       >
-        <img
-          :src="'/flags/3x2/' + lang + '.svg'"
-          height="50"
-          class="border border-3 rounded rounded-3"
-        />
+        <Button size="small" severity="secondary" link class="m-2">
+          <img
+            :src="'/flags/3x2/' + lang + '.svg'"
+            height="50"
+            class="border border-1 border-round-xl"
+          />
+        </Button>
       </a>
       <a
         class="m-2"
@@ -110,49 +126,50 @@
         target="_blank"
         role="button"
         style="width: 75; height: 50"
-        ><svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="50"
-          height="50"
-          fill="currentColor"
-          class="bi bi-plus-circle"
-          viewBox="0 0 16 16"
-        >
-          <path
-            d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"
-          />
-          <path
-            d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"
-          /></svg
-      ></a>
+      >
+        <Button size="small" severity="secondary" link class="m-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="50"
+            height="50"
+            fill="currentColor"
+            class="bi bi-plus-circle"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"
+            />
+            <path
+              d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"
+            />
+          </svg>
+        </Button>
+      </a>
     </div>
     <div class="my-5">
-      <a
-        href="https://youtu.be/cCsx7t68DS4"
-        target="youtube"
-        class="m-2 btn btn-xs btn-light btn-link"
-        role="button"
+      <a href="https://youtu.be/cCsx7t68DS4" target="youtube" role="button">
+        <Button size="small" severity="secondary" link class="m-2">
+          Youtube - {{ $t("login.basic_usage") }}
+        </Button></a
       >
-        Youtube - {{ $t("login.basic_usage") }}
-      </a>
-      <a
-        href="https://youtu.be/M0KZvp7AJQs"
-        target="youtube"
-        class="m-2 btn btn-xs btn-light btn-link"
-        role="button"
-      >
-        Youtube - {{ $t("login.tether_usage") }}
+      <a href="https://youtu.be/M0KZvp7AJQs" target="youtube" role="button">
+        <Button size="small" severity="secondary" link class="m-2">
+          Youtube - {{ $t("login.tether_usage") }}
+        </Button>
       </a>
       <a
         href="https://github.com/scholtz/wallet/"
         target="github"
-        class="m-2 btn btn-xs btn-light btn-link"
         role="button"
       >
-        GitHub: {{ $t("login.source_code") }}
+        <Button size="small" severity="secondary" link class="m-2">
+          GitHub: {{ $t("login.source_code") }}
+        </Button>
       </a>
-      <a href="/donate" class="m-2 btn btn-xs btn-light btn-link" role="button">
-        Support us
+      <a href="/donate" class="m-2" role="button">
+        <Button size="small" severity="secondary" link class="m-2">
+          Support us
+        </Button>
       </a>
     </div>
   </div>
@@ -168,7 +185,7 @@ export default {
       newWalletForm: false,
       pass: "",
       wallet: "",
-      wallets: [],
+      wallets: [{ label: "a", code: "a" }],
     };
   },
   computed: {
@@ -186,7 +203,11 @@ export default {
     },
   },
   async mounted() {
-    this.wallets = await this.getWallets();
+    this.wallets = (await this.getWallets())?.map((w) => ({
+      name: w,
+      code: w,
+    }));
+    console.log("wallets", this.wallets);
     this.wallet = localStorage.getItem("lastUsedWallet");
 
     this.newWalletForm = this.wallets.length == 0;

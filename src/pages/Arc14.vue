@@ -19,11 +19,7 @@
           placeholder="Service realm. For example 2FA#ARC14"
         />
         <div>
-          <button
-            class="btn my-2 btn-primary"
-            :disabled="processingSigning"
-            @click="clickSign"
-          >
+          <Button class="my-2" :disabled="processingSigning" @click="clickSign">
             Sign authentication transaction
             <span
               v-if="processingSigning"
@@ -31,7 +27,7 @@
               role="status"
               aria-hidden="true"
             />
-          </button>
+          </Button>
         </div>
         <div>
           <textarea v-model="output" disabled class="form-control" rows="5" />

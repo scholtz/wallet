@@ -105,13 +105,13 @@ onMounted(async () => {
         <label for="name">{{ $t("accounts.account_name") }}</label>
         <InputText itemid="name" v-model="state.name" />
       </div>
-      <button
-        class="btn btn-primary my-2"
+      <Button
+        class="my-2"
         @click="createAccount"
         :disabled="!canCreatePassword"
       >
         {{ $t("newacc.create_account") }}
-      </button>
+      </Button>
     </div>
   </MainLayout>
 </template>

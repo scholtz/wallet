@@ -83,12 +83,9 @@
           </div>
         </div>
         <div class="col-12">
-          <button
-            class="btn btn-light btn-xs btn-outline-primary"
-            @click="addOption"
-          >
+          <Button severity="secondary" size="small" @click="addOption">
             {{ $t("voteask.add_response") }}
-          </button>
+          </Button>
         </div>
         <div class="col-12">
           <label for="category">{{ $t("voteask.category") }}</label>
@@ -105,17 +102,18 @@
           <code>{{ note }}</code>
         </div>
         <div class="col-12">
-          <input
+          <Button
             type="submit"
             :disabled="!note || processing"
-            class="btn btn-primary my-2"
-            :value="
-              $t('voteask.submit_question', {
+            class="my-2"
+            @click="loadMultisig"
+          >
+            {{
+              $t("voteask.submit_question", {
                 accountName: $store.state.wallet.lastActiveAccountName,
               })
-            "
-            @click="loadMultisig"
-          />
+            }}
+          </Button>
         </div>
 
         <p v-if="!tx && processing" class="alert alert-primary my-2">

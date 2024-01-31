@@ -72,12 +72,9 @@
         />
       </DataTable>
       <div v-if="selection">
-        <button
-          class="btn btn-xs btn-default btn-outline-primary"
-          @click="selection = null"
-        >
+        <Button size="small" severity="secondary" @click="selection = null">
           {{ $t("votequestionlist.list") }}
-        </button>
+        </Button>
         <table class="w-100">
           <tr>
             <th>{{ $t("votequestionlist.id") }}:</th>
@@ -178,9 +175,8 @@
                 }}
               </div>
 
-              <button
+              <Button
                 v-if="!votingFinished"
-                class="btn btn-primary bg-primary"
                 :disabled="
                   !canVote ||
                   processing ||
@@ -193,14 +189,10 @@
                     accountName: $store.state.wallet.lastActiveAccountName,
                   })
                 }}
-              </button>
-              <button
-                v-if="votingFinished"
-                class="btn btn-primary bg-primary"
-                @click="checkResults"
-              >
+              </Button>
+              <Button v-if="votingFinished" @click="checkResults">
                 {{ $t("votequestionlist.check_results") }}
-              </button>
+              </Button>
               <div
                 v-if="
                   Object.values(resultsFirstCalc).length > 0 &&

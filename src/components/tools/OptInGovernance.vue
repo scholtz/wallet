@@ -76,13 +76,9 @@
           <div>
             <code>{{ note }}</code>
           </div>
-          <button
-            class="btn btn-primary"
-            :disabled="sending || !sendTo"
-            @click="send"
-          >
+          <Button :disabled="sending || !sendTo" @click="send">
             Send transactions
-          </button>
+          </Button>
         </div>
         <div v-if="results" class="m-1">
           <label for="results">Results</label>
