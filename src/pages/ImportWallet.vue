@@ -7,27 +7,44 @@
         </template>
 
         <form @submit="createWalletClick">
-          <label for="newwallet-name">{{ $t("import.wallet_name") }}</label>
-          <input id="newwallet-name" v-model="name" class="form-control my-2" />
-          <label for="newwallet-file">{{ $t("import.wallet_file") }}</label>
-          <input
-            id="newwallet-file"
-            ref="walletFile"
-            type="file"
-            class="form-control my-2"
-            @change="fileChanged"
-          />
-          <Button type="submit" :disabled="!name || !file">
-            {{ $t("import.import_wallet_button") }}
-          </Button>
-          <RouterLink to="/">
-            <Button variant="secondary" class="mx-2">
-              {{ $t("global.go_home") }}
-            </Button>
-          </RouterLink>
-          <p class="my-2">
-            {{ $t("import.help") }}
-          </p>
+          <div class="field grid">
+            <label for="newwallet-name" class="col-12 mb-2 md:col-2 md:mb-0">{{
+              $t("import.wallet_name")
+            }}</label>
+            <div class="col-12 md:col-10">
+              <InputText id="newwallet-name" v-model="name" class="w-full" />
+            </div>
+          </div>
+          <div class="field grid">
+            <label for="newwallet-file" class="col-12 mb-2 md:col-2 md:mb-0">{{
+              $t("import.wallet_file")
+            }}</label>
+            <div class="col-12 md:col-10">
+              <FileUpload
+                mode="basic"
+                id="newwallet-file"
+                ref="walletFile"
+                type="file"
+                @change="fileChanged"
+              />
+            </div>
+          </div>
+          <div class="field grid">
+            <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+            <div class="col-12 md:col-10">
+              <Button type="submit" :disabled="!name || !file">
+                {{ $t("import.import_wallet_button") }}
+              </Button>
+              <RouterLink to="/">
+                <Button variant="secondary" class="mx-2">
+                  {{ $t("global.go_home") }}
+                </Button>
+              </RouterLink>
+              <p class="my-2">
+                {{ $t("import.help") }}
+              </p>
+            </div>
+          </div>
         </form>
       </Panel>
     </div>
@@ -38,10 +55,13 @@
 import { mapActions } from "vuex";
 import PublicLayout from "../layouts/Public.vue";
 import { RouterLink } from "vue-router";
+import FileUpload from "primevue/fileupload";
+
 export default {
   components: {
     PublicLayout,
     RouterLink,
+    FileUpload,
   },
   data() {
     return {

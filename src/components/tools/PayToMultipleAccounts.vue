@@ -1,86 +1,65 @@
 <template>
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-12">
-        <h1>Pay to multiple accounts from single account - Distribute algos</h1>
-        <!--
-        <div class="form-check m-1">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            v-model="current"
-            id="current"
-          />
-          <label class="form-check-label" for="current">
-            Use internal account from which to distribute algos
-          </label>
-        </div>-->
-        <div v-if="current" class="m-1">
-          <label for="payFromDirect"
-            >Select internal account from which you want to distribute
-            algos</label
-          >
+  <div class="grid">
+    <div class="col-12">
+      <h1>Pay to multiple accounts from single account - Distribute algos</h1>
+      <div v-if="current" class="field grid">
+        <label for="payFromDirect" class="col-12 mb-2 md:col-2 md:mb-0">
+          Select internal account from which you want to distribute algos
+        </label>
+        <div class="col-12 md:col-10">
           <SelectAccount
             itemId="payFromDirect"
             v-model="payFromDirect"
           ></SelectAccount>
         </div>
+      </div>
 
-        <div v-if="!current" class="m-1">
-          <label for="fromAccount"
-            >Write mnemonic phrase of the account from which you want to
-            distribute algos</label
-          >
-          <div class="input-group">
-            <input
-              id="fromAccount"
-              v-model="fromAccount"
-              class="form-control"
-            />
-          </div>
+      <div v-if="!current" class="field grid">
+        <label for="fromAccount" class="col-12 mb-2 md:col-2 md:mb-0">
+          Write mnemonic phrase of the account from which you want to distribute
+          algos
+        </label>
+        <div class="col-12 md:col-10">
+          <InputText id="fromAccount" v-model="fromAccount" class="w-full" />
         </div>
-        <div class="m-1">
-          <label for="amount"
-            >How much algo do you want to send to each of the accounts?</label
-          >
-          <div class="input-group">
-            <input
+      </div>
+      <div class="field grid">
+        <label for="amount" class="col-12 mb-2 md:col-2 md:mb-0">
+          How much algo do you want to send to each of the accounts?
+        </label>
+        <div class="col-12 md:col-10">
+          <InputGroup>
+            <InputNumber
               id="amount"
               v-model="amount"
-              type="number"
               min="0"
               max="1999999999"
               step="0.000001"
-              class="form-control"
-              rows="6"
+              class="w-full"
             />
-            <span class="input-group-text">Algo</span>
-          </div>
-        </div>
-        <div class="m-1">
-          <label for="accounts"
-            >List of accounts or list of mnemonic phrases for governance
-            accounts</label
-          >
-          <textarea
-            id="accounts"
-            v-model="accounts"
-            class="form-control"
-            rows="6"
-          />
+            <InputGroupAddon>Algo</InputGroupAddon>
+          </InputGroup>
         </div>
       </div>
-      <div class="m-1">
+      <div class="field grid">
+        <label for="accounts" class="col-12 mb-2 md:col-2 md:mb-0">
+          List of accounts or list of mnemonic phrases for governance accounts
+        </label>
+        <div class="col-12 md:col-10">
+          <Textarea id="accounts" v-model="accounts" class="w-full" rows="6" />
+        </div>
+      </div>
+    </div>
+    <div class="field grid">
+      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+      <div class="col-12 md:col-10">
         <Button :disabled="sending" @click="send"> Send transactions </Button>
       </div>
-      <div v-if="results" class="m-1">
-        <label for="results">Results</label>
-        <textarea
-          id="results"
-          v-model="results"
-          class="form-control"
-          rows="20"
-        />
+    </div>
+    <div v-if="results" class="field grid">
+      <label for="results">Results</label>
+      <div class="col-12 md:col-10">
+        <Textarea id="results" v-model="results" class="w-full" rows="20" />
       </div>
     </div>
   </div>

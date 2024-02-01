@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex flex-column h-100">
-    <Navbar />
+    <Navbar2 />
     <Toast />
     <div
       v-if="$store.state.wallet.isOpen"
@@ -17,13 +17,13 @@
 
 <script>
 import Toast from "primevue/toast";
-import Navbar from "../components/Navbar.vue";
+import Navbar2 from "../components/Navbar2.vue";
 import Footer from "../components/Footer.vue";
 import Login from "../components/Login.vue";
 import { mapActions } from "vuex";
 export default {
   components: {
-    Navbar,
+    Navbar2,
     Login,
     Footer,
     Toast,

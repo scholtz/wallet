@@ -1,19 +1,20 @@
 <template>
   <main-layout>
-    <div class="row">
-      <div class="col-6">
+    <div class="grid">
+      <div class="col">
         <h1>{{ $t("accounts.title") }}</h1>
       </div>
-      <div class="col-6">
-        <div class="flex align-items-end">
-          <div class="text-end">
-            <label for="showAll" class="my-3"
-              >{{ $t("accounts.show_on_netowork_accounts") }}:
-              {{ this.$store.state.config.env }}</label
-            ><Checkbox
+      <div class="col">
+        <div class="flex align-items-center flex-wrap h-full">
+          <div class="text-right w-full">
+            <label for="showAll" class="">
+              {{ $t("accounts.show_on_netowork_accounts") }}:
+              {{ this.$store.state.config.env }}
+            </label>
+            <Checkbox
               inputId="showAll"
               type="checkbox"
-              class="mx-2 my-3"
+              class="ml-1"
               v-model="showNetworkAccounts"
               :binary="true"
             />

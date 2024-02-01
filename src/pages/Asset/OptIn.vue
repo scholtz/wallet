@@ -2,32 +2,48 @@
   <MainLayout>
     <h1>{{ $t("optin.title") }} {{ account.name }}</h1>
     <form @submit="findAssetClick">
-      <div class="form-check m-1">
-        <input
-          id="searchById"
-          v-model="searchById"
-          class="form-check-input"
-          type="checkbox"
-        />
-        <label class="form-check-label" for="searchById">
-          {{ $t("optin.searchById") }}
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+        <div class="col-12 md:col-10">
+          <Checkbox
+            binary
+            inputId="searchById"
+            v-model="searchById"
+            type="checkbox"
+          />
+          <label class="ml-1" for="searchById">
+            {{ $t("optin.searchById") }}
+          </label>
+        </div>
+      </div>
+      <div class="field grid" v-if="searchById">
+        <label for="assetId" class="col-12 mb-2 md:col-2 md:mb-0">
+          {{ $t("optin.assetId") }}
         </label>
+        <div class="col-12 md:col-10">
+          <InputText id="assetId" v-model="assetId" class="w-full" />
+        </div>
       </div>
-      <div v-if="searchById">
-        <label for="assetId">{{ $t("optin.assetId") }}</label>
-        <input id="assetId" v-model="assetId" class="form-control" />
+      <div class="field grid" v-else>
+        <label for="assetName" class="col-12 mb-2 md:col-2 md:mb-0">
+          {{ $t("optin.assetName") }}
+        </label>
+        <div class="col-12 md:col-10">
+          <InputText id="assetName" v-model="assetName" class="w-full" />
+        </div>
       </div>
-      <div v-else>
-        <label for="assetName">{{ $t("optin.assetName") }}</label>
-        <input id="assetName" v-model="assetName" class="form-control" />
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+        <div class="col-12 md:col-10">
+          <Button
+            type="submit"
+            class="my-2"
+            :severity="asset && asset['asset-id'] ? 'secondary' : 'primary'"
+          >
+            {{ $t("optin.searchButton") }}
+          </Button>
+        </div>
       </div>
-      <Button
-        type="submit"
-        class="my-2"
-        :severity="asset && asset['asset-id'] ? 'secondary' : 'primary'"
-      >
-        {{ $t("optin.searchButton") }}
-      </Button>
     </form>
 
     <DataTable

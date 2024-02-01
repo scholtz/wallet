@@ -53,7 +53,7 @@
         </button>
       </div>
       <div v-if="page == 'importaccount'">
-        <div class="row">
+        <div class="grid">
           <div :class="scanMnemonic ? 'col-8' : 'col-12'">
             <p>{{ $t("newacc.write_mnemonic") }}</p>
             <Password
@@ -533,3 +533,8 @@ export default {
   },
 };
 </script>
+<style>
+.p-submenu-list .p-menuitem-content {
+  width: 300px;
+}
+</style>

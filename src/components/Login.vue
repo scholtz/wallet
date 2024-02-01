@@ -1,16 +1,16 @@
 <template>
   <div
-    class="d-flex flex-column align-items-center justify-content-center h-100 m-2"
+    class="flex flex-column align-items-center justify-content-center h-100 m-2"
   >
-    <Panel v-if="newWalletForm" class="col-12 col-md-6 col-lg-4">
+    <Panel v-if="newWalletForm" class="col-12 md:col-8 lg:col-6">
       <template #header>
         {{ $t("login.new_wallet") }}
       </template>
       <form autocomplete="off" @submit="createWalletClick">
         <div class="field grid">
-          <label for="newwallet-name" class="col-12 mb-2 md:col-2 md:mb-0">{{
-            $t("login.new_wallet_name")
-          }}</label>
+          <label for="newwallet-name" class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ $t("login.new_wallet_name") }}
+          </label>
           <div class="col-12 md:col-10">
             <InputText
               id="newwallet-name"
@@ -21,8 +21,8 @@
           </div>
         </div>
         <div class="field grid">
-          <label for="newwallet-pass" class="col-12 mb-2 md:col-2 md:mb-0"
-            >{{ $t("login.new_wallet_pass") }}
+          <label for="newwallet-pass" class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ $t("login.new_wallet_pass") }}
           </label>
           <div class="col-12 md:col-10">
             <Password
@@ -64,44 +64,61 @@
         </div>
       </form>
     </Panel>
-    <Panel v-if="!newWalletForm" class="col-12 col-md-6 col-lg-4">
+    <Panel v-if="!newWalletForm" class="col-12 md:col-8 lg:col-6">
       <template #header>
         {{ $t("login.open_wallet") }}
       </template>
       <form @submit="auth">
-        <label for="wallet-select">{{ $t("login.select_wallet") }}</label>
-        <Dropdown
-          id="wallet-select"
-          v-model="wallet"
-          :options="wallets"
-          filter
-          class="my-2"
-          optionLabel="name"
-          optionValue="code"
-          :placeholder="$t('login.select_wallet')"
-        />
-        <label for="wallet-pass">{{ $t("login.wallet_password") }}</label>
-        <input
-          id="wallet-pass"
-          v-model="pass"
-          type="password"
-          class="form-control my-2"
-          autocomplete="on"
-        />
-        <Button type="submit">
-          {{ $t("login.new_wallet_button_open") }}
-        </Button>
-        <Button
-          severity="secondary"
-          class="mx-2"
-          @click="
-            newWalletForm = true;
-            newname = '';
-            pass = '';
-          "
-        >
-          {{ $t("login.new_wallet") }}
-        </Button>
+        <div class="field grid">
+          <label for="wallet-select" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("login.select_wallet")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <Dropdown
+              id="wallet-select"
+              v-model="wallet"
+              :options="wallets"
+              filter
+              class="my-2 w-full"
+              optionLabel="name"
+              optionValue="code"
+              :placeholder="$t('login.select_wallet')"
+            />
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="wallet-pass" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("login.wallet_password")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <Password
+              id="wallet-pass"
+              v-model="pass"
+              class="w-full my-2"
+              inputClass="w-full"
+              :feedback="false"
+            />
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="wallet-pass" class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <Button type="submit">
+              {{ $t("login.new_wallet_button_open") }}
+            </Button>
+            <Button
+              severity="secondary"
+              class="mx-2"
+              @click="
+                newWalletForm = true;
+                newname = '';
+                pass = '';
+              "
+            >
+              {{ $t("login.new_wallet") }}
+            </Button>
+          </div>
+        </div>
       </form>
     </Panel>
     <div class="my-5">

@@ -1,8 +1,5 @@
 <template>
   <MainLayout>
-    <VoteTopMenu current="governance" />
-    <GovToolsMenu :current="$route.params.id" />
-
     <GenMultiAccounts v-if="$route.params.id == 'gen'" />
     <MergeAccounts v-if="$route.params.id == 'merge'" />
     <OptInGovernance v-if="$route.params.id == 'optin'" />

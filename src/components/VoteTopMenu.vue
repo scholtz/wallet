@@ -70,10 +70,10 @@
         >Custom token
       </Button>
 
-      <input
+      <InputText
         v-if="showCustom"
         v-model="customToken"
-        class="form-control m-2"
+        class="w-full m-2"
         @change="setToken({ assetId: customToken })"
       />
     </div>

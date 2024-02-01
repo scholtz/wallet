@@ -99,8 +99,8 @@
         />
         {{ $t("merchant.waiting_for_payment") }}
       </p>
-      <div class="row">
-        <div class="col-12 col-lg-6">
+      <div class="grid">
+        <div class="col-12 lg:col-6">
           <QRCodeVue3
             v-if="!isPaid"
             :title="origcode"
@@ -112,7 +112,7 @@
             :image="assetImage"
           />
         </div>
-        <div class="col-12 col-lg-6">
+        <div class="col-12 lg:col-6">
           <a
             v-for="lang in $store.state.config.languages"
             :key="lang"

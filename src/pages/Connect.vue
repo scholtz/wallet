@@ -390,13 +390,7 @@
         </div>
         <div v-else>
           <h2>{{ $t("connect.uri") }}</h2>
-          <input
-            id="uri"
-            v-model="uri"
-            type="text"
-            class="form-control"
-            autocomplete="off"
-          />
+          <InputText id="uri" v-model="uri" class="w-full" autocomplete="off" />
           <div v-if="scan" class="col-12 m-2">
             <QrcodeStream @decode="onDecodeQR" />
           </div>

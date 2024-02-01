@@ -12,10 +12,10 @@
       </p>
       <div>
         <h2>Service realm</h2>
-        <input
+        <InputText
           id="realm"
           v-model="realm"
-          class="form-control"
+          class="w-full"
           placeholder="Service realm. For example 2FA#ARC14"
         />
         <div>
@@ -30,7 +30,7 @@
           </Button>
         </div>
         <div>
-          <textarea v-model="output" disabled class="form-control" rows="5" />
+          <Textarea v-model="output" disabled class="w-full" rows="5" />
         </div>
       </div>
     </div>

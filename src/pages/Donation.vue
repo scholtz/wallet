@@ -1,11 +1,21 @@
 <template>
   <PublicLayout>
     <h1>Please help us</h1>
-    <div class="row">
+    <div class="grid">
       <div class="col-9">
         <p>
-          Algorand foundation nor Algorand inc, nor any algorand fund has funded
-          this project.
+          This project has been started in June 2021 as the first open source
+          algorand wallet.
+        </p>
+        <p>
+          Thank to expert governors, we have received funds to create
+          <a href="https://github.com/algorandfoundation/xGov/pull/9/files"
+            >two factor authentication accounts</a
+          >
+          and
+          <a href="https://github.com/algorandfoundation/xGov/pull/90/files"
+            >payment scheduler</a
+          >.
         </p>
         <p>
           We are active in algorand community. We have created
@@ -59,7 +69,7 @@
           <a
             target="_blank"
             rel="noreferrer"
-            href="https://algoexplorer.io/address/AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
+            href="https://allo.info/address/AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
             ><b
               >AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y</b
             ></a

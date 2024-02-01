@@ -178,25 +178,30 @@ async function copyToClipboard(text) {
     <h1>{{ $t("account_export.header") }}</h1>
     <p>{{ $t("account_export.help") }}</p>
     <div v-if="!state.pwdChecked">
-      <div>
-        <label for="pwd">{{ $t("account_export.password") }}:</label>
+      <div class="field grid">
+        <label for="pwd" class="col-12 mb-2 md:col-2 md:mb-0">
+          {{ $t("account_export.password") }}
+        </label>
+        <div class="col-12 md:col-10">
+          <Password
+            v-model="state.pwd"
+            inputId="pwd"
+            class="w-full"
+            :feedback="false"
+          ></Password>
+        </div>
       </div>
-      <div>
-        <Password
-          v-model="state.pwd"
-          inputId="pwd"
-          class="m-2 w-100"
-          :feedback="false"
-        ></Password>
-      </div>
-      <div>
-        <Button @click="checkPwd" class="m-2">{{
-          $t("account_export.continue")
-        }}</Button>
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+        <div class="col-12 md:col-10">
+          <Button @click="checkPwd">
+            {{ $t("account_export.continue") }}
+          </Button>
+        </div>
       </div>
     </div>
     <div v-else>
-      <div class="row">
+      <div class="grid">
         <div class="col">
           <Button
             class="m-2 w-100"
@@ -204,8 +209,6 @@ async function copyToClipboard(text) {
             @click="algorandMnemonics"
             >{{ $t("account_export.algo_mnemonic") }}</Button
           >
-        </div>
-        <div class="col">
           <Button
             class="m-2 w-100"
             :severity="state.state == 'step1' ? 'primary' : 'secondary'"

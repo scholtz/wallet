@@ -1,30 +1,38 @@
 <template>
   <MainLayout>
-    <h1>
-      {{ $t("acc_overview.title") }} -
-      {{ $store.state.wallet.lastActiveAccountName }}
-    </h1>
+    <div class="grid">
+      <div class="col-6">
+        <h1>
+          {{ $t("acc_overview.title") }} -
+          {{ $store.state.wallet.lastActiveAccountName }}
+        </h1>
+      </div>
+      <div class="col-6">
+        <div class="text-right">
+          <Button
+            severity="danger"
+            size="small"
+            class="m-2 align-items-end"
+            @click="displayDeleteDialog = true"
+          >
+            <div>{{ $t("acc_overview.delete") }}</div>
+          </Button>
+
+          <Button
+            severity="secondary"
+            size="small"
+            v-if="account"
+            class="m-2 align-items-end"
+            @click="hideAccountClick"
+          >
+            <div v-if="account.isHidden">Unhide account</div>
+            <div v-else>Hide account</div>
+          </Button>
+        </div>
+      </div>
+    </div>
+
     <p>
-      <Button
-        severity="danger"
-        size="small"
-        class="m-2 align-items-end"
-        @click="displayDeleteDialog = true"
-      >
-        <div>{{ $t("acc_overview.delete") }}</div>
-      </Button>
-
-      <Button
-        severity="secondary"
-        size="small"
-        v-if="account"
-        class="m-2 align-items-end"
-        @click="hideAccountClick"
-      >
-        <div v-if="account.isHidden">Unhide account</div>
-        <div v-else>Hide account</div>
-      </Button>
-
       <Dialog
         v-model:visible="displayDeleteDialog"
         :header="$t('acc_overview.delete_header')"
@@ -53,9 +61,9 @@
         :modal="true"
       >
         <p>{{ $t("onlineofflinedialog.warning") }}</p>
-        <input
+        <InputNumber
           v-model="onlineRounds"
-          class="form-control"
+          class="w-full"
           type="number"
           min="0"
           max="2000000"
@@ -89,85 +97,6 @@
           </Button>
         </template>
       </Dialog>
-      <router-link
-        v-if="canSign"
-        :to="'/accounts/pay/' + $route.params.account"
-        class="ml-2 my-2"
-      >
-        <Button severity="secondary" size="small">
-          {{ $t("acc_overview.pay") }}
-        </Button>
-      </router-link>
-      <router-link
-        v-if="canSign"
-        :to="'/accounts/rekey/' + $route.params.account"
-        class="ml-2 my-2"
-      >
-        <Button severity="secondary" size="small">
-          {{ $t("acc_overview.rekey") }}
-        </Button>
-      </router-link>
-      <router-link
-        v-if="canSign"
-        :to="'/account/optin/' + $route.params.account"
-        class="ml-2 my-2"
-      >
-        <Button severity="secondary" size="small">
-          {{ $t("acc_overview.asset_optin") }}
-        </Button>
-      </router-link>
-      <router-link
-        :to="'/receive-payment/' + $route.params.account"
-        class="ml-2 my-2"
-      >
-        <Button severity="secondary" size="small">
-          {{ $t("acc_overview.receive_payment") }}
-        </Button>
-      </router-link>
-      <router-link
-        :to="'/payment-gateway/' + $route.params.account"
-        class="ml-2 my-2"
-      >
-        <Button severity="secondary" size="small">
-          {{ $t("acc_overview.payment_gateway") }}
-        </Button>
-      </router-link>
-      <router-link
-        v-if="canSign"
-        :to="'/account/connect/' + $route.params.account"
-        class="ml-2 my-2"
-      >
-        <Button severity="secondary" size="small">
-          {{ $t("acc_overview.connect") }}
-        </Button>
-      </router-link>
-      <router-link
-        v-if="account && (account.sk || account.params)"
-        :to="'/vote/ask/'"
-        class="ml-2 my-2"
-      >
-        <Button severity="secondary" size="small">
-          {{ $t("acc_overview.ask_question") }}
-        </Button>
-      </router-link>
-
-      <router-link
-        v-if="account"
-        :to="'/account/export/' + $route.params.account"
-        class="ml-2 my-2"
-      >
-        <Button severity="secondary" size="small">
-          {{ $t("acc_overview.export") }}
-        </Button>
-      </router-link>
-
-      <router-link
-        v-if="$store.state.config.dev"
-        :to="'/arc14/' + $route.params.account"
-        class="ml-2 my-2"
-      >
-        <Button severity="secondary" size="small"> ARC14 </Button>
-      </router-link>
     </p>
     <div
       v-if="account && account.network != this.$store.state.config.env"

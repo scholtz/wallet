@@ -2,127 +2,127 @@
   <main-layout>
     <h1>{{ $t("settings.title") }}</h1>
     <h2>{{ $t("settings.server") }}</h2>
-
-    <div v-if="publicList">
-      <label for="env2">{{ $t("settings.environment") }}</label>
-
-      <Dropdown
-        id="env2"
-        v-model="env"
-        class="form-control"
-        :options="publicList"
-        optionLabel="name"
-        optionValue="network"
-      >
-      </Dropdown>
+    <div class="field grid" v-if="publicList">
+      <label for="env2" class="col-12 mb-2 md:col-2 md:mb-0">
+        {{ $t("settings.environment") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <Dropdown
+          id="env2"
+          v-model="env"
+          class="w-full"
+          :options="publicList"
+          optionLabel="name"
+          optionValue="network"
+        >
+        </Dropdown>
+      </div>
     </div>
-    <table>
-      <tr v-if="algodList && algodList.length > 0 && env != 'custom'">
-        <td><label for="algodProvider">Public AlgoD provider</label>:</td>
-        <td>
-          <Dropdown
-            id="algodProvider"
-            v-model="algodHost"
-            class="form-control"
-            :options="algodList"
-            optionLabel="providerName"
-            optionValue="host"
-          >
-          </Dropdown>
-        </td>
-      </tr>
-      <tr>
-        <td>AlgoD {{ $t("settings.host") }}:</td>
-        <td>
-          <input
-            v-model="algodHost"
-            type="text"
-            :disabled="env != 'custom'"
-            class="form-control"
-          />
-        </td>
-      </tr>
-      <tr v-if="env == 'custom'">
-        <td>AlgoD {{ $t("settings.token") }}:</td>
-        <td>
-          <input
-            v-model="algodToken"
-            type="text"
-            :disabled="env != 'custom'"
-            class="form-control"
-          />
-        </td>
-      </tr>
-      <tr
-        v-if="
-          participationList && participationList.length > 0 && env != 'custom'
-        "
-      >
-        <td>
-          <label for="participationProvider"
-            >Public participation provider</label
-          >:
-        </td>
-        <td>
-          <Dropdown
-            id="participationProvider"
-            v-model="participationHost"
-            class="form-control"
-            :options="participationList"
-            optionLabel="providerName"
-            optionValue="host"
-          >
-          </Dropdown>
-        </td>
-      </tr>
-      <tr>
-        <td>Participation {{ $t("settings.host") }}:</td>
-        <td>
-          <input
-            v-model="participationHost"
-            type="text"
-            :disabled="env != 'custom'"
-            class="form-control"
-          />
-        </td>
-      </tr>
-      <tr v-if="indexerList && indexerList.length > 0 && env != 'custom'">
-        <td><label for="indexerProvider">Public Indexer provider</label>:</td>
-        <td>
-          <Dropdown
-            id="indexerProvider"
-            v-model="indexerHost"
-            class="form-control"
-            :options="indexerList"
-            optionLabel="providerName"
-            optionValue="host"
-          >
-          </Dropdown>
-        </td>
-      </tr>
-      <tr>
-        <td>Indexer {{ $t("settings.host") }}:</td>
-        <td>
-          <input
-            v-model="indexerHost"
-            type="text"
-            :disabled="env != 'custom'"
-            class="form-control"
-          />
-        </td>
-      </tr>
-      <tr v-if="env == 'custom'">
-        <td>Indexer {{ $t("settings.token") }}:</td>
-        <td>
-          <input
-            v-model="indexerToken"
-            type="text"
-            :disabled="env != 'custom'"
-            class="form-control"
-          />
-        </td>
-      </tr>
-    </table>
+    <div
+      class="field grid"
+      v-if="algodList && algodList.length > 0 && env != 'custom'"
+    >
+      <label for="algodProvider" class="col-12 mb-2 md:col-2 md:mb-0">
+        Public AlgoD provider
+      </label>
+      <div class="col-12 md:col-10">
+        <Dropdown
+          id="algodProvider"
+          v-model="algodHost"
+          class="w-full"
+          :options="algodList"
+          optionLabel="providerName"
+          optionValue="host"
+        >
+        </Dropdown>
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="algodHost" class="col-12 mb-2 md:col-2 md:mb-0">
+        AlgoD {{ $t("settings.host") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText
+          id="algodHost"
+          v-model="algodHost"
+          :disabled="env != 'custom'"
+          class="w-full"
+        />
+      </div>
+    </div>
+
+    <div
+      class="field grid"
+      v-if="
+        participationList && participationList.length > 0 && env != 'custom'
+      "
+    >
+      <label for="participationProvider" class="col-12 mb-2 md:col-2 md:mb-0">
+        Public participation provider
+      </label>
+      <div class="col-12 md:col-10">
+        <Dropdown
+          id="participationProvider"
+          v-model="participationHost"
+          class="w-full"
+          :options="participationList"
+          optionLabel="providerName"
+          optionValue="host"
+        >
+        </Dropdown>
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="participationHost" class="col-12 mb-2 md:col-2 md:mb-0">
+        Participation {{ $t("settings.host") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText
+          id="participationHost"
+          v-model="participationHost"
+          type="text"
+          :disabled="env != 'custom'"
+          class="w-full"
+        />
+      </div>
+    </div>
+
+    <div
+      class="field grid"
+      v-if="
+        participationList && participationList.length > 0 && env != 'custom'
+      "
+    >
+      <label for="indexerProvider" class="col-12 mb-2 md:col-2 md:mb-0">
+        Public Indexer provider
+      </label>
+      <div class="col-12 md:col-10">
+        <Dropdown
+          id="indexerProvider"
+          v-model="indexerHost"
+          class="w-full"
+          :options="indexerList"
+          optionLabel="providerName"
+          optionValue="host"
+        >
+        </Dropdown>
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="indexerHost" class="col-12 mb-2 md:col-2 md:mb-0">
+        Indexer {{ $t("settings.host") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText
+          id="indexerHost"
+          v-model="indexerToken"
+          type="text"
+          :disabled="env != 'custom'"
+          class="w-full"
+        />
+      </div>
+    </div>
+
     <div>
       <h2>{{ $t("settings.protocol_title") }}</h2>
       <Button @click="registerProtocolClick" severity="secondary">
@@ -165,20 +165,39 @@
     </Dropdown>
     <h2>{{ $t("settings.pass") }}</h2>
     <form @submit="changePasswordClick">
-      <label>{{ $t("settings.oldpass") }}</label>
-      <input v-model="passw1" type="password" class="form-control my-2" />
-      <label
-        >{{ $t("settings.newpass") }}
-        <span v-if="strength" :class="strengthClass">{{
-          strength
-        }}</span></label
-      >
-      <input v-model="passw2" type="password" class="form-control my-2" />
-      <label>{{ $t("settings.repeatpass") }}</label>
-      <input v-model="passw3" type="password" class="form-control my-2" />
-      <Button type="submit" severity="secondary" class="my-2">
-        {{ $t("settings.update_password") }}
-      </Button>
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0">
+          {{ $t("settings.oldpass") }}
+        </label>
+        <div class="col-12 md:col-10">
+          <Password v-model="passw1" class="w-full" />
+        </div>
+      </div>
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0">
+          {{ $t("settings.newpass") }}
+          <span v-if="strength" :class="strengthClass">{{ strength }}</span>
+        </label>
+        <div class="col-12 md:col-10">
+          <Password v-model="passw2" class="w-full" />
+        </div>
+      </div>
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0">
+          {{ $t("settings.repeatpass") }}
+        </label>
+        <div class="col-12 md:col-10">
+          <Password v-model="passw3" class="w-full" />
+        </div>
+      </div>
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+        <div class="col-12 md:col-10">
+          <Button type="submit" severity="secondary">
+            {{ $t("settings.update_password") }}
+          </Button>
+        </div>
+      </div>
     </form>
     <h2>{{ $t("settings.dev_settings") }}</h2>
     <div>

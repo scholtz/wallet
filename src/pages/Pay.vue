@@ -27,10 +27,10 @@
             {{ $t("pay.sign_proposal") }}
           </Button>
         </div>
-        <div v-if="subpage == 'sign'" class="row">
+        <div v-if="subpage == 'sign'" class="grid">
           <div class="col-12">
             <p>{{ $t("pay.signature_from_friend") }}:</p>
-            <textarea
+            <Textarea
               v-model="rawSignedTxnInput"
               class="form-control my-2"
               rows="8"
@@ -40,7 +40,7 @@
             </Button>
           </div>
         </div>
-        <div v-if="showDesignScreen" class="row">
+        <div v-if="showDesignScreen" class="grid">
           <div :class="scan ? 'col-8' : 'col-12'">
             <div v-if="$route.params.toAccount">
               <input
@@ -306,7 +306,7 @@
       <form v-if="page == 'review'" @submit="payPaymentClick">
         <h1>{{ $t("pay.review_payment") }}</h1>
         <p>{{ $t("pay.review_payment_help") }}</p>
-        <div class="row">
+        <div class="grid">
           <div class="col">
             <table v-if="!multisigDecoded.txn" class="w-100">
               <tr>

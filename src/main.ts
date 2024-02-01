@@ -39,6 +39,11 @@ import Badge from "primevue/badge";
 import Avatar from "primevue/avatar";
 import MultiSelect from "primevue/multiselect";
 import Panel from "primevue/panel";
+import InputNumber from "primevue/inputnumber";
+import Textarea from "primevue/textarea";
+import InputGroup from "primevue/inputgroup";
+import InputGroupAddon from "primevue/inputgroupaddon";
+import Checkbox from "primevue/checkbox";
 
 import "primevue/resources/themes/saga-blue/theme.css";
 
@@ -90,6 +95,11 @@ myApp.component("Badge", Badge);
 myApp.component("Avatar", Avatar);
 myApp.component("MultiSelect", MultiSelect);
 myApp.component("Panel", Panel);
+myApp.component("InputNumber", InputNumber);
+myApp.component("Textarea", Textarea);
+myApp.component("InputGroup", InputGroup);
+myApp.component("InputGroupAddon", InputGroupAddon);
+myApp.component("Checkbox", Checkbox);
 
 myApp.config.globalProperties.$filters = {
   formatCurrency(

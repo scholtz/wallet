@@ -36,14 +36,32 @@
       </Button>
     </div>
     <div v-if="session">
-      <h3>{{ $t("new_account_wc.account_name") }}</h3>
-      <input v-model="name" class="form-control my-2" />
-      <div v-if="account">
-        {{ $t("new_account_wc.address") }}: {{ account }}
+      <div class="field grid">
+        <label for="account_name" class="col-12 mb-2 md:col-2 md:mb-0">
+          {{ $t("new_account_wc.account_name") }}
+        </label>
+        <div class="col-12 md:col-10">
+          <InputText id="account_name" v-model="name" class="w-full" />
+        </div>
       </div>
-      <Button class="my-2" @click="clickSave">
-        {{ $t("new_account_wc.save_address") }}
-      </Button>
+
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+        <div class="col-12 md:col-10">
+          <div v-if="account">
+            {{ $t("new_account_wc.address") }}: {{ account }}
+          </div>
+        </div>
+      </div>
+
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+        <div class="col-12 md:col-10">
+          <Button class="my-2" @click="clickSave" :disabled="formInvalid">
+            {{ $t("new_account_wc.save_address") }}
+          </Button>
+        </div>
+      </div>
     </div>
   </MainLayout>
 </template>
@@ -71,6 +89,9 @@ export default {
     };
   },
   computed: {
+    formInvalid() {
+      return !(this.name && this.account);
+    },
     scannable() {
       return this.uri && !this.session;
     },
