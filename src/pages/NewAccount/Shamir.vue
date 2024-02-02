@@ -161,11 +161,7 @@ onMounted(async () => {
     }}</Button>
     <div>
       <label for="name">{{ $t("new_account_shamir.account_name") }}</label>
-      <InputText
-        v-model="state.name"
-        inputId="name"
-        class="m-2 w-100"
-      ></InputText>
+      <InputText v-model="state.name" id="name" class="m-2 w-100"></InputText>
     </div>
     <Button @click="recover" class="m-2 w-100" severity="primary">{{
       $t("new_account_shamir.recover")

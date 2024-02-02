@@ -6,12 +6,12 @@
       <div v-if="checkNetwork()">
         {{ $t("swap.network") }}: {{ checkNetwork() }}
       </div>
-      <div v-else class="alert alert-danger">
+      <Message severity="error" v-else>
         {{ $t("swap.network_not_supported") }}
-      </div>
-      <div v-if="hasSK === false" class="alert alert-danger">
+      </Message>
+      <Message severity="error" v-if="hasSK === false">
         {{ $t("swap.has_sk") }}
-      </div>
+      </Message>
       <div>
         <div class="field grid">
           <label for="swap_asset_from" class="col-12 mb-2 md:col-2 md:mb-0">
@@ -149,12 +149,12 @@
         <div>
           <Textarea v-model="txsDetails" disabled class="w-full" rows="5" />
         </div>
-        <div v-if="note" class="alert alert-success my-2">
+        <Message severity="success" v-if="note" class="my-2">
           {{ note }}
-        </div>
-        <div v-if="error" class="alert alert-danger my-2">
+        </Message>
+        <Message severity="error" v-if="error" class="my-2">
           {{ error }}
-        </div>
+        </Message>
         <div>
           <Button
             v-if="useDeflex"

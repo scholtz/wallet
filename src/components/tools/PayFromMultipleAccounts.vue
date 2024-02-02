@@ -31,7 +31,7 @@
         <div class="col-12 md:col-10">
           <InputGroup>
             <InputNumber
-              id="amount"
+              inputId="amount"
               v-model="amount"
               type="number"
               min="0"
@@ -69,9 +69,10 @@
           <Button :disabled="sending || !sendTo || sent" @click="send">
             Send transactions
           </Button>
-          <div v-if="sent" class="alert alert-success my-1">
+
+          <Message severity="success" v-if="sent" class="my-1">
             Payments has been sent
-          </div>
+          </Message>
         </div>
       </div>
       <div v-if="results" class="field grid">

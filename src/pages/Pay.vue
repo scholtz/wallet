@@ -14,9 +14,9 @@
           <span v-if="account">{{ account.name }}</span>
         </h1>
 
-        <div v-if="isRekey" class="alert alert-danger my-2">
+        <Message severity="error" v-if="isRekey" class="my-2">
           {{ $t("pay.rekey_warning") }}
-        </div>
+        </Message>
         <p>{{ $t("pay.selected_account") }}: {{ account.addr }}</p>
         <div v-if="isMultisig && !subpage">
           <h2>{{ $t("pay.multisig_account") }}</h2>
@@ -102,9 +102,13 @@
                   </p>
                 </div>
               </div>
-              <div v-if="forcedAssetNotLoaded" class="alert alert-danger my-2">
+              <Message
+                severity="error"
+                v-if="forcedAssetNotLoaded"
+                class="my-2"
+              >
                 {{ $t("pay.asset_failed_to_load") }}
-              </div>
+              </Message>
             </div>
             <div v-if="isRekey">
               <ul class="nav nav-tabs">
@@ -198,27 +202,24 @@
                 </template>
               </Dropdown>
             </div>
-            <div v-if="payamountGtMaxAmount" class="alert alert-danger my-2">
+            <Message severity="error" v-if="payamountGtMaxAmount" class="my-2">
               {{ $t("pay.asset_too_small_balance") }}
-            </div>
+            </Message>
             <div v-if="!isRekey">
               <label for="payamount" class="">{{ $t("pay.amount") }}</label>
-              <div class="input-group">
-                <input
-                  id="payamount"
+              <InputGroup>
+                <InputNumber
+                  itemId="payamount"
                   v-model="payamount"
                   type="number"
-                  min="0"
+                  :min="0"
                   :max="maxAmount"
                   :step="stepAmount"
-                  class="form-control"
+                  class="w-full"
                 />
-                <input
-                  v-if="assetUnit"
-                  disabled
-                  :value="assetUnit"
-                  class="col-2"
-                />
+                <InputGroupAddon v-if="assetUnit" :value="assetUnit">
+                  {{ assetUnit }}
+                </InputGroupAddon>
                 <Button
                   severity="secondary"
                   class="col-2"
@@ -226,26 +227,24 @@
                 >
                   {{ $t("pay.set_max") }}
                 </Button>
-              </div>
+              </InputGroup>
             </div>
             <div>
               <label for="fee">{{ $t("pay.fee") }}</label>
-              <div class="input-group">
-                <input
-                  id="fee"
+              <InputGroup>
+                <InputNumber
+                  inputId="fee"
                   v-model="fee"
                   type="number"
                   min="0.001"
                   max="1"
                   step="0.001"
-                  class="form-control"
+                  class="w-full"
                 />
-                <input
-                  disabled
-                  :value="this.$store.state.config.tokenSymbol"
-                  class="col-4"
-                />
-              </div>
+                <InputGroupAddon>
+                  {{ this.$store.state.config.tokenSymbol }}
+                </InputGroupAddon>
+              </InputGroup>
             </div>
             <div>
               <label for="paynote">{{ $t("pay.note") }}</label>
@@ -315,9 +314,9 @@
               </tr>
               <tr v-if="malformedAddress">
                 <td colspan="2">
-                  <div class="alert alert-danger">
+                  <Message severity="error">
                     {{ $t("pay.pay_to_address_malformed") }}
-                  </div>
+                  </Message>
                 </td>
               </tr>
               <tr v-if="txn && txn.type">
@@ -372,8 +371,10 @@
               </tr>
               <tr v-if="rekeyTo">
                 <th>{{ $t("pay.rekey_to") }}:</th>
-                <td class="alert alert-danger">
-                  {{ rekeyTo }}
+                <td>
+                  <Message severity="error">
+                    {{ rekeyTo }}
+                  </Message>
                 </td>
               </tr>
             </table>
@@ -430,8 +431,10 @@
                   "
                 >
                   <th>{{ $t("pay.rekey_to") }}</th>
-                  <td class="alert alert-danger">
-                    {{ encodeAddress(multisigDecoded.txn.reKeyTo.publicKey) }}
+                  <td>
+                    <Message severity="error">
+                      {{ encodeAddress(multisigDecoded.txn.reKeyTo.publicKey) }}
+                    </Message>
                   </td>
                 </tr>
                 <tr
@@ -450,20 +453,28 @@
             <table class="w-100">
               <tr v-for="sig in multisigDecoded.msig.subsig" :key="sig">
                 <th>
-                  <span v-if="sig.s" class="badge bg-success">{{
-                    encodeAddress(sig.pk)
-                  }}</span>
-                  <span v-if="!sig.s" class="badge bg-danger">{{
-                    encodeAddress(sig.pk)
-                  }}</span>
+                  <Badge
+                    severity="success"
+                    v-if="sig.s"
+                    :value="encodeAddress(sig.pk)"
+                  />
+                  <Badge
+                    severity="danger"
+                    v-if="!sig.s"
+                    :value="encodeAddress(sig.pk)"
+                  />
                 </th>
                 <td>
-                  <span v-if="sig.s" class="badge bg-success">{{
-                    $t("pay.signed")
-                  }}</span
-                  ><span v-if="!sig.s" class="badge bg-danger">{{
-                    $t("pay.not_signed")
-                  }}</span>
+                  <Badge
+                    severity="success"
+                    v-if="sig.s"
+                    :value="$t('pay.signed')"
+                  />
+                  <Badge
+                    severity="danger"
+                    v-if="!sig.s"
+                    :value="$t('pay.not_signed')"
+                  />
                 </td>
               </tr>
             </table>
@@ -612,15 +623,15 @@
           </Button>
         </div>
 
-        <p v-if="!tx && processing" class="alert alert-primary my-2">
+        <Message severity="info" v-if="!tx && processing" class="my-2">
           <span
             class="spinner-grow spinner-grow-sm"
             role="status"
             aria-hidden="true"
           />
           {{ $t("pay.state_sending") }}
-        </p>
-        <p v-if="tx && !confirmedRound" class="alert alert-primary my-2">
+        </Message>
+        <Message severity="info" v-if="tx && !confirmedRound" class="my-2">
           <span
             class="spinner-grow spinner-grow-sm"
             role="status"
@@ -628,17 +639,21 @@
           />
           {{ $t("pay.state_sent") }}: {{ tx }}.
           {{ $t("pay.state_waiting_confirm") }}
-        </p>
-        <p v-if="confirmedRound" class="alert alert-success my-2">
+        </Message>
+        <Message severity="success" v-if="confirmedRound" class="my-2">
           {{ $t("pay.state_confirmed") }} <b>{{ confirmedRound }}</b
           >. {{ $t("pay.transaction") }}: {{ tx }}.
-        </p>
-        <p v-if="error" class="alert alert-danger my-2">
+        </Message>
+        <Message severity="error" v-if="error" class="my-2">
           {{ $t("pay.error") }}: {{ error }}
-        </p>
-        <p v-if="$store.state.toast.lastError" class="alert alert-danger my-2">
+        </Message>
+        <Message
+          severity="error"
+          v-if="$store.state.toast.lastError"
+          class="my-2"
+        >
           {{ $t("global.last_error") }}: {{ $store.state.toast.lastError }}
-        </p>
+        </Message>
       </form>
     </div>
   </main-layout>

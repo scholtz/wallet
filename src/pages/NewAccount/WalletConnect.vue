@@ -2,9 +2,9 @@
   <MainLayout>
     <h1>{{ $t("new_account_wc.title") }}</h1>
     <div v-if="lastError">
-      <div class="alert alert-danger">
+      <Message severity="error">
         {{ $t("new_account_wc.last_error") }}: {{ lastError }}
-      </div>
+      </Message>
     </div>
     <Button v-if="!uri" @click="initWalletConnect">
       {{ $t("new_account_wc.show_qr_code") }}

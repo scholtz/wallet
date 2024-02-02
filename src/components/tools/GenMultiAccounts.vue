@@ -9,7 +9,7 @@
         </label>
         <div class="col-12 md:col-10">
           <InputNumber
-            id="amount"
+            inputId="amount"
             v-model="amount"
             min="1"
             max="10000"

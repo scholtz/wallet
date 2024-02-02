@@ -44,6 +44,7 @@ import Textarea from "primevue/textarea";
 import InputGroup from "primevue/inputgroup";
 import InputGroupAddon from "primevue/inputgroupaddon";
 import Checkbox from "primevue/checkbox";
+import Message from "primevue/message";
 
 import "primevue/resources/themes/saga-blue/theme.css";
 
@@ -100,6 +101,7 @@ myApp.component("Textarea", Textarea);
 myApp.component("InputGroup", InputGroup);
 myApp.component("InputGroupAddon", InputGroupAddon);
 myApp.component("Checkbox", Checkbox);
+myApp.component("Message", Message);
 
 myApp.config.globalProperties.$filters = {
   formatCurrency(

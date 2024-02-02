@@ -82,9 +82,12 @@
                       >
                         {{ $t("connect.sign") }}
                       </Button>
-                      <span v-else class="badge bg-success">{{
-                        $t("connect.signed")
-                      }}</span>
+                      <Badge
+                        severity="success"
+                        v-else
+                        class="badge bg-success"
+                        :value="$t('connect.signed')"
+                      />
                     </template>
                   </Column>
                   <Column
@@ -478,9 +481,9 @@
             </Column>
           </DataTable>
         </div>
-        <div v-if="error" class="alert alert-danger my-2">
+        <Message severity="error" v-if="error" class="my-2">
           {{ error }}
-        </div>
+        </Message>
       </div>
     </div>
     <div class="container-fluid" v-else>

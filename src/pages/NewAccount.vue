@@ -116,9 +116,9 @@
             vanityRPS
           }}/s)
         </div>
-        <div v-if="a" class="alert alert-success my-2">
+        <Message severity="success" v-if="a" class="my-2">
           {{ a }}
-        </div>
+        </Message>
         <button
           v-if="!vanityRunning"
           class="btn my-1"
@@ -144,9 +144,9 @@
         <button class="btn btn-light m-1" @click="reset">
           {{ $t("global.go_back") }}
         </button>
-        <div v-if="vanityRunning" class="alert alert-danger">
+        <Message severity="error" v-if="vanityRunning">
           {{ $t("newacc.auto_lock_off") }}
-        </div>
+        </Message>
       </div>
       <div v-if="page == 'watchaccount'">
         <p>{{ $t("newacc.name") }}</p>
@@ -182,9 +182,9 @@
           </option>
         </select>
         <p class="my-2">{{ $t("newacc.add_other_accounts") }}:</p>
-        <textarea
+        <Textarea
           v-model="friendaccounts"
-          class="form-control my-1"
+          class="w-full my-1"
           style="min-height: 150px"
         />
 

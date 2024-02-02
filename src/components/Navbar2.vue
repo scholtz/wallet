@@ -15,6 +15,10 @@ watch(store.state.wallet.isOpen, () => {
   makeMenu();
 });
 
+watch(store.state.wallet.lastActiveAccount, () => {
+  makeMenu();
+});
+
 const makeMenu = () => {
   if (store.state.wallet.isOpen) {
     items.value = [
@@ -192,22 +196,22 @@ const makeMenu = () => {
           {
             label: t("govtoolsmenu.gen"),
             icon: "pi pi-bolt",
-            route: "/vote/governance/gen",
+            route: "/multiaccount/gen",
           },
           {
             label: t("govtoolsmenu.distribute"),
             icon: "pi pi-bolt",
-            route: "/vote/governance/distribute",
+            route: "/multiaccount/distribute",
           },
           {
             label: t("govtoolsmenu.optin"),
             icon: "pi pi-bolt",
-            route: "/vote/governance/optin",
+            route: "/multiaccount/optin",
           },
           {
             label: t("govtoolsmenu.pay"),
             icon: "pi pi-bolt",
-            route: "/vote/governance/pay",
+            route: "/multiaccount/pay",
           },
         ],
       },

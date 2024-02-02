@@ -61,7 +61,7 @@
       <div class="col-12 md:col-10">
         <InputGroup>
           <InputNumber
-            id="payamount"
+            inputId="payamount"
             v-model="payamount"
             type="number"
             min="0.000001"
@@ -79,7 +79,7 @@
       }}</label>
       <div class="col-12 md:col-10">
         <InputNumber
-          id="decimals"
+          inputId="decimals"
           v-model="decimals"
           disabled
           type="number"

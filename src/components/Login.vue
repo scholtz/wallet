@@ -193,7 +193,6 @@
 </template>
 <script>
 import { mapActions } from "vuex";
-import { passwordStrength } from "check-password-strength";
 
 export default {
   data() {
@@ -204,20 +203,6 @@ export default {
       wallet: "",
       wallets: [{ label: "a", code: "a" }],
     };
-  },
-  computed: {
-    strengthClass() {
-      if (!this.pass) return "";
-      const ret = passwordStrength(this.pass);
-      if (ret.id <= 0) return "badge bg-danger";
-      if (ret.id <= 1) return "badge bg-warning text-dark";
-      return "badge bg-success";
-    },
-    strength() {
-      if (!this.pass) return "";
-      const ret = passwordStrength(this.pass);
-      return this.$t("login.strength") + ": " + ret.value;
-    },
   },
   async mounted() {
     this.wallets = (await this.getWallets())?.map((w) => ({

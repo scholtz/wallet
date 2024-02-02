@@ -166,28 +166,42 @@
     <h2>{{ $t("settings.pass") }}</h2>
     <form @submit="changePasswordClick">
       <div class="field grid">
-        <label class="col-12 mb-2 md:col-2 md:mb-0">
+        <label for="passw1" class="col-12 mb-2 md:col-2 md:mb-0">
           {{ $t("settings.oldpass") }}
         </label>
         <div class="col-12 md:col-10">
-          <Password v-model="passw1" class="w-full" />
+          <Password
+            inputId="passw1"
+            v-model="passw1"
+            inputClass="w-full"
+            class="w-full"
+          />
         </div>
       </div>
       <div class="field grid">
-        <label class="col-12 mb-2 md:col-2 md:mb-0">
+        <label for="passw2" class="col-12 mb-2 md:col-2 md:mb-0">
           {{ $t("settings.newpass") }}
-          <span v-if="strength" :class="strengthClass">{{ strength }}</span>
         </label>
         <div class="col-12 md:col-10">
-          <Password v-model="passw2" class="w-full" />
+          <Password
+            inputId="passw2"
+            v-model="passw2"
+            inputClass="w-full"
+            class="w-full"
+          />
         </div>
       </div>
       <div class="field grid">
-        <label class="col-12 mb-2 md:col-2 md:mb-0">
+        <label for="passw3" class="col-12 mb-2 md:col-2 md:mb-0">
           {{ $t("settings.repeatpass") }}
         </label>
         <div class="col-12 md:col-10">
-          <Password v-model="passw3" class="w-full" />
+          <Password
+            inputId="passw3"
+            v-model="passw3"
+            inputClass="w-full"
+            class="w-full"
+          />
         </div>
       </div>
       <div class="field grid">
@@ -238,7 +252,6 @@
 <script>
 import { mapActions } from "vuex";
 import MainLayout from "../layouts/Main.vue";
-import { passwordStrength } from "check-password-strength";
 
 export default {
   components: {
@@ -294,18 +307,6 @@ export default {
         new Date().toISOString().slice(0, 10) +
         ".dat"
       );
-    },
-    strengthClass() {
-      if (!this.passw2) return "";
-      const ret = passwordStrength(this.passw2);
-      if (ret.id <= 0) return "badge bg-danger";
-      if (ret.id <= 1) return "badge bg-warning text-dark";
-      return "badge bg-success";
-    },
-    strength() {
-      if (!this.passw2) return "";
-      const ret = passwordStrength(this.passw2);
-      return this.$t("strength") + ": " + ret.value;
     },
   },
 

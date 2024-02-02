@@ -30,7 +30,7 @@
           <div class="col-12 md:col-10">
             <InputGroup>
               <InputNumber
-                id="amount"
+                inputId="amount"
                 v-model="amount"
                 type="number"
                 min="0"

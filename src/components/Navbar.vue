@@ -124,11 +124,11 @@
           </Dropdown>
           <li v-if="$store.state.wallet.isOpen" class="nav-item active">
             <v-link class="nav-link" href="/settings">
-              <span
-                class="badge bg-info text-dark"
+              <Badge
+                severity="info"
                 :title="this.$store.state.config.env"
-                >{{ this.$store.state.config.envName }}</span
-              >
+                :value="this.$store.state.config.envName"
+              />
               {{ $t("navbar.settings") }}
             </v-link>
           </li>

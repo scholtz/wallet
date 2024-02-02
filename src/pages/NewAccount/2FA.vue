@@ -82,9 +82,9 @@ async function confirmRequest() {
   <MainLayout>
     <h1>{{ $t("new_account_2fa.title") }}</h1>
     <div v-if="state.lastError">
-      <div class="alert alert-danger">
+      <Message severity="error">
         {{ $t("general.last_error") }}: {{ state.lastError }}
-      </div>
+      </Message>
     </div>
     <p>
       {{ $t("new_account_2fa.help1") }}
@@ -133,7 +133,7 @@ async function confirmRequest() {
         <p>{{ $t("new_account_2fa.confirm_help") }}</p>
         <div class="p-field mb-2">
           <label for="name">{{ $t("accounts.account_name") }}</label>
-          <InputText itemid="name" v-model="state.name" />
+          <InputText id="name" v-model="state.name" />
         </div>
         <div class="p-field mb-2">
           <label for="txtCode">{{ $t("accounts.2fa_code") }}</label>

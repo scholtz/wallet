@@ -136,7 +136,7 @@
           <div class="col-12 md:col-10">
             <InputGroup v-if="build">
               <InputNumber
-                id="amount"
+                inputId="amount"
                 v-model="amount"
                 inputClass="w-full"
                 class="w-full"
@@ -177,21 +177,21 @@
           <label for="fee" class="col-12 mb-2 md:col-2 md:mb-0">{{
             $t("pay.fee")
           }}</label>
-          <div v-if="build" class="input-group">
+          <div v-if="build">
             <div class="col-12 md:col-10">
               <InputGroup>
                 <InputNumber
                   v-if="build"
-                  id="fee"
+                  inputId="fee"
                   v-model="fee"
                   inputClass="w-full"
                   class="w-full"
                   :placeholder="$t('pay.fee')"
                   :title="$t('pay.fee')"
                   type="number"
-                  min="0.001"
-                  max="1"
-                  step="0.000001"
+                  :min="0.001"
+                  :max="1"
+                  :step="0.000001"
                 />
                 <InputGroupAddon>Algo</InputGroupAddon>
               </InputGroup>
@@ -242,16 +242,16 @@
     </div>
     <div v-if="build && !dataOk" class="grid">
       <div class="md:col-12">
-        <div class="alert alert-danger my-2">
+        <Message severity="error" class="my-2">
           {{ $t("gateway.error_transaction") }}
-        </div>
+        </Message>
       </div>
     </div>
     <div v-if="build && !settingsOk" class="grid">
       <div class="md:col-12">
-        <div class="alert alert-danger my-2">
+        <Message severity="error" class="my-2">
           {{ $t("gateway.error_url") }}
-        </div>
+        </Message>
       </div>
     </div>
     <div v-if="build && dataOk && settingsOk" class="grid">

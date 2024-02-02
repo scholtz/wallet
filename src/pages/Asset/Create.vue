@@ -33,9 +33,9 @@
         {{ $t("assetcreate.creator") }}
       </label>
       <div class="col-12 md:col-10">
-        <div v-if="!hasPrivate" class="alert alert-danger">
+        <Message severity="error" v-if="!hasPrivate">
           {{ $t("assetcreate.creator_not_found") }}
-        </div>
+        </Message>
 
         <SelectAccount
           v-if="hasPrivate"

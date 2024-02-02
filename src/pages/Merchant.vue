@@ -70,9 +70,9 @@
         </a>
       </div>
 
-      <p v-if="isPaid" class="alert alert-success mb-3">
+      <Message severity="success" v-if="isPaid" class="mb-3">
         {{ $t("merchant.payment_received") }}
-      </p>
+      </Message>
 
       <form
         v-if="isPaid && settings.success"
@@ -88,17 +88,17 @@
         <Button type="submit" class="my-2" size="large">
           {{ $t("merchant.go_back_to_merchant") }}
         </Button>
-        <span class="badge bg-info text-dark m-2">({{ countDown }})</span>
+        <Badge severity="info" class="m-2" :value="'(' + countDown + ')'" />
       </form>
 
-      <p v-if="!isPaid" class="alert alert-primary mb-3">
+      <Message severity="info" v-if="!isPaid" class="mb-3">
         <span
           class="spinner-grow spinner-grow-sm"
           role="status"
           aria-hidden="true"
         />
         {{ $t("merchant.waiting_for_payment") }}
-      </p>
+      </Message>
       <div class="grid">
         <div class="col-12 lg:col-6">
           <QRCodeVue3

@@ -5,9 +5,9 @@
       {{ $t("new_account_ledger.description") }}
     </p>
     <div v-if="lastError">
-      <div class="alert alert-danger">
+      <Message severity="error">
         {{ $t("new_account_ledger.last_error") }}: {{ lastError }}
-      </div>
+      </Message>
     </div>
     <div class="field grid">
       <label for="slot" class="col-12 mb-2 md:col-2 md:mb-0">
