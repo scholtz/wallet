@@ -1,53 +1,55 @@
 <template>
-  <div class="grid">
-    <div class="col-12">
-      <h1>Pay to multiple accounts from single account - Distribute algos</h1>
-      <div v-if="current" class="field grid">
-        <label for="payFromDirect" class="col-12 mb-2 md:col-2 md:mb-0">
-          Select internal account from which you want to distribute algos
-        </label>
-        <div class="col-12 md:col-10">
-          <SelectAccount
-            itemId="payFromDirect"
-            v-model="payFromDirect"
-          ></SelectAccount>
-        </div>
+  <div>
+    <h1>Pay to multiple accounts from single account - Distribute algos</h1>
+    <div v-if="current" class="field grid">
+      <label for="payFromDirect" class="col-12 mb-2 md:col-2 md:mb-0">
+        Select internal account from which you want to distribute algos
+      </label>
+      <div class="col-12 md:col-10">
+        <SelectAccount
+          itemId="payFromDirect"
+          v-model="payFromDirect"
+          class="w-full"
+        ></SelectAccount>
       </div>
+    </div>
 
-      <div v-if="!current" class="field grid">
-        <label for="fromAccount" class="col-12 mb-2 md:col-2 md:mb-0">
-          Write mnemonic phrase of the account from which you want to distribute
-          algos
-        </label>
-        <div class="col-12 md:col-10">
-          <InputText id="fromAccount" v-model="fromAccount" class="w-full" />
-        </div>
+    <div v-if="!current" class="field grid">
+      <label for="fromAccount" class="col-12 mb-2 md:col-2 md:mb-0">
+        Write mnemonic phrase of the account from which you want to distribute
+        algos
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText id="fromAccount" v-model="fromAccount" class="w-full" />
       </div>
-      <div class="field grid">
-        <label for="amount" class="col-12 mb-2 md:col-2 md:mb-0">
-          How much algo do you want to send to each of the accounts?
-        </label>
-        <div class="col-12 md:col-10">
-          <InputGroup>
-            <InputNumber
-              inputId="amount"
-              v-model="amount"
-              min="0"
-              max="1999999999"
-              step="0.000001"
-              class="w-full"
-            />
-            <InputGroupAddon>Algo</InputGroupAddon>
-          </InputGroup>
-        </div>
+    </div>
+    <div class="field grid">
+      <label for="amount" class="col-12 mb-2 md:col-2 md:mb-0">
+        How much algo do you want to send to each of the accounts?
+      </label>
+      <div class="col-12 md:col-10">
+        <InputGroup>
+          <InputNumber
+            inputId="amount"
+            v-model="amount"
+            min="0"
+            max="1999999999"
+            step="0.000001"
+            class="w-full"
+          />
+          <InputGroupAddon>Algo</InputGroupAddon>
+        </InputGroup>
       </div>
-      <div class="field grid">
-        <label for="accounts" class="col-12 mb-2 md:col-2 md:mb-0">
-          List of accounts or list of mnemonic phrases for governance accounts
-        </label>
-        <div class="col-12 md:col-10">
-          <Textarea id="accounts" v-model="accounts" class="w-full" rows="6" />
-        </div>
+    </div>
+    <div class="field grid">
+      <label
+        for="accounts"
+        class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
+      >
+        List of accounts or list of mnemonic phrases for governance accounts
+      </label>
+      <div class="col-12 md:col-10">
+        <Textarea id="accounts" v-model="accounts" class="w-full" rows="6" />
       </div>
     </div>
     <div class="field grid">
@@ -57,7 +59,11 @@
       </div>
     </div>
     <div v-if="results" class="field grid">
-      <label for="results">Results</label>
+      <label
+        class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
+        for="results"
+        >Results</label
+      >
       <div class="col-12 md:col-10">
         <Textarea id="results" v-model="results" class="w-full" rows="20" />
       </div>

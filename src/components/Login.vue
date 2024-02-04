@@ -209,7 +209,6 @@ export default {
       name: w,
       code: w,
     }));
-    console.log("wallets", this.wallets);
     this.wallet = localStorage.getItem("lastUsedWallet");
 
     this.newWalletForm = this.wallets.length == 0;

@@ -10,7 +10,10 @@
         </p>
 
         <div class="field grid">
-          <label for="accounts" class="col-12 mb-2 md:col-2 md:mb-0">
+          <label
+            for="accounts"
+            class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
+          >
             List of mnemonic phrases for governance accounts
           </label>
           <div class="col-12 md:col-10">
@@ -62,9 +65,12 @@
           </div>
         </div>
         <div v-if="results" class="field grid">
-          <label for="results" class="col-12 mb-2 md:col-2 md:mb-0"
-            >Results</label
+          <label
+            for="results"
+            class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
           >
+            Results
+          </label>
           <div class="col-12 md:col-10">
             <Textarea id="results" v-model="results" class="w-full" rows="6" />
           </div>

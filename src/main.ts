@@ -45,6 +45,7 @@ import InputGroup from "primevue/inputgroup";
 import InputGroupAddon from "primevue/inputgroupaddon";
 import Checkbox from "primevue/checkbox";
 import Message from "primevue/message";
+import Ripple from "primevue/ripple";
 
 import "primevue/resources/themes/saga-blue/theme.css";
 
@@ -77,7 +78,7 @@ const SimpleRouterApp = {
 const myApp = createApp(App).use(i18n);
 myApp.use(store);
 myApp.use(router);
-myApp.use(PrimeVue);
+myApp.use(PrimeVue, { ripple: true });
 myApp.use(ToastService);
 myApp.component("Button", Button);
 myApp.component("DataTable", DataTable);
@@ -102,6 +103,7 @@ myApp.component("InputGroup", InputGroup);
 myApp.component("InputGroupAddon", InputGroupAddon);
 myApp.component("Checkbox", Checkbox);
 myApp.component("Message", Message);
+myApp.directive("ripple", Ripple);
 
 myApp.config.globalProperties.$filters = {
   formatCurrency(

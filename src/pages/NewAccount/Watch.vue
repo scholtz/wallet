@@ -1,0 +1,72 @@
+<script setup lang="ts">
+import MainLayout from "../../layouts/Main.vue";
+import { onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "vuex";
+
+const state = reactive({
+  addr: "",
+  name: "",
+});
+
+const reset = async () => {
+  state.name = "";
+  state.addr = "";
+
+  await store.dispatch("wallet/prolong");
+  router.push({ name: "Accounts" });
+};
+
+const store = useStore();
+const router = useRouter();
+
+async function watchAccountClick() {
+  try {
+    await store.dispatch("wallet/addPublicAccount", {
+      name: state.name,
+      addr: state.addr,
+    });
+    router.push({ name: "Accounts" });
+  } catch (err: any) {
+    const error = err.message ?? err;
+    console.error("failed to create account", error, err);
+    await store.dispatch("toast/openError", error);
+  }
+}
+onMounted(async () => {
+  await store.dispatch("wallet/prolong");
+});
+</script>
+<template>
+  <MainLayout>
+    <h1>{{ $t("newacc.watch_account") }}</h1>
+
+    <div class="field grid">
+      <label for="address" class="col-12 mb-2 md:col-2 md:mb-0">
+        {{ $t("newacc.address") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText id="address" v-model="state.addr" class="w-full" />
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">
+        {{ $t("newacc.name") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText id="name" v-model="state.name" class="w-full" />
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="address" class="col-12 mb-2 md:col-2 md:mb-0"></label>
+      <div class="col-12 md:col-10">
+        <Button severity="primary" class="my-1" @click="watchAccountClick">
+          {{ $t("newacc.watch_account") }}
+        </Button>
+        <Button severity="secondary" class="m-1" @click="reset">
+          {{ $t("global.go_back") }}
+        </Button>
+      </div>
+    </div>
+  </MainLayout>
+</template>

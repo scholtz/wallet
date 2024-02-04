@@ -6,7 +6,6 @@ import AccountOverview from "@/pages/AccountOverview.vue";
 import AccountAssets from "@/pages/Account/Assets.vue";
 import AccountTransactions from "@/pages/Account/Transactions.vue";
 import TransactionDetail from "@/pages/TransactionDetail.vue";
-import NewAccount from "@/pages/NewAccount.vue";
 import NotFound from "@/pages/404.vue";
 import FAQ from "@/pages/FAQ.vue";
 import Pay from "@/pages/Pay.vue";
@@ -27,11 +26,17 @@ import Donation from "@/pages/Donation.vue";
 import Success from "@/pages/Success.vue";
 import Swap from "@/pages/Swap.vue";
 import Arc14 from "@/pages/Arc14.vue";
+import NewAccount from "@/pages/NewAccount.vue";
 import NewAccountLedger from "@/pages/NewAccount/Ledger.vue";
 import NewAccountWalletConnect from "@/pages/NewAccount/WalletConnect.vue";
 import NewAccount2FA from "@/pages/NewAccount/2FA.vue";
 import NewAccountEmailPass from "@/pages/NewAccount/EmailPassword.vue";
 import NewAccountShamir from "@/pages/NewAccount/Shamir.vue";
+import NewAccountEd25529 from "@/pages/NewAccount/Ed25529.vue";
+import NewAccountVanity from "@/pages/NewAccount/Vanity.vue";
+import NewAccountMultisig from "@/pages/NewAccount/Multisig.vue";
+import NewAccountWatch from "@/pages/NewAccount/Watch.vue";
+import NewAccountImport from "@/pages/NewAccount/RecoverEd25529.vue";
 import AccountExport from "@/pages/Account/Export.vue";
 
 const routes = [
@@ -44,6 +49,21 @@ const routes = [
     path: "/privacy-policy",
     name: "Privacy",
     component: Privacy,
+  },
+  {
+    path: "/new-account",
+    name: "NewAccount",
+    component: NewAccount,
+  },
+  {
+    path: "/new-account/ed25529",
+    name: "NewAccountEd25529",
+    component: NewAccountEd25529,
+  },
+  {
+    path: "/new-account/import-ed25529",
+    name: "NewAccountImport",
+    component: NewAccountImport,
   },
   {
     path: "/new-account/ledger",
@@ -69,6 +89,21 @@ const routes = [
     path: "/new-account/shamir",
     name: "NewAccountShamir",
     component: NewAccountShamir,
+  },
+  {
+    path: "/new-account/vanity",
+    name: "NewAccountVanity",
+    component: NewAccountVanity,
+  },
+  {
+    path: "/new-account/multisig",
+    name: "NewAccountMultisig",
+    component: NewAccountMultisig,
+  },
+  {
+    path: "/new-account/watch",
+    name: "NewAccountWatch",
+    component: NewAccountWatch,
   },
   {
     path: "/swap/:account",

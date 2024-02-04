@@ -11,13 +11,13 @@ watch(locale, () => {
   makeMenu();
 });
 
-watch(store.state.wallet.isOpen, () => {
-  makeMenu();
-});
-
-watch(store.state.wallet.lastActiveAccount, () => {
-  makeMenu();
-});
+watch(
+  store.state.wallet,
+  () => {
+    makeMenu();
+  },
+  { deep: true }
+);
 
 const makeMenu = () => {
   if (store.state.wallet.isOpen) {
@@ -35,6 +35,11 @@ const makeMenu = () => {
             label: t("navbar.new_account"),
             icon: "pi pi-server",
             items: [
+              {
+                label: t("newacc.overview"),
+                icon: "pi pi-star",
+                route: "/new-account",
+              },
               {
                 label: t("newacc.ledger_account"),
                 icon: "pi pi-star",
@@ -68,12 +73,12 @@ const makeMenu = () => {
               {
                 label: t("newacc.create_multisign_account"),
                 icon: "pi pi-star",
-                route: "/new-account/multisigaccount",
+                route: "/new-account/multisig",
               },
               {
                 label: t("newacc.watch_account"),
                 icon: "pi pi-star",
-                route: "/new-account/watch_account",
+                route: "/new-account/watch",
               },
               {
                 separator: true,
@@ -81,7 +86,7 @@ const makeMenu = () => {
               {
                 label: t("newacc.import_account"),
                 icon: "pi pi-star",
-                route: "/new-account/importaccount",
+                route: "/new-account/import-ed25529",
               },
               {
                 label: t("newacc.shamir_account"),
@@ -293,7 +298,6 @@ const makeMenu = () => {
       },
     ];
   }
-  console.log("items.value", items.value);
 };
 
 const items = ref<any>([]);

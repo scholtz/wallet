@@ -4,10 +4,13 @@
       <h1>Pay from multiple accounts at once</h1>
 
       <div class="field grid">
-        <label for="accounts" class="col-12 mb-2 md:col-2 md:mb-0">
+        <label
+          for="accounts"
+          class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
+        >
           List of mnemonic phrases for governance accounts
         </label>
-        <div class="col-12 md:col-10">
+        <div class="col-12 md:col-10 vertical-align-top h-full">
           <Textarea id="accounts" v-model="accounts" class="w-full" rows="6" />
         </div>
       </div>
@@ -76,7 +79,10 @@
         </div>
       </div>
       <div v-if="results" class="field grid">
-        <label for="results" class="col-12 mb-2 md:col-2 md:mb-0">
+        <label
+          for="results"
+          class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
+        >
           Results
         </label>
         <div class="col-12 md:col-10">

@@ -40,10 +40,13 @@
       </div>
 
       <div class="field grid" v-if="results">
-        <label for="results" class="col-12 mb-2 md:col-2 md:mb-0">
+        <label
+          for="results"
+          class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
+        >
           Results
         </label>
-        <div class="col-12 md:col-10">
+        <div class="col-12 md:col-10 vertical-align-top h-full">
           <Textarea id="results" v-model="results" class="w-full" rows="20" />
         </div>
       </div>

@@ -243,7 +243,6 @@ export default {
     },
     maxAmount() {
       if (!this.account) return 0;
-      console.log("this.asset", this.asset);
       if (this.asset === null) {
         if (!this.selectedAssetFromAccount) return 0;
         return this.selectedAssetFromAccount.amount / this.decimalsPower;
