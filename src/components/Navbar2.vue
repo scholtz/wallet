@@ -4,6 +4,8 @@ import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useStore } from "vuex";
 const { t, locale } = useI18n();
+import { usePrimeVue } from "primevue/config";
+const PrimeVue = usePrimeVue();
 
 const store = useStore();
 
@@ -237,6 +239,11 @@ const makeMenu = () => {
             route: "/settings",
           },
           {
+            label: "Theme",
+            icon: "pi pi-palette",
+            items: makeThemes(),
+          },
+          {
             label: "Help",
             icon: "pi pi-question-circle",
             items: [
@@ -296,18 +303,53 @@ const makeMenu = () => {
           },
         ],
       },
+      {
+        label: "Theme",
+        icon: "pi pi-palette",
+        items: makeThemes(),
+      },
     ];
   }
 };
 
 const items = ref<any>([]);
+const makeThemes = () => {
+  const allowed = [
+    { name: "Lara Dark Teal", file: "lara-dark-teal" },
+    { name: "Lara Light Teal", file: "lara-light-teal" },
 
+    { name: "Saga Blue", file: "saga-blue" },
+    { name: "Rhea Light", file: "rhea" },
+    { name: "Arya Purple", file: "arya-purple" },
+    { name: "Nova Alt", file: "nova-alt" },
+
+    { name: "Soho Dark", file: "soho-dark" },
+    { name: "Soho Light", file: "soho-light" },
+
+    { name: "Bootstrap Dark Purple", file: "bootstrap4-dark-purple" },
+    { name: "Bootstrap Light Purple", file: "bootstrap4-light-purple" },
+  ];
+
+  const ret = [];
+  for (const item of allowed) {
+    ret.push({
+      label: item.name,
+      command: async () => {
+        let lastTheme = localStorage.getItem("lastTheme");
+        if (!lastTheme) lastTheme = "lara-dark-teal";
+        PrimeVue.changeTheme(lastTheme, item.file, "theme-link", () => {});
+        localStorage.setItem("lastTheme", item.file);
+      },
+    });
+  }
+  return ret;
+};
 makeMenu();
 </script>
 
 <template>
   <div class="card">
-    <Menubar :model="items">
+    <Menubar :model="items" class="my-2">
       <template #start>
         <RouterLink to="/">
           <svg
@@ -326,7 +368,7 @@ makeMenu();
                 line-height: 1.25;
                 font-family: sans-serif;
                 letter-spacing: -12px;
-                fill: #000000;
+                fill: var(--primary-color);
                 fill-opacity: 1;
                 stroke: none;
               "
@@ -343,7 +385,7 @@ makeMenu();
                 line-height: 1.25;
                 font-family: sans-serif;
                 letter-spacing: -12px;
-                fill: #000000;
+                fill: var(--primary-color);
                 fill-opacity: 1;
                 stroke: none;
               "

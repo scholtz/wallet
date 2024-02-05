@@ -47,8 +47,6 @@ import Checkbox from "primevue/checkbox";
 import Message from "primevue/message";
 import Ripple from "primevue/ripple";
 
-import "primevue/resources/themes/saga-blue/theme.css";
-
 import "primevue/resources/primevue.min.css";
 import "primeicons/primeicons.css";
 import i18n from "./i18n";

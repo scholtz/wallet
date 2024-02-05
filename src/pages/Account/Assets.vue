@@ -3,17 +3,52 @@
     <AccountTopMenu />
 
     <DataTable
+      v-if="filters"
       :value="assets"
       responsive-layout="scroll"
       :paginator="true"
       :rows="20"
       :loading="loading"
+      v-model:filters="filters"
+      filterDisplay="menu"
+      :globalFilterFields="['name', 'asset-id', 'amount']"
     >
-      <template #empty>
-        {{ $t("acc_overview.no_transactions") }}
+      <template #header>
+        <div class="flex justify-content-end" v-if="filters['global']">
+          <span class="p-input-icon-left">
+            <i class="pi pi-search" />
+            <InputText
+              v-model="filters['global'].value"
+              placeholder="Keyword Search"
+            />
+          </span>
+        </div>
       </template>
-      <Column field="name" header="Name" :sortable="true" />
-      <Column field="asset-id" header="Id" :sortable="true" />
+      <template #empty>
+        {{ $t("acc_overview.no_assets") }}
+      </template>
+      <Column field="name" header="Name" :sortable="true">
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText
+            v-model="filterModel.value"
+            type="text"
+            @input="filterCallback()"
+            class="p-column-filter"
+            placeholder="Search by name"
+          />
+        </template>
+      </Column>
+      <Column field="asset-id" header="Id" :sortable="true">
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText
+            v-model="filterModel.value"
+            type="text"
+            @input="filterCallback()"
+            class="p-column-filter"
+            placeholder="Search by asset id"
+          />
+        </template>
+      </Column>
       <Column field="amount" header="Amount" :sortable="true">
         <template #body="slotProps">
           <div v-if="slotProps.data['asset-id'] > 0" class="text-right">
@@ -33,6 +68,15 @@
             }}
           </div>
         </template>
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText
+            v-model="filterModel.value"
+            type="text"
+            @input="filterCallback()"
+            class="p-column-filter"
+            placeholder="Search by amount"
+          />
+        </template>
       </Column>
     </DataTable>
   </MainLayout>
@@ -44,6 +88,7 @@ import { mapActions } from "vuex";
 import { PrimeIcons } from "primevue/api";
 import copy from "copy-to-clipboard";
 import AccountTopMenu from "../../components/AccountTopMenu.vue";
+import { FilterMatchMode } from "primevue/api";
 
 import QRCodeVue3 from "qrcode-vue3";
 export default {
@@ -65,6 +110,13 @@ export default {
       changeOffline: false,
       onlineRounds: 500000,
       loading: true,
+
+      filters: {
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        "asset-id": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        amount: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+      },
     };
   },
   computed: {

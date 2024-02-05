@@ -1,7 +1,7 @@
 {
   "name": "wallet",
-  "version": "1.0.0",
-  "private": true,
+  "version": "2.0.0",
+  "private": false,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build --mode production",

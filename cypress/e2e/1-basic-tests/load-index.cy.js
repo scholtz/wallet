@@ -15,6 +15,6 @@ describe("main", () => {
   it("go to index", () => {
     cy.viewport(1920, 1050);
     cy.visit("/");
-    cy.get(".btn-primary").should("be.visible");
+    cy.get(".p-button").should("be.visible");
   });
 });
