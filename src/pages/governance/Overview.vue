@@ -10,7 +10,6 @@
 
 <script>
 import MainLayout from "../../layouts/Main.vue";
-import VoteTopMenu from "../../components/VoteTopMenu.vue";
 import GovToolsMenu from "../../components/GovToolsMenu.vue";
 import GenMultiAccounts from "../../components/tools/GenMultiAccounts.vue";
 import MergeAccounts from "../../components/tools/MergeAccounts.vue";
@@ -21,7 +20,6 @@ import { mapActions } from "vuex";
 export default {
   components: {
     MainLayout,
-    VoteTopMenu,
     GovToolsMenu,
     GenMultiAccounts,
     MergeAccounts,

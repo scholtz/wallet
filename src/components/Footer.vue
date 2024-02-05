@@ -1,21 +1,23 @@
 <template>
-  <footer class="pr-0 pl-0 grid">
-    <div class="col" />
-    <div v-if="$store.state.wallet.isOpen" class="col">
-      <p class="text-center m-0">
-        {{ $t("footer.text") + envStatus }}
-      </p>
-    </div>
-    <div class="col align-content-end text-right">
-      <Button
-        v-if="t"
-        size="small"
-        severity="secondary"
-        :style="'background:' + b + '; color: black'"
-        @click="prolong"
-      >
-        {{ t }}
-      </Button>
+  <footer v-if="$store.state.wallet.isOpen">
+    <div class="grid">
+      <div class="col" />
+      <div class="col">
+        <p class="text-center m-0">
+          {{ $t("footer.text") + envStatus }}
+        </p>
+      </div>
+      <div class="col align-content-end text-right">
+        <Button
+          v-if="t"
+          size="small"
+          severity="secondary"
+          :style="'background:' + b + '; color: black'"
+          @click="prolong"
+        >
+          {{ t }}
+        </Button>
+      </div>
     </div>
   </footer>
 </template>

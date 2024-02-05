@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-column align-items-center justify-content-center h-100 m-2"
+    class="flex flex-column align-items-center justify-content-center h-full m-2"
   >
     <Panel v-if="newWalletForm" class="col-12 md:col-8 lg:col-6">
       <template #header>

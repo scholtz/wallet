@@ -210,11 +210,9 @@ import copy from "copy-to-clipboard";
 import AccountTopMenu from "../../components/AccountTopMenu.vue";
 import { FilterMatchMode } from "primevue/api";
 
-import QRCodeVue3 from "qrcode-vue3";
 export default {
   components: {
     MainLayout,
-    QRCodeVue3,
     AccountTopMenu,
   },
   data() {

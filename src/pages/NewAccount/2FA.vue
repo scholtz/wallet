@@ -105,11 +105,11 @@ async function confirmRequest() {
       </div>
       <div class="p-field mb-2">
         <label for="account1">{{ $t("new_account_2fa.hot_account") }}</label>
-        <SelectAccount v-model="state.account1"></SelectAccount>
+        <SelectAccount v-model="state.account1" class="w-full"></SelectAccount>
       </div>
       <div class="p-field mb-2">
         <label for="account2">{{ $t("new_account_2fa.cold_account") }}</label>
-        <SelectAccount v-model="state.account2"></SelectAccount>
+        <SelectAccount v-model="state.account2" class="w-full"></SelectAccount>
       </div>
       <Button
         class="my-2"

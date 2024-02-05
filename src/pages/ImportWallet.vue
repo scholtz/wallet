@@ -1,6 +1,6 @@
 <template>
   <PublicLayout>
-    <div class="d-flex align-items-center justify-content-center h-100">
+    <div class="flex align-items-center justify-content-center h-full">
       <Panel class="w-25">
         <template #header>
           {{ $t("import.title") }}

@@ -1,14 +1,14 @@
 <template>
-  <div class="d-flex flex-column h-100">
+  <div class="flex flex-column h-full">
     <Navbar2 />
     <Toast />
     <div
       v-if="$store.state.wallet.isOpen"
-      class="container-fluid d-flex flex-column flex-grow-1"
+      class="container-fluid flex flex-column flex-grow-1"
     >
       <slot />
     </div>
-    <div v-else class="d-flex flex-column flex-grow-1">
+    <div v-else class="flex flex-column flex-grow-1">
       <Login />
     </div>
     <Footer />

@@ -406,6 +406,34 @@
             imageSize: 0.4,
             margin: 10,
           }"
+          :corners-square-options="{
+            type: 'square',
+            color: 'teal',
+          }"
+          :corners-dot-options="{
+            type: 'square',
+            color: 'teal',
+            gradient: {
+              type: 'linear',
+              rotation: 0,
+              colorStops: [
+                { offset: 0, color: 'teal' },
+                { offset: 1, color: '#003030' },
+              ],
+            },
+          }"
+          :dots-options="{
+            type: 'square',
+            color: 'teal',
+            gradient: {
+              type: 'linear',
+              rotation: 0,
+              colorStops: [
+                { offset: 0, color: 'teal' },
+                { offset: 1, color: '#003030' },
+              ],
+            },
+          }"
         />
       </div>
     </div>

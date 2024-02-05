@@ -44,7 +44,13 @@ const active = ref(activeDefault);
           :to="item.route"
           custom
         >
-          <a v-ripple :href="href" v-bind="props.action" @click="navigate">
+          <a
+            v-ripple
+            :href="href"
+            v-bind="props.action"
+            @click="navigate"
+            class="mx-1"
+          >
             <span v-bind="props.icon" />
             <span v-bind="props.label">{{ item.label }}</span>
           </a>
@@ -55,6 +61,7 @@ const active = ref(activeDefault);
           :href="item.url"
           :target="item.target"
           v-bind="props.action"
+          class="mx-1"
         >
           <span v-bind="props.icon" />
           <span v-bind="props.label">{{ item.label }}</span>

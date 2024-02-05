@@ -6,6 +6,7 @@ import { useStore } from "vuex";
 const { t, locale } = useI18n();
 import { usePrimeVue } from "primevue/config";
 const PrimeVue = usePrimeVue();
+import { PrimeIcons } from "primevue/api";
 
 const store = useStore();
 
@@ -26,60 +27,63 @@ const makeMenu = () => {
     items.value = [
       {
         label: "Wallet",
-        icon: "pi pi-home",
+        icon: PrimeIcons.HOME,
         items: [
           {
             label: "List accounts",
-            icon: "pi pi-server",
+            icon: PrimeIcons.SERVER,
             route: "/accounts",
           },
           {
             label: t("navbar.new_account"),
-            icon: "pi pi-server",
+            icon: PrimeIcons.PLUS,
             items: [
               {
                 label: t("newacc.overview"),
-                icon: "pi pi-star",
+                icon: PrimeIcons.QUESTION,
                 route: "/new-account",
               },
               {
+                separator: true,
+              },
+              {
                 label: t("newacc.ledger_account"),
-                icon: "pi pi-star",
+                icon: PrimeIcons.LOCK,
                 route: "/new-account/ledger",
               },
               {
                 label: t("newacc.wc_account"),
-                icon: "pi pi-star",
+                icon: "pi pi-arrows-h",
                 route: "/new-account/wc",
               },
               {
                 label: t("newacc.twofa_account"),
-                icon: "pi pi-star",
+                icon: PrimeIcons.MOBILE,
                 route: "/new-account/2fa",
               },
               {
                 label: t("newacc.email_pass_account"),
-                icon: "pi pi-star",
+                icon: PrimeIcons.AT,
                 route: "/new-account/email-password",
               },
               {
                 label: t("newacc.create_basic"),
-                icon: "pi pi-star",
+                icon: "pi pi-book",
                 route: "/new-account/ed25529",
               },
               {
                 label: t("newacc.create_vanity"),
-                icon: "pi pi-star",
+                icon: PrimeIcons.FAST_FORWARD,
                 route: "/new-account/vanity",
               },
               {
                 label: t("newacc.create_multisign_account"),
-                icon: "pi pi-star",
+                icon: PrimeIcons.BUILDING,
                 route: "/new-account/multisig",
               },
               {
                 label: t("newacc.watch_account"),
-                icon: "pi pi-star",
+                icon: PrimeIcons.EYE,
                 route: "/new-account/watch",
               },
               {
@@ -87,12 +91,12 @@ const makeMenu = () => {
               },
               {
                 label: t("newacc.import_account"),
-                icon: "pi pi-star",
+                icon: PrimeIcons.DOWNLOAD,
                 route: "/new-account/import-ed25529",
               },
               {
                 label: t("newacc.shamir_account"),
-                icon: "pi pi-star",
+                icon: PrimeIcons.CODE,
                 route: "/new-account/shamir",
               },
             ],
@@ -116,7 +120,7 @@ const makeMenu = () => {
         items: [
           {
             label: "Overview",
-            icon: "pi pi-star",
+            icon: PrimeIcons.LIST,
             route: "/account/" + store.state.wallet.lastActiveAccount,
           },
           {
@@ -129,42 +133,42 @@ const makeMenu = () => {
           },
           {
             label: t("navbar.swap"),
-            icon: "pi pi-send",
+            icon: "pi pi-money-bill",
             route: "/swap/" + store.state.wallet.lastActiveAccount,
           },
           {
             label: t("acc_overview.rekey"),
-            icon: "pi pi-bolt",
+            icon: "pi pi-shield",
             route: "/accounts/rekey/" + store.state.wallet.lastActiveAccount,
           },
           {
             label: t("acc_overview.asset_optin"),
-            icon: "pi pi-bolt",
+            icon: "pi pi-plus",
             route: "/accounts/optin/" + store.state.wallet.lastActiveAccount,
           },
           {
             label: t("acc_overview.receive_payment"),
-            icon: "pi pi-bolt",
+            icon: "pi pi-clone",
             route: "/receive-payment/" + store.state.wallet.lastActiveAccount,
           },
           {
             label: t("acc_overview.payment_gateway"),
-            icon: "pi pi-bolt",
+            icon: "pi pi-credit-card",
             route: "/payment-gateway/" + store.state.wallet.lastActiveAccount,
           },
           {
             label: t("acc_overview.connect"),
-            icon: "pi pi-bolt",
+            icon: "pi pi-arrows-h",
             route: "/account/connect/" + store.state.wallet.lastActiveAccount,
           },
           {
             label: t("acc_overview.export"),
-            icon: "pi pi-bolt",
+            icon: "pi pi-upload",
             route: "/account/export/" + store.state.wallet.lastActiveAccount,
           },
           {
             label: "ARC14",
-            icon: "pi pi-bolt",
+            icon: "pi pi-unlock",
             route: "/arc14/" + store.state.wallet.lastActiveAccount,
           },
           {
@@ -172,11 +176,11 @@ const makeMenu = () => {
           },
           {
             label: "Asset manager",
-            icon: "pi pi-bolt",
+            icon: "pi pi-box",
             items: [
               {
                 label: t("navbar.asset_create"),
-                icon: "pi pi-bolt",
+                icon: "pi pi-plus",
                 route: "/asset/create",
               },
             ],
@@ -186,38 +190,38 @@ const makeMenu = () => {
           },
           {
             label: "Hide/Unhide account",
-            icon: "pi pi-bolt",
+            icon: "pi pi-eye",
             route: "/account/" + store.state.wallet.lastActiveAccount,
           },
           {
             label: t("acc_overview.delete"),
-            icon: "pi pi-bolt",
+            icon: "pi pi-trash",
             route: "/account/" + store.state.wallet.lastActiveAccount,
           },
         ],
       },
       {
         label: "Multiaccount ops",
-        icon: "pi pi-search",
+        icon: "pi pi-globe",
         items: [
           {
             label: t("govtoolsmenu.gen"),
-            icon: "pi pi-bolt",
+            icon: "pi pi-plus",
             route: "/multiaccount/gen",
           },
           {
             label: t("govtoolsmenu.distribute"),
-            icon: "pi pi-bolt",
+            icon: "pi pi-send",
             route: "/multiaccount/distribute",
           },
           {
             label: t("govtoolsmenu.optin"),
-            icon: "pi pi-bolt",
+            icon: "pi pi-table",
             route: "/multiaccount/optin",
           },
           {
             label: t("govtoolsmenu.pay"),
-            icon: "pi pi-bolt",
+            icon: "pi pi-tag",
             route: "/multiaccount/pay",
           },
         ],
@@ -225,17 +229,17 @@ const makeMenu = () => {
       {
         label: t("acc_overview.connect"),
         icon: "pi pi-bolt",
-        route: "/account/connect/",
+        route: "/account/connect/" + store.state.wallet.lastActiveAccount,
         badge: store.state.wc.requests.length,
       },
       {
         label: store.state.config.env,
-        icon: "pi pi-question-circle",
+        icon: "pi pi-cog",
 
         items: [
           {
             label: t("navbar.settings"),
-            icon: "pi pi-question-circle",
+            icon: "pi pi-cog",
             route: "/settings",
           },
           {
@@ -315,25 +319,34 @@ const makeMenu = () => {
 const items = ref<any>([]);
 const makeThemes = () => {
   const allowed = [
-    { name: "Lara Dark Teal", file: "lara-dark-teal" },
-    { name: "Lara Light Teal", file: "lara-light-teal" },
+    { name: "Lara Dark Teal", file: "lara-dark-teal", icon: "pi pi-moon" },
+    { name: "Lara Light Teal", file: "lara-light-teal", icon: "pi pi-sun" },
 
-    { name: "Saga Blue", file: "saga-blue" },
-    { name: "Rhea Light", file: "rhea" },
-    { name: "Arya Purple", file: "arya-purple" },
-    { name: "Nova Alt", file: "nova-alt" },
+    { name: "Saga Blue", file: "saga-blue", icon: "pi pi-sun" },
+    { name: "Rhea Light", file: "rhea", icon: "pi pi-sun" },
+    { name: "Arya Purple", file: "arya-purple", icon: "pi pi-moon" },
+    { name: "Nova Alt", file: "nova-alt", icon: "pi pi-sun" },
 
-    { name: "Soho Dark", file: "soho-dark" },
-    { name: "Soho Light", file: "soho-light" },
+    { name: "Soho Dark", file: "soho-dark", icon: "pi pi-moon" },
+    { name: "Soho Light", file: "soho-light", icon: "pi pi-sun" },
 
-    { name: "Bootstrap Dark Purple", file: "bootstrap4-dark-purple" },
-    { name: "Bootstrap Light Purple", file: "bootstrap4-light-purple" },
+    {
+      name: "Bootstrap Dark Purple",
+      file: "bootstrap4-dark-purple",
+      icon: "pi pi-moon",
+    },
+    {
+      name: "Bootstrap Light Purple",
+      file: "bootstrap4-light-purple",
+      icon: "pi pi-sun",
+    },
   ];
 
   const ret = [];
   for (const item of allowed) {
     ret.push({
       label: item.name,
+      icon: item.icon,
       command: async () => {
         let lastTheme = localStorage.getItem("lastTheme");
         if (!lastTheme) lastTheme = "lara-dark-teal";
@@ -463,3 +476,8 @@ makeMenu();
     </Menubar>
   </div>
 </template>
+<style>
+.p-submenu-list {
+  min-width: 300px;
+}
+</style>
