@@ -8,17 +8,17 @@
 
         <form @submit="createWalletClick">
           <div class="field grid">
-            <label for="newwallet-name" class="col-12 mb-2 md:col-2 md:mb-0">{{
-              $t("import.wallet_name")
-            }}</label>
+            <label for="newwallet-name" class="col-12 mb-2 md:col-2 md:mb-0">
+              {{ $t("import.wallet_name") }}
+            </label>
             <div class="col-12 md:col-10">
               <InputText id="newwallet-name" v-model="name" class="w-full" />
             </div>
           </div>
           <div class="field grid">
-            <label for="newwallet-file" class="col-12 mb-2 md:col-2 md:mb-0">{{
-              $t("import.wallet_file")
-            }}</label>
+            <label for="newwallet-file" class="col-12 mb-2 md:col-2 md:mb-0">
+              {{ $t("import.wallet_file") }}
+            </label>
             <div class="col-12 md:col-10">
               <FileUpload
                 mode="basic"

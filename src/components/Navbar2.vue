@@ -288,7 +288,7 @@ const makeMenu = () => {
         items: [
           {
             label: t("navbar.settings"),
-            icon: "pi pi-question-circle",
+            icon: "pi pi-cog",
             route: "/settings",
           },
           {

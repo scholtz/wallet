@@ -2,7 +2,6 @@
   <MainLayout>
     <div class="container-fluid">
       <h1>{{ $t("swap.title") }}</h1>
-      {{ maxAmount }}
       <div v-if="checkNetwork()">
         {{ $t("swap.network") }}: {{ checkNetwork() }}
       </div>

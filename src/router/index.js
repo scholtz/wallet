@@ -3,6 +3,7 @@ import Privacy from "@/pages/Privacy.vue";
 import ImportWallet from "@/pages/ImportWallet.vue";
 import Accounts from "@/pages/Accounts.vue";
 import AccountOverview from "@/pages/AccountOverview.vue";
+import AccountActions from "@/pages/Account/Actions.vue";
 import AccountAssets from "@/pages/Account/Assets.vue";
 import AccountTransactions from "@/pages/Account/Transactions.vue";
 import TransactionDetail from "@/pages/TransactionDetail.vue";
@@ -204,6 +205,11 @@ const routes = [
     path: "/account/assets/:account",
     name: "AccountAssets",
     component: AccountAssets,
+  },
+  {
+    path: "/account/actions/:account",
+    name: "AccountActions",
+    component: AccountActions,
   },
   {
     path: "/account/export/:account",

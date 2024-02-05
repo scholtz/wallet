@@ -14,13 +14,18 @@ const items = ref([
     route: "/account/" + route?.params?.account,
   },
   {
+    label: t("acc_overview.actions"),
+    icon: "pi pi-bolt",
+    route: "/account/actions/" + route?.params?.account,
+  },
+  {
     label: "Assets",
-    icon: "pi pi-home",
+    icon: "pi pi-money-bill",
     route: "/account/assets/" + route?.params?.account,
   },
   {
     label: t("acc_overview.transactions"),
-    icon: "pi pi-home",
+    icon: "pi pi-list",
     route: "/account/txs/" + route?.params?.account,
   },
 ]);

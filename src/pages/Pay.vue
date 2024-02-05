@@ -2,7 +2,7 @@
   <main-layout>
     <div v-if="!$route.params.account">
       <h1>{{ $t("pay.select_account_for_payment") }}</h1>
-      <SelectAccount v-model="payFromDirect"></SelectAccount>
+      <SelectAccount v-model="payFromDirect" class="w-full"></SelectAccount>
     </div>
     <div v-if="account">
       <form v-if="page == 'design'" @submit="previewPaymentClick">
@@ -58,49 +58,27 @@
                 class="form-control"
               />
             </div>
-            <div v-else>
-              <div v-if="!isRekey">
-                <ul class="nav nav-tabs">
-                  <li class="nav-item">
-                    <a
-                      class="nav-link"
-                      :class="genericaccount ? '' : 'active'"
-                      href="#"
-                      @click="genericaccount = false"
-                    >
-                      {{ $t("pay.pay_to_wallet") }}</a
-                    >
-                  </li>
-                  <li class="nav-item">
-                    <a
-                      class="nav-link"
-                      :class="genericaccount ? 'active' : ''"
-                      href="#"
-                      @click="genericaccount = true"
-                      >{{ $t("pay.pay_to_other") }}</a
-                    >
-                  </li>
-                </ul>
-
-                <input
-                  v-if="genericaccount"
-                  id="payTo"
-                  v-model="payTo"
-                  class="form-control"
-                />
-                <SelectAccount
-                  v-if="!genericaccount"
-                  v-model="payTo"
-                ></SelectAccount>
-
-                <div v-if="genericaccount">
-                  <Button size="small" class="m-2" @click="toggleCamera">
-                    {{ $t("pay.toggle_camera") }}
-                  </Button>
-                  <p>
-                    {{ $t("pay.store_other_help") }}
-                  </p>
-                </div>
+            <div class="field grid" v-else>
+              <div v-if="!isRekey" class="w-full">
+                <TabView class="w-full">
+                  <TabPanel :header="$t('pay.pay_to_wallet')" class="mr-2">
+                    <SelectAccount
+                      v-model="payTo"
+                      class="w-full"
+                    ></SelectAccount>
+                  </TabPanel>
+                  <TabPanel :header="$t('pay.pay_to_other')">
+                    <InputText id="payTo" v-model="payTo" class="w-full" />
+                    <div>
+                      <Button size="small" class="m-2" @click="toggleCamera">
+                        {{ $t("pay.toggle_camera") }}
+                      </Button>
+                      <p>
+                        {{ $t("pay.store_other_help") }}
+                      </p>
+                    </div>
+                  </TabPanel>
+                </TabView>
               </div>
               <Message
                 severity="error"
@@ -110,190 +88,209 @@
                 {{ $t("pay.asset_failed_to_load") }}
               </Message>
             </div>
-            <div v-if="isRekey">
-              <ul class="nav nav-tabs">
-                <li class="nav-item">
-                  <a
-                    class="nav-link"
-                    :class="genericaccountRekey ? '' : 'active'"
-                    href="#"
-                    @click="genericaccountRekey = false"
-                  >
-                    {{ $t("pay.rekey_to_wallet_account") }}</a
-                  >
-                </li>
-                <li class="nav-item">
-                  <a
-                    class="nav-link"
-                    :class="genericaccountRekey ? 'active' : ''"
-                    href="#"
-                    @click="genericaccountRekey = true"
-                    >{{ $t("pay.rekey_to_external_account") }}</a
-                  >
-                </li>
-              </ul>
-
-              <input
-                v-if="genericaccountRekey"
-                id="rekeyTo"
-                v-model="rekeyTo"
-                class="form-control"
-              />
-              <SelectAccount
-                v-if="!genericaccountRekey"
-                v-model="rekeyTo"
-              ></SelectAccount>
-
-              <div v-if="genericaccountRekey">
-                <Button size="small" class="m-2" @click="toggleCamera">
-                  {{ $t("pay.toggle_camera") }}
-                </Button>
-                <p>
-                  {{ $t("pay.store_other_help") }}
-                </p>
-              </div>
+            <div class="field grid" v-if="isRekey">
+              <TabView>
+                <TabPanel
+                  :header="$t('pay.rekey_to_wallet_account')"
+                  class="mr-2"
+                >
+                  <SelectAccount
+                    v-model="rekeyTo"
+                    class="w-full"
+                  ></SelectAccount>
+                </TabPanel>
+                <TabPanel :header="$t('pay.rekey_to_external_account')">
+                  <InputText id="rekeyTo" v-model="rekeyTo" class="w-full" />
+                  <div>
+                    <Button size="small" class="m-2" @click="toggleCamera">
+                      {{ $t("pay.toggle_camera") }}
+                    </Button>
+                    <p>
+                      {{ $t("pay.store_other_help") }}
+                    </p>
+                  </div>
+                </TabPanel>
+              </TabView>
             </div>
             <div>
-              <label for="asset">{{ $t("pay.asset") }}</label>
-              <input
+              <div
+                class="field grid"
                 v-if="forceAsset && assetObj && assetObj.name"
-                v-model="assetObj.name"
-                class="form-control"
-                disabled
-              />
-              <Dropdown
-                v-else
-                id="asset"
-                v-model="asset"
-                filter
-                :options="assets"
-                optionLabel="asset-id"
-                optionValue="asset-id"
-                :placeholder="$t('pay.asset')"
               >
-                <template #value="slotProps">
-                  <div v-if="slotProps.value" class="flex align-items-center">
-                    <div>
-                      {{
-                        assets.find((a) => a["asset-id"] == slotProps.value)
-                          ?.name
-                      }}
-                      (
-                      {{ slotProps.value }}
-                      )
-                    </div>
-                  </div>
-                  <span v-else>
-                    {{ slotProps.placeholder }}
-                  </span>
-                </template>
-                <template #option="slotProps">
-                  <div v-if="slotProps.option" class="flex align-items-center">
-                    <div>
-                      {{ slotProps.option.name }} : ({{
-                        $filters.formatCurrency(
-                          slotProps.option["amount"],
-                          slotProps.option["name"],
-                          slotProps.option["decimals"]
-                        )
-                      }})
-                    </div>
-                  </div>
-                </template>
-              </Dropdown>
+                <label for="asset" class="col-12 mb-2 md:col-2 md:mb-0">
+                  {{ $t("pay.asset") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  <InputText v-model="assetObj.name" class="w-full" disabled />
+                </div>
+              </div>
+              <div class="field grid" v-else>
+                <label for="asset" class="col-12 mb-2 md:col-2 md:mb-0">
+                  {{ $t("pay.asset") }}
+                </label>
+
+                <div class="col-12 md:col-10">
+                  <Dropdown
+                    inputId="asset"
+                    v-model="asset"
+                    filter
+                    :options="assets"
+                    optionLabel="asset-id"
+                    optionValue="asset-id"
+                    :placeholder="$t('pay.asset')"
+                    class="w-full"
+                    inputClass="w-full"
+                  >
+                    <template #value="slotProps">
+                      <div
+                        v-if="slotProps.value"
+                        class="flex align-items-center"
+                      >
+                        <div>
+                          {{
+                            assets.find((a) => a["asset-id"] == slotProps.value)
+                              ?.name
+                          }}
+                          (
+                          {{ slotProps.value }}
+                          )
+                        </div>
+                      </div>
+                      <span v-else>
+                        {{ slotProps.placeholder }}
+                      </span>
+                    </template>
+                    <template #option="slotProps">
+                      <div
+                        v-if="slotProps.option"
+                        class="flex align-items-center"
+                      >
+                        <div>
+                          {{ slotProps.option.name }} : ({{
+                            $filters.formatCurrency(
+                              slotProps.option["amount"],
+                              slotProps.option["name"],
+                              slotProps.option["decimals"]
+                            )
+                          }})
+                        </div>
+                      </div>
+                    </template>
+                  </Dropdown>
+                </div>
+              </div>
             </div>
             <Message severity="error" v-if="payamountGtMaxAmount" class="my-2">
               {{ $t("pay.asset_too_small_balance") }}
             </Message>
-            <div v-if="!isRekey">
-              <label for="payamount" class="">{{ $t("pay.amount") }}</label>
-              <InputGroup>
-                <InputNumber
-                  itemId="payamount"
-                  v-model="payamount"
-                  type="number"
-                  :min="0"
-                  :max="maxAmount"
-                  :step="stepAmount"
-                  class="w-full"
-                />
-                <InputGroupAddon v-if="assetUnit" :value="assetUnit">
-                  {{ assetUnit }}
-                </InputGroupAddon>
-                <Button
-                  severity="secondary"
-                  class="col-2"
-                  @click="setMaxAmount"
-                >
-                  {{ $t("pay.set_max") }}
-                </Button>
-              </InputGroup>
-            </div>
-            <div>
-              <label for="fee">{{ $t("pay.fee") }}</label>
-              <InputGroup>
-                <InputNumber
-                  inputId="fee"
-                  v-model="fee"
-                  type="number"
-                  min="0.001"
-                  max="1"
-                  step="0.001"
-                  class="w-full"
-                />
-                <InputGroupAddon>
-                  {{ this.$store.state.config.tokenSymbol }}
-                </InputGroupAddon>
-              </InputGroup>
-            </div>
-            <div>
-              <label for="paynote">{{ $t("pay.note") }}</label>
-              <input id="paynote" v-model="paynote" class="form-control" />
-            </div>
-
-            <div v-if="noteIsB64" class="form-check m-1">
-              <input
-                id="paynoteB64"
-                v-model="paynoteB64"
-                class="form-check-input"
-                type="checkbox"
-              />
-              <label class="form-check-label" for="paynoteB64">
-                {{ $t("pay.note_is_b64") }}
+            <div v-if="!isRekey" class="field grid">
+              <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">
+                {{ $t("pay.amount") }}
               </label>
+              <div class="col-12 md:col-10">
+                <InputGroup>
+                  <InputNumber
+                    itemId="payamount"
+                    v-model="payamount"
+                    :min="0"
+                    :max="maxAmount"
+                    :step="stepAmount"
+                    class="w-full"
+                  />
+                  <InputGroupAddon v-if="assetUnit">
+                    {{ assetUnit }}
+                  </InputGroupAddon>
+                  <Button
+                    severity="secondary"
+                    class="col-2"
+                    @click="setMaxAmount"
+                  >
+                    {{ $t("pay.set_max") }}
+                  </Button>
+                </InputGroup>
+              </div>
+            </div>
+            <div class="field grid">
+              <label for="fee" class="col-12 mb-2 md:col-2 md:mb-0">
+                {{ $t("pay.fee") }}
+              </label>
+              <div class="col-12 md:col-10">
+                <InputGroup>
+                  <InputNumber
+                    inputId="fee"
+                    v-model="fee"
+                    :min="0.001"
+                    :max="1"
+                    :step="0.001"
+                    class="w-full"
+                  />
+                  <InputGroupAddon>
+                    {{ this.$store.state.config.tokenSymbol }}
+                  </InputGroupAddon>
+                </InputGroup>
+              </div>
+            </div>
+            <div class="field grid">
+              <label for="paynote" class="col-12 mb-2 md:col-2 md:mb-0">
+                {{ $t("pay.note") }}
+              </label>
+              <div class="col-12 md:col-10">
+                <InputText id="paynote" v-model="paynote" class="w-full" />
+              </div>
             </div>
 
-            <div>
-              <label for="env">{{ $t("pay.environment") }}</label>
-              <input
-                id="env"
-                :value="$store.state.config.env"
-                class="form-control"
-                disabled
-              />
+            <div class="field grid" v-if="noteIsB64">
+              <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+              <div class="col-12 md:col-10">
+                <Checkbox
+                  inputId="paynoteB64"
+                  v-model="paynoteB64"
+                  class="mr-2"
+                />
+                <label class="form-check-label" for="paynoteB64">
+                  {{ $t("pay.note_is_b64") }}
+                </label>
+              </div>
             </div>
-            <div>
-              <Button :disabled="isNotValid" class="my-2">
-                {{ $t("pay.review_payment") }}
-              </Button>
-              <Button
-                v-if="isMultisig"
-                severity="secondary"
-                class="m-2"
-                value="Cancel"
-                @click="subpage = ''"
-              >
-                {{ $t("global.cancel") }}
-              </Button>
-              <Button
-                v-if="!isMultisig"
-                severity="secondary"
-                class="m-2"
-                value="Cancel"
-                @click="$router.push('/accounts')"
-              >
-                {{ $t("global.cancel") }}
-              </Button>
+
+            <div class="field grid">
+              <label for="env" class="col-12 mb-2 md:col-2 md:mb-0">
+                {{ $t("pay.environment") }}
+              </label>
+              <div class="col-12 md:col-10">
+                <InputText
+                  id="env"
+                  :value="$store.state.config.env"
+                  class="w-full"
+                  disabled
+                />
+              </div>
+            </div>
+            <div class="field grid">
+              <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+              <div class="col-12 md:col-10">
+                <Button :disabled="isNotValid" class="my-2">
+                  {{ $t("pay.review_payment") }}
+                </Button>
+                <Button
+                  v-if="isMultisig"
+                  severity="secondary"
+                  class="m-2"
+                  value="Cancel"
+                  @click="subpage = ''"
+                >
+                  {{ $t("global.cancel") }}
+                </Button>
+                <Button
+                  v-if="!isMultisig"
+                  severity="secondary"
+                  class="m-2"
+                  value="Cancel"
+                  @click="$router.push('/accounts')"
+                >
+                  {{ $t("global.cancel") }}
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -669,6 +666,8 @@ import algosdk from "algosdk";
 //import base64url from "base64url";
 import { JsonViewer } from "vue3-json-viewer";
 import SelectAccount from "../components/SelectAccount.vue";
+import TabView from "primevue/tabview";
+import TabPanel from "primevue/tabpanel";
 
 export default {
   components: {
@@ -677,6 +676,8 @@ export default {
     InputMask,
     JsonViewer,
     SelectAccount,
+    TabView,
+    TabPanel,
   },
   data() {
     return {
@@ -849,7 +850,7 @@ export default {
     },
     assetUnit() {
       if (!this.assetObj) return "";
-      if (!this.assetObj["unit-name"]) return "";
+      if (!this.assetObj["unit-name"]) return this.assetObj.name;
       return this.assetObj["unit-name"];
     },
     isAuth() {
