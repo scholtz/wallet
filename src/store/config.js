@@ -21,7 +21,7 @@ const state = () => ({
     url: "www.a-wallet.net",
     icons: [],
   },
-  languages: ["en", "hu", "it", "nl", "sk", "cs"],
+  languages: ["en", "hu", "it", "nl", "sk", "cs", "es"],
   noredirect: false, // redirect to account page after successfull login
   dev: false,
   deflex: "",
