@@ -46,6 +46,7 @@ import InputGroupAddon from "primevue/inputgroupaddon";
 import Checkbox from "primevue/checkbox";
 import Message from "primevue/message";
 import Ripple from "primevue/ripple";
+import Tooltip from "primevue/tooltip";
 
 import "primevue/resources/primevue.min.css";
 import "primeicons/primeicons.css";
@@ -102,6 +103,7 @@ myApp.component("InputGroupAddon", InputGroupAddon);
 myApp.component("Checkbox", Checkbox);
 myApp.component("Message", Message);
 myApp.directive("ripple", Ripple);
+myApp.directive("tooltip", Tooltip);
 
 myApp.config.globalProperties.$filters = {
   formatCurrency(
