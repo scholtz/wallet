@@ -37,7 +37,7 @@ import AccountTopMenu from "../../components/AccountTopMenu.vue";
         </Button>
       </RouterLink>
       <div class="col-12 md:col-10 h-full vertical-align-middle">
-        {{ $t("navbar.swap_help") }}
+        {{ $t("acc_overview.swap_help") }}
       </div>
     </div>
     <div class="field grid">
