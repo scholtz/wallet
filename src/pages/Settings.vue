@@ -50,6 +50,19 @@
         />
       </div>
     </div>
+    <div class="field grid">
+      <label for="algodToken" class="col-12 mb-2 md:col-2 md:mb-0">
+        AlgoD {{ $t("settings.token") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText
+          id="algodToken"
+          v-model="algodToken"
+          :disabled="env != 'custom'"
+          class="w-full"
+        />
+      </div>
+    </div>
 
     <div
       class="field grid"
@@ -115,6 +128,20 @@
       <div class="col-12 md:col-10">
         <InputText
           id="indexerHost"
+          v-model="indexerHost"
+          type="text"
+          :disabled="env != 'custom'"
+          class="w-full"
+        />
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="indexerToken" class="col-12 mb-2 md:col-2 md:mb-0">
+        Indexer {{ $t("settings.token") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText
+          id="indexerToken"
           v-model="indexerToken"
           type="text"
           :disabled="env != 'custom'"
