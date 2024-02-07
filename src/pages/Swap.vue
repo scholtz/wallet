@@ -51,15 +51,21 @@
             {{ $t("swap.swap_amount") }}
           </label>
           <div class="col-12 md:col-10">
-            <InputNumber
-              inputId="payamount"
-              v-model="payamount"
-              type="number"
-              :min="0"
-              :max="maxAmount"
-              :step="stepAmount"
-              class="w-full"
-            />
+            <InputGroup>
+              <InputNumber
+                inputId="payamount"
+                v-model="payamount"
+                type="number"
+                :min="0"
+                :max="maxAmount"
+                :step="stepAmount"
+                class="w-full"
+              />
+              <InputGroupAddon v-if="unit">{{ unit }}</InputGroupAddon>
+              <Button severity="secondary" @click="payamount = maxAmount">{{
+                $t("pay.set_max")
+              }}</Button>
+            </InputGroup>
           </div>
         </div>
         <div class="field grid">
@@ -240,9 +246,19 @@ export default {
         (a) => a.addr == this.$route.params.account
       );
     },
+    selectedAssetFromAccount() {
+      return this.account["assets"].find((a) => a["asset-id"] == this.asset);
+    },
+    decimalsPower() {
+      let decimals = 6;
+      if (this.assetObj && this.assetObj.decimals !== undefined) {
+        decimals = this.assetObj.decimals;
+      }
+      return Math.pow(10, decimals);
+    },
     maxAmount() {
       if (!this.account) return 0;
-      if (this.asset === null) {
+      if (this.asset > 0) {
         if (!this.selectedAssetFromAccount) return 0;
         return this.selectedAssetFromAccount.amount / this.decimalsPower;
       } else {
@@ -297,6 +313,11 @@ export default {
     },
     requiresOptIn() {
       return this.appsToOptIn.length > 0;
+    },
+    unit() {
+      if (!this.assetObj) return "";
+      if (this.assetObj["unit-name"]) return this.assetObj["unit-name"];
+      return this.assetObj["name"];
     },
   },
   watch: {
