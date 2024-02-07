@@ -56,9 +56,9 @@ onMounted(async () => {
   <MainLayout>
     <h1>{{ $t("arc76account.title") }}</h1>
     <div v-if="state.lastError">
-      <div class="alert alert-danger">
+      <Message severity="error">
         {{ $t("new_account_pass.last_error") }}: {{ state.lastError }}
-      </div>
+      </Message>
     </div>
     <p>
       {{ $t("arc76account.description") }}
@@ -66,9 +66,9 @@ onMounted(async () => {
     <p>
       {{ $t("arc76account.description2") }}
     </p>
-    <div class="alert alert-danger" v-if="!state.savePassword">
+    <Message severity="error" v-if="!state.savePassword">
       {{ $t("arc76account.arc_draft") }}
-    </div>
+    </Message>
     <div class="p-fluid">
       <div class="p-field mb-2">
         <label for="email">{{ $t("arc76account.email") }}</label>
@@ -82,7 +82,7 @@ onMounted(async () => {
         <label for="w">{{ $t("arc76account.select_password") }}</label>
         <Password
           :input-props="{ autocomplete: 'new-password' }"
-          input-id="w"
+          inputId="w"
           v-model="state.password"
           :feedback="false"
           :toggle-mask="true"
@@ -98,20 +98,20 @@ onMounted(async () => {
       <p v-if="!state.savePassword">
         {{ $t("arc76account.password_not_stored") }}
       </p>
-      <div class="alert alert-danger" v-if="!state.savePassword">
+      <Message severity="error" v-if="!state.savePassword">
         {{ $t("arc76account.gui_not_implemented") }}
-      </div>
+      </Message>
       <div class="p-field mb-2">
         <label for="name">{{ $t("accounts.account_name") }}</label>
-        <InputText itemid="name" v-model="state.name" />
+        <InputText id="name" v-model="state.name" />
       </div>
-      <button
-        class="btn btn-primary my-2"
+      <Button
+        class="my-2"
         @click="createAccount"
         :disabled="!canCreatePassword"
       >
         {{ $t("newacc.create_account") }}
-      </button>
+      </Button>
     </div>
   </MainLayout>
 </template>

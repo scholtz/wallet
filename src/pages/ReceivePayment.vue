@@ -3,86 +3,133 @@
     <h1>
       {{ $t("receive.title") }} <span v-if="account">{{ account.name }}</span>
     </h1>
-    <label for="paynote">{{ $t("receive.note") }}</label>
-    <input id="paynote" v-model="paynote" class="form-control" />
-
-    <div class="form-check m-1">
-      <input
-        id="paynoteB64"
-        v-model="paynoteB64"
-        class="form-check-input"
-        type="checkbox"
-      />
-      <label class="form-check-label" for="paynoteB64">
-        {{ $t("pay.note_is_b64") }}
-      </label>
+    <div class="field grid">
+      <label for="paynote" class="col-12 mb-2 md:col-2 md:mb-0">{{
+        $t("receive.note")
+      }}</label>
+      <div class="col-12 md:col-10">
+        <InputText id="paynote" v-model="paynote" class="w-full" />
+      </div>
     </div>
-    <div class="form-check m-1">
-      <input
-        id="noteeditable"
-        v-model="noteeditable"
-        class="form-check-input"
-        type="checkbox"
-      />
-      <label class="form-check-label" for="noteeditable">
-        {{ $t("receive.noteeditable") }}
-      </label>
+    <div class="field grid">
+      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+      <div class="col-12 md:col-10">
+        <div class="flex align-items-center">
+          <Checkbox itemId="paynoteB64" v-model="paynoteB64" binary />
+          <label class="form-check-label" for="paynoteB64">
+            {{ $t("pay.note_is_b64") }}
+          </label>
+        </div>
+      </div>
     </div>
-
-    <label for="payamount">{{ $t("pay.asset") }}</label>
-    <select id="asset" v-model="asset" class="form-control">
-      <option
-        v-for="asset in assets"
-        :key="asset['asset-id']"
-        :value="asset['asset-id']"
-      >
-        {{ asset["name"] }}
-      </option>
-    </select>
-
-    <label for="payamount">{{ $t("receive.amount") }}</label>
-    <input
-      id="payamount"
-      v-model="payamount"
-      type="number"
-      min="0.000001"
-      max="999999999"
-      step="0.000001"
-      class="form-control"
-    />
-    <label for="decimals">{{ $t("receive.decimals") }}</label>
-    <input
-      id="decimals"
-      v-model="decimals"
-      disabled
-      type="number"
-      min="0"
-      max="6"
-      step="1"
-      class="form-control"
-    />
-    <label for="payto"
-      >{{ $t("receive.address") }}: <b>{{ account.name }}</b></label
-    >
-    <input
-      v-if="account"
-      id="payto"
-      v-model="account.addr"
-      class="form-control"
-      disabled
-    />
-
-    <label for="label">{{ $t("receive.label") }}</label>
-    <input id="label" v-model="label" class="form-control my-2" />
-
-    <QRCodeVue3
-      :width="400"
-      :height="400"
-      :value="qrcode"
-      :qr-options="{ errorCorrectionLevel: 'H' }"
-      image="/img/algorand-algo-logo-96.png"
-    />
-    <code>{{ qrcode }}</code>
+    <div class="field grid">
+      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+      <div class="col-12 md:col-10">
+        <Checkbox itemId="noteeditable" v-model="noteeditable" binary />
+        <label class="form-check-label" for="noteeditable">
+          {{ $t("receive.noteeditable") }}
+        </label>
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">{{
+        $t("pay.asset")
+      }}</label>
+      <div class="col-12 md:col-10">
+        <Dropdown
+          id="asset"
+          :options="assets"
+          option-value="asset-id"
+          option-label="name"
+          v-model="asset"
+          class="w-full"
+        >
+          <template #option="slotProps">
+            <div v-if="slotProps.option" class="flex align-items-center">
+              <div>
+                {{ slotProps.option.name }} ({{ slotProps.option["asset-id"] }})
+              </div>
+            </div>
+          </template>
+        </Dropdown>
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">{{
+        $t("receive.amount")
+      }}</label>
+      <div class="col-12 md:col-10">
+        <InputGroup>
+          <InputNumber
+            inputId="payamount"
+            v-model="payamount"
+            type="number"
+            min="0.000001"
+            max="999999999"
+            step="0.000001"
+            class="w-full"
+          />
+          <InputGroupAddon>{{ assetName }}</InputGroupAddon>
+        </InputGroup>
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="decimals" class="col-12 mb-2 md:col-2 md:mb-0">{{
+        $t("receive.decimals")
+      }}</label>
+      <div class="col-12 md:col-10">
+        <InputNumber
+          inputId="decimals"
+          v-model="decimals"
+          disabled
+          type="number"
+          min="0"
+          max="18"
+          step="1"
+          class="w-full"
+        />
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="payto" class="col-12 mb-2 md:col-2 md:mb-0">
+        {{ $t("receive.address") }}: <b>{{ account.name }}</b>
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText
+          v-if="account"
+          id="payto"
+          v-model="account.addr"
+          class="w-full"
+          disabled
+        />
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="label" class="col-12 mb-2 md:col-2 md:mb-0">{{
+        $t("receive.label")
+      }}</label>
+      <div class="col-12 md:col-10">
+        <InputText id="label" v-model="label" class="w-full my-2" />
+      </div>
+    </div>
+    <div class="field grid">
+      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+      <div class="col-12 md:col-10">
+        <QRCodeVue3
+          :width="400"
+          :height="400"
+          :value="qrcode"
+          :qr-options="{ errorCorrectionLevel: 'H' }"
+          image="/img/algorand-algo-logo-96.png"
+        />
+      </div>
+    </div>
+    <div class="field grid">
+      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+      <div class="col-12 md:col-10">
+        <code>{{ qrcode }}</code>
+      </div>
+    </div>
   </main-layout>
 </template>
 
@@ -106,7 +153,7 @@ export default {
       noteeditable: true,
       assets: [],
       assetObj: {},
-      asset: "",
+      asset: 0,
     };
   },
   computed: {
@@ -144,7 +191,7 @@ export default {
       if (this.label) {
         ret += "&label=" + this.label;
       }
-      if (this.asset) {
+      if (this.asset > 0) {
         ret += "&asset=" + this.asset;
       }
       return ret;
@@ -154,6 +201,11 @@ export default {
         (a) => a.addr == this.$route.params.account
       );
     },
+    assetName() {
+      const asset = this.assets.find((a) => a["asset-id"] == this.asset);
+      if (!asset) return "Algo";
+      return asset.name;
+    },
   },
   watch: {
     account() {
@@ -162,7 +214,7 @@ export default {
     async asset() {
       if (!this.asset) {
         this.assetObj = {
-          "asset-id": undefined,
+          "asset-id": 0,
           name: this.$store.state.config.tokenSymbol,
           decimals: 6,
         };
@@ -192,7 +244,7 @@ export default {
       this.assets = [];
       if (this.account && this.account.amount > 0) {
         this.assets.push({
-          "asset-id": "",
+          "asset-id": 0,
           amount: this.account.amount,
           name: this.$store.state.config.tokenSymbol,
           decimals: 6,

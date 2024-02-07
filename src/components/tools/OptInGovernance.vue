@@ -1,6 +1,6 @@
 <template>
   <div class="container-fluid">
-    <div class="row">
+    <div class="grid">
       <div class="col-12">
         <h1>Opt in for algorand governance from multiple accounts at once</h1>
         <p>
@@ -8,90 +8,72 @@
           the algorand foundation specific account with message how much algos
           you opt in in specific perior.
         </p>
-        <div class="m-1">
-          <label for="accounts"
-            >List of mnemonic phrases for governance accounts</label
+
+        <div class="field grid">
+          <label
+            for="accounts"
+            class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
           >
-          <textarea
-            id="accounts"
-            v-model="accounts"
-            class="form-control"
-            rows="6"
-          />
-        </div>
-        <!--
-        <div class="form-check m-1">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            v-model="current"
-            id="current"
-          />
-          <label class="form-check-label" for="current">
-            Opt in with current balance minus 0.1 algo
+            List of mnemonic phrases for governance accounts
           </label>
-        </div>
-        -->
-        <div v-if="!current" class="m-1">
-          <label for="amount"
-            >How much algo do you want to allocate for governance each
-            account?</label
-          >
-          <div class="input-group">
-            <input
-              id="amount"
-              v-model="amount"
-              type="number"
-              min="0"
-              max="1999999999"
-              step="0.000001"
-              class="form-control"
+          <div class="col-12 md:col-10">
+            <Textarea
+              id="accounts"
+              v-model="accounts"
+              class="w-full"
               rows="6"
             />
-            <span class="input-group-text">Algo</span>
           </div>
         </div>
-        <div class="m-1">
-          <label for="sendTo"
-            >Sent to account. Mainnet:
-            <span
-              @click="
-                sendTo =
-                  'GULDQIEZ2CUPBSHKXRWUW7X3LCYL44AI5GGSHHOQDGKJAZ2OANZJ43S72U'
-              "
-              >GULDQIEZ2CUPBSHKXRWUW7X3LCYL44AI5GGSHHOQDGKJAZ2OANZJ43S72U</span
-            ></label
-          >
-          Testnet:
-          <span
-            @click="
-              sendTo =
-                'AYP7GCB34L4QG3NY3YPGLIGJ7WQC4ERQEDOYXTO75BYH3G76RRSJIFFEGA'
-            "
-            >AYP7GCB34L4QG3NY3YPGLIGJ7WQC4ERQEDOYXTO75BYH3G76RRSJIFFEGA</span
-          >
-          <input id="sendTo" v-model="sendTo" class="form-control" rows="6" />
-        </div>
-        <div class="m-1">
-          <div>
-            <code>{{ note }}</code>
+
+        <div v-if="!current" class="field grid">
+          <label for="amount" class="col-12 mb-2 md:col-2 md:mb-0">
+            How much algo do you want to allocate for governance each account?
+          </label>
+          <div class="col-12 md:col-10">
+            <InputGroup>
+              <InputNumber
+                inputId="amount"
+                v-model="amount"
+                type="number"
+                min="0"
+                max="1999999999"
+                step="0.000001"
+                class="w-full"
+              />
+              <InputGroupAddon>Algo</InputGroupAddon>
+            </InputGroup>
           </div>
-          <button
-            class="btn btn-primary"
-            :disabled="sending || !sendTo"
-            @click="send"
-          >
-            Send transactions
-          </button>
         </div>
-        <div v-if="results" class="m-1">
-          <label for="results">Results</label>
-          <textarea
-            id="results"
-            v-model="results"
-            class="form-control"
-            rows="6"
-          />
+        <div class="field grid">
+          <label for="sendTo" class="col-12 mb-2 md:col-2 md:mb-0">
+            Sent to account.
+          </label>
+          <div class="col-12 md:col-10">
+            <InputText id="sendTo" v-model="sendTo" class="w-full" rows="6" />
+          </div>
+        </div>
+        <div class="field grid">
+          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <div>
+              <code>{{ note }}</code>
+            </div>
+            <Button :disabled="sending || !sendTo" @click="send">
+              Send transactions
+            </Button>
+          </div>
+        </div>
+        <div v-if="results" class="field grid">
+          <label
+            for="results"
+            class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
+          >
+            Results
+          </label>
+          <div class="col-12 md:col-10">
+            <Textarea id="results" v-model="results" class="w-full" rows="6" />
+          </div>
         </div>
       </div>
     </div>

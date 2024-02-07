@@ -7,6 +7,7 @@ import { useI18n } from "vue-i18n";
 const props = defineProps({
   modelValue: String,
   itemId: String,
+  class: String,
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -40,7 +41,8 @@ function getAccountName() {
     optionLabel="name"
     optionValue="addr"
     :placeholder="$t('account.select_account')"
-    class="w-full md:w-14rem"
+    :class="props.class"
+    :inputClass="props.class"
     :itemid="props.itemId"
   >
     <template #value="slotProps">

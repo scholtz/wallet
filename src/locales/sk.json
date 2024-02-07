@@ -4,7 +4,7 @@
     "text": "Stránka ktorú hľadáte nie je bohužiaľ k dispozícii. Skúste prejsť na hlavnú stránku."
   },
   "footer": {
-    "text": "Algo Peňaženka"
+    "text": "A-Wallet - Komunitná algorand peňaženka s otvoreným kódom"
   },
   "login": {
     "new_wallet": "Nová peňaženka",
@@ -270,7 +270,17 @@
     "slot": "Account at ledger slot",
     "connect": "WalletConnect",
     "payment_gateway": "Payment gateway",
-    "export": "Export"
+    "export": "Export",
+    "no_assets": "Na vašom účte zatiaľ nemáte dostupné žiadne tokeny.",
+    "actions": "Akcie",
+    "pay_help": "Odošlite peniaze alebo tokeny na iný účet v sieti.",
+    "swap_help": "Môžete vymeniť jeden token za druhý pomocou služieb DEX aggregátora.",
+    "rekey_help": "Ak sa obávate, že iná osoba môže mať prístup ku privátnemu kľúču ku Vášmu účtu, môžete si nastaviť nový privátny kľúč z inej adresy a môžete naďalej používať svoju adresu účtu.",
+    "asset_optin_help": "Ak chcete prijať na Váš účet tokeny, najskôr si musíte otvoriť účet s týmito tokenmi.",
+    "receive_payment_help": "Ak chcete prijať platbu od Vášho zákazníka alebo kamaráta, môžete vygenrovať platobný QR kód a oni po jeho nascanovaní Vám môžu poslať platbu na jedno kliknutie.",
+    "export_help": "Pre účty s privátnym kľúčom si môžete vygenerať kódy pre obnovenie účtu pomocou sharmir recovery alebo pomocou štandardného algorand mnemonicu.",
+    "arc14": "ARC 14 Autorizácia",
+    "arc14_help": "ARC 14 je autorizačný štandard ktorý využívat podpísané transakcie. Na tejto stránke si môžete vygenerovať autorizačné tokeny k vášmu účtu a externej službe."
   },
   "optin": {
     "title": "Prijímať aktívum (ASA alebo NFT) na účte",
@@ -347,7 +357,16 @@
     "twofa_account": "2FA účet",
     "show_qr_code": "Zobraz QR kód",
     "email_pass_account": "Účet z emailu a hesla",
-    "shamir_account": "Shamir backup recovery"
+    "shamir_account": "Obnova pomocou Shamir kódov",
+    "overview": "Akcie pre založenie nového účtu",
+    "create_basic_help": "Základný algorand účet je asymetrický účet s privátnym kľúčom na elyptickej krivke ED25529. Táto metóda používa generátor náhodných čísiel vo Vašom počítači pre vytvorenie privátneho kľúču.",
+    "ledger_account_help": "Jedna z najbezpečnejších metód pre vytvorenie účtu na algorande je prenechanie vytvorenia privátneho kľúču na špecializovanom zariadení. Tento účet využíva zariadenie ledger pre vytvorenie účtu aj pre podpisovanie transakcií.",
+    "wc_account_help": "Pomocou tohto účtu si môžete pripojiť účet Vášho kamaráta pomocou wallet connect. Následne im môžete posielať žiadosti o podpis transakcií napríklad pre účely multipodpisových transakcií.",
+    "twofa_account_help": "Účet dvojúrovňovej autorizácie je multipodpisový účet, kde prvý účet je ľubovoľný účet npr ledger alebo základný algorand účet. Druhý účet je účet pre obnovenie ideálne taký ktorý nikdy nebol online a je veľmi dobre zabezpečený. Tretí účet je serverový účet kde server podpíše transakciu iba v prípade ak zadáte správny pin kód z vašej 2FA aplikácie.",
+    "email_pass_account_help": "ARC76 Email & Heslo je typ účtu kde pomocou ľubovoľného textu sa Vám vygeneruje algorand účet. Tento text môžete považovať ako za ďalší typ generátora náhodných čísiel ktorý si sami spravujete a môže zvýšiť bezpečnosť 2FA účtov alebo multipodpisových účtov",
+    "create_vanity_help": "Môžete si vygenerovať vlastnú adresu účtu. Táto metóda generuje základný algorand účet a generuje veľa účtov zaradom kým sa nesplnia požiadavky na účet, npr začiatočné písmená.",
+    "create_multisign_account_help": "Multipodpisový účet je najbezpečnejšia forma účtu. Ak sa používa s rôznymi zariadeniami a rôznymi generátormi náhodných čísel, poskytuje korporátnu bezpečnosť bez zvýšených nákladov.",
+    "watch_account_help": "Môžete sledovať ľubovoľný účet na sieti."
   },
   "arc76account": {
     "title": "Účet z emailu a hesla (ARC-0076)",
@@ -470,7 +489,8 @@
     "protocol_title": "Registrácia protokolu",
     "protocol_button": "Zaregistrovať protokol web+algorand://",
     "protocol_change_success": "Protokol bol úspešne zaregistrovaný",
-    "dev_settings": "Zobrazovať informácie pre vývojárov"
+    "dev_settings": "Zobrazovať informácie pre vývojárov",
+    "update_password": "Zmeniť heslo"
   },
   "transaction": {
     "title": "Detail transakcie",

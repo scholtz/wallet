@@ -1,11 +1,21 @@
 <template>
   <PublicLayout>
     <h1>Please help us</h1>
-    <div class="row">
+    <div class="grid">
       <div class="col-9">
         <p>
-          Algorand foundation nor Algorand inc, nor any algorand fund has funded
-          this project.
+          This project has been started in June 2021 as the first open source
+          algorand wallet.
+        </p>
+        <p>
+          Thank to expert governors, we have received funds to create
+          <a href="https://github.com/algorandfoundation/xGov/pull/9/files"
+            >two factor authentication accounts</a
+          >
+          and
+          <a href="https://github.com/algorandfoundation/xGov/pull/90/files"
+            >payment scheduler</a
+          >.
         </p>
         <p>
           We are active in algorand community. We have created
@@ -29,9 +39,9 @@
             of the AWallet. We expect costs approximately 1000 USDt.
             <a
               href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9MTAwMDAwMDAwMCZhc3NldD0zMTI3Njk/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0L3N1Y2Nlc3MiLCJjYW5jZWwiOiJodHRwczovL3d3dy5hLXdhbGxldC5uZXQvZG9uYXRlIn0"
-              class="btn btn-primary"
-              >Donate now</a
             >
+              <Button>Donate now</Button>
+            </a>
           </li>
           <li>
             Translation to other language costs approx 50 USD. Please send us in
@@ -39,18 +49,18 @@
             translated.
             <a
               href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9NTAwMDAwMDAmYXNzZXQ9MzEyNzY5/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0L3N1Y2Nlc3MiLCJjYW5jZWwiOiJodHRwczovL3d3dy5hLXdhbGxldC5uZXQvZG9uYXRlIn0"
-              class="btn btn-primary"
-              >Donate now</a
             >
+              <Button>Donate now</Button>
+            </a>
           </li>
           <li>
             Payment gateway implementation to Magento - No middleman, you accept
             the payments to your account, match with invoices
             <a
               href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9MTAwMDAwMDAwMCZhc3NldD0zMTI3Njk/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0L3N1Y2Nlc3MiLCJjYW5jZWwiOiJodHRwczovL3d3dy5hLXdhbGxldC5uZXQvZG9uYXRlIn0"
-              class="btn btn-primary"
-              >Donate now</a
             >
+              <Button>Donate now</Button>
+            </a>
           </li>
         </ol>
         <p>
@@ -59,7 +69,7 @@
           <a
             target="_blank"
             rel="noreferrer"
-            href="https://algoexplorer.io/address/AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
+            href="https://allo.info/address/AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
             ><b
               >AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y</b
             ></a

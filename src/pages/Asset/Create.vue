@@ -3,207 +3,228 @@
     <h1>
       {{ $t("assetcreate.title") }}
 
-      <button
+      <Button
         v-if="!advanced"
-        class="btn btn-light btn-xs"
+        severity="secondary"
+        size="small"
         @click="advanced = true"
       >
         {{ $t("assetcreate.show_advanced") }}
-      </button>
-      <button
+      </Button>
+      <Button
         v-if="advanced"
-        class="btn btn-light btn-xs"
+        severity="secondary"
+        size="small"
         @click="advanced = false"
       >
         {{ $t("assetcreate.hide_advanced") }}
-      </button>
+      </Button>
     </h1>
-
-    <label for="assetName" class="m-1">{{ $t("assetcreate.assetName") }}</label>
-    <input id="assetName" v-model="asset.assetName" class="form-control m-1" />
-    <label for="addr " class="m-1">{{ $t("assetcreate.creator") }} </label>
-    <div v-if="!hasPrivate" class="alert alert-danger">
-      {{ $t("assetcreate.creator_not_found") }}
-    </div>
-    <select
-      v-if="hasPrivate"
-      v-model="asset.addr"
-      class="select form-control m-1"
-    >
-      <option
-        v-for="option in accountsWithPrivateKey"
-        :key="option.addr"
-        :value="option.addr"
-      >
-        {{ option.name }} - {{ option.addr }}
-      </option>
-    </select>
-    <div v-if="advanced" class="form-check m-1">
-      <input
-        id="defaultFrozen"
-        v-model="asset.defaultFrozen"
-        class="form-check-input"
-        type="checkbox"
-      />
-      <label class="form-check-label" for="defaultFrozen">
-        {{ $t("assetcreate.default_fronzen") }}
+    <div class="field grid">
+      <label for="assetName" class="col-12 mb-2 md:col-2 md:mb-0">
+        {{ $t("assetcreate.assetName") }}
       </label>
+      <div class="col-12 md:col-10">
+        <InputText id="assetName" v-model="asset.assetName" class="w-full" />
+      </div>
     </div>
-    <label v-if="advanced" for="decimals" class="m-1"
-      >{{ $t("assetcreate.decimals") }}
-    </label>
-    <input
-      v-if="advanced"
-      id="decimals"
-      v-model="asset.decimals"
-      class="form-control m-1"
-      type="number"
-      min="0"
-      max="18"
-      step="1"
-    />
-    <label for="totalIssuance" class="m-1"
-      >{{ $t("assetcreate.totalIssuance") }} (<span title="min">{{ min }}</span>
-      - <span title="max">{{ max }}</span
-      >)
-    </label>
-    <input
-      id="totalIssuance"
-      v-model="asset.totalIssuance"
-      class="form-control m-1"
-      type="number"
-      min="0"
-      max="1000000000000"
-      step="1"
-    />
-    <label v-if="advanced" for="unitName" class="m-1"
-      >{{ $t("assetcreate.unitName") }}
-    </label>
-    <input
-      v-if="advanced"
-      id="unitName"
-      v-model="asset.unitName"
-      class="form-control m-1"
-    />
-    <label v-if="advanced" for="assetURL" class="m-1"
-      >{{ $t("assetcreate.assetURL") }}
-    </label>
-    <input
-      v-if="advanced"
-      id="assetURL"
-      v-model="asset.assetURL"
-      class="form-control m-1"
-    />
-    <label v-if="advanced" for="assetMetadataHash" class="m-1"
-      >{{ $t("assetcreate.assetMetadataHash") }}
-    </label>
-    <input
-      v-if="advanced"
-      id="assetMetadataHash"
-      v-model="asset.assetMetadataHash"
-      class="form-control m-1"
-    />
+    <div class="field grid">
+      <label for="addr" class="col-12 mb-2 md:col-2 md:mb-0">
+        {{ $t("assetcreate.creator") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <Message severity="error" v-if="!hasPrivate">
+          {{ $t("assetcreate.creator_not_found") }}
+        </Message>
 
-    <label v-if="advanced" for="manager " class="m-1"
-      >{{ $t("assetcreate.manager") }}
-    </label>
-    <select
-      v-if="advanced"
-      v-model="asset.manager"
-      class="select form-control m-1"
-    >
-      <option
-        v-for="option in $store.state.wallet.privateAccounts"
-        :key="option.addr"
-        :value="option.addr"
-      >
-        {{ option.name }} - {{ option.addr }}
-      </option>
-    </select>
-    <label v-if="advanced" for="reserve " class="m-1"
-      >{{ $t("assetcreate.reserve") }}
-    </label>
-    <select
-      v-if="advanced"
-      v-model="asset.reserve"
-      class="select form-control m-1"
-    >
-      <option
-        v-for="option in $store.state.wallet.privateAccounts"
-        :key="option.addr"
-        :value="option.addr"
-      >
-        {{ option.name }} - {{ option.addr }}
-      </option>
-    </select>
-    <label v-if="advanced" for="freeze " class="m-1"
-      >{{ $t("assetcreate.freeze") }}
-    </label>
-    <select
-      v-if="advanced"
-      v-model="asset.freeze"
-      class="select form-control m-1"
-    >
-      <option
-        v-for="option in $store.state.wallet.privateAccounts"
-        :key="option.addr"
-        :value="option.addr"
-      >
-        {{ option.name }} - {{ option.addr }}
-      </option>
-    </select>
-    <label v-if="advanced" for="clawback " class="m-1"
-      >{{ $t("assetcreate.clawback") }}
-    </label>
-    <select
-      v-if="advanced"
-      v-model="asset.clawback"
-      class="select form-control m-1"
-    >
-      <option
-        v-for="option in $store.state.wallet.privateAccounts"
-        :key="option.addr"
-        :value="option.addr"
-      >
-        {{ option.name }} - {{ option.addr }}
-      </option>
-    </select>
-    <label v-if="advanced" for="note" class="m-1"
-      >{{ $t("assetcreate.note") }}
-    </label>
-    <input
-      v-if="advanced"
-      id="note"
-      v-model="asset.note"
-      class="form-control m-1"
-    />
+        <SelectAccount
+          v-if="hasPrivate"
+          v-model="asset.addr"
+          class="w-full"
+        ></SelectAccount>
+      </div>
+    </div>
 
-    <input
-      @click="createAssetMultisig"
-      v-if="isMultisig"
-      :disabled="
-        !this.asset ||
-        !this.asset.addr ||
-        !this.asset.totalIssuance ||
-        !this.asset.assetName
-      "
-      type="submit"
-      class="btn btn-primary"
-      :value="`${$t('assetcreate.create_button')} - Multisig`"
-    />
-    <input
-      @click="createAsset"
-      v-else
-      :disabled="
-        !this.asset ||
-        !this.asset.addr ||
-        !this.asset.totalIssuance ||
-        !this.asset.assetName
-      "
-      type="submit"
-      class="btn btn-primary"
-      :value="$t('assetcreate.create_button')"
-    />
+    <div v-if="advanced" class="field grid">
+      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+      <div class="col-12 md:col-10">
+        <Checkbox inputId="defaultFrozen" v-model="asset.defaultFrozen" />
+        <label for="defaultFrozen" class="ml-1">
+          {{ $t("assetcreate.default_fronzen") }}
+        </label>
+      </div>
+    </div>
+    <div v-if="advanced" class="field grid">
+      <label v-if="advanced" for="decimals" class="col-12 mb-2 md:col-2 md:mb-0"
+        >{{ $t("assetcreate.decimals") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputNumber
+          v-if="advanced"
+          inputId="decimals"
+          class="w-full"
+          v-model="asset.decimals"
+          :min="0"
+          :max="18"
+          :step="1"
+          showButtons
+        />
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="totalIssuance" class="col-12 mb-2 md:col-2 md:mb-0">
+        {{ $t("assetcreate.totalIssuance") }}
+        ({{ min }}-{{ max }})
+      </label>
+      <div class="col-12 md:col-10">
+        <InputNumber
+          inputId="totalIssuance"
+          v-model="asset.totalIssuance"
+          class="w-full"
+          :min="0"
+          :max="1000000000000"
+          :step="1"
+        />
+      </div>
+    </div>
+    <div class="field grid">
+      <label v-if="advanced" for="unitName" class="col-12 mb-2 md:col-2 md:mb-0"
+        >{{ $t("assetcreate.unitName") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText
+          v-if="advanced"
+          id="unitName"
+          v-model="asset.unitName"
+          class="w-full"
+        />
+      </div>
+    </div>
+    <div class="field grid">
+      <label v-if="advanced" for="assetURL" class="col-12 mb-2 md:col-2 md:mb-0"
+        >{{ $t("assetcreate.assetURL") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText
+          v-if="advanced"
+          id="assetURL"
+          v-model="asset.assetURL"
+          class="w-full"
+        />
+      </div>
+    </div>
+    <div class="field grid">
+      <label
+        v-if="advanced"
+        for="assetMetadataHash"
+        class="col-12 mb-2 md:col-2 md:mb-0"
+        >{{ $t("assetcreate.assetMetadataHash") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText
+          v-if="advanced"
+          id="assetMetadataHash"
+          v-model="asset.assetMetadataHash"
+          class="w-full"
+        />
+      </div>
+    </div>
+    <div class="field grid">
+      <label v-if="advanced" for="manager " class="col-12 mb-2 md:col-2 md:mb-0"
+        >{{ $t("assetcreate.manager") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <SelectAccount
+          v-if="advanced"
+          v-model="asset.manager"
+          class="w-full"
+        ></SelectAccount>
+      </div>
+    </div>
+    <div class="field grid">
+      <label v-if="advanced" for="reserve " class="col-12 mb-2 md:col-2 md:mb-0"
+        >{{ $t("assetcreate.reserve") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <SelectAccount
+          v-if="advanced"
+          v-model="asset.reserve"
+          class="w-full"
+        ></SelectAccount>
+      </div>
+    </div>
+    <div class="field grid">
+      <label v-if="advanced" for="freeze " class="col-12 mb-2 md:col-2 md:mb-0"
+        >{{ $t("assetcreate.freeze") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <SelectAccount
+          v-if="advanced"
+          v-model="asset.freeze"
+          class="w-full"
+        ></SelectAccount>
+      </div>
+    </div>
+    <div class="field grid">
+      <label
+        v-if="advanced"
+        for="clawback "
+        class="col-12 mb-2 md:col-2 md:mb-0"
+        >{{ $t("assetcreate.clawback") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <SelectAccount
+          v-if="advanced"
+          v-model="asset.clawback"
+          class="w-full"
+        ></SelectAccount>
+      </div>
+    </div>
+    <div class="field grid">
+      <label v-if="advanced" for="note" class="col-12 mb-2 md:col-2 md:mb-0"
+        >{{ $t("assetcreate.note") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText
+          v-if="advanced"
+          id="note"
+          v-model="asset.note"
+          class="w-full"
+        />
+      </div>
+    </div>
+    <div class="field grid">
+      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+      <div class="col-12 md:col-10">
+        <Button
+          @click="createAssetMultisig"
+          v-if="isMultisig"
+          :disabled="
+            !this.asset ||
+            !this.asset.addr ||
+            !this.asset.totalIssuance ||
+            !this.asset.assetName
+          "
+          type="submit"
+        >
+          {{ $t("assetcreate.create_button") }} - Multisig
+        </Button>
+        <Button
+          @click="createAsset"
+          v-else
+          :disabled="
+            !this.asset ||
+            !this.asset.addr ||
+            !this.asset.totalIssuance ||
+            !this.asset.assetName
+          "
+          type="submit"
+          :value="$t('assetcreate.create_button')"
+        >
+          {{ $t("assetcreate.create_button") }}
+        </Button>
+      </div>
+    </div>
   </MainLayout>
 </template>
 
@@ -211,10 +232,12 @@
 import MainLayout from "../../layouts/Main.vue";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
+import SelectAccount from "../../components/SelectAccount.vue";
 
 export default {
   components: {
     MainLayout,
+    SelectAccount,
   },
   data() {
     return {

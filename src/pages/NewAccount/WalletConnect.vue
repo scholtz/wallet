@@ -2,13 +2,13 @@
   <MainLayout>
     <h1>{{ $t("new_account_wc.title") }}</h1>
     <div v-if="lastError">
-      <div class="alert alert-danger">
+      <Message severity="error">
         {{ $t("new_account_wc.last_error") }}: {{ lastError }}
-      </div>
+      </Message>
     </div>
-    <button v-if="!uri" class="btn btn-primary" @click="initWalletConnect">
+    <Button v-if="!uri" @click="initWalletConnect">
       {{ $t("new_account_wc.show_qr_code") }}
-    </button>
+    </Button>
 
     <div v-if="scannable">
       <h3>{{ $t("new_account_wc.scan") }}</h3>
@@ -31,19 +31,37 @@
         :qr-options="{ errorCorrectionLevel: 'L' }"
         image="/img/wc-logo.png"
       />
-      <button class="btn btn-primary m-1" @click="clickCopy">
+      <Button class="m-1" @click="clickCopy">
         {{ $t("new_account_wc.copy") }}
-      </button>
+      </Button>
     </div>
     <div v-if="session">
-      <h3>{{ $t("new_account_wc.account_name") }}</h3>
-      <input v-model="name" class="form-control my-2" />
-      <div v-if="account">
-        {{ $t("new_account_wc.address") }}: {{ account }}
+      <div class="field grid">
+        <label for="account_name" class="col-12 mb-2 md:col-2 md:mb-0">
+          {{ $t("new_account_wc.account_name") }}
+        </label>
+        <div class="col-12 md:col-10">
+          <InputText id="account_name" v-model="name" class="w-full" />
+        </div>
       </div>
-      <button class="btn btn-primary my-2" @click="clickSave">
-        {{ $t("new_account_wc.save_address") }}
-      </button>
+
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+        <div class="col-12 md:col-10">
+          <div v-if="account">
+            {{ $t("new_account_wc.address") }}: {{ account }}
+          </div>
+        </div>
+      </div>
+
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+        <div class="col-12 md:col-10">
+          <Button class="my-2" @click="clickSave" :disabled="formInvalid">
+            {{ $t("new_account_wc.save_address") }}
+          </Button>
+        </div>
+      </div>
     </div>
   </MainLayout>
 </template>
@@ -71,6 +89,9 @@ export default {
     };
   },
   computed: {
+    formInvalid() {
+      return !(this.name && this.account);
+    },
     scannable() {
       return this.uri && !this.session;
     },

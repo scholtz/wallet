@@ -2,140 +2,132 @@
   <main-layout>
     <h1>{{ $t("settings.title") }}</h1>
     <h2>{{ $t("settings.server") }}</h2>
-
-    <div v-if="publicList">
-      <label for="env2">{{ $t("settings.environment") }}</label>
-
-      <select id="env2" v-model="env" class="form-control">
-        <option
-          v-for="value in publicList"
-          :key="value.network"
-          :value="value.network"
+    <div class="field grid" v-if="publicList">
+      <label for="env2" class="col-12 mb-2 md:col-2 md:mb-0">
+        {{ $t("settings.environment") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <Dropdown
+          id="env2"
+          v-model="env"
+          class="w-full"
+          :options="publicList"
+          optionLabel="name"
+          optionValue="network"
         >
-          {{ value.name }}
-        </option>
-      </select>
+        </Dropdown>
+      </div>
     </div>
-    <table>
-      <tr v-if="algodList && algodList.length > 0 && env != 'custom'">
-        <td><label for="algodProvider">Public AlgoD provider</label>:</td>
-        <td>
-          <select id="algodProvider" v-model="algodHost" class="form-control">
-            <option
-              v-for="value in algodList"
-              :key="value.host"
-              :value="value.host"
-            >
-              {{ value.providerName }}
-            </option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td>AlgoD {{ $t("settings.host") }}:</td>
-        <td>
-          <input
-            v-model="algodHost"
-            type="text"
-            :disabled="env != 'custom'"
-            class="form-control"
-          />
-        </td>
-      </tr>
-      <tr v-if="env == 'custom'">
-        <td>AlgoD {{ $t("settings.token") }}:</td>
-        <td>
-          <input
-            v-model="algodToken"
-            type="text"
-            :disabled="env != 'custom'"
-            class="form-control"
-          />
-        </td>
-      </tr>
-      <tr
-        v-if="
-          participationList && participationList.length > 0 && env != 'custom'
-        "
-      >
-        <td>
-          <label for="participationProvider"
-            >Public participation provider</label
-          >:
-        </td>
-        <td>
-          <select
-            id="participationProvider"
-            v-model="participationHost"
-            class="form-control"
-          >
-            <option
-              v-for="value in participationList"
-              :key="value.host"
-              :value="value.host"
-            >
-              {{ value.providerName }}
-            </option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td>Participation {{ $t("settings.host") }}:</td>
-        <td>
-          <input
-            v-model="participationHost"
-            type="text"
-            :disabled="env != 'custom'"
-            class="form-control"
-          />
-        </td>
-      </tr>
-      <tr v-if="indexerList && indexerList.length > 0 && env != 'custom'">
-        <td><label for="indexerProvider">Public Indexer provider</label>:</td>
-        <td>
-          <select
-            id="indexerProvider"
-            v-model="indexerHost"
-            class="form-control"
-          >
-            <option
-              v-for="value in indexerList"
-              :key="value.host"
-              :value="value.host"
-            >
-              {{ value.providerName }}
-            </option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td>Indexer {{ $t("settings.host") }}:</td>
-        <td>
-          <input
-            v-model="indexerHost"
-            type="text"
-            :disabled="env != 'custom'"
-            class="form-control"
-          />
-        </td>
-      </tr>
-      <tr v-if="env == 'custom'">
-        <td>Indexer {{ $t("settings.token") }}:</td>
-        <td>
-          <input
-            v-model="indexerToken"
-            type="text"
-            :disabled="env != 'custom'"
-            class="form-control"
-          />
-        </td>
-      </tr>
-    </table>
+    <div
+      class="field grid"
+      v-if="algodList && algodList.length > 0 && env != 'custom'"
+    >
+      <label for="algodProvider" class="col-12 mb-2 md:col-2 md:mb-0">
+        Public AlgoD provider
+      </label>
+      <div class="col-12 md:col-10">
+        <Dropdown
+          id="algodProvider"
+          v-model="algodHost"
+          class="w-full"
+          :options="algodList"
+          optionLabel="providerName"
+          optionValue="host"
+        >
+        </Dropdown>
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="algodHost" class="col-12 mb-2 md:col-2 md:mb-0">
+        AlgoD {{ $t("settings.host") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText
+          id="algodHost"
+          v-model="algodHost"
+          :disabled="env != 'custom'"
+          class="w-full"
+        />
+      </div>
+    </div>
+
+    <div
+      class="field grid"
+      v-if="
+        participationList && participationList.length > 0 && env != 'custom'
+      "
+    >
+      <label for="participationProvider" class="col-12 mb-2 md:col-2 md:mb-0">
+        Public participation provider
+      </label>
+      <div class="col-12 md:col-10">
+        <Dropdown
+          id="participationProvider"
+          v-model="participationHost"
+          class="w-full"
+          :options="participationList"
+          optionLabel="providerName"
+          optionValue="host"
+        >
+        </Dropdown>
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="participationHost" class="col-12 mb-2 md:col-2 md:mb-0">
+        Participation {{ $t("settings.host") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText
+          id="participationHost"
+          v-model="participationHost"
+          type="text"
+          :disabled="env != 'custom'"
+          class="w-full"
+        />
+      </div>
+    </div>
+
+    <div
+      class="field grid"
+      v-if="
+        participationList && participationList.length > 0 && env != 'custom'
+      "
+    >
+      <label for="indexerProvider" class="col-12 mb-2 md:col-2 md:mb-0">
+        Public Indexer provider
+      </label>
+      <div class="col-12 md:col-10">
+        <Dropdown
+          id="indexerProvider"
+          v-model="indexerHost"
+          class="w-full"
+          :options="indexerList"
+          optionLabel="providerName"
+          optionValue="host"
+        >
+        </Dropdown>
+      </div>
+    </div>
+    <div class="field grid">
+      <label for="indexerHost" class="col-12 mb-2 md:col-2 md:mb-0">
+        Indexer {{ $t("settings.host") }}
+      </label>
+      <div class="col-12 md:col-10">
+        <InputText
+          id="indexerHost"
+          v-model="indexerToken"
+          type="text"
+          :disabled="env != 'custom'"
+          class="w-full"
+        />
+      </div>
+    </div>
+
     <div>
       <h2>{{ $t("settings.protocol_title") }}</h2>
-      <button class="btn btn-light" @click="registerProtocolClick">
+      <Button @click="registerProtocolClick" severity="secondary">
         {{ $t("settings.protocol_button") }}
-      </button>
+      </Button>
     </div>
 
     <h2>{{ $t("settings.language") }}</h2>
@@ -173,18 +165,53 @@
     </Dropdown>
     <h2>{{ $t("settings.pass") }}</h2>
     <form @submit="changePasswordClick">
-      <label>{{ $t("settings.oldpass") }}</label>
-      <input v-model="passw1" type="password" class="form-control my-2" />
-      <label
-        >{{ $t("settings.newpass") }}
-        <span v-if="strength" :class="strengthClass">{{
-          strength
-        }}</span></label
-      >
-      <input v-model="passw2" type="password" class="form-control my-2" />
-      <label>{{ $t("settings.repeatpass") }}</label>
-      <input v-model="passw3" type="password" class="form-control my-2" />
-      <input type="submit" class="btn btn-light my-2" value="Update password" />
+      <div class="field grid">
+        <label for="passw1" class="col-12 mb-2 md:col-2 md:mb-0">
+          {{ $t("settings.oldpass") }}
+        </label>
+        <div class="col-12 md:col-10">
+          <Password
+            inputId="passw1"
+            v-model="passw1"
+            inputClass="w-full"
+            class="w-full"
+          />
+        </div>
+      </div>
+      <div class="field grid">
+        <label for="passw2" class="col-12 mb-2 md:col-2 md:mb-0">
+          {{ $t("settings.newpass") }}
+        </label>
+        <div class="col-12 md:col-10">
+          <Password
+            inputId="passw2"
+            v-model="passw2"
+            inputClass="w-full"
+            class="w-full"
+          />
+        </div>
+      </div>
+      <div class="field grid">
+        <label for="passw3" class="col-12 mb-2 md:col-2 md:mb-0">
+          {{ $t("settings.repeatpass") }}
+        </label>
+        <div class="col-12 md:col-10">
+          <Password
+            inputId="passw3"
+            v-model="passw3"
+            inputClass="w-full"
+            class="w-full"
+          />
+        </div>
+      </div>
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+        <div class="col-12 md:col-10">
+          <Button type="submit" severity="secondary">
+            {{ $t("settings.update_password") }}
+          </Button>
+        </div>
+      </div>
     </form>
     <h2>{{ $t("settings.dev_settings") }}</h2>
     <div>
@@ -193,25 +220,31 @@
     <h2>{{ $t("settings.backup") }}</h2>
     <p>{{ $t("settings.backup_help") }}</p>
     <p>
-      <a v-if="!b64wallet" class="btn btn-light" @click="makeBackupDataClick">
+      <Button
+        v-if="!b64wallet"
+        severity="secondary"
+        @click="makeBackupDataClick"
+      >
         {{ $t("settings.create_backup") }}
-      </a>
+      </Button>
       <a
         v-if="b64wallet"
         :href="'data:image/png;base64,' + b64wallet"
         :download="downloadableWalletName"
         target="_blank"
-        class="btn btn-primary"
       >
-        {{ $t("settings.download") }}
+        <Button>
+          {{ $t("settings.download") }}
+        </Button>
       </a>
-      <a
+      <Button
         v-if="b64wallet"
-        class="btn btn-danger mx-2"
+        severity="danger"
+        class="mx-2"
         @click="destroyWalletClick"
       >
         {{ $t("settings.delete") }}
-      </a>
+      </Button>
     </p>
   </main-layout>
 </template>
@@ -219,7 +252,6 @@
 <script>
 import { mapActions } from "vuex";
 import MainLayout from "../layouts/Main.vue";
-import { passwordStrength } from "check-password-strength";
 
 export default {
   components: {
@@ -275,18 +307,6 @@ export default {
         new Date().toISOString().slice(0, 10) +
         ".dat"
       );
-    },
-    strengthClass() {
-      if (!this.passw2) return "";
-      const ret = passwordStrength(this.passw2);
-      if (ret.id <= 0) return "badge bg-danger";
-      if (ret.id <= 1) return "badge bg-warning text-dark";
-      return "badge bg-success";
-    },
-    strength() {
-      if (!this.passw2) return "";
-      const ret = passwordStrength(this.passw2);
-      return this.$t("strength") + ": " + ret.value;
     },
   },
 

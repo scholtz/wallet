@@ -1,13 +1,13 @@
 <template>
-  <div class="d-flex flex-column h-100">
+  <div class="flex flex-column h-full">
     <slot name="header">
       <Navbar />
     </slot>
     <Toast />
-    <div class="container-fluid d-flex flex-column flex-grow-1">
+    <div class="flex flex-column flex-grow-1">
       <slot />
     </div>
-    <slot name="header">
+    <slot name="footer">
       <Footer />
     </slot>
   </div>
@@ -15,7 +15,7 @@
 
 <script>
 import Toast from "primevue/toast";
-import Navbar from "../components/Navbar.vue";
+import Navbar from "../components/Navbar2.vue";
 import Footer from "../components/Footer.vue";
 import { mapActions } from "vuex";
 export default {

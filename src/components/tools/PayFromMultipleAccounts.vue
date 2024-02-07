@@ -1,20 +1,20 @@
 <template>
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-12">
-        <h1>Pay from multiple accounts at once</h1>
-        <div class="m-1">
-          <label for="accounts"
-            >List of mnemonic phrases for governance accounts</label
-          >
-          <textarea
-            id="accounts"
-            v-model="accounts"
-            class="form-control"
-            rows="6"
-          />
+  <div class="grid">
+    <div class="col-12">
+      <h1>Pay from multiple accounts at once</h1>
+
+      <div class="field grid">
+        <label
+          for="accounts"
+          class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
+        >
+          List of mnemonic phrases for governance accounts
+        </label>
+        <div class="col-12 md:col-10 vertical-align-top h-full">
+          <Textarea id="accounts" v-model="accounts" class="w-full" rows="6" />
         </div>
-        <!--
+      </div>
+      <!--
         <div class="form-check m-1">
           <input
             class="form-check-input"
@@ -27,53 +27,66 @@
           </label>
         </div>
         -->
-        <div v-if="!current" class="m-1">
-          <label for="amount">How much algo do you want to send?</label>
-          <div class="input-group">
-            <input
-              id="amount"
+      <div v-if="!current" class="field grid">
+        <label for="amount" class="col-12 mb-2 md:col-2 md:mb-0">
+          How much algo do you want to send?
+        </label>
+        <div class="col-12 md:col-10">
+          <InputGroup>
+            <InputNumber
+              inputId="amount"
               v-model="amount"
               type="number"
               min="0"
               max="1999999999"
               step="0.000001"
-              class="form-control"
+              class="w-full"
               rows="6"
             />
-            <span class="input-group-text">Algo</span>
-          </div>
+            <InputGroupAddon>Algo</InputGroupAddon>
+          </InputGroup>
         </div>
-        <div class="m-1">
-          <label for="sendTo">Sent to account</label>
-          <input id="sendTo" v-model="sendTo" class="form-control" rows="6" />
+      </div>
+      <div class="field grid">
+        <label for="sendTo" class="col-12 mb-2 md:col-2 md:mb-0">
+          Sent to account
+        </label>
+        <div class="col-12 md:col-10">
+          <InputText id="sendTo" v-model="sendTo" class="w-full" />
         </div>
-        <div class="m-1">
-          <label for="note">Note field</label>
-          <input id="note" v-model="note" class="form-control" rows="6" />
-        </div>
-        <div class="m-1">
+      </div>
+      <div class="field grid">
+        <label for="note" class="col-12 mb-2 md:col-2 md:mb-0">
+          Note field
+        </label>
+        <div class="col-12 md:col-10">
+          <InputText id="note" v-model="note" class="w-full" />
           <div>
             <code class="m-1">{{ note }}</code>
           </div>
-          <button
-            class="btn btn-primary"
-            :disabled="sending || !sendTo || sent"
-            @click="send"
-          >
-            Send transactions
-          </button>
-          <div v-if="sent" class="alert alert-success my-1">
-            Payments has been sent
-          </div>
         </div>
-        <div v-if="results" class="m-1">
-          <label for="results">Results</label>
-          <textarea
-            id="results"
-            v-model="results"
-            class="form-control"
-            rows="6"
-          />
+      </div>
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+        <div class="col-12 md:col-10">
+          <Button :disabled="sending || !sendTo || sent" @click="send">
+            Send transactions
+          </Button>
+
+          <Message severity="success" v-if="sent" class="my-1">
+            Payments has been sent
+          </Message>
+        </div>
+      </div>
+      <div v-if="results" class="field grid">
+        <label
+          for="results"
+          class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
+        >
+          Results
+        </label>
+        <div class="col-12 md:col-10">
+          <Textarea id="results" v-model="results" class="w-full" rows="6" />
         </div>
       </div>
     </div>

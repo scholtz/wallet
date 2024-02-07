@@ -40,7 +40,8 @@ if (options && options.length == 1) {
     optionLabel="providerName"
     optionValue="id"
     :placeholder="$t('account.select_account')"
-    class="w-full md:w-14rem"
+    class="w-full"
+    inputClass="w-full"
     :itemid="props.itemId"
   >
     <template #option="slotProps">

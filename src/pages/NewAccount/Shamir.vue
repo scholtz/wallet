@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { mapActions, useStore } from "vuex";
+import { useStore } from "vuex";
 import MainLayout from "../../layouts/Main.vue";
 import { reactive, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import InputMask from "primevue/inputmask";
 import Password from "primevue/password";
 import Button from "primevue/button";
-import SelectAccount from "@/components/SelectAccount.vue";
-import Select2FAServer from "@/components/Select2FAServer.vue";
 import { wordlist } from "@scure/bip39/wordlists/english";
 import sha512 from "js-sha512";
 import { Shamir } from "@spliterati/shamir";
@@ -142,33 +139,46 @@ onMounted(async () => {
     <p>
       {{ $t("new_account_shamir.help") }}
     </p>
-    <div v-for="(mn, index) in state.mn">
-      <label :for="`mn${index}`"
-        >{{ $t("new_account_shamir.mnemonic") }} #{{ index + 1 }}</label
-      >
-      <Password
-        v-model="state.mn[index]"
-        :feedback="false"
-        :inputId="`mn${index}`"
-        class="m-2 w-100"
-        inputClass="w-100"
-        inn
-        toggleMask
-      ></Password>
+    <div class="field grid" v-for="(mn, index) in state.mn">
+      <label :for="`mn${index}`" class="col-12 mb-2 md:col-2 md:mb-0">
+        {{ $t("new_account_shamir.mnemonic") }} #{{ index + 1 }}
+      </label>
+      <div class="col-12 md:col-10">
+        <Password
+          v-model="state.mn[index]"
+          :feedback="false"
+          :inputId="`mn${index}`"
+          class="w-full"
+          inputClass="w-full"
+          inn
+          toggleMask
+        ></Password>
+      </div>
     </div>
-    <Button @click="state.mn.push('')" class="m-2 w-100" severity="secondary">{{
-      $t("new_account_shamir.add_mnemnic")
-    }}</Button>
-    <div>
-      <label for="name">{{ $t("new_account_shamir.account_name") }}</label>
-      <InputText
-        v-model="state.name"
-        inputId="name"
-        class="m-2 w-100"
-      ></InputText>
+    <div class="field grid">
+      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+      <div class="col-12 md:col-10">
+        <Button @click="state.mn.push('')" severity="secondary">
+          {{ $t("new_account_shamir.add_mnemnic") }}
+        </Button>
+      </div>
     </div>
-    <Button @click="recover" class="m-2 w-100" severity="primary">{{
-      $t("new_account_shamir.recover")
-    }}</Button>
+    <div class="field grid">
+      <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">{{
+        $t("new_account_shamir.account_name")
+      }}</label>
+      <div class="col-12 md:col-10">
+        <InputText v-model="state.name" id="name" class="w-full"></InputText>
+      </div>
+    </div>
+
+    <div class="field grid">
+      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+      <div class="col-12 md:col-10">
+        <Button @click="recover" severity="primary">
+          {{ $t("new_account_shamir.recover") }}
+        </Button>
+      </div>
+    </div>
   </MainLayout>
 </template>

@@ -82,9 +82,9 @@ async function confirmRequest() {
   <MainLayout>
     <h1>{{ $t("new_account_2fa.title") }}</h1>
     <div v-if="state.lastError">
-      <div class="alert alert-danger">
+      <Message severity="error">
         {{ $t("general.last_error") }}: {{ state.lastError }}
-      </div>
+      </Message>
     </div>
     <p>
       {{ $t("new_account_2fa.help1") }}
@@ -105,21 +105,21 @@ async function confirmRequest() {
       </div>
       <div class="p-field mb-2">
         <label for="account1">{{ $t("new_account_2fa.hot_account") }}</label>
-        <SelectAccount v-model="state.account1"></SelectAccount>
+        <SelectAccount v-model="state.account1" class="w-full"></SelectAccount>
       </div>
       <div class="p-field mb-2">
         <label for="account2">{{ $t("new_account_2fa.cold_account") }}</label>
-        <SelectAccount v-model="state.account2"></SelectAccount>
+        <SelectAccount v-model="state.account2" class="w-full"></SelectAccount>
       </div>
-      <button
-        class="btn btn-primary my-2"
+      <Button
+        class="my-2"
         @click="arc14Request"
         :disabled="
           !state.account1 || !state.account2 || state.account1 == state.account2
         "
       >
         {{ $t("new_account_2fa.request_qr_code") }}
-      </button>
+      </Button>
       <div v-if="state.auth2FAResp && state.auth2FAResp.qrCodeSetupImageUrl">
         <h2>{{ $t("new_account_2fa.scan_qr") }}</h2>
         <img
@@ -133,15 +133,15 @@ async function confirmRequest() {
         <p>{{ $t("new_account_2fa.confirm_help") }}</p>
         <div class="p-field mb-2">
           <label for="name">{{ $t("accounts.account_name") }}</label>
-          <InputText itemid="name" v-model="state.name" />
+          <InputText id="name" v-model="state.name" />
         </div>
         <div class="p-field mb-2">
           <label for="txtCode">{{ $t("accounts.2fa_code") }}</label>
           <InputMask itemid="txtCode" v-model="state.txtCode" mask="999-999" />
         </div>
-        <button class="btn btn-primary my-2" @click="confirmRequest">
+        <Button class="my-2" @click="confirmRequest">
           {{ $t("new_account_2fa.save_button") }}
-        </button>
+        </Button>
       </div>
     </div>
   </MainLayout>

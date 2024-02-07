@@ -3,8 +3,10 @@ import Privacy from "@/pages/Privacy.vue";
 import ImportWallet from "@/pages/ImportWallet.vue";
 import Accounts from "@/pages/Accounts.vue";
 import AccountOverview from "@/pages/AccountOverview.vue";
+import AccountActions from "@/pages/Account/Actions.vue";
+import AccountAssets from "@/pages/Account/Assets.vue";
+import AccountTransactions from "@/pages/Account/Transactions.vue";
 import TransactionDetail from "@/pages/TransactionDetail.vue";
-import NewAccount from "@/pages/NewAccount.vue";
 import NotFound from "@/pages/404.vue";
 import FAQ from "@/pages/FAQ.vue";
 import Pay from "@/pages/Pay.vue";
@@ -21,21 +23,21 @@ import AssetRevoke from "@/pages/Asset/Revoke.vue";
 import OptIn from "@/pages/Asset/OptIn.vue";
 import PaymentGateway from "@/pages/PaymentGateway.vue";
 import GovernanceOverview from "@/pages/governance/Overview.vue";
-import VoteAsk from "@/pages/vote/Ask.vue";
-import VoteOverview from "@/pages/vote/Overview.vue";
-import VoteMyQuestions from "@/pages/vote/MyQuestions.vue";
-import VoteDelegate from "@/pages/vote/Delegate.vue";
-import VoteAnswers from "@/pages/vote/Answers.vue";
-import TrustedList from "@/pages/vote/TrustedList.vue";
 import Donation from "@/pages/Donation.vue";
 import Success from "@/pages/Success.vue";
 import Swap from "@/pages/Swap.vue";
 import Arc14 from "@/pages/Arc14.vue";
+import NewAccount from "@/pages/NewAccount.vue";
 import NewAccountLedger from "@/pages/NewAccount/Ledger.vue";
 import NewAccountWalletConnect from "@/pages/NewAccount/WalletConnect.vue";
 import NewAccount2FA from "@/pages/NewAccount/2FA.vue";
 import NewAccountEmailPass from "@/pages/NewAccount/EmailPassword.vue";
 import NewAccountShamir from "@/pages/NewAccount/Shamir.vue";
+import NewAccountEd25529 from "@/pages/NewAccount/Ed25529.vue";
+import NewAccountVanity from "@/pages/NewAccount/Vanity.vue";
+import NewAccountMultisig from "@/pages/NewAccount/Multisig.vue";
+import NewAccountWatch from "@/pages/NewAccount/Watch.vue";
+import NewAccountImport from "@/pages/NewAccount/RecoverEd25529.vue";
 import AccountExport from "@/pages/Account/Export.vue";
 
 const routes = [
@@ -48,6 +50,21 @@ const routes = [
     path: "/privacy-policy",
     name: "Privacy",
     component: Privacy,
+  },
+  {
+    path: "/new-account",
+    name: "NewAccount",
+    component: NewAccount,
+  },
+  {
+    path: "/new-account/ed25529",
+    name: "NewAccountEd25529",
+    component: NewAccountEd25529,
+  },
+  {
+    path: "/new-account/import-ed25529",
+    name: "NewAccountImport",
+    component: NewAccountImport,
   },
   {
     path: "/new-account/ledger",
@@ -73,6 +90,21 @@ const routes = [
     path: "/new-account/shamir",
     name: "NewAccountShamir",
     component: NewAccountShamir,
+  },
+  {
+    path: "/new-account/vanity",
+    name: "NewAccountVanity",
+    component: NewAccountVanity,
+  },
+  {
+    path: "/new-account/multisig",
+    name: "NewAccountMultisig",
+    component: NewAccountMultisig,
+  },
+  {
+    path: "/new-account/watch",
+    name: "NewAccountWatch",
+    component: NewAccountWatch,
   },
   {
     path: "/swap/:account",
@@ -165,6 +197,21 @@ const routes = [
     component: AccountOverview,
   },
   {
+    path: "/account/txs/:account",
+    name: "AccountTransactions",
+    component: AccountTransactions,
+  },
+  {
+    path: "/account/assets/:account",
+    name: "AccountAssets",
+    component: AccountAssets,
+  },
+  {
+    path: "/account/actions/:account",
+    name: "AccountActions",
+    component: AccountActions,
+  },
+  {
     path: "/account/export/:account",
     name: "AccountExport",
     component: AccountExport,
@@ -219,39 +266,9 @@ const routes = [
     component: NotFound,
   },
   {
-    path: "/vote/governance/:id",
+    path: "/multiaccount/:id",
     name: "GovernanceOverview",
     component: GovernanceOverview,
-  },
-  {
-    path: "/vote/ask",
-    name: "VoteAsk",
-    component: VoteAsk,
-  },
-  {
-    path: "/vote/overview",
-    name: "VoteOverview",
-    component: VoteOverview,
-  },
-  {
-    path: "/vote/my-questions",
-    name: "my-questions",
-    component: VoteMyQuestions,
-  },
-  {
-    path: "/vote/delegate",
-    name: "delegate",
-    component: VoteDelegate,
-  },
-  {
-    path: "/vote/answers",
-    name: "answers",
-    component: VoteAnswers,
-  },
-  {
-    path: "/vote/tl",
-    name: "tl",
-    component: TrustedList,
   },
   {
     path: "/donate",

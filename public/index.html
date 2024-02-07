@@ -5,13 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
-    <title>Algo Wallet</title>
-    <style type="text/css">
-      body,
-      html {
-        height: 100%;
-      }
-    </style>
+    <title>A-Wallet - Algorand Community Wallet</title>
     <meta property="og:title" content="Community Algorand Wallet - AWallet" />
     <meta property="og:image" content="<%= BASE_URL %>favicon.ico" />
     <meta
@@ -26,8 +20,9 @@
       name="twitter:description"
       content="Free open source algorand wallet created by community for community."
     />
+    <link id="theme-link" rel="stylesheet" href="/themes/_empty/theme.css" />
   </head>
-  <body>
+  <body class="flex flex-column h-screen m-0">
     <noscript>
       <strong
         >We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work
@@ -35,7 +30,7 @@
         continue.</strong
       >
     </noscript>
-    <div id="app" class="d-flex flex-column h-100"></div>
+    <div id="app" class="flex flex-column flex-grow-1 m-2"></div>
     <!-- built files will be auto injected -->
   </body>
 </html>

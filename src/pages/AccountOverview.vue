@@ -1,30 +1,44 @@
 <template>
   <MainLayout>
-    <h1>
-      {{ $t("acc_overview.title") }} -
-      {{ $store.state.wallet.lastActiveAccountName }}
-    </h1>
+    <AccountTopMenu />
+    <div class="grid">
+      <div class="col-6">
+        <h1>
+          {{ $t("acc_overview.title") }} -
+          {{ $store.state.wallet.lastActiveAccountName }}
+        </h1>
+      </div>
+      <div class="col-6">
+        <div class="text-right">
+          <Button
+            severity="danger"
+            size="small"
+            class="m-2 align-items-end"
+            @click="displayDeleteDialog = true"
+          >
+            <div>{{ $t("acc_overview.delete") }}</div>
+          </Button>
+
+          <Button
+            severity="secondary"
+            size="small"
+            v-if="account"
+            class="m-2 align-items-end"
+            @click="hideAccountClick"
+          >
+            <div v-if="account.isHidden">Unhide account</div>
+            <div v-else>Hide account</div>
+          </Button>
+        </div>
+      </div>
+    </div>
+
     <p>
-      <button
-        class="btn btn-light btn-xs m-2 float-end"
-        @click="displayDeleteDialog = true"
-      >
-        <div>{{ $t("acc_overview.delete") }}</div>
-      </button>
-
-      <button
-        v-if="account"
-        class="btn btn-light btn-xs m-2 float-end"
-        @click="hideAccountClick"
-      >
-        <div v-if="account.isHidden">Unhide account</div>
-        <div v-else>Hide account</div>
-      </button>
-
       <Dialog
         v-model:visible="displayDeleteDialog"
         :header="$t('acc_overview.delete_header')"
         :modal="true"
+        class="m-5"
       >
         <p>{{ $t("acc_overview.delete_confirm") }}</p>
         <p v-if="account">
@@ -35,25 +49,24 @@
         </p>
 
         <template #footer>
-          <button
-            class="btn btn-xs btn-primary"
-            @click="displayDeleteDialog = false"
-          >
-            {{ $t("global.cancel") }}</button
-          ><button class="btn btn-xs btn-danger" @click="deleteAccountClick">
+          <Button size="small" @click="displayDeleteDialog = false">
+            {{ $t("global.cancel") }}
+          </Button>
+          <Button size="small" severity="danger" @click="deleteAccountClick">
             {{ $t("acc_overview.delete_confirm_button") }}
-          </button>
+          </Button>
         </template>
       </Dialog>
       <Dialog
         v-model:visible="displayOnlineOfflineDialog"
         :header="$t('onlineofflinedialog.header')"
         :modal="true"
+        class="m-5"
       >
         <p>{{ $t("onlineofflinedialog.warning") }}</p>
-        <input
+        <InputNumber
           v-model="onlineRounds"
-          class="form-control"
+          class="w-full"
           type="number"
           min="0"
           max="2000000"
@@ -64,505 +77,366 @@
           {{ $store.state.config.participation }}
         </p>
         <template #footer>
-          <button
-            class="btn btn-xs btn-light"
+          <Button
+            severity="secondary"
+            size="small"
             @click="displayOnlineOfflineDialog = false"
           >
-            {{ $t("global.cancel") }}</button
-          ><button
-            class="btn btn-xs btn-primary"
+            {{ $t("global.cancel") }} </Button
+          ><Button
+            severity="primary"
+            size="small"
             @click="setAccountOnlineAtParticipationNode"
           >
-            {{ $t("onlineofflinedialog.makeOnline") }}</button
-          ><button
+            {{ $t("onlineofflinedialog.makeOnline") }}
+          </Button>
+          <Button
+            severity="danger"
+            size="small"
             v-if="account['status'] == 'Online'"
-            class="btn btn-xs btn-danger"
             @click="setAccountOfflineAtParticipationNode"
           >
             {{ $t("onlineofflinedialog.makeOffline") }}
-          </button>
+          </Button>
         </template>
       </Dialog>
-      <router-link
-        v-if="canSign"
-        :to="'/accounts/pay/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
-      >
-        {{ $t("acc_overview.pay") }}
-      </router-link>
-      <router-link
-        v-if="canSign"
-        :to="'/accounts/rekey/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
-      >
-        {{ $t("acc_overview.rekey") }}
-      </router-link>
-      <router-link
-        v-if="canSign"
-        :to="'/account/optin/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
-      >
-        {{ $t("acc_overview.asset_optin") }}
-      </router-link>
-      <router-link
-        :to="'/receive-payment/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
-      >
-        {{ $t("acc_overview.receive_payment") }}
-      </router-link>
-      <router-link
-        :to="'/payment-gateway/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
-      >
-        {{ $t("acc_overview.payment_gateway") }}
-      </router-link>
-      <router-link
-        v-if="canSign"
-        :to="'/account/connect/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
-      >
-        {{ $t("acc_overview.connect") }}
-      </router-link>
-      <router-link
-        v-if="account && (account.sk || account.params)"
-        :to="'/vote/ask/'"
-        class="btn btn-light btn-xs me-2 my-2"
-      >
-        {{ $t("acc_overview.ask_question") }}
-      </router-link>
-
-      <router-link
-        v-if="account"
-        :to="'/account/export/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
-      >
-        {{ $t("acc_overview.export") }}
-      </router-link>
-
-      <router-link
-        v-if="$store.state.config.dev"
-        :to="'/arc14/' + $route.params.account"
-        class="btn btn-light btn-xs me-2 my-2"
-      >
-        ARC14
-      </router-link>
     </p>
-    <div
+    <Message
+      severity="error"
       v-if="account && account.network != this.$store.state.config.env"
-      class="alert alert-danger"
     >
       <div v-if="account.network">
         This account is assigned to network {{ account.network }}.
       </div>
       <div v-else>This account is not assigned to any network.</div>
-      <button class="btn btn-primary my-2" @click="assignToCurrentNetwork">
+      <Button class="my-2" @click="assignToCurrentNetwork">
         Assign account to {{ this.$store.state.config.env }}
-      </button>
+      </Button>
+    </Message>
+
+    <div class="grid" v-if="account">
+      <div class="col-12 lg:col-9">
+        <div class="field grid vertical-align-top">
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.name") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{ account["name"] }}
+          </div>
+        </div>
+
+        <div class="field grid vertical-align-top">
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.type") }}
+          </label>
+          <div class="col-12 md:col-8">
+            <AccountType :account="account"></AccountType>
+          </div>
+        </div>
+        <div class="field grid vertical-align-top">
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.address") }}
+          </label>
+          <div class="col-12 md:col-8">
+            <Button
+              size="small"
+              severity="secondary"
+              class="m-1"
+              :title="$t('global.copy_address')"
+              @click="copyToClipboard(account.addr)"
+            >
+              <i class="pi pi-copy" />
+            </Button>
+            {{ account.addr }}
+          </div>
+        </div>
+
+        <div class="field grid vertical-align-top" v-if="account.rekeyedTo">
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.rekeyedTo") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{ account.rekeyedTo }}
+
+            <div v-if="rekeyedToInfo">
+              <AccountType :account="rekeyedToInfo"></AccountType>
+              <table v-if="rekeyedToInfo.params" class="w-full">
+                <tr v-if="rekeyedToInfo.params">
+                  <th>{{ $t("acc_overview.multisignature_threshold") }}:</th>
+                  <td>{{ rekeyedToInfo.params.threshold }}</td>
+                </tr>
+                <tr v-if="rekeyedToInfo.params">
+                  <th>{{ $t("acc_overview.multisignature_addresses") }}:</th>
+                  <td>{{ rekeyedToInfo.params.addrs }}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="field grid vertical-align-top"
+          v-if="account.type == 'ledger'"
+        >
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.account0") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{ account.addr0 }}
+          </div>
+        </div>
+        <div
+          class="field grid vertical-align-top"
+          v-if="account.type == 'ledger'"
+        >
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.slot") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{ account.slot }}
+          </div>
+        </div>
+        <div class="field grid vertical-align-top">
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.amount") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{ $filters.formatCurrency(account.amount) }}
+          </div>
+        </div>
+        <div class="field grid vertical-align-top">
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.amount_without_pending") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{
+              $filters.formatCurrency(account["amount-without-pending-rewards"])
+            }}
+          </div>
+        </div>
+        <div class="field grid vertical-align-top">
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.rewards") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{ $filters.formatCurrency(account["rewards"]) }}
+          </div>
+        </div>
+        <div class="field grid vertical-align-top">
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.pending_rewards") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{ $filters.formatCurrency(account["pending-rewards"]) }}
+          </div>
+        </div>
+        <div class="field grid vertical-align-top">
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.reward_base") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{ account["reward-base"] }}
+          </div>
+        </div>
+        <div class="field grid vertical-align-top">
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.round") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{ account["round"] }}
+          </div>
+        </div>
+        <div class="field grid vertical-align-top">
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.status") }}
+          </label>
+          <div class="col-12 md:col-8">
+            <div v-if="changeOnline">
+              <span
+                class="spinner-grow spinner-grow-sm"
+                role="status"
+                aria-hidden="true"
+              />
+              Setting your account to online state. Please wait a while
+            </div>
+            <div v-else-if="changeOffline">
+              <span
+                class="spinner-grow spinner-grow-sm"
+                role="status"
+                aria-hidden="true"
+              />
+              Setting your account to offline state. Please wait a while
+            </div>
+            <div v-else-if="$store.state.config.participation">
+              <Button
+                severity="secondary"
+                size="small"
+                @click="displayOnlineOfflineDialog = true"
+              >
+                {{ account["status"] ?? "?" }}
+              </Button>
+            </div>
+            <div v-else>
+              {{ account["status"] ?? "?" }}
+            </div>
+          </div>
+        </div>
+        <div
+          class="field grid vertical-align-top"
+          v-if="
+            $store &&
+            $store.state &&
+            $store.state.config &&
+            $store.state.config.dev
+          "
+        >
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.apps_local_state") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{ account["apps-local-state"] }}
+          </div>
+        </div>
+        <div
+          class="field grid vertical-align-top"
+          v-if="
+            $store &&
+            $store.state &&
+            $store.state.config &&
+            $store.state.config.dev
+          "
+        >
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.apps_total_schema") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{ account["apps-total-schema"] }}
+          </div>
+        </div>
+        <div
+          class="field grid vertical-align-top"
+          v-if="
+            $store &&
+            $store.state &&
+            $store.state.config &&
+            $store.state.config.dev
+          "
+        >
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.created_apps") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{ account["created-apps"] }}
+          </div>
+        </div>
+        <div class="field grid vertical-align-top" v-if="account.params">
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.multisignature_threshold") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{ account.params.threshold }}
+          </div>
+        </div>
+        <div class="field grid vertical-align-top" v-if="account.params">
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+            {{ $t("acc_overview.multisignature_addresses") }}
+          </label>
+          <div class="col-12 md:col-8">
+            {{ account.params.addrs }}
+          </div>
+        </div>
+        <div class="field grid vertical-align-top">
+          <label
+            class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
+          >
+          </label>
+          <div class="col-12 md:col-8">
+            <Button size="small" severity="secondary" @click="reloadAccount">
+              {{ $t("acc_overview.refresh") }}
+            </Button>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 lg:col-3 lg:text-right">
+        <QRCodeVue3
+          class="d-md-none d-lg-block"
+          :width="400"
+          :height="400"
+          :value="account.addr"
+          :qr-options="{ errorCorrectionLevel: 'H' }"
+          image="/img/algorand-algo-logo-96.png"
+          :image-options="{
+            hideBackgroundDots: true,
+            imageSize: 0.4,
+            margin: 10,
+          }"
+          :corners-square-options="{
+            type: 'square',
+            color: 'teal',
+          }"
+          :corners-dot-options="{
+            type: 'square',
+            color: 'teal',
+            gradient: {
+              type: 'linear',
+              rotation: 0,
+              colorStops: [
+                { offset: 0, color: 'teal' },
+                { offset: 1, color: '#003030' },
+              ],
+            },
+          }"
+          :dots-options="{
+            type: 'square',
+            color: 'teal',
+            gradient: {
+              type: 'linear',
+              rotation: 0,
+              colorStops: [
+                { offset: 0, color: 'teal' },
+                { offset: 1, color: '#003030' },
+              ],
+            },
+          }"
+        />
+      </div>
     </div>
-    <table v-if="account" class="w-100">
-      <tr>
-        <th>{{ $t("acc_overview.name") }}:</th>
-        <td>{{ account["name"] }}</td>
-        <td rowspan="15" class="text-end">
-          <QRCodeVue3
-            class="d-md-none d-lg-block"
-            :width="400"
-            :height="400"
-            :value="account.addr"
-            :qr-options="{ errorCorrectionLevel: 'H' }"
-            image="/img/algorand-algo-logo-96.png"
-            :image-options="{
-              hideBackgroundDots: true,
-              imageSize: 0.4,
-              margin: 10,
-            }"
-          />
-        </td>
-      </tr>
-      <tr>
-        <th>{{ $t("acc_overview.type") }}:</th>
-        <td>
-          <div v-if="account.rekeyedTo" class="badge bg-danger">
-            {{ $t("acc_type.rekeyed") }}
-          </div>
-          <div v-else-if="account.sk" class="badge bg-primary">
-            {{ $t("acc_type.basic_account") }}
-          </div>
-          <div
-            v-else-if="account.type == '2fa'"
-            class="badge bg-primary text-light"
-          >
-            2FA Multisig
-          </div>
-          <div
-            v-else-if="account.type == '2faApi'"
-            class="badge bg-light text-dark"
-          >
-            2FA API technical account
-          </div>
-          <div v-else-if="account.params" class="badge bg-warning text-dark">
-            {{ $t("acc_type.multisig_account") }}
-          </div>
-          <div
-            v-else-if="account.type == 'ledger'"
-            class="badge bg-success text-light"
-          >
-            {{ $t("acc_type.ledger_account") }}
-          </div>
-          <div
-            v-else-if="account.type == 'wc'"
-            class="badge bg-success text-light"
-          >
-            {{ $t("acc_type.wc_account") }}
-          </div>
-          <div v-else class="badge bg-info text-dark">
-            {{ $t("acc_type.public_account") }}
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <th>{{ $t("acc_overview.address") }}:</th>
-        <td>
-          <button
-            class="btn btn-xs btn-light m-1"
-            :title="$t('global.copy_address')"
-            @click="copyToClipboard(account.addr)"
-          >
-            <i class="pi pi-copy" />
-          </button>
-          {{ account.addr }}
-        </td>
-      </tr>
-      <tr v-if="account.rekeyedTo">
-        <th>{{ $t("acc_overview.rekeyedTo") }}:</th>
-        <td>
-          {{ account.rekeyedTo }}
-
-          <div v-if="rekeyedToInfo">
-            <div v-if="rekeyedToInfo.rekeyedTo" class="badge bg-danger">
-              {{ $t("acc_type.rekeyed") }}
-            </div>
-            <div v-else-if="rekeyedToInfo.sk" class="badge bg-primary">
-              {{ $t("acc_type.basic_account") }}
-            </div>
-            <div
-              v-else-if="rekeyedToInfo.type == '2fa'"
-              class="badge bg-primary text-light"
-            >
-              2FA Multisig
-            </div>
-            <div
-              v-else-if="rekeyedToInfo.type == '2faApi'"
-              class="badge bg-light text-dark"
-            >
-              2FA API technical account
-            </div>
-            <div
-              v-else-if="rekeyedToInfo.params"
-              class="badge bg-warning text-dark"
-            >
-              {{ $t("acc_type.multisig_account") }}
-            </div>
-            <div
-              v-else-if="rekeyedToInfo.type == 'ledger'"
-              class="badge bg-success text-light"
-            >
-              {{ $t("acc_type.ledger_account") }}
-            </div>
-            <div
-              v-else-if="rekeyedToInfo.type == 'wc'"
-              class="badge bg-success text-light"
-            >
-              {{ $t("acc_type.wc_account") }}
-            </div>
-            <div v-else class="badge bg-info text-dark">
-              {{ $t("acc_type.public_account") }}
-            </div>
-            <table v-if="rekeyedToInfo.params">
-              <tr v-if="rekeyedToInfo.params">
-                <th>{{ $t("acc_overview.multisignature_threshold") }}:</th>
-                <td>{{ rekeyedToInfo.params.threshold }}</td>
-              </tr>
-              <tr v-if="rekeyedToInfo.params">
-                <th>{{ $t("acc_overview.multisignature_addresses") }}:</th>
-                <td>{{ rekeyedToInfo.params.addrs }}</td>
-              </tr>
-            </table>
-          </div>
-        </td>
-      </tr>
-      <tr v-if="account.type == 'ledger'">
-        <th>{{ $t("acc_overview.account0") }}:</th>
-        <td>{{ account.addr0 }}</td>
-      </tr>
-      <tr v-if="account.type == 'ledger'">
-        <th>{{ $t("acc_overview.slot") }}:</th>
-        <td>{{ account.slot }}</td>
-      </tr>
-      <tr>
-        <th>{{ $t("acc_overview.amount") }}:</th>
-        <td>{{ $filters.formatCurrency(account.amount) }}</td>
-      </tr>
-      <tr>
-        <th>{{ $t("acc_overview.amount_without_pending") }}:</th>
-        <td>
-          {{
-            $filters.formatCurrency(account["amount-without-pending-rewards"])
-          }}
-        </td>
-      </tr>
-      <tr>
-        <th>{{ $t("acc_overview.rewards") }}:</th>
-        <td>{{ $filters.formatCurrency(account["rewards"]) }}</td>
-      </tr>
-      <tr>
-        <th>{{ $t("acc_overview.pending_rewards") }}:</th>
-        <td>{{ $filters.formatCurrency(account["pending-rewards"]) }}</td>
-      </tr>
-      <tr>
-        <th>{{ $t("acc_overview.reward_base") }}:</th>
-        <td>{{ account["reward-base"] }}</td>
-      </tr>
-      <tr>
-        <th>{{ $t("acc_overview.round") }}:</th>
-        <td>{{ account["round"] }}</td>
-      </tr>
-      <tr>
-        <th>{{ $t("acc_overview.status") }}:</th>
-        <td v-if="changeOnline">
-          <span
-            class="spinner-grow spinner-grow-sm"
-            role="status"
-            aria-hidden="true"
-          />
-          Setting your account to online state. Please wait a while
-        </td>
-        <td v-else-if="changeOffline">
-          <span
-            class="spinner-grow spinner-grow-sm"
-            role="status"
-            aria-hidden="true"
-          />
-          Setting your account to offline state. Please wait a while
-        </td>
-        <td v-else-if="$store.state.config.participation">
-          <button
-            class="btn btn-light btn-xs"
-            @click="displayOnlineOfflineDialog = true"
-          >
-            {{ account["status"] ?? "?" }}
-          </button>
-        </td>
-        <td v-else>
-          {{ account["status"] ?? "?" }}
-        </td>
-      </tr>
-      <tr
-        v-if="
-          $store &&
-          $store.state &&
-          $store.state.config &&
-          $store.state.config.dev
-        "
-      >
-        <th>{{ $t("acc_overview.apps_local_state") }}:</th>
-        <td>{{ account["apps-local-state"] }}</td>
-      </tr>
-      <tr
-        v-if="
-          $store &&
-          $store.state &&
-          $store.state.config &&
-          $store.state.config.dev
-        "
-      >
-        <th>{{ $t("acc_overview.apps_total_schema") }}:</th>
-        <td>{{ account["apps-total-schema"] }}</td>
-      </tr>
-      <tr v-if="account && account['assets'] && account['assets'].length > 0">
-        <th>{{ $t("acc_overview.assets") }}:</th>
-        <td>
-          <table class="w-100">
-            <thead>
-              <tr>
-                <th>ASA Amount</th>
-                <th>ASA ID</th>
-                <th>IsFrozen</th>
-                <th>Creator</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="asset in account['assets']" :key="asset['asset-id']">
-                <td>
-                  {{
-                    $filters.formatCurrency(
-                      asset["amount"],
-                      getAssetName(asset["asset-id"]),
-                      getAssetDecimals(asset["asset-id"])
-                    )
-                  }}
-                </td>
-                <td>{{ asset["asset-id"] }}</td>
-                <td>{{ asset["is-frozen"] }}</td>
-                <td>{{ asset["creator"] }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </td>
-      </tr>
-      <tr
-        v-if="
-          $store &&
-          $store.state &&
-          $store.state.config &&
-          $store.state.config.dev
-        "
-      >
-        <th>{{ $t("acc_overview.created_apps") }}:</th>
-        <td>{{ account["created-apps"] }}</td>
-      </tr>
-      <tr v-if="account.params">
-        <th>{{ $t("acc_overview.multisignature_threshold") }}:</th>
-        <td>{{ account.params.threshold }}</td>
-      </tr>
-      <tr v-if="account.params">
-        <th>{{ $t("acc_overview.multisignature_addresses") }}:</th>
-        <td>{{ account.params.addrs }}</td>
-      </tr>
-      <tr>
-        <th />
-        <td>
-          <button class="btn btn-light btn-xs" @click="reloadAccount">
-            {{ $t("acc_overview.refresh") }}
-          </button>
-        </td>
-      </tr>
-    </table>
-
-    <h2>{{ $t("acc_overview.transactions") }}</h2>
-
-    <DataTable
-      v-model:selection="selection"
-      :value="transactions"
-      responsive-layout="scroll"
-      selection-mode="single"
-      :paginator="true"
-      :rows="20"
-    >
-      <template #empty>
-        {{ $t("acc_overview.no_transactions") }}
-      </template>
-      <Column
-        field="tx-type"
-        :header="$t('acc_overview.type')"
-        :sortable="true"
-      />
-      <Column
-        field="round-time"
-        :header="$t('acc_overview.time')"
-        :sortable="true"
-      >
-        <template #body="slotProps">
-          <div v-if="slotProps.column.props.field in slotProps.data">
-            {{
-              $filters.formatDateTime(
-                slotProps.data[slotProps.column.props.field]
-              )
-            }}
-          </div>
-        </template>
-      </Column>
-      <Column
-        field="payment-transaction.amount"
-        :header="$t('acc_overview.tr_amount')"
-        :sortable="true"
-      >
-        <template #body="slotProps">
-          <div
-            v-if="
-              slotProps.data['tx-type'] == 'pay' &&
-              'payment-transaction' in slotProps.data &&
-              'amount' in slotProps.data['payment-transaction']
-            "
-            class="text-end"
-          >
-            {{
-              $filters.formatCurrency(
-                slotProps.data["payment-transaction"]["amount"]
-              )
-            }}
-          </div>
-          <div
-            v-if="
-              slotProps.data['tx-type'] == 'axfer' &&
-              'asset-transfer-transaction' in slotProps.data &&
-              'amount' in slotProps.data['asset-transfer-transaction']
-            "
-            class="text-end"
-          >
-            {{
-              $filters.formatCurrency(
-                slotProps.data["asset-transfer-transaction"]["amount"],
-                getAssetName(
-                  slotProps.data["asset-transfer-transaction"]["asset-id"]
-                ),
-
-                getAssetDecimals(asset["asset-id"])
-              )
-            }}
-          </div>
-        </template>
-      </Column>
-      <Column
-        field="sender"
-        :header="$t('acc_overview.sender')"
-        :sortable="true"
-        style-class="not-show-at-start"
-      />
-      <Column
-        field="payment-transaction.receiver"
-        :header="$t('acc_overview.receiver')"
-        :sortable="true"
-        style-class="not-show-at-start"
-      />
-      <Column
-        field="receiver-rewards"
-        :header="$t('acc_overview.receiver_rewards')"
-        :sortable="true"
-      >
-        <template #body="slotProps">
-          <div
-            v-if="slotProps.column.props.field in slotProps.data"
-            class="text-end"
-          >
-            {{
-              $filters.formatCurrency(
-                slotProps.data[slotProps.column.props.field]
-              )
-            }}
-          </div>
-        </template>
-      </Column>
-      <Column field="fee" :header="$t('acc_overview.fee')" :sortable="true">
-        <template #body="slotProps">
-          <div
-            v-if="slotProps.column.props.field in slotProps.data"
-            class="text-end"
-          >
-            {{
-              $filters.formatCurrency(
-                slotProps.data[slotProps.column.props.field]
-              )
-            }}
-          </div>
-        </template>
-      </Column>
-      <Column
-        field="confirmed-round"
-        :header="$t('acc_overview.confirmed_round')"
-        :sortable="true"
-      />
-    </DataTable>
   </MainLayout>
 </template>
 
@@ -571,12 +445,16 @@ import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
 import { PrimeIcons } from "primevue/api";
 import copy from "copy-to-clipboard";
+import AccountTopMenu from "../components/AccountTopMenu.vue";
 
 import QRCodeVue3 from "qrcode-vue3";
+import AccountType from "@/components/AccountType.vue";
 export default {
   components: {
     MainLayout,
     QRCodeVue3,
+    AccountTopMenu,
+    AccountType,
   },
   data() {
     return {

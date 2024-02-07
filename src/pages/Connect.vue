@@ -34,15 +34,15 @@
             </Column>
             <Column>
               <template #body="slotProps">
-                <button
-                  class="btn btn-primary m-1"
+                <Button
+                  class="m-1"
                   v-if="!atLeastOneSigned(slotProps.data)"
                   @click="clickSignAll(slotProps.data)"
                 >
                   {{ $t("connect.sign_all") }}
-                </button>
-                <button
-                  class="btn btn-primary m-1"
+                </Button>
+                <Button
+                  class="m-1"
                   :disabled="
                     !$store.state.wallet.isOpen ||
                     !atLeastOneSigned(slotProps.data)
@@ -50,17 +50,17 @@
                   @click="clickAccept(slotProps.data)"
                 >
                   {{ $t("connect.sendBack") }}
-                </button>
+                </Button>
                 <span v-if="!atLeastOneSigned(slotProps.data)" class="m-2">
                   {{ $t("connect.sign_txs") }}
                 </span>
-                <button
-                  class="btn btn-light m-1"
+                <Button
+                  class="m-1"
                   :disabled="!$store.state.wallet.isOpen"
                   @click="clickReject(slotProps.data)"
                 >
                   {{ $t("connect.reject") }}
-                </button>
+                </Button>
               </template>
             </Column>
             <template #expansion="slotProps">
@@ -74,17 +74,20 @@
                   <Column expander style="width: 5rem" />
                   <Column>
                     <template #body="slotProps">
-                      <button
+                      <Button
                         v-if="toBeSigned(slotProps.data)"
-                        class="btn btn-primary m-1"
+                        class="m-1"
                         :disabled="!$store.state.wallet.isOpen"
                         @click="clickSign(slotProps.data)"
                       >
                         {{ $t("connect.sign") }}
-                      </button>
-                      <span v-else class="badge bg-success">{{
-                        $t("connect.signed")
-                      }}</span>
+                      </Button>
+                      <Badge
+                        severity="success"
+                        v-else
+                        class="badge bg-success"
+                        :value="$t('connect.signed')"
+                      />
                     </template>
                   </Column>
                   <Column
@@ -370,50 +373,46 @@
             </Column>
             <Column :header="$t('connect.connected')" :sortable="true">
               <template #body="slotProps">
-                <button
-                  class="btn btn-light m-1"
+                <Button
+                  variant="seondary"
+                  class="m-1"
                   @click="clickApproveSession(slotProps.data.id)"
                 >
                   {{ $t("connect.connect") }}
-                </button>
-                <button
-                  class="btn btn-light m-1"
+                </Button>
+                <Button
+                  variant="secondary"
+                  class="m-1"
                   @click="clickRejectSession(slotProps.data.id)"
                 >
                   {{ $t("connect.reject") }}
-                </button>
+                </Button>
               </template>
             </Column>
           </DataTable>
         </div>
         <div v-else>
           <h2>{{ $t("connect.uri") }}</h2>
-          <input
-            id="uri"
-            v-model="uri"
-            type="text"
-            class="form-control"
-            autocomplete="off"
-          />
+          <InputText id="uri" v-model="uri" class="w-full" autocomplete="off" />
           <div v-if="scan" class="col-12 m-2">
             <QrcodeStream @decode="onDecodeQR" />
           </div>
           <div>
-            <button
-              class="btn btn-primary m-1"
+            <Button
+              class="m-1"
               :disabled="uri && !connectable"
               @click="clickConnect(uri)"
             >
               {{ $t("connect.connect") }}
-            </button>
+            </Button>
             {{ $t("connect.or") }}
-            <button class="btn btn-primary m-1" @click="clickPaste">
+            <Button class="m-1" @click="clickPaste">
               {{ $t("connect.clipboard") }}
-            </button>
+            </Button>
             {{ $t("connect.or") }}
-            <button class="btn btn-primary m-1" @click="scan = !scan">
+            <Button class="m-1" @click="scan = !scan">
               {{ $t("connect.toggle_camera") }}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -471,26 +470,25 @@
                   :checked="slotProps.data.connected"
                   disabled
                 />
-                <button
-                  class="btn btn-light m-1"
+                <Button
+                  variant="secondary"
+                  class="m-1"
                   @click="clickDisconnect(slotProps.data.id)"
                 >
                   {{ $t("connect.disconnect") }}
-                </button>
+                </Button>
               </template>
             </Column>
           </DataTable>
         </div>
-        <div v-if="error" class="alert alert-danger my-2">
+        <Message severity="error" v-if="error" class="my-2">
           {{ error }}
-        </div>
+        </Message>
       </div>
     </div>
     <div class="container-fluid" v-else>
       <h1>{{ $t("connect.title") }}</h1>
-      <Button class="btn btn-primary" @click="initConnection">{{
-        $t("connect.init_wc")
-      }}</Button>
+      <Button @click="initConnection">{{ $t("connect.init_wc") }}</Button>
     </div>
   </MainLayout>
 </template>

@@ -4,7 +4,7 @@
     "text": "The website you are looking for cannot be found."
   },
   "footer": {
-    "text": "Algo Wallet"
+    "text": "A-Wallet - Open source PWA Algorand community wallet"
   },
   "login": {
     "new_wallet": "New wallet",
@@ -271,7 +271,17 @@
     "slot": "Account at ledger slot",
     "connect": "WalletConnect",
     "payment_gateway": "Payment gateway",
-    "export": "Export"
+    "export": "Export",
+    "no_assets": "There are no assets yet on this account",
+    "actions": "Actions",
+    "pay_help": "Send money or tokens to other accounts in the network.",
+    "swap_help": "You can swap one token to another using DEX aggregator services",
+    "rekey_help": "If you are afraid that your account private key may be compromise, you can rekey your account to new private key and keep your original address safe.",
+    "asset_optin_help": "If you want to receive asset on algorand network you have to open the account for that token.",
+    "receive_payment_help": "You can ask your customers or friends to send you money. This page will generate payment QR code so that others can do it on one click.",
+    "export_help": "You can generate shamir backup mnemonics or algorand mnemonic for accounts with private keys.",
+    "arc14": "ARC 14 Authentication",
+    "arc14_help": "ARC 14 is authentication standard utilizing signed transactions. You can generate the authentication tokens on this page."
   },
   "optin": {
     "title": "Accept transfers of asset in account",
@@ -348,7 +358,16 @@
     "twofa_account": "2FA Account",
     "show_qr_code": "Show QR Code",
     "email_pass_account": "Email & Password account",
-    "shamir_account": "Shamir backup recovery"
+    "shamir_account": "Shamir backup recovery",
+    "overview": "New account actions",
+    "create_basic_help": "Algorand basic account is ED25529 account with private key. This method uses your computer random number generator to create secret for your account.",
+    "ledger_account_help": "One of most secure solutions is to handle the secret key generation by specialized device. This account utilizes Ledger device to create your account and handle the signing operations.",
+    "wc_account_help": "You can connect to your friend's wallet using the wallet connect account type. You can send them request to sign the message for example as part of multisig.",
+    "twofa_account_help": "Two factor account is multisig account, where one account is account of your choosing for example ledger account or email password account, second account is recovery account - ideally account which is not in the same secure storage, and third account is the two factor account from the server which signs transactions when you provide correct two factor pin code.",
+    "email_pass_account_help": "ARC76 Email & Password account allows you to generate algorand account from any text. The text is hashed and generates 32 bytes as seed for your algorand account. This may be alternative to other types of random number generators in your computer or hw device which you can utilize in two factor account or generic multisig account.",
+    "create_vanity_help": "You can brute force nice account address for your ED25529 account. This method simply tries a lot of combinations of creating account and lets you pick first or last letters of the account address.",
+    "create_multisign_account_help": "Multisig accounts are the most secure accounts. If used in combination of multiple ledger devices and different random number generators, this provides enterprise level of security which is hardcoded directly to the algorand blockchain.",
+    "watch_account_help": "You can track any account on the network."
   },
   "arc76account": {
     "title": "Email and password account (ARC-0076)",
@@ -471,7 +490,8 @@
     "protocol_title": "Register protocol handler",
     "protocol_button": "Register web+algorand:// handler",
     "protocol_change_success": "Successfully updated the protocol handler",
-    "dev_settings": "Show information for developers"
+    "dev_settings": "Show information for developers",
+    "update_password": "Update password"
   },
   "transaction": {
     "title": "Transaction detail",

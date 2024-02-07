@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 import Button from "primevue/button";
 import InputNumber from "primevue/inputnumber";
 import MainLayout from "../../layouts/Main.vue";
@@ -64,7 +64,7 @@ const shamirBackup = async () => {
     await store.dispatch("toast/openError", error);
   }
 };
-function toUint11Array(buffer8: Uint8Array | number[]) {
+function toUint11Array(buffer8) {
   //https://github.com/algorand/js-algorand-sdk/blob/7965d1c194186e5c7b8a86756c546f2ec35291cd/src/mnemonic/mnemonic.ts#L12C1-L34C2
   const buffer11 = [];
   let acc = 0;
@@ -88,10 +88,10 @@ function toUint11Array(buffer8: Uint8Array | number[]) {
   flush();
   return buffer11;
 }
-function genericHash(arr: sha512.Message) {
+function genericHash(arr) {
   return sha512.sha512_256.array(arr);
 }
-function computeChecksum(seed: Uint8Array) {
+function computeChecksum(seed) {
   const hashBuffer = genericHash(seed);
   const uint11Hash = toUint11Array(hashBuffer);
   const words = applyWords(uint11Hash);
@@ -99,7 +99,7 @@ function computeChecksum(seed: Uint8Array) {
   return words[0];
 }
 
-function mnemonicFromSeed(seed: Uint8Array) {
+function mnemonicFromSeed(seed) {
   // https://github.com/algorand/js-algorand-sdk/blob/7965d1c194186e5c7b8a86756c546f2ec35291cd/src/mnemonic/mnemonic.ts#L54C17-L54C33
   const seedWithZero = concatTypedArrays(seed, new Uint8Array(1));
   const uint11Hash = toUint11Array(seedWithZero);
@@ -108,11 +108,11 @@ function mnemonicFromSeed(seed: Uint8Array) {
 
   return `${words.join(" ")} ${checksumWord}`;
 }
-function applyWords(nums: number[]) {
+function applyWords(nums) {
   return nums.map((n) => wordlist[n]);
 }
 
-const setShamirIndex = (index: number) => {
+const setShamirIndex = (index) => {
   state.mn = mnemonicFromSeed(state.sh[index]);
   state.shIndex = index;
   state.state = "shamir2";
@@ -178,25 +178,30 @@ async function copyToClipboard(text) {
     <h1>{{ $t("account_export.header") }}</h1>
     <p>{{ $t("account_export.help") }}</p>
     <div v-if="!state.pwdChecked">
-      <div>
-        <label for="pwd">{{ $t("account_export.password") }}:</label>
+      <div class="field grid">
+        <label for="pwd" class="col-12 mb-2 md:col-2 md:mb-0">
+          {{ $t("account_export.password") }}
+        </label>
+        <div class="col-12 md:col-10">
+          <Password
+            v-model="state.pwd"
+            inputId="pwd"
+            class="w-full"
+            :feedback="false"
+          ></Password>
+        </div>
       </div>
-      <div>
-        <Password
-          v-model="state.pwd"
-          inputId="pwd"
-          class="m-2 w-100"
-          :feedback="false"
-        ></Password>
-      </div>
-      <div>
-        <Button @click="checkPwd" class="m-2">{{
-          $t("account_export.continue")
-        }}</Button>
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+        <div class="col-12 md:col-10">
+          <Button @click="checkPwd">
+            {{ $t("account_export.continue") }}
+          </Button>
+        </div>
       </div>
     </div>
     <div v-else>
-      <div class="row">
+      <div class="grid">
         <div class="col">
           <Button
             class="m-2 w-100"
@@ -204,8 +209,6 @@ async function copyToClipboard(text) {
             @click="algorandMnemonics"
             >{{ $t("account_export.algo_mnemonic") }}</Button
           >
-        </div>
-        <div class="col">
           <Button
             class="m-2 w-100"
             :severity="state.state == 'step1' ? 'primary' : 'secondary'"
@@ -283,13 +286,15 @@ async function copyToClipboard(text) {
             <b>{{ $t("account_export.algo_help") }}</b>
           </div>
         </div>
-        <button
-          class="btn btn-xs btn-light m-1"
+        <Button
+          severity="secondary"
+          size="small"
+          class="m-1"
           title="Copy mnemonic to clipboard"
           @click="copyToClipboard(state.mn)"
         >
           <i class="pi pi-copy" />
-        </button>
+        </Button>
         <code>{{ state.mn }}</code>
       </div>
       <div v-if="state.qr" class="m-3">

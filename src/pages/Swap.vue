@@ -2,83 +2,127 @@
   <MainLayout>
     <div class="container-fluid">
       <h1>{{ $t("swap.title") }}</h1>
-
       <div v-if="checkNetwork()">
         {{ $t("swap.network") }}: {{ checkNetwork() }}
       </div>
-      <div v-else class="alert alert-danger">
+      <Message severity="error" v-else>
         {{ $t("swap.network_not_supported") }}
-      </div>
-      <div v-if="hasSK === false" class="alert alert-danger">
+      </Message>
+      <Message severity="error" v-if="hasSK === false">
         {{ $t("swap.has_sk") }}
-      </div>
+      </Message>
       <div>
-        <h2>
-          {{ $t("swap.swap_asset_from") }}
-        </h2>
-        <Dropdown
-          v-model="asset"
-          :options="assets"
-          option-label="label"
-          option-value="asset-id"
-          placeholder="Source asset"
-        />
-        <h2>{{ $t("swap.swap_asset_to") }}</h2>
-        <Dropdown
-          v-model="toAsset"
-          :options="assets"
-          option-label="label"
-          option-value="asset-id"
-          placeholder="Destination asset"
-        />
-        <h2>{{ $t("swap.swap_amount") }}</h2>
-        <input
-          id="payamount"
-          v-model="payamount"
-          type="number"
-          min="0"
-          :max="maxAmount"
-          :step="stepAmount"
-          class="form-control"
-        />
-        <h2>{{ $t("swap.slippage") }}</h2>
-        <input
-          id="slippage"
-          v-model="slippage"
-          type="number"
-          min="0"
-          max="1"
-          step="0.01"
-          class="form-control"
-        />
-        <div>
-          <div>
-            <input id="useFolksCheckbox" type="checkbox" v-model="useFolks" />
-            <label for="useFolksCheckbox">Use Folks router</label>
-          </div>
-          <div>
-            <input id="useDeflexCheckbox" type="checkbox" v-model="useDeflex" />
-            <label for="useDeflexCheckbox">Use Deflex</label>
+        <div class="field grid">
+          <label for="swap_asset_from" class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ $t("swap.swap_asset_from") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <Dropdown
+              inputId="swap_asset_from"
+              v-model="asset"
+              filter
+              :options="assets"
+              option-label="label"
+              option-value="asset-id"
+              placeholder="Source asset"
+              class="w-full"
+            />
           </div>
         </div>
-        <div>
-          <button
-            class="btn my-2"
-            :disabled="processingQuote"
-            :class="
-              allowExecuteDeflex || requiresOptIn ? 'btn-light' : 'btn-primary '
-            "
-            @click="clickGetQuote"
-          >
-            {{ $t("swap.get_quote") }}
-
-            <span
-              v-if="processingQuote"
-              class="spinner-grow spinner-grow-sm"
-              role="status"
-              aria-hidden="true"
+        <div class="field grid">
+          <label for="swap_asset_to" class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ $t("swap.swap_asset_to") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <Dropdown
+              inputId="swap_asset_to"
+              v-model="toAsset"
+              :options="assets"
+              filter
+              option-label="label"
+              option-value="asset-id"
+              placeholder="Destination asset"
+              class="w-full"
             />
-          </button>
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ $t("swap.swap_amount") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <InputNumber
+              inputId="payamount"
+              v-model="payamount"
+              type="number"
+              :min="0"
+              :max="maxAmount"
+              :step="stepAmount"
+              class="w-full"
+            />
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="slippage" class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ $t("swap.slippage") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <InputNumber
+              inputId="slippage"
+              v-model="slippage"
+              type="number"
+              :min="0"
+              :max="1"
+              :step="0.01"
+              class="w-full"
+            />
+          </div>
+        </div>
+        <div class="field grid">
+          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <Checkbox
+              binary
+              inputId="useFolksCheckbox"
+              type="checkbox"
+              v-model="useFolks"
+            />
+            <label for="useFolksCheckbox" class="ml-1">Use Folks router</label>
+          </div>
+        </div>
+        <div class="field grid">
+          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <Checkbox
+              binary
+              inputId="useDeflexCheckbox"
+              type="checkbox"
+              v-model="useDeflex"
+            />
+            <label for="useDeflexCheckbox" class="ml-1">Use Deflex</label>
+          </div>
+        </div>
+        <div class="field grid">
+          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <Button
+              class="my-2"
+              :disabled="formInvalid"
+              :severity="
+                allowExecuteDeflex || requiresOptIn ? 'secondary' : 'primary'
+              "
+              @click="clickGetQuote"
+            >
+              {{ $t("swap.get_quote") }}
+
+              <span
+                v-if="processingQuote"
+                class="spinner-grow spinner-grow-sm"
+                role="status"
+                aria-hidden="true"
+              />
+            </Button>
+          </div>
         </div>
         <div v-if="requiresOptIn">
           <h2>{{ $t("swap.apps_optin") }}</h2>
@@ -87,8 +131,8 @@
               {{ app }}
             </li>
           </ul>
-          <button
-            class="btn my-2 btn-primary"
+          <Button
+            class="my-2"
             :disabled="processingOptin"
             @click="clickOptInToApps"
           >
@@ -99,28 +143,23 @@
               aria-hidden="true"
             />
             {{ $t("swap.apps_optin_button") }}
-          </button>
+          </Button>
         </div>
         <div>
-          <textarea
-            v-model="txsDetails"
-            disabled
-            class="form-control"
-            rows="5"
-          />
+          <Textarea v-model="txsDetails" disabled class="w-full" rows="5" />
         </div>
-        <div v-if="note" class="alert alert-success my-2">
+        <Message severity="success" v-if="note" class="my-2">
           {{ note }}
-        </div>
-        <div v-if="error" class="alert alert-danger my-2">
+        </Message>
+        <Message severity="error" v-if="error" class="my-2">
           {{ error }}
-        </div>
+        </Message>
         <div>
-          <button
+          <Button
             v-if="useDeflex"
-            class="btn my-2 mx-1"
+            class="my-2 mx-1"
             :disabled="!allowExecuteDeflex || processingTradeDeflex"
-            :class="allowExecuteDeflex ? 'btn-primary' : 'btn-light '"
+            :severity="allowExecuteDeflex ? 'primary' : 'secondary'"
             @click="clickExecuteDeflex"
           >
             <span
@@ -130,12 +169,12 @@
               aria-hidden="true"
             />
             {{ $t("swap.execute_button_deflex") }}
-          </button>
-          <button
+          </Button>
+          <Button
             v-if="useFolks"
-            class="btn my-2"
+            class="my-2"
             :disabled="!allowExecuteFolks || processingTradeFolks"
-            :class="allowExecuteFolks ? 'btn-primary' : 'btn-light '"
+            :class="allowExecuteFolks ? 'primary' : 'secondary'"
             @click="clickExecuteFolks"
           >
             <span
@@ -145,7 +184,7 @@
               aria-hidden="true"
             />
             {{ $t("swap.execute_button_folks") }}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -184,9 +223,18 @@ export default {
       useFolks: true,
       useDeflex: true,
       slippage: 0.1,
+      fee: 0,
     };
   },
   computed: {
+    formInvalid() {
+      return !(
+        this.asset !== null &&
+        this.toAsset !== null &&
+        this.payamount > 0 &&
+        !this.processingQuote
+      );
+    },
     account() {
       return this.$store.state.wallet.privateAccounts.find(
         (a) => a.addr == this.$route.params.account
@@ -194,8 +242,7 @@ export default {
     },
     maxAmount() {
       if (!this.account) return 0;
-
-      if (this.asset) {
+      if (this.asset === null) {
         if (!this.selectedAssetFromAccount) return 0;
         return this.selectedAssetFromAccount.amount / this.decimalsPower;
       } else {
@@ -207,7 +254,7 @@ export default {
       }
     },
     stepAmount() {
-      if (!this.asset) return 0.000001;
+      if (this.asset === null) return 0.000001;
       if (!this.account) return 0.000001;
       if (!this.assetObj || this.assetObj.decimals === undefined)
         return 0.000001;

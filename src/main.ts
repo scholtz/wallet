@@ -14,13 +14,16 @@ const DefaultComponent = markRaw({
 
 import "vue3-json-viewer/dist/index.css";
 
-import "bootstrap";
-import "bootstrap/dist/css/bootstrap.min.css";
+//import "bootstrap";
+//import "bootstrap/dist/css/bootstrap.min.css";
+import "primeflex/primeflex.css";
+
 import "./registerServiceWorker";
 
 import moment from "moment";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
+import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import Slider from "primevue/slider";
 import PrimeDialog from "primevue/dialog";
@@ -31,7 +34,19 @@ import ToastService from "primevue/toastservice";
 import Dropdown from "primevue/dropdown";
 import Password from "primevue/password";
 import InputSwitch from "primevue/inputswitch";
-import "primevue/resources/themes/saga-blue/theme.css";
+import Menubar from "primevue/menubar";
+import Badge from "primevue/badge";
+import Avatar from "primevue/avatar";
+import MultiSelect from "primevue/multiselect";
+import Panel from "primevue/panel";
+import InputNumber from "primevue/inputnumber";
+import Textarea from "primevue/textarea";
+import InputGroup from "primevue/inputgroup";
+import InputGroupAddon from "primevue/inputgroupaddon";
+import Checkbox from "primevue/checkbox";
+import Message from "primevue/message";
+import Ripple from "primevue/ripple";
+import Tooltip from "primevue/tooltip";
 
 import "primevue/resources/primevue.min.css";
 import "primeicons/primeicons.css";
@@ -62,8 +77,9 @@ const SimpleRouterApp = {
 const myApp = createApp(App).use(i18n);
 myApp.use(store);
 myApp.use(router);
-myApp.use(PrimeVue);
+myApp.use(PrimeVue, { ripple: true });
 myApp.use(ToastService);
+myApp.component("Button", Button);
 myApp.component("DataTable", DataTable);
 myApp.component("Column", Column);
 myApp.component("InputText", InputText);
@@ -75,6 +91,19 @@ myApp.component("AccordionTab", AccordionTab);
 myApp.component("Dropdown", Dropdown);
 myApp.component("Password", Password);
 myApp.component("InputSwitch", InputSwitch);
+myApp.component("Menubar", Menubar);
+myApp.component("Badge", Badge);
+myApp.component("Avatar", Avatar);
+myApp.component("MultiSelect", MultiSelect);
+myApp.component("Panel", Panel);
+myApp.component("InputNumber", InputNumber);
+myApp.component("Textarea", Textarea);
+myApp.component("InputGroup", InputGroup);
+myApp.component("InputGroupAddon", InputGroupAddon);
+myApp.component("Checkbox", Checkbox);
+myApp.component("Message", Message);
+myApp.directive("ripple", Ripple);
+myApp.directive("tooltip", Tooltip);
 
 myApp.config.globalProperties.$filters = {
   formatCurrency(

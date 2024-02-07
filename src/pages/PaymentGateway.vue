@@ -2,8 +2,8 @@
   <PublicLayout>
     <h1>{{ $t("gateway.title") }}</h1>
     <p>{{ $t("gateway.perex") }}</p>
-    <div v-if="!build" class="row">
-      <div class="col-md-6">
+    <div v-if="!build" class="grid">
+      <div class="md:col-6">
         <h2>{{ $t("gateway.how") }}</h2>
         <ol class="list-group list-group-numbered">
           <li class="list-group-item">
@@ -23,7 +23,7 @@
           </li>
         </ol>
       </div>
-      <div class="col-md-6">
+      <div class="md:col-6">
         <h2>{{ $t("gateway.security") }}</h2>
         <ul class="list-group">
           <li class="list-group-item">
@@ -65,75 +65,81 @@
         </ul>
       </div>
     </div>
-    <div class="row">
-      <div class="col-md-12 my-2">
-        <button v-if="!build" class="btn btn-primary" @click="build = true">
+    <div class="grid">
+      <div class="md:col-12">
+        <Button v-if="!build" @click="build = true">
           {{ $t("gateway.turn_on_build_tool") }}
-        </button>
-        <button v-if="build" class="btn btn-primary" @click="build = false">
+        </Button>
+        <Button v-if="build" @click="build = false">
           {{ $t("gateway.turn_off_build_tool") }}
-        </button>
+        </Button>
       </div>
     </div>
-    <div class="row">
-      <div v-if="!build" class="col-md-12">
+    <div class="grid">
+      <div v-if="!build" class="md:col-12">
         <h2>{{ $t("gateway.allowed_parameters") }}</h2>
         <p>{{ $t("gateway.parameters_perex") }}</p>
       </div>
 
-      <div class="col-md-6">
+      <div class="md:col-6">
         <h2>{{ $t("gateway.payment_info_params") }}</h2>
-        <ul class="list-group">
-          <li class="list-group-item">
-            <label for="asset">{{ $t("gateway.asset") }}</label>
-            <select
+        <div class="field grid">
+          <label for="asset" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("gateway.asset")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <Dropdown
               v-if="build"
+              filter
               id="asset"
               v-model="asset"
-              class="form-control"
+              :options="assets"
               :title="$t('gateway.asset')"
+              optionLabel="name"
+              optionValue="code"
             >
-              <option value="">Algorand</option>
-              <option value="312769">USDt</option>
-              <option value="31566704">USDc</option>
-              <option value="793124631">gAlgo</option>
-              <option value="386192725">goBTC</option>
-              <option value="386195940">goETH</option>
-              <option value="672913181">goUSD</option>
-              <option value="760037151">xUSD</option>
-              <option value="388592191">Chips</option>
-              <option value="470842789">Defly</option>
-              <option value="287867876">Opulous</option>
-              <option value="700965019">Vestige</option>
-              <option value="796425061">CoopCoin</option>
-              <option value="1138500612">Gora</option>
-              <option value="452399768">VoteCoin</option>
-            </select>
+              <template #option="slotProps">
+                <div v-if="slotProps.option" class="flex align-items-center">
+                  <div>
+                    {{ slotProps.option.name }} ({{ slotProps.option.code }})
+                  </div>
+                </div>
+              </template>
+            </Dropdown>
             <span v-if="!build">
               <code>asset</code> - {{ $t("gateway.asset") }}
             </span>
-          </li>
-          <li class="list-group-item">
-            <label for="pay_to">{{ $t("pay.pay_to") }}</label>
-            <input
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="pay_to" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("pay.pay_to")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <InputText
               v-if="build"
               id="pay_to"
               v-model="payTo"
-              class="form-control"
+              class="w-full"
               :placeholder="$t('pay.pay_to')"
               :title="$t('pay.pay_to')"
             />
             <span v-if="!build">
               <code>addr</code> - {{ $t("pay.pay_to") }}
             </span>
-          </li>
-          <li class="list-group-item">
-            <label for="amount">{{ $t("pay.amount") }}</label>
-            <div v-if="build" class="input-group">
-              <input
-                id="amount"
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="amount" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("pay.amount")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <InputGroup v-if="build">
+              <InputNumber
+                inputId="amount"
                 v-model="amount"
-                class="form-control"
+                inputClass="w-full"
+                class="w-full"
                 :placeholder="$t('pay.amount')"
                 :title="$t('pay.amount')"
                 type="number"
@@ -141,100 +147,115 @@
                 max="1999999999"
                 step="0.000001"
               />
-              <span class="input-group-text">{{ assetName }}</span>
-            </div>
+              <InputGroupAddon>{{ assetName }}</InputGroupAddon>
+            </InputGroup>
             <span v-if="!build">
               <code>amount</code> - {{ $t("pay.amount") }},
               {{ $t("gateway.amount") }}
             </span>
-          </li>
-          <li class="list-group-item">
-            <label for="matching_symbol">{{
-              $t("merchant.matching_symbol")
-            }}</label>
-            <input
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="matching_symbol" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("merchant.matching_symbol")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <InputText
               v-if="build"
               id="matching_symbol"
               v-model="xnote"
-              class="form-control"
+              class="w-full"
               :placeholder="$t('merchant.matching_symbol')"
               :title="$t('merchant.matching_symbol')"
             />
             <span v-if="!build">
               <code>xnote</code> - {{ $t("merchant.matching_symbol") }}
             </span>
-          </li>
-          <li class="list-group-item">
-            <label for="fee">{{ $t("pay.fee") }}</label>
-            <div v-if="build" class="input-group">
-              <input
-                v-if="build"
-                id="fee"
-                v-model="fee"
-                class="form-control"
-                :placeholder="$t('pay.fee')"
-                :title="$t('pay.fee')"
-                type="number"
-                min="0.001"
-                max="1"
-                step="0.000001"
-              />
-              <span class="input-group-text">Algo</span>
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="fee" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("pay.fee")
+          }}</label>
+          <div v-if="build">
+            <div class="col-12 md:col-10">
+              <InputGroup>
+                <InputNumber
+                  v-if="build"
+                  inputId="fee"
+                  v-model="fee"
+                  inputClass="w-full"
+                  class="w-full"
+                  :placeholder="$t('pay.fee')"
+                  :title="$t('pay.fee')"
+                  type="number"
+                  :min="0.001"
+                  :max="1"
+                  :step="0.000001"
+                />
+                <InputGroupAddon>Algo</InputGroupAddon>
+              </InputGroup>
             </div>
             <span v-if="!build">
               <code>fee</code> - {{ $t("pay.fee") }}, {{ $t("gateway.fee") }}
             </span>
-          </li>
-        </ul>
+          </div>
+        </div>
       </div>
-      <div class="col-md-6">
+      <div class="md:col-6">
         <h2>{{ $t("gateway.settings_params") }}</h2>
-        <ul class="list-group">
-          <li class="list-group-item">
-            <label for="success">{{ $t("gateway.success") }}</label>
-            <input
+        <div class="field grid">
+          <label for="success" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("gateway.success")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <InputText
               v-if="build"
               id="success"
               v-model="success"
-              class="form-control"
+              class="w-full"
               :placeholder="$t('gateway.success')"
             />
             <span v-if="!build">
               <code>success</code> - {{ $t("gateway.success") }}
             </span>
-          </li>
-          <li class="list-group-item">
-            <label for="cancel">{{ $t("gateway.cancel") }}</label>
-            <input
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="cancel" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("gateway.cancel")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <InputText
               id="cancel"
               v-if="build"
               v-model="cancel"
-              class="form-control"
+              class="w-full"
               :placeholder="$t('gateway.cancel')"
             />
             <span v-if="!build">
               <code>cancel</code> - {{ $t("gateway.cancel") }}
             </span>
-          </li>
-        </ul>
+          </div>
+        </div>
       </div>
     </div>
-    <div v-if="build && !dataOk" class="row">
-      <div class="col-md-12">
-        <div class="alert alert-danger my-2">
+    <div v-if="build && !dataOk" class="grid">
+      <div class="md:col-12">
+        <Message severity="error" class="my-2">
           {{ $t("gateway.error_transaction") }}
-        </div>
+        </Message>
       </div>
     </div>
-    <div v-if="build && !settingsOk" class="row">
-      <div class="col-md-12">
-        <div class="alert alert-danger my-2">
+    <div v-if="build && !settingsOk" class="grid">
+      <div class="md:col-12">
+        <Message severity="error" class="my-2">
           {{ $t("gateway.error_url") }}
-        </div>
+        </Message>
       </div>
     </div>
-    <div v-if="build && dataOk && settingsOk" class="row">
-      <div class="col-md-6">
+    <div v-if="build && dataOk && settingsOk" class="grid">
+      <div class="md:col-6">
         <h2>{{ $t("gateway.button") }}</h2>
         <div>
           <label>{{ $t("gateway.payment_info") }}</label>
@@ -253,7 +274,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-6">
+      <div class="md:col-6">
         <div>
           <label>{{ $t("gateway.callback_configuration") }}</label>
           <div>
@@ -272,8 +293,8 @@
         </div>
       </div>
     </div>
-    <div v-if="build && dataOk && settingsOk" class="row">
-      <div class="col-md-12">
+    <div v-if="build && dataOk && settingsOk" class="grid">
+      <div class="md:col-12">
         <div>
           <label>{{ $t("gateway.link") }}</label>
           <div>
@@ -286,32 +307,29 @@
           <label>{{ $t("gateway.html_example") }}</label>
           <div>
             <code>
-              &lt;a href="{{ url }}" class="btn btn-primary" &gt;{{
-                $t("merchant.pay")
-              }}&lt;/a&gt;
+              &lt;a href="{{ url }}" &gt;{{ $t("merchant.pay") }}&lt;/a&gt;
             </code>
           </div>
         </div>
         <br />
-        <a :href="url" target="_blank" rel="noreferrer" class="btn btn-primary">
-          Try it out
+        <a :href="url" target="_blank" rel="noreferrer">
+          <Button>Try it out</Button>
         </a>
       </div>
     </div>
-    <div v-if="!build" class="row">
-      <div class="col-md-12">
+    <div v-if="!build" class="grid">
+      <div class="md:col-12">
         <h2>{{ $t("gateway.example") }}</h2>
         <code>
           &lt;a
           href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9MTAwMDAwMDAmYXNzZXQ9MzEyNzY5/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0LyIsImNhbmNlbCI6Imh0dHBzOi8vd3d3LmEtd2FsbGV0Lm5ldC8ifQ=="
-          class="btn btn-primary" &gt;{{ $t("merchant.pay") }}&lt;/a&gt;
+          &gt;{{ $t("merchant.pay") }}&lt;/a&gt;
         </code>
         <br />
         <a
           href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9MTAwMDAwMDAmYXNzZXQ9MzEyNzY5/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0LyIsImNhbmNlbCI6Imh0dHBzOi8vd3d3LmEtd2FsbGV0Lm5ldC8ifQ=="
-          class="btn btn-primary"
         >
-          Pay
+          <Button> Pay </Button>
         </a>
       </div>
     </div>
@@ -332,12 +350,29 @@ export default {
     return {
       build: false,
       payTo: "",
-      asset: "312769",
+      asset: "0",
       amount: 0,
       xnote: "",
       fee: 0.001,
       success: "",
       cancel: "",
+      assets: [
+        { name: "Algorand", code: "0" },
+        { name: "USDt", code: "312769" },
+        { name: "USDc", code: "31566704" },
+        { name: "gAlgo", code: "793124631" },
+        { name: "goBTC", code: "386192725" },
+        { name: "goETH", code: "386195940" },
+        { name: "goUSD", code: "672913181" },
+        { name: "xUSD", code: "760037151" },
+        { name: "Chips", code: "388592191" },
+        { name: "Defly", code: "470842789" },
+        { name: "Opulous", code: "287867876" },
+        { name: "Vestige", code: "700965019" },
+        { name: "CoopCoin", code: "796425061" },
+        { name: "Gora", code: "1138500612" },
+        { name: "VoteCoin", code: "452399768" },
+      ],
     };
   },
   computed: {
@@ -365,10 +400,9 @@ export default {
       );
     },
     assetName() {
-      if (this.asset == 312769) {
-        return "USDt";
-      }
-      return "Algo";
+      const asset = this.assets.find((a) => a.code == this.asset);
+      if (!asset) return "Algo";
+      return asset.name;
     },
     paymentinfo() {
       let ret = "algorand://";
@@ -377,7 +411,7 @@ export default {
       if (this.xnote) {
         ret += "&xnote=" + this.xnote;
       }
-      if (this.asset) {
+      if (this.asset > 0) {
         ret += "&asset=" + this.asset;
       }
       if (this.fee && this.fee > 0.001) {

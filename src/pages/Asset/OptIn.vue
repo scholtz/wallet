@@ -2,31 +2,48 @@
   <MainLayout>
     <h1>{{ $t("optin.title") }} {{ account.name }}</h1>
     <form @submit="findAssetClick">
-      <div class="form-check m-1">
-        <input
-          id="searchById"
-          v-model="searchById"
-          class="form-check-input"
-          type="checkbox"
-        />
-        <label class="form-check-label" for="searchById">
-          {{ $t("optin.searchById") }}
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+        <div class="col-12 md:col-10">
+          <Checkbox
+            binary
+            inputId="searchById"
+            v-model="searchById"
+            type="checkbox"
+          />
+          <label class="ml-1" for="searchById">
+            {{ $t("optin.searchById") }}
+          </label>
+        </div>
+      </div>
+      <div class="field grid" v-if="searchById">
+        <label for="assetId" class="col-12 mb-2 md:col-2 md:mb-0">
+          {{ $t("optin.assetId") }}
         </label>
+        <div class="col-12 md:col-10">
+          <InputText id="assetId" v-model="assetId" class="w-full" />
+        </div>
       </div>
-      <div v-if="searchById">
-        <label for="assetId">{{ $t("optin.assetId") }}</label>
-        <input id="assetId" v-model="assetId" class="form-control" />
+      <div class="field grid" v-else>
+        <label for="assetName" class="col-12 mb-2 md:col-2 md:mb-0">
+          {{ $t("optin.assetName") }}
+        </label>
+        <div class="col-12 md:col-10">
+          <InputText id="assetName" v-model="assetName" class="w-full" />
+        </div>
       </div>
-      <div v-else>
-        <label for="assetName">{{ $t("optin.assetName") }}</label>
-        <input id="assetName" v-model="assetName" class="form-control" />
+      <div class="field grid">
+        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+        <div class="col-12 md:col-10">
+          <Button
+            type="submit"
+            class="my-2"
+            :severity="asset && asset['asset-id'] ? 'secondary' : 'primary'"
+          >
+            {{ $t("optin.searchButton") }}
+          </Button>
+        </div>
       </div>
-      <input
-        type="submit"
-        :value="$t('optin.searchButton')"
-        class="btn my-2"
-        :class="asset && asset['asset-id'] ? 'btn-light' : 'btn-primary'"
-      />
     </form>
 
     <DataTable
@@ -59,42 +76,42 @@
         {{ account.addr }}
       </p>
       <template #footer>
-        <button
+        <Button
           v-if="!optInProcessing"
-          class="btn btn-xs btn-light"
+          severity="secondary"
+          size="small"
           @click="displayOptInDialog = false"
         >
-          {{ $t("global.cancel") }}</button
-        ><button
+          {{ $t("global.cancel") }}
+        </Button>
+        <Button
           v-if="!optInProcessing && !isMultisig"
-          class="btn btn-xs btn-primary"
+          size="small"
           @click="optInConfirmClick"
         >
-          {{ $t("optin.optin_confirm_button") }}</button
-        ><button
+          {{ $t("optin.optin_confirm_button") }}
+        </Button>
+        <Button
           v-if="!optInProcessing && isMultisig"
-          class="btn btn-xs btn-primary"
+          size="small"
           @click="optInMultisigConfirmClick"
         >
           {{ $t("optin.optin_confirm_button") }} - MultiSig
-        </button>
+        </Button>
       </template>
     </Dialog>
-    <div v-if="asset && asset['asset-id']" class="card">
-      <div class="card-header">
+    <Panel v-if="asset && asset['asset-id']" class="card">
+      <template #header>
         {{ $t("optin.assetInfo") }}
-      </div>
+      </template>
       <table class="w-100">
         <tbody>
           <tr>
             <th>{{ $t("optin.action") }}</th>
             <td>
-              <button
-                class="btn btn-primary"
-                @click="displayOptInDialog = true"
-              >
+              <Button @click="displayOptInDialog = true">
                 {{ $t("optin.optin_button") }}
-              </button>
+              </Button>
             </td>
           </tr>
           <tr>
@@ -145,11 +162,10 @@
           <tr>
             <th>{{ $t("optin.creator") }}</th>
             <td>
-              <router-link
-                :to="'/account/' + asset['creator']"
-                class="btn btn-xs btn-light"
-              >
-                {{ asset["creator"] }}
+              <router-link :to="'/account/' + asset['creator']">
+                <Button size="small" severity="secondary">
+                  {{ asset["creator"] }}
+                </Button>
               </router-link>
             </td>
           </tr>
@@ -159,9 +175,10 @@
               <router-link
                 v-if="asset['manager']"
                 :to="'/account/' + asset['manager']"
-                class="btn btn-xs btn-light"
               >
-                {{ asset["manager"] }}
+                <Button size="small" severity="secondary">
+                  {{ asset["manager"] }}
+                </Button>
               </router-link>
               <span v-else>-</span>
             </td>
@@ -172,9 +189,10 @@
               <router-link
                 v-if="asset['clawback']"
                 :to="'/account/' + asset['clawback']"
-                class="btn btn-xs btn-light"
               >
-                {{ asset["clawback"] }}
+                <Button size="small" severity="secondary">
+                  {{ asset["clawback"] }}
+                </Button>
               </router-link>
               <span v-else>-</span>
             </td>
@@ -185,9 +203,10 @@
               <router-link
                 v-if="asset['freeze']"
                 :to="'/account/' + asset['freeze']"
-                class="btn btn-xs btn-light"
               >
-                {{ asset["freeze"] }}
+                <Button size="small" severity="secondary">
+                  {{ asset["freeze"] }}
+                </Button>
               </router-link>
               <span v-else>-</span>
             </td>
@@ -198,16 +217,17 @@
               <router-link
                 v-if="asset['reserve']"
                 :to="'/account/' + asset['reserve']"
-                class="btn btn-xs btn-light"
               >
-                {{ asset["reserve"] }}
+                <Button size="small" severity="secondary">
+                  {{ asset["reserve"] }}
+                </Button>
               </router-link>
               <span v-else>-</span>
             </td>
           </tr>
         </tbody>
       </table>
-    </div>
+    </Panel>
   </MainLayout>
 </template>
 

@@ -12,18 +12,14 @@
       </p>
       <div>
         <h2>Service realm</h2>
-        <input
+        <InputText
           id="realm"
           v-model="realm"
-          class="form-control"
+          class="w-full"
           placeholder="Service realm. For example 2FA#ARC14"
         />
         <div>
-          <button
-            class="btn my-2 btn-primary"
-            :disabled="processingSigning"
-            @click="clickSign"
-          >
+          <Button class="my-2" :disabled="processingSigning" @click="clickSign">
             Sign authentication transaction
             <span
               v-if="processingSigning"
@@ -31,10 +27,10 @@
               role="status"
               aria-hidden="true"
             />
-          </button>
+          </Button>
         </div>
         <div>
-          <textarea v-model="output" disabled class="form-control" rows="5" />
+          <Textarea v-model="output" disabled class="w-full" rows="5" />
         </div>
       </div>
     </div>

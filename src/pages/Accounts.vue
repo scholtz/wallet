@@ -1,19 +1,20 @@
 <template>
   <main-layout>
-    <div class="row">
-      <div class="col-6">
+    <div class="grid">
+      <div class="col">
         <h1>{{ $t("accounts.title") }}</h1>
       </div>
-      <div class="col-6">
-        <div class="flex align-items-end">
-          <div class="text-end">
-            <label for="showAll" class="my-3"
-              >{{ $t("accounts.show_on_netowork_accounts") }}:
-              {{ this.$store.state.config.env }}</label
-            ><Checkbox
+      <div class="col">
+        <div class="flex align-items-center flex-wrap h-full">
+          <div class="text-right w-full">
+            <label for="showAll" class="">
+              {{ $t("accounts.show_on_netowork_accounts") }}:
+              {{ this.$store.state.config.env }}
+            </label>
+            <Checkbox
               inputId="showAll"
               type="checkbox"
-              class="mx-2 my-3"
+              class="ml-1"
               v-model="showNetworkAccounts"
               :binary="true"
             />
@@ -56,46 +57,7 @@
 
       <Column header="Type" :sortable="true">
         <template #body="slotProps">
-          <div v-if="slotProps.data.rekeyedTo" class="badge bg-danger">
-            {{ $t("acc_type.rekeyed") }}
-          </div>
-          <div
-            v-else-if="slotProps.data.type == '2fa'"
-            class="badge bg-primary text-light"
-          >
-            2FA Multisig
-          </div>
-          <div
-            v-else-if="slotProps.data.type == '2faApi'"
-            class="badge bg-light text-dark"
-          >
-            2FA API technical account
-          </div>
-          <div v-else-if="slotProps.data.sk" class="badge bg-primary">
-            {{ $t("acc_type.basic_account") }}
-          </div>
-
-          <div
-            v-else-if="slotProps.data.params"
-            class="badge bg-warning text-dark"
-          >
-            {{ $t("acc_type.multisig_account") }}
-          </div>
-          <div
-            v-else-if="slotProps.data.type == 'ledger'"
-            class="badge bg-success text-light"
-          >
-            {{ $t("acc_type.ledger_account") }}
-          </div>
-          <div
-            v-else-if="slotProps.data.type == 'wc'"
-            class="badge bg-success text-light"
-          >
-            {{ $t("acc_type.wc_account") }}
-          </div>
-          <div v-else class="badge bg-info text-dark">
-            {{ $t("acc_type.public_account") }}
-          </div>
+          <AccountType :account="slotProps.data"></AccountType>
         </template>
       </Column>
       <Column>
@@ -103,15 +65,19 @@
           <router-link
             v-if="slotProps.data.sk || slotProps.data.params"
             :to="'/accounts/pay/' + slotProps.data.addr"
-            class="btn btn-light btn-xs me-2"
+            class="ml-2"
           >
-            {{ $t("accounts.pay") }}
+            <Button severity="secondary" size="small">
+              {{ $t("accounts.pay") }}
+            </Button>
           </router-link>
           <router-link
             :to="'/account/connect/' + slotProps.data.addr"
-            class="btn btn-light btn-xs me-2"
+            class="ml-2"
           >
-            {{ $t("accounts.connect") }}
+            <Button severity="secondary" size="small">
+              {{ $t("accounts.connect") }}
+            </Button>
           </router-link>
         </template>
       </Column>
@@ -123,6 +89,7 @@
 import MainLayout from "../layouts/Main.vue";
 import { mapActions } from "vuex";
 import Checkbox from "primevue/checkbox";
+import AccountType from "@/components/AccountType.vue";
 
 //import VGrid, { VGridVueTemplate } from "@revolist/vue3-datagrid";
 //import VGridButton from "../components/VGridButton.vue";
@@ -132,6 +99,7 @@ export default {
     //VGrid,
     MainLayout,
     Checkbox,
+    AccountType,
   },
   data() {
     return {
