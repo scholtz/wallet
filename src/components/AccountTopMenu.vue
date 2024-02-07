@@ -3,13 +3,15 @@ import { ref } from "vue";
 import TabMenu from "primevue/tabmenu";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
+import { useStore } from "vuex";
 
+const store = useStore();
 const route = useRoute();
 const { t } = useI18n();
 
 const items = ref([
   {
-    label: "Account details",
+    label: store.state.wallet.lastActiveAccountName,
     icon: "pi pi-home",
     route: "/account/" + route?.params?.account,
   },
@@ -19,7 +21,7 @@ const items = ref([
     route: "/account/actions/" + route?.params?.account,
   },
   {
-    label: "Assets",
+    label: t("acc_overview.assets"),
     icon: "pi pi-money-bill",
     route: "/account/assets/" + route?.params?.account,
   },
