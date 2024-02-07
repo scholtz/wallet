@@ -120,12 +120,10 @@
               @click="clickGetQuote"
             >
               {{ $t("swap.get_quote") }}
-
-              <span
+              <ProgressSpinner
                 v-if="processingQuote"
-                class="spinner-grow spinner-grow-sm"
-                role="status"
-                aria-hidden="true"
+                style="width: 1em; height: 1em"
+                strokeWidth="5"
               />
             </Button>
           </div>
@@ -142,12 +140,12 @@
             :disabled="processingOptin"
             @click="clickOptInToApps"
           >
-            <span
+            <ProgressSpinner
               v-if="processingOptin"
-              class="spinner-grow spinner-grow-sm"
-              role="status"
-              aria-hidden="true"
+              style="width: 1em; height: 1em"
+              strokeWidth="5"
             />
+
             {{ $t("swap.apps_optin_button") }}
           </Button>
         </div>
@@ -168,11 +166,10 @@
             :severity="allowExecuteDeflex ? 'primary' : 'secondary'"
             @click="clickExecuteDeflex"
           >
-            <span
+            <ProgressSpinner
               v-if="processingTradeDeflex"
-              class="spinner-grow spinner-grow-sm"
-              role="status"
-              aria-hidden="true"
+              style="width: 1em; height: 1em"
+              strokeWidth="5"
             />
             {{ $t("swap.execute_button_deflex") }}
           </Button>
@@ -183,11 +180,10 @@
             :class="allowExecuteFolks ? 'primary' : 'secondary'"
             @click="clickExecuteFolks"
           >
-            <span
+            <ProgressSpinner
               v-if="processingTradeFolks"
-              class="spinner-grow spinner-grow-sm"
-              role="status"
-              aria-hidden="true"
+              style="width: 1em; height: 1em"
+              strokeWidth="5"
             />
             {{ $t("swap.execute_button_folks") }}
           </Button>

@@ -20,13 +20,8 @@
         />
         <div>
           <Button class="my-2" :disabled="processingSigning" @click="clickSign">
+            <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
             Sign authentication transaction
-            <span
-              v-if="processingSigning"
-              class="spinner-grow spinner-grow-sm"
-              role="status"
-              aria-hidden="true"
-            />
           </Button>
         </div>
         <div>

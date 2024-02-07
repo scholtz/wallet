@@ -723,19 +723,13 @@
         </div>
 
         <Message severity="info" v-if="!tx && processing" class="my-2">
-          <span
-            class="spinner-grow spinner-grow-sm"
-            role="status"
-            aria-hidden="true"
-          />
+          <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
+
           {{ $t("pay.state_sending") }}
         </Message>
         <Message severity="info" v-if="tx && !confirmedRound" class="my-2">
-          <span
-            class="spinner-grow spinner-grow-sm"
-            role="status"
-            aria-hidden="true"
-          />
+          <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
+
           {{ $t("pay.state_sent") }}: {{ tx }}.
           {{ $t("pay.state_waiting_confirm") }}
         </Message>

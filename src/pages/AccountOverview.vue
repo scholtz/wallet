@@ -278,18 +278,16 @@
           </label>
           <div class="col-12 md:col-8">
             <div v-if="changeOnline">
-              <span
-                class="spinner-grow spinner-grow-sm"
-                role="status"
-                aria-hidden="true"
+              <ProgressSpinner
+                style="width: 1em; height: 1em"
+                strokeWidth="5"
               />
               Setting your account to online state. Please wait a while
             </div>
             <div v-else-if="changeOffline">
-              <span
-                class="spinner-grow spinner-grow-sm"
-                role="status"
-                aria-hidden="true"
+              <ProgressSpinner
+                style="width: 1em; height: 1em"
+                strokeWidth="5"
               />
               Setting your account to offline state. Please wait a while
             </div>
@@ -449,12 +447,15 @@ import AccountTopMenu from "../components/AccountTopMenu.vue";
 
 import QRCodeVue3 from "qrcode-vue3";
 import AccountType from "@/components/AccountType.vue";
+import ProgressSpinner from "primevue/progressspinner";
+
 export default {
   components: {
     MainLayout,
     QRCodeVue3,
     AccountTopMenu,
     AccountType,
+    ProgressSpinner,
   },
   data() {
     return {

@@ -41,11 +41,7 @@
         {{ b64decode.error }}
       </div>
       <div v-else>
-        <span
-          class="spinner-grow spinner-grow-sm"
-          role="status"
-          aria-hidden="true"
-        />
+        <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
       </div>
       <div v-if="!isPaid">
         <a :href="origcode" :title="origcode" role="button">
@@ -92,11 +88,8 @@
       </form>
 
       <Message severity="info" v-if="!isPaid" class="mb-3">
-        <span
-          class="spinner-grow spinner-grow-sm"
-          role="status"
-          aria-hidden="true"
-        />
+        <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
+
         {{ $t("merchant.waiting_for_payment") }}
       </Message>
       <div class="grid">
