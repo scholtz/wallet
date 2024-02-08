@@ -367,7 +367,13 @@
     "email_pass_account_help": "ARC76 Email & Password account allows you to generate algorand account from any text. The text is hashed and generates 32 bytes as seed for your algorand account. This may be alternative to other types of random number generators in your computer or hw device which you can utilize in two factor account or generic multisig account.",
     "create_vanity_help": "You can brute force nice account address for your ED25529 account. This method simply tries a lot of combinations of creating account and lets you pick first or last letters of the account address.",
     "create_multisign_account_help": "Multisig accounts are the most secure accounts. If used in combination of multiple ledger devices and different random number generators, this provides enterprise level of security which is hardcoded directly to the algorand blockchain.",
-    "watch_account_help": "You can track any account on the network."
+    "watch_account_help": "You can track any account on the network.",
+    "import_account_help": "You can recover the account from the algorand recovery mnemonic.",
+    "shamir_account_help": "You can recover the account from the shamir backup recovery mnemonics.",
+    "create_first": "Create your first account",
+    "no_accounts_at_network": "There are no accounts for selected network",
+    "basic_options": "Basic options",
+    "advanced_options": "Advanced options"
   },
   "arc76account": {
     "title": "Cuenta de correo y contraseña (ARC-0076)",

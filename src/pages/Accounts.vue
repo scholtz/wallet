@@ -22,6 +22,14 @@
         </div>
       </div>
     </div>
+    <Message severity="warn" v-if="showNoAccountsForNetworkWarning">
+      {{ $t("newacc.no_accounts_at_network") }}
+    </Message>
+    <div v-if="accounts.length == 0">
+      <RouterLink to="/new-account">
+        <Button class="my-5">{{ $t("newacc.create_first") }}</Button>
+      </RouterLink>
+    </div>
     <DataTable
       v-model:selection="selection"
       :value="accounts"
@@ -107,6 +115,7 @@ export default {
       selection: null,
       showNetworkAccounts: true,
       accounts: [],
+      showNoAccountsForNetworkWarning: false,
     };
   },
   watch: {
@@ -138,12 +147,21 @@ export default {
       lastActiveAccount: "wallet/lastActiveAccount",
     }),
     fillAccounts() {
+      this.showNoAccountsForNetworkWarning = false;
       if (this.showNetworkAccounts) {
         this.accounts = Object.values(
           this.$store.state.wallet.privateAccounts
         ).filter(
           (a) => a.network == this.$store.state.config.env && !a.isHidden
         );
+        if (!this.accounts.length) {
+          this.accounts = Object.values(
+            this.$store.state.wallet.privateAccounts
+          );
+          if (this.accounts.length > 0) {
+            this.showNoAccountsForNetworkWarning = true;
+          }
+        }
       } else {
         this.accounts = Object.values(this.$store.state.wallet.privateAccounts);
       }

@@ -24,97 +24,98 @@ watch(
 
 const makeMenu = () => {
   if (store.state.wallet.isOpen) {
-    items.value = [
-      {
-        label: "Wallet",
-        icon: PrimeIcons.HOME,
-        items: [
-          {
-            label: "List accounts",
-            icon: PrimeIcons.SERVER,
-            route: "/accounts",
-          },
-          {
-            label: t("navbar.new_account"),
-            icon: PrimeIcons.PLUS,
-            items: [
-              {
-                label: t("newacc.overview"),
-                icon: PrimeIcons.QUESTION,
-                route: "/new-account",
-              },
-              {
-                separator: true,
-              },
-              {
-                label: t("newacc.ledger_account"),
-                icon: PrimeIcons.LOCK,
-                route: "/new-account/ledger",
-              },
-              {
-                label: t("newacc.wc_account"),
-                icon: "pi pi-arrows-h",
-                route: "/new-account/wc",
-              },
-              {
-                label: t("newacc.twofa_account"),
-                icon: PrimeIcons.MOBILE,
-                route: "/new-account/2fa",
-              },
-              {
-                label: t("newacc.email_pass_account"),
-                icon: PrimeIcons.AT,
-                route: "/new-account/email-password",
-              },
-              {
-                label: t("newacc.create_basic"),
-                icon: "pi pi-book",
-                route: "/new-account/ed25529",
-              },
-              {
-                label: t("newacc.create_vanity"),
-                icon: PrimeIcons.FAST_FORWARD,
-                route: "/new-account/vanity",
-              },
-              {
-                label: t("newacc.create_multisign_account"),
-                icon: PrimeIcons.BUILDING,
-                route: "/new-account/multisig",
-              },
-              {
-                label: t("newacc.watch_account"),
-                icon: PrimeIcons.EYE,
-                route: "/new-account/watch",
-              },
-              {
-                separator: true,
-              },
-              {
-                label: t("newacc.import_account"),
-                icon: PrimeIcons.DOWNLOAD,
-                route: "/new-account/import-ed25529",
-              },
-              {
-                label: t("newacc.shamir_account"),
-                icon: PrimeIcons.CODE,
-                route: "/new-account/shamir",
-              },
-            ],
-          },
-          {
-            separator: true,
-          },
-          {
-            label: t("navbar.logout"),
-            icon: "pi pi-times",
-
-            command: async () => {
-              await store.dispatch("wallet/logout");
+    const menu: any = [];
+    menu.push({
+      label: "Wallet",
+      icon: PrimeIcons.HOME,
+      items: [
+        {
+          label: "List accounts",
+          icon: PrimeIcons.SERVER,
+          route: "/accounts",
+        },
+        {
+          label: t("navbar.new_account"),
+          icon: PrimeIcons.PLUS,
+          items: [
+            {
+              label: t("newacc.overview"),
+              icon: PrimeIcons.QUESTION,
+              route: "/new-account",
             },
+            {
+              separator: true,
+            },
+            {
+              label: t("newacc.create_basic"),
+              icon: "pi pi-book",
+              route: "/new-account/ed25529",
+            },
+            {
+              label: t("newacc.ledger_account"),
+              icon: PrimeIcons.LOCK,
+              route: "/new-account/ledger",
+            },
+            {
+              label: t("newacc.wc_account"),
+              icon: "pi pi-arrows-h",
+              route: "/new-account/wc",
+            },
+            {
+              label: t("newacc.twofa_account"),
+              icon: PrimeIcons.MOBILE,
+              route: "/new-account/2fa",
+            },
+            {
+              label: t("newacc.email_pass_account"),
+              icon: PrimeIcons.AT,
+              route: "/new-account/email-password",
+            },
+            {
+              label: t("newacc.create_vanity"),
+              icon: PrimeIcons.FAST_FORWARD,
+              route: "/new-account/vanity",
+            },
+            {
+              label: t("newacc.create_multisign_account"),
+              icon: PrimeIcons.BUILDING,
+              route: "/new-account/multisig",
+            },
+            {
+              label: t("newacc.watch_account"),
+              icon: PrimeIcons.EYE,
+              route: "/new-account/watch",
+            },
+            {
+              separator: true,
+            },
+            {
+              label: t("newacc.import_account"),
+              icon: PrimeIcons.DOWNLOAD,
+              route: "/new-account/import-ed25529",
+            },
+            {
+              label: t("newacc.shamir_account"),
+              icon: PrimeIcons.CODE,
+              route: "/new-account/shamir",
+            },
+          ],
+        },
+        {
+          separator: true,
+        },
+        {
+          label: t("navbar.logout"),
+          icon: "pi pi-times",
+
+          command: async () => {
+            await store.dispatch("wallet/logout");
           },
-        ],
-      },
-      {
+        },
+      ],
+    });
+    if (store.state.wallet.lastActiveAccount) {
+      menu.push({
         label: store.state.wallet.lastActiveAccountName,
         icon: "pi pi-star",
         items: [
@@ -199,71 +200,72 @@ const makeMenu = () => {
             route: "/account/" + store.state.wallet.lastActiveAccount,
           },
         ],
-      },
-      {
-        label: "Multiaccount ops",
-        icon: "pi pi-globe",
-        items: [
-          {
-            label: t("govtoolsmenu.gen"),
-            icon: "pi pi-plus",
-            route: "/multiaccount/gen",
-          },
-          {
-            label: t("govtoolsmenu.distribute"),
-            icon: "pi pi-send",
-            route: "/multiaccount/distribute",
-          },
-          {
-            label: t("govtoolsmenu.optin"),
-            icon: "pi pi-table",
-            route: "/multiaccount/optin",
-          },
-          {
-            label: t("govtoolsmenu.pay"),
-            icon: "pi pi-tag",
-            route: "/multiaccount/pay",
-          },
-        ],
-      },
-      {
-        label: t("acc_overview.connect"),
-        icon: "pi pi-bolt",
-        route: "/account/connect/" + store.state.wallet.lastActiveAccount,
-        badge: store.state.wc.requests.length,
-      },
-      {
-        label: store.state.config.env,
-        icon: "pi pi-cog",
+      });
+    }
+    menu.push({
+      label: "Multiaccount ops",
+      icon: "pi pi-globe",
+      items: [
+        {
+          label: t("govtoolsmenu.gen"),
+          icon: "pi pi-plus",
+          route: "/multiaccount/gen",
+        },
+        {
+          label: t("govtoolsmenu.distribute"),
+          icon: "pi pi-send",
+          route: "/multiaccount/distribute",
+        },
+        {
+          label: t("govtoolsmenu.optin"),
+          icon: "pi pi-table",
+          route: "/multiaccount/optin",
+        },
+        {
+          label: t("govtoolsmenu.pay"),
+          icon: "pi pi-tag",
+          route: "/multiaccount/pay",
+        },
+      ],
+    });
+    menu.push({
+      label: t("acc_overview.connect"),
+      icon: "pi pi-bolt",
+      route: "/account/connect/" + store.state.wallet.lastActiveAccount,
+      badge: store.state.wc.requests.length,
+    });
+    menu.push({
+      label: store.state.config.env,
+      icon: "pi pi-cog",
 
-        items: [
-          {
-            label: t("navbar.settings"),
-            icon: "pi pi-cog",
-            route: "/settings",
-          },
-          {
-            label: "Theme",
-            icon: "pi pi-palette",
-            items: makeThemes(),
-          },
-          {
-            label: "Help",
-            icon: "pi pi-question-circle",
-            items: [
-              {
-                label: t("navbar.faq"),
-                route: "/faq",
-              },
-              {
-                label: t("navbar.privacy_policy"),
-                route: "/privacy-policy",
-              },
-            ],
-          },
-        ],
-      },
-    ];
+      items: [
+        {
+          label: t("navbar.settings"),
+          icon: "pi pi-cog",
+          route: "/settings",
+        },
+        {
+          label: "Theme",
+          icon: "pi pi-palette",
+          items: makeThemes(),
+        },
+        {
+          label: "Help",
+          icon: "pi pi-question-circle",
+          items: [
+            {
+              label: t("navbar.faq"),
+              route: "/faq",
+            },
+            {
+              label: t("navbar.privacy_policy"),
+              route: "/privacy-policy",
+            },
+          ],
+        },
+      ],
+    });
+    items.value = menu;
   } else {
     items.value = [
       {

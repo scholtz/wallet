@@ -366,7 +366,13 @@
     "email_pass_account_help": "ARC76 Email & Heslo je typ účtu kde pomocou ľubovoľného textu sa Vám vygeneruje algorand účet. Tento text môžete považovať ako za ďalší typ generátora náhodných čísiel ktorý si sami spravujete a môže zvýšiť bezpečnosť 2FA účtov alebo multipodpisových účtov",
     "create_vanity_help": "Môžete si vygenerovať vlastnú adresu účtu. Táto metóda generuje základný algorand účet a generuje veľa účtov zaradom kým sa nesplnia požiadavky na účet, npr začiatočné písmená.",
     "create_multisign_account_help": "Multipodpisový účet je najbezpečnejšia forma účtu. Ak sa používa s rôznymi zariadeniami a rôznymi generátormi náhodných čísel, poskytuje korporátnu bezpečnosť bez zvýšených nákladov.",
-    "watch_account_help": "Môžete sledovať ľubovoľný účet na sieti."
+    "watch_account_help": "Môžete sledovať ľubovoľný účet na sieti.",
+    "import_account_help": "Môžete obnoviť účet z mnemotechnickej pomôcky bežného algorand účtu.",
+    "shamir_account_help": "Môžete obnoviť účet z mnemotechických kódov typu shamir backup recovery.",
+    "create_first": "Vytvorte si svoj prvý účet",
+    "no_accounts_at_network": "Pre vybranú sieť nemáte priradený žiadny účet. Zobrazujú sa všetky účty.",
+    "basic_options": "Základné účty",
+    "advanced_options": "Pokročilé možnosti"
   },
   "arc76account": {
     "title": "Účet z emailu a hesla (ARC-0076)",
