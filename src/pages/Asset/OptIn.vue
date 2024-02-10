@@ -259,13 +259,17 @@ export default {
         (a) => a.addr == this.$route.params.account
       );
     },
+    accountData() {
+      if (!this.account.data) return false;
+      return this.account.data[this.$store.state.config.env];
+    },
     isMultisig() {
       return !!this.multisigParams;
     },
     rekeyedToInfo() {
-      if (!this.account) return;
+      if (!this.accountData) return;
       return this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.account.rekeyedTo
+        (a) => a.addr == this.accountData.rekeyedTo
       );
     },
     multisigParams() {
@@ -273,9 +277,9 @@ export default {
       return this.account.params;
     },
     rekeyedMultisigParams() {
-      if (!this.account) return;
+      if (!this.accountData) return;
       const rekeyedInfo = this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.account.rekeyedTo
+        (a) => a.addr == this.accountData.rekeyedTo
       );
       if (!rekeyedInfo) return;
       return rekeyedInfo.params;

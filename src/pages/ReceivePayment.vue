@@ -201,6 +201,10 @@ export default {
         (a) => a.addr == this.$route.params.account
       );
     },
+    accountData() {
+      if (!this.account.data) return false;
+      return this.account.data[this.$store.state.config.env];
+    },
     assetName() {
       const asset = this.assets.find((a) => a["asset-id"] == this.asset);
       if (!asset) return "Algo";
@@ -242,24 +246,24 @@ export default {
     }),
     async makeAssets() {
       this.assets = [];
-      if (this.account && this.account.amount > 0) {
+      if (this.accountData && this.accountData.amount > 0) {
         this.assets.push({
           "asset-id": 0,
-          amount: this.account.amount,
+          amount: this.accountData.amount,
           name: this.$store.state.config.tokenSymbol,
           decimals: 6,
           "unit-name": "",
         });
       }
-      if (this.account) {
-        for (let index in this.account.assets) {
+      if (this.accountData) {
+        for (let index in this.accountData.assets) {
           const asset = await this.getAsset({
-            assetIndex: this.account.assets[index]["asset-id"],
+            assetIndex: this.accountData.assets[index]["asset-id"],
           });
           if (asset) {
             this.assets.push({
-              "asset-id": this.account.assets[index]["asset-id"],
-              amount: this.account.assets[index]["amount"],
+              "asset-id": this.accountData.assets[index]["asset-id"],
+              amount: this.accountData.assets[index]["amount"],
               name: asset["name"],
               decimals: asset["decimals"],
               "unit-name": asset["unit-name"],

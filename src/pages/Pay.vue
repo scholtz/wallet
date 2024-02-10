@@ -845,6 +845,10 @@ export default {
         (a) => a.addr == this.payFrom
       );
     },
+    accountData() {
+      if (!this.account.data) return false;
+      return this.account.data[this.$store.state.config.env];
+    },
     isMultisig() {
       return !!this.multisigParams;
     },
@@ -915,19 +919,21 @@ export default {
       return this.$route.params.type == "rekey";
     },
     selectedAssetFromAccount() {
-      return this.account["assets"].find((a) => a["asset-id"] == this.asset);
+      return this.accountData["assets"].find(
+        (a) => a["asset-id"] == this.asset
+      );
     },
     maxAmount() {
-      if (!this.account) return 0;
+      if (!this.accountData) return 0;
 
       if (this.asset > 0) {
         if (!this.selectedAssetFromAccount) return 0;
         return this.selectedAssetFromAccount.amount / this.decimalsPower;
       } else {
-        let ret = this.account.amount / 1000000 - 0.1;
+        let ret = this.accountData.amount / 1000000 - 0.1;
         ret = ret - this.fee;
-        if (this.account["assets"] && this.account["assets"].length > 0)
-          ret = ret - this.account["assets"].length * 0.1;
+        if (this.accountData["assets"] && this.accountData["assets"].length > 0)
+          ret = ret - this.accountData["assets"].length * 0.1;
         return ret;
       }
     },
@@ -940,6 +946,7 @@ export default {
     stepAmount() {
       if (!this.asset) return 0.000001;
       if (!this.account) return 0.000001;
+      if (!this.accountData) return 0.000001;
       if (!this.assetObj || this.assetObj.decimals === undefined)
         return 0.000001;
       return Math.pow(10, -1 * this.assetObj.decimals);
@@ -977,9 +984,9 @@ export default {
       return !algosdk.isValidAddress(this.payTo);
     },
     rekeyedToInfo() {
-      if (!this.account) return;
+      if (!this.accountData) return;
       return this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.account.rekeyedTo
+        (a) => a.addr == this.accountData.rekeyedTo
       );
     },
     multisigParams() {
@@ -987,9 +994,9 @@ export default {
       return this.account.params;
     },
     rekeyedMultisigParams() {
-      if (!this.account) return;
+      if (!this.accountData) return;
       const rekeyedInfo = this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.account.rekeyedTo
+        (a) => a.addr == this.accountData.rekeyedTo
       );
       if (!rekeyedInfo) return;
       return rekeyedInfo.params;
@@ -1118,9 +1125,9 @@ export default {
       this.payFromDirect = this.$store.state.wallet.privateAccounts[0].addr;
     }
 
-    if (this.isRekey && this.account && this.account.addr) {
+    if (this.isRekey && this.accountData && this.accountData.addr) {
       // if is rekey, make self tx
-      this.payTo = this.account.addr;
+      this.payTo = this.accountData.addr;
     }
     if (this.payTo && !this.payFromDirect) {
       this.payFromDirect = this.payTo;
@@ -1174,10 +1181,10 @@ export default {
     },
     async makeAssets() {
       this.assets = [];
-      if (this.account) {
+      if (this.accountData) {
         this.assets.push({
           "asset-id": "0",
-          amount: this.account.amount,
+          amount: this.accountData.amount,
           name: this.$store.state.config.tokenSymbol,
           decimals: 6,
           "unit-name": "",
@@ -1192,15 +1199,15 @@ export default {
         });
       }
       if (this.isRekey) return;
-      if (this.account) {
-        for (let index in this.account.assets) {
+      if (this.accountData) {
+        for (let index in this.accountData.assets) {
           const asset = await this.getAsset({
-            assetIndex: this.account.assets[index]["asset-id"],
+            assetIndex: this.accountData.assets[index]["asset-id"],
           });
           if (asset) {
             this.assets.push({
-              "asset-id": this.account.assets[index]["asset-id"],
-              amount: this.account.assets[index]["amount"],
+              "asset-id": this.accountData.assets[index]["asset-id"],
+              amount: this.accountData.assets[index]["amount"],
               name: asset["name"],
               decimals: asset["decimals"],
               "unit-name": asset["unit-name"],
@@ -1208,7 +1215,7 @@ export default {
           } else {
             console.error(
               "Asset not loaded",
-              this.account.assets[index]["asset-id"]
+              this.accountData.assets[index]["asset-id"]
             );
           }
         }

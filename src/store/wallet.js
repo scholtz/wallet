@@ -69,7 +69,6 @@ const mutations = {
       acc = state.privateAccounts.find((x) => x.addr == info.address);
     }
     if (!acc || !acc.addr) {
-      console.log("acc", acc, state.privateAccounts);
       console.error(`Error storing account. Address ${info.address} not found`);
       return;
     }

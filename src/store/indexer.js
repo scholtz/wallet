@@ -34,7 +34,6 @@ const actions = {
         .catch((e) => {
           console.error("lookupAccountByID", e);
         });
-      console.log("ret", ret);
       if (!ret)
         return {
           address: addr,

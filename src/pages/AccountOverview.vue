@@ -465,6 +465,7 @@ export default {
   computed: {
     canSign() {
       if (!this.account) return false;
+      if (!this.accountData) return false;
 
       if (this.accountData.rekeyedTo) {
         if (!this.rekeyedToInfo) return false;
@@ -490,12 +491,7 @@ export default {
       );
     },
     accountData() {
-      console.log("this.account", this.account);
       if (!this.account.data) return false;
-      console.log(
-        "accountData",
-        this.account.data[this.$store.state.config.env]
-      );
       return this.account.data[this.$store.state.config.env];
     },
     lastActiveAccountAddr() {
@@ -503,7 +499,7 @@ export default {
     },
     rekeyedToInfo() {
       return this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.account.rekeyedTo
+        (a) => a.addr == this.accountData.rekeyedTo
       );
     },
     rekeyedMultisigParams() {
@@ -546,17 +542,17 @@ export default {
     }),
     async makeAssets() {
       this.assets = [];
-      if (this.account && this.account.amount > 0) {
+      if (this.accountData && this.accountData.amount > 0) {
         this.assets.push({
           "asset-id": "",
-          amount: this.account.amount,
+          amount: this.accountData.amount,
           name: "ALG",
           decimals: 6,
           "unit-name": "",
         });
       }
-      if (this.account && this.account.assets) {
-        for (const accountAsset of this.account.assets) {
+      if (this.accountData && this.accountData.assets) {
+        for (const accountAsset of this.accountData.assets) {
           if (!accountAsset["asset-id"]) continue;
           const asset = await this.getAsset({
             assetIndex: accountAsset["asset-id"],
@@ -595,15 +591,15 @@ export default {
         if (info) {
           this.updateAccount({ info });
           if (
-            this.account &&
-            this.account.rekeyedTo != this.account["auth-addr"]
+            this.accountData &&
+            this.accountData.rekeyedTo != this.accountData["auth-addr"]
           ) {
-            const rekeyedTo = this.account["auth-addr"];
+            const rekeyedTo = this.accountData["auth-addr"];
             console.error(
-              `New rekey information detected: ${this.account.rekeyedTo} -> ${rekeyedTo}`
+              `New rekey information detected: ${this.accountData.rekeyedTo} -> ${rekeyedTo}`
             );
             const info2 = {};
-            info2.address = this.account.addr;
+            info2.address = this.accountData.addr;
             info2.rekeyedTo = rekeyedTo;
             await this.updateAccount({ info: info2 });
             await this.openSuccess(

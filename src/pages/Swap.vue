@@ -242,8 +242,14 @@ export default {
         (a) => a.addr == this.$route.params.account
       );
     },
+    accountData() {
+      if (!this.account.data) return false;
+      return this.account.data[this.$store.state.config.env];
+    },
     selectedAssetFromAccount() {
-      return this.account["assets"].find((a) => a["asset-id"] == this.asset);
+      return this.accountData["assets"].find(
+        (a) => a["asset-id"] == this.asset
+      );
     },
     decimalsPower() {
       let decimals = 6;
@@ -260,8 +266,8 @@ export default {
       } else {
         let ret = this.account.amount / 1000000 - 0.1;
         ret = ret - this.fee;
-        if (this.account["assets"] && this.account["assets"].length > 0)
-          ret = ret - this.account["assets"].length * 0.1;
+        if (this.accountData["assets"] && this.accountData["assets"].length > 0)
+          ret = ret - this.accountData["assets"].length * 0.1;
         return ret;
       }
     },
@@ -396,18 +402,18 @@ export default {
     },
     async makeAssets() {
       this.assets = [];
-      if (this.account && this.account.amount > 0) {
+      if (this.accountData && this.accountData.amount > 0) {
         this.assets.push({
           "asset-id": "-1",
-          amount: this.account.amount,
+          amount: this.accountData.amount,
           name: "ALG",
           decimals: 6,
           "unit-name": "",
           label: "Algorand native token",
         });
       }
-      if (this.account && this.account.assets) {
-        for (let accountAsset of this.account.assets) {
+      if (this.accountData && this.accountData.assets) {
+        for (let accountAsset of this.accountData.assets) {
           if (!accountAsset["asset-id"]) continue;
           const asset = await this.getAsset({
             assetIndex: accountAsset["asset-id"],

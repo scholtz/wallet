@@ -20,7 +20,6 @@ export default {
     const PrimeVue = usePrimeVue();
     let lastTheme = localStorage.getItem("lastTheme");
     if (!lastTheme) lastTheme = "lara-dark-teal";
-    console.log("last theme", lastTheme);
     PrimeVue.changeTheme("_empty", lastTheme, "theme-link", () => {});
   },
   methods: {
