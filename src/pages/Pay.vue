@@ -846,6 +846,7 @@ export default {
       );
     },
     accountData() {
+      if (!this.account) return false;
       if (!this.account.data) return false;
       return this.account.data[this.$store.state.config.env];
     },
