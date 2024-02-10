@@ -34,25 +34,21 @@ const mutations = {
       state.lastActiveAccountName = current.name;
     }
   },
-  addPrivateAccount(state, { name, secret, network }) {
+  addPrivateAccount(state, { name, secret }) {
     secret.name = name;
-    secret.network = network;
     state.privateAccounts.push(secret);
   },
-  addPublicAccount(state, { name, addr, network }) {
-    const acc = { name, addr, address: addr, network };
+  addPublicAccount(state, { name, addr }) {
+    const acc = { name, addr, address: addr };
     state.privateAccounts.push(acc);
   },
-  deleteAccount(state, { name, addr, network }) {
+  deleteAccount(state, { name, addr }) {
     const index = state.privateAccounts.findIndex(
-      (acc) =>
-        acc.name == name &&
-        acc.addr == addr &&
-        (acc.network === undefined || acc.network === network)
+      (acc) => acc.name == name && acc.addr == addr
     );
     state.privateAccounts.splice(index, 1);
   },
-  setPrivateAccount(state, { info }) {
+  setPrivateAccount(state, { info, network }) {
     if (!info.address) {
       if (!info.addr) return;
       info.address = info.addr;
@@ -61,11 +57,7 @@ const mutations = {
       if (!info.address) return;
       info.addr = info.address;
     }
-    let acc = state.privateAccounts.find(
-      (x) =>
-        x.addr == info.address &&
-        (x.network === undefined || x.network === info.network)
-    );
+    let acc = state.privateAccounts.find((x) => x.addr == info.address);
     if (!acc) {
       // to change the network we match the account by address and name
       acc = state.privateAccounts.find(
@@ -77,13 +69,20 @@ const mutations = {
       acc = state.privateAccounts.find((x) => x.addr == info.address);
     }
     if (!acc || !acc.addr) {
+      console.log("acc", acc, state.privateAccounts);
       console.error(`Error storing account. Address ${info.address} not found`);
       return;
     }
     if (acc) {
       for (let index in info) {
-        acc[index] = info[index];
+        if (!acc.data) acc.data = {};
+        if (!acc.data[network]) acc.data[network] = {};
+        acc.data[network][index] = info[index];
         if (index == "rekeyedTo" && acc[index] == info.address) {
+          // rekeying set to original address
+          delete acc[index];
+        }
+        if (index == "rekeyedTo" && acc.data[network][index] == info.address) {
           // rekeying set to original address
           delete acc[index];
         }
@@ -561,7 +560,7 @@ const actions = {
     if (!info) {
       return false;
     }
-    await commit("setPrivateAccount", { info });
+    await commit("setPrivateAccount", { info, network: this.state.config.env });
     await dispatch("saveWallet");
   },
   async changePassword({ dispatch }, { passw1, passw2, passw3 }) {

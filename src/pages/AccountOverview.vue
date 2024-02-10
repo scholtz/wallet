@@ -101,20 +101,8 @@
         </template>
       </Dialog>
     </p>
-    <Message
-      severity="error"
-      v-if="account && account.network != this.$store.state.config.env"
-    >
-      <div v-if="account.network">
-        This account is assigned to network {{ account.network }}.
-      </div>
-      <div v-else>This account is not assigned to any network.</div>
-      <Button class="my-2" @click="assignToCurrentNetwork">
-        Assign account to {{ this.$store.state.config.env }}
-      </Button>
-    </Message>
 
-    <div class="grid" v-if="account">
+    <div class="grid" v-if="account && accountData">
       <div class="col-12 lg:col-9">
         <div class="field grid vertical-align-top">
           <label
@@ -157,14 +145,14 @@
           </div>
         </div>
 
-        <div class="field grid vertical-align-top" v-if="account.rekeyedTo">
+        <div class="field grid vertical-align-top" v-if="accountData.rekeyedTo">
           <label
             class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
           >
             {{ $t("acc_overview.rekeyedTo") }}
           </label>
           <div class="col-12 md:col-8">
-            {{ account.rekeyedTo }}
+            {{ accountData.rekeyedTo }}
 
             <div v-if="rekeyedToInfo">
               <AccountType :account="rekeyedToInfo"></AccountType>
@@ -215,7 +203,7 @@
             {{ $t("acc_overview.amount") }}
           </label>
           <div class="col-12 md:col-8">
-            {{ $filters.formatCurrency(account.amount) }}
+            {{ $filters.formatCurrency(accountData.amount) }}
           </div>
         </div>
         <div class="field grid vertical-align-top">
@@ -226,7 +214,9 @@
           </label>
           <div class="col-12 md:col-8">
             {{
-              $filters.formatCurrency(account["amount-without-pending-rewards"])
+              $filters.formatCurrency(
+                accountData["amount-without-pending-rewards"]
+              )
             }}
           </div>
         </div>
@@ -237,7 +227,7 @@
             {{ $t("acc_overview.rewards") }}
           </label>
           <div class="col-12 md:col-8">
-            {{ $filters.formatCurrency(account["rewards"]) }}
+            {{ $filters.formatCurrency(accountData["rewards"]) }}
           </div>
         </div>
         <div class="field grid vertical-align-top">
@@ -247,7 +237,7 @@
             {{ $t("acc_overview.pending_rewards") }}
           </label>
           <div class="col-12 md:col-8">
-            {{ $filters.formatCurrency(account["pending-rewards"]) }}
+            {{ $filters.formatCurrency(accountData["pending-rewards"]) }}
           </div>
         </div>
         <div class="field grid vertical-align-top">
@@ -257,7 +247,7 @@
             {{ $t("acc_overview.reward_base") }}
           </label>
           <div class="col-12 md:col-8">
-            {{ account["reward-base"] }}
+            {{ accountData["reward-base"] }}
           </div>
         </div>
         <div class="field grid vertical-align-top">
@@ -267,7 +257,7 @@
             {{ $t("acc_overview.round") }}
           </label>
           <div class="col-12 md:col-8">
-            {{ account["round"] }}
+            {{ accountData["round"] }}
           </div>
         </div>
         <div class="field grid vertical-align-top">
@@ -297,11 +287,11 @@
                 size="small"
                 @click="displayOnlineOfflineDialog = true"
               >
-                {{ account["status"] ?? "?" }}
+                {{ accountData["status"] ?? "?" }}
               </Button>
             </div>
             <div v-else>
-              {{ account["status"] ?? "?" }}
+              {{ accountData["status"] ?? "?" }}
             </div>
           </div>
         </div>
@@ -320,7 +310,7 @@
             {{ $t("acc_overview.apps_local_state") }}
           </label>
           <div class="col-12 md:col-8">
-            {{ account["apps-local-state"] }}
+            {{ accountData["apps-local-state"] }}
           </div>
         </div>
         <div
@@ -338,7 +328,7 @@
             {{ $t("acc_overview.apps_total_schema") }}
           </label>
           <div class="col-12 md:col-8">
-            {{ account["apps-total-schema"] }}
+            {{ accountData["apps-total-schema"] }}
           </div>
         </div>
         <div
@@ -356,7 +346,7 @@
             {{ $t("acc_overview.created_apps") }}
           </label>
           <div class="col-12 md:col-8">
-            {{ account["created-apps"] }}
+            {{ accountData["created-apps"] }}
           </div>
         </div>
         <div class="field grid vertical-align-top" v-if="account.params">
@@ -448,6 +438,7 @@ import AccountTopMenu from "../components/AccountTopMenu.vue";
 import QRCodeVue3 from "qrcode-vue3";
 import AccountType from "@/components/AccountType.vue";
 import ProgressSpinner from "primevue/progressspinner";
+import { VERIFY_FALLBACK_SERVER } from "@walletconnect/core";
 
 export default {
   components: {
@@ -475,7 +466,7 @@ export default {
     canSign() {
       if (!this.account) return false;
 
-      if (this.account.rekeyedTo) {
+      if (this.accountData.rekeyedTo) {
         if (!this.rekeyedToInfo) return false;
 
         return (
@@ -494,35 +485,30 @@ export default {
       );
     },
     account() {
-      const acc = this.$store.state.wallet.privateAccounts.find(
-        (a) =>
-          a.addr == this.$route.params.account &&
-          (a.network === undefined || a.network == this.$store.state.config.env)
-      );
-      if (acc) return acc;
       return this.$store.state.wallet.privateAccounts.find(
         (a) => a.addr == this.$route.params.account
       );
+    },
+    accountData() {
+      console.log("this.account", this.account);
+      if (!this.account.data) return false;
+      console.log(
+        "accountData",
+        this.account.data[this.$store.state.config.env]
+      );
+      return this.account.data[this.$store.state.config.env];
     },
     lastActiveAccountAddr() {
       return this.$store.state.wallet.lastActiveAccount;
     },
     rekeyedToInfo() {
-      const acc = this.$store.state.wallet.privateAccounts.find(
-        (a) =>
-          a.addr == this.account.rekeyedTo &&
-          (a.network === undefined || a.network == this.$store.state.config.env)
-      );
-      if (acc) return acc;
       return this.$store.state.wallet.privateAccounts.find(
         (a) => a.addr == this.account.rekeyedTo
       );
     },
     rekeyedMultisigParams() {
       const rekeyedInfo = this.$store.state.wallet.privateAccounts.find(
-        (a) =>
-          a.addr == this.account.rekeyedTo &&
-          (a.network === undefined || a.network == this.$store.state.config.env)
+        (a) => a.addr == this.accountData.rekeyedTo
       );
       if (!rekeyedInfo) return null;
       return rekeyedInfo.params;
@@ -543,10 +529,6 @@ export default {
     await this.reloadAccount();
     await this.makeAssets();
     this.prolong();
-
-    if (this.account && !this.account.network) {
-      await this.assignToCurrentNetwork();
-    }
   },
   methods: {
     ...mapActions({
@@ -562,14 +544,6 @@ export default {
       setAccountOffline: "kmd/setAccountOffline",
       openSuccess: "toast/openSuccess",
     }),
-    async assignToCurrentNetwork() {
-      if (this.account) {
-        // add to current network automatically
-        const info = { ...this.account };
-        info.network = this.$store.state.config.env;
-        await this.updateAccount({ info });
-      }
-    },
     async makeAssets() {
       this.assets = [];
       if (this.account && this.account.amount > 0) {
@@ -614,6 +588,7 @@ export default {
       if (asset) return asset["decimals"];
     },
     async reloadAccount() {
+      await this.prolong();
       await this.accountInformation({
         addr: this.$route.params.account,
       }).then(async (info) => {

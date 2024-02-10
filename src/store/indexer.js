@@ -34,32 +34,30 @@ const actions = {
         .catch((e) => {
           console.error("lookupAccountByID", e);
         });
+      console.log("ret", ret);
       if (!ret)
         return {
-          account: {
-            address: addr,
-            amount: 0,
-            "amount-without-pending-rewards": 0,
-            "apps-local-state": [],
-            "apps-total-schema": {},
-            assets: [],
-            "created-apps": [],
-            "created-at-round": 0,
-            deleted: false,
-            "pending-rewards": 0,
-            "reward-base": 0,
-            rewards: 0,
-            round: 0,
-            "sig-type": "sig",
-            status: "Offline",
-            "total-apps-opted-in": 0,
-            "total-assets-opted-in": 0,
-            "total-box-bytes": 0,
-            "total-boxes": 0,
-            "total-created-apps": 0,
-            "total-created-assets": 0,
-          },
-          "current-round": 0,
+          address: addr,
+          amount: 0,
+          "amount-without-pending-rewards": 0,
+          "apps-local-state": [],
+          "apps-total-schema": {},
+          assets: [],
+          "created-apps": [],
+          "created-at-round": 0,
+          deleted: false,
+          "pending-rewards": 0,
+          "reward-base": 0,
+          rewards: 0,
+          round: 0,
+          "sig-type": "sig",
+          status: "Offline",
+          "total-apps-opted-in": 0,
+          "total-assets-opted-in": 0,
+          "total-box-bytes": 0,
+          "total-boxes": 0,
+          "total-created-apps": 0,
+          "total-created-assets": 0,
         };
       return ret.account;
     } catch (error) {

@@ -9,7 +9,7 @@
           <div class="text-right w-full">
             <label for="showAll" class="">
               {{ $t("accounts.show_on_netowork_accounts") }}:
-              {{ this.$store.state.config.env }}
+              {{ this.$store.state.config.envName }}
             </label>
             <Checkbox
               inputId="showAll"
@@ -49,12 +49,16 @@
       <Column field="amount" :header="$t('accounts.amount')" :sortable="true">
         <template #body="slotProps">
           <div
-            v-if="slotProps.column.props.field in slotProps.data"
+            v-if="
+              slotProps.data &&
+              slotProps.data.data &&
+              slotProps.data.data[this.$store.state.config.env]
+            "
             class="text-end"
           >
             {{
               $filters.formatCurrency(
-                slotProps.data[slotProps.column.props.field]
+                slotProps.data["data"][this.$store.state.config.env]["amount"]
               )
             }}
           </div>
@@ -152,7 +156,11 @@ export default {
         this.accounts = Object.values(
           this.$store.state.wallet.privateAccounts
         ).filter(
-          (a) => a.network == this.$store.state.config.env && !a.isHidden
+          (a) =>
+            a.data &&
+            a.data[this.$store.state.config.env] &&
+            a.data[this.$store.state.config.env].amount > 0 &&
+            !a.isHidden
         );
         if (!this.accounts.length) {
           this.accounts = Object.values(

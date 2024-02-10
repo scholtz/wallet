@@ -140,12 +140,6 @@ export default {
       );
     },
     account() {
-      const acc = this.$store.state.wallet.privateAccounts.find(
-        (a) =>
-          a.addr == this.$route.params.account &&
-          (a.network === undefined || a.network == this.$store.state.config.env)
-      );
-      if (acc) return acc;
       return this.$store.state.wallet.privateAccounts.find(
         (a) => a.addr == this.$route.params.account
       );
@@ -154,21 +148,13 @@ export default {
       return this.$store.state.wallet.lastActiveAccount;
     },
     rekeyedToInfo() {
-      const acc = this.$store.state.wallet.privateAccounts.find(
-        (a) =>
-          a.addr == this.account.rekeyedTo &&
-          (a.network === undefined || a.network == this.$store.state.config.env)
-      );
-      if (acc) return acc;
       return this.$store.state.wallet.privateAccounts.find(
         (a) => a.addr == this.account.rekeyedTo
       );
     },
     rekeyedMultisigParams() {
       const rekeyedInfo = this.$store.state.wallet.privateAccounts.find(
-        (a) =>
-          a.addr == this.account.rekeyedTo &&
-          (a.network === undefined || a.network == this.$store.state.config.env)
+        (a) => a.addr == this.account.rekeyedTo
       );
       if (!rekeyedInfo) return null;
       return rekeyedInfo.params;
@@ -189,10 +175,6 @@ export default {
     await this.reloadAccount();
     await this.makeAssets();
     this.prolong();
-
-    if (this.account && !this.account.network) {
-      await this.assignToCurrentNetwork();
-    }
   },
   methods: {
     ...mapActions({
@@ -208,14 +190,6 @@ export default {
       setAccountOffline: "kmd/setAccountOffline",
       openSuccess: "toast/openSuccess",
     }),
-    async assignToCurrentNetwork() {
-      if (this.account) {
-        // add to current network automatically
-        const info = { ...this.account };
-        info.network = this.$store.state.config.env;
-        await this.updateAccount({ info });
-      }
-    },
     async makeAssets() {
       this.loading = true;
       this.assets = [];
