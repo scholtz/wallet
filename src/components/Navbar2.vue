@@ -145,7 +145,7 @@ const makeMenu = () => {
           {
             label: t("acc_overview.asset_optin"),
             icon: "pi pi-plus",
-            route: "/accounts/optin/" + store.state.wallet.lastActiveAccount,
+            route: "/account/optin/" + store.state.wallet.lastActiveAccount,
           },
           {
             label: t("acc_overview.receive_payment"),
