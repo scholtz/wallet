@@ -324,6 +324,9 @@ const makeThemes = () => {
     { name: "Lara Dark Teal", file: "lara-dark-teal", icon: "pi pi-moon" },
     { name: "Lara Light Teal", file: "lara-light-teal", icon: "pi pi-sun" },
 
+    { name: "Aura Dark Teal", file: "aura-dark-teal", icon: "pi pi-moon" },
+    { name: "Aura Light Teal", file: "aura-light-teal", icon: "pi pi-sun" },
+
     { name: "Saga Blue", file: "saga-blue", icon: "pi pi-sun" },
     { name: "Rhea Light", file: "rhea", icon: "pi pi-sun" },
     { name: "Arya Purple", file: "arya-purple", icon: "pi pi-moon" },
