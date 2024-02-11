@@ -280,7 +280,8 @@
     "receive_payment_help": "Ak chcete prijať platbu od Vášho zákazníka alebo kamaráta, môžete vygenrovať platobný QR kód a oni po jeho nascanovaní Vám môžu poslať platbu na jedno kliknutie.",
     "export_help": "Pre účty s privátnym kľúčom si môžete vygenerať kódy pre obnovenie účtu pomocou sharmir recovery alebo pomocou štandardného algorand mnemonicu.",
     "arc14": "ARC 14 Autorizácia",
-    "arc14_help": "ARC 14 je autorizačný štandard ktorý využívat podpísané transakcie. Na tejto stránke si môžete vygenerovať autorizačné tokeny k vášmu účtu a externej službe."
+    "arc14_help": "ARC 14 je autorizačný štandard ktorý využívat podpísané transakcie. Na tejto stránke si môžete vygenerovať autorizačné tokeny k vášmu účtu a externej službe.",
+    "account_actions": "Akcie účtu"
   },
   "optin": {
     "title": "Prijímať aktívum (ASA alebo NFT) na účte",

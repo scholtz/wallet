@@ -280,7 +280,8 @@
     "receive_payment_help": "You can ask your customers or friends to send you money. This page will generate payment QR code so that others can do it on one click.",
     "export_help": "You can generate shamir backup mnemonics or algorand mnemonic for accounts with private keys.",
     "arc14": "ARC 14 Authentication",
-    "arc14_help": "ARC 14 is authentication standard utilizing signed transactions. You can generate the authentication tokens on this page."
+    "arc14_help": "ARC 14 is authentication standard utilizing signed transactions. You can generate the authentication tokens on this page.",
+    "account_actions": "Account actions"
   },
   "optin": {
     "title": "Prijímať aktívum (ASA alebo NFT) na účte",

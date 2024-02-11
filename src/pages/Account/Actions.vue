@@ -9,7 +9,7 @@ import AccountTopMenu from "../../components/AccountTopMenu.vue";
 <template>
   <MainLayout>
     <AccountTopMenu />
-    <h1>{{ $t("newacc.title") }}</h1>
+    <h1>{{ $t("acc_overview.account_actions") }}</h1>
 
     <div class="field grid">
       <RouterLink
