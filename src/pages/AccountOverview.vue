@@ -310,7 +310,13 @@
             {{ $t("acc_overview.apps_local_state") }}
           </label>
           <div class="col-12 md:col-8">
-            {{ accountData["apps-local-state"] }}
+            <JsonViewer
+              v-if="accountData['apps-local-state']"
+              :value="accountData['apps-local-state']"
+              copyable
+              boxed
+              sort
+            />
           </div>
         </div>
         <div
@@ -328,7 +334,13 @@
             {{ $t("acc_overview.apps_total_schema") }}
           </label>
           <div class="col-12 md:col-8">
-            {{ accountData["apps-total-schema"] }}
+            <JsonViewer
+              v-if="accountData['apps-total-schema']"
+              :value="accountData['apps-total-schema']"
+              copyable
+              boxed
+              sort
+            />
           </div>
         </div>
         <div
@@ -346,7 +358,13 @@
             {{ $t("acc_overview.created_apps") }}
           </label>
           <div class="col-12 md:col-8">
-            {{ accountData["created-apps"] }}
+            <JsonViewer
+              v-if="accountData['created-apps']"
+              :value="accountData['created-apps']"
+              copyable
+              boxed
+              sort
+            />
           </div>
         </div>
         <div class="field grid vertical-align-top" v-if="account.params">
@@ -366,7 +384,13 @@
             {{ $t("acc_overview.multisignature_addresses") }}
           </label>
           <div class="col-12 md:col-8">
-            {{ account.params.addrs }}
+            <JsonViewer
+              v-if="account.params.addrs"
+              :value="account.params.addrs"
+              copyable
+              boxed
+              sort
+            />
           </div>
         </div>
         <div class="field grid vertical-align-top">
@@ -439,6 +463,7 @@ import QRCodeVue3 from "qrcode-vue3";
 import AccountType from "@/components/AccountType.vue";
 import ProgressSpinner from "primevue/progressspinner";
 import { VERIFY_FALLBACK_SERVER } from "@walletconnect/core";
+import { JsonViewer } from "vue3-json-viewer";
 
 export default {
   components: {
@@ -447,6 +472,7 @@ export default {
     AccountTopMenu,
     AccountType,
     ProgressSpinner,
+    JsonViewer,
   },
   data() {
     return {
