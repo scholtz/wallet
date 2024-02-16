@@ -26,7 +26,7 @@
           </label>
           <div class="col-12 md:col-10">
             <Password
-              id="newwallet-pass"
+              inputId="newwallet-pass"
               v-model="pass"
               type="password"
               class="w-full"
@@ -92,7 +92,7 @@
           }}</label>
           <div class="col-12 md:col-10">
             <Password
-              id="wallet-pass"
+              inputId="wallet-pass"
               v-model="pass"
               class="w-full my-2"
               inputClass="w-full"
