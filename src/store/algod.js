@@ -1,6 +1,14 @@
 import algosdk from "algosdk";
 
 const actions = {
+  async getAlgod() {
+    const url = new URL(this.state.config.algod);
+    return new algosdk.Algodv2(
+      this.state.config.algodToken,
+      this.state.config.algod,
+      url.port
+    );
+  },
   async getTransactionParams() {
     try {
       const url = new URL(this.state.config.algod);

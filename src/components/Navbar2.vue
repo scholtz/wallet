@@ -147,6 +147,12 @@ const makeMenu = () => {
             route: "/account/optin/" + store.state.wallet.lastActiveAccount,
           },
           {
+            label: t("acc_overview.asset_optinArc200"),
+            icon: "pi pi-plus",
+            route:
+              "/account/optinArc200/" + store.state.wallet.lastActiveAccount,
+          },
+          {
             label: t("acc_overview.receive_payment"),
             icon: "pi pi-clone",
             route: "/receive-payment/" + store.state.wallet.lastActiveAccount,

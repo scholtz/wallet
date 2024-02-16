@@ -21,6 +21,7 @@ import AssetFreeze from "@/pages/Asset/Freeze.vue";
 import AssetModify from "@/pages/Asset/Modify.vue";
 import AssetRevoke from "@/pages/Asset/Revoke.vue";
 import OptIn from "@/pages/Asset/OptIn.vue";
+import OptInArc200 from "@/pages/Arc200/OptIn.vue";
 import PaymentGateway from "@/pages/PaymentGateway.vue";
 import GovernanceOverview from "@/pages/governance/Overview.vue";
 import Donation from "@/pages/Donation.vue";
@@ -220,6 +221,11 @@ const routes = [
     path: "/account/optin/:account",
     name: "OptIn",
     component: OptIn,
+  },
+  {
+    path: "/account/optinArc200/:account",
+    name: "OptInArc200",
+    component: OptInArc200,
   },
   {
     path: "/transaction/:id",

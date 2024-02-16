@@ -19,6 +19,14 @@ const mutations = {
   },
 };
 const actions = {
+  async getIndexer() {
+    const url = new URL(this.state.config.indexer);
+    return new algosdk.Indexer(
+      this.state.config.indexerToken,
+      this.state.config.indexer,
+      url.port
+    );
+  },
   async accountInformation({ dispatch }, { addr }) {
     try {
       const url = new URL(this.state.config.indexer);

@@ -11,7 +11,7 @@
       :loading="loading"
       v-model:filters="filters"
       filterDisplay="menu"
-      :globalFilterFields="['name', 'asset-id', 'amount']"
+      :globalFilterFields="['name', 'asset-id', 'amount', 'type']"
     >
       <template #header>
         <div class="flex justify-content-end" v-if="filters['global']">
@@ -35,6 +35,41 @@
             @input="filterCallback()"
             class="p-column-filter"
             placeholder="Search by name"
+          />
+        </template>
+      </Column>
+      <Column field="type" header="Type" :sortable="true">
+        <template #body="slotProps">
+          <div v-if="slotProps.data.type == 'Native'">
+            <Badge severity="primary" value="Native"></Badge>
+          </div>
+          <div v-else-if="slotProps.data['type'] == 'ASA'">
+            <Badge severity="info" value="ASA"></Badge>
+          </div>
+          <div v-else-if="slotProps.data['type'] == 'ARC200'">
+            <div class="flex align-items-center flex-wrap">
+              <Badge
+                severity="success"
+                value="ARC200"
+                class="flex align-items-center justify-content-center"
+              ></Badge>
+
+              <Button
+                class="m-2 flex align-items-center justify-content-center"
+                size="small"
+              >
+                <i class="pi pi-refresh"></i>
+              </Button>
+            </div>
+          </div>
+        </template>
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText
+            v-model="filterModel.value"
+            type="text"
+            @input="filterCallback()"
+            class="p-column-filter"
+            placeholder="Search by asset type"
           />
         </template>
       </Column>
@@ -89,11 +124,12 @@ import { PrimeIcons } from "primevue/api";
 import copy from "copy-to-clipboard";
 import AccountTopMenu from "../../components/AccountTopMenu.vue";
 import { FilterMatchMode } from "primevue/api";
-
+import Badge from "primevue/badge";
 export default {
   components: {
     MainLayout,
     AccountTopMenu,
+    Badge,
   },
   data() {
     return {
@@ -114,6 +150,7 @@ export default {
         name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
         "asset-id": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
         amount: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        type: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
       },
     };
   },
@@ -206,6 +243,7 @@ export default {
           name: "ALG",
           decimals: 6,
           "unit-name": "",
+          type: "Native",
         });
       }
       if (this.accountData && this.accountData.assets) {
@@ -221,8 +259,22 @@ export default {
               name: asset["name"],
               decimals: asset["decimals"],
               "unit-name": asset["unit-name"],
+              type: "ASA",
             });
           }
+        }
+      }
+      if (this.accountData && this.accountData.arc200) {
+        for (const accountAsset of Object.values(this.accountData.arc200)) {
+          console.log("arc200", accountAsset);
+          this.assets.push({
+            "asset-id": Number(accountAsset.arc200id),
+            amount: Number(accountAsset.balance),
+            name: accountAsset.name,
+            decimals: Number(accountAsset.decimals),
+            "unit-name": accountAsset.symbol,
+            type: "ARC200",
+          });
         }
       }
       this.loading = false;

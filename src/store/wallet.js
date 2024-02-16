@@ -38,6 +38,13 @@ const mutations = {
     secret.name = name;
     state.privateAccounts.push(secret);
   },
+  addArc200Asset(state, { addr, arc200Info, network }) {
+    const acc = state.privateAccounts.find((x) => x.addr == addr);
+    if (!acc.data) acc.data = {};
+    if (!acc.data[network]) acc.data[network] = {};
+    if (!acc.data[network]["arc200"]) acc.data[network]["arc200"] = {};
+    acc.data[network]["arc200"][arc200Info.arc200id] = arc200Info;
+  },
   addPublicAccount(state, { name, addr }) {
     const acc = { name, addr, address: addr };
     state.privateAccounts.push(acc);
@@ -266,6 +273,23 @@ const actions = {
   },
   async prolong({ commit }) {
     await commit("prolong");
+  },
+  async addArc200Asset({ dispatch, commit }, { addr, arc200Info }) {
+    await commit("prolong");
+    if (!addr) {
+      dispatch("toast/openError", "addr is empty", {
+        root: true,
+      });
+      return false;
+    }
+
+    await commit("addArc200Asset", {
+      addr,
+      arc200Info,
+      network: this.state.config.env,
+    });
+    await dispatch("saveWallet");
+    return true;
   },
   async addPrivateAccount({ dispatch, commit }, { mn, name }) {
     if (!name) {
@@ -587,7 +611,10 @@ const actions = {
 
     const walletRecord = await db.wallets.get({ name: this.state.wallet.name });
 
-    const data = JSON.stringify(this.state.wallet);
+    const data = JSON.stringify(
+      this.state.wallet,
+      (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
+    );
     const dataencoded = CryptoJS.AES.encrypt(data, passw2);
     walletRecord.data = dataencoded.toString();
     await db.wallets.update(walletRecord.id, walletRecord);
@@ -628,7 +655,10 @@ const actions = {
       return false;
     }
     if (this.state.wallet) {
-      const data = JSON.stringify(this.state.wallet);
+      const data = JSON.stringify(
+        this.state.wallet,
+        (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
+      );
       const dataencoded = CryptoJS.AES.encrypt(data, pass);
       if (walletRecord && dataencoded) {
         walletRecord.data = dataencoded.toString();
@@ -683,7 +713,10 @@ const actions = {
       });
       return false;
     }
-    const data = JSON.stringify(this.state.wallet);
+    const data = JSON.stringify(
+      this.state.wallet,
+      (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
+    );
     const dataencoded = CryptoJS.AES.encrypt(data, pass);
 
     db.wallets

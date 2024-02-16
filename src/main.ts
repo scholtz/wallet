@@ -108,6 +108,22 @@ myApp.directive("ripple", Ripple);
 myApp.directive("tooltip", Tooltip);
 
 myApp.config.globalProperties.$filters = {
+  formatCurrencyBigInt(
+    value = 0,
+    currency = store.state.config.tokenSymbol,
+    minimumFractionDigits = 6,
+    multiply = true,
+    language = store.state.config.language
+  ) {
+    let valueNumber = 0;
+    if (multiply) {
+      valueNumber = Number(value) / Number(10 ** Number(minimumFractionDigits));
+    }
+    const formatter = new Intl.NumberFormat(language, {
+      minimumFractionDigits: Number(minimumFractionDigits),
+    });
+    return formatter.format(valueNumber) + " " + currency;
+  },
   formatCurrency(
     value = 0,
     currency = store.state.config.tokenSymbol,
@@ -122,19 +138,6 @@ myApp.config.globalProperties.$filters = {
       minimumFractionDigits,
     });
     return formatter.format(value) + " " + currency;
-    /*
-    if (currency.length == 3) {
-      const formatter = new Intl.NumberFormat(language, {
-        style: "currency",
-        currency,
-        minimumFractionDigits,
-        maximumFractionDigits: minimumFractionDigits,
-      });
-      const ret = formatter.format();
-
-      return ret;
-    } else {
-    }*/
   },
   formatDateTime(
     value = 0,
