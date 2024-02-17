@@ -10,6 +10,7 @@ import TransactionDetail from "@/pages/TransactionDetail.vue";
 import NotFound from "@/pages/404.vue";
 import FAQ from "@/pages/FAQ.vue";
 import Pay from "@/pages/Pay.vue";
+import Sign from "@/pages/Sign.vue";
 import Merchant from "@/pages/Merchant.vue";
 import ReceivePayment from "@/pages/ReceivePayment.vue";
 import Connect from "@/pages/Connect.vue";
@@ -238,9 +239,19 @@ const routes = [
     component: Pay,
   },
   {
+    path: "/accounts/:type/:account/:asset",
+    name: "PayWithAccountAndAsset",
+    component: Pay,
+  },
+  {
     path: "/pay/:toAccount",
     name: "Pay",
     component: Pay,
+  },
+  {
+    path: "/sign/:account/:rawSignedTxnInput",
+    name: "Sign",
+    component: Sign,
   },
   {
     path: "/payWC/",

@@ -5,338 +5,436 @@
       <SelectAccount v-model="payFromDirect" class="w-full"></SelectAccount>
     </div>
     <div v-if="account">
-      <form v-if="page == 'design'" @submit="previewPaymentClick">
-        <h1 v-if="!isRekey">
-          {{ $t("pay.title") }} <span v-if="account">{{ account.name }}</span>
-        </h1>
-        <h1 v-if="isRekey">
-          {{ $t("pay.rekey_title") }}
-          <span v-if="account">{{ account.name }}</span>
-        </h1>
+      <form v-if="page == 'review'" @submit="signTxClick">
+        <h1>{{ $t("pay.review_payment") }}</h1>
+        <p>{{ $t("pay.review_payment_help") }}</p>
+        <div class="grid">
+          <div class="col">
+            <div v-if="!multisigDecoded.txn" class="w-100">
+              <div class="field grid">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.from_account") }}
+                </label>
 
-        <Message severity="error" v-if="isRekey" class="my-2">
-          {{ $t("pay.rekey_warning") }}
-        </Message>
-        <p>{{ $t("pay.selected_account") }}: {{ account.addr }}</p>
-        <div v-if="isMultisig && !subpage">
-          <h2>{{ $t("pay.multisig_account") }}</h2>
-          <Button class="my-2" @click="this.subpage = 'proposal'">
-            {{ $t("pay.create_proposal") }}
-          </Button>
-          <Button class="m-2" @click="subpage = 'sign'">
-            {{ $t("pay.sign_proposal") }}
-          </Button>
-        </div>
-        <div v-if="subpage == 'sign'" class="grid">
-          <div class="col-12">
-            <div class="field grid">
-              <label
-                for="rawSignedTxnInput"
-                class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
-              >
-                {{ $t("pay.signature_from_friend") }}
-              </label>
-              <div class="col-12 md:col-10">
-                <Textarea
-                  id="rawSignedTxnInput"
-                  v-model="rawSignedTxnInput"
-                  class="w-full"
-                  rows="8"
-                />
+                <div class="col-12 md:col-10">{{ payFrom }}</div>
               </div>
-            </div>
-            <div class="field grid">
-              <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-              <div class="col-12 md:col-10">
-                <Button class="my-2" @click="loadMultisig">
-                  {{ $t("pay.load_multisig_data") }}
-                </Button>
+              <div class="field grid" v-if="malformedAddress">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold"> </label>
+                <div class="col-12 md:col-10">
+                  <Message severity="error">
+                    {{ $t("pay.pay_to_address_malformed") }}
+                  </Message>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-        <div v-if="showDesignScreen" class="grid">
-          <div :class="scan ? 'col-8' : 'col-12'">
-            <div v-if="$route.params.toAccount">
-              <InputText
-                v-if="!payTo"
-                id="payTo1"
-                v-model="$route.params.toAccount"
-                disabled
-                class="w-full"
-              />
-              <InputText
-                v-else
-                id="payTo2"
-                v-model="payTo"
-                disabled
-                class="w-full"
-              />
-            </div>
-            <div v-else>
-              <div v-if="!isRekey" class="field grid">
-                <label class="col-12 mb-2 md:col-2 md:mb-0">
+              <div class="field grid" v-if="txn && txn.type">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.tx_type") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  {{ txn.type }}
+                </div>
+              </div>
+              <div class="field grid" v-if="payTo">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                   {{ $t("pay.pay_to") }}
                 </label>
                 <div class="col-12 md:col-10">
-                  <TabView class="w-full" header-class="mr-2">
-                    <TabPanel
-                      :header="$t('pay.pay_to_wallet')"
-                      headerClass="mr-2"
-                    >
-                      <SelectAccount
-                        v-model="payTo"
-                        class="w-full"
-                      ></SelectAccount>
-                    </TabPanel>
-                    <TabPanel :header="$t('pay.pay_to_other')">
-                      <InputText id="payTo" v-model="payTo" class="w-full" />
-                      <div>
-                        <Button size="small" class="m-2" @click="toggleCamera">
-                          {{ $t("pay.toggle_camera") }}
-                        </Button>
-                        <p>
-                          {{ $t("pay.store_other_help") }}
-                        </p>
-                      </div>
-                    </TabPanel>
-                  </TabView>
+                  {{ payTo }}
                 </div>
               </div>
-              <Message
-                severity="error"
-                v-if="forcedAssetNotLoaded"
-                class="my-2"
-              >
-                {{ $t("pay.asset_failed_to_load") }}
-              </Message>
-            </div>
-            <div class="field grid" v-if="isRekey">
-              <label class="col-12 mb-2 md:col-2 md:mb-0">
-                {{ $t("pay.rekey_to") }}
-              </label>
-              <div class="col-12 md:col-10">
-                <TabView>
-                  <TabPanel
-                    :header="$t('pay.rekey_to_wallet_account')"
-                    class="mr-2"
-                  >
-                    <SelectAccount
-                      v-model="rekeyTo"
-                      class="w-full"
-                    ></SelectAccount>
-                  </TabPanel>
-                  <TabPanel :header="$t('pay.rekey_to_external_account')">
-                    <InputText id="rekeyTo" v-model="rekeyTo" class="w-full" />
-                    <div>
-                      <Button size="small" class="m-2" @click="toggleCamera">
-                        {{ $t("pay.toggle_camera") }}
-                      </Button>
-                      <p>
-                        {{ $t("pay.store_other_help") }}
-                      </p>
-                    </div>
-                  </TabPanel>
-                </TabView>
+              <div class="field grid" v-if="paynote">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.note") }}
+                </label>
+                <div class="col-12 md:col-10" v-if="paynote.length < 50">
+                  {{ paynote }}
+                </div>
+                <div class="col-12 md:col-10" v-else>
+                  <JsonViewer :value="paynote" copyable boxed sort />
+                </div>
+              </div>
+              <div class="field grid">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.environment") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  {{ $store.state.config.env }}
+                </div>
+              </div>
+              <div class="field grid" v-if="assetObj">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("optin.assetId") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  {{ assetObj["asset-id"] ? assetObj["asset-id"] : "Algo" }}
+                </div>
+              </div>
+              <div class="field grid">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.amount") }}
+                </label>
+                <div class="col-12 md:col-10" v-if="assetObj">
+                  {{
+                    $filters.formatCurrency(
+                      amountLong,
+                      assetObj.name,
+                      assetObj.decimals
+                    )
+                  }}
+                </div>
+                <div class="col-12 md:col-10" v-else>
+                  {{ $filters.formatCurrency(amountLong) }}
+                </div>
+              </div>
+              <div class="field grid">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.fee") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  {{ $filters.formatCurrency(feeLong) }}
+                </div>
+              </div>
+              <div class="field grid" v-if="!asset">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.total") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  {{ $filters.formatCurrency(amountLong + feeLong) }}
+                </div>
+              </div>
+              <div class="field grid" v-if="rekeyTo">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.rekey_to") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  <Message severity="error">
+                    {{ rekeyTo }}
+                  </Message>
+                </div>
               </div>
             </div>
-            <div>
+
+            <div v-if="multisigDecoded.txn">
+              <h2>{{ $t("pay.transaction_details") }}</h2>
+              <div class="field grid">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.type") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  {{ multisigDecoded.txn.type }}
+                </div>
+              </div>
+              <div class="field grid">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.name") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  {{ multisigDecoded.txn.name }}
+                </div>
+              </div>
+              <div class="field grid" v-if="multisigDecoded.txn.amount">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.amount") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  {{ $filters.formatCurrency(multisigDecoded.txn.amount) }}
+                </div>
+              </div>
+              <div class="field grid">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.fee") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  {{ $filters.formatCurrency(multisigDecoded.txn.fee) }}
+                </div>
+              </div>
+              <div class="field grid">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.first_round") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  {{ multisigDecoded.txn.firstRound }}
+                </div>
+              </div>
+              <div class="field grid">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.last_round") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  {{ multisigDecoded.txn.lastRound }}
+                </div>
+              </div>
+              <div class="field grid">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.genesis") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  {{ multisigDecoded.txn.genesisID }}
+                </div>
+              </div>
+              <div class="field grid">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.note") }}
+                </label>
+                <div class="col-12 md:col-10" v-if="multisigDecoded.txn.note">
+                  {{ msigNote }}
+                </div>
+              </div>
+              <div class="field grid">
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.tag") }}
+                </label>
+                <div class="col-12 md:col-10">
+                  {{ multisigDecoded.txn.tag }}
+                </div>
+              </div>
               <div
                 class="field grid"
-                v-if="forceAsset && assetObj && assetObj.name"
+                v-if="
+                  multisigDecoded.txn.reKeyTo &&
+                  multisigDecoded.txn.reKeyTo.publicKey
+                "
               >
-                <label for="asset" class="col-12 mb-2 md:col-2 md:mb-0">
-                  {{ $t("pay.asset") }}
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.rekey_to") }}
                 </label>
                 <div class="col-12 md:col-10">
-                  <InputText v-model="assetObj.name" class="w-full" disabled />
+                  <Message severity="error">
+                    {{ encodeAddress(multisigDecoded.txn.reKeyTo.publicKey) }}
+                  </Message>
                 </div>
               </div>
-              <div class="field grid" v-else>
-                <label for="asset" class="col-12 mb-2 md:col-2 md:mb-0">
-                  {{ $t("pay.asset") }}
+              <div
+                class="field grid"
+                v-if="
+                  multisigDecoded.txn.to && multisigDecoded.txn.to.publicKey
+                "
+              >
+                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                  {{ $t("pay.to_account") }}
                 </label>
-
                 <div class="col-12 md:col-10">
-                  <Dropdown
-                    inputId="asset"
-                    v-model="asset"
-                    filter
-                    :options="assets"
-                    optionLabel="asset-id"
-                    optionValue="asset-id"
-                    :placeholder="$t('pay.asset')"
-                    class="w-full"
-                    inputClass="w-full"
-                  >
-                    <template #value="slotProps">
-                      <div
-                        v-if="slotProps.value"
-                        class="flex align-items-center"
-                      >
-                        <div>
-                          {{
-                            assets.find((a) => a["asset-id"] == slotProps.value)
-                              ?.name
-                          }}
-                          <span v-if="slotProps.value > 0">
-                            (
-                            {{ slotProps.value }}
-                            )</span
-                          >
-                          <span v-else> &nbsp;(Native token)</span>
-                        </div>
-                      </div>
-                      <span v-else>
-                        {{ slotProps.placeholder }}
-                      </span>
-                    </template>
-                    <template #option="slotProps">
-                      <div
-                        v-if="slotProps.option"
-                        class="flex align-items-center"
-                      >
-                        {{ slotProps.option.name }}
-                        <span v-if="slotProps.option['asset-id'] > 0">
-                          &nbsp;({{ slotProps.option["asset-id"] }})&nbsp;
-                        </span>
-                        <span v-else>&nbsp;(Native token)&nbsp;</span>
-                        Balance:
-                        {{
-                          $filters.formatCurrency(
-                            slotProps.option["amount"],
-                            slotProps.option["name"],
-                            slotProps.option["decimals"]
-                          )
-                        }}
-                      </div>
-                    </template>
-                  </Dropdown>
+                  {{ encodeAddress(multisigDecoded.txn.to.publicKey) }}
                 </div>
-              </div>
-            </div>
-            <Message severity="error" v-if="payamountGtMaxAmount" class="my-2">
-              {{ $t("pay.asset_too_small_balance") }}
-            </Message>
-            <div v-if="!isRekey" class="field grid">
-              <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">
-                {{ $t("pay.amount") }}
-              </label>
-              <div class="col-12 md:col-10">
-                <InputGroup>
-                  <InputNumber
-                    itemId="payamount"
-                    v-model="payamount"
-                    :min="0"
-                    :max="maxAmount"
-                    :step="stepAmount"
-                    class="w-full"
-                  />
-                  <InputGroupAddon v-if="assetUnit">
-                    {{ assetUnit }}
-                  </InputGroupAddon>
-                  <Button
-                    severity="secondary"
-                    class="col-2"
-                    @click="setMaxAmount"
-                  >
-                    {{ $t("pay.set_max") }}
-                  </Button>
-                </InputGroup>
-              </div>
-            </div>
-            <div class="field grid">
-              <label for="fee" class="col-12 mb-2 md:col-2 md:mb-0">
-                {{ $t("pay.fee") }}
-              </label>
-              <div class="col-12 md:col-10">
-                <InputGroup>
-                  <InputNumber
-                    inputId="fee"
-                    v-model="fee"
-                    :min="0.001"
-                    :max="1"
-                    :step="0.001"
-                    class="w-full"
-                  />
-                  <InputGroupAddon>
-                    {{ this.$store.state.config.tokenSymbol }}
-                  </InputGroupAddon>
-                </InputGroup>
-              </div>
-            </div>
-            <div class="field grid">
-              <label for="paynote" class="col-12 mb-2 md:col-2 md:mb-0">
-                {{ $t("pay.note") }}
-              </label>
-              <div class="col-12 md:col-10">
-                <InputText id="paynote" v-model="paynote" class="w-full" />
-              </div>
-            </div>
-
-            <div class="field grid" v-if="noteIsB64">
-              <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-              <div class="col-12 md:col-10">
-                <Checkbox
-                  inputId="paynoteB64"
-                  v-model="paynoteB64"
-                  class="mr-2"
-                />
-                <label class="form-check-label" for="paynoteB64">
-                  {{ $t("pay.note_is_b64") }}
-                </label>
-              </div>
-            </div>
-
-            <div class="field grid">
-              <label for="env" class="col-12 mb-2 md:col-2 md:mb-0">
-                {{ $t("pay.environment") }}
-              </label>
-              <div class="col-12 md:col-10">
-                <InputText
-                  id="env"
-                  :value="$store.state.config.env"
-                  class="w-full"
-                  disabled
-                />
-              </div>
-            </div>
-            <div class="field grid">
-              <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-              <div class="col-12 md:col-10">
-                <Button
-                  :disabled="isNotValid"
-                  class="my-2"
-                  @click="previewPaymentClick"
-                >
-                  {{ $t("pay.review_payment") }}
-                </Button>
-                <Button
-                  v-if="isMultisig"
-                  severity="secondary"
-                  class="m-2"
-                  value="Cancel"
-                  @click="subpage = ''"
-                >
-                  {{ $t("global.cancel") }}
-                </Button>
-                <Button
-                  v-if="!isMultisig"
-                  severity="secondary"
-                  class="m-2"
-                  value="Cancel"
-                  @click="$router.push('/accounts')"
-                >
-                  {{ $t("global.cancel") }}
-                </Button>
               </div>
             </div>
           </div>
-
-          <div v-if="scan" class="col-4">
-            <QrcodeStream @decode="onDecodeQR" />
+          <div class="col" v-if="multisigDecoded && multisigDecoded.msig">
+            <h2>{{ $t("pay.signatures") }} {{ showSignaturesCount }}</h2>
+            <div
+              class="field grid"
+              v-for="sig in multisigDecoded.msig.subsig"
+              :key="sig"
+            >
+              <label class="col-12 mb-2 md:col-2 md:mb-0">
+                <AlgorandAddress :address="encodeAddress(sig.pk)" />
+              </label>
+              <div class="col-12 md:col-10">
+                <Badge
+                  severity="success"
+                  v-if="sig.s"
+                  :value="$t('pay.signed')"
+                />
+                <Badge
+                  severity="danger"
+                  v-if="!sig.s"
+                  :value="$t('pay.not_signed')"
+                />
+              </div>
+            </div>
           </div>
         </div>
+        <div class="field grid">
+          <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold"></label>
+          <div class="col-12 md:col-10">
+            <Button
+              v-if="
+                !isMultisig &&
+                !(rawSignedTxn && Object.values(rawSignedTxn)?.length > 0)
+              "
+              @click="signTxClick"
+            >
+              Sign transaction
+            </Button>
+            <Button
+              v-if="
+                !isMultisig &&
+                rawSignedTxn &&
+                Object.values(rawSignedTxn)?.length > 0
+              "
+              @click="submitSignedClick"
+              :disabled="processing"
+            >
+              Send tx to the network
+              <ProgressSpinner
+                v-if="processing"
+                style="width: 1em; height: 1em"
+                strokeWidth="10"
+                class="ml-2"
+              />
+            </Button>
+            <span
+              v-if="!(rawSignedTxn && Object.values(rawSignedTxn)?.length > 0)"
+            >
+              <Button
+                v-if="isMultisig && $route.name != 'PayFromWalletConnect'"
+                @click="payPaymentClick"
+              >
+                {{ $t("pay.create_multisig_proposal") }}
+              </Button>
+            </span>
+          </div>
+        </div>
+        <JsonViewer
+          v-if="
+            txn &&
+            $store &&
+            $store.state &&
+            $store.state.config &&
+            $store.state.config.dev
+          "
+          :value="txn"
+          copyable
+          boxed
+          sort
+        />
+
+        <div
+          v-if="
+            isMultisig && txn && accountFor2FA && !isSignedByAccountFor2FAAddr
+          "
+        >
+          <h2>{{ $t("pay.2fa_code") }}</h2>
+          <div v-if="accountFor2FAAuthToken">
+            <div>
+              <InputMask itemid="txtCode" v-model="txtCode" mask="999-999" />
+            </div>
+            <div>
+              <Button
+                class="my-2"
+                :disabled="!txtCode || txtCode.indexOf('_') >= 0"
+                @click="sign2FAClick"
+              >
+                {{ $t("pay.sign") }}
+              </Button>
+            </div>
+          </div>
+          <div v-else>
+            <Button class="my-2" @click="authorizePrimaryAccountClick">
+              {{ $t("pay.sign_arc14_request") }}
+            </Button>
+          </div>
+        </div>
+
+        <div v-if="isMultisig && multisigDecoded.txn">
+          <div v-if="accountsFromMultisig && accountsFromMultisig.length > 0">
+            <h2>{{ $t("pay.sign_with") }}</h2>
+            <MultiSelect
+              v-model="signMultisigWith"
+              class="w-full"
+              :options="accountsFromMultisig"
+              optionLabel="name"
+              optionValue="addr"
+            >
+              <template #optiongroup="slotProps">
+                <div class="flex align-items-center">
+                  {{ slotProps.option.name + "  - " + slotProps.option.addr }}
+                </div>
+              </template>
+            </MultiSelect>
+            <Button
+              class="my-2"
+              :disabled="signMultisigWith.length == 0"
+              @click="signMultisig"
+            >
+              {{ $t("pay.sign") }}
+            </Button>
+          </div>
+          <div v-if="isSignedByAny && showFormSend">
+            <h2>{{ $t("pay.send_to_other_signators") }}</h2>
+            <Textarea
+              v-if="rawSignedTxn"
+              v-model="rawSignedTxn"
+              class="w-full my-2"
+              rows="4"
+            />
+          </div>
+          <div v-if="showFormCombine">
+            <h2 v-if="rawSignedTxn">{{ $t("pay.combine_title") }}:</h2>
+            <Textarea
+              v-if="rawSignedTxn"
+              v-model="rawSignedTxnFriend"
+              class="w-full my-2"
+              rows="4"
+            />
+            <Button
+              v-if="rawSignedTxnFriend"
+              class="m-2"
+              :disabled="!rawSignedTxn && !rawSignedTxnInput"
+              @click="combineSignatures"
+            >
+              {{ $t("pay.combine_action") }}
+            </Button>
+          </div>
+
+          <Button
+            v-if="$route.name != 'PayFromWalletConnect'"
+            class="m-2"
+            :disabled="!thresholdMet"
+            @click="sendMultisig"
+          >
+            {{ $t("pay.send_to_network") }}
+          </Button>
+          <Button
+            v-if="$route.name == 'PayFromWalletConnect'"
+            class="m-2"
+            :disabled="!thresholdMet"
+            @click="retToWalletConnect"
+          >
+            {{ $t("pay.return_to_wc") }}
+          </Button>
+          <Button
+            v-if="isSignedByAny"
+            severity="secondary"
+            class="m-2"
+            @click="toggleShowFormSend"
+          >
+            {{ $t("pay.toggle_send_to_others_form") }}
+          </Button>
+          <Button
+            severity="secondary"
+            class="m-2"
+            @click="toggleShowFormCombine"
+          >
+            {{ $t("pay.toggle_combine_with_others_form") }}
+          </Button>
+        </div>
+
+        <Message severity="info" v-if="!tx && processing" class="my-2">
+          <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
+
+          {{ $t("pay.state_sending") }}
+        </Message>
+        <Message severity="info" v-if="tx && !confirmedRound" class="my-2">
+          <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
+
+          {{ $t("pay.state_sent") }}: {{ tx }}.
+          {{ $t("pay.state_waiting_confirm") }}
+        </Message>
+        <Message severity="success" v-if="confirmedRound" class="my-2">
+          {{ $t("pay.state_confirmed") }} <b>{{ confirmedRound }}</b
+          >. {{ $t("pay.transaction") }}: {{ tx }}.
+        </Message>
+        <Message severity="error" v-if="error" class="my-2">
+          {{ $t("pay.error") }}: {{ error }}
+        </Message>
+        <Message
+          severity="error"
+          v-if="$store.state.toast.lastError"
+          class="my-2"
+        >
+          {{ $t("global.last_error") }}: {{ $store.state.toast.lastError }}
+        </Message>
       </form>
     </div>
   </main-layout>
@@ -356,9 +454,6 @@ import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
 import MultiSelect from "primevue/multiselect";
-import Contract from "arc200js";
-
-import { getArc200Client } from "arc200-client";
 
 export default {
   components: {
@@ -383,7 +478,7 @@ export default {
       rekeyTo: "",
       paynote: "",
       paynoteB64: false,
-      page: "design",
+      page: "review",
       tx: "",
       processing: false,
       error: "",
@@ -424,9 +519,6 @@ export default {
       return Math.round(this.payamount * this.decimalsPower);
     },
     decimalsPower() {
-      if (this.assetData) {
-        return Math.pow(10, this.assetData.decimals);
-      }
       let decimals = 6;
       if (this.assetObj && this.assetObj.decimals !== undefined) {
         decimals = this.assetObj.decimals;
@@ -520,19 +612,12 @@ export default {
         (a) => a["asset-id"] == this.asset
       );
     },
-    assetData() {
-      return this.assets.find((a) => a["asset-id"] == this.asset);
-    },
     maxAmount() {
       if (!this.accountData) return 0;
-      if (!this.assetData) return 0;
 
-      if (this.assetData.type == "ARC200") {
-        if (!this.assetData) return 0;
-        return this.assetData.amount / 10 ** this.assetData.decimals;
-      } else if (this.assetData.type == "ASA") {
-        if (!this.assetData) return 0;
-        return this.assetData.amount / 10 ** this.assetData.decimals;
+      if (this.asset > 0) {
+        if (!this.selectedAssetFromAccount) return 0;
+        return this.selectedAssetFromAccount.amount / this.decimalsPower;
       } else {
         let ret = this.accountData.amount / 1000000 - 0.1;
         ret = ret - this.fee;
@@ -671,59 +756,37 @@ export default {
     this.resetError();
     this.payTo = this.$store.state.wallet.lastpayTo;
 
-    if (this.$route.params.asset) {
-      this.asset = this.$route.params.asset;
+    if (!this.$route.params.rawSignedTxnInput) {
+      this.openError("Payload not found");
+      return;
     }
 
     if (this.$route.params.toAccount) {
       this.parseToAccount();
-    }
-    if (this.$route.name == "PayFromWalletConnect") {
-      try {
-        this.txn = this.$store.state.signer.toSign;
-
-        if (this.txn.to) {
-          this.payTo = algosdk.encodeAddress(this.txn.to.publicKey);
-        }
-        this.payFromDirect = algosdk.encodeAddress(this.txn.from.publicKey);
-
-        const rawSignedTxn = await this.signerCreateMultisigTransaction({
-          txn: this.txn,
-          from: this.payFrom,
-        });
-        this.rawSignedTxn = this._arrayBufferToBase64(rawSignedTxn);
-        this.rawSignedTxnInput = this.rawSignedTxn;
-
-        this.multisigDecoded = algosdk.decodeSignedTransaction(
-          this._base64ToArrayBuffer(this.rawSignedTxnInput)
-        );
-        this.note = this.txn.note;
-        this.asset = this.txn.assetIndex;
-        this.page = "review";
-
-        const b64Url = this.base642base64url(rawSignedTxn);
-        this.$router.push(`/sign/${this.payFrom}/` + b64Url);
-      } catch (e) {
-        console.error("Input is not valid base64-url format ", e);
-      }
     }
     if (this.$route.params.rawSignedTxnInput) {
       try {
         const encoded = this.$route.params.rawSignedTxnInput;
         const b64 = this.base64url2base64(encoded);
         const uint8buffer = this._base64ToArrayBuffer(b64);
-
-        this.txn = algosdk.decodeUnsignedTransaction(uint8buffer);
+        try {
+          this.txn = algosdk.decodeUnsignedTransaction(uint8buffer);
+        } catch (e) {
+          try {
+            const signed = algosdk.decodeSignedTransaction(uint8buffer);
+            this.rawSignedTxn = b64;
+            this.multisigDecoded = signed;
+            this.txn = this.multisigDecoded.txn;
+          } catch (e2) {
+            console.error("failed to parse tx", e, e2);
+          }
+        }
         if (this.txn.to) {
           this.payTo = algosdk.encodeAddress(this.txn.to.publicKey);
         }
         this.note = this.txn.note;
         this.asset = this.txn.assetIndex;
         this.page = "review";
-        this.$router.push(
-          `/sign/${this.payFrom}/` +
-            this.base642base64url(this.$route.params.rawSignedTxnInput)
-        );
       } catch (e) {
         console.error("Input is not valid base64-url format ", e);
       }
@@ -780,12 +843,11 @@ export default {
       signerSignMultisig: "signer/signMultisig",
       signerCreateMultisigTransaction: "signer/createMultisigTransaction",
       signerSetSigned: "signer/setSigned",
+      signTransaction: "signer/signTransaction",
       signAuthTx: "arc14/signAuthTx",
       getRealm: "fa2/getRealm",
       signTwoFactor: "fa2/signTwoFactor",
       resetError: "toast/resetError",
-      getAlgod: "algod/getAlgod",
-      getIndexer: "indexer/getIndexer",
     }),
     isBase64(str) {
       try {
@@ -889,122 +951,15 @@ export default {
         this.setEnv({ env: this.b64decode.network });
       }
     },
-    async previewPaymentClick(e) {
-      try {
-        const asset = this.assets.find((a) => a["asset-id"] == this.asset);
-        if (!asset) {
-          console.error("no asset selected");
-          return;
-        }
-        console.log("asset", asset);
-        if (asset.type == "ASA") {
-          await this.redirectToASAPayment();
-        }
-        if (asset.type == "Native") {
-          await this.redirectToNativePayment();
-        }
-        if (asset.type == "ARC200") {
-          await this.redirectToARC200Payment();
-        }
-        //this.page = "review";
-        this.error = "";
-        this.confirmedRound = "";
-        this.tx = null;
+    previewPaymentClick(e) {
+      this.page = "review";
+      this.error = "";
+      this.confirmedRound = "";
+      this.tx = null;
 
-        this.processing = false;
-        this.prolong();
-        e.preventDefault();
-      } catch (e) {
-        console.error("previewPaymentClick.error", e);
-        this.openError(e.message ?? e);
-      }
-    },
-    async redirectToASAPayment() {
-      try {
-        const payTo = this.payTo;
-        const payFrom = this.payFrom;
-        const amount = this.amountLong;
-        const note = this.paynote;
-        let fee = this.feeLong;
-        const asset = this.asset;
-
-        const enc = new TextEncoder();
-        let noteEnc = enc.encode(note);
-        const tx = await this.preparePayment({
-          payTo,
-          payFrom,
-          amount,
-          noteEnc,
-          fee,
-          asset,
-          reKeyTo: this.rekeyTo ? this.rekeyTo : undefined,
-        });
-        const encodedTx = algosdk.encodeUnsignedTransaction(tx);
-        const b64 = Buffer.from(encodedTx).toString("base64");
-        const b64Url = this.base642base64url(b64);
-        console.log("b64", b64, b64Url);
-        this.$router.push(`/sign/${this.payFrom}/` + b64Url);
-      } catch (e) {
-        console.error("redirectToASAPayment.error", e);
-        this.openError(e.message ?? e);
-      }
-    },
-    async redirectToNativePayment() {
-      try {
-        const payTo = this.payTo;
-        const payFrom = this.payFrom;
-        const amount = this.amountLong;
-        const note = this.paynote;
-        let fee = this.feeLong;
-        const asset = this.asset;
-
-        const enc = new TextEncoder();
-        let noteEnc = enc.encode(note);
-        const tx = await this.preparePayment({
-          payTo,
-          payFrom,
-          amount,
-          noteEnc,
-          fee,
-          asset,
-          reKeyTo: this.rekeyTo ? this.rekeyTo : undefined,
-        });
-        const encodedTx = algosdk.encodeUnsignedTransaction(tx);
-        const b64 = Buffer.from(encodedTx).toString("base64");
-        const b64Url = this.base642base64url(b64);
-        console.log("b64", b64, b64Url);
-        this.$router.push(`/sign/${this.payFrom}/` + b64Url);
-      } catch (e) {
-        console.error("redirectToNativePayment.error", e);
-        this.openError(e.message ?? e);
-      }
-    },
-    async redirectToARC200Payment() {
-      try {
-        const algod = await this.getAlgod();
-        const client = getArc200Client({
-          algod,
-          appId: BigInt(this.asset),
-          sender: { addr: this.payFrom },
-        });
-        console.log("this.amountLong", this.amountLong, this.payTo);
-        const compose = client
-          .compose()
-          .arc200Transfer({ to: this.payTo, value: BigInt(this.amountLong) });
-        const atc = await compose.atc();
-        const txsToSign = atc.buildGroup().map((tx) => tx.txn);
-        console.log("txsToSign", txsToSign);
-        this.tx = txsToSign[0];
-        const encoded = this.base642base64url(
-          Buffer.from(algosdk.encodeUnsignedTransaction(this.tx)).toString(
-            "base64"
-          )
-        );
-        this.$router.push(`/sign/${this.payFrom}/${encoded}`);
-      } catch (e) {
-        console.error("redirectToARC200Payment.error", e);
-        this.openError(e.message ?? e);
-      }
+      this.processing = false;
+      this.prolong();
+      e.preventDefault();
     },
     async payMultisig() {
       this.prolong();
@@ -1069,6 +1024,7 @@ export default {
           });
           await this.addSignature(newTx);
         } catch (e) {
+          console.error("error adding signature", e);
           this.openError(e.message ?? e);
         }
       }
@@ -1114,7 +1070,72 @@ export default {
         .replaceAll("/", "_")
         .replaceAll("=", "");
     },
+    async signTxClick(e) {
+      this.prolong();
+      e.preventDefault();
+      const signed = await this.signTransaction({
+        from: this.payFrom,
+        signator: this.payFrom,
+        tx: this.txn,
+      });
+      console.log("signed", signed);
+      this.rawSignedTxn = signed;
+    },
+    async submitSignedClick() {
+      try {
+        this.processing = true;
+        this.prolong();
+        console.log("this.rawSignedTxn", this.rawSignedTxn);
+        this.tx = (
+          await this.sendRawTransaction({
+            signedTxn: new Uint8Array(Buffer.from(this.rawSignedTxn)),
+          })
+        )?.txId;
+        console.log("this.tx", this.tx);
+        if (!this.tx) {
+          console.error("this.submitSignedClick has failed");
+          this.error = this.$t("pay.state_error_not_sent");
+          this.openError(this.error);
+          this.processing = false;
+        }
 
+        const confirmation = await this.waitForConfirmation({
+          txId: this.tx,
+          timeout: 4,
+        });
+        if (!confirmation) {
+          console.error(`confirmation not received for this.tx`);
+          this.processing = false;
+          this.error = this.$t("pay.state_error_not_sent");
+          this.openError(this.error);
+          //            "Payment has probably not reached the network. Are you offline? Please check you account";
+          return;
+        }
+        if (confirmation["confirmed-round"]) {
+          this.processing = false;
+          this.confirmedRound = confirmation["confirmed-round"];
+
+          if (this.rekeyTo) {
+            const info = {};
+            info.address = this.payFrom;
+            info.rekeyedTo = this.rekeyTo;
+            await this.updateAccount({ info });
+            await this.openSuccess(
+              `Information about rekeying to address ${this.rekeyTo} has been stored`
+            );
+          }
+        }
+        if (confirmation["pool-error"]) {
+          this.processing = false;
+          this.error = confirmation["pool-error"];
+        }
+        this.processing = false;
+      } catch (exc) {
+        console.error("submitSignedClick.error", exc);
+        this.openError(exc);
+        this.error = exc;
+      }
+    },
     async payPaymentClick(e) {
       this.prolong();
       e.preventDefault();
@@ -1223,11 +1244,6 @@ export default {
       );
       this.txn = this.multisigDecoded.txn;
       this.rawSignedTxn = this.rawSignedTxnInput;
-
-      this.$router.push(
-        `/sign/${this.payFrom}/` + this.base642base64url(this.rawSignedTxnInput)
-      );
-
       this.page = "review";
       if (
         this.multisigDecoded &&

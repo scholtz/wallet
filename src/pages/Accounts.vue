@@ -208,9 +208,14 @@ export default {
         ).filter(
           (a) =>
             a.data &&
+            !a.isHidden &&
             a.data[this.$store.state.config.env] &&
-            a.data[this.$store.state.config.env].amount > 0 &&
-            !a.isHidden
+            (a.data[this.$store.state.config.env].amount > 0 ||
+              // arc200 accounts does not have to have any amount
+              (a.data[this.$store.state.config.env].arc200 &&
+                Object.values(a.data[this.$store.state.config.env].arc200).find(
+                  (a) => a.balance > 0
+                )))
         );
         if (!this.accounts.length) {
           this.accounts = Object.values(

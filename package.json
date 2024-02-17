@@ -29,6 +29,7 @@
     "@walletconnect/web3wallet": "^1.10.1",
     "@web3modal/sign-html": "^2.4.7",
     "algosdk": "^2.7.0",
+    "arc200-client": "^1.0.0",
     "arc200js": "^2.3.3",
     "axios": "^1.6.7",
     "base64url": "^3.0.1",

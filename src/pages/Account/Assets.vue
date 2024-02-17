@@ -106,7 +106,12 @@
             <i class="pi pi-refresh"></i>
           </Button>
           <RouterLink
-            :to="'/accounts/pay/' + $store.state.wallet.lastActiveAccount"
+            :to="
+              '/accounts/pay/' +
+              $store.state.wallet.lastActiveAccount +
+              '/' +
+              slotProps.data['asset-id']
+            "
           >
             <Button
               class="m-1"
@@ -276,7 +281,6 @@ export default {
       }
       if (this.accountData && this.accountData.arc200) {
         for (const accountAsset of Object.values(this.accountData.arc200)) {
-          console.log("arc200", accountAsset);
           this.assets.push({
             "asset-id": Number(accountAsset.arc200id),
             amount: Number(accountAsset.balance),
