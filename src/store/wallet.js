@@ -45,6 +45,17 @@ const mutations = {
     if (!acc.data[network]["arc200"]) acc.data[network]["arc200"] = {};
     acc.data[network]["arc200"][arc200Info.arc200id] = arc200Info;
   },
+  updateArc200Balance(state, { addr, network, arc200Id, balance }) {
+    const acc = state.privateAccounts.find((x) => x.addr == addr);
+    if (!acc.data) acc.data = {};
+    if (!acc.data[network]) acc.data[network] = {};
+    if (!acc.data[network]["arc200"]) acc.data[network]["arc200"] = {};
+    if (!acc.data[network]["arc200"][arc200Id]) {
+      throw Error(`Asset with id ${arc200Id} is not present to the wallet.`);
+    }
+    console.log("setting balance", addr, arc200Id, balance);
+    acc.data[network]["arc200"][arc200Id].balance = balance;
+  },
   addPublicAccount(state, { name, addr }) {
     const acc = { name, addr, address: addr };
     state.privateAccounts.push(acc);
@@ -287,6 +298,29 @@ const actions = {
       addr,
       arc200Info,
       network: this.state.config.env,
+    });
+    await dispatch("saveWallet");
+    return true;
+  },
+  async updateArc200Balance({ dispatch, commit }, { addr, arc200Id, balance }) {
+    if (!addr) {
+      dispatch("toast/openError", "addr is empty", {
+        root: true,
+      });
+      return false;
+    }
+    if (!arc200Id) {
+      dispatch("toast/openError", "arc200Id is empty", {
+        root: true,
+      });
+      return false;
+    }
+
+    await commit("updateArc200Balance", {
+      addr,
+      arc200Id,
+      network: this.state.config.env,
+      balance,
     });
     await dispatch("saveWallet");
     return true;

@@ -47,20 +47,7 @@
             <Badge severity="info" value="ASA"></Badge>
           </div>
           <div v-else-if="slotProps.data['type'] == 'ARC200'">
-            <div class="flex align-items-center flex-wrap">
-              <Badge
-                severity="success"
-                value="ARC200"
-                class="flex align-items-center justify-content-center"
-              ></Badge>
-
-              <Button
-                class="m-2 flex align-items-center justify-content-center"
-                size="small"
-              >
-                <i class="pi pi-refresh"></i>
-              </Button>
-            </div>
+            <Badge severity="success" value="ARC200"></Badge>
           </div>
         </template>
         <template #filter="{ filterModel, filterCallback }">
@@ -113,6 +100,25 @@
           />
         </template>
       </Column>
+      <Column header="Actions" :sortable="true">
+        <template #body="slotProps">
+          <Button class="m-1" size="small" @click="refresh(slotProps.data)">
+            <i class="pi pi-refresh"></i>
+          </Button>
+          <RouterLink
+            :to="'/accounts/pay/' + $store.state.wallet.lastActiveAccount"
+          >
+            <Button
+              class="m-1"
+              size="small"
+              @click="refresh(slotProps.data)"
+              :title="$t('acc_overview.pay')"
+            >
+              <i class="pi pi-send"></i>
+            </Button>
+          </RouterLink>
+        </template>
+      </Column>
     </DataTable>
   </MainLayout>
 </template>
@@ -125,6 +131,7 @@ import copy from "copy-to-clipboard";
 import AccountTopMenu from "../../components/AccountTopMenu.vue";
 import { FilterMatchMode } from "primevue/api";
 import Badge from "primevue/badge";
+import Contract from "arc200js";
 export default {
   components: {
     MainLayout,
@@ -232,6 +239,9 @@ export default {
       setAccountOnline: "kmd/setAccountOnline",
       setAccountOffline: "kmd/setAccountOffline",
       openSuccess: "toast/openSuccess",
+      getAlgod: "algod/getAlgod",
+      getIndexer: "indexer/getIndexer",
+      updateArc200Balance: "wallet/updateArc200Balance",
     }),
     async makeAssets() {
       this.loading = true;
@@ -240,7 +250,7 @@ export default {
         this.assets.push({
           "asset-id": "",
           amount: this.accountData.amount,
-          name: "ALG",
+          name: this.$store.state.config.tokenSymbol,
           decimals: 6,
           "unit-name": "",
           type: "Native",
@@ -293,6 +303,38 @@ export default {
       const asset = this.getAssetSync(id);
       if (asset) return asset["decimals"];
     },
+    async refresh(data) {
+      if (data.type == "ARC200") {
+        console.log("ARC200 reload", data);
+        this.reloadArc200AccountBalance(data);
+      } else {
+        console.log("reload", data);
+        return await this.reloadAccount();
+      }
+    },
+    async reloadArc200AccountBalance(data) {
+      if (data.type != "ARC200") {
+        console.error("Not arc200 asset", data);
+      }
+      const algodClient = await this.getAlgod();
+      const indexerClient = await this.getIndexer();
+      console.log("data.arc200id", data["asset-id"], data);
+      const contract = new Contract(
+        data["asset-id"],
+        algodClient,
+        indexerClient
+      );
+      var balance = await contract.arc200_balanceOf(this.account.addr);
+      if (!balance.success) {
+        this.openError("Failed to fetch ARC200 balance");
+        return;
+      }
+      await this.updateArc200Balance({
+        addr: this.account.addr,
+        arc200Id: data["asset-id"],
+        balance: balance.returnValue,
+      });
+    },
     async reloadAccount() {
       await this.accountInformation({
         addr: this.$route.params.account,
@@ -317,12 +359,6 @@ export default {
           }
         }
       });
-      const searchData = await this.searchForTransactions({
-        addr: this.$route.params.account,
-      });
-      if (searchData) {
-        this.transactions = searchData.transactions;
-      }
     },
     copyToClipboard(text) {
       if (copy(text)) {
