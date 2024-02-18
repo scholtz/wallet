@@ -1,73 +1,78 @@
 <template>
   <MainLayout>
     <h1>{{ $t("new_account_ledger.header") }}</h1>
-    <p>
-      {{ $t("new_account_ledger.description") }}
-    </p>
-    <div v-if="lastError">
-      <Message severity="error">
-        {{ $t("new_account_ledger.last_error") }}: {{ lastError }}
-      </Message>
-    </div>
-    <div class="field grid">
-      <label for="slot" class="col-12 mb-2 md:col-2 md:mb-0">
-        {{ $t("new_account_ledger.slot") }}
-      </label>
-      <div class="col-12 md:col-10">
-        <InputNumber
-          showButtons
-          inputId="slot"
-          v-model="slot"
-          :min="0"
-          :max="2147483647"
-          :step="1"
-          class="w-full"
-        />
-      </div>
-    </div>
 
-    <div class="field grid">
-      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-      <div class="col-12 md:col-10">
-        <Button
-          class="my-2"
-          :severity="address ? 'secondary' : 'primary'"
-          @click="clickAddress"
-        >
-          {{ $t("new_account_ledger.connect") }}
-        </Button>
-      </div>
-    </div>
-    <div class="field grid" v-if="address">
-      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-      <div class="col-12 md:col-10">
-        <div>
-          {{ $t("new_account_ledger.slot") }} {{ loadedSlot }}
-          {{ $t("new_account_ledger.address") }}: {{ address }}
+    <Card>
+      <template #content>
+        <p>
+          {{ $t("new_account_ledger.description") }}
+        </p>
+        <div v-if="lastError">
+          <Message severity="error">
+            {{ $t("new_account_ledger.last_error") }}: {{ lastError }}
+          </Message>
         </div>
-        <div v-if="address0 != address">
-          {{ $t("new_account_ledger.primary_address") }}: {{ address0 }}
+        <div class="field grid">
+          <label for="slot" class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ $t("new_account_ledger.slot") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <InputNumber
+              showButtons
+              inputId="slot"
+              v-model="slot"
+              :min="0"
+              :max="2147483647"
+              :step="1"
+              class="w-full"
+            />
+          </div>
         </div>
-      </div>
-    </div>
 
-    <div class="field grid">
-      <label for="account_name" class="col-12 mb-2 md:col-2 md:mb-0">
-        {{ $t("new_account_ledger.account_name") }}
-      </label>
-      <div class="col-12 md:col-10">
-        <InputText id="account_name" v-model="name" class="w-full" />
-      </div>
-    </div>
+        <div class="field grid">
+          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <Button
+              class="my-2"
+              :severity="address ? 'secondary' : 'primary'"
+              @click="clickAddress"
+            >
+              {{ $t("new_account_ledger.connect") }}
+            </Button>
+          </div>
+        </div>
+        <div class="field grid" v-if="address">
+          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <div>
+              {{ $t("new_account_ledger.slot") }} {{ loadedSlot }}
+              {{ $t("new_account_ledger.address") }}: {{ address }}
+            </div>
+            <div v-if="address0 != address">
+              {{ $t("new_account_ledger.primary_address") }}: {{ address0 }}
+            </div>
+          </div>
+        </div>
 
-    <div class="field grid">
-      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-      <div class="col-12 md:col-10">
-        <Button class="my-2" @click="clickSave" :disabled="formInvalid">
-          {{ $t("new_account_ledger.save_address") }}
-        </Button>
-      </div>
-    </div>
+        <div class="field grid">
+          <label for="account_name" class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ $t("new_account_ledger.account_name") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <InputText id="account_name" v-model="name" class="w-full" />
+          </div>
+        </div>
+
+        <div class="field grid">
+          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <Button class="my-2" @click="clickSave" :disabled="formInvalid">
+              {{ $t("new_account_ledger.save_address") }}
+            </Button>
+          </div>
+        </div>
+      </template>
+    </Card>
   </MainLayout>
 </template>
 

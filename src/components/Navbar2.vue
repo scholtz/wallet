@@ -361,7 +361,14 @@ const makeThemes = () => {
         let lastTheme = localStorage.getItem("lastTheme");
         if (!lastTheme) lastTheme = "lara-dark-teal";
         PrimeVue.changeTheme(lastTheme, item.file, "theme-link", () => {});
+        PrimeVue.changeTheme(
+          lastTheme,
+          item.file,
+          "theme-link-custom",
+          () => {}
+        );
         localStorage.setItem("lastTheme", item.file);
+        store.dispatch("config/setTheme");
       },
     });
   }

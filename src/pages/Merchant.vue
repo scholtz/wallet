@@ -6,122 +6,126 @@
     <template #footer>
       <span />
     </template>
-    <div class="container">
-      <h1>
-        {{ $t("merchant.make_payment") }}
-        <span v-if="asset">{{ asset.name }}</span>
-      </h1>
-      <div v-if="b64decode && !b64decode.error" class="my-3">
-        {{ $t("merchant.pay") }} {{ b64decode.payamount }}
-        <span v-if="asset">{{ asset["unit-name"] }}</span>
-        {{ $t("merchant.to_address") }} {{ b64decode.payTo }}
-        {{ $t("merchant.please") }}
-        <table class="w-100">
-          <tr v-if="b64decode.network">
-            <td>{{ $t("merchant.network") }}:</td>
-            <td>
-              <code>{{ b64decode.network }}</code>
-            </td>
-          </tr>
-          <tr v-if="b64decode.paynote">
-            <td>{{ $t("merchant.matching_symbol") }}:</td>
-            <td>
-              <code>{{ b64decode.paynote }}</code>
-            </td>
-          </tr>
-          <tr v-if="b64decode.fee">
-            <td>{{ $t("merchant.network_fee") }}:</td>
-            <td>
-              <code>{{ b64decode.fee }} ALGO</code>
-            </td>
-          </tr>
-        </table>
-      </div>
-      <div v-else-if="b64decode.error" class="my-3">
-        {{ b64decode.error }}
-      </div>
-      <div v-else>
-        <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
-      </div>
-      <div v-if="!isPaid">
-        <a :href="origcode" :title="origcode" role="button">
-          <Button severity="primary" size="large" class="mb-3">
-            {{ $t("merchant.pay_qr") }}
-          </Button>
-        </a>
-        <a :href="origcode" :title="origcode">
-          <Button severity="secondary" size="large" class="mx-3 mb-3">
-            {{ $t("merchant.pay_nativewallet") }}
-          </Button>
-        </a>
-        <a :href="codeP2" :title="codeP2">
-          <Button severity="secondary" size="large" class="mx-3 mb-3">
-            {{ $t("merchant.pay_webwallet") }}
-          </Button>
-        </a>
-        <a v-if="settings.cancel" :href="settings.cancel">
-          <Button severity="secondary" size="large" class="mx-3 mb-3">
-            {{ $t("merchant.cancel_payment") }}
-          </Button>
-        </a>
-      </div>
 
-      <Message severity="success" v-if="isPaid" class="mb-3">
-        {{ $t("merchant.payment_received") }}
-      </Message>
+    <h1>
+      {{ $t("merchant.make_payment") }}
+      <span v-if="asset">{{ asset.name }}</span>
+    </h1>
 
-      <form
-        v-if="isPaid && settings.success"
-        ref="sendToMerchant"
-        :action="settings.success"
-        method="POST"
-      >
-        <input
-          type="hidden"
-          name="txId"
-          :value="transactions.transactions[0].id"
-        />
-        <Button type="submit" class="my-2" size="large">
-          {{ $t("merchant.go_back_to_merchant") }}
-        </Button>
-        <Badge severity="info" class="m-2" :value="'(' + countDown + ')'" />
-      </form>
-
-      <Message severity="info" v-if="!isPaid" class="mb-3">
-        <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
-
-        {{ $t("merchant.waiting_for_payment") }}
-      </Message>
-      <div class="grid">
-        <div class="col-12 lg:col-6">
-          <QRCodeVue3
-            v-if="!isPaid"
-            :title="origcode"
-            :width="400"
-            :height="400"
-            :value="origcode"
-            :key="origcode"
-            :qr-options="{ errorCorrectionLevel: 'H' }"
-            :image="assetImage"
-          />
+    <Card>
+      <template #content>
+        <div v-if="b64decode && !b64decode.error" class="my-3">
+          {{ $t("merchant.pay") }} {{ b64decode.payamount }}
+          <span v-if="asset">{{ asset["unit-name"] }}</span>
+          {{ $t("merchant.to_address") }} {{ b64decode.payTo }}
+          {{ $t("merchant.please") }}
+          <table class="w-100">
+            <tr v-if="b64decode.network">
+              <td>{{ $t("merchant.network") }}:</td>
+              <td>
+                <code>{{ b64decode.network }}</code>
+              </td>
+            </tr>
+            <tr v-if="b64decode.paynote">
+              <td>{{ $t("merchant.matching_symbol") }}:</td>
+              <td>
+                <code>{{ b64decode.paynote }}</code>
+              </td>
+            </tr>
+            <tr v-if="b64decode.fee">
+              <td>{{ $t("merchant.network_fee") }}:</td>
+              <td>
+                <code>{{ b64decode.fee }} ALGO</code>
+              </td>
+            </tr>
+          </table>
         </div>
-        <div class="col-12 lg:col-6">
-          <a
-            v-for="lang in $store.state.config.languages"
-            :key="lang"
-            class="m-2 d-inline-block"
-            role="button"
-            @click="setLanguage(lang)"
-          >
-            <img
-              :src="'/flags/3x2/' + lang + '.svg'"
-              height="50"
-              class="border border-3 rounded rounded-3"
-            />
+        <div v-else-if="b64decode.error" class="my-3">
+          {{ b64decode.error }}
+        </div>
+        <div v-else>
+          <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
+        </div>
+        <div v-if="!isPaid">
+          <a :href="origcode" :title="origcode" role="button">
+            <Button severity="primary" size="large" class="mb-3">
+              {{ $t("merchant.pay_qr") }}
+            </Button>
+          </a>
+          <a :href="origcode" :title="origcode">
+            <Button severity="secondary" size="large" class="mx-3 mb-3">
+              {{ $t("merchant.pay_nativewallet") }}
+            </Button>
+          </a>
+          <a :href="codeP2" :title="codeP2">
+            <Button severity="secondary" size="large" class="mx-3 mb-3">
+              {{ $t("merchant.pay_webwallet") }}
+            </Button>
+          </a>
+          <a v-if="settings.cancel" :href="settings.cancel">
+            <Button severity="secondary" size="large" class="mx-3 mb-3">
+              {{ $t("merchant.cancel_payment") }}
+            </Button>
           </a>
         </div>
-      </div>
-    </div>
+
+        <Message severity="success" v-if="isPaid" class="mb-3">
+          {{ $t("merchant.payment_received") }}
+        </Message>
+
+        <form
+          v-if="isPaid && settings.success"
+          ref="sendToMerchant"
+          :action="settings.success"
+          method="POST"
+        >
+          <input
+            type="hidden"
+            name="txId"
+            :value="transactions.transactions[0].id"
+          />
+          <Button type="submit" class="my-2" size="large">
+            {{ $t("merchant.go_back_to_merchant") }}
+          </Button>
+          <Badge severity="info" class="m-2" :value="'(' + countDown + ')'" />
+        </form>
+
+        <Message severity="info" v-if="!isPaid" class="mb-3">
+          <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
+
+          {{ $t("merchant.waiting_for_payment") }}
+        </Message>
+        <div class="grid">
+          <div class="col-12 lg:col-6">
+            <QRCodeVue3
+              v-if="!isPaid"
+              :title="origcode"
+              :width="400"
+              :height="400"
+              :value="origcode"
+              :key="origcode"
+              :qr-options="{ errorCorrectionLevel: 'H' }"
+              :image="assetImage"
+            />
+          </div>
+          <div class="col-12 lg:col-6">
+            <a
+              v-for="lang in $store.state.config.languages"
+              :key="lang"
+              class="m-2 d-inline-block"
+              role="button"
+              @click="setLanguage(lang)"
+            >
+              <img
+                :src="'/flags/3x2/' + lang + '.svg'"
+                height="50"
+                class="border border-3 rounded rounded-3"
+              />
+            </a>
+          </div>
+        </div>
+      </template>
+    </Card>
   </PublicLayout>
 </template>
 

@@ -1,4 +1,5 @@
 <template>
+  <canvas id="gradient-canvas"></canvas>
   <router-view />
 </template>
 
@@ -9,6 +10,7 @@ import { Buffer } from "buffer";
 window.Buffer = Buffer;
 import wc from "./shared/wc";
 import { usePrimeVue } from "primevue/config";
+import { Gradient } from "whatamesh";
 
 export default {
   name: "App",
@@ -16,11 +18,33 @@ export default {
     wc.initialize(this.$store);
     await this.getConfig();
   },
+  data() {
+    return {
+      gradient: null,
+    };
+  },
   mounted() {
     const PrimeVue = usePrimeVue();
     let lastTheme = localStorage.getItem("lastTheme");
     if (!lastTheme) lastTheme = "lara-dark-teal";
     PrimeVue.changeTheme("_empty", lastTheme, "theme-link", () => {});
+    PrimeVue.changeTheme("_empty", lastTheme, "theme-link-custom", () => {});
+    this.gradient = new Gradient();
+    setTimeout(() => {
+      this.gradient.initGradient("#gradient-canvas");
+    }, 100);
+  },
+  computed: {
+    theme() {
+      return this.$store.state.config.theme;
+    },
+  },
+  watch: {
+    theme() {
+      setTimeout(() => {
+        this.gradient.initGradient("#gradient-canvas");
+      }, 100);
+    },
   },
   methods: {
     ...mapActions({

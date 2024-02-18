@@ -1,68 +1,73 @@
 <template>
   <MainLayout>
     <h1>{{ $t("new_account_wc.title") }}</h1>
-    <div v-if="lastError">
-      <Message severity="error">
-        {{ $t("new_account_wc.last_error") }}: {{ lastError }}
-      </Message>
-    </div>
-    <Button v-if="!uri" @click="initWalletConnect">
-      {{ $t("new_account_wc.show_qr_code") }}
-    </Button>
 
-    <div v-if="scannable">
-      <h3>{{ $t("new_account_wc.scan") }}</h3>
-      <QRCodeVue3
-        :width="275"
-        :height="275"
-        :value="uri"
-        :dotsOptions="{
-          type: 'dots',
-          color: '#26249a',
-          gradient: {
-            type: 'linear',
-            rotation: 0,
-            colorStops: [
-              { offset: 0, color: '#3396ff' },
-              { offset: 1, color: '#3396ff' },
-            ],
-          },
-        }"
-        :qr-options="{ errorCorrectionLevel: 'L' }"
-        image="/img/wc-logo.png"
-      />
-      <Button class="m-1" @click="clickCopy">
-        {{ $t("new_account_wc.copy") }}
-      </Button>
-    </div>
-    <div v-if="session">
-      <div class="field grid">
-        <label for="account_name" class="col-12 mb-2 md:col-2 md:mb-0">
-          {{ $t("new_account_wc.account_name") }}
-        </label>
-        <div class="col-12 md:col-10">
-          <InputText id="account_name" v-model="name" class="w-full" />
+    <Card>
+      <template #content>
+        <div v-if="lastError">
+          <Message severity="error">
+            {{ $t("new_account_wc.last_error") }}: {{ lastError }}
+          </Message>
         </div>
-      </div>
+        <Button v-if="!uri" @click="initWalletConnect">
+          {{ $t("new_account_wc.show_qr_code") }}
+        </Button>
 
-      <div class="field grid">
-        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-        <div class="col-12 md:col-10">
-          <div v-if="account">
-            {{ $t("new_account_wc.address") }}: {{ account }}
-          </div>
-        </div>
-      </div>
-
-      <div class="field grid">
-        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-        <div class="col-12 md:col-10">
-          <Button class="my-2" @click="clickSave" :disabled="formInvalid">
-            {{ $t("new_account_wc.save_address") }}
+        <div v-if="scannable">
+          <h3>{{ $t("new_account_wc.scan") }}</h3>
+          <QRCodeVue3
+            :width="275"
+            :height="275"
+            :value="uri"
+            :dotsOptions="{
+              type: 'dots',
+              color: '#26249a',
+              gradient: {
+                type: 'linear',
+                rotation: 0,
+                colorStops: [
+                  { offset: 0, color: '#3396ff' },
+                  { offset: 1, color: '#3396ff' },
+                ],
+              },
+            }"
+            :qr-options="{ errorCorrectionLevel: 'L' }"
+            image="/img/wc-logo.png"
+          />
+          <Button class="m-1" @click="clickCopy">
+            {{ $t("new_account_wc.copy") }}
           </Button>
         </div>
-      </div>
-    </div>
+        <div v-if="session">
+          <div class="field grid">
+            <label for="account_name" class="col-12 mb-2 md:col-2 md:mb-0">
+              {{ $t("new_account_wc.account_name") }}
+            </label>
+            <div class="col-12 md:col-10">
+              <InputText id="account_name" v-model="name" class="w-full" />
+            </div>
+          </div>
+
+          <div class="field grid">
+            <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+            <div class="col-12 md:col-10">
+              <div v-if="account">
+                {{ $t("new_account_wc.address") }}: {{ account }}
+              </div>
+            </div>
+          </div>
+
+          <div class="field grid">
+            <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+            <div class="col-12 md:col-10">
+              <Button class="my-2" @click="clickSave" :disabled="formInvalid">
+                {{ $t("new_account_wc.save_address") }}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </template>
+    </Card>
   </MainLayout>
 </template>
 

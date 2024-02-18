@@ -2,7 +2,12 @@
   <main-layout>
     <div v-if="!$route.params.account">
       <h1>{{ $t("pay.select_account_for_payment") }}</h1>
-      <SelectAccount v-model="payFromDirect" class="w-full"></SelectAccount>
+
+      <Card>
+        <template #content>
+          <SelectAccount v-model="payFromDirect" class="w-full"></SelectAccount>
+        </template>
+      </Card>
     </div>
     <div v-if="account">
       <form v-if="page == 'design'" @submit="previewPaymentClick">
@@ -14,291 +19,319 @@
           <span v-if="account">{{ account.name }}</span>
         </h1>
 
-        <Message severity="error" v-if="isRekey" class="my-2">
-          {{ $t("pay.rekey_warning") }}
-        </Message>
-        <p>{{ $t("pay.selected_account") }}: {{ account.addr }}</p>
-        <div v-if="isMultisig && !subpage">
-          <h2>{{ $t("pay.multisig_account") }}</h2>
-          <Button class="my-2" @click="this.subpage = 'proposal'">
-            {{ $t("pay.create_proposal") }}
-          </Button>
-          <Button class="m-2" @click="subpage = 'sign'">
-            {{ $t("pay.sign_proposal") }}
-          </Button>
-        </div>
-        <div v-if="subpage == 'sign'" class="grid">
-          <div class="col-12">
-            <div class="field grid">
-              <label
-                for="rawSignedTxnInput"
-                class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
-              >
-                {{ $t("pay.signature_from_friend") }}
-              </label>
-              <div class="col-12 md:col-10">
-                <Textarea
-                  id="rawSignedTxnInput"
-                  v-model="rawSignedTxnInput"
-                  class="w-full"
-                  rows="8"
-                />
-              </div>
-            </div>
-            <div class="field grid">
-              <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-              <div class="col-12 md:col-10">
-                <Button class="my-2" @click="loadMultisig">
-                  {{ $t("pay.load_multisig_data") }}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-if="showDesignScreen" class="grid">
-          <div :class="scan ? 'col-8' : 'col-12'">
-            <div v-if="$route.params.toAccount">
-              <InputText
-                v-if="!payTo"
-                id="payTo1"
-                v-model="$route.params.toAccount"
-                disabled
-                class="w-full"
-              />
-              <InputText
-                v-else
-                id="payTo2"
-                v-model="payTo"
-                disabled
-                class="w-full"
-              />
-            </div>
-            <div v-else>
-              <div v-if="!isRekey" class="field grid">
-                <label class="col-12 mb-2 md:col-2 md:mb-0">
-                  {{ $t("pay.pay_to") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  <TabView class="w-full" header-class="mr-2">
-                    <TabPanel
-                      :header="$t('pay.pay_to_wallet')"
-                      headerClass="mr-2"
-                    >
-                      <SelectAccount
-                        v-model="payTo"
-                        class="w-full"
-                      ></SelectAccount>
-                    </TabPanel>
-                    <TabPanel :header="$t('pay.pay_to_other')">
-                      <InputText id="payTo" v-model="payTo" class="w-full" />
-                      <div>
-                        <Button size="small" class="m-2" @click="toggleCamera">
-                          {{ $t("pay.toggle_camera") }}
-                        </Button>
-                        <p>
-                          {{ $t("pay.store_other_help") }}
-                        </p>
-                      </div>
-                    </TabPanel>
-                  </TabView>
-                </div>
-              </div>
-              <Message
-                severity="error"
-                v-if="forcedAssetNotLoaded"
-                class="my-2"
-              >
-                {{ $t("pay.asset_failed_to_load") }}
-              </Message>
-            </div>
-            <div class="field grid" v-if="isRekey">
-              <label class="col-12 mb-2 md:col-2 md:mb-0">
-                {{ $t("pay.rekey_to") }}
-              </label>
-              <div class="col-12 md:col-10">
-                <TabView>
-                  <TabPanel
-                    :header="$t('pay.rekey_to_wallet_account')"
-                    class="mr-2"
-                  >
-                    <SelectAccount
-                      v-model="rekeyTo"
-                      class="w-full"
-                    ></SelectAccount>
-                  </TabPanel>
-                  <TabPanel :header="$t('pay.rekey_to_external_account')">
-                    <InputText id="rekeyTo" v-model="rekeyTo" class="w-full" />
-                    <div>
-                      <Button size="small" class="m-2" @click="toggleCamera">
-                        {{ $t("pay.toggle_camera") }}
-                      </Button>
-                      <p>
-                        {{ $t("pay.store_other_help") }}
-                      </p>
-                    </div>
-                  </TabPanel>
-                </TabView>
-              </div>
-            </div>
-            <div>
-              <div
-                class="field grid"
-                v-if="forceAsset && assetObj && assetObj.name"
-              >
-                <label for="asset" class="col-12 mb-2 md:col-2 md:mb-0">
-                  {{ $t("pay.asset") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  <InputText v-model="assetObj.name" class="w-full" disabled />
-                </div>
-              </div>
-              <div class="field grid" v-else>
-                <label for="asset" class="col-12 mb-2 md:col-2 md:mb-0">
-                  {{ $t("pay.asset") }}
-                </label>
-
-                <div class="col-12 md:col-10">
-                  <Dropdown
-                    inputId="asset"
-                    v-model="asset"
-                    filter
-                    :options="assets"
-                    optionLabel="label"
-                    optionValue="asset-id"
-                    :placeholder="$t('pay.asset')"
-                    class="w-full"
-                    inputClass="w-full"
-                  >
-                  </Dropdown>
-                </div>
-              </div>
-            </div>
-            <Message severity="error" v-if="payamountGtMaxAmount" class="my-2">
-              {{ $t("pay.asset_too_small_balance") }}
+        <Card>
+          <template #content>
+            <Message severity="error" v-if="isRekey" class="my-2">
+              {{ $t("pay.rekey_warning") }}
             </Message>
-            <div v-if="!isRekey" class="field grid">
-              <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">
-                {{ $t("pay.amount") }}
-              </label>
-              <div class="col-12 md:col-10">
-                <InputGroup>
-                  <InputNumber
-                    itemId="payamount"
-                    v-model="payamount"
-                    :min="0"
-                    :max="maxAmount"
-                    :step="stepAmount"
-                    :maxFractionDigits="decimals"
-                    showButtons
-                    class="w-full"
-                  />
-                  <InputGroupAddon v-if="assetUnit">
-                    {{ assetUnit }}
-                  </InputGroupAddon>
-                  <Button
-                    severity="secondary"
-                    class="col-2"
-                    @click="setMaxAmount"
+            <p>{{ $t("pay.selected_account") }}: {{ account.addr }}</p>
+            <div v-if="isMultisig && !subpage">
+              <h2>{{ $t("pay.multisig_account") }}</h2>
+              <Button class="my-2" @click="this.subpage = 'proposal'">
+                {{ $t("pay.create_proposal") }}
+              </Button>
+              <Button class="m-2" @click="subpage = 'sign'">
+                {{ $t("pay.sign_proposal") }}
+              </Button>
+            </div>
+            <div v-if="subpage == 'sign'" class="grid">
+              <div class="col-12">
+                <div class="field grid">
+                  <label
+                    for="rawSignedTxnInput"
+                    class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
                   >
-                    {{ $t("pay.set_max") }}
-                  </Button>
-                </InputGroup>
+                    {{ $t("pay.signature_from_friend") }}
+                  </label>
+                  <div class="col-12 md:col-10">
+                    <Textarea
+                      id="rawSignedTxnInput"
+                      v-model="rawSignedTxnInput"
+                      class="w-full"
+                      rows="8"
+                    />
+                  </div>
+                </div>
+                <div class="field grid">
+                  <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+                  <div class="col-12 md:col-10">
+                    <Button class="my-2" @click="loadMultisig">
+                      {{ $t("pay.load_multisig_data") }}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="field grid">
-              <label for="fee" class="col-12 mb-2 md:col-2 md:mb-0">
-                {{ $t("pay.fee") }}
-              </label>
-              <div class="col-12 md:col-10">
-                <InputGroup>
-                  <InputNumber
-                    inputId="fee"
-                    v-model="fee"
-                    :min="0.001"
-                    :max="1"
-                    :step="0.000001"
-                    :maxFractionDigits="6"
+            <div v-if="showDesignScreen" class="grid">
+              <div :class="scan ? 'col-8' : 'col-12'">
+                <div v-if="$route.params.toAccount">
+                  <InputText
+                    v-if="!payTo"
+                    id="payTo1"
+                    v-model="$route.params.toAccount"
+                    disabled
                     class="w-full"
-                    showButtons
                   />
-                  <InputGroupAddon>
-                    {{ this.$store.state.config.tokenSymbol }}
-                  </InputGroupAddon>
-                </InputGroup>
-              </div>
-            </div>
-            <div class="field grid">
-              <label for="paynote" class="col-12 mb-2 md:col-2 md:mb-0">
-                {{ $t("pay.note") }}
-              </label>
-              <div class="col-12 md:col-10">
-                <InputText id="paynote" v-model="paynote" class="w-full" />
-              </div>
-            </div>
+                  <InputText
+                    v-else
+                    id="payTo2"
+                    v-model="payTo"
+                    disabled
+                    class="w-full"
+                  />
+                </div>
+                <div v-else>
+                  <div v-if="!isRekey" class="field grid">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0">
+                      {{ $t("pay.pay_to") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      <TabView class="w-full" header-class="mr-2">
+                        <TabPanel
+                          :header="$t('pay.pay_to_wallet')"
+                          headerClass="mr-2"
+                        >
+                          <SelectAccount
+                            v-model="payTo"
+                            class="w-full"
+                          ></SelectAccount>
+                        </TabPanel>
+                        <TabPanel :header="$t('pay.pay_to_other')">
+                          <InputText
+                            id="payTo"
+                            v-model="payTo"
+                            class="w-full"
+                          />
+                          <div>
+                            <Button
+                              size="small"
+                              class="m-2"
+                              @click="toggleCamera"
+                            >
+                              {{ $t("pay.toggle_camera") }}
+                            </Button>
+                            <p>
+                              {{ $t("pay.store_other_help") }}
+                            </p>
+                          </div>
+                        </TabPanel>
+                      </TabView>
+                    </div>
+                  </div>
+                  <Message
+                    severity="error"
+                    v-if="forcedAssetNotLoaded"
+                    class="my-2"
+                  >
+                    {{ $t("pay.asset_failed_to_load") }}
+                  </Message>
+                </div>
+                <div class="field grid" v-if="isRekey">
+                  <label class="col-12 mb-2 md:col-2 md:mb-0">
+                    {{ $t("pay.rekey_to") }}
+                  </label>
+                  <div class="col-12 md:col-10">
+                    <TabView>
+                      <TabPanel
+                        :header="$t('pay.rekey_to_wallet_account')"
+                        class="mr-2"
+                      >
+                        <SelectAccount
+                          v-model="rekeyTo"
+                          class="w-full"
+                        ></SelectAccount>
+                      </TabPanel>
+                      <TabPanel :header="$t('pay.rekey_to_external_account')">
+                        <InputText
+                          id="rekeyTo"
+                          v-model="rekeyTo"
+                          class="w-full"
+                        />
+                        <div>
+                          <Button
+                            size="small"
+                            class="m-2"
+                            @click="toggleCamera"
+                          >
+                            {{ $t("pay.toggle_camera") }}
+                          </Button>
+                          <p>
+                            {{ $t("pay.store_other_help") }}
+                          </p>
+                        </div>
+                      </TabPanel>
+                    </TabView>
+                  </div>
+                </div>
+                <div>
+                  <div
+                    class="field grid"
+                    v-if="forceAsset && assetObj && assetObj.name"
+                  >
+                    <label for="asset" class="col-12 mb-2 md:col-2 md:mb-0">
+                      {{ $t("pay.asset") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      <InputText
+                        v-model="assetObj.name"
+                        class="w-full"
+                        disabled
+                      />
+                    </div>
+                  </div>
+                  <div class="field grid" v-else>
+                    <label for="asset" class="col-12 mb-2 md:col-2 md:mb-0">
+                      {{ $t("pay.asset") }}
+                    </label>
 
-            <div class="field grid" v-if="noteIsB64">
-              <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-              <div class="col-12 md:col-10">
-                <Checkbox
-                  inputId="paynoteB64"
-                  v-model="paynoteB64"
-                  class="mr-2"
-                />
-                <label class="form-check-label" for="paynoteB64">
-                  {{ $t("pay.note_is_b64") }}
-                </label>
-              </div>
-            </div>
-
-            <div class="field grid">
-              <label for="env" class="col-12 mb-2 md:col-2 md:mb-0">
-                {{ $t("pay.environment") }}
-              </label>
-              <div class="col-12 md:col-10">
-                <InputText
-                  id="env"
-                  :value="$store.state.config.env"
-                  class="w-full"
-                  disabled
-                />
-              </div>
-            </div>
-            <div class="field grid">
-              <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-              <div class="col-12 md:col-10">
-                <Button
-                  :disabled="isNotValid"
+                    <div class="col-12 md:col-10">
+                      <Dropdown
+                        inputId="asset"
+                        v-model="asset"
+                        filter
+                        :options="assets"
+                        optionLabel="label"
+                        optionValue="asset-id"
+                        :placeholder="$t('pay.asset')"
+                        class="w-full"
+                        inputClass="w-full"
+                      >
+                      </Dropdown>
+                    </div>
+                  </div>
+                </div>
+                <Message
+                  severity="error"
+                  v-if="payamountGtMaxAmount"
                   class="my-2"
-                  @click="previewPaymentClick"
                 >
-                  {{ $t("pay.review_payment") }}
-                </Button>
-                <Button
-                  v-if="isMultisig"
-                  severity="secondary"
-                  class="m-2"
-                  value="Cancel"
-                  @click="subpage = ''"
-                >
-                  {{ $t("global.cancel") }}
-                </Button>
-                <Button
-                  v-if="!isMultisig"
-                  severity="secondary"
-                  class="m-2"
-                  value="Cancel"
-                  @click="$router.push('/accounts')"
-                >
-                  {{ $t("global.cancel") }}
-                </Button>
+                  {{ $t("pay.asset_too_small_balance") }}
+                </Message>
+                <div v-if="!isRekey" class="field grid">
+                  <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">
+                    {{ $t("pay.amount") }}
+                  </label>
+                  <div class="col-12 md:col-10">
+                    <InputGroup>
+                      <InputNumber
+                        itemId="payamount"
+                        v-model="payamount"
+                        :min="0"
+                        :max="maxAmount"
+                        :step="stepAmount"
+                        :maxFractionDigits="decimals"
+                        showButtons
+                        class="w-full"
+                      />
+                      <InputGroupAddon v-if="assetUnit">
+                        {{ assetUnit }}
+                      </InputGroupAddon>
+                      <Button
+                        severity="secondary"
+                        class="col-2"
+                        @click="setMaxAmount"
+                      >
+                        {{ $t("pay.set_max") }}
+                      </Button>
+                    </InputGroup>
+                  </div>
+                </div>
+                <div class="field grid">
+                  <label for="fee" class="col-12 mb-2 md:col-2 md:mb-0">
+                    {{ $t("pay.fee") }}
+                  </label>
+                  <div class="col-12 md:col-10">
+                    <InputGroup>
+                      <InputNumber
+                        inputId="fee"
+                        v-model="fee"
+                        :min="0.001"
+                        :max="1"
+                        :step="0.000001"
+                        :maxFractionDigits="6"
+                        class="w-full"
+                        showButtons
+                      />
+                      <InputGroupAddon>
+                        {{ this.$store.state.config.tokenSymbol }}
+                      </InputGroupAddon>
+                    </InputGroup>
+                  </div>
+                </div>
+                <div class="field grid">
+                  <label for="paynote" class="col-12 mb-2 md:col-2 md:mb-0">
+                    {{ $t("pay.note") }}
+                  </label>
+                  <div class="col-12 md:col-10">
+                    <InputText id="paynote" v-model="paynote" class="w-full" />
+                  </div>
+                </div>
+
+                <div class="field grid" v-if="noteIsB64">
+                  <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+                  <div class="col-12 md:col-10">
+                    <Checkbox
+                      inputId="paynoteB64"
+                      v-model="paynoteB64"
+                      class="mr-2"
+                    />
+                    <label class="form-check-label" for="paynoteB64">
+                      {{ $t("pay.note_is_b64") }}
+                    </label>
+                  </div>
+                </div>
+
+                <div class="field grid">
+                  <label for="env" class="col-12 mb-2 md:col-2 md:mb-0">
+                    {{ $t("pay.environment") }}
+                  </label>
+                  <div class="col-12 md:col-10">
+                    <InputText
+                      id="env"
+                      :value="$store.state.config.env"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                </div>
+                <div class="field grid">
+                  <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+                  <div class="col-12 md:col-10">
+                    <Button
+                      :disabled="isNotValid"
+                      class="my-2"
+                      @click="previewPaymentClick"
+                    >
+                      {{ $t("pay.review_payment") }}
+                    </Button>
+                    <Button
+                      v-if="isMultisig"
+                      severity="secondary"
+                      class="m-2"
+                      value="Cancel"
+                      @click="subpage = ''"
+                    >
+                      {{ $t("global.cancel") }}
+                    </Button>
+                    <Button
+                      v-if="!isMultisig"
+                      severity="secondary"
+                      class="m-2"
+                      value="Cancel"
+                      @click="$router.push('/accounts')"
+                    >
+                      {{ $t("global.cancel") }}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="scan" class="col-4">
+                <QrcodeStream @decode="onDecodeQR" />
               </div>
             </div>
-          </div>
-
-          <div v-if="scan" class="col-4">
-            <QrcodeStream @decode="onDecodeQR" />
-          </div>
-        </div>
+          </template>
+        </Card>
       </form>
     </div>
   </main-layout>

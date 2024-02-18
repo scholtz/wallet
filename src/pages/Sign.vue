@@ -2,447 +2,482 @@
   <main-layout>
     <div v-if="!$route.params.account">
       <h1>{{ $t("pay.select_account_for_payment") }}</h1>
-      <SelectAccount v-model="payFromDirect" class="w-full"></SelectAccount>
+
+      <Card>
+        <template #content>
+          <SelectAccount v-model="payFromDirect" class="w-full"></SelectAccount>
+        </template>
+      </Card>
     </div>
     <div v-if="account">
       <form v-if="page == 'review'" @submit="signTxClick">
         <h1>{{ $t("pay.review_payment") }}</h1>
-        <p>{{ $t("pay.review_payment_help") }}</p>
-        <div class="grid">
-          <div class="col">
-            <div v-if="!multisigDecoded.txn" class="w-100">
-              <div class="field grid">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.from_account") }}
-                </label>
 
-                <div class="col-12 md:col-10">{{ payFrom }}</div>
-              </div>
-              <div class="field grid" v-if="malformedAddress">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold"> </label>
-                <div class="col-12 md:col-10">
-                  <Message severity="error">
-                    {{ $t("pay.pay_to_address_malformed") }}
-                  </Message>
+        <Card>
+          <template #content>
+            <p>{{ $t("pay.review_payment_help") }}</p>
+            <div class="grid">
+              <div class="col">
+                <div v-if="!multisigDecoded.txn" class="w-100">
+                  <div class="field grid">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.from_account") }}
+                    </label>
+
+                    <div class="col-12 md:col-10">{{ payFrom }}</div>
+                  </div>
+                  <div class="field grid" v-if="malformedAddress">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                    </label>
+                    <div class="col-12 md:col-10">
+                      <Message severity="error">
+                        {{ $t("pay.pay_to_address_malformed") }}
+                      </Message>
+                    </div>
+                  </div>
+                  <div class="field grid" v-if="txn && txn.type">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.tx_type") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ txn.type }}
+                    </div>
+                  </div>
+                  <div class="field grid" v-if="payTo">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.pay_to") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ payTo }}
+                    </div>
+                  </div>
+                  <div class="field grid" v-if="paynote">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.note") }}
+                    </label>
+                    <div class="col-12 md:col-10" v-if="paynote.length < 50">
+                      {{ paynote }}
+                    </div>
+                    <div class="col-12 md:col-10" v-else>
+                      <JsonViewer :value="paynote" copyable boxed sort />
+                    </div>
+                  </div>
+                  <div class="field grid">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.environment") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ $store.state.config.env }}
+                    </div>
+                  </div>
+                  <div class="field grid" v-if="assetObj">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("optin.assetId") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ assetObj["asset-id"] ? assetObj["asset-id"] : "Algo" }}
+                    </div>
+                  </div>
+                  <div
+                    class="field grid"
+                    v-if="
+                      amountLong > 0 ||
+                      (txn &&
+                        txn.type &&
+                        (txn.type == 'pay' || txn.type == 'axfer'))
+                    "
+                  >
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.amount") }}
+                    </label>
+                    <div class="col-12 md:col-10" v-if="assetObj">
+                      {{
+                        $filters.formatCurrency(
+                          amountLong,
+                          assetObj.name,
+                          assetObj.decimals
+                        )
+                      }}
+                    </div>
+                    <div class="col-12 md:col-10" v-else>
+                      {{ $filters.formatCurrency(amountLong) }}
+                    </div>
+                  </div>
+                  <div class="field grid">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.fee") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ $filters.formatCurrency(feeLong) }}
+                    </div>
+                  </div>
+                  <div class="field grid" v-if="!asset">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.total") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ $filters.formatCurrency(amountLong + feeLong) }}
+                    </div>
+                  </div>
+                  <div class="field grid" v-if="rekeyTo">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.rekey_to") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      <Message severity="error">
+                        {{ rekeyTo }}
+                      </Message>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="multisigDecoded.txn">
+                  <h2>{{ $t("pay.transaction_details") }}</h2>
+                  <div class="field grid">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.type") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ multisigDecoded.txn.type }}
+                    </div>
+                  </div>
+                  <div class="field grid">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.name") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ multisigDecoded.txn.name }}
+                    </div>
+                  </div>
+                  <div class="field grid" v-if="multisigDecoded.txn.amount">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.amount") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ $filters.formatCurrency(multisigDecoded.txn.amount) }}
+                    </div>
+                  </div>
+                  <div class="field grid">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.fee") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ $filters.formatCurrency(multisigDecoded.txn.fee) }}
+                    </div>
+                  </div>
+                  <div class="field grid">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.first_round") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ multisigDecoded.txn.firstRound }}
+                    </div>
+                  </div>
+                  <div class="field grid">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.last_round") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ multisigDecoded.txn.lastRound }}
+                    </div>
+                  </div>
+                  <div class="field grid">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.genesis") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ multisigDecoded.txn.genesisID }}
+                    </div>
+                  </div>
+                  <div class="field grid">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.note") }}
+                    </label>
+                    <div
+                      class="col-12 md:col-10"
+                      v-if="multisigDecoded.txn.note"
+                    >
+                      {{ msigNote }}
+                    </div>
+                  </div>
+                  <div class="field grid">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.tag") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ multisigDecoded.txn.tag }}
+                    </div>
+                  </div>
+                  <div
+                    class="field grid"
+                    v-if="
+                      multisigDecoded.txn.reKeyTo &&
+                      multisigDecoded.txn.reKeyTo.publicKey
+                    "
+                  >
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.rekey_to") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      <Message severity="error">
+                        {{
+                          encodeAddress(multisigDecoded.txn.reKeyTo.publicKey)
+                        }}
+                      </Message>
+                    </div>
+                  </div>
+                  <div
+                    class="field grid"
+                    v-if="
+                      multisigDecoded.txn.to && multisigDecoded.txn.to.publicKey
+                    "
+                  >
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.to_account") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ encodeAddress(multisigDecoded.txn.to.publicKey) }}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div class="field grid" v-if="txn && txn.type">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.tx_type") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ txn.type }}
-                </div>
-              </div>
-              <div class="field grid" v-if="payTo">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.pay_to") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ payTo }}
-                </div>
-              </div>
-              <div class="field grid" v-if="paynote">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.note") }}
-                </label>
-                <div class="col-12 md:col-10" v-if="paynote.length < 50">
-                  {{ paynote }}
-                </div>
-                <div class="col-12 md:col-10" v-else>
-                  <JsonViewer :value="paynote" copyable boxed sort />
-                </div>
-              </div>
-              <div class="field grid">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.environment") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ $store.state.config.env }}
-                </div>
-              </div>
-              <div class="field grid" v-if="assetObj">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("optin.assetId") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ assetObj["asset-id"] ? assetObj["asset-id"] : "Algo" }}
-                </div>
-              </div>
-              <div
-                class="field grid"
-                v-if="
-                  amountLong > 0 ||
-                  (txn &&
-                    txn.type &&
-                    (txn.type == 'pay' || txn.type == 'axfer'))
-                "
-              >
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.amount") }}
-                </label>
-                <div class="col-12 md:col-10" v-if="assetObj">
-                  {{
-                    $filters.formatCurrency(
-                      amountLong,
-                      assetObj.name,
-                      assetObj.decimals
-                    )
-                  }}
-                </div>
-                <div class="col-12 md:col-10" v-else>
-                  {{ $filters.formatCurrency(amountLong) }}
-                </div>
-              </div>
-              <div class="field grid">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.fee") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ $filters.formatCurrency(feeLong) }}
-                </div>
-              </div>
-              <div class="field grid" v-if="!asset">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.total") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ $filters.formatCurrency(amountLong + feeLong) }}
-                </div>
-              </div>
-              <div class="field grid" v-if="rekeyTo">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.rekey_to") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  <Message severity="error">
-                    {{ rekeyTo }}
-                  </Message>
+              <div class="col" v-if="multisigDecoded && multisigDecoded.msig">
+                <h2>{{ $t("pay.signatures") }} {{ showSignaturesCount }}</h2>
+                <div
+                  class="field grid"
+                  v-for="sig in multisigDecoded.msig.subsig"
+                  :key="sig"
+                >
+                  <label class="col-12 mb-2 md:col-2 md:mb-0">
+                    <AlgorandAddress :address="encodeAddress(sig.pk)" />
+                  </label>
+                  <div class="col-12 md:col-10">
+                    <Badge
+                      severity="success"
+                      v-if="sig.s"
+                      :value="$t('pay.signed')"
+                    />
+                    <Badge
+                      severity="danger"
+                      v-if="!sig.s"
+                      :value="$t('pay.not_signed')"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-
-            <div v-if="multisigDecoded.txn">
-              <h2>{{ $t("pay.transaction_details") }}</h2>
-              <div class="field grid">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.type") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ multisigDecoded.txn.type }}
-                </div>
-              </div>
-              <div class="field grid">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.name") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ multisigDecoded.txn.name }}
-                </div>
-              </div>
-              <div class="field grid" v-if="multisigDecoded.txn.amount">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.amount") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ $filters.formatCurrency(multisigDecoded.txn.amount) }}
-                </div>
-              </div>
-              <div class="field grid">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.fee") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ $filters.formatCurrency(multisigDecoded.txn.fee) }}
-                </div>
-              </div>
-              <div class="field grid">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.first_round") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ multisigDecoded.txn.firstRound }}
-                </div>
-              </div>
-              <div class="field grid">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.last_round") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ multisigDecoded.txn.lastRound }}
-                </div>
-              </div>
-              <div class="field grid">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.genesis") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ multisigDecoded.txn.genesisID }}
-                </div>
-              </div>
-              <div class="field grid">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.note") }}
-                </label>
-                <div class="col-12 md:col-10" v-if="multisigDecoded.txn.note">
-                  {{ msigNote }}
-                </div>
-              </div>
-              <div class="field grid">
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.tag") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ multisigDecoded.txn.tag }}
-                </div>
-              </div>
-              <div
-                class="field grid"
-                v-if="
-                  multisigDecoded.txn.reKeyTo &&
-                  multisigDecoded.txn.reKeyTo.publicKey
-                "
-              >
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.rekey_to") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  <Message severity="error">
-                    {{ encodeAddress(multisigDecoded.txn.reKeyTo.publicKey) }}
-                  </Message>
-                </div>
-              </div>
-              <div
-                class="field grid"
-                v-if="
-                  multisigDecoded.txn.to && multisigDecoded.txn.to.publicKey
-                "
-              >
-                <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                  {{ $t("pay.to_account") }}
-                </label>
-                <div class="col-12 md:col-10">
-                  {{ encodeAddress(multisigDecoded.txn.to.publicKey) }}
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col" v-if="multisigDecoded && multisigDecoded.msig">
-            <h2>{{ $t("pay.signatures") }} {{ showSignaturesCount }}</h2>
-            <div
-              class="field grid"
-              v-for="sig in multisigDecoded.msig.subsig"
-              :key="sig"
-            >
-              <label class="col-12 mb-2 md:col-2 md:mb-0">
-                <AlgorandAddress :address="encodeAddress(sig.pk)" />
-              </label>
+            <div class="field grid">
+              <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold"></label>
               <div class="col-12 md:col-10">
-                <Badge
-                  severity="success"
-                  v-if="sig.s"
-                  :value="$t('pay.signed')"
-                />
-                <Badge
-                  severity="danger"
-                  v-if="!sig.s"
-                  :value="$t('pay.not_signed')"
-                />
+                <Button
+                  v-if="
+                    !isMultisig &&
+                    !(rawSignedTxn && Object.values(rawSignedTxn)?.length > 0)
+                  "
+                  @click="signTxClick"
+                >
+                  Sign transaction
+                </Button>
+                <Button
+                  v-if="
+                    !isMultisig &&
+                    rawSignedTxn &&
+                    Object.values(rawSignedTxn)?.length > 0
+                  "
+                  @click="submitSignedClick"
+                  :disabled="processing"
+                >
+                  Send tx to the network
+                  <ProgressSpinner
+                    v-if="processing"
+                    style="width: 1em; height: 1em"
+                    strokeWidth="10"
+                    class="ml-2"
+                  />
+                </Button>
+                <span
+                  v-if="
+                    !(rawSignedTxn && Object.values(rawSignedTxn)?.length > 0)
+                  "
+                >
+                  <Button
+                    v-if="isMultisig && $route.name != 'PayFromWalletConnect'"
+                    @click="payPaymentClick"
+                  >
+                    {{ $t("pay.create_multisig_proposal") }}
+                  </Button>
+                </span>
               </div>
             </div>
-          </div>
-        </div>
-        <div class="field grid">
-          <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold"></label>
-          <div class="col-12 md:col-10">
-            <Button
+            <JsonViewer
               v-if="
-                !isMultisig &&
-                !(rawSignedTxn && Object.values(rawSignedTxn)?.length > 0)
+                txn &&
+                $store &&
+                $store.state &&
+                $store.state.config &&
+                $store.state.config.dev
               "
-              @click="signTxClick"
-            >
-              Sign transaction
-            </Button>
-            <Button
+              :value="txn"
+              copyable
+              boxed
+              sort
+            />
+
+            <div
               v-if="
-                !isMultisig &&
-                rawSignedTxn &&
-                Object.values(rawSignedTxn)?.length > 0
+                isMultisig &&
+                txn &&
+                accountFor2FA &&
+                !isSignedByAccountFor2FAAddr
               "
-              @click="submitSignedClick"
-              :disabled="processing"
             >
-              Send tx to the network
-              <ProgressSpinner
-                v-if="processing"
-                style="width: 1em; height: 1em"
-                strokeWidth="10"
-                class="ml-2"
-              />
-            </Button>
-            <span
-              v-if="!(rawSignedTxn && Object.values(rawSignedTxn)?.length > 0)"
-            >
-              <Button
-                v-if="isMultisig && $route.name != 'PayFromWalletConnect'"
-                @click="payPaymentClick"
-              >
-                {{ $t("pay.create_multisig_proposal") }}
-              </Button>
-            </span>
-          </div>
-        </div>
-        <JsonViewer
-          v-if="
-            txn &&
-            $store &&
-            $store.state &&
-            $store.state.config &&
-            $store.state.config.dev
-          "
-          :value="txn"
-          copyable
-          boxed
-          sort
-        />
-
-        <div
-          v-if="
-            isMultisig && txn && accountFor2FA && !isSignedByAccountFor2FAAddr
-          "
-        >
-          <h2>{{ $t("pay.2fa_code") }}</h2>
-          <div v-if="accountFor2FAAuthToken">
-            <div>
-              <InputMask itemid="txtCode" v-model="txtCode" mask="999-999" />
-            </div>
-            <div>
-              <Button
-                class="my-2"
-                :disabled="!txtCode || txtCode.indexOf('_') >= 0"
-                @click="sign2FAClick"
-              >
-                {{ $t("pay.sign") }}
-              </Button>
-            </div>
-          </div>
-          <div v-else>
-            <Button class="my-2" @click="authorizePrimaryAccountClick">
-              {{ $t("pay.sign_arc14_request") }}
-            </Button>
-          </div>
-        </div>
-
-        <div v-if="isMultisig && multisigDecoded.txn">
-          <div v-if="accountsFromMultisig && accountsFromMultisig.length > 0">
-            <h2>{{ $t("pay.sign_with") }}</h2>
-            <MultiSelect
-              v-model="signMultisigWith"
-              class="w-full"
-              :options="accountsFromMultisig"
-              optionLabel="name"
-              optionValue="addr"
-            >
-              <template #optiongroup="slotProps">
-                <div class="flex align-items-center">
-                  {{ slotProps.option.name + "  - " + slotProps.option.addr }}
+              <h2>{{ $t("pay.2fa_code") }}</h2>
+              <div v-if="accountFor2FAAuthToken">
+                <div>
+                  <InputMask
+                    itemid="txtCode"
+                    v-model="txtCode"
+                    mask="999-999"
+                  />
                 </div>
-              </template>
-            </MultiSelect>
-            <Button
+                <div>
+                  <Button
+                    class="my-2"
+                    :disabled="!txtCode || txtCode.indexOf('_') >= 0"
+                    @click="sign2FAClick"
+                  >
+                    {{ $t("pay.sign") }}
+                  </Button>
+                </div>
+              </div>
+              <div v-else>
+                <Button class="my-2" @click="authorizePrimaryAccountClick">
+                  {{ $t("pay.sign_arc14_request") }}
+                </Button>
+              </div>
+            </div>
+
+            <div v-if="isMultisig && multisigDecoded.txn">
+              <div
+                v-if="accountsFromMultisig && accountsFromMultisig.length > 0"
+              >
+                <h2>{{ $t("pay.sign_with") }}</h2>
+                <MultiSelect
+                  v-model="signMultisigWith"
+                  class="w-full"
+                  :options="accountsFromMultisig"
+                  optionLabel="name"
+                  optionValue="addr"
+                >
+                  <template #optiongroup="slotProps">
+                    <div class="flex align-items-center">
+                      {{
+                        slotProps.option.name + "  - " + slotProps.option.addr
+                      }}
+                    </div>
+                  </template>
+                </MultiSelect>
+                <Button
+                  class="my-2"
+                  :disabled="signMultisigWith.length == 0"
+                  @click="signMultisig"
+                >
+                  {{ $t("pay.sign") }}
+                </Button>
+              </div>
+              <div v-if="isSignedByAny && showFormSend">
+                <h2>{{ $t("pay.send_to_other_signators") }}</h2>
+                <Textarea
+                  v-if="rawSignedTxn"
+                  v-model="rawSignedTxn"
+                  class="w-full my-2"
+                  rows="4"
+                />
+              </div>
+              <div v-if="showFormCombine">
+                <h2 v-if="rawSignedTxn">{{ $t("pay.combine_title") }}:</h2>
+                <Textarea
+                  v-if="rawSignedTxn"
+                  v-model="rawSignedTxnFriend"
+                  class="w-full my-2"
+                  rows="4"
+                />
+                <Button
+                  v-if="rawSignedTxnFriend"
+                  class="m-2"
+                  :disabled="!rawSignedTxn && !rawSignedTxnInput"
+                  @click="combineSignatures"
+                >
+                  {{ $t("pay.combine_action") }}
+                </Button>
+              </div>
+
+              <Button
+                v-if="$route.name != 'PayFromWalletConnect'"
+                class="m-2"
+                :disabled="!thresholdMet"
+                @click="sendMultisig"
+              >
+                {{ $t("pay.send_to_network") }}
+              </Button>
+              <Button
+                v-if="$route.name == 'PayFromWalletConnect'"
+                class="m-2"
+                :disabled="!thresholdMet"
+                @click="retToWalletConnect"
+              >
+                {{ $t("pay.return_to_wc") }}
+              </Button>
+              <Button
+                v-if="isSignedByAny"
+                severity="secondary"
+                class="m-2"
+                @click="toggleShowFormSend"
+              >
+                {{ $t("pay.toggle_send_to_others_form") }}
+              </Button>
+              <Button
+                severity="secondary"
+                class="m-2"
+                @click="toggleShowFormCombine"
+              >
+                {{ $t("pay.toggle_combine_with_others_form") }}
+              </Button>
+            </div>
+
+            <Message severity="info" v-if="!tx && processing" class="my-2">
+              <ProgressSpinner
+                style="width: 1em; height: 1em"
+                strokeWidth="5"
+              />
+
+              {{ $t("pay.state_sending") }}
+            </Message>
+            <Message severity="info" v-if="tx && !confirmedRound" class="my-2">
+              <ProgressSpinner
+                style="width: 1em; height: 1em"
+                strokeWidth="5"
+              />
+
+              {{ $t("pay.state_sent") }}: {{ tx }}.
+              {{ $t("pay.state_waiting_confirm") }}
+            </Message>
+            <Message severity="success" v-if="confirmedRound" class="my-2">
+              {{ $t("pay.state_confirmed") }} <b>{{ confirmedRound }}</b
+              >. {{ $t("pay.transaction") }}: {{ tx }}.
+            </Message>
+            <Message severity="error" v-if="error" class="my-2">
+              {{ $t("pay.error") }}: {{ error }}
+            </Message>
+            <Message
+              severity="error"
+              v-if="$store.state.toast.lastError"
               class="my-2"
-              :disabled="signMultisigWith.length == 0"
-              @click="signMultisig"
             >
-              {{ $t("pay.sign") }}
-            </Button>
-          </div>
-          <div v-if="isSignedByAny && showFormSend">
-            <h2>{{ $t("pay.send_to_other_signators") }}</h2>
-            <Textarea
-              v-if="rawSignedTxn"
-              v-model="rawSignedTxn"
-              class="w-full my-2"
-              rows="4"
-            />
-          </div>
-          <div v-if="showFormCombine">
-            <h2 v-if="rawSignedTxn">{{ $t("pay.combine_title") }}:</h2>
-            <Textarea
-              v-if="rawSignedTxn"
-              v-model="rawSignedTxnFriend"
-              class="w-full my-2"
-              rows="4"
-            />
-            <Button
-              v-if="rawSignedTxnFriend"
-              class="m-2"
-              :disabled="!rawSignedTxn && !rawSignedTxnInput"
-              @click="combineSignatures"
-            >
-              {{ $t("pay.combine_action") }}
-            </Button>
-          </div>
-
-          <Button
-            v-if="$route.name != 'PayFromWalletConnect'"
-            class="m-2"
-            :disabled="!thresholdMet"
-            @click="sendMultisig"
-          >
-            {{ $t("pay.send_to_network") }}
-          </Button>
-          <Button
-            v-if="$route.name == 'PayFromWalletConnect'"
-            class="m-2"
-            :disabled="!thresholdMet"
-            @click="retToWalletConnect"
-          >
-            {{ $t("pay.return_to_wc") }}
-          </Button>
-          <Button
-            v-if="isSignedByAny"
-            severity="secondary"
-            class="m-2"
-            @click="toggleShowFormSend"
-          >
-            {{ $t("pay.toggle_send_to_others_form") }}
-          </Button>
-          <Button
-            severity="secondary"
-            class="m-2"
-            @click="toggleShowFormCombine"
-          >
-            {{ $t("pay.toggle_combine_with_others_form") }}
-          </Button>
-        </div>
-
-        <Message severity="info" v-if="!tx && processing" class="my-2">
-          <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
-
-          {{ $t("pay.state_sending") }}
-        </Message>
-        <Message severity="info" v-if="tx && !confirmedRound" class="my-2">
-          <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
-
-          {{ $t("pay.state_sent") }}: {{ tx }}.
-          {{ $t("pay.state_waiting_confirm") }}
-        </Message>
-        <Message severity="success" v-if="confirmedRound" class="my-2">
-          {{ $t("pay.state_confirmed") }} <b>{{ confirmedRound }}</b
-          >. {{ $t("pay.transaction") }}: {{ tx }}.
-        </Message>
-        <Message severity="error" v-if="error" class="my-2">
-          {{ $t("pay.error") }}: {{ error }}
-        </Message>
-        <Message
-          severity="error"
-          v-if="$store.state.toast.lastError"
-          class="my-2"
-        >
-          {{ $t("global.last_error") }}: {{ $store.state.toast.lastError }}
-        </Message>
+              {{ $t("global.last_error") }}: {{ $store.state.toast.lastError }}
+            </Message>
+          </template>
+        </Card>
       </form>
     </div>
   </main-layout>

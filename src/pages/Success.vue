@@ -1,7 +1,12 @@
 <template>
   <PublicLayout>
     <h1>Payment has been successful</h1>
-    <p>Thank you for your payment</p>
+
+    <Card>
+      <template #content>
+        <p>Thank you for your payment</p>
+      </template>
+    </Card>
   </PublicLayout>
 </template>
 

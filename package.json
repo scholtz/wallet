@@ -61,6 +61,7 @@
     "vue-router": "^4.2.5",
     "vue3-json-viewer": "^2.2.2",
     "vuex": "^4.1.0",
+    "whatamesh": "^0.2.0",
     "worker-loader": "^3.0.8"
   },
   "devDependencies": {

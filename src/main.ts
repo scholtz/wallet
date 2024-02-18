@@ -48,7 +48,7 @@ import Message from "primevue/message";
 import Ripple from "primevue/ripple";
 import Tooltip from "primevue/tooltip";
 import ProgressSpinner from "primevue/progressspinner";
-
+import Card from "primevue/card";
 import "primevue/resources/primevue.min.css";
 import "primeicons/primeicons.css";
 import i18n from "./i18n";
@@ -81,6 +81,7 @@ myApp.use(router);
 myApp.use(PrimeVue, { ripple: true });
 myApp.use(ToastService);
 myApp.component("Button", Button);
+myApp.component("Card", Card);
 myApp.component("DataTable", DataTable);
 myApp.component("Column", Column);
 myApp.component("InputText", InputText);
