@@ -26,7 +26,8 @@
               option-value="asset-id"
               placeholder="Source asset"
               class="w-full"
-            />
+            >
+            </Dropdown>
           </div>
         </div>
         <div class="field grid">
@@ -43,7 +44,8 @@
               option-value="asset-id"
               placeholder="Destination asset"
               class="w-full"
-            />
+            >
+            </Dropdown>
           </div>
         </div>
         <div class="field grid">
@@ -264,13 +266,16 @@ export default {
     decimalsPower() {
       return Math.pow(10, this.decimals);
     },
+    assetData() {
+      return this.assets.find((a) => a["asset-id"] == this.asset);
+    },
     maxAmount() {
       if (!this.account) return 0;
       if (this.asset > 0) {
         if (!this.selectedAssetFromAccount) return 0;
         return this.selectedAssetFromAccount.amount / this.decimalsPower;
       } else {
-        let ret = this.account.amount / 1000000 - 0.1;
+        let ret = this.accountData.amount / 1000000 - 0.1;
         ret = ret - this.fee;
         if (this.accountData["assets"] && this.accountData["assets"].length > 0)
           ret = ret - this.accountData["assets"].length * 0.1;
@@ -356,9 +361,9 @@ export default {
     },
   },
   async mounted() {
+    await this.prolong();
     await this.reloadAccount();
     await this.makeAssets();
-    this.prolong();
 
     this.asset = -1;
     this.toAsset = 452399768;
@@ -404,31 +409,63 @@ export default {
     },
     async makeAssets() {
       this.assets = [];
-      if (this.accountData && this.accountData.amount > 0) {
+      if (this.accountData) {
+        const balance = this.$filters.formatCurrency(
+          this.accountData.amount,
+          this.$store.state.config.tokenSymbol,
+          6
+        );
         this.assets.push({
-          "asset-id": "-1",
+          "asset-id": "0",
           amount: this.accountData.amount,
-          name: "ALG",
+          name: this.$store.state.config.tokenSymbol,
           decimals: 6,
-          "unit-name": "",
-          label: "Algorand native token",
+          "unit-name": this.$store.state.config.tokenSymbol,
+          type: "Native",
+          label: `${this.$store.state.config.tokenSymbol} (Native token) Balance: ${balance}`,
+        });
+      } else {
+        const balance = this.$filters.formatCurrency(
+          0,
+          this.$store.state.config.tokenSymbol,
+          6
+        );
+        this.assets.push({
+          "asset-id": "0",
+          amount: 0,
+          name: this.$store.state.config.tokenSymbol,
+          decimals: 6,
+          "unit-name": this.$store.state.config.tokenSymbol,
+          type: "Native",
+          label: `${this.$store.state.config.tokenSymbol} (Native token) Balance: ${balance}`,
         });
       }
       if (this.accountData && this.accountData.assets) {
-        for (let accountAsset of this.accountData.assets) {
-          if (!accountAsset["asset-id"]) continue;
+        for (let index in this.accountData.assets) {
           const asset = await this.getAsset({
-            assetIndex: accountAsset["asset-id"],
+            assetIndex: this.accountData.assets[index]["asset-id"],
           });
           if (asset) {
+            const balance = this.$filters.formatCurrency(
+              this.accountData.assets[index]["amount"],
+              asset["unit-name"] ? asset["unit-name"] : asset["name"],
+              asset["decimals"]
+            );
+
             this.assets.push({
-              "asset-id": accountAsset["asset-id"],
-              amount: accountAsset["amount"],
+              "asset-id": this.accountData.assets[index]["asset-id"],
+              amount: this.accountData.assets[index]["amount"],
               name: asset["name"],
               decimals: asset["decimals"],
               "unit-name": asset["unit-name"],
-              label: `${asset["name"]} (${accountAsset["asset-id"]})`,
+              type: "ASA",
+              label: `${asset["name"]} (ASA ${this.accountData.assets[index]["asset-id"]}) Balance: ${balance}`,
             });
+          } else {
+            console.error(
+              "Asset not loaded",
+              this.accountData.assets[index]["asset-id"]
+            );
           }
         }
       }

@@ -163,54 +163,12 @@
                     v-model="asset"
                     filter
                     :options="assets"
-                    optionLabel="asset-id"
+                    optionLabel="label"
                     optionValue="asset-id"
                     :placeholder="$t('pay.asset')"
                     class="w-full"
                     inputClass="w-full"
                   >
-                    <template #value="slotProps">
-                      <div
-                        v-if="slotProps.value"
-                        class="flex align-items-center"
-                      >
-                        <div>
-                          {{
-                            assets.find((a) => a["asset-id"] == slotProps.value)
-                              ?.name
-                          }}
-                          <span v-if="slotProps.value > 0">
-                            (
-                            {{ slotProps.value }}
-                            )</span
-                          >
-                          <span v-else> &nbsp;(Native token)</span>
-                        </div>
-                      </div>
-                      <span v-else>
-                        {{ slotProps.placeholder }}
-                      </span>
-                    </template>
-                    <template #option="slotProps">
-                      <div
-                        v-if="slotProps.option"
-                        class="flex align-items-center"
-                      >
-                        {{ slotProps.option.name }}
-                        <span v-if="slotProps.option['asset-id'] > 0">
-                          &nbsp;({{ slotProps.option["asset-id"] }})&nbsp;
-                        </span>
-                        <span v-else>&nbsp;(Native token)&nbsp;</span>
-                        Balance:
-                        {{
-                          $filters.formatCurrency(
-                            slotProps.option["amount"],
-                            slotProps.option["name"],
-                            slotProps.option["decimals"]
-                          )
-                        }}
-                      </div>
-                    </template>
                   </Dropdown>
                 </div>
               </div>
@@ -801,6 +759,11 @@ export default {
     async makeAssets() {
       this.assets = [];
       if (this.accountData) {
+        const balance = this.$filters.formatCurrency(
+          this.accountData.amount,
+          this.$store.state.config.tokenSymbol,
+          6
+        );
         this.assets.push({
           "asset-id": "0",
           amount: this.accountData.amount,
@@ -808,8 +771,14 @@ export default {
           decimals: 6,
           "unit-name": this.$store.state.config.tokenSymbol,
           type: "Native",
+          label: `${this.$store.state.config.tokenSymbol} (Native token) Balance: ${balance}`,
         });
       } else {
+        const balance = this.$filters.formatCurrency(
+          0,
+          this.$store.state.config.tokenSymbol,
+          6
+        );
         this.assets.push({
           "asset-id": "0",
           amount: 0,
@@ -817,6 +786,7 @@ export default {
           decimals: 6,
           "unit-name": this.$store.state.config.tokenSymbol,
           type: "Native",
+          label: `${this.$store.state.config.tokenSymbol} (Native token) Balance: ${balance}`,
         });
       }
       if (this.isRekey) return; // if we do rekey tx, it is fixed asset - native token
@@ -826,6 +796,11 @@ export default {
             assetIndex: this.accountData.assets[index]["asset-id"],
           });
           if (asset) {
+            const balance = this.$filters.formatCurrency(
+              this.accountData.assets[index]["amount"],
+              asset["unit-name"] ? asset["unit-name"] : asset["name"],
+              asset["decimals"]
+            );
             this.assets.push({
               "asset-id": this.accountData.assets[index]["asset-id"],
               amount: this.accountData.assets[index]["amount"],
@@ -833,6 +808,7 @@ export default {
               decimals: asset["decimals"],
               "unit-name": asset["unit-name"],
               type: "ASA",
+              label: `${asset["name"]} (ASA ${this.accountData.assets[index]["asset-id"]}) Balance: ${balance}`,
             });
           } else {
             console.error(
@@ -844,6 +820,11 @@ export default {
 
         if (this.accountData.arc200) {
           for (const accountAsset of Object.values(this.accountData.arc200)) {
+            const balance = this.$filters.formatCurrency(
+              accountAsset.balance,
+              accountAsset.symbol ? accountAsset.symbol : accountAsset.name,
+              accountAsset.decimals
+            );
             this.assets.push({
               "asset-id": Number(accountAsset.arc200id),
               amount: Number(accountAsset.balance),
@@ -851,6 +832,7 @@ export default {
               decimals: Number(accountAsset.decimals),
               "unit-name": accountAsset.symbol,
               type: "ARC200",
+              label: `${accountAsset.name} (ARC200 ${accountAsset.arc200id}) Balance: ${balance}`,
             });
           }
         }
