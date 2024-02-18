@@ -107,6 +107,7 @@ const save = async () => {
 <template>
   <MainLayout v-if="state">
     <h1>Add ARC 200 asset to account {{ state?.account?.name }}</h1>
+    <p>{{ $t("acc_overview.asset_optinArc200_help") }}</p>
     <div class="field grid">
       <label for="arc200id" class="col-12 mb-2 md:col-2 md:mb-0">
         ARC200 App ID

@@ -988,9 +988,34 @@ export default {
           sender: { addr: this.payFrom },
         });
         console.log("this.amountLong", this.amountLong, this.payTo);
-        const compose = client
-          .compose()
-          .arc200Transfer({ to: this.payTo, value: BigInt(this.amountLong) });
+        const fromDecoded = algosdk.decodeAddress(this.payFrom);
+        const toDecoded = algosdk.decodeAddress(this.payTo);
+        var boxFrom = {
+          // : algosdk.BoxReference
+          appIndex: Number(this.asset),
+          name: new Uint8Array(
+            Buffer.concat([
+              Buffer.from([0x00]),
+              Buffer.from(fromDecoded.publicKey),
+            ])
+          ), // data box
+        };
+        var boxTo = {
+          // : algosdk.BoxReference
+          appIndex: Number(this.asset),
+          name: new Uint8Array(
+            Buffer.concat([
+              Buffer.from([0x00]),
+              Buffer.from(toDecoded.publicKey),
+            ])
+          ), // data box
+        };
+        const compose = client.compose().arc200Transfer(
+          { to: this.payTo, value: BigInt(this.amountLong) },
+          {
+            boxes: [boxFrom, boxTo],
+          }
+        );
         const atc = await compose.atc();
         const txsToSign = atc.buildGroup().map((tx) => tx.txn);
         console.log("txsToSign", txsToSign);
