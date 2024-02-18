@@ -59,6 +59,7 @@
                 :min="0"
                 :max="maxAmount"
                 :step="stepAmount"
+                :maxFractionDigits="decimals"
                 class="w-full"
               />
               <InputGroupAddon v-if="unit">{{ unit }}</InputGroupAddon>
@@ -80,6 +81,7 @@
               :min="0"
               :max="1"
               :step="0.01"
+              :maxFractionDigits="6"
               class="w-full"
             />
           </div>
@@ -252,12 +254,15 @@ export default {
         (a) => a["asset-id"] == this.asset
       );
     },
-    decimalsPower() {
+    decimals() {
       let decimals = 6;
       if (this.assetObj && this.assetObj.decimals !== undefined) {
         decimals = this.assetObj.decimals;
       }
-      return Math.pow(10, decimals);
+      return decimals;
+    },
+    decimalsPower() {
+      return Math.pow(10, this.decimals);
     },
     maxAmount() {
       if (!this.account) return 0;
@@ -273,11 +278,7 @@ export default {
       }
     },
     stepAmount() {
-      if (this.asset === null) return 0.000001;
-      if (!this.account) return 0.000001;
-      if (!this.assetObj || this.assetObj.decimals === undefined)
-        return 0.000001;
-      return Math.pow(10, -1 * this.assetObj.decimals);
+      return Math.pow(10, -1 * this.decimals);
     },
     allowExecuteDeflex() {
       if (

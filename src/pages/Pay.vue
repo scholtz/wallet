@@ -230,6 +230,8 @@
                     :min="0"
                     :max="maxAmount"
                     :step="stepAmount"
+                    :maxFractionDigits="decimals"
+                    showButtons
                     class="w-full"
                   />
                   <InputGroupAddon v-if="assetUnit">
@@ -256,8 +258,10 @@
                     v-model="fee"
                     :min="0.001"
                     :max="1"
-                    :step="0.001"
+                    :step="0.000001"
+                    :maxFractionDigits="6"
                     class="w-full"
+                    showButtons
                   />
                   <InputGroupAddon>
                     {{ this.$store.state.config.tokenSymbol }}
@@ -357,7 +361,6 @@ import TabPanel from "primevue/tabpanel";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
 import MultiSelect from "primevue/multiselect";
 import Contract from "arc200js";
-
 import { getArc200Client } from "arc200-client";
 
 export default {
@@ -423,15 +426,18 @@ export default {
     amountLong() {
       return Math.round(this.payamount * this.decimalsPower);
     },
-    decimalsPower() {
+    decimals() {
       if (this.assetData) {
-        return Math.pow(10, this.assetData.decimals);
+        return this.assetData.decimals;
       }
       let decimals = 6;
       if (this.assetObj && this.assetObj.decimals !== undefined) {
         decimals = this.assetObj.decimals;
       }
-      return Math.pow(10, decimals);
+      return decimals;
+    },
+    decimalsPower() {
+      return Math.pow(10, this.decimals);
     },
     feeLong() {
       return this.fee * Math.pow(10, 6); // algo
@@ -548,12 +554,8 @@ export default {
       return this.forceAsset && (!this.assetObj || !this.assetObj.name);
     },
     stepAmount() {
-      if (!this.asset) return 0.000001;
-      if (!this.account) return 0.000001;
-      if (!this.accountData) return 0.000001;
-      if (!this.assetObj || this.assetObj.decimals === undefined)
-        return 0.000001;
-      return Math.pow(10, -1 * this.assetObj.decimals);
+      if (!this.decimals) return 1;
+      return Math.pow(10, -1 * this.decimals);
     },
     noteIsB64() {
       if (!this.paynote) return false;
@@ -982,9 +984,10 @@ export default {
     async redirectToARC200Payment() {
       try {
         const algod = await this.getAlgod();
+        const appId = Number(this.asset);
         const client = getArc200Client({
           algod,
-          appId: BigInt(this.asset),
+          appId: appId,
           sender: { addr: this.payFrom },
         });
         console.log("this.amountLong", this.amountLong, this.payTo);
@@ -992,7 +995,7 @@ export default {
         const toDecoded = algosdk.decodeAddress(this.payTo);
         var boxFrom = {
           // : algosdk.BoxReference
-          appIndex: Number(this.asset),
+          appIndex: appId,
           name: new Uint8Array(
             Buffer.concat([
               Buffer.from([0x00]),
@@ -1002,7 +1005,7 @@ export default {
         };
         var boxTo = {
           // : algosdk.BoxReference
-          appIndex: Number(this.asset),
+          appIndex: appId,
           name: new Uint8Array(
             Buffer.concat([
               Buffer.from([0x00]),

@@ -32,7 +32,7 @@
       </div>
     </div>
     <div class="field grid">
-      <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">{{
+      <label for="asset" class="col-12 mb-2 md:col-2 md:mb-0">{{
         $t("pay.asset")
       }}</label>
       <div class="col-12 md:col-10">
@@ -64,9 +64,10 @@
             inputId="payamount"
             v-model="payamount"
             type="number"
-            min="0.000001"
-            max="999999999"
-            step="0.000001"
+            :min="0.000001"
+            :max="999999999"
+            :step="0.000001"
+            :maxFractionDigits="6"
             class="w-full"
           />
           <InputGroupAddon>{{ assetName }}</InputGroupAddon>
@@ -83,9 +84,9 @@
           v-model="decimals"
           disabled
           type="number"
-          min="0"
-          max="18"
-          step="1"
+          :min="0"
+          :max="18"
+          :step="1"
           class="w-full"
         />
       </div>

@@ -69,7 +69,15 @@
                   {{ assetObj["asset-id"] ? assetObj["asset-id"] : "Algo" }}
                 </div>
               </div>
-              <div class="field grid">
+              <div
+                class="field grid"
+                v-if="
+                  amountLong > 0 ||
+                  (txn &&
+                    txn.type &&
+                    (txn.type == 'pay' || txn.type == 'axfer'))
+                "
+              >
                 <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                   {{ $t("pay.amount") }}
                 </label>

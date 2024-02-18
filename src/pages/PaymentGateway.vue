@@ -143,9 +143,10 @@
                 :placeholder="$t('pay.amount')"
                 :title="$t('pay.amount')"
                 type="number"
-                min="0"
-                max="1999999999"
-                step="0.000001"
+                :min="0"
+                :max="1999999999"
+                :step="0.000001"
+                :maxFractionDigits="6"
               />
               <InputGroupAddon>{{ assetName }}</InputGroupAddon>
             </InputGroup>
@@ -192,6 +193,7 @@
                   :min="0.001"
                   :max="1"
                   :step="0.000001"
+                  :maxFractionDigits="6"
                 />
                 <InputGroupAddon>Algo</InputGroupAddon>
               </InputGroup>

@@ -68,9 +68,9 @@
           v-model="onlineRounds"
           class="w-full"
           type="number"
-          min="0"
-          max="2000000"
-          step="10000"
+          :min="0"
+          :max="2000000"
+          :step="10000"
         />
         <p>
           {{ $t("onlineofflinedialog.host") }}:
