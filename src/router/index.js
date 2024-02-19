@@ -11,6 +11,7 @@ import NotFound from "@/pages/404.vue";
 import FAQ from "@/pages/FAQ.vue";
 import Pay from "@/pages/Pay.vue";
 import Sign from "@/pages/Sign.vue";
+import SignAll from "@/pages/SignAll.vue";
 import Merchant from "@/pages/Merchant.vue";
 import ReceivePayment from "@/pages/ReceivePayment.vue";
 import Connect from "@/pages/Connect.vue";
@@ -252,6 +253,11 @@ const routes = [
     path: "/sign/:account/:rawSignedTxnInput",
     name: "Sign",
     component: Sign,
+  },
+  {
+    path: "/signAll/",
+    name: "SignAll",
+    component: SignAll,
   },
   {
     path: "/payWC/",

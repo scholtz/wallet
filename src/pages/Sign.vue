@@ -429,6 +429,14 @@
                 {{ $t("pay.return_to_wc") }}
               </Button>
               <Button
+                v-if="$store.state.signer.returnTo == 'SignAll'"
+                class="m-2"
+                :disabled="!thresholdMet"
+                @click="retToSignAll"
+              >
+                Return to multi tx signature
+              </Button>
+              <Button
                 v-if="isSignedByAny"
                 severity="secondary"
                 class="m-2"
@@ -1496,6 +1504,9 @@ export default {
     },
     retToWalletConnect() {
       this.$router.push({ name: "Connect" });
+    },
+    retToSignAll() {
+      this.$router.push({ name: "SignAll" });
     },
     async sign2FAClick(e) {
       try {
