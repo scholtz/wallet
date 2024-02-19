@@ -222,6 +222,10 @@ const submitSignedClick = async () => {
     if (confirmation["confirmed-round"]) {
       state.processing = false;
       state.confirmedRound = confirmation["confirmed-round"];
+      store.dispatch(
+        "toast/openSuccess",
+        `Transaction confirmed in round ${state.confirmedRound}`
+      );
     }
     if (confirmation["pool-error"]) {
       state.processing = false;
@@ -240,16 +244,23 @@ const submitSignedClick = async () => {
     <h1>Sign multiple transactions</h1>
     <Card>
       <template #content>
+        <Message severity="error" v-if="state.error">{{ state.error }}</Message>
+        <Message severity="success" v-if="state.confirmedRound">
+          {{ `Transaction confirmed in round ${state.confirmedRound}` }}
+        </Message>
+
         <div>
           <Button
             class="mr-1"
-            :disabled="state.allTxsAreSigned"
-            @click="clickSignAll(slotProps.data)"
+            :disabled="state.allTxsAreSigned || state.confirmedRound"
+            @click="clickSignAll()"
           >
             {{ $t("connect.sign_all") }}
           </Button>
           <Button
-            :disabled="!state.allTxsAreSigned || state.processing"
+            :disabled="
+              !state.allTxsAreSigned || state.processing || state.confirmedRound
+            "
             @click="submitSignedClick"
           >
             Send tx to the network

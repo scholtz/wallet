@@ -779,6 +779,7 @@ export default {
       resetError: "toast/resetError",
       getAlgod: "algod/getAlgod",
       getIndexer: "indexer/getIndexer",
+      signerToSignArray: "signer/toSignArray",
     }),
     isBase64(str) {
       try {
@@ -996,6 +997,27 @@ export default {
         this.openError(e.message ?? e);
       }
     },
+
+    async accountIsOptedInToArc200Asset(addr) {
+      const indexerClient = await this.getIndexer();
+      const fromDecoded = algosdk.decodeAddress(addr);
+      const boxName = new Uint8Array(
+        Buffer.concat([Buffer.from([0x00]), Buffer.from(fromDecoded.publicKey)])
+      );
+      try {
+        const box = await indexerClient
+          .lookupApplicationBoxByIDandName(state.arc200Info.arc200id, boxName)
+          .do();
+        return true;
+      } catch (exc) {
+        if (exc.message?.indexOf("no application boxes found")) {
+          return false;
+        } else {
+          console.error(exc);
+          throw exc;
+        }
+      }
+    },
     async redirectToARC200Payment() {
       try {
         const algod = await this.getAlgod();
@@ -1034,16 +1056,43 @@ export default {
             boxes: [boxFrom, boxTo],
           }
         );
+
+        const enc = new TextEncoder();
+        let noteEnc = enc.encode("g");
         const atc = await compose.atc();
-        const txsToSign = atc.buildGroup().map((tx) => tx.txn);
-        console.log("txsToSign", txsToSign);
-        this.tx = txsToSign[0];
-        const encoded = this.base642base64url(
-          Buffer.from(algosdk.encodeUnsignedTransaction(this.tx)).toString(
-            "base64"
-          )
-        );
-        this.$router.push(`/sign/${this.payFrom}/${encoded}`);
+        const txsToSignArc200 = atc.buildGroup().map((tx) => tx.txn);
+        const isOptedIn = await this.accountIsOptedInToArc200Asset(this.payTo);
+        console.log("isOptedIn", isOptedIn, this.payTo);
+        if (!isOptedIn) {
+          // we have to opt in for payTo account (pay for the box)
+          const payTx = await this.preparePayment({
+            payTo: algosdk.getApplicationAddress(appId),
+            payFrom: this.payFrom,
+            amount: 28500,
+            noteEnc: noteEnc,
+            fee: undefined,
+            asset: undefined,
+            reKeyTo: undefined,
+          });
+          const txsToSign = [];
+          txsToSign.push(payTx);
+          txsToSignArc200.forEach((tx) => {
+            txsToSign.push(tx);
+          });
+          algosdk.assignGroupID(txsToSign);
+          await this.signerToSignArray({
+            txs: txsToSign,
+          });
+          await this.$router.push("/signAll");
+        } else {
+          this.tx = txsToSignArc200[0];
+          const encoded = this.base642base64url(
+            Buffer.from(algosdk.encodeUnsignedTransaction(this.tx)).toString(
+              "base64"
+            )
+          );
+          this.$router.push(`/sign/${this.payFrom}/${encoded}`);
+        }
       } catch (e) {
         console.error("redirectToARC200Payment.error", e);
         this.openError(e.message ?? e);

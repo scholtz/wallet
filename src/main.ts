@@ -132,6 +132,14 @@ myApp.config.globalProperties.$filters = {
     multiply = true,
     language = store.state.config.language
   ) {
+    if (typeof value === "bigint")
+      return this.formatCurrencyBigInt(
+        value,
+        currency,
+        minimumFractionDigits,
+        multiply,
+        language
+      );
     if (multiply) {
       value = value / Math.pow(10, minimumFractionDigits);
     }

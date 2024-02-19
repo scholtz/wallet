@@ -86,23 +86,9 @@ const fetchAsset = async () => {
     }
     state.arc200Info.balance = balance.returnValue;
 
-    const fromDecoded = algosdk.decodeAddress(state.account.addr);
-    const boxName = new Uint8Array(
-      Buffer.concat([Buffer.from([0x00]), Buffer.from(fromDecoded.publicKey)])
-    );
-    try {
-      const box = await indexerClient
-        .lookupApplicationBoxByIDandName(state.arc200Info.arc200id, boxName)
-        .do();
-      state.boxNotFound = false;
-      console.log("box", box);
-    } catch (exc: any) {
-      if (exc.message?.indexOf("no application boxes found")) {
-        state.boxNotFound = true;
-      } else {
-        console.error(exc);
-      }
-    }
+    state.boxNotFound = !(await accountIsOptedInToArc200Asset(
+      state.account.addr
+    ));
 
     state.loading = false;
   } catch (err: any) {
@@ -111,7 +97,26 @@ const fetchAsset = async () => {
     await store.dispatch("toast/openError", error);
   }
 };
-
+const accountIsOptedInToArc200Asset = async (addr: string) => {
+  const indexerClient = await store.dispatch("indexer/getIndexer");
+  const fromDecoded = algosdk.decodeAddress(addr);
+  const boxName = new Uint8Array(
+    Buffer.concat([Buffer.from([0x00]), Buffer.from(fromDecoded.publicKey)])
+  );
+  try {
+    const box = await indexerClient
+      .lookupApplicationBoxByIDandName(state.arc200Info.arc200id, boxName)
+      .do();
+    return true;
+  } catch (exc: any) {
+    if (exc.message?.indexOf("no application boxes found")) {
+      return false;
+    } else {
+      console.error(exc);
+      throw exc;
+    }
+  }
+};
 const save = async () => {
   try {
     await store.dispatch("wallet/addArc200Asset", {
