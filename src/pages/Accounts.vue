@@ -200,14 +200,15 @@ export default {
       this.fillAccounts();
     },
   },
-  mounted() {
-    this.updateBalance();
+  async mounted() {
     if (localStorage.getItem("showNetworkAccounts") === null) {
       this.showNetworkAccounts = true;
     } else {
       this.showNetworkAccounts =
         localStorage.getItem("showNetworkAccounts") == "true";
     }
+    this.fillAccounts();
+    await this.updateBalance();
     this.fillAccounts();
   },
   methods: {
@@ -251,42 +252,18 @@ export default {
       });
     },
     async updateBalance() {
-      for (let index in this.$store.state.wallet.privateAccounts) {
+      for (const account of this.accounts) {
         await this.sleep(100);
-        if (!this.$store.state.wallet.privateAccounts[index]) {
-          return;
+        console.log(`refreshing ${account.addr} info`);
+        if (!account.addr) {
+          continue;
         }
-        this.accountInformation({
-          addr: this.$store.state.wallet.privateAccounts[index].addr,
-        })
-          .then((info) => {
-            if (info) {
-              this.updateAccount({ info });
-            }
-          })
-          .catch((e) => {
-            if (e.message.indexOf("404") >= 0) {
-              const info = {
-                address: this.$store.state.wallet.privateAccounts[index].addr,
-                amount: 0,
-                "amount-without-pending-rewards": 0,
-                "created-at-round": 0,
-                deleted: false,
-                "pending-rewards": 0,
-                "reward-base": 0,
-                rewards: 0,
-                round: 0,
-                "sig-type": "sig",
-                status: "Offline",
-                "total-apps-opted-in": 0,
-                "total-assets-opted-in": 0,
-                "total-created-apps": 0,
-                "total-created-assets": 0,
-              };
-
-              this.updateAccount({ info });
-            }
-          });
+        const info = await this.accountInformation({
+          addr: account.addr,
+        });
+        if (info) {
+          await this.updateAccount({ info });
+        }
       }
     },
   },
