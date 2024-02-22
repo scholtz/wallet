@@ -288,15 +288,15 @@
     "asset_optinArc200_help": "Hesabınızda ARC200 varlıklarını izleyebilirsiniz. ARC200 varlıkları, herkesin kullanıcının hesabına varlık alabilmeyi seçebileceği özelliğe sahip akıllı sözleşmelerdir. ARC200 varlıkları tehlikeli olabilir ve Akıllı sözleşme böylece ona tamamen güvenebilirsiniz."
   },
   "acc_overview_assets": {
-    "name": "Name",
-    "search_by_name": "Search by name",
-    "type": "Type",
-    "search_by_type": "Search by asset type",
-    "id": "Id",
-    "search_by_id": "Search by asset id",
-    "amount": "Amount",
-    "search_by_amount": "Search by amount",
-    "actions": "Actions"
+    "name": "Ad",
+    "search_by_name": "İsme göre ara",
+    "type": "Tür",
+    "search_by_type": "Varlık türüne göre ara",
+    "id": "kimlik",
+    "search_by_id": "kimliğe göre ara",
+    "amount": "Tutar",
+    "search_by_amount": "Tutara göre ara",
+    "actions": "Eylemler"
   },
   "optin": {
     "title": "Hesaptaki varlık transferlerini kabul et",
@@ -739,18 +739,18 @@
     "dev_info": "Geliştirici bilgisi"
   },
   "arc200": {
-    "optin_header": "Add ARC 200 asset to account",
-    "app_id": "ARC200 App ID",
-    "fetch_action": "Fetch asset information",
-    "reset": "Reset",
-    "examples": "Example assets",
-    "name": "Name",
-    "symbol": "Symbol",
-    "decimals": "Decimals",
-    "supply": "Total supply",
-    "balance": "Account balance",
-    "is_opted_in": "Account can receive asset",
-    "create_box": "Create box for this asset for this account",
-    "save_action": "Save asset to your account"
+    "optin_header": "Hesaba ARC 200 varlığını ekle",
+    "app_id": "ARC200 Uygulama Kimliği",
+    "fetch_action": "Varlık bilgilerini getir",
+    "reset": "Sıfırla",
+    "examples": "Örnek varlıklar",
+    "name": "Ad",
+    "symbol": "Sembol",
+    "decimals": "ondalıklar",
+    "supply": "Toplam arz",
+    "balance": "Hesap bakiyesi",
+    "is_opted_in": "Hesap varlık alabilir",
+    "create_box": "Bu hesap için bu varlık için kutu oluştur",
+    "save_action": "Varlığı hesabınıza kaydedin"
   }
 }
