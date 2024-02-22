@@ -171,7 +171,11 @@
               v-if="useDeflex"
               class="my-2 mx-1"
               :disabled="!allowExecuteDeflex || processingTradeDeflex"
-              :severity="allowExecuteDeflex ? 'primary' : 'secondary'"
+              :severity="
+                allowExecuteDeflex && isDeflexQuoteBetter
+                  ? 'primary'
+                  : 'secondary'
+              "
               @click="clickExecuteDeflex"
             >
               <ProgressSpinner
@@ -185,7 +189,11 @@
               v-if="useFolks"
               class="my-2"
               :disabled="!allowExecuteFolks || processingTradeFolks"
-              :class="allowExecuteFolks ? 'primary' : 'secondary'"
+              :class="
+                allowExecuteFolks && isFolksQuoteBetter
+                  ? 'primary'
+                  : 'secondary'
+              "
               @click="clickExecuteFolks"
             >
               <ProgressSpinner
@@ -332,6 +340,36 @@ export default {
       if (!this.assetObj) return "";
       if (this.assetObj["unit-name"]) return this.assetObj["unit-name"];
       return this.assetObj["name"];
+    },
+    isFolksQuoteBetter() {
+      if (!this.folksQuote) {
+        return false;
+      }
+      if (!this.folksQuote.quoteAmount) {
+        return false;
+      }
+      if (!this.quotes) {
+        return true;
+      }
+      if (!this.quotes.quoteAmount) {
+        return true;
+      }
+      return BigInt(this.quotes.quoteAmount) <= BigInt(this.folksQuote.quote);
+    },
+    isDeflexQuoteBetter() {
+      if (!this.quotes) {
+        return false;
+      }
+      if (!this.quotes.quoteAmount) {
+        return false;
+      }
+      if (!this.folksQuote) {
+        return true;
+      }
+      if (!this.folksQuote.quote) {
+        return true;
+      }
+      return BigInt(this.quotes.quoteAmount) >= BigInt(this.folksQuote.quote);
     },
   },
   watch: {
@@ -507,6 +545,7 @@ export default {
           this.error = "No deflex quotes available";
           return;
         }
+        console.log("deflex.quotes", quotes);
         this.quotes = quotes;
         const params = JSON.stringify({
           address: this.account.addr,
@@ -579,6 +618,7 @@ export default {
           10,
           "AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
         );
+        console.log("folks.quotes", this.folksQuote);
         const slippage = Math.round(this.slippage * 100);
         this.folksTxns = await folksRouterClient.prepareSwapTransactions(
           this.$route.params.account,

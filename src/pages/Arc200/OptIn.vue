@@ -48,7 +48,10 @@ const fetchAsset = async () => {
     state.loading = true;
     var name = await contract.arc200_name();
     if (!name.success) {
-      store.dispatch("toast/openError", "Failed to fetch ARC200 name");
+      store.dispatch(
+        "toast/openError",
+        `Failed to fetch ARC200 name at network ${store.state.config.envName}. You have problem with internet, or asset does not exist, or you are using wrong network.`
+      );
       state.loading = false;
       return;
     }
