@@ -19,7 +19,7 @@
             <i class="pi pi-search" />
             <InputText
               v-model="filters['global'].value"
-              placeholder="Keyword Search"
+              :placeholder="$t('global.keyword_search')"
             />
           </span>
         </div>
@@ -27,18 +27,26 @@
       <template #empty>
         {{ $t("acc_overview.no_assets") }}
       </template>
-      <Column field="name" header="Name" :sortable="true">
+      <Column
+        field="name"
+        :header="$t('acc_overview_assets.name')"
+        :sortable="true"
+      >
         <template #filter="{ filterModel, filterCallback }">
           <InputText
             v-model="filterModel.value"
             type="text"
             @input="filterCallback()"
             class="p-column-filter"
-            placeholder="Search by name"
+            :placeholder="$t('acc_overview_assets.search_by_name')"
           />
         </template>
       </Column>
-      <Column field="type" header="Type" :sortable="true">
+      <Column
+        field="type"
+        :header="$t('acc_overview_assets.type')"
+        :sortable="true"
+      >
         <template #body="slotProps">
           <div v-if="slotProps.data.type == 'Native'">
             <Badge severity="primary" value="Native"></Badge>
@@ -56,11 +64,15 @@
             type="text"
             @input="filterCallback()"
             class="p-column-filter"
-            placeholder="Search by asset type"
+            :placeholder="$t('acc_overview_assets.search_by_type')"
           />
         </template>
       </Column>
-      <Column field="asset-id" header="Id" :sortable="true">
+      <Column
+        field="asset-id"
+        :header="$t('acc_overview_assets.id')"
+        :sortable="true"
+      >
         <template #filter="{ filterModel, filterCallback }">
           <InputText
             v-model="filterModel.value"
@@ -68,10 +80,15 @@
             @input="filterCallback()"
             class="p-column-filter"
             placeholder="Search by asset id"
+            :placeholder="$t('acc_overview_assets.search_by_id')"
           />
         </template>
       </Column>
-      <Column field="amount" header="Amount" :sortable="true">
+      <Column
+        field="amount"
+        :header="$t('acc_overview_assets.amount')"
+        :sortable="true"
+      >
         <template #body="slotProps">
           <div v-if="slotProps.data['asset-id'] > 0" class="text-right">
             {{
@@ -96,11 +113,11 @@
             type="text"
             @input="filterCallback()"
             class="p-column-filter"
-            placeholder="Search by amount"
+            :placeholder="$t('acc_overview_assets.search_by_amount')"
           />
         </template>
       </Column>
-      <Column header="Actions" :sortable="true">
+      <Column :header="$t('acc_overview_assets.actions')" :sortable="true">
         <template #body="slotProps">
           <Button class="m-1" size="small" @click="refresh(slotProps.data)">
             <i class="pi pi-refresh"></i>

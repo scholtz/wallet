@@ -196,13 +196,13 @@ const createBoxClick = async () => {
 
 <template>
   <MainLayout v-if="state">
-    <h1>Add ARC 200 asset to account {{ state?.account?.name }}</h1>
+    <h1>{{ $t("arc200.optin_header") }} {{ state?.account?.name }}</h1>
     <Card>
       <template #content>
         <p>{{ $t("acc_overview.asset_optinArc200_help") }}</p>
         <div class="field grid">
           <label for="arc200id" class="col-12 mb-2 md:col-2 md:mb-0">
-            ARC200 App ID
+            {{ $t("arc200.app_id") }}
           </label>
           <div class="col-12 md:col-10">
             <InputText id="arc200id" v-model="state.arc200id" class="w-full" />
@@ -217,7 +217,7 @@ const createBoxClick = async () => {
               :severity="state.arc200Info.name ? 'secondary' : 'primary'"
               :disabled="state.loading || !state.arc200id"
             >
-              Fetch asset information
+              {{ $t("arc200.fetch_action") }}
               <ProgressSpinner
                 class="ml-2"
                 v-if="state.loading"
@@ -236,7 +236,7 @@ const createBoxClick = async () => {
               "
               severity="secondary"
             >
-              Reset
+              {{ $t("arc200.reset") }}
             </Button>
           </div>
         </div>
@@ -248,7 +248,9 @@ const createBoxClick = async () => {
             store.state.config.env == 'voitest-v1'
           "
         >
-          <label class="col-12 mb-2 md:col-2 md:mb-0">Example assets</label>
+          <label class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("arc200.examples")
+          }}</label>
           <div class="col-12 md:col-10">
             <Button
               class="mr-1"
@@ -284,25 +286,33 @@ const createBoxClick = async () => {
           class="field grid mt-5"
           v-if="state.arc200Info.name && !state.loading"
         >
-          <label class="col-12 mb-2 md:col-2 md:mb-0">Name</label>
+          <label class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("arc200.name")
+          }}</label>
           <div class="col-12 md:col-10">
             {{ state.arc200Info.name }}
           </div>
         </div>
         <div class="field grid" v-if="state.arc200Info.name && !state.loading">
-          <label class="col-12 mb-2 md:col-2 md:mb-0">Symbol</label>
+          <label class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("arc200.symbol")
+          }}</label>
           <div class="col-12 md:col-10">
             {{ state.arc200Info.symbol }}
           </div>
         </div>
         <div class="field grid" v-if="state.arc200Info.name && !state.loading">
-          <label class="col-12 mb-2 md:col-2 md:mb-0">Decimals</label>
+          <label class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("arc200.decimals")
+          }}</label>
           <div class="col-12 md:col-10">
             {{ state.arc200Info.decimals }}
           </div>
         </div>
         <div class="field grid" v-if="state.arc200Info.name && !state.loading">
-          <label class="col-12 mb-2 md:col-2 md:mb-0">Total supply</label>
+          <label class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("arc200.supply")
+          }}</label>
           <div class="col-12 md:col-10">
             {{
               $filters.formatCurrencyBigInt(
@@ -314,7 +324,9 @@ const createBoxClick = async () => {
           </div>
         </div>
         <div class="field grid" v-if="state.arc200Info.name && !state.loading">
-          <label class="col-12 mb-2 md:col-2 md:mb-0">Account balance</label>
+          <label class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("arc200.balance")
+          }}</label>
           <div class="col-12 md:col-10">
             {{
               $filters.formatCurrencyBigInt(
@@ -326,9 +338,9 @@ const createBoxClick = async () => {
           </div>
         </div>
         <div class="field grid" v-if="state.arc200Info.name && !state.loading">
-          <label class="col-12 mb-2 md:col-2 md:mb-0"
-            >Account can receive asset</label
-          >
+          <label class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ $t("arc200.is_opted_in") }}
+          </label>
           <div class="col-12 md:col-10">
             {{ !state.boxNotFound }}
             {{
@@ -345,7 +357,7 @@ const createBoxClick = async () => {
               v-if="state.boxNotFound"
               :severity="primary"
             >
-              Create box for this asset for this account
+              {{ $t("arc200.create_box") }}
             </Button>
             <Button
               class="my-2"
@@ -353,7 +365,7 @@ const createBoxClick = async () => {
               :disabled="state.boxNotFound"
               :severity="state.boxNotFound ? 'secondary' : 'primary'"
             >
-              Save asset to your account
+              {{ $t("arc200.save_action") }}
             </Button>
           </div>
         </div>
