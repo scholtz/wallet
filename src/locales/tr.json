@@ -33,7 +33,8 @@
     "yes": "Evet",
     "no": "Hayır",
     "loading": "Yükleniyor..",
-    "last_error": "Son hata"
+    "last_error": "Son hata",
+    "keyword_search": "Keyword Search"
   },
   "navbar": {
     "logo": "A Wallet",
@@ -149,7 +150,7 @@
     "check_results": "Sonuçları kontrol et"
   },
   "votetl": {
-   "title": "Güvenilen liste yönetimi",
+    "title": "Güvenilen liste yönetimi",
     "help1": "Soru soran, bu sayfada güvenilir hesapların listesini yönetebilir. Her kişinin yalnızca bir güvenilir hesabı olabilir. Bunun yönetimi soruyu soran tarafından sağlanmalıdır. Oylama bittikten sonra iki oy hesaplaması vardır - biri kişi bir oy ve bir jeton bir oy.Oylama sistemi oylama sonucunun ne anlama geldiğini yorumlamaz.Oylama sistemi sadece oylama sistemi kurallarına göre oylama sonuçlarını hesaplar, örneğin oyların delegasyonu, oyların oranı, oyların geçerliliği oy vb.",
     "add": "Hesapları güvenilenler listesine ekleyin - her satıra bir hesap",
     "remove": "Hesapları güvenilir listeden kaldır - her satıra bir hesap",
@@ -259,7 +260,7 @@
     "confirmed_round": "Onaylanan tur",
     "fee": "Komisyon ücreti",
     "delete": "Hesabı sil",
-     "delete_header": "Hesabı sil",
+    "delete_header": "Hesabı sil",
     "delete_confirm": "Bu hesabı cüzdanınızdan silmek istediğinizden emin misiniz?",
     "delete_confirm_button": "Bu hesabı sil",
     "deleted": "Hesap silindi",
@@ -286,8 +287,19 @@
     "asset_optinArc200": "ARC200 varlığını tercih et",
     "asset_optinArc200_help": "Hesabınızda ARC200 varlıklarını izleyebilirsiniz. ARC200 varlıkları, herkesin kullanıcının hesabına varlık alabilmeyi seçebileceği özelliğe sahip akıllı sözleşmelerdir. ARC200 varlıkları tehlikeli olabilir ve Akıllı sözleşme böylece ona tamamen güvenebilirsiniz."
   },
+  "acc_overview_assets": {
+    "name": "Name",
+    "search_by_name": "Search by name",
+    "type": "Type",
+    "search_by_type": "Search by asset type",
+    "id": "Id",
+    "search_by_id": "Search by asset id",
+    "amount": "Amount",
+    "search_by_amount": "Search by amount",
+    "actions": "Actions"
+  },
   "optin": {
-     "title": "Hesaptaki varlık transferlerini kabul et",
+    "title": "Hesaptaki varlık transferlerini kabul et",
     "searchById": "Varlık kimliğini biliyorum",
     "assetId": "Varlık Kimliği",
     "assetName": "Varlık Adı",
@@ -722,8 +734,23 @@
     "previous": "Önceki",
     "next": "Sonraki",
     "index": "Shamir dizini",
-    "shamir_help": "Lütfen anımsatıcıyı çok güvenli bir yerde saklayın. Hepsini yazdığınızdan emin olun. Shamir yedeklemesinin bazı bölümlerini kontrol edin ve kurtarma eşiğini tek bir yerde saklamayın.", 
-    "algo_help": "Lütfen anımsatıcıyı çok güvenli bir yerde güvenceye alın.", 
-    "dev_info": "Geliştirici bilgisi" 
+    "shamir_help": "Lütfen anımsatıcıyı çok güvenli bir yerde saklayın. Hepsini yazdığınızdan emin olun. Shamir yedeklemesinin bazı bölümlerini kontrol edin ve kurtarma eşiğini tek bir yerde saklamayın.",
+    "algo_help": "Lütfen anımsatıcıyı çok güvenli bir yerde güvenceye alın.",
+    "dev_info": "Geliştirici bilgisi"
+  },
+  "arc200": {
+    "optin_header": "Add ARC 200 asset to account",
+    "app_id": "ARC200 App ID",
+    "fetch_action": "Fetch asset information",
+    "reset": "Reset",
+    "examples": "Example assets",
+    "name": "Name",
+    "symbol": "Symbol",
+    "decimals": "Decimals",
+    "supply": "Total supply",
+    "balance": "Account balance",
+    "is_opted_in": "Account can receive asset",
+    "create_box": "Create box for this asset for this account",
+    "save_action": "Save asset to your account"
   }
 }
