@@ -32,7 +32,8 @@
     "cancel": "Mégsem",
     "yes": "Igen",
     "no": "Nem",
-    "loading": "Betöltés alatt..."
+    "loading": "Betöltés alatt...",
+    "keyword_search": "Keyword Search"
   },
   "navbar": {
     "logo": "AWallet",
@@ -64,105 +65,12 @@
     "execute_button_folks": "Execute using Folks router",
     "slippage": "Slippage percentage"
   },
-  "votemenu": {
-    "overview": "Áttekintés",
-    "my_questions": "Kérdéseim",
-    "ask_question": "Kérdésem van",
-    "delegation": "Delegálás",
-    "answers": "Válaszok",
-    "trusted_list": "Bizalmi lista",
-    "governance": "Irányítás",
-    "ams01": "Vote Coin"
-  },
   "govtoolsmenu": {
     "gen": "Számlák előállítása",
     "distribute": "Algo szétosztás 1->N",
     "optin": "Benevezés az irányításba",
     "pay": "Tömeges fizetés N->1",
     "merge": "Számlák összevonása N->1"
-  },
-  "voteask": {
-    "title": "Kérdezz valamit a blokkláncon keresztül",
-    "question_title": "A kérdés címe",
-    "title_placeholder": "Ez fog megjelenni a kérdéseket tartalmazó táblázatban",
-    "question_text": "A kérdés szövege",
-    "url": "URL cím, amely a kérdés további részleteit tartalmazza (kezdd úgy, hogy https://)",
-    "url_placeholder": "Itt adható meg egy URL cím, ahol további információ található a kérdésről",
-    "max_round": "A jelenlegi blokkhoz képest ennyi blokk múlva lesz a kérdés lezárva",
-    "calculated_block": "Max blokk",
-    "calculated_time": "Becsült idő",
-    "code": "Kód",
-    "response_text": "A válaszlehetőség szövege",
-    "remove_response": "Válaszlehetőség törlése",
-    "responses_help": "A többiek oly módon fognak válaszolni a kérdésedre, hogy szavaznak az egyes lehetőségekre. Légy szíves, add meg a 2-ik..N-ik válasz kódját és szövegét.",
-    "add_response": "Új válasz felvétele",
-    "category": "Kérdés kategória",
-    "category_placeholder": "Tudás alapú kategória alapján a szavazati jog átruházása van érvényben",
-    "submit_question": "Tegyél föl egy kérdést az {accountName} számla segítségével"
-  },
-  "votedelegate": {
-    "title": "Szavazati jog átruházása",
-    "intro1": "A szavazati jogodat átruházhatod más valakire, akiben megbízol. Ez lehet a barátod, vagy egy ismert személy.",
-    "intro2": "Ha van egy pénzügyekben jártas jóbarátod, akkor a pénzügyi kategóriában átruházhatod rá a szavazati jogodat. Ha a barátod sem szavaz közvetlenül a kérdésekre, akkor átruházhatja a te szavazati jogodat és a saját szavazati jogát a saját belátása szerint az általa ismert szakértőre. Amikor ez a szakértő szavaz, akkor a te szavazati jogodat használja és a te véleményedet képviseli. Mindig szavazhatsz közvetlen módon, még akkor is, ha átruháztad a szavazati jogodat. Ha közvetlenül szavazol, akkor az adott kérdésben a tiéd marad a szavazati jogod.",
-    "intro3": "A szavazati jogodat több barátod között is szétoszthatod. A szavazati jogod megosztásának súlyozását pontokkal tudod kifejezni. Ha az első barátodnak 50 pontot adtál, a másodiknak 100 pontot, akkor az első barátod a szavazati jogod 50/150 = 33 %-val fog rendelkezni. A szavazati jogod maradékát, 100/150 = 67 %-ot a második barátod kapja.",
-    "intro4": "A 'Tetszőleges kategória' tartalék kategória. Ha egy adott kérdés esetében nem lett delegálva egyetlen kategória sem, de a 'Tetszőleges kategória' definiálva van, akkor ez lesz használva.",
-    "category_any": "Tetszőleges kategória",
-    "add_account": "Számla hozzáadása",
-    "wallet_address": "Pénztárca cím",
-    "delegate": "Számla hozzáadása az átruházáshoz",
-    "category": "Egy adott kategória átruházása",
-    "category_placeholder": "Az átruházás megadható egy adott tudás alapú kategóriában, pl. IT, pénzügy, irányítás",
-    "add_category": "Egy adott kategória megadása",
-    "submit_help": "A lenti gomb megnyomásával az átruházással kapcsolatos preferenciák a blokkláncon tárolhatók.",
-    "submit_text": "Az {accountName} átruházásainak tárolása a blokkláncon"
-  },
-  "voteoverview": {
-    "title": "Áttekintés"
-  },
-  "votequestions": {
-    "title": "Kérdések"
-  },
-  "votequestionlist": {
-    "question_title": "A kérdés címe",
-    "no_questions": "Légy te az első, aki feltesz egy kérdést",
-    "question_text": "A kérdés szövege",
-    "round": "A kérdés ennél a menetnél lett feltéve:",
-    "maxround": "A kérdés eddig a menetig lesz nyitva:",
-    "time": "Idő",
-    "category": "Kategória",
-    "sender": "Kérdező",
-    "list": "Az összes kérdés listája",
-    "id": "Kérdés azonosító",
-    "current_round": "Aktuális menet",
-    "round_time": "A menet ideje",
-    "url": "URL",
-    "options": "Lehetőségek",
-    "voting_closed": "A szavazás lezárult",
-    "latest_response": "Az {accountName} utolsó szavazata lesz figyelembe véve",
-    "vote_button": "Szavazz az {accountName} számlával",
-    "sum_trusted": "A figyelembe vett szavazatok száma",
-    "sum_coins": "A figyelembe vett érmék összege",
-    "trusted_list_results": "Eredmény a megbízható szavazók listája alapján",
-    "hypercapitalism_results": "Eredmény az 1 érme 1 szavazat alapján",
-    "vote_help": "Ha szavazni szeretnél, akkor légy szíves, add meg a súlyozást. Az egyes válaszoknál nulla és 100 pont közötti súlyozás adható. Ha csak egy választ akarsz kiválasztani, akkor adj neki 100 pontot, a többi válasznak pedig nulla pontot. Ha nem tudod a választ, akkor nem kell szavaznod, illetve az összes válaszhoz azonos pontot rendelhetsz hozzá. Ha az egyik válaszra 100 ponttal szavazol, egy másik válaszra pedig 20 ponttal, akkor az első válaszra a szavazati jogod 100/120 = 83%-ával szavazol, a másodikra 17 %-kal. Ha az összes lehetőséghez 100 pontot rendelsz, akkor a szavazati jogod eloszlása ugyanolyan lesz, mint ha mindegyik lehetőséghez 1 pontot rendeltél volna.",
-    "check_results": "Eredmények ellenőrzése"
-  },
-  "votetl": {
-    "title": "A megbízható szavazók listájának kezelése",
-    "help1": "A kérdésfeltevő ezen a lapon kezelheti a megbízható számlák listáját. Egy személyhez csak egy megbízható számla tartozhat. Ennek a listának a kezelése a kérdésfeltevő feladata. A szavazás befejeződése után kétféleképpen lesznek a szavazatok összesítve: 'egy személy egy szavazat' alapján, vagy 'egy érme egy szavazat' alapján. A szavazó rendszer nem értelmezi a szavazás eredményét, csupán kiszámítja a szabályok alapján a szavazás eredményét, vagyis figyelembe veszi pl. a szavazatok átruházását, a rész-szavazatokat, a szavazatok érvényességét stb.",
-    "add": "Számla hozzáadása a megbízható szavazók listájához - soronként egy számla",
-    "remove": "Számla eltávolítása a megbízható szavazók listájából - soronként egy számla",
-    "submit_text": "Az {accountName} számlához tartozó megbízható szavazók listájának eltárolása a blokkláncon",
-    "round": "Az n-ik menetben létrehozva",
-    "account": "Megbízható számla",
-    "no_tl": "Az {accountName} számlához nincsenek megbízható számlák felvéve."
-  },
-  "voteanswerslist": {
-    "no_answers": "Még nincs válasz a kérdésre",
-    "round": "Menetek száma a válaszadáskor",
-    "time": "Válaszadás ideje",
-    "sender": "Válaszadó",
-    "response": "A válaszhoz tartozó json"
   },
   "merchant": {
     "make_payment": "Fizetési gateway",
@@ -284,6 +192,17 @@
     "account_actions": "Account actions",
     "asset_optinArc200": "OptIn to ARC200 asset",
     "asset_optinArc200_help": "You can watch on your account the ARC200 assets. ARC200 assets are smart contracts with feature that anyone can opt in user's account to be able to receive the asset. ARC200 assets may be dangerous and you should require trustworthy audit of the smart contract so that you can fully trust it."
+  },
+  "acc_overview_assets": {
+    "name": "Name",
+    "search_by_name": "Search by name",
+    "type": "Type",
+    "search_by_type": "Search by asset type",
+    "id": "Id",
+    "search_by_id": "Search by asset id",
+    "amount": "Amount",
+    "search_by_amount": "Search by amount",
+    "actions": "Actions"
   },
   "optin": {
     "title": "Egy adott pénzeszköz fogadásának engedélyezése, számla:",
@@ -723,5 +642,20 @@
     "shamir_help": "Please secure mnemonic at very secure place. Make sure you write down all parts of shamir backup and do not store the recovery threshold at one place.",
     "algo_help": "Please secure mnemonic at very secure place.",
     "dev_info": "Developer info"
+  },
+  "arc200": {
+    "optin_header": "Add ARC 200 asset to account",
+    "app_id": "ARC200 App ID",
+    "fetch_action": "Fetch asset information",
+    "reset": "Reset",
+    "examples": "Example assets",
+    "name": "Name",
+    "symbol": "Symbol",
+    "decimals": "Decimals",
+    "supply": "Total supply",
+    "balance": "Account balance",
+    "is_opted_in": "Account can receive asset",
+    "create_box": "Create box for this asset for this account",
+    "save_action": "Save asset to your account"
   }
 }

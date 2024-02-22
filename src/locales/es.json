@@ -33,7 +33,8 @@
     "yes": "Si",
     "no": "No",
     "loading": "Cargando..",
-    "last_error": "Último error"
+    "last_error": "Último error",
+    "keyword_search": "Keyword Search"
   },
   "navbar": {
     "logo": "A Wallet",
@@ -65,105 +66,12 @@
     "execute_button_folks": "Ejecutar usando Folks router",
     "slippage": "Porcentaje de desviación"
   },
-  "votemenu": {
-    "overview": "Vista general",
-    "my_questions": "Mis preguntas",
-    "ask_question": "Hacer una pregunta",
-    "delegation": "Delegation",
-    "answers": "Respuestas",
-    "trusted_list": "Lista de confianza",
-    "governance": "Gobernanza",
-    "ams01": "Vote Coin"
-  },
   "govtoolsmenu": {
     "gen": "Generar cuentas",
     "distribute": "Distribuir algo 1->N",
     "optin": "Hacer Opt in para la gobernanza",
     "pay": "Pagos en masa N->1",
     "merge": "Combinar cuentas N->1"
-  },
-  "voteask": {
-    "title": "Hacer una pregunta a través de blockchain",
-    "question_title": "Titulo de la pregunta",
-    "title_placeholder": "Aparecerá en la lista de preguntas",
-    "question_text": "Texto de la pregunta",
-    "url": "Dirección URL con más detalles sobre la pregunta (empieza por https://)",
-    "url_placeholder": "Añade una dirección url donde la gente pueda encontrar más información sobre la pregunta",
-    "max_round": "Número de bloques desde ahora hasta que se cierre la pregunta",
-    "calculated_block": "Bloque máximo",
-    "calculated_time": "Tiempo estimado",
-    "code": "Código",
-    "response_text": "Texto de la opción de respuesta",
-    "remove_response": "Quitar opción",
-    "responses_help": "La gente responderá a su pregunta votando por respuestas concretas. Por favor, proporcione los códigos y textos de las respuestas 2-N.",
-    "add_response": "Añadir nueva respuesta",
-    "category": "Categoría de la pregunta",
-    "category_placeholder": "Delegación de voto por categorías basada en el conocimiento",
-    "submit_question": "Hacer una pregunta utilizando la cuenta {accountName}"
-  },
-  "votedelegate": {
-    "title": "Delegar el poder de voto",
-    "intro1": "Puede delegar su poder de voto en alguien de su confianza. Puede ser tu amigo o alguna persona pública.",
-    "intro2": "Si tienes un buen amigo en finanzas, puedes delegar en él tu poder de voto en la categoría de finanzas. Si él no vota directamente las preguntas, puede delegar tu poder de voto y el suyo en otra persona que conozca. Cuando la otra persona vota, utiliza tu poder de voto y representa tu opinión. Siempre puedes votar directamente en todos los asuntos aunque hayas utilizado la delegación. Si vota directamente, su poder de voto queda a su discreción.",
-    "intro3": "Puedes repartir tu poder de voto entre varios amigos. El peso de la distribución de tu poder de voto se establece en puntos. Si estableces 50 puntos para el amigo nº 1 y 100 puntos para el amigo nº 2, el amigo nº 1 tendrá 50/150 = 33% de tu poder de voto. El amigo nº 2 tendrá el resto 100/150 = 67% de tu poder de voto.",
-    "intro4": "La categoría cualquiera es la categoría de reserva. Si la categoría para una pregunta específica no está definida, se utilizará la categoría cualquiera si está definida.",
-    "category_any": "Cualquier categoría",
-    "add_account": "Añadir cuenta",
-    "wallet_address": "Dirección de la billetera",
-    "delegate": "Agregar cuenta a la delegación",
-    "category": "Delegar una categoría específica",
-    "category_placeholder": "Puede especificar su delegación en una categoría basada en el conocimiento... por ejemplo, TI, finanzas, gobernanza",
-    "add_category": "Añadir una categoría específica",
-    "submit_help": "Al hacer clic en el botón de abajo, almacenará sus preferencias de delegación en la cadena de bloques.",
-    "submit_text": "Almacenar las preferencias de delegación en la cadena de bloques para {accountName}"
-  },
-  "voteoverview": {
-    "title": "Vista general"
-  },
-  "votequestions": {
-    "title": "Preguntas"
-  },
-  "votequestionlist": {
-    "question_title": "Titulo de la pregunta",
-    "no_questions": "Sé el primero en hacer una pregunta",
-    "question_text": "Texto de la pregunta",
-    "round": "Colocada en la ronda",
-    "maxround": "Abierto hasta la ronda",
-    "time": "Tiempo",
-    "category": "Categoria",
-    "sender": "Preguntador",
-    "list": "Listar todas las preguntas",
-    "id": "Identificador de la pregunta",
-    "current_round": "Ronda actual",
-    "round_time": "Tiempo de la ronda",
-    "url": "URL",
-    "options": "Opciones",
-    "voting_closed": "La votación ha terminado",
-    "latest_response": "Se ha seleccionado la última votación para la cuenta {accountName}.",
-    "vote_button": "Se ha seleccionado la última votación para la cuenta {accountName}.",
-    "sum_trusted": "Número de votos contabilizados",
-    "sum_coins": "Suma de monedas contabilizadas",
-    "trusted_list_results": "Resultado de la lista de confianza",
-    "hypercapitalism_results": "1 moneda 1 resultado de votación",
-    "vote_help": "Si desea votar, seleccione sus preferencias. Puede asignar sus preferencias a cada respuesta con una puntuación de 0 a 100 puntos. Si sólo quiere seleccionar una respuesta, por favor, asígnele 100 puntos, y al resto de respuestas 0 puntos. Si no lo sabe, no tiene que votar, o puede asignar a todas las respuestas el mismo número de puntos. Si vota una respuesta con 100 puntos, y otra respuesta con 20 puntos, su poder de voto para la primera respuesta será 100/120 = 83%, y 17% para la segunda respuesta. Si asigna a todas las opciones 100 puntos, la distribución de su poder de voto será la misma que si asignara a todas las opciones 1 punto.",
-    "check_results": "Verificar resultados"
-  },
-  "votetl": {
-    "title": "Gestionar lista de confianza",
-    "help1": "El cuestionador puede gestionar la lista de cuentas de confianza en esta página. Cada persona sólo puede tener una cuenta de confianza. La gestión de esta debe ser proporcionada por el preguntador. Una vez finalizada la votación, hay dos cálculos de votos: una persona, un voto, y una moneda, un voto. El sistema de votación no interpreta lo que significa el resultado de la votación. El sistema de votación se limita a calcular los resultados de la votación de acuerdo con las reglas del sistema de votación, por ejemplo, la delegación de votos, la proporción de votos, la validez de los votos, etc.",
-    "add": "Añadir cuentas a la lista de confianza - una cuenta por línea",
-    "remove": "Eliminar cuentas de la lista de confianza - una cuenta por línea",
-    "submit_text": "Almacenar la lista de confianza en la cadena de bloques para {accountName}",
-    "round": "Añadido en la ronda n.",
-    "account": "Cuenta de confianza",
-    "no_tl": "No hay cuentas de confianza listadas para la cuenta {accountName}."
-  },
-  "voteanswerslist": {
-    "no_answers": "Aún no hay respuesta a la pregunta.",
-    "round": "Ronda de respuestas",
-    "time": "Tiempo de la respuesta",
-    "sender": "Responder",
-    "response": "Json de la respuesta"
   },
   "merchant": {
     "make_payment": "Pasarela de pagos",
@@ -285,6 +193,17 @@
     "account_actions": "Account actions",
     "asset_optinArc200": "OptIn to ARC200 asset",
     "asset_optinArc200_help": "You can watch on your account the ARC200 assets. ARC200 assets are smart contracts with feature that anyone can opt in user's account to be able to receive the asset. ARC200 assets may be dangerous and you should require trustworthy audit of the smart contract so that you can fully trust it."
+  },
+  "acc_overview_assets": {
+    "name": "Name",
+    "search_by_name": "Search by name",
+    "type": "Type",
+    "search_by_type": "Search by asset type",
+    "id": "Id",
+    "search_by_id": "Search by asset id",
+    "amount": "Amount",
+    "search_by_amount": "Search by amount",
+    "actions": "Actions"
   },
   "optin": {
     "title": "Aceptar transferencias de activos en cuenta",
@@ -724,5 +643,20 @@
     "shamir_help": "Por favor, asegure la frase mnemotécnica en un lugar MUY seguro. Asegúrese de anotar todas las partes de la copia de seguridad shamir y no almacenar el threshold de recuperación en un solo lugar.",
     "algo_help": "Por favor, asegure la frase mnemotécnica en un lugar MUY seguro.",
     "dev_info": "Información del desarrollador"
+  },
+  "arc200": {
+    "optin_header": "Add ARC 200 asset to account",
+    "app_id": "ARC200 App ID",
+    "fetch_action": "Fetch asset information",
+    "reset": "Reset",
+    "examples": "Example assets",
+    "name": "Name",
+    "symbol": "Symbol",
+    "decimals": "Decimals",
+    "supply": "Total supply",
+    "balance": "Account balance",
+    "is_opted_in": "Account can receive asset",
+    "create_box": "Create box for this asset for this account",
+    "save_action": "Save asset to your account"
   }
 }
