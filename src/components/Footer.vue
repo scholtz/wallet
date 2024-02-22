@@ -1,5 +1,5 @@
 <template>
-  <footer v-if="$store.state.wallet.isOpen">
+  <footer v-if="$store.state.wallet.isOpen" class="my-4">
     <div class="grid">
       <div class="col" />
       <div class="col">

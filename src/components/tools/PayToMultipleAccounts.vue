@@ -32,9 +32,10 @@
           <InputNumber
             inputId="amount"
             v-model="amount"
-            min="0"
-            max="1999999999"
-            step="0.000001"
+            :min="0"
+            :max="1999999999"
+            :step="0.000001"
+            :maxFractionDigits="6"
             class="w-full"
           />
           <InputGroupAddon>Algo</InputGroupAddon>

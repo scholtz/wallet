@@ -1,195 +1,212 @@
 <template>
   <MainLayout>
-    <div class="container-fluid">
-      <h1>{{ $t("swap.title") }}</h1>
-      <div v-if="checkNetwork()">
-        {{ $t("swap.network") }}: {{ checkNetwork() }}
-      </div>
-      <Message severity="error" v-else>
-        {{ $t("swap.network_not_supported") }}
-      </Message>
-      <Message severity="error" v-if="hasSK === false">
-        {{ $t("swap.has_sk") }}
-      </Message>
-      <div>
-        <div class="field grid">
-          <label for="swap_asset_from" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("swap.swap_asset_from") }}
-          </label>
-          <div class="col-12 md:col-10">
-            <Dropdown
-              inputId="swap_asset_from"
-              v-model="asset"
-              filter
-              :options="assets"
-              option-label="label"
-              option-value="asset-id"
-              placeholder="Source asset"
-              class="w-full"
-            />
-          </div>
+    <h1>{{ $t("swap.title") }}</h1>
+
+    <Card>
+      <template #content>
+        <div v-if="checkNetwork()">
+          {{ $t("swap.network") }}: {{ checkNetwork() }}
         </div>
-        <div class="field grid">
-          <label for="swap_asset_to" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("swap.swap_asset_to") }}
-          </label>
-          <div class="col-12 md:col-10">
-            <Dropdown
-              inputId="swap_asset_to"
-              v-model="toAsset"
-              :options="assets"
-              filter
-              option-label="label"
-              option-value="asset-id"
-              placeholder="Destination asset"
-              class="w-full"
-            />
+        <Message severity="error" v-else>
+          {{ $t("swap.network_not_supported") }}
+        </Message>
+        <Message severity="error" v-if="hasSK === false">
+          {{ $t("swap.has_sk") }}
+        </Message>
+        <div>
+          <div class="field grid">
+            <label for="swap_asset_from" class="col-12 mb-2 md:col-2 md:mb-0">
+              {{ $t("swap.swap_asset_from") }}
+            </label>
+            <div class="col-12 md:col-10">
+              <Dropdown
+                inputId="swap_asset_from"
+                v-model="asset"
+                filter
+                :options="assets"
+                option-label="label"
+                option-value="asset-id"
+                placeholder="Source asset"
+                class="w-full"
+              >
+              </Dropdown>
+            </div>
           </div>
-        </div>
-        <div class="field grid">
-          <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("swap.swap_amount") }}
-          </label>
-          <div class="col-12 md:col-10">
-            <InputGroup>
+          <div class="field grid">
+            <label for="swap_asset_to" class="col-12 mb-2 md:col-2 md:mb-0">
+              {{ $t("swap.swap_asset_to") }}
+            </label>
+            <div class="col-12 md:col-10">
+              <Dropdown
+                inputId="swap_asset_to"
+                v-model="toAsset"
+                :options="assets"
+                filter
+                option-label="label"
+                option-value="asset-id"
+                placeholder="Destination asset"
+                class="w-full"
+              >
+              </Dropdown>
+            </div>
+          </div>
+          <div class="field grid">
+            <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">
+              {{ $t("swap.swap_amount") }}
+            </label>
+            <div class="col-12 md:col-10">
+              <InputGroup>
+                <InputNumber
+                  inputId="payamount"
+                  v-model="payamount"
+                  type="number"
+                  :min="0"
+                  :max="maxAmount"
+                  :step="stepAmount"
+                  :maxFractionDigits="decimals"
+                  class="w-full"
+                />
+                <InputGroupAddon v-if="unit">{{ unit }}</InputGroupAddon>
+                <Button severity="secondary" @click="payamount = maxAmount">{{
+                  $t("pay.set_max")
+                }}</Button>
+              </InputGroup>
+            </div>
+          </div>
+          <div class="field grid">
+            <label for="slippage" class="col-12 mb-2 md:col-2 md:mb-0">
+              {{ $t("swap.slippage") }}
+            </label>
+            <div class="col-12 md:col-10">
               <InputNumber
-                inputId="payamount"
-                v-model="payamount"
+                inputId="slippage"
+                v-model="slippage"
                 type="number"
                 :min="0"
-                :max="maxAmount"
-                :step="stepAmount"
+                :max="1"
+                :step="0.01"
+                :maxFractionDigits="6"
                 class="w-full"
               />
-              <InputGroupAddon v-if="unit">{{ unit }}</InputGroupAddon>
-              <Button severity="secondary" @click="payamount = maxAmount">{{
-                $t("pay.set_max")
-              }}</Button>
-            </InputGroup>
+            </div>
           </div>
-        </div>
-        <div class="field grid">
-          <label for="slippage" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("swap.slippage") }}
-          </label>
-          <div class="col-12 md:col-10">
-            <InputNumber
-              inputId="slippage"
-              v-model="slippage"
-              type="number"
-              :min="0"
-              :max="1"
-              :step="0.01"
-              class="w-full"
-            />
+          <div class="field grid">
+            <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+            <div class="col-12 md:col-10">
+              <Checkbox
+                binary
+                inputId="useFolksCheckbox"
+                type="checkbox"
+                v-model="useFolks"
+              />
+              <label for="useFolksCheckbox" class="ml-1"
+                >Use Folks router</label
+              >
+            </div>
           </div>
-        </div>
-        <div class="field grid">
-          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-          <div class="col-12 md:col-10">
-            <Checkbox
-              binary
-              inputId="useFolksCheckbox"
-              type="checkbox"
-              v-model="useFolks"
-            />
-            <label for="useFolksCheckbox" class="ml-1">Use Folks router</label>
+          <div class="field grid">
+            <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+            <div class="col-12 md:col-10">
+              <Checkbox
+                binary
+                inputId="useDeflexCheckbox"
+                type="checkbox"
+                v-model="useDeflex"
+              />
+              <label for="useDeflexCheckbox" class="ml-1">Use Deflex</label>
+            </div>
           </div>
-        </div>
-        <div class="field grid">
-          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-          <div class="col-12 md:col-10">
-            <Checkbox
-              binary
-              inputId="useDeflexCheckbox"
-              type="checkbox"
-              v-model="useDeflex"
-            />
-            <label for="useDeflexCheckbox" class="ml-1">Use Deflex</label>
+          <div class="field grid">
+            <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+            <div class="col-12 md:col-10">
+              <Button
+                class="my-2"
+                :disabled="formInvalid"
+                :severity="
+                  allowExecuteDeflex || requiresOptIn ? 'secondary' : 'primary'
+                "
+                @click="clickGetQuote"
+              >
+                {{ $t("swap.get_quote") }}
+                <ProgressSpinner
+                  v-if="processingQuote"
+                  style="width: 1em; height: 1em"
+                  strokeWidth="5"
+                />
+              </Button>
+            </div>
           </div>
-        </div>
-        <div class="field grid">
-          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-          <div class="col-12 md:col-10">
+          <div v-if="requiresOptIn">
+            <h2>{{ $t("swap.apps_optin") }}</h2>
+            <ul>
+              <li v-for="app in appsToOptIn" :key="app">
+                {{ app }}
+              </li>
+            </ul>
             <Button
               class="my-2"
-              :disabled="formInvalid"
-              :severity="
-                allowExecuteDeflex || requiresOptIn ? 'secondary' : 'primary'
-              "
-              @click="clickGetQuote"
+              :disabled="processingOptin"
+              @click="clickOptInToApps"
             >
-              {{ $t("swap.get_quote") }}
               <ProgressSpinner
-                v-if="processingQuote"
+                v-if="processingOptin"
                 style="width: 1em; height: 1em"
                 strokeWidth="5"
               />
+
+              {{ $t("swap.apps_optin_button") }}
+            </Button>
+          </div>
+          <div>
+            <Textarea v-model="txsDetails" disabled class="w-full" rows="5" />
+          </div>
+          <Message severity="success" v-if="note" class="my-2">
+            {{ note }}
+          </Message>
+          <Message severity="error" v-if="error" class="my-2">
+            {{ error }}
+          </Message>
+          <div>
+            <Button
+              v-if="useDeflex"
+              class="my-2 mx-1"
+              :disabled="!allowExecuteDeflex || processingTradeDeflex"
+              :severity="
+                allowExecuteDeflex && isDeflexQuoteBetter
+                  ? 'primary'
+                  : 'secondary'
+              "
+              @click="clickExecuteDeflex"
+            >
+              <ProgressSpinner
+                v-if="processingTradeDeflex"
+                style="width: 1em; height: 1em"
+                strokeWidth="5"
+              />
+              {{ $t("swap.execute_button_deflex") }}
+            </Button>
+            <Button
+              v-if="useFolks"
+              class="my-2"
+              :disabled="!allowExecuteFolks || processingTradeFolks"
+              :class="
+                allowExecuteFolks && isFolksQuoteBetter
+                  ? 'primary'
+                  : 'secondary'
+              "
+              @click="clickExecuteFolks"
+            >
+              <ProgressSpinner
+                v-if="processingTradeFolks"
+                style="width: 1em; height: 1em"
+                strokeWidth="5"
+              />
+              {{ $t("swap.execute_button_folks") }}
             </Button>
           </div>
         </div>
-        <div v-if="requiresOptIn">
-          <h2>{{ $t("swap.apps_optin") }}</h2>
-          <ul>
-            <li v-for="app in appsToOptIn" :key="app">
-              {{ app }}
-            </li>
-          </ul>
-          <Button
-            class="my-2"
-            :disabled="processingOptin"
-            @click="clickOptInToApps"
-          >
-            <ProgressSpinner
-              v-if="processingOptin"
-              style="width: 1em; height: 1em"
-              strokeWidth="5"
-            />
-
-            {{ $t("swap.apps_optin_button") }}
-          </Button>
-        </div>
-        <div>
-          <Textarea v-model="txsDetails" disabled class="w-full" rows="5" />
-        </div>
-        <Message severity="success" v-if="note" class="my-2">
-          {{ note }}
-        </Message>
-        <Message severity="error" v-if="error" class="my-2">
-          {{ error }}
-        </Message>
-        <div>
-          <Button
-            v-if="useDeflex"
-            class="my-2 mx-1"
-            :disabled="!allowExecuteDeflex || processingTradeDeflex"
-            :severity="allowExecuteDeflex ? 'primary' : 'secondary'"
-            @click="clickExecuteDeflex"
-          >
-            <ProgressSpinner
-              v-if="processingTradeDeflex"
-              style="width: 1em; height: 1em"
-              strokeWidth="5"
-            />
-            {{ $t("swap.execute_button_deflex") }}
-          </Button>
-          <Button
-            v-if="useFolks"
-            class="my-2"
-            :disabled="!allowExecuteFolks || processingTradeFolks"
-            :class="allowExecuteFolks ? 'primary' : 'secondary'"
-            @click="clickExecuteFolks"
-          >
-            <ProgressSpinner
-              v-if="processingTradeFolks"
-              style="width: 1em; height: 1em"
-              strokeWidth="5"
-            />
-            {{ $t("swap.execute_button_folks") }}
-          </Button>
-        </div>
-      </div>
-    </div>
+      </template>
+    </Card>
   </MainLayout>
 </template>
 
@@ -252,12 +269,18 @@ export default {
         (a) => a["asset-id"] == this.asset
       );
     },
-    decimalsPower() {
+    decimals() {
       let decimals = 6;
       if (this.assetObj && this.assetObj.decimals !== undefined) {
         decimals = this.assetObj.decimals;
       }
-      return Math.pow(10, decimals);
+      return decimals;
+    },
+    decimalsPower() {
+      return Math.pow(10, this.decimals);
+    },
+    assetData() {
+      return this.assets.find((a) => a["asset-id"] == this.asset);
     },
     maxAmount() {
       if (!this.account) return 0;
@@ -265,7 +288,7 @@ export default {
         if (!this.selectedAssetFromAccount) return 0;
         return this.selectedAssetFromAccount.amount / this.decimalsPower;
       } else {
-        let ret = this.account.amount / 1000000 - 0.1;
+        let ret = this.accountData.amount / 1000000 - 0.1;
         ret = ret - this.fee;
         if (this.accountData["assets"] && this.accountData["assets"].length > 0)
           ret = ret - this.accountData["assets"].length * 0.1;
@@ -273,11 +296,7 @@ export default {
       }
     },
     stepAmount() {
-      if (this.asset === null) return 0.000001;
-      if (!this.account) return 0.000001;
-      if (!this.assetObj || this.assetObj.decimals === undefined)
-        return 0.000001;
-      return Math.pow(10, -1 * this.assetObj.decimals);
+      return Math.pow(10, -1 * this.decimals);
     },
     allowExecuteDeflex() {
       if (
@@ -322,6 +341,36 @@ export default {
       if (this.assetObj["unit-name"]) return this.assetObj["unit-name"];
       return this.assetObj["name"];
     },
+    isFolksQuoteBetter() {
+      if (!this.folksQuote) {
+        return false;
+      }
+      if (!this.folksQuote.quoteAmount) {
+        return false;
+      }
+      if (!this.quotes) {
+        return true;
+      }
+      if (!this.quotes.quoteAmount) {
+        return true;
+      }
+      return BigInt(this.quotes.quoteAmount) <= BigInt(this.folksQuote.quote);
+    },
+    isDeflexQuoteBetter() {
+      if (!this.quotes) {
+        return false;
+      }
+      if (!this.quotes.quoteAmount) {
+        return false;
+      }
+      if (!this.folksQuote) {
+        return true;
+      }
+      if (!this.folksQuote.quote) {
+        return true;
+      }
+      return BigInt(this.quotes.quoteAmount) >= BigInt(this.folksQuote.quote);
+    },
   },
   watch: {
     async asset() {
@@ -355,9 +404,9 @@ export default {
     },
   },
   async mounted() {
+    await this.prolong();
     await this.reloadAccount();
     await this.makeAssets();
-    this.prolong();
 
     this.asset = -1;
     this.toAsset = 452399768;
@@ -403,31 +452,63 @@ export default {
     },
     async makeAssets() {
       this.assets = [];
-      if (this.accountData && this.accountData.amount > 0) {
+      if (this.accountData) {
+        const balance = this.$filters.formatCurrency(
+          this.accountData.amount,
+          this.$store.state.config.tokenSymbol,
+          6
+        );
         this.assets.push({
-          "asset-id": "-1",
+          "asset-id": "0",
           amount: this.accountData.amount,
-          name: "ALG",
+          name: this.$store.state.config.tokenSymbol,
           decimals: 6,
-          "unit-name": "",
-          label: "Algorand native token",
+          "unit-name": this.$store.state.config.tokenSymbol,
+          type: "Native",
+          label: `${this.$store.state.config.tokenSymbol} (Native token) Balance: ${balance}`,
+        });
+      } else {
+        const balance = this.$filters.formatCurrency(
+          0,
+          this.$store.state.config.tokenSymbol,
+          6
+        );
+        this.assets.push({
+          "asset-id": "0",
+          amount: 0,
+          name: this.$store.state.config.tokenSymbol,
+          decimals: 6,
+          "unit-name": this.$store.state.config.tokenSymbol,
+          type: "Native",
+          label: `${this.$store.state.config.tokenSymbol} (Native token) Balance: ${balance}`,
         });
       }
       if (this.accountData && this.accountData.assets) {
-        for (let accountAsset of this.accountData.assets) {
-          if (!accountAsset["asset-id"]) continue;
+        for (let index in this.accountData.assets) {
           const asset = await this.getAsset({
-            assetIndex: accountAsset["asset-id"],
+            assetIndex: this.accountData.assets[index]["asset-id"],
           });
           if (asset) {
+            const balance = this.$filters.formatCurrency(
+              this.accountData.assets[index]["amount"],
+              asset["unit-name"] ? asset["unit-name"] : asset["name"],
+              asset["decimals"]
+            );
+
             this.assets.push({
-              "asset-id": accountAsset["asset-id"],
-              amount: accountAsset["amount"],
+              "asset-id": this.accountData.assets[index]["asset-id"],
+              amount: this.accountData.assets[index]["amount"],
               name: asset["name"],
               decimals: asset["decimals"],
               "unit-name": asset["unit-name"],
-              label: `${asset["name"]} (${accountAsset["asset-id"]})`,
+              type: "ASA",
+              label: `${asset["name"]} (ASA ${this.accountData.assets[index]["asset-id"]}) Balance: ${balance}`,
             });
+          } else {
+            console.error(
+              "Asset not loaded",
+              this.accountData.assets[index]["asset-id"]
+            );
           }
         }
       }
@@ -464,6 +545,7 @@ export default {
           this.error = "No deflex quotes available";
           return;
         }
+        console.log("deflex.quotes", quotes);
         this.quotes = quotes;
         const params = JSON.stringify({
           address: this.account.addr,
@@ -536,6 +618,7 @@ export default {
           10,
           "AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
         );
+        console.log("folks.quotes", this.folksQuote);
         const slippage = Math.round(this.slippage * 100);
         this.folksTxns = await folksRouterClient.prepareSwapTransactions(
           this.$route.params.account,

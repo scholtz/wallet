@@ -11,9 +11,9 @@
           <InputNumber
             inputId="amount"
             v-model="amount"
-            min="1"
-            max="10000"
-            step="1"
+            :min="1"
+            :max="10000"
+            :step="1"
             class="w-full"
             showButtons
           />

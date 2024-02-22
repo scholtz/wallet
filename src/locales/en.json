@@ -282,7 +282,9 @@
     "export_help": "You can generate shamir backup mnemonics or algorand mnemonic for accounts with private keys.",
     "arc14": "ARC 14 Authentication",
     "arc14_help": "ARC 14 is authentication standard utilizing signed transactions. You can generate the authentication tokens on this page.",
-    "account_actions": "Account actions"
+    "account_actions": "Account actions",
+    "asset_optinArc200": "OptIn to ARC200 asset",
+    "asset_optinArc200_help": "You can watch on your account the ARC200 assets. ARC200 assets are smart contracts with feature that anyone can opt in user's account to be able to receive the asset. ARC200 assets may be dangerous and you should require trustworthy audit of the smart contract so that you can fully trust it."
   },
   "optin": {
     "title": "Accept transfers of asset in account",

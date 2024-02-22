@@ -1,6 +1,14 @@
 import algosdk from "algosdk";
 
 const actions = {
+  async getAlgod() {
+    const url = new URL(this.state.config.algod);
+    return new algosdk.Algodv2(
+      this.state.config.algodToken,
+      this.state.config.algod,
+      url.port
+    );
+  },
   async getTransactionParams() {
     try {
       const url = new URL(this.state.config.algod);
@@ -9,6 +17,7 @@ const actions = {
         this.state.config.algod,
         url.port
       );
+
       return await algodclient.getTransactionParams().do();
     } catch (error) {
       console.error("error", error);
@@ -37,8 +46,10 @@ const actions = {
         assetId = parseInt(asset);
       }
       let params = await algodclient.getTransactionParams().do();
-      params.fee = fee;
-      params.flatFee = true;
+      if (fee != undefined) {
+        params.fee = fee;
+        params.flatFee = true;
+      }
       let txn = null;
       if (assetId) {
         const transactionOptionsAsa = {

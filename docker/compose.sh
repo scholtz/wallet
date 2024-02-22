@@ -3,7 +3,7 @@ ver=1.0.0
 fi
 
 echo "docker build -t \"scholtz2/a-wallet:$ver-main\" -f Dockerfile .."
-docker build -t "scholtz2/a-wallet:$ver-main" -f Dockerfile .. || error_code=$?
+nice -n 20 docker build -t "scholtz2/a-wallet:$ver-main" -f Dockerfile .. || error_code=$?
 if [ "$error_code" != "" ]; then
 echo "$error_code";
     echo "failed to build";

@@ -136,49 +136,58 @@ onMounted(async () => {
 <template>
   <MainLayout>
     <h1>{{ $t("new_account_shamir.header") }}</h1>
-    <p>
-      {{ $t("new_account_shamir.help") }}
-    </p>
-    <div class="field grid" v-for="(mn, index) in state.mn">
-      <label :for="`mn${index}`" class="col-12 mb-2 md:col-2 md:mb-0">
-        {{ $t("new_account_shamir.mnemonic") }} #{{ index + 1 }}
-      </label>
-      <div class="col-12 md:col-10">
-        <Password
-          v-model="state.mn[index]"
-          :feedback="false"
-          :inputId="`mn${index}`"
-          class="w-full"
-          inputClass="w-full"
-          inn
-          toggleMask
-        ></Password>
-      </div>
-    </div>
-    <div class="field grid">
-      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-      <div class="col-12 md:col-10">
-        <Button @click="state.mn.push('')" severity="secondary">
-          {{ $t("new_account_shamir.add_mnemnic") }}
-        </Button>
-      </div>
-    </div>
-    <div class="field grid">
-      <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">{{
-        $t("new_account_shamir.account_name")
-      }}</label>
-      <div class="col-12 md:col-10">
-        <InputText v-model="state.name" id="name" class="w-full"></InputText>
-      </div>
-    </div>
 
-    <div class="field grid">
-      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-      <div class="col-12 md:col-10">
-        <Button @click="recover" severity="primary">
-          {{ $t("new_account_shamir.recover") }}
-        </Button>
-      </div>
-    </div>
+    <Card>
+      <template #content>
+        <p>
+          {{ $t("new_account_shamir.help") }}
+        </p>
+        <div class="field grid" v-for="(mn, index) in state.mn">
+          <label :for="`mn${index}`" class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ $t("new_account_shamir.mnemonic") }} #{{ index + 1 }}
+          </label>
+          <div class="col-12 md:col-10">
+            <Password
+              v-model="state.mn[index]"
+              :feedback="false"
+              :inputId="`mn${index}`"
+              class="w-full"
+              inputClass="w-full"
+              inn
+              toggleMask
+            ></Password>
+          </div>
+        </div>
+        <div class="field grid">
+          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <Button @click="state.mn.push('')" severity="secondary">
+              {{ $t("new_account_shamir.add_mnemnic") }}
+            </Button>
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("new_account_shamir.account_name")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <InputText
+              v-model="state.name"
+              id="name"
+              class="w-full"
+            ></InputText>
+          </div>
+        </div>
+
+        <div class="field grid">
+          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <Button @click="recover" severity="primary">
+              {{ $t("new_account_shamir.recover") }}
+            </Button>
+          </div>
+        </div>
+      </template>
+    </Card>
   </MainLayout>
 </template>

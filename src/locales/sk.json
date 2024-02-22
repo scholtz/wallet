@@ -281,7 +281,9 @@
     "export_help": "Pre účty s privátnym kľúčom si môžete vygenerať kódy pre obnovenie účtu pomocou sharmir recovery alebo pomocou štandardného algorand mnemonicu.",
     "arc14": "ARC 14 Autorizácia",
     "arc14_help": "ARC 14 je autorizačný štandard ktorý využívat podpísané transakcie. Na tejto stránke si môžete vygenerovať autorizačné tokeny k vášmu účtu a externej službe.",
-    "account_actions": "Akcie účtu"
+    "account_actions": "Akcie účtu",
+    "asset_optinArc200": "Pridať ARC200 aktívum",
+    "asset_optinArc200_help": "Na svojom účte môžete sledovať a robiť prevody ARC200 aktív. ARC200 aktívum je smart kontrakt s výhodou, že otvoriť účet užívateľovi môže ktokoľvek. ARC200 aktívum môže byť nebezpečné a mali by ste vyžadovať bezpečnostný audit smart kontraktu pred tým ako ho začnete používať."
   },
   "optin": {
     "title": "Prijímať aktívum (ASA alebo NFT) na účte",

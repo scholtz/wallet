@@ -147,6 +147,12 @@ const makeMenu = () => {
             route: "/account/optin/" + store.state.wallet.lastActiveAccount,
           },
           {
+            label: t("acc_overview.asset_optinArc200"),
+            icon: "pi pi-plus",
+            route:
+              "/account/optinArc200/" + store.state.wallet.lastActiveAccount,
+          },
+          {
             label: t("acc_overview.receive_payment"),
             icon: "pi pi-clone",
             route: "/receive-payment/" + store.state.wallet.lastActiveAccount,
@@ -355,7 +361,14 @@ const makeThemes = () => {
         let lastTheme = localStorage.getItem("lastTheme");
         if (!lastTheme) lastTheme = "lara-dark-teal";
         PrimeVue.changeTheme(lastTheme, item.file, "theme-link", () => {});
+        PrimeVue.changeTheme(
+          lastTheme,
+          item.file,
+          "theme-link-custom",
+          () => {}
+        );
         localStorage.setItem("lastTheme", item.file);
+        store.dispatch("config/setTheme");
       },
     });
   }

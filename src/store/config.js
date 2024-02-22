@@ -26,12 +26,18 @@ const state = () => ({
   dev: false,
   deflex: "",
   language: "en-US",
+  theme: "",
 });
 
 const mutations = {
   setDev(state, value) {
     localStorage.setItem("dev", value);
     state.dev = value;
+  },
+  setTheme(state) {
+    const value = localStorage.getItem("lastTheme");
+    state.theme = value;
+    console.log("theme set: ", state.theme);
   },
   setConfig(state, value) {
     const removeConsoleLogs = !value.debug;
@@ -326,6 +332,9 @@ const actions = {
   },
   async setDev({ commit }, { dev }) {
     await commit("setDev", dev);
+  },
+  async setTheme({ commit }) {
+    await commit("setTheme");
   },
   async getConfig({ dispatch, commit }) {
     try {

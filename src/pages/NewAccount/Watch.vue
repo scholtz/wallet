@@ -41,32 +41,36 @@ onMounted(async () => {
   <MainLayout>
     <h1>{{ $t("newacc.watch_account") }}</h1>
 
-    <div class="field grid">
-      <label for="address" class="col-12 mb-2 md:col-2 md:mb-0">
-        {{ $t("newacc.address") }}
-      </label>
-      <div class="col-12 md:col-10">
-        <InputText id="address" v-model="state.addr" class="w-full" />
-      </div>
-    </div>
-    <div class="field grid">
-      <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">
-        {{ $t("newacc.name") }}
-      </label>
-      <div class="col-12 md:col-10">
-        <InputText id="name" v-model="state.name" class="w-full" />
-      </div>
-    </div>
-    <div class="field grid">
-      <label for="address" class="col-12 mb-2 md:col-2 md:mb-0"></label>
-      <div class="col-12 md:col-10">
-        <Button severity="primary" class="my-1" @click="watchAccountClick">
-          {{ $t("newacc.watch_account") }}
-        </Button>
-        <Button severity="secondary" class="m-1" @click="reset">
-          {{ $t("global.go_back") }}
-        </Button>
-      </div>
-    </div>
+    <Card>
+      <template #content>
+        <div class="field grid">
+          <label for="address" class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ $t("newacc.address") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <InputText id="address" v-model="state.addr" class="w-full" />
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ $t("newacc.name") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <InputText id="name" v-model="state.name" class="w-full" />
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="address" class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <Button severity="primary" class="my-1" @click="watchAccountClick">
+              {{ $t("newacc.watch_account") }}
+            </Button>
+            <Button severity="secondary" class="m-1" @click="reset">
+              {{ $t("global.go_back") }}
+            </Button>
+          </div>
+        </div>
+      </template>
+    </Card>
   </MainLayout>
 </template>

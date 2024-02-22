@@ -81,68 +81,93 @@ async function confirmRequest() {
 <template>
   <MainLayout>
     <h1>{{ $t("new_account_2fa.title") }}</h1>
-    <div v-if="state.lastError">
-      <Message severity="error">
-        {{ $t("general.last_error") }}: {{ state.lastError }}
-      </Message>
-    </div>
-    <p>
-      {{ $t("new_account_2fa.help1") }}
-    </p>
-    <p>
-      {{ $t("new_account_2fa.help2") }}
-    </p>
-    <p>
-      {{ $t("new_account_2fa.help3") }}
-    </p>
-    <div class="p-fluid">
-      <div class="p-field mb-2">
-        <label for="account1">{{ $t("new_account_2fa.2fa_provider") }}</label>
-        <Suspense>
-          <Select2FAServer v-model="state.server"></Select2FAServer>
-          <template #fallback> {{ $t("general.loading") }} </template>
-        </Suspense>
-      </div>
-      <div class="p-field mb-2">
-        <label for="account1">{{ $t("new_account_2fa.hot_account") }}</label>
-        <SelectAccount v-model="state.account1" class="w-full"></SelectAccount>
-      </div>
-      <div class="p-field mb-2">
-        <label for="account2">{{ $t("new_account_2fa.cold_account") }}</label>
-        <SelectAccount v-model="state.account2" class="w-full"></SelectAccount>
-      </div>
-      <Button
-        class="my-2"
-        @click="arc14Request"
-        :disabled="
-          !state.account1 || !state.account2 || state.account1 == state.account2
-        "
-      >
-        {{ $t("new_account_2fa.request_qr_code") }}
-      </Button>
-      <div v-if="state.auth2FAResp && state.auth2FAResp.qrCodeSetupImageUrl">
-        <h2>{{ $t("new_account_2fa.scan_qr") }}</h2>
-        <img
-          :src="state.auth2FAResp.qrCodeSetupImageUrl"
-          width="200"
-          height="200"
-        />
-        <h3>{{ $t("new_account_2fa.manual_entry_key") }}</h3>
-        <code>{{ state.auth2FAResp.manualEntryKey }}</code>
-        <h3>{{ $t("new_account_2fa.confirm_2fa") }}</h3>
-        <p>{{ $t("new_account_2fa.confirm_help") }}</p>
-        <div class="p-field mb-2">
-          <label for="name">{{ $t("accounts.account_name") }}</label>
-          <InputText id="name" v-model="state.name" />
+
+    <Card>
+      <template #content>
+        <div v-if="state.lastError">
+          <Message severity="error">
+            {{ $t("general.last_error") }}: {{ state.lastError }}
+          </Message>
         </div>
-        <div class="p-field mb-2">
-          <label for="txtCode">{{ $t("accounts.2fa_code") }}</label>
-          <InputMask itemid="txtCode" v-model="state.txtCode" mask="999-999" />
+        <p>
+          {{ $t("new_account_2fa.help1") }}
+        </p>
+        <p>
+          {{ $t("new_account_2fa.help2") }}
+        </p>
+        <p>
+          {{ $t("new_account_2fa.help3") }}
+        </p>
+        <div class="p-fluid">
+          <div class="p-field mb-2">
+            <label for="account1">{{
+              $t("new_account_2fa.2fa_provider")
+            }}</label>
+            <Suspense>
+              <Select2FAServer v-model="state.server"></Select2FAServer>
+              <template #fallback> {{ $t("general.loading") }} </template>
+            </Suspense>
+          </div>
+          <div class="p-field mb-2">
+            <label for="account1">{{
+              $t("new_account_2fa.hot_account")
+            }}</label>
+            <SelectAccount
+              v-model="state.account1"
+              class="w-full"
+            ></SelectAccount>
+          </div>
+          <div class="p-field mb-2">
+            <label for="account2">{{
+              $t("new_account_2fa.cold_account")
+            }}</label>
+            <SelectAccount
+              v-model="state.account2"
+              class="w-full"
+            ></SelectAccount>
+          </div>
+          <Button
+            class="my-2"
+            @click="arc14Request"
+            :disabled="
+              !state.account1 ||
+              !state.account2 ||
+              state.account1 == state.account2
+            "
+          >
+            {{ $t("new_account_2fa.request_qr_code") }}
+          </Button>
+          <div
+            v-if="state.auth2FAResp && state.auth2FAResp.qrCodeSetupImageUrl"
+          >
+            <h2>{{ $t("new_account_2fa.scan_qr") }}</h2>
+            <img
+              :src="state.auth2FAResp.qrCodeSetupImageUrl"
+              width="200"
+              height="200"
+            />
+            <h3>{{ $t("new_account_2fa.manual_entry_key") }}</h3>
+            <code>{{ state.auth2FAResp.manualEntryKey }}</code>
+            <h3>{{ $t("new_account_2fa.confirm_2fa") }}</h3>
+            <p>{{ $t("new_account_2fa.confirm_help") }}</p>
+            <div class="p-field mb-2">
+              <label for="name">{{ $t("accounts.account_name") }}</label>
+              <InputText id="name" v-model="state.name" />
+            </div>
+            <div class="p-field mb-2">
+              <label for="txtCode">{{ $t("accounts.2fa_code") }}</label>
+              <InputMask
+                itemid="txtCode"
+                v-model="state.txtCode"
+                mask="999-999"
+              />
+            </div>
+            <Button class="my-2" @click="confirmRequest">
+              {{ $t("new_account_2fa.save_button") }}
+            </Button>
+          </div>
         </div>
-        <Button class="my-2" @click="confirmRequest">
-          {{ $t("new_account_2fa.save_button") }}
-        </Button>
-      </div>
-    </div>
+      </template>
+    </Card>
   </MainLayout>
 </template>

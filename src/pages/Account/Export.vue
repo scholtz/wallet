@@ -1,6 +1,5 @@
 <script setup>
 import Button from "primevue/button";
-import InputNumber from "primevue/inputnumber";
 import MainLayout from "../../layouts/Main.vue";
 import { useRoute } from "vue-router";
 import { useStore } from "vuex";

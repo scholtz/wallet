@@ -1,278 +1,286 @@
 <template>
   <main-layout>
     <h1>{{ $t("settings.title") }}</h1>
-    <h2>{{ $t("settings.server") }}</h2>
-    <div class="field grid" v-if="publicList">
-      <label for="env2" class="col-12 mb-2 md:col-2 md:mb-0">
-        {{ $t("settings.environment") }}
-      </label>
-      <div class="col-12 md:col-10">
-        <Dropdown
-          id="env2"
-          v-model="env"
-          class="w-full"
-          :options="publicList"
-          optionLabel="name"
-          optionValue="network"
+
+    <Card>
+      <template #content>
+        <h2>{{ $t("settings.server") }}</h2>
+        <div class="field grid" v-if="publicList">
+          <label for="env2" class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ $t("settings.environment") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <Dropdown
+              id="env2"
+              v-model="env"
+              class="w-full"
+              :options="publicList"
+              optionLabel="name"
+              optionValue="network"
+            >
+            </Dropdown>
+          </div>
+        </div>
+        <div
+          class="field grid"
+          v-if="algodList && algodList.length > 0 && env != 'custom'"
         >
-        </Dropdown>
-      </div>
-    </div>
-    <div
-      class="field grid"
-      v-if="algodList && algodList.length > 0 && env != 'custom'"
-    >
-      <label for="algodProvider" class="col-12 mb-2 md:col-2 md:mb-0">
-        Public AlgoD provider
-      </label>
-      <div class="col-12 md:col-10">
-        <Dropdown
-          id="algodProvider"
-          v-model="algodHost"
-          class="w-full"
-          :options="algodList"
-          optionLabel="providerName"
-          optionValue="host"
+          <label for="algodProvider" class="col-12 mb-2 md:col-2 md:mb-0">
+            Public AlgoD provider
+          </label>
+          <div class="col-12 md:col-10">
+            <Dropdown
+              id="algodProvider"
+              v-model="algodHost"
+              class="w-full"
+              :options="algodList"
+              optionLabel="providerName"
+              optionValue="host"
+            >
+            </Dropdown>
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="algodHost" class="col-12 mb-2 md:col-2 md:mb-0">
+            AlgoD {{ $t("settings.host") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <InputText
+              id="algodHost"
+              v-model="algodHost"
+              :disabled="env != 'custom'"
+              class="w-full"
+            />
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="algodToken" class="col-12 mb-2 md:col-2 md:mb-0">
+            AlgoD {{ $t("settings.token") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <InputText
+              id="algodToken"
+              v-model="algodToken"
+              :disabled="env != 'custom'"
+              class="w-full"
+            />
+          </div>
+        </div>
+
+        <div
+          class="field grid"
+          v-if="
+            participationList && participationList.length > 0 && env != 'custom'
+          "
         >
-        </Dropdown>
-      </div>
-    </div>
-    <div class="field grid">
-      <label for="algodHost" class="col-12 mb-2 md:col-2 md:mb-0">
-        AlgoD {{ $t("settings.host") }}
-      </label>
-      <div class="col-12 md:col-10">
-        <InputText
-          id="algodHost"
-          v-model="algodHost"
-          :disabled="env != 'custom'"
-          class="w-full"
-        />
-      </div>
-    </div>
-    <div class="field grid">
-      <label for="algodToken" class="col-12 mb-2 md:col-2 md:mb-0">
-        AlgoD {{ $t("settings.token") }}
-      </label>
-      <div class="col-12 md:col-10">
-        <InputText
-          id="algodToken"
-          v-model="algodToken"
-          :disabled="env != 'custom'"
-          class="w-full"
-        />
-      </div>
-    </div>
+          <label
+            for="participationProvider"
+            class="col-12 mb-2 md:col-2 md:mb-0"
+          >
+            Public participation provider
+          </label>
+          <div class="col-12 md:col-10">
+            <Dropdown
+              id="participationProvider"
+              v-model="participationHost"
+              class="w-full"
+              :options="participationList"
+              optionLabel="providerName"
+              optionValue="host"
+            >
+            </Dropdown>
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="participationHost" class="col-12 mb-2 md:col-2 md:mb-0">
+            Participation {{ $t("settings.host") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <InputText
+              id="participationHost"
+              v-model="participationHost"
+              type="text"
+              :disabled="env != 'custom'"
+              class="w-full"
+            />
+          </div>
+        </div>
 
-    <div
-      class="field grid"
-      v-if="
-        participationList && participationList.length > 0 && env != 'custom'
-      "
-    >
-      <label for="participationProvider" class="col-12 mb-2 md:col-2 md:mb-0">
-        Public participation provider
-      </label>
-      <div class="col-12 md:col-10">
-        <Dropdown
-          id="participationProvider"
-          v-model="participationHost"
-          class="w-full"
-          :options="participationList"
-          optionLabel="providerName"
-          optionValue="host"
+        <div
+          class="field grid"
+          v-if="
+            participationList && participationList.length > 0 && env != 'custom'
+          "
         >
-        </Dropdown>
-      </div>
-    </div>
-    <div class="field grid">
-      <label for="participationHost" class="col-12 mb-2 md:col-2 md:mb-0">
-        Participation {{ $t("settings.host") }}
-      </label>
-      <div class="col-12 md:col-10">
-        <InputText
-          id="participationHost"
-          v-model="participationHost"
-          type="text"
-          :disabled="env != 'custom'"
-          class="w-full"
-        />
-      </div>
-    </div>
+          <label for="indexerProvider" class="col-12 mb-2 md:col-2 md:mb-0">
+            Public Indexer provider
+          </label>
+          <div class="col-12 md:col-10">
+            <Dropdown
+              id="indexerProvider"
+              v-model="indexerHost"
+              class="w-full"
+              :options="indexerList"
+              optionLabel="providerName"
+              optionValue="host"
+            >
+            </Dropdown>
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="indexerHost" class="col-12 mb-2 md:col-2 md:mb-0">
+            Indexer {{ $t("settings.host") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <InputText
+              id="indexerHost"
+              v-model="indexerHost"
+              type="text"
+              :disabled="env != 'custom'"
+              class="w-full"
+            />
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="indexerToken" class="col-12 mb-2 md:col-2 md:mb-0">
+            Indexer {{ $t("settings.token") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <InputText
+              id="indexerToken"
+              v-model="indexerToken"
+              type="text"
+              :disabled="env != 'custom'"
+              class="w-full"
+            />
+          </div>
+        </div>
 
-    <div
-      class="field grid"
-      v-if="
-        participationList && participationList.length > 0 && env != 'custom'
-      "
-    >
-      <label for="indexerProvider" class="col-12 mb-2 md:col-2 md:mb-0">
-        Public Indexer provider
-      </label>
-      <div class="col-12 md:col-10">
-        <Dropdown
-          id="indexerProvider"
-          v-model="indexerHost"
-          class="w-full"
-          :options="indexerList"
-          optionLabel="providerName"
-          optionValue="host"
-        >
-        </Dropdown>
-      </div>
-    </div>
-    <div class="field grid">
-      <label for="indexerHost" class="col-12 mb-2 md:col-2 md:mb-0">
-        Indexer {{ $t("settings.host") }}
-      </label>
-      <div class="col-12 md:col-10">
-        <InputText
-          id="indexerHost"
-          v-model="indexerHost"
-          type="text"
-          :disabled="env != 'custom'"
-          class="w-full"
-        />
-      </div>
-    </div>
-    <div class="field grid">
-      <label for="indexerToken" class="col-12 mb-2 md:col-2 md:mb-0">
-        Indexer {{ $t("settings.token") }}
-      </label>
-      <div class="col-12 md:col-10">
-        <InputText
-          id="indexerToken"
-          v-model="indexerToken"
-          type="text"
-          :disabled="env != 'custom'"
-          class="w-full"
-        />
-      </div>
-    </div>
-
-    <div>
-      <h2>{{ $t("settings.protocol_title") }}</h2>
-      <Button @click="registerProtocolClick" severity="secondary">
-        {{ $t("settings.protocol_button") }}
-      </Button>
-    </div>
-
-    <h2>{{ $t("settings.language") }}</h2>
-
-    <Dropdown
-      v-model="$i18n.locale"
-      :options="$store.state.config.languages"
-      style="min-width: 100px"
-      @change="languageUpdated"
-    >
-      <template #value="slotProps">
-        <div v-if="slotProps.value" class="border-dark">
-          <img
-            :alt="slotProps.value"
-            class="border-dark"
-            :src="'/flags/3x2/' + slotProps.value + '.svg'"
-            height="15"
-          />
-          <span class="m-1">{{ slotProps.value }}</span>
-        </div>
-        <span v-else>
-          {{ slotProps.placeholder }}
-        </span>
-      </template>
-      <template #option="slotProps">
-        <div class="border-dark">
-          <img
-            :alt="slotProps.option"
-            :src="'/flags/3x2/' + slotProps.option + '.svg'"
-            height="15"
-          />
-          <span class="m-1">{{ slotProps.option }}</span>
-        </div>
-      </template>
-    </Dropdown>
-    <h2>{{ $t("settings.pass") }}</h2>
-    <form @submit="changePasswordClick">
-      <div class="field grid">
-        <label for="passw1" class="col-12 mb-2 md:col-2 md:mb-0">
-          {{ $t("settings.oldpass") }}
-        </label>
-        <div class="col-12 md:col-10">
-          <Password
-            inputId="passw1"
-            v-model="passw1"
-            inputClass="w-full"
-            class="w-full"
-          />
-        </div>
-      </div>
-      <div class="field grid">
-        <label for="passw2" class="col-12 mb-2 md:col-2 md:mb-0">
-          {{ $t("settings.newpass") }}
-        </label>
-        <div class="col-12 md:col-10">
-          <Password
-            inputId="passw2"
-            v-model="passw2"
-            inputClass="w-full"
-            class="w-full"
-          />
-        </div>
-      </div>
-      <div class="field grid">
-        <label for="passw3" class="col-12 mb-2 md:col-2 md:mb-0">
-          {{ $t("settings.repeatpass") }}
-        </label>
-        <div class="col-12 md:col-10">
-          <Password
-            inputId="passw3"
-            v-model="passw3"
-            inputClass="w-full"
-            class="w-full"
-          />
-        </div>
-      </div>
-      <div class="field grid">
-        <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-        <div class="col-12 md:col-10">
-          <Button type="submit" severity="secondary">
-            {{ $t("settings.update_password") }}
+        <div>
+          <h2>{{ $t("settings.protocol_title") }}</h2>
+          <Button @click="registerProtocolClick" severity="secondary">
+            {{ $t("settings.protocol_button") }}
           </Button>
         </div>
-      </div>
-    </form>
-    <h2>{{ $t("settings.dev_settings") }}</h2>
-    <div>
-      <InputSwitch v-model="dev" aria-label="Enable dev output" />
-    </div>
-    <h2>{{ $t("settings.backup") }}</h2>
-    <p>{{ $t("settings.backup_help") }}</p>
-    <p>
-      <Button
-        v-if="!b64wallet"
-        severity="secondary"
-        @click="makeBackupDataClick"
-      >
-        {{ $t("settings.create_backup") }}
-      </Button>
-      <a
-        v-if="b64wallet"
-        :href="'data:image/png;base64,' + b64wallet"
-        :download="downloadableWalletName"
-        target="_blank"
-      >
-        <Button>
-          {{ $t("settings.download") }}
-        </Button>
-      </a>
-      <Button
-        v-if="b64wallet"
-        severity="danger"
-        class="mx-2"
-        @click="destroyWalletClick"
-      >
-        {{ $t("settings.delete") }}
-      </Button>
-    </p>
+
+        <h2>{{ $t("settings.language") }}</h2>
+
+        <Dropdown
+          v-model="$i18n.locale"
+          :options="$store.state.config.languages"
+          style="min-width: 100px"
+          @change="languageUpdated"
+        >
+          <template #value="slotProps">
+            <div v-if="slotProps.value" class="border-dark">
+              <img
+                :alt="slotProps.value"
+                class="border-dark"
+                :src="'/flags/3x2/' + slotProps.value + '.svg'"
+                height="15"
+              />
+              <span class="m-1">{{ slotProps.value }}</span>
+            </div>
+            <span v-else>
+              {{ slotProps.placeholder }}
+            </span>
+          </template>
+          <template #option="slotProps">
+            <div class="border-dark">
+              <img
+                :alt="slotProps.option"
+                :src="'/flags/3x2/' + slotProps.option + '.svg'"
+                height="15"
+              />
+              <span class="m-1">{{ slotProps.option }}</span>
+            </div>
+          </template>
+        </Dropdown>
+        <h2>{{ $t("settings.pass") }}</h2>
+        <form @submit="changePasswordClick">
+          <div class="field grid">
+            <label for="passw1" class="col-12 mb-2 md:col-2 md:mb-0">
+              {{ $t("settings.oldpass") }}
+            </label>
+            <div class="col-12 md:col-10">
+              <Password
+                inputId="passw1"
+                v-model="passw1"
+                inputClass="w-full"
+                class="w-full"
+              />
+            </div>
+          </div>
+          <div class="field grid">
+            <label for="passw2" class="col-12 mb-2 md:col-2 md:mb-0">
+              {{ $t("settings.newpass") }}
+            </label>
+            <div class="col-12 md:col-10">
+              <Password
+                inputId="passw2"
+                v-model="passw2"
+                inputClass="w-full"
+                class="w-full"
+              />
+            </div>
+          </div>
+          <div class="field grid">
+            <label for="passw3" class="col-12 mb-2 md:col-2 md:mb-0">
+              {{ $t("settings.repeatpass") }}
+            </label>
+            <div class="col-12 md:col-10">
+              <Password
+                inputId="passw3"
+                v-model="passw3"
+                inputClass="w-full"
+                class="w-full"
+              />
+            </div>
+          </div>
+          <div class="field grid">
+            <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+            <div class="col-12 md:col-10">
+              <Button type="submit" severity="secondary">
+                {{ $t("settings.update_password") }}
+              </Button>
+            </div>
+          </div>
+        </form>
+        <h2>{{ $t("settings.dev_settings") }}</h2>
+        <div>
+          <InputSwitch v-model="dev" aria-label="Enable dev output" />
+        </div>
+        <h2>{{ $t("settings.backup") }}</h2>
+        <p>{{ $t("settings.backup_help") }}</p>
+        <p>
+          <Button
+            v-if="!b64wallet"
+            severity="secondary"
+            @click="makeBackupDataClick"
+          >
+            {{ $t("settings.create_backup") }}
+          </Button>
+          <a
+            v-if="b64wallet"
+            :href="'data:image/png;base64,' + b64wallet"
+            :download="downloadableWalletName"
+            target="_blank"
+          >
+            <Button>
+              {{ $t("settings.download") }}
+            </Button>
+          </a>
+          <Button
+            v-if="b64wallet"
+            severity="danger"
+            class="mx-2"
+            @click="destroyWalletClick"
+          >
+            {{ $t("settings.delete") }}
+          </Button>
+        </p>
+      </template>
+    </Card>
   </main-layout>
 </template>
 

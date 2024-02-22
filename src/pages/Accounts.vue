@@ -13,130 +13,146 @@
         <Button class="my-5">{{ $t("newacc.create_first") }}</Button>
       </RouterLink>
     </div>
-    <DataTable
-      v-model:selection="selection"
-      :value="accounts"
-      responsive-layout="scroll"
-      selection-mode="single"
-      :paginator="true"
-      :rows="20"
-      v-model:filters="filters"
-      filterDisplay="menu"
-      :globalFilterFields="['name', 'addr', 'amount']"
-    >
-      <template #header>
-        <div class="grid" v-if="filters['global']">
-          <div class="col">
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText
-                v-model="filters['global'].value"
-                placeholder="Keyword Search"
-              />
-            </span>
-          </div>
-          <div class="col h-full align-items-stretch">
-            <div class="text-right w-full h-full justify-content-center my-2">
-              <label for="showAll" class="mr-1">
-                {{ $t("accounts.show_on_netowork_accounts") }}:
-                {{ this.$store.state.config.envName }}
-              </label>
-              <Checkbox
-                inputId="showAll"
-                type="checkbox"
-                class="ml-1"
-                v-model="showNetworkAccounts"
-                :binary="true"
-              />
+    <Card>
+      <template #content>
+        <DataTable
+          v-model:selection="selection"
+          :value="accounts"
+          responsive-layout="scroll"
+          selection-mode="single"
+          :paginator="true"
+          :rows="20"
+          v-model:filters="filters"
+          filterDisplay="menu"
+          :globalFilterFields="['name', 'addr', 'amount']"
+        >
+          <template #header>
+            <div class="grid" v-if="filters['global']">
+              <div class="col">
+                <span class="p-input-icon-left">
+                  <i class="pi pi-search" />
+                  <InputText
+                    v-model="filters['global'].value"
+                    placeholder="Keyword Search"
+                  />
+                </span>
+              </div>
+              <div class="col h-full align-items-stretch">
+                <div
+                  class="text-right w-full h-full justify-content-center my-2"
+                >
+                  <label for="showAll" class="mr-1">
+                    {{ $t("accounts.show_on_netowork_accounts") }}:
+                    {{ this.$store.state.config.envName }}
+                  </label>
+                  <Checkbox
+                    inputId="showAll"
+                    type="checkbox"
+                    class="ml-1"
+                    v-model="showNetworkAccounts"
+                    :binary="true"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </template>
-      <template #empty>
-        {{ $t("accounts.no_accounts") }}
-      </template>
-      <Column
-        field="name"
-        :header="$t('accounts.account_name')"
-        :sortable="true"
-      >
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            placeholder="Search by name"
-          />
-        </template>
-      </Column>
-      <Column field="amount" :header="$t('accounts.amount')" :sortable="true">
-        <template #body="slotProps">
-          <div
-            v-if="
-              slotProps.data &&
-              slotProps.data.data &&
-              slotProps.data.data[this.$store.state.config.env]
-            "
-            class="text-end"
+          </template>
+          <template #empty>
+            {{ $t("accounts.no_accounts") }}
+          </template>
+          <Column
+            field="name"
+            :header="$t('accounts.account_name')"
+            :sortable="true"
           >
-            {{
-              $filters.formatCurrency(
-                slotProps.data["data"][this.$store.state.config.env]["amount"]
-              )
-            }}
-          </div>
-          <div v-else>-</div>
-        </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            placeholder="Search by amount"
-          />
-        </template>
-      </Column>
-      <Column field="addr" :header="$t('accounts.address')" :sortable="true">
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            placeholder="Search by address"
-          />
-        </template>
-      </Column>
+            <template #filter="{ filterModel, filterCallback }">
+              <InputText
+                v-model="filterModel.value"
+                type="text"
+                @input="filterCallback()"
+                class="p-column-filter"
+                placeholder="Search by name"
+              />
+            </template>
+          </Column>
+          <Column
+            field="amount"
+            :header="$t('accounts.amount')"
+            :sortable="true"
+          >
+            <template #body="slotProps">
+              <div
+                v-if="
+                  slotProps.data &&
+                  slotProps.data.data &&
+                  slotProps.data.data[this.$store.state.config.env]
+                "
+                class="text-end"
+              >
+                {{
+                  $filters.formatCurrency(
+                    slotProps.data["data"][this.$store.state.config.env][
+                      "amount"
+                    ]
+                  )
+                }}
+              </div>
+              <div v-else>-</div>
+            </template>
+            <template #filter="{ filterModel, filterCallback }">
+              <InputText
+                v-model="filterModel.value"
+                type="text"
+                @input="filterCallback()"
+                class="p-column-filter"
+                placeholder="Search by amount"
+              />
+            </template>
+          </Column>
+          <Column
+            field="addr"
+            :header="$t('accounts.address')"
+            :sortable="true"
+          >
+            <template #filter="{ filterModel, filterCallback }">
+              <InputText
+                v-model="filterModel.value"
+                type="text"
+                @input="filterCallback()"
+                class="p-column-filter"
+                placeholder="Search by address"
+              />
+            </template>
+          </Column>
 
-      <Column header="Type" :sortable="true">
-        <template #body="slotProps">
-          <AccountType :account="slotProps.data"></AccountType>
-        </template>
-      </Column>
-      <Column>
-        <template #body="slotProps">
-          <router-link
-            v-if="slotProps.data.sk || slotProps.data.params"
-            :to="'/accounts/pay/' + slotProps.data.addr"
-            class="ml-2"
-          >
-            <Button severity="secondary" size="small">
-              {{ $t("accounts.pay") }}
-            </Button>
-          </router-link>
-          <router-link
-            :to="'/account/connect/' + slotProps.data.addr"
-            class="ml-2"
-          >
-            <Button severity="secondary" size="small">
-              {{ $t("accounts.connect") }}
-            </Button>
-          </router-link>
-        </template>
-      </Column>
-    </DataTable>
+          <Column header="Type" :sortable="true">
+            <template #body="slotProps">
+              <AccountType :account="slotProps.data"></AccountType>
+            </template>
+          </Column>
+          <Column>
+            <template #body="slotProps">
+              <router-link
+                v-if="slotProps.data.sk || slotProps.data.params"
+                :to="'/accounts/pay/' + slotProps.data.addr"
+                class="ml-2"
+              >
+                <Button severity="secondary" size="small">
+                  {{ $t("accounts.pay") }}
+                </Button>
+              </router-link>
+              <router-link
+                :to="'/account/connect/' + slotProps.data.addr"
+                class="ml-2"
+              >
+                <Button severity="secondary" size="small">
+                  {{ $t("accounts.connect") }}
+                </Button>
+              </router-link>
+            </template>
+          </Column>
+        </DataTable>
+      </template>
+    </Card>
   </main-layout>
 </template>
 
@@ -184,14 +200,15 @@ export default {
       this.fillAccounts();
     },
   },
-  mounted() {
-    this.updateBalance();
+  async mounted() {
     if (localStorage.getItem("showNetworkAccounts") === null) {
       this.showNetworkAccounts = true;
     } else {
       this.showNetworkAccounts =
         localStorage.getItem("showNetworkAccounts") == "true";
     }
+    this.fillAccounts();
+    await this.updateBalance();
     this.fillAccounts();
   },
   methods: {
@@ -208,9 +225,14 @@ export default {
         ).filter(
           (a) =>
             a.data &&
+            !a.isHidden &&
             a.data[this.$store.state.config.env] &&
-            a.data[this.$store.state.config.env].amount > 0 &&
-            !a.isHidden
+            (a.data[this.$store.state.config.env].amount > 0 ||
+              // arc200 accounts does not have to have any amount
+              (a.data[this.$store.state.config.env].arc200 &&
+                Object.values(a.data[this.$store.state.config.env].arc200).find(
+                  (a) => a.balance > 0
+                )))
         );
         if (!this.accounts.length) {
           this.accounts = Object.values(
@@ -230,42 +252,18 @@ export default {
       });
     },
     async updateBalance() {
-      for (let index in this.$store.state.wallet.privateAccounts) {
+      for (const account of this.accounts) {
         await this.sleep(100);
-        if (!this.$store.state.wallet.privateAccounts[index]) {
-          return;
+        console.log(`refreshing ${account.addr} info`);
+        if (!account.addr) {
+          continue;
         }
-        this.accountInformation({
-          addr: this.$store.state.wallet.privateAccounts[index].addr,
-        })
-          .then((info) => {
-            if (info) {
-              this.updateAccount({ info });
-            }
-          })
-          .catch((e) => {
-            if (e.message.indexOf("404") >= 0) {
-              const info = {
-                address: this.$store.state.wallet.privateAccounts[index].addr,
-                amount: 0,
-                "amount-without-pending-rewards": 0,
-                "created-at-round": 0,
-                deleted: false,
-                "pending-rewards": 0,
-                "reward-base": 0,
-                rewards: 0,
-                round: 0,
-                "sig-type": "sig",
-                status: "Offline",
-                "total-apps-opted-in": 0,
-                "total-assets-opted-in": 0,
-                "total-created-apps": 0,
-                "total-created-assets": 0,
-              };
-
-              this.updateAccount({ info });
-            }
-          });
+        const info = await this.accountInformation({
+          addr: account.addr,
+        });
+        if (info) {
+          await this.updateAccount({ info });
+        }
       }
     },
   },

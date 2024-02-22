@@ -1,0 +1,12 @@
+#gradient-canvas {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -10000;
+  --gradient-color-1: var(--focus-ring);
+  --gradient-color-2: var(--text-color-secondary);
+  --gradient-color-3: var(--highlight-text-color);
+  --gradient-color-4: var(--text-color-secondary);
+}

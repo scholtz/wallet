@@ -11,7 +11,7 @@
       :loading="loading"
       v-model:filters="filters"
       filterDisplay="menu"
-      :globalFilterFields="['name', 'asset-id', 'amount']"
+      :globalFilterFields="['name', 'asset-id', 'amount', 'type']"
     >
       <template #header>
         <div class="flex justify-content-end" v-if="filters['global']">
@@ -35,6 +35,28 @@
             @input="filterCallback()"
             class="p-column-filter"
             placeholder="Search by name"
+          />
+        </template>
+      </Column>
+      <Column field="type" header="Type" :sortable="true">
+        <template #body="slotProps">
+          <div v-if="slotProps.data.type == 'Native'">
+            <Badge severity="primary" value="Native"></Badge>
+          </div>
+          <div v-else-if="slotProps.data['type'] == 'ASA'">
+            <Badge severity="info" value="ASA"></Badge>
+          </div>
+          <div v-else-if="slotProps.data['type'] == 'ARC200'">
+            <Badge severity="success" value="ARC200"></Badge>
+          </div>
+        </template>
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText
+            v-model="filterModel.value"
+            type="text"
+            @input="filterCallback()"
+            class="p-column-filter"
+            placeholder="Search by asset type"
           />
         </template>
       </Column>
@@ -78,6 +100,30 @@
           />
         </template>
       </Column>
+      <Column header="Actions" :sortable="true">
+        <template #body="slotProps">
+          <Button class="m-1" size="small" @click="refresh(slotProps.data)">
+            <i class="pi pi-refresh"></i>
+          </Button>
+          <RouterLink
+            :to="
+              '/accounts/pay/' +
+              $store.state.wallet.lastActiveAccount +
+              '/' +
+              slotProps.data['asset-id']
+            "
+          >
+            <Button
+              class="m-1"
+              size="small"
+              @click="refresh(slotProps.data)"
+              :title="$t('acc_overview.pay')"
+            >
+              <i class="pi pi-send"></i>
+            </Button>
+          </RouterLink>
+        </template>
+      </Column>
     </DataTable>
   </MainLayout>
 </template>
@@ -89,11 +135,13 @@ import { PrimeIcons } from "primevue/api";
 import copy from "copy-to-clipboard";
 import AccountTopMenu from "../../components/AccountTopMenu.vue";
 import { FilterMatchMode } from "primevue/api";
-
+import Badge from "primevue/badge";
+import Contract from "arc200js";
 export default {
   components: {
     MainLayout,
     AccountTopMenu,
+    Badge,
   },
   data() {
     return {
@@ -114,6 +162,7 @@ export default {
         name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
         "asset-id": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
         amount: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        type: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
       },
     };
   },
@@ -195,6 +244,9 @@ export default {
       setAccountOnline: "kmd/setAccountOnline",
       setAccountOffline: "kmd/setAccountOffline",
       openSuccess: "toast/openSuccess",
+      getAlgod: "algod/getAlgod",
+      getIndexer: "indexer/getIndexer",
+      updateArc200Balance: "wallet/updateArc200Balance",
     }),
     async makeAssets() {
       this.loading = true;
@@ -203,9 +255,10 @@ export default {
         this.assets.push({
           "asset-id": "",
           amount: this.accountData.amount,
-          name: "ALG",
+          name: this.$store.state.config.tokenSymbol,
           decimals: 6,
           "unit-name": "",
+          type: "Native",
         });
       }
       if (this.accountData && this.accountData.assets) {
@@ -221,8 +274,21 @@ export default {
               name: asset["name"],
               decimals: asset["decimals"],
               "unit-name": asset["unit-name"],
+              type: "ASA",
             });
           }
+        }
+      }
+      if (this.accountData && this.accountData.arc200) {
+        for (const accountAsset of Object.values(this.accountData.arc200)) {
+          this.assets.push({
+            "asset-id": Number(accountAsset.arc200id),
+            amount: Number(accountAsset.balance),
+            name: accountAsset.name,
+            decimals: Number(accountAsset.decimals),
+            "unit-name": accountAsset.symbol,
+            type: "ARC200",
+          });
         }
       }
       this.loading = false;
@@ -240,6 +306,38 @@ export default {
     getAssetDecimals(id) {
       const asset = this.getAssetSync(id);
       if (asset) return asset["decimals"];
+    },
+    async refresh(data) {
+      if (data.type == "ARC200") {
+        console.log("ARC200 reload", data);
+        this.reloadArc200AccountBalance(data);
+      } else {
+        console.log("reload", data);
+        return await this.reloadAccount();
+      }
+    },
+    async reloadArc200AccountBalance(data) {
+      if (data.type != "ARC200") {
+        console.error("Not arc200 asset", data);
+      }
+      const algodClient = await this.getAlgod();
+      const indexerClient = await this.getIndexer();
+      console.log("data.arc200id", data["asset-id"], data);
+      const contract = new Contract(
+        data["asset-id"],
+        algodClient,
+        indexerClient
+      );
+      var balance = await contract.arc200_balanceOf(this.account.addr);
+      if (!balance.success) {
+        this.openError("Failed to fetch ARC200 balance");
+        return;
+      }
+      await this.updateArc200Balance({
+        addr: this.account.addr,
+        arc200Id: data["asset-id"],
+        balance: balance.returnValue,
+      });
     },
     async reloadAccount() {
       await this.accountInformation({
@@ -265,12 +363,6 @@ export default {
           }
         }
       });
-      const searchData = await this.searchForTransactions({
-        addr: this.$route.params.account,
-      });
-      if (searchData) {
-        this.transactions = searchData.transactions;
-      }
     },
     copyToClipboard(text) {
       if (copy(text)) {

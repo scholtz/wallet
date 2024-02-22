@@ -55,63 +55,68 @@ onMounted(async () => {
 <template>
   <MainLayout>
     <h1>{{ $t("arc76account.title") }}</h1>
-    <div v-if="state.lastError">
-      <Message severity="error">
-        {{ $t("new_account_pass.last_error") }}: {{ state.lastError }}
-      </Message>
-    </div>
-    <p>
-      {{ $t("arc76account.description") }}
-    </p>
-    <p>
-      {{ $t("arc76account.description2") }}
-    </p>
-    <Message severity="error" v-if="!state.savePassword">
-      {{ $t("arc76account.arc_draft") }}
-    </Message>
-    <div class="p-fluid">
-      <div class="p-field mb-2">
-        <label for="email">{{ $t("arc76account.email") }}</label>
-        <InputText
-          id="email"
-          v-model="state.email"
-          @keyup="checkEmailValidity"
-        />
-      </div>
-      <div class="p-field mb-2">
-        <label for="w">{{ $t("arc76account.select_password") }}</label>
-        <Password
-          :input-props="{ autocomplete: 'new-password' }"
-          inputId="w"
-          v-model="state.password"
-          :feedback="false"
-          :toggle-mask="true"
-        />
-      </div>
-      <div class="p-field mb-2">
-        <label>{{ $t("arc76account.save_password_switch") }}</label>
-        <div>
-          <InputSwitch class="my-2" v-model="state.savePassword" />
-        </div>
-      </div>
 
-      <p v-if="!state.savePassword">
-        {{ $t("arc76account.password_not_stored") }}
-      </p>
-      <Message severity="error" v-if="!state.savePassword">
-        {{ $t("arc76account.gui_not_implemented") }}
-      </Message>
-      <div class="p-field mb-2">
-        <label for="name">{{ $t("accounts.account_name") }}</label>
-        <InputText id="name" v-model="state.name" />
-      </div>
-      <Button
-        class="my-2"
-        @click="createAccount"
-        :disabled="!canCreatePassword"
-      >
-        {{ $t("newacc.create_account") }}
-      </Button>
-    </div>
+    <Card>
+      <template #content>
+        <div v-if="state.lastError">
+          <Message severity="error">
+            {{ $t("new_account_pass.last_error") }}: {{ state.lastError }}
+          </Message>
+        </div>
+        <p>
+          {{ $t("arc76account.description") }}
+        </p>
+        <p>
+          {{ $t("arc76account.description2") }}
+        </p>
+        <Message severity="error" v-if="!state.savePassword">
+          {{ $t("arc76account.arc_draft") }}
+        </Message>
+        <div class="p-fluid">
+          <div class="p-field mb-2">
+            <label for="email">{{ $t("arc76account.email") }}</label>
+            <InputText
+              id="email"
+              v-model="state.email"
+              @keyup="checkEmailValidity"
+            />
+          </div>
+          <div class="p-field mb-2">
+            <label for="w">{{ $t("arc76account.select_password") }}</label>
+            <Password
+              :input-props="{ autocomplete: 'new-password' }"
+              inputId="w"
+              v-model="state.password"
+              :feedback="false"
+              :toggle-mask="true"
+            />
+          </div>
+          <div class="p-field mb-2">
+            <label>{{ $t("arc76account.save_password_switch") }}</label>
+            <div>
+              <InputSwitch class="my-2" v-model="state.savePassword" />
+            </div>
+          </div>
+
+          <p v-if="!state.savePassword">
+            {{ $t("arc76account.password_not_stored") }}
+          </p>
+          <Message severity="error" v-if="!state.savePassword">
+            {{ $t("arc76account.gui_not_implemented") }}
+          </Message>
+          <div class="p-field mb-2">
+            <label for="name">{{ $t("accounts.account_name") }}</label>
+            <InputText id="name" v-model="state.name" />
+          </div>
+          <Button
+            class="my-2"
+            @click="createAccount"
+            :disabled="!canCreatePassword"
+          >
+            {{ $t("newacc.create_account") }}
+          </Button>
+        </div>
+      </template>
+    </Card>
   </MainLayout>
 </template>

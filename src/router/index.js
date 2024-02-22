@@ -10,6 +10,8 @@ import TransactionDetail from "@/pages/TransactionDetail.vue";
 import NotFound from "@/pages/404.vue";
 import FAQ from "@/pages/FAQ.vue";
 import Pay from "@/pages/Pay.vue";
+import Sign from "@/pages/Sign.vue";
+import SignAll from "@/pages/SignAll.vue";
 import Merchant from "@/pages/Merchant.vue";
 import ReceivePayment from "@/pages/ReceivePayment.vue";
 import Connect from "@/pages/Connect.vue";
@@ -21,6 +23,7 @@ import AssetFreeze from "@/pages/Asset/Freeze.vue";
 import AssetModify from "@/pages/Asset/Modify.vue";
 import AssetRevoke from "@/pages/Asset/Revoke.vue";
 import OptIn from "@/pages/Asset/OptIn.vue";
+import OptInArc200 from "@/pages/Arc200/OptIn.vue";
 import PaymentGateway from "@/pages/PaymentGateway.vue";
 import GovernanceOverview from "@/pages/governance/Overview.vue";
 import Donation from "@/pages/Donation.vue";
@@ -222,6 +225,11 @@ const routes = [
     component: OptIn,
   },
   {
+    path: "/account/optinArc200/:account",
+    name: "OptInArc200",
+    component: OptInArc200,
+  },
+  {
     path: "/transaction/:id",
     name: "TransactionDetail",
     component: TransactionDetail,
@@ -232,9 +240,24 @@ const routes = [
     component: Pay,
   },
   {
+    path: "/accounts/:type/:account/:asset",
+    name: "PayWithAccountAndAsset",
+    component: Pay,
+  },
+  {
     path: "/pay/:toAccount",
     name: "Pay",
     component: Pay,
+  },
+  {
+    path: "/sign/:account/:rawSignedTxnInput",
+    name: "Sign",
+    component: Sign,
+  },
+  {
+    path: "/signAll/",
+    name: "SignAll",
+    component: SignAll,
   },
   {
     path: "/payWC/",

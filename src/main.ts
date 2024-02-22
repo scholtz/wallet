@@ -48,7 +48,7 @@ import Message from "primevue/message";
 import Ripple from "primevue/ripple";
 import Tooltip from "primevue/tooltip";
 import ProgressSpinner from "primevue/progressspinner";
-
+import Card from "primevue/card";
 import "primevue/resources/primevue.min.css";
 import "primeicons/primeicons.css";
 import i18n from "./i18n";
@@ -81,6 +81,7 @@ myApp.use(router);
 myApp.use(PrimeVue, { ripple: true });
 myApp.use(ToastService);
 myApp.component("Button", Button);
+myApp.component("Card", Card);
 myApp.component("DataTable", DataTable);
 myApp.component("Column", Column);
 myApp.component("InputText", InputText);
@@ -108,6 +109,22 @@ myApp.directive("ripple", Ripple);
 myApp.directive("tooltip", Tooltip);
 
 myApp.config.globalProperties.$filters = {
+  formatCurrencyBigInt(
+    value = 0,
+    currency = store.state.config.tokenSymbol,
+    minimumFractionDigits = 6,
+    multiply = true,
+    language = store.state.config.language
+  ) {
+    let valueNumber = 0;
+    if (multiply) {
+      valueNumber = Number(value) / Number(10 ** Number(minimumFractionDigits));
+    }
+    const formatter = new Intl.NumberFormat(language, {
+      minimumFractionDigits: Number(minimumFractionDigits),
+    });
+    return formatter.format(valueNumber) + " " + currency;
+  },
   formatCurrency(
     value = 0,
     currency = store.state.config.tokenSymbol,
@@ -115,6 +132,14 @@ myApp.config.globalProperties.$filters = {
     multiply = true,
     language = store.state.config.language
   ) {
+    if (typeof value === "bigint")
+      return this.formatCurrencyBigInt(
+        value,
+        currency,
+        minimumFractionDigits,
+        multiply,
+        language
+      );
     if (multiply) {
       value = value / Math.pow(10, minimumFractionDigits);
     }
@@ -122,19 +147,6 @@ myApp.config.globalProperties.$filters = {
       minimumFractionDigits,
     });
     return formatter.format(value) + " " + currency;
-    /*
-    if (currency.length == 3) {
-      const formatter = new Intl.NumberFormat(language, {
-        style: "currency",
-        currency,
-        minimumFractionDigits,
-        maximumFractionDigits: minimumFractionDigits,
-      });
-      const ret = formatter.format();
-
-      return ret;
-    } else {
-    }*/
   },
   formatDateTime(
     value = 0,

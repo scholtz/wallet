@@ -3,133 +3,141 @@
     <h1>
       {{ $t("receive.title") }} <span v-if="account">{{ account.name }}</span>
     </h1>
-    <div class="field grid">
-      <label for="paynote" class="col-12 mb-2 md:col-2 md:mb-0">{{
-        $t("receive.note")
-      }}</label>
-      <div class="col-12 md:col-10">
-        <InputText id="paynote" v-model="paynote" class="w-full" />
-      </div>
-    </div>
-    <div class="field grid">
-      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-      <div class="col-12 md:col-10">
-        <div class="flex align-items-center">
-          <Checkbox itemId="paynoteB64" v-model="paynoteB64" binary />
-          <label class="form-check-label" for="paynoteB64">
-            {{ $t("pay.note_is_b64") }}
-          </label>
+
+    <Card>
+      <template #content>
+        <div class="field grid">
+          <label for="paynote" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("receive.note")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <InputText id="paynote" v-model="paynote" class="w-full" />
+          </div>
         </div>
-      </div>
-    </div>
-    <div class="field grid">
-      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-      <div class="col-12 md:col-10">
-        <Checkbox itemId="noteeditable" v-model="noteeditable" binary />
-        <label class="form-check-label" for="noteeditable">
-          {{ $t("receive.noteeditable") }}
-        </label>
-      </div>
-    </div>
-    <div class="field grid">
-      <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">{{
-        $t("pay.asset")
-      }}</label>
-      <div class="col-12 md:col-10">
-        <Dropdown
-          id="asset"
-          :options="assets"
-          option-value="asset-id"
-          option-label="name"
-          v-model="asset"
-          class="w-full"
-        >
-          <template #option="slotProps">
-            <div v-if="slotProps.option" class="flex align-items-center">
-              <div>
-                {{ slotProps.option.name }} ({{ slotProps.option["asset-id"] }})
-              </div>
+        <div class="field grid">
+          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <div class="flex align-items-center">
+              <Checkbox itemId="paynoteB64" v-model="paynoteB64" binary />
+              <label class="form-check-label" for="paynoteB64">
+                {{ $t("pay.note_is_b64") }}
+              </label>
             </div>
-          </template>
-        </Dropdown>
-      </div>
-    </div>
-    <div class="field grid">
-      <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">{{
-        $t("receive.amount")
-      }}</label>
-      <div class="col-12 md:col-10">
-        <InputGroup>
-          <InputNumber
-            inputId="payamount"
-            v-model="payamount"
-            type="number"
-            min="0.000001"
-            max="999999999"
-            step="0.000001"
-            class="w-full"
-          />
-          <InputGroupAddon>{{ assetName }}</InputGroupAddon>
-        </InputGroup>
-      </div>
-    </div>
-    <div class="field grid">
-      <label for="decimals" class="col-12 mb-2 md:col-2 md:mb-0">{{
-        $t("receive.decimals")
-      }}</label>
-      <div class="col-12 md:col-10">
-        <InputNumber
-          inputId="decimals"
-          v-model="decimals"
-          disabled
-          type="number"
-          min="0"
-          max="18"
-          step="1"
-          class="w-full"
-        />
-      </div>
-    </div>
-    <div class="field grid">
-      <label for="payto" class="col-12 mb-2 md:col-2 md:mb-0">
-        {{ $t("receive.address") }}: <b>{{ account.name }}</b>
-      </label>
-      <div class="col-12 md:col-10">
-        <InputText
-          v-if="account"
-          id="payto"
-          v-model="account.addr"
-          class="w-full"
-          disabled
-        />
-      </div>
-    </div>
-    <div class="field grid">
-      <label for="label" class="col-12 mb-2 md:col-2 md:mb-0">{{
-        $t("receive.label")
-      }}</label>
-      <div class="col-12 md:col-10">
-        <InputText id="label" v-model="label" class="w-full my-2" />
-      </div>
-    </div>
-    <div class="field grid">
-      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-      <div class="col-12 md:col-10">
-        <QRCodeVue3
-          :width="400"
-          :height="400"
-          :value="qrcode"
-          :qr-options="{ errorCorrectionLevel: 'H' }"
-          image="/img/algorand-algo-logo-96.png"
-        />
-      </div>
-    </div>
-    <div class="field grid">
-      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-      <div class="col-12 md:col-10">
-        <code>{{ qrcode }}</code>
-      </div>
-    </div>
+          </div>
+        </div>
+        <div class="field grid">
+          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <Checkbox itemId="noteeditable" v-model="noteeditable" binary />
+            <label class="form-check-label" for="noteeditable">
+              {{ $t("receive.noteeditable") }}
+            </label>
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="asset" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("pay.asset")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <Dropdown
+              id="asset"
+              :options="assets"
+              option-value="asset-id"
+              option-label="name"
+              v-model="asset"
+              class="w-full"
+            >
+              <template #option="slotProps">
+                <div v-if="slotProps.option" class="flex align-items-center">
+                  <div>
+                    {{ slotProps.option.name }} ({{
+                      slotProps.option["asset-id"]
+                    }})
+                  </div>
+                </div>
+              </template>
+            </Dropdown>
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("receive.amount")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <InputGroup>
+              <InputNumber
+                inputId="payamount"
+                v-model="payamount"
+                type="number"
+                :min="0.000001"
+                :max="999999999"
+                :step="0.000001"
+                :maxFractionDigits="6"
+                class="w-full"
+              />
+              <InputGroupAddon>{{ assetName }}</InputGroupAddon>
+            </InputGroup>
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="decimals" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("receive.decimals")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <InputNumber
+              inputId="decimals"
+              v-model="decimals"
+              disabled
+              type="number"
+              :min="0"
+              :max="18"
+              :step="1"
+              class="w-full"
+            />
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="payto" class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ $t("receive.address") }}: <b>{{ account.name }}</b>
+          </label>
+          <div class="col-12 md:col-10">
+            <InputText
+              v-if="account"
+              id="payto"
+              v-model="account.addr"
+              class="w-full"
+              disabled
+            />
+          </div>
+        </div>
+        <div class="field grid">
+          <label for="label" class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("receive.label")
+          }}</label>
+          <div class="col-12 md:col-10">
+            <InputText id="label" v-model="label" class="w-full my-2" />
+          </div>
+        </div>
+        <div class="field grid">
+          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <QRCodeVue3
+              :width="400"
+              :height="400"
+              :value="qrcode"
+              :qr-options="{ errorCorrectionLevel: 'H' }"
+              image="/img/algorand-algo-logo-96.png"
+            />
+          </div>
+        </div>
+        <div class="field grid">
+          <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+          <div class="col-12 md:col-10">
+            <code>{{ qrcode }}</code>
+          </div>
+        </div>
+      </template>
+    </Card>
   </main-layout>
 </template>
 

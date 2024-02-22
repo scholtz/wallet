@@ -6,6 +6,8 @@ import WalletConnect from "@walletconnect/client"; // wc ver 1
 const state = () => ({
   signed: {},
   toSign: {},
+  toSignArray: [],
+  returnTo: "",
 });
 
 const mutations = {
@@ -16,6 +18,13 @@ const mutations = {
   },
   toSign(state, tx) {
     state.toSign = tx;
+  },
+  returnTo(state, returnTo) {
+    state.returnTo = returnTo;
+  },
+  toSignArray(state, txs) {
+    state.toSignArray = txs;
+    console.log("state.toSignArray", state.toSignArray);
   },
 };
 const actions = {
@@ -91,6 +100,22 @@ const actions = {
    */
   async toSign({ commit }, { tx }) {
     await commit("toSign", tx);
+  },
+  /**
+   * Set the transactions to be signed. It is used by SignMultiple view page
+   *
+   * @param {*} tx
+   * @returns
+   */
+  async toSignArray({ commit }, { txs }) {
+    await commit("toSignArray", txs);
+  },
+  /**
+   *
+   * @param {*} returnTo SignAll|WC .. - Returns to the signator
+   */
+  async returnTo({ commit }, returnTo) {
+    await commit("returnTo", returnTo);
   },
   async setSigned({ commit }, { signed }) {
     await commit("setSigned", signed);
