@@ -44,9 +44,17 @@ const fetchAsset = async () => {
       algodClient,
       indexerClient
     );
-    state.arc200Info.name = "";
     state.loading = true;
+    state.arc200Info = {
+      arc200id: state.arc200id,
+      name: "",
+      symbol: "",
+      decimals: BigInt(0),
+      totalSupply: BigInt(0),
+      balance: BigInt(0),
+    };
     var name = await contract.arc200_name();
+    await delay(200);
     if (!name.success) {
       store.dispatch(
         "toast/openError",
@@ -57,6 +65,7 @@ const fetchAsset = async () => {
     }
     state.arc200Info.name = name.returnValue;
     var symbol = await contract.arc200_symbol();
+    await delay(200);
     if (!symbol.success) {
       store.dispatch("toast/openError", "Failed to fetch ARC200 symbol");
       state.loading = false;
@@ -64,6 +73,7 @@ const fetchAsset = async () => {
     }
     state.arc200Info.symbol = symbol.returnValue;
     var decimals = await contract.arc200_decimals();
+    await delay(200);
     if (!decimals.success) {
       store.dispatch("toast/openError", "Failed to fetch ARC200 decimals");
       state.loading = false;
@@ -72,6 +82,7 @@ const fetchAsset = async () => {
     state.arc200Info.decimals = decimals.returnValue;
 
     var totalSupply = await contract.arc200_totalSupply();
+    await delay(200);
     if (!totalSupply.success) {
       store.dispatch("toast/openError", "Failed to fetch ARC200 totalSupply");
       state.loading = false;
@@ -80,6 +91,7 @@ const fetchAsset = async () => {
     state.arc200Info.totalSupply = totalSupply.returnValue;
 
     var balance = await contract.arc200_balanceOf(state.account.addr);
+    await delay(200);
     console.log("arc200_balanceOf", balance);
     if (!balance.success) {
       console.error("balance request was not successful");
@@ -192,6 +204,10 @@ const createBoxClick = async () => {
     await store.dispatch("toast/openError", error);
   }
 };
+
+const delay = (ms) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
 </script>
 
 <template>
@@ -286,6 +302,14 @@ const createBoxClick = async () => {
           class="field grid mt-5"
           v-if="state.arc200Info.name && !state.loading"
         >
+          <label class="col-12 mb-2 md:col-2 md:mb-0">{{
+            $t("arc200.app_id")
+          }}</label>
+          <div class="col-12 md:col-10">
+            {{ state.arc200Info.arc200id }}
+          </div>
+        </div>
+        <div class="field grid" v-if="state.arc200Info.name && !state.loading">
           <label class="col-12 mb-2 md:col-2 md:mb-0">{{
             $t("arc200.name")
           }}</label>
