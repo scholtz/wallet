@@ -46,7 +46,7 @@ const fetchAsset = async () => {
     );
     state.loading = true;
     state.arc200Info = {
-      arc200id: state.arc200id,
+      arc200id: 0,
       name: "",
       symbol: "",
       decimals: BigInt(0),
@@ -100,7 +100,7 @@ const fetchAsset = async () => {
       return;
     }
     state.arc200Info.balance = balance.returnValue;
-
+    state.arc200Info.arc200id = state.arc200id;
     state.boxNotFound = !(await accountIsOptedInToArc200Asset(
       state.account.addr
     ));
@@ -300,7 +300,7 @@ const delay = (ms) => {
         </div>
         <div
           class="field grid mt-5"
-          v-if="state.arc200Info.name && !state.loading"
+          v-if="state.arc200Info.arc200id && !state.loading"
         >
           <label class="col-12 mb-2 md:col-2 md:mb-0">{{
             $t("arc200.app_id")
@@ -309,7 +309,10 @@ const delay = (ms) => {
             {{ state.arc200Info.arc200id }}
           </div>
         </div>
-        <div class="field grid" v-if="state.arc200Info.name && !state.loading">
+        <div
+          class="field grid"
+          v-if="state.arc200Info.arc200id && !state.loading"
+        >
           <label class="col-12 mb-2 md:col-2 md:mb-0">{{
             $t("arc200.name")
           }}</label>
@@ -317,7 +320,10 @@ const delay = (ms) => {
             {{ state.arc200Info.name }}
           </div>
         </div>
-        <div class="field grid" v-if="state.arc200Info.name && !state.loading">
+        <div
+          class="field grid"
+          v-if="state.arc200Info.arc200id && !state.loading"
+        >
           <label class="col-12 mb-2 md:col-2 md:mb-0">{{
             $t("arc200.symbol")
           }}</label>
@@ -325,7 +331,10 @@ const delay = (ms) => {
             {{ state.arc200Info.symbol }}
           </div>
         </div>
-        <div class="field grid" v-if="state.arc200Info.name && !state.loading">
+        <div
+          class="field grid"
+          v-if="state.arc200Info.arc200id && !state.loading"
+        >
           <label class="col-12 mb-2 md:col-2 md:mb-0">{{
             $t("arc200.decimals")
           }}</label>
@@ -333,7 +342,10 @@ const delay = (ms) => {
             {{ state.arc200Info.decimals }}
           </div>
         </div>
-        <div class="field grid" v-if="state.arc200Info.name && !state.loading">
+        <div
+          class="field grid"
+          v-if="state.arc200Info.arc200id && !state.loading"
+        >
           <label class="col-12 mb-2 md:col-2 md:mb-0">{{
             $t("arc200.supply")
           }}</label>
@@ -347,7 +359,10 @@ const delay = (ms) => {
             }}
           </div>
         </div>
-        <div class="field grid" v-if="state.arc200Info.name && !state.loading">
+        <div
+          class="field grid"
+          v-if="state.arc200Info.arc200id && !state.loading"
+        >
           <label class="col-12 mb-2 md:col-2 md:mb-0">{{
             $t("arc200.balance")
           }}</label>
@@ -361,7 +376,10 @@ const delay = (ms) => {
             }}
           </div>
         </div>
-        <div class="field grid" v-if="state.arc200Info.name && !state.loading">
+        <div
+          class="field grid"
+          v-if="state.arc200Info.arc200id && !state.loading"
+        >
           <label class="col-12 mb-2 md:col-2 md:mb-0">
             {{ $t("arc200.is_opted_in") }}
           </label>
@@ -372,7 +390,10 @@ const delay = (ms) => {
             }}
           </div>
         </div>
-        <div class="field grid" v-if="state.arc200Info.name && !state.loading">
+        <div
+          class="field grid"
+          v-if="state.arc200Info.arc200id && !state.loading"
+        >
           <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
           <div class="col-12 md:col-10">
             <Button
