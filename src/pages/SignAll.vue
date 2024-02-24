@@ -50,7 +50,6 @@ const encodeAddress = (addr) => {
 const toBeSigned = async (data) => {
   const txId = data.txn.txID();
   const signed = txId in store.state.signer.signed;
-  console.log("to be signed", signed, data);
   if (!signed) return true; // if not signed return true to show sign button
   const from = encodeAddress(data.txn.from);
   const type = await store.dispatch("signer/getSignerType", {
@@ -93,7 +92,6 @@ const clickSign = async (data) => {
   const type = await store.dispatch("signer/getSignerType", {
     from: data.from,
   });
-  console.log("type", type);
   if (type == "msig") {
     await store.dispatch("signer/returnTo", "SignAll");
     await store.dispatch("signer/toSign", { tx: data.txn });
@@ -173,7 +171,6 @@ const checkAllTxsAreSigned = () => {
   for (let tx of state.transactions) {
     const id = tx.txn.txID();
     if (!(id in store.state.signer.signed)) {
-      console.log(`Tx ${id} not yet signed`);
       result = false;
     }
   }
@@ -193,7 +190,6 @@ const submitSignedClick = async () => {
       }
       signed.push(store.state.signer.signed[id]);
     }
-    console.log("signed", signed);
     const tx = (
       await store.dispatch("algod/sendRawTransaction", {
         signedTxn: signed,

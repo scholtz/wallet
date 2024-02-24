@@ -37,7 +37,6 @@ const mutations = {
   setTheme(state) {
     const value = localStorage.getItem("lastTheme");
     state.theme = value;
-    console.log("theme set: ", state.theme);
   },
   setConfig(state, value) {
     const removeConsoleLogs = !value.debug;

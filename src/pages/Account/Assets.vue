@@ -326,10 +326,8 @@ export default {
     },
     async refresh(data) {
       if (data.type == "ARC200") {
-        console.log("ARC200 reload", data);
         this.reloadArc200AccountBalance(data);
       } else {
-        console.log("reload", data);
         return await this.reloadAccount();
       }
     },
@@ -339,7 +337,6 @@ export default {
       }
       const algodClient = await this.getAlgod();
       const indexerClient = await this.getIndexer();
-      console.log("data.arc200id", data["asset-id"], data);
       const contract = new Contract(
         data["asset-id"],
         algodClient,

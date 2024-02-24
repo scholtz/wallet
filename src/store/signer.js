@@ -24,7 +24,6 @@ const mutations = {
   },
   toSignArray(state, txs) {
     state.toSignArray = txs;
-    console.log("state.toSignArray", state.toSignArray);
   },
 };
 const actions = {

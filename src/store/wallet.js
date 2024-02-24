@@ -53,7 +53,6 @@ const mutations = {
     if (!acc.data[network]["arc200"][arc200Id]) {
       throw Error(`Asset with id ${arc200Id} is not present to the wallet.`);
     }
-    console.log("setting balance", addr, arc200Id, balance);
     acc.data[network]["arc200"][arc200Id].balance = balance;
   },
   addPublicAccount(state, { name, addr }) {

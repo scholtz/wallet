@@ -254,7 +254,6 @@ export default {
     async updateBalance() {
       for (const account of this.accounts) {
         await this.sleep(100);
-        console.log(`refreshing ${account.addr} info`);
         if (!account.addr) {
           continue;
         }

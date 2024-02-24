@@ -92,7 +92,6 @@ const fetchAsset = async () => {
 
     var balance = await contract.arc200_balanceOf(state.account.addr);
     await delay(200);
-    console.log("arc200_balanceOf", balance);
     if (!balance.success) {
       console.error("balance request was not successful");
       store.dispatch("toast/openError", "Failed to fetch ARC200 balance");
@@ -188,7 +187,6 @@ const makeOptInTxs = async () => {
     txsToSign.push(tx);
   });
   algosdk.assignGroupID(txsToSign);
-  console.log("txsToSign", txsToSign);
   return txsToSign;
 };
 

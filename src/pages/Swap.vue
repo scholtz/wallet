@@ -545,7 +545,6 @@ export default {
           this.error = "No deflex quotes available";
           return;
         }
-        console.log("deflex.quotes", quotes);
         this.quotes = quotes;
         const params = JSON.stringify({
           address: this.account.addr,
@@ -618,7 +617,6 @@ export default {
           10,
           "AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
         );
-        console.log("folks.quotes", this.folksQuote);
         const slippage = Math.round(this.slippage * 100);
         this.folksTxns = await folksRouterClient.prepareSwapTransactions(
           this.$route.params.account,

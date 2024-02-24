@@ -1129,20 +1129,17 @@ export default {
         signator: this.payFrom,
         tx: this.txn,
       });
-      console.log("signed", signed);
       this.rawSignedTxn = signed;
     },
     async submitSignedClick() {
       try {
         this.processing = true;
         this.prolong();
-        console.log("this.rawSignedTxn", this.rawSignedTxn);
         this.tx = (
           await this.sendRawTransaction({
             signedTxn: new Uint8Array(Buffer.from(this.rawSignedTxn)),
           })
         )?.txId;
-        console.log("this.tx", this.tx);
         if (!this.tx) {
           console.error("this.submitSignedClick has failed");
           this.error = this.$t("pay.state_error_not_sent");

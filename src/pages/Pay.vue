@@ -914,7 +914,6 @@ export default {
           console.error("no asset selected");
           return;
         }
-        console.log("asset", asset);
         if (asset.type == "ASA") {
           await this.redirectToASAPayment();
         }
@@ -960,7 +959,6 @@ export default {
         const encodedTx = algosdk.encodeUnsignedTransaction(tx);
         const b64 = Buffer.from(encodedTx).toString("base64");
         const b64Url = this.base642base64url(b64);
-        console.log("b64", b64, b64Url);
         this.$router.push(`/sign/${this.payFrom}/` + b64Url);
       } catch (e) {
         console.error("redirectToASAPayment.error", e);
@@ -990,7 +988,6 @@ export default {
         const encodedTx = algosdk.encodeUnsignedTransaction(tx);
         const b64 = Buffer.from(encodedTx).toString("base64");
         const b64Url = this.base642base64url(b64);
-        console.log("b64", b64, b64Url);
         this.$router.push(`/sign/${this.payFrom}/` + b64Url);
       } catch (e) {
         console.error("redirectToNativePayment.error", e);
@@ -1027,7 +1024,6 @@ export default {
           appId: appId,
           sender: { addr: this.payFrom },
         });
-        console.log("this.amountLong", this.amountLong, this.payTo);
         const fromDecoded = algosdk.decodeAddress(this.payFrom);
         const toDecoded = algosdk.decodeAddress(this.payTo);
         var boxFrom = {
@@ -1062,7 +1058,6 @@ export default {
         const atc = await compose.atc();
         const txsToSignArc200 = atc.buildGroup().map((tx) => tx.txn);
         const isOptedIn = await this.accountIsOptedInToArc200Asset(this.payTo);
-        console.log("isOptedIn", isOptedIn, this.payTo);
         if (!isOptedIn) {
           // we have to opt in for payTo account (pay for the box)
           const payTx = await this.preparePayment({
