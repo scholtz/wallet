@@ -129,7 +129,10 @@
                 {{ $t("acc_overview.type") }}
               </label>
               <div class="col-12 md:col-8">
-                <AccountType :account="account"></AccountType>
+                <AccountType
+                  :account="account"
+                  :accountData="accountData"
+                ></AccountType>
               </div>
             </div>
             <div class="field grid vertical-align-top">

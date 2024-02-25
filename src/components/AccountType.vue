@@ -1,11 +1,12 @@
 <script setup lang="ts">
 const props = defineProps({
   account: null,
+  accountData: null,
 });
 </script>
 <template>
   <Badge
-    v-if="props.account?.rekeyedTo"
+    v-if="props.accountData?.rekeyedTo"
     severity="danger"
     :value="$t('acc_type.rekeyed')"
   />

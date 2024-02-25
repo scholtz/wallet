@@ -126,7 +126,10 @@
 
           <Column header="Type" :sortable="true">
             <template #body="slotProps">
-              <AccountType :account="slotProps.data"></AccountType>
+              <AccountType
+                :account="slotProps.data"
+                :account-data="accountData(slotProps.data)"
+              ></AccountType>
             </template>
           </Column>
           <Column>
@@ -217,6 +220,11 @@ export default {
       updateAccount: "wallet/updateAccount",
       lastActiveAccount: "wallet/lastActiveAccount",
     }),
+    accountData(account) {
+      if (!account) return false;
+      if (!account.data) return false;
+      return account.data[this.$store.state.config.env];
+    },
     fillAccounts() {
       this.showNoAccountsForNetworkWarning = false;
       if (this.showNetworkAccounts) {
