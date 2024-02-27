@@ -189,7 +189,7 @@
               v-if="useFolks"
               class="my-2"
               :disabled="!allowExecuteFolks || processingTradeFolks"
-              :class="
+              :severity="
                 allowExecuteFolks && isFolksQuoteBetter
                   ? 'primary'
                   : 'secondary'
@@ -351,25 +351,33 @@ export default {
       if (!this.quotes) {
         return true;
       }
-      if (!this.quotes.quoteAmount) {
+      if (!this.quotes.quote) {
         return true;
       }
-      return BigInt(this.quotes.quoteAmount) <= BigInt(this.folksQuote.quote);
+      const deflex = BigInt(this.quotes.quote).toString();
+      const folks = BigInt(this.folksQuote.quoteAmount).toString();
+      if (deflex.length > folks.length) return false;
+      if (folks.length > deflex.length) return true;
+      return folks > deflex;
     },
     isDeflexQuoteBetter() {
       if (!this.quotes) {
         return false;
       }
-      if (!this.quotes.quoteAmount) {
+      if (!this.quotes.quote) {
         return false;
       }
       if (!this.folksQuote) {
         return true;
       }
-      if (!this.folksQuote.quote) {
+      if (!this.folksQuote.quoteAmount) {
         return true;
       }
-      return BigInt(this.quotes.quoteAmount) >= BigInt(this.folksQuote.quote);
+      const deflex = BigInt(this.quotes.quote).toString();
+      const folks = BigInt(this.folksQuote.quoteAmount).toString();
+      if (folks.length > deflex.length) return false;
+      if (deflex.length > folks.length) return true;
+      return deflex > folks;
     },
   },
   watch: {
