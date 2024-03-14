@@ -1,14 +1,16 @@
 FROM node:20 AS build
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt update && apt dist-upgrade -y && apt-get autoremove --yes && rm -rf /var/lib/{apt,dpkg,cache,log}/
-RUN npm install -g npm@latest
+RUN apt update \
+  && apt dist-upgrade -y \
+  && apt-get clean autoclean \
+  && apt-get autoremove --yes \
+  && rm -rf /var/lib/{apt,dpkg,cache,log}/ \
+  && npm install -g npm@latest
 WORKDIR /src
 COPY package-lock.json package-lock.json
 COPY package.json package.json
 RUN npm ci
 COPY . .
-RUN npm ci
-#RUN npm audit fix --save &>/dev/null
 RUN npm run build
 RUN cd /src/dist && ls
 #RUN npm run test
