@@ -263,13 +263,13 @@ const actions = {
   async getAccount({ dispatch }, { addr }) {
     return this.state.wallet.privateAccounts.find((a) => a.addr == addr);
   },
-  async getSK({ dispatch }, { addr }) {
+  async getSK({ dispatch }, { addr, checkRekey = true }) {
     const address = this.state.wallet.privateAccounts.find(
       (a) => a.addr == addr
     );
     if (address) {
-      if (address.rekeyedTo && address.rekeyedTo != addr) {
-        return await dispatch("getSK", { addr: address.rekeyedTo });
+      if( address && address.data && address.data[this.state.config.env] && address.data[this.state.config.env].rekeyedTo && address.data[this.state.config.env].rekeyedTo!= addr){
+        return await dispatch("getSK", { addr: address.data[this.state.config.env].rekeyedTo, checkRekey: false });
       }
       if (address.sk) {
         const ret = Uint8Array.from(Object.values(address.sk));
