@@ -202,8 +202,21 @@ export default {
       localStorage.setItem("showNetworkAccounts", this.showNetworkAccounts);
       this.fillAccounts();
     },
+    isAuth() {
+      this.accounts = [];
+      // console.log("is auth changed", this.isAuth, this.accounts);
+      if (this.isAuth) {
+        this.fillAccounts();
+      }
+    },
+  },
+  computed: {
+    isAuth() {
+      return this.$store.state.wallet.isOpen;
+    },
   },
   async mounted() {
+    this.accounts = [];
     if (localStorage.getItem("showNetworkAccounts") === null) {
       this.showNetworkAccounts = true;
     } else {
