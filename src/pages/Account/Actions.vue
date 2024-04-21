@@ -100,7 +100,7 @@ import Fieldset from "primevue/fieldset";
         </div>
         <div class="field grid">
           <RouterLink
-            :to="'/receive-payment/' + store.state.wallet.lastActiveAccount"
+            :to="'/account/export/' + store.state.wallet.lastActiveAccount"
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
