@@ -720,6 +720,7 @@ export default {
       }
       this.note = ret.trim().trim(",");
       this.processingTradeFolks = false;
+      await this.reloadAccount();
     },
     async clickExecuteDeflex() {
       this.prolong();
@@ -778,6 +779,7 @@ export default {
       }
       this.note = ret.trim().trim(",");
       this.processingTradeDeflex = false;
+      await this.reloadAccount();
     },
 
     async clickOptInToApps() {
