@@ -836,7 +836,10 @@ export default {
           this.payTo = algosdk.encodeAddress(this.txn.to.publicKey);
         }
         this.note = this.txn.note;
-        this.asset = this.txn.assetIndex;
+        this.asset = this.txn.assetIndex ?? 0;
+        await this.makeAssets();
+        this.payamount = Number(this.txn.amount ?? 0) / this.decimalsPower;
+
         this.page = "review";
       } catch (e) {
         console.error("Input is not valid base64-url format ", e);
@@ -845,7 +848,6 @@ export default {
     if (this.$route.params.account) {
       this.lastActiveAccount({ addr: this.$route.params.account });
     }
-    await this.makeAssets();
 
     if (
       this.$store.state.wallet.privateAccounts &&
