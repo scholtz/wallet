@@ -235,6 +235,11 @@ const routes = [
     component: TransactionDetail,
   },
   {
+    path: "/accounts/scheduled-payment/:account",
+    name: "scheduled-payment",
+    component: () => import("../pages/Account/ScheduledPayments.vue"),
+  },
+  {
     path: "/accounts/:type/:account",
     name: "PayWithAccount",
     component: Pay,
