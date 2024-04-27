@@ -33,6 +33,7 @@
     "arc200js": "^2.3.3",
     "axios": "^1.6.7",
     "base64url": "^3.0.1",
+    "biatec-scheduler": "^1.0.3",
     "buffer": "^6.0.3",
     "check-password-strength": "^2.0.7",
     "clipboard": "^2.0.11",
@@ -62,7 +63,8 @@
     "vue3-json-viewer": "^2.2.2",
     "vuex": "^4.1.0",
     "whatamesh": "^0.2.0",
-    "worker-loader": "^3.0.8"
+    "worker-loader": "^3.0.8",
+    "yaml": "^2.4.1"
   },
   "devDependencies": {
     "@babel/core": "^7.23.9",

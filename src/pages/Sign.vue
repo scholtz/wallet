@@ -12,7 +12,6 @@
     <div v-if="account">
       <form v-if="page == 'review'" @submit="signTxClick">
         <h1>{{ $t("pay.review_payment") }}</h1>
-
         <Card>
           <template #content>
             <p>{{ $t("pay.review_payment_help") }}</p>
@@ -270,22 +269,28 @@
               <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold"></label>
               <div class="col-12 md:col-10">
                 <Button
-                  v-if="
-                    !isMultisig &&
-                    !(rawSignedTxn && Object.values(rawSignedTxn)?.length > 0)
+                  v-if="!isMultisig"
+                  :disabled="
+                    processing || isRawSignedTxnSigned || confirmedRound
                   "
+                  :severity="isRawSignedTxnSigned ? 'secondary' : 'primary'"
                   @click="signTxClick"
+                  class="m-2"
                 >
                   Sign transaction
                 </Button>
                 <Button
-                  v-if="
-                    !isMultisig &&
-                    rawSignedTxn &&
-                    Object.values(rawSignedTxn)?.length > 0
-                  "
+                  v-if="!isMultisig"
                   @click="submitSignedClick"
-                  :disabled="processing"
+                  :disabled="
+                    processing || !isRawSignedTxnSigned || confirmedRound
+                  "
+                  :severity="
+                    isRawSignedTxnSigned && !confirmedRound
+                      ? 'primary'
+                      : 'secondary'
+                  "
+                  class="m-2"
                 >
                   Send tx to the network
                   <ProgressSpinner
@@ -295,14 +300,42 @@
                     class="ml-2"
                   />
                 </Button>
-                <span
+                <Button
                   v-if="
-                    !(rawSignedTxn && Object.values(rawSignedTxn)?.length > 0)
+                    !isMultisig && $store.state.signer.returnTo == 'SignAll'
                   "
+                  :severity="
+                    isRawSignedTxnSigned && confirmedRound
+                      ? 'primary'
+                      : 'secondary'
+                  "
+                  class="m-2"
+                  :disabled="!isRawSignedTxnSigned"
+                  @click="retToSignAll"
                 >
+                  Return to multi tx signature
+                </Button>
+                <Button
+                  v-if="
+                    !isMultisig &&
+                    $store.state.signer.returnTo == 'ScheduledPayments'
+                  "
+                  class="m-2"
+                  :severity="
+                    isRawSignedTxnSigned && confirmedRound
+                      ? 'primary'
+                      : 'secondary'
+                  "
+                  :disabled="!isRawSignedTxnSigned"
+                  @click="retToScheduledPayments"
+                >
+                  Return to scheduled payment management
+                </Button>
+                <span v-if="!isRawSignedTxnSigned">
                   <Button
                     v-if="isMultisig && $route.name != 'PayFromWalletConnect'"
                     @click="payPaymentClick"
+                    class="m-2"
                   >
                     {{ $t("pay.create_multisig_proposal") }}
                   </Button>
@@ -411,7 +444,7 @@
                   {{ $t("pay.combine_action") }}
                 </Button>
               </div>
-
+              {{ JSON.stringify($store.state.signer) }}
               <Button
                 v-if="$route.name != 'PayFromWalletConnect'"
                 class="m-2"
@@ -435,6 +468,14 @@
                 @click="retToSignAll"
               >
                 Return to multi tx signature
+              </Button>
+              <Button
+                v-if="$store.state.signer.returnTo == 'ScheduledPayments'"
+                class="m-2"
+                :disabled="!thresholdMet"
+                @click="retToScheduledPayments"
+              >
+                Return to scheduled payment management
               </Button>
               <Button
                 v-if="isSignedByAny"
@@ -760,6 +801,9 @@ export default {
         this.multisigDecoded.msig.subsig.filter((s) => !!s.s).length >=
         this.multisigDecoded.msig.thr
       );
+    },
+    isRawSignedTxnSigned() {
+      return this.rawSignedTxn && Object.values(this.rawSignedTxn)?.length > 0;
     },
   },
   watch: {
@@ -1506,6 +1550,9 @@ export default {
     },
     retToSignAll() {
       this.$router.push({ name: "SignAll" });
+    },
+    retToScheduledPayments() {
+      this.$router.push({ name: "scheduled-payment" });
     },
     async sign2FAClick(e) {
       try {

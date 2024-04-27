@@ -133,7 +133,7 @@ const makeMenu = () => {
           },
           {
             label: t("acc_overview.scheduled_payment"),
-            icon: "pi pi-send",
+            icon: "pi pi-replay",
             route:
               "/accounts/scheduled-payment/" +
               store.state.wallet.lastActiveAccount,

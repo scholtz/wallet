@@ -6,7 +6,7 @@ import Contract from "arc200js";
 import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
 import { getArc200Client } from "arc200-client";
-
+import formatCurrencyBigInt from "../../scripts/numbers/formatCurrencyBigInt";
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
@@ -99,7 +99,7 @@ const fetchAsset = async () => {
       return;
     }
     state.arc200Info.balance = balance.returnValue;
-    state.arc200Info.arc200id = state.arc200id;
+    state.arc200Info.arc200id = Number(state.arc200id);
     state.boxNotFound = !(await accountIsOptedInToArc200Asset(
       state.account.addr
     ));
@@ -151,7 +151,12 @@ const makeOptInTxs = async () => {
   const client = getArc200Client({
     algod,
     appId: appId,
-    sender: { addr: state.account.addr },
+    sender: {
+      addr: state.account.addr,
+      signer: async () => {
+        return [] as Uint8Array[];
+      },
+    },
   });
   const fromDecoded = algosdk.decodeAddress(state.account.addr);
   var boxFrom = {
@@ -203,7 +208,7 @@ const createBoxClick = async () => {
   }
 };
 
-const delay = (ms) => {
+const delay = (ms: any) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 </script>
@@ -349,10 +354,10 @@ const delay = (ms) => {
           }}</label>
           <div class="col-12 md:col-10">
             {{
-              $filters.formatCurrencyBigInt(
+              formatCurrencyBigInt(
                 state.arc200Info.totalSupply,
                 state.arc200Info.symbol,
-                state.arc200Info.decimals
+                Number(state.arc200Info.decimals)
               )
             }}
           </div>
@@ -366,10 +371,10 @@ const delay = (ms) => {
           }}</label>
           <div class="col-12 md:col-10">
             {{
-              $filters.formatCurrencyBigInt(
+              formatCurrencyBigInt(
                 state.arc200Info.balance,
                 state.arc200Info.symbol,
-                state.arc200Info.decimals
+                Number(state.arc200Info.decimals)
               )
             }}
           </div>
@@ -398,7 +403,7 @@ const delay = (ms) => {
               class="my-2 mr-2"
               @click="createBoxClick"
               v-if="state.boxNotFound"
-              :severity="primary"
+              severity="primary"
             >
               {{ $t("arc200.create_box") }}
             </Button>
