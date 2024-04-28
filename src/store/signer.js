@@ -8,6 +8,7 @@ const state = () => ({
   toSign: {},
   toSignArray: [],
   returnTo: "",
+  returnToSignAll: "",
 });
 
 const mutations = {
@@ -21,6 +22,9 @@ const mutations = {
   },
   returnTo(state, returnTo) {
     state.returnTo = returnTo;
+  },
+  returnToSignAll(state, returnToSignAll) {
+    state.returnToSignAll = returnToSignAll;
   },
   toSignArray(state, txs) {
     state.toSignArray = txs;
@@ -115,6 +119,9 @@ const actions = {
    */
   async returnTo({ commit }, returnTo) {
     await commit("returnTo", returnTo);
+  },
+  async returnToSignAll({ commit }, returnToSignAll) {
+    await commit("returnToSignAll", returnToSignAll);
   },
   async setSigned({ commit }, { signed }) {
     await commit("setSigned", signed);

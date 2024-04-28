@@ -671,6 +671,9 @@ export default {
     if (this.$route.params.toAccount) {
       this.parseToAccount();
     }
+    if (this.$route.params.toAccountDirect) {
+      this.payTo = this.$route.params.toAccountDirect;
+    }
     if (this.$route.name == "PayFromWalletConnect") {
       try {
         this.txn = this.$store.state.signer.toSign;

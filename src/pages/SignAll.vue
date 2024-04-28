@@ -4,6 +4,7 @@ import { useStore } from "vuex";
 import { onMounted, reactive } from "vue";
 import MainLayout from "../layouts/Main.vue";
 import algosdk from "algosdk";
+import formatCurrency from "../scripts/numbers/formatCurrency";
 
 const store = useStore();
 const router = useRouter();
@@ -234,6 +235,25 @@ const submitSignedClick = async () => {
     store.dispatch("toast/openError", state.error);
   }
 };
+const retToScheduledPayments = () => {
+  router.push({
+    name: "scheduled-payment",
+    params: { account: store.state.wallet.lastActiveAccount },
+  });
+};
+
+const getAssetSync = (id) => {
+  const ret = store.state.indexer.assets.find((a) => a["asset-id"] == id);
+  return ret;
+};
+const getAssetName = (id) => {
+  const asset = getAssetSync(id);
+  return asset.name;
+};
+const getAssetDecimals = (id) => {
+  const asset = getAssetSync(id);
+  return asset["decimals"];
+};
 </script>
 <template>
   <MainLayout>
@@ -249,6 +269,11 @@ const submitSignedClick = async () => {
           <Button
             class="mr-1"
             :disabled="state.allTxsAreSigned || state.confirmedRound"
+            :severity="
+              state.allTxsAreSigned || state.confirmedRound
+                ? 'secondary'
+                : 'primary'
+            "
             @click="clickSignAll()"
           >
             {{ $t("connect.sign_all") }}
@@ -256,6 +281,11 @@ const submitSignedClick = async () => {
           <Button
             :disabled="
               !state.allTxsAreSigned || state.processing || state.confirmedRound
+            "
+            :severity="
+              !state.allTxsAreSigned || state.processing || state.confirmedRound
+                ? 'secondary'
+                : 'primary'
             "
             @click="submitSignedClick"
           >
@@ -266,6 +296,15 @@ const submitSignedClick = async () => {
               strokeWidth="10"
               class="ml-2"
             />
+          </Button>
+          <Button
+            v-if="$store.state.signer.returnToSignAll == 'ScheduledPayments'"
+            class="ml-2"
+            :severity="state.confirmedRound ? 'primary' : 'secondary'"
+            :disabled="!state.atLeastOneSigned"
+            @click="retToScheduledPayments"
+          >
+            Return to scheduled payment management
           </Button>
         </div>
         <DataTable
@@ -315,14 +354,14 @@ const submitSignedClick = async () => {
                   v-if="slotProps.data.txn['type'] == 'pay'"
                   class="text-end"
                 >
-                  {{ $filters.formatCurrency(slotProps.data.txn["amount"]) }}
+                  {{ formatCurrency(slotProps.data.txn["amount"]) }}
                 </div>
                 <div
                   v-else-if="slotProps.data.txn['type'] == 'axfer'"
                   class="text-end"
                 >
                   {{
-                    $filters.formatCurrency(
+                    formatCurrency(
                       slotProps.data.txn["amount"],
                       getAssetName(slotProps.data.txn["assetIndex"]),
                       getAssetDecimals(slotProps.data.txn["assetIndex"])
@@ -334,7 +373,7 @@ const submitSignedClick = async () => {
           </Column>
           <Column field="fee" :header="$t('connect.fee')" :sortable="true">
             <template #body="slotProps">
-              {{ $filters.formatCurrency(slotProps.data["fee"]) }}
+              {{ formatCurrency(slotProps.data.txn["fee"]) }}
             </template>
           </Column>
           <Column

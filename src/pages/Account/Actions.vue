@@ -30,6 +30,24 @@ import Fieldset from "primevue/fieldset";
 
         <div class="field grid">
           <RouterLink
+            :to="
+              '/accounts/scheduled-payment/' +
+              store.state.wallet.lastActiveAccount
+            "
+            class="col-12 mb-2 md:col-2 md:mb-0"
+          >
+            <Button class="w-full">
+              <i class="pi pi-replay mr-2"></i>
+              {{ $t("acc_overview.scheduled_payment") }}
+            </Button>
+          </RouterLink>
+          <div class="col-12 md:col-10 h-full vertical-align-middle">
+            {{ $t("acc_overview.scheduled_payment_help") }}
+          </div>
+        </div>
+
+        <div class="field grid">
+          <RouterLink
             :to="'/swap/' + store.state.wallet.lastActiveAccount"
             class="col-12 mb-2 md:col-2 md:mb-0"
           >

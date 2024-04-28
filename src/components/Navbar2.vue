@@ -132,6 +132,13 @@ const makeMenu = () => {
             route: "/accounts/pay/" + store.state.wallet.lastActiveAccount,
           },
           {
+            label: t("acc_overview.scheduled_payment"),
+            icon: "pi pi-replay",
+            route:
+              "/accounts/scheduled-payment/" +
+              store.state.wallet.lastActiveAccount,
+          },
+          {
             label: t("navbar.swap"),
             icon: "pi pi-money-bill",
             route: "/swap/" + store.state.wallet.lastActiveAccount,

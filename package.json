@@ -14,6 +14,7 @@
     "test:open": "run-p -r server cypress:open"
   },
   "dependencies": {
+    "@algorandfoundation/algokit-utils": "^6.0.2",
     "@folks-router/js-sdk": "^0.0.1",
     "@ledgerhq/hw-app-algorand": "^6.28.3",
     "@ledgerhq/hw-transport-webusb": "^6.28.3",
@@ -33,6 +34,7 @@
     "arc200js": "^2.3.3",
     "axios": "^1.6.7",
     "base64url": "^3.0.1",
+    "biatec-scheduler": "^1.0.3",
     "buffer": "^6.0.3",
     "check-password-strength": "^2.0.7",
     "clipboard": "^2.0.11",
@@ -46,6 +48,7 @@
     "js-sha512": "^0.8.0",
     "moment": "^2.30.1",
     "page": "^1.11.6",
+    "path-browserify": "^1.0.1",
     "primeflex": "^3.3.1",
     "primeicons": "^5.0.0",
     "primevue": "^3.48.1",
@@ -62,7 +65,8 @@
     "vue3-json-viewer": "^2.2.2",
     "vuex": "^4.1.0",
     "whatamesh": "^0.2.0",
-    "worker-loader": "^3.0.8"
+    "worker-loader": "^3.0.8",
+    "yaml": "^2.4.1"
   },
   "devDependencies": {
     "@babel/core": "^7.23.9",

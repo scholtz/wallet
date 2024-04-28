@@ -115,6 +115,16 @@ const routes = [
     component: Swap,
   },
   {
+    path: "/swap/:account/:toAsset",
+    name: "SwapWithTo",
+    component: Swap,
+  },
+  {
+    path: "/swap/:account/:toAsset/:fromAsset",
+    name: "SwapWithToWithFrom",
+    component: Swap,
+  },
+  {
     path: "/import-wallet",
     name: "ImportWallet",
     component: ImportWallet,
@@ -235,6 +245,16 @@ const routes = [
     component: TransactionDetail,
   },
   {
+    path: "/accounts/scheduled-payment/:account",
+    name: "scheduled-payment",
+    component: () => import("../pages/Account/ScheduledPayments.vue"),
+  },
+  {
+    path: "/accounts/scheduled-payment/:account/:appId",
+    name: "scheduled-payment-with-appid",
+    component: () => import("../pages/Account/ScheduledPaymentDetail.vue"),
+  },
+  {
     path: "/accounts/:type/:account",
     name: "PayWithAccount",
     component: Pay,
@@ -242,6 +262,11 @@ const routes = [
   {
     path: "/accounts/:type/:account/:asset",
     name: "PayWithAccountAndAsset",
+    component: Pay,
+  },
+  {
+    path: "/accounts/payTo/:account/:toAccountDirect/:asset",
+    name: "PayToAccountAndAsset",
     component: Pay,
   },
   {
