@@ -529,6 +529,15 @@ watch(
             </template>
           </Column>
         </DataTable>
+        <p>
+          {{ $t("scheduled_payments.xgov_promo") }}
+          -
+          <a
+            href="https://github.com/algorandfoundation/xGov/blob/main/Proposals/xgov-90.md"
+            target="_blank"
+            >xGov#90</a
+          >.
+        </p>
       </template>
     </Card>
   </MainLayout>

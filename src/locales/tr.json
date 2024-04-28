@@ -789,6 +789,7 @@
     "withdraw_amount": "Amount to withdraw",
     "withdraw_click": "Execute withdrawal",
     "load_script_title": "Load app execution profile",
-    "load_click": "Load"
+    "load_click": "Load",
+    "xgov_promo": "This work has been performed with support from the Algorand Foundation xGov Grants Program"
   }
 }
