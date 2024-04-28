@@ -204,7 +204,6 @@ export default {
     },
     isAuth() {
       this.accounts = [];
-      // console.log("is auth changed", this.isAuth, this.accounts);
       if (this.isAuth) {
         this.fillAccounts();
       }

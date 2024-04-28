@@ -241,6 +241,19 @@ const retToScheduledPayments = () => {
     params: { account: store.state.wallet.lastActiveAccount },
   });
 };
+
+const getAssetSync = (id) => {
+  const ret = store.state.indexer.assets.find((a) => a["asset-id"] == id);
+  return ret;
+};
+const getAssetName = (id) => {
+  const asset = getAssetSync(id);
+  return asset.name;
+};
+const getAssetDecimals = (id) => {
+  const asset = getAssetSync(id);
+  return asset["decimals"];
+};
 </script>
 <template>
   <MainLayout>

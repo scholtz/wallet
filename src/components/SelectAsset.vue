@@ -59,7 +59,6 @@ watch(
       ret.type = value.type;
       ret["unit-name"] = value["unit-name"];
 
-      console.log("data", ret);
       emit("update:modelValue", ret);
     }
   }

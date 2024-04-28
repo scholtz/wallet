@@ -419,6 +419,12 @@ export default {
     this.asset = -1;
     this.toAsset = 452399768;
     this.payamount = 1;
+    if (this.$route.params.fromAsset) {
+      this.asset = this.$route.params.fromAsset;
+    }
+    if (this.$route.params.toAsset) {
+      this.toAsset = this.$route.params.toAsset;
+    }
   },
   methods: {
     ...mapActions({
