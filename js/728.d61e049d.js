@@ -1,0 +1,1 @@
+(self["webpackChunkwallet"]=self["webpackChunkwallet"]||[]).push([[728],{79728:function(){}}]);
