@@ -295,7 +295,8 @@
     "create_first": "Create your first account",
     "no_accounts_at_network": "There are no accounts for selected network",
     "basic_options": "Basic options",
-    "advanced_options": "Advanced options"
+    "advanced_options": "Advanced options",
+    "skip_challange": "Skip challange"
   },
   "arc76account": {
     "title": "Email and password account (ARC-0076)",

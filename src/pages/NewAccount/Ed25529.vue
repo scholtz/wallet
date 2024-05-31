@@ -61,6 +61,20 @@ const makeRandom = () => {
   state.r = 1;
 };
 
+async function skipChallange() {
+  try {
+    await store.dispatch("wallet/addPrivateAccount", {
+      mn: state.w,
+      name: state.name,
+    });
+    router.push("/account/" + state.a);
+  } catch (err: any) {
+    const error = err.message ?? err;
+    console.error("failed to create account", error, err);
+    await store.dispatch("toast/openError", error);
+  }
+}
+
 async function confirmCreate() {
   try {
     const words = state.w.split(" ");
@@ -69,7 +83,7 @@ async function confirmCreate() {
         mn: state.w,
         name: state.name,
       });
-      router.push({ name: "Accounts" });
+      router.push("/account/" + state.a);
     } else {
       await store.dispatch("toast/openError", "Invalid word");
     }
@@ -110,14 +124,6 @@ onMounted(async () => {
             </div>
           </div>
           <div class="field grid">
-            <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.name") }}
-            </label>
-            <div class="col-12 md:col-10">
-              <InputText id="name" v-model="state.name" class="w-full" />
-            </div>
-          </div>
-          <div class="field grid">
             <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
             <div class="col-12 md:col-10">
               <Button class="m-1" @click="confirmCreate">
@@ -136,13 +142,28 @@ onMounted(async () => {
           <p>
             {{ $t("newacc.mnemonic_help") }}
           </p>
-          <Password
-            v-model="state.w"
-            inputClass="w-full my-1 w-100"
-            class="w-full"
-            :feedback="false"
-            :toggle-mask="true"
-          />
+          <div class="field grid">
+            <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">
+              {{ $t("new_account_shamir.mnemonic") }}
+            </label>
+            <div class="col-12 md:col-10">
+              <Password
+                v-model="state.w"
+                inputClass="w-full my-1 w-100"
+                class="w-full"
+                :feedback="false"
+                :toggle-mask="true"
+              />
+            </div>
+          </div>
+          <div class="field grid">
+            <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">
+              {{ $t("newacc.name") }}
+            </label>
+            <div class="col-12 md:col-10">
+              <InputText id="name" v-model="state.name" class="w-full" />
+            </div>
+          </div>
           <InputText v-model="state.a" class="w-full my-1" disabled />
           <Button
             severity="secondary"
@@ -184,13 +205,26 @@ onMounted(async () => {
             }"
           />
 
-          <Button class="m-1" @click="makeRandom">
+          <Button class="m-1" @click="makeRandom" id="start_challenge">
             {{ $t("newacc.start_challenge") }}
           </Button>
-          <Button severity="secondary" class="m-1" @click="createAccount">
+          <Button
+            class="m-1"
+            severity="secondary"
+            @click="skipChallange"
+            id="skip_challange"
+          >
+            {{ $t("newacc.skip_challange") }}
+          </Button>
+          <Button
+            severity="secondary"
+            class="m-1"
+            @click="createAccount"
+            id="create_new"
+          >
             {{ $t("newacc.create_new") }}
           </Button>
-          <Button severity="secondary" class="m-1" @click="reset">
+          <Button severity="secondary" class="m-1" @click="reset" id="reset">
             {{ $t("newacc.drop_phrase") }}
           </Button>
         </div>

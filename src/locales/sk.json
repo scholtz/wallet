@@ -294,7 +294,8 @@
     "create_first": "Vytvorte si svoj prvý účet",
     "no_accounts_at_network": "Pre vybranú sieť nemáte priradený žiadny účet. Zobrazujú sa všetky účty.",
     "basic_options": "Základné účty",
-    "advanced_options": "Pokročilé možnosti"
+    "advanced_options": "Pokročilé možnosti",
+    "skip_challange": "Preskočiť overenie"
   },
   "arc76account": {
     "title": "Účet z emailu a hesla (ARC-0076)",

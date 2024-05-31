@@ -10,7 +10,8 @@
     "cypress:open": "cypress open",
     "i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/locales/**/*.json\"",
     "server": "browser-sync start --port 8484 --server dist --no-open",
-    "test": "run-p -r server cypress",
+    "run-app-for-test": "npm run serve -- --port 8083",
+    "test": "cypress run",
     "test:open": "run-p -r server cypress:open"
   },
   "dependencies": {
@@ -82,7 +83,7 @@
     "@vue/compiler-sfc": "*",
     "@vue/eslint-config-typescript": "^11.0.3",
     "browser-sync": "^3.0.2",
-    "cypress": "^13.6.4",
+    "cypress": "^13.10.0",
     "eslint": "^8.56.0",
     "eslint-plugin-vue": "^9.21.1",
     "glob-parent": "^6.0.2",

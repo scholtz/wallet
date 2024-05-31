@@ -294,7 +294,8 @@
     "create_first": "Hozd létre az első számlát",
     "no_accounts_at_network": "Nincsek számláid a kiválasztott hálózaton",
     "basic_options": "Alapbeállítások",
-    "advanced_options": "Speciális beállítások"
+    "advanced_options": "Speciális beállítások",
+    "skip_challange": "Skip challange"
   },
   "arc76account": {
     "title": "Email és jelszó számla (ARC-0076)",

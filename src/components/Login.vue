@@ -38,11 +38,11 @@
         <div class="field grid">
           <div class="col-12 mb-2 md:col-2 md:mb-0"></div>
           <div class="col-12 md:col-10">
-            <Button type="submit">
+            <Button type="submit" id="new_wallet_button_create">
               {{ $t("login.new_wallet_button_create") }}
             </Button>
             <router-link to="/import-wallet" class="mx-2">
-              <Button severity="secondary">
+              <Button severity="secondary" id="new_wallet_button_import">
                 {{ $t("login.new_wallet_button_import") }}
               </Button>
             </router-link>
@@ -51,6 +51,7 @@
               severity="secondary"
               class="mx-2"
               @click="newWalletForm = false"
+              id="go_back"
             >
               {{ $t("global.go_back") }}
             </Button>
@@ -103,7 +104,7 @@
         <div class="field grid">
           <label for="wallet-pass" class="col-12 mb-2 md:col-2 md:mb-0"></label>
           <div class="col-12 md:col-10">
-            <Button type="submit">
+            <Button type="submit" id="new_wallet_button_open">
               {{ $t("login.new_wallet_button_open") }}
             </Button>
             <Button

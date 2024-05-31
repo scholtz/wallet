@@ -35,6 +35,8 @@ const mutations = {
     }
   },
   addPrivateAccount(state, { name, secret }) {
+    state.lastActiveAccount = secret.addr;
+    state.lastActiveAccountName = name;
     secret.name = name;
     state.privateAccounts.push(secret);
   },
@@ -268,8 +270,17 @@ const actions = {
       (a) => a.addr == addr
     );
     if (address) {
-      if( address && address.data && address.data[this.state.config.env] && address.data[this.state.config.env].rekeyedTo && address.data[this.state.config.env].rekeyedTo!= addr){
-        return await dispatch("getSK", { addr: address.data[this.state.config.env].rekeyedTo, checkRekey: false });
+      if (
+        address &&
+        address.data &&
+        address.data[this.state.config.env] &&
+        address.data[this.state.config.env].rekeyedTo &&
+        address.data[this.state.config.env].rekeyedTo != addr
+      ) {
+        return await dispatch("getSK", {
+          addr: address.data[this.state.config.env].rekeyedTo,
+          checkRekey: false,
+        });
       }
       if (address.sk) {
         const ret = Uint8Array.from(Object.values(address.sk));

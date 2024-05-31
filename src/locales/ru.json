@@ -293,7 +293,8 @@
     "create_first": "Создайте свою первую учетную запись",
     "no_accounts_at_network": "Для выбранной сети нет учетных записей",
     "basic_options": "Основные параметры",
-    "advanced_options": "Дополнительные параметры"
+    "advanced_options": "Дополнительные параметры",
+    "skip_challange": "Skip challange"
   },
   "arc76account": {
     "title": "address электронной почты и пароль учетной записи (ARC-0076)",

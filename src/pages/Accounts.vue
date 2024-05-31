@@ -9,8 +9,10 @@
       {{ $t("newacc.no_accounts_at_network") }}
     </Message>
     <div v-if="accounts.length == 0">
-      <RouterLink to="/new-account">
-        <Button class="my-5">{{ $t("newacc.create_first") }}</Button>
+      <RouterLink to="/new-account/ed25529">
+        <Button class="my-5" id="create-first">
+          {{ $t("newacc.create_first") }}
+        </Button>
       </RouterLink>
     </div>
     <Card>
@@ -180,7 +182,7 @@ export default {
     return {
       gridEditors: { button: false },
       selection: null,
-      showNetworkAccounts: true,
+      showNetworkAccounts: false,
       accounts: [],
       showNoAccountsForNetworkWarning: false,
       filters: {
