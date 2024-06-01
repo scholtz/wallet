@@ -428,7 +428,8 @@
           </div>
           <div class="col-12 lg:col-3 lg:text-right">
             <QRCodeVue3
-              class="d-md-none d-lg-block"
+              myclass="account-qr"
+              class="d-md-none d-lg-block account-qr"
               :width="400"
               :height="400"
               :value="account.addr"

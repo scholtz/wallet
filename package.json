@@ -13,6 +13,7 @@
     "run-app-for-test": "npm run serve -- --port 8083",
     "test": "cypress run",
     "gen-videos": "cypress run --no-runner-ui --config-file cypress.config.video.ts",
+    "test1": "cypress run --no-runner-ui --config-file cypress.config.video.ts --spec 'cypress/e2e/2-setup-account/create-arc76-account.cy.js'",
     "test:open": "run-p -r server cypress:open"
   },
   "dependencies": {

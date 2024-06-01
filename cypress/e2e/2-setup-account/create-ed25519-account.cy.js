@@ -22,5 +22,6 @@ describe("main", () => {
     cy.get("#create-first").click().wait(1000);
     cy.get("#name").type("Test Account");
     cy.get("#skip_challange").click().wait(5000);
+    cy.get(".account-qr").should("be.visible", { timeout: 10000 }).wait(1000);
   });
 });

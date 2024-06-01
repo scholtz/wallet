@@ -60,6 +60,8 @@ const mutations = {
   addPublicAccount(state, { name, addr }) {
     const acc = { name, addr, address: addr };
     state.privateAccounts.push(acc);
+    state.lastActiveAccount = addr;
+    state.lastActiveAccountName = name;
   },
   deleteAccount(state, { name, addr }) {
     const index = state.privateAccounts.findIndex(
@@ -124,6 +126,8 @@ const mutations = {
       account.sk = genAccount.sk;
     }
     state.privateAccounts.push(account);
+    state.lastActiveAccount = genAccount.addr;
+    state.lastActiveAccountName = name;
   },
   addMultiAccount(state, { addr, params, name, network }) {
     const multsigaddr = {
@@ -135,6 +139,8 @@ const mutations = {
       type: "msig",
     };
     state.privateAccounts.push(multsigaddr);
+    state.lastActiveAccount = addr;
+    state.lastActiveAccountName = name;
   },
   add2FAAccount(
     state,
@@ -160,6 +166,8 @@ const mutations = {
       network,
     };
     state.privateAccounts.push(multsigaddr);
+    state.lastActiveAccount = addr;
+    state.lastActiveAccountName = name;
   },
   add2FAApiAccount(
     state,
@@ -186,18 +194,26 @@ const mutations = {
       twoFactorAuthProvider,
     };
     state.privateAccounts.push(multsigaddr);
+    state.lastActiveAccount = addr;
+    state.lastActiveAccountName = name;
   },
   addLedgerAccount(state, { name, addr, addr0, slot, network }) {
     const account = { name, addr, addr0, slot, network, type: "ledger" };
     state.privateAccounts.push(account);
+    state.lastActiveAccount = addr;
+    state.lastActiveAccountName = name;
   },
   addWalletConnectAccount(state, { name, addr, session, network }) {
     const account = { name, addr, session, network, ver: "1", type: "wc" };
     state.privateAccounts.push(account);
+    state.lastActiveAccount = addr;
+    state.lastActiveAccountName = name;
   },
   addWalletConnect2Account(state, { name, addr, session, network }) {
     const account = { name, addr, session, network, ver: "2", type: "wc" };
     state.privateAccounts.push(account);
+    state.lastActiveAccount = addr;
+    state.lastActiveAccountName = name;
   },
   setPrivateAccounts(state, accts) {
     if (accts) {
