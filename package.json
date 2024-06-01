@@ -9,9 +9,9 @@
     "cypress": "cypress run",
     "cypress:open": "cypress open",
     "i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/locales/**/*.json\"",
-    "server": "browser-sync start --port 8484 --server dist --no-open",
+    "server": "browser-sync start --port 8083 --server dist --no-open",
     "run-app-for-test": "npm run serve -- --port 8083",
-    "test": "cypress run",
+    "test": "run-p -r server cypress",
     "gen-videos": "cypress run --no-runner-ui --config-file cypress.config.video.ts",
     "test1": "cypress run --no-runner-ui --config-file cypress.config.video.ts --spec 'cypress/e2e/2-setup-account/create-arc76-account.cy.js'",
     "test:open": "run-p -r server cypress:open"
