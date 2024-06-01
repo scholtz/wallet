@@ -295,7 +295,10 @@
     "no_accounts_at_network": "There are no accounts for selected network",
     "basic_options": "Basic options",
     "advanced_options": "Advanced options",
-    "skip_challange": "Skip challange"
+    "skip_challange": "Skip challange",
+    "new_account_challange": "New account challange",
+    "click_to_show_positions": "Click to show positions",
+    "to": "to"
   },
   "arc76account": {
     "title": "Email and password account (ARC-0076)",

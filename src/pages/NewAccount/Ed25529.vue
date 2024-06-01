@@ -11,6 +11,7 @@ const state = reactive({
   lastError: "",
   page: "newaccount",
   w: "",
+  words: [] as string[],
   a: "",
   showQR: false,
   guess: "",
@@ -19,6 +20,16 @@ const state = reactive({
   s: false,
   addr: "",
   name: "",
+  card1Fliped: false,
+  card2Fliped: false,
+  card3Fliped: false,
+  card4Fliped: false,
+  card5Fliped: false,
+  card1FlipedBefore: false,
+  card2FlipedBefore: false,
+  card3FlipedBefore: false,
+  card4FlipedBefore: false,
+  card5FlipedBefore: false,
 });
 
 const reset = async () => {
@@ -47,6 +58,7 @@ const createAccount = async () => {
     let account = algosdk.generateAccount();
     state.a = account.addr;
     state.w = algosdk.secretKeyToMnemonic(account.sk);
+    state.words = state.w.split(" ");
   } catch (err: any) {
     const error = err.message ?? err;
     console.error("failed to create account", error, err);
@@ -57,8 +69,8 @@ const createAccount = async () => {
 const makeRandom = () => {
   state.guess = "";
   state.challenge = true;
-  //this.r = Math.floor(Math.random() * 25) + 1;
-  state.r = 1;
+  state.r = Math.floor(Math.random() * 25) + 1;
+  //state.r = 1;
 };
 
 async function skipChallange() {
@@ -77,8 +89,7 @@ async function skipChallange() {
 
 async function confirmCreate() {
   try {
-    const words = state.w.split(" ");
-    if (words[state.r - 1] == state.guess.trim()) {
+    if (state.words[state.r - 1] == state.guess.trim()) {
       await store.dispatch("wallet/addPrivateAccount", {
         mn: state.w,
         name: state.name,
@@ -99,6 +110,8 @@ onMounted(async () => {
   await store.dispatch("wallet/prolong");
   await createAccount();
 });
+
+const rotateCard = () => {};
 </script>
 <template>
   <MainLayout>
@@ -109,7 +122,7 @@ onMounted(async () => {
         <div v-if="state.challenge">
           <div class="field grid">
             <label class="col-12 mb-2 md:col-2 md:mb-0">
-              New account challange
+              {{ $t("newacc.new_account_challange") }}
             </label>
             <div class="col-12 md:col-10">
               {{ state.addr }}
@@ -154,6 +167,128 @@ onMounted(async () => {
                 :feedback="false"
                 :toggle-mask="true"
               />
+              <div class="grid mt-2">
+                <div class="col">
+                  <Button
+                    class="w-full h-10rem m-2"
+                    :severity="
+                      !state.card1FlipedBefore ? 'primary' : 'secondary'
+                    "
+                    @click="
+                      state.card1Fliped = !state.card1Fliped;
+                      state.card1FlipedBefore = true;
+                    "
+                  >
+                    <div v-if="!state.card1Fliped">
+                      {{ $t("newacc.click_to_show_positions") }} 1
+                      {{ $t("newacc.to") }} 5
+                    </div>
+                    <div v-else>
+                      <div>1: {{ state.words[0] }}</div>
+                      <div>2: {{ state.words[1] }}</div>
+                      <div>3: {{ state.words[2] }}</div>
+                      <div>4: {{ state.words[3] }}</div>
+                      <div>5: {{ state.words[4] }}</div>
+                    </div>
+                  </Button>
+                </div>
+                <div class="col">
+                  <Button
+                    class="w-full h-10rem m-2"
+                    :severity="
+                      !state.card2FlipedBefore ? 'primary' : 'secondary'
+                    "
+                    @click="
+                      state.card2Fliped = !state.card2Fliped;
+                      state.card2FlipedBefore = true;
+                    "
+                  >
+                    <div v-if="!state.card2Fliped">
+                      {{ $t("newacc.click_to_show_positions") }} 6
+                      {{ $t("newacc.to") }} 10
+                    </div>
+                    <div v-else>
+                      <div>6: {{ state.words[5] }}</div>
+                      <div>7: {{ state.words[6] }}</div>
+                      <div>8: {{ state.words[7] }}</div>
+                      <div>9: {{ state.words[8] }}</div>
+                      <div>10: {{ state.words[9] }}</div>
+                    </div>
+                  </Button>
+                </div>
+                <div class="col">
+                  <Button
+                    class="w-full h-10rem m-2"
+                    :severity="
+                      !state.card3FlipedBefore ? 'primary' : 'secondary'
+                    "
+                    @click="
+                      state.card3Fliped = !state.card3Fliped;
+                      state.card3FlipedBefore = true;
+                    "
+                  >
+                    <div v-if="!state.card3Fliped">
+                      {{ $t("newacc.click_to_show_positions") }} 11
+                      {{ $t("newacc.to") }} 15
+                    </div>
+                    <div v-else>
+                      <div>11: {{ state.words[10] }}</div>
+                      <div>12: {{ state.words[11] }}</div>
+                      <div>13: {{ state.words[12] }}</div>
+                      <div>14: {{ state.words[13] }}</div>
+                      <div>15: {{ state.words[14] }}</div>
+                    </div>
+                  </Button>
+                </div>
+                <div class="col">
+                  <Button
+                    class="w-full h-10rem m-2"
+                    :severity="
+                      !state.card4FlipedBefore ? 'primary' : 'secondary'
+                    "
+                    @click="
+                      state.card4Fliped = !state.card4Fliped;
+                      state.card4FlipedBefore = true;
+                    "
+                  >
+                    <div v-if="!state.card4Fliped">
+                      {{ $t("newacc.click_to_show_positions") }} 16
+                      {{ $t("newacc.to") }} 20
+                    </div>
+                    <div v-else>
+                      <div>16: {{ state.words[15] }}</div>
+                      <div>17: {{ state.words[16] }}</div>
+                      <div>18: {{ state.words[17] }}</div>
+                      <div>19: {{ state.words[18] }}</div>
+                      <div>20: {{ state.words[19] }}</div>
+                    </div>
+                  </Button>
+                </div>
+                <div class="col">
+                  <Button
+                    class="w-full h-10rem m-2"
+                    :severity="
+                      !state.card5FlipedBefore ? 'primary' : 'secondary'
+                    "
+                    @click="
+                      state.card5Fliped = !state.card5Fliped;
+                      state.card5FlipedBefore = true;
+                    "
+                  >
+                    <div v-if="!state.card5Fliped">
+                      {{ $t("newacc.click_to_show_positions") }} 21
+                      {{ $t("newacc.to") }} 25
+                    </div>
+                    <div v-else>
+                      <div>21: {{ state.words[20] }}</div>
+                      <div>22: {{ state.words[21] }}</div>
+                      <div>23: {{ state.words[22] }}</div>
+                      <div>24: {{ state.words[23] }}</div>
+                      <div>25: {{ state.words[24] }}</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
           <div class="field grid">

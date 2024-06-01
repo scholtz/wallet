@@ -389,7 +389,10 @@
     "no_accounts_at_network": "Seçili ağ için hesap yok",
     "basic_options": "Temel seçenekler",
     "advanced_options": "Gelişmiş seçenekler",
-    "skip_challange": "Skip challange"
+    "skip_challange": "Skip challange",
+    "new_account_challange": "New account challange",
+    "click_to_show_positions": "Click to show positions",
+    "to": "to"
   },
   "arc76account": {
     "title": "E-posta ve şifre hesabı (ARC-0076)",

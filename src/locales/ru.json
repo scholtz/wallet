@@ -294,7 +294,10 @@
     "no_accounts_at_network": "Для выбранной сети нет учетных записей",
     "basic_options": "Основные параметры",
     "advanced_options": "Дополнительные параметры",
-    "skip_challange": "Skip challange"
+    "skip_challange": "Skip challange",
+    "new_account_challange": "New account challange",
+    "click_to_show_positions": "Click to show positions",
+    "to": "to"
   },
   "arc76account": {
     "title": "address электронной почты и пароль учетной записи (ARC-0076)",

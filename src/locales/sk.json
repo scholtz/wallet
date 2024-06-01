@@ -295,7 +295,10 @@
     "no_accounts_at_network": "Pre vybranú sieť nemáte priradený žiadny účet. Zobrazujú sa všetky účty.",
     "basic_options": "Základné účty",
     "advanced_options": "Pokročilé možnosti",
-    "skip_challange": "Preskočiť overenie"
+    "skip_challange": "Preskočiť overenie",
+    "new_account_challange": "New account challange",
+    "click_to_show_positions": "Click to show positions",
+    "to": "to"
   },
   "arc76account": {
     "title": "Účet z emailu a hesla (ARC-0076)",

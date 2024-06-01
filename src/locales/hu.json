@@ -295,7 +295,10 @@
     "no_accounts_at_network": "Nincsek számláid a kiválasztott hálózaton",
     "basic_options": "Alapbeállítások",
     "advanced_options": "Speciális beállítások",
-    "skip_challange": "Skip challange"
+    "skip_challange": "Skip challange",
+    "new_account_challange": "New account challange",
+    "click_to_show_positions": "Click to show positions",
+    "to": "to"
   },
   "arc76account": {
     "title": "Email és jelszó számla (ARC-0076)",
