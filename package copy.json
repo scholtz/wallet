@@ -12,7 +12,7 @@
     "server": "browser-sync start --port 8484 --server dist --no-open",
     "run-app-for-test": "npm run serve -- --port 8083",
     "test": "cypress run",
-    "gen-videos": "cypress run --no-runner-ui --config-file cypress.config.video.ts",
+    "gen-videos": "cypress run --no-runner-ui --config video=true --config-file ",
     "test:open": "run-p -r server cypress:open"
   },
   "dependencies": {
@@ -110,9 +110,5 @@
     },
     "rules": {}
   },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
-  ]
+  "browserslist": ["> 1%", "last 2 versions", "not dead"]
 }

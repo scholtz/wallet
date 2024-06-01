@@ -281,7 +281,7 @@
     "email_pass_account": "Email & jelszó számla",
     "shamir_account": "Visszaállítás Shamir bizonsági mentésből",
     "overview": "Új számlára vonatkozó műveletek",
-    "create_basic_help": "Az Algorand alapszámla egy ED25529 számla, amelyhez egy privát kulcs tartozik. Ez a módszer a számládhoz tartozó titok előállítására a számítógéped véletlenszám generátorát használja.",
+    "create_basic_help": "Az Algorand alapszámla egy ED25519 számla, amelyhez egy privát kulcs tartozik. Ez a módszer a számládhoz tartozó titok előállítására a számítógéped véletlenszám generátorát használja.",
     "ledger_account_help": "A legbiztonságosabb megoldás az, ha a titkos kulcs előállítását egy erre specializált berendezés végzi. Ez a számla a Ledger eszközét használja a számla létrehozására és az aláírási műveletek kezelésére.",
     "wc_account_help": "A WalletConnect számlatípussal hozzá tudsz kapcsolódni a barátod pénztárcájához, ily módon például el tudod neki küldeni azt a kérést, hogy egy multisig részeként írja alá az üzenetet.",
     "twofa_account_help": "A két faktoros számla egy olyan multisig számla, amelyben az első számla egy általad választott tetszőleges számla, például egy Ledger számla vagy egy email, jelszó számla, a második számla pedig visszaállításra használt számla - ideális esetben egy olyan számla, amely nem ugyanabban a biztonságos tárolóban van, egy harmadik számla pedig a szerveren lévő, második faktorhoz tartozó számla. A szerver akkor írja alá ezzel a számlával a tranzakciókat, ha helyesen megadtad a 2-ik faktorhoz tartozó kódot.",

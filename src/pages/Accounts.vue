@@ -9,7 +9,7 @@
       {{ $t("newacc.no_accounts_at_network") }}
     </Message>
     <div v-if="accounts.length == 0">
-      <RouterLink to="/new-account/ed25529">
+      <RouterLink to="/new-account/ed25519">
         <Button class="my-5" id="create-first">
           {{ $t("newacc.create_first") }}
         </Button>

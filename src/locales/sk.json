@@ -281,7 +281,7 @@
     "email_pass_account": "Účet z emailu a hesla",
     "shamir_account": "Obnova pomocou Shamir kódov",
     "overview": "Akcie pre založenie nového účtu",
-    "create_basic_help": "Základný algorand účet je asymetrický účet s privátnym kľúčom na elyptickej krivke ED25529. Táto metóda používa generátor náhodných čísiel vo Vašom počítači pre vytvorenie privátneho kľúču.",
+    "create_basic_help": "Základný algorand účet je asymetrický účet s privátnym kľúčom na elyptickej krivke ED25519. Táto metóda používa generátor náhodných čísiel vo Vašom počítači pre vytvorenie privátneho kľúču.",
     "ledger_account_help": "Jedna z najbezpečnejších metód pre vytvorenie účtu na algorande je prenechanie vytvorenia privátneho kľúču na špecializovanom zariadení. Tento účet využíva zariadenie ledger pre vytvorenie účtu aj pre podpisovanie transakcií.",
     "wc_account_help": "Pomocou tohto účtu si môžete pripojiť účet Vášho kamaráta pomocou wallet connect. Následne im môžete posielať žiadosti o podpis transakcií napríklad pre účely multipodpisových transakcií.",
     "twofa_account_help": "Účet dvojúrovňovej autorizácie je multipodpisový účet, kde prvý účet je ľubovoľný účet npr ledger alebo základný algorand účet. Druhý účet je účet pre obnovenie ideálne taký ktorý nikdy nebol online a je veľmi dobre zabezpečený. Tretí účet je serverový účet kde server podpíše transakciu iba v prípade ak zadáte správny pin kód z vašej 2FA aplikácie.",

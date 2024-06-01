@@ -36,11 +36,11 @@ import NewAccountWalletConnect from "@/pages/NewAccount/WalletConnect.vue";
 import NewAccount2FA from "@/pages/NewAccount/2FA.vue";
 import NewAccountEmailPass from "@/pages/NewAccount/EmailPassword.vue";
 import NewAccountShamir from "@/pages/NewAccount/Shamir.vue";
-import NewAccountEd25529 from "@/pages/NewAccount/Ed25529.vue";
+import NewAccountEd25519 from "@/pages/NewAccount/Ed25519.vue";
 import NewAccountVanity from "@/pages/NewAccount/Vanity.vue";
 import NewAccountMultisig from "@/pages/NewAccount/Multisig.vue";
 import NewAccountWatch from "@/pages/NewAccount/Watch.vue";
-import NewAccountImport from "@/pages/NewAccount/RecoverEd25529.vue";
+import NewAccountImport from "@/pages/NewAccount/RecoverEd25519.vue";
 import AccountExport from "@/pages/Account/Export.vue";
 
 const routes = [
@@ -60,12 +60,12 @@ const routes = [
     component: NewAccount,
   },
   {
-    path: "/new-account/ed25529",
-    name: "NewAccountEd25529",
-    component: NewAccountEd25529,
+    path: "/new-account/ed25519",
+    name: "NewAccountEd25519",
+    component: NewAccountEd25519,
   },
   {
-    path: "/new-account/import-ed25529",
+    path: "/new-account/import-ed25519",
     name: "NewAccountImport",
     component: NewAccountImport,
   },

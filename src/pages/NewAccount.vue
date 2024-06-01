@@ -11,7 +11,7 @@ import TabPanel from "primevue/tabpanel";
       <TabPanel :header="$t('newacc.basic_options')" headerClass="mr-2">
         <div class="field grid">
           <RouterLink
-            to="/new-account/ed25529"
+            to="/new-account/ed25519"
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
@@ -24,7 +24,7 @@ import TabPanel from "primevue/tabpanel";
         </div>
         <div class="field grid">
           <RouterLink
-            to="/new-account/import-ed25529"
+            to="/new-account/import-ed25519"
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
@@ -39,7 +39,7 @@ import TabPanel from "primevue/tabpanel";
       <TabPanel :header="$t('newacc.advanced_options')" headerClass="mr-2">
         <div class="field grid">
           <RouterLink
-            to="/new-account/ed25529"
+            to="/new-account/ed25519"
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
@@ -143,7 +143,7 @@ import TabPanel from "primevue/tabpanel";
 
         <div class="field grid">
           <RouterLink
-            to="/new-account/import-ed25529"
+            to="/new-account/import-ed25519"
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">

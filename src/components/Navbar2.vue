@@ -48,7 +48,7 @@ const makeMenu = () => {
             {
               label: t("newacc.create_basic"),
               icon: "pi pi-book",
-              route: "/new-account/ed25529",
+              route: "/new-account/ed25519",
             },
             {
               label: t("newacc.ledger_account"),
@@ -91,7 +91,7 @@ const makeMenu = () => {
             {
               label: t("newacc.import_account"),
               icon: PrimeIcons.DOWNLOAD,
-              route: "/new-account/import-ed25529",
+              route: "/new-account/import-ed25519",
             },
             {
               label: t("newacc.shamir_account"),
