@@ -170,7 +170,7 @@ const rotateCard = () => {};
               <div class="grid mt-2">
                 <div class="col">
                   <Button
-                    class="w-full h-10rem m-2"
+                    class="w-full h-10rem m-2 text-left"
                     :severity="
                       !state.card1FlipedBefore ? 'primary' : 'secondary'
                     "
@@ -194,7 +194,7 @@ const rotateCard = () => {};
                 </div>
                 <div class="col">
                   <Button
-                    class="w-full h-10rem m-2"
+                    class="w-full h-10rem m-2 text-left"
                     :severity="
                       !state.card2FlipedBefore ? 'primary' : 'secondary'
                     "
@@ -218,7 +218,7 @@ const rotateCard = () => {};
                 </div>
                 <div class="col">
                   <Button
-                    class="w-full h-10rem m-2"
+                    class="w-full h-10rem m-2 text-left"
                     :severity="
                       !state.card3FlipedBefore ? 'primary' : 'secondary'
                     "
@@ -242,7 +242,7 @@ const rotateCard = () => {};
                 </div>
                 <div class="col">
                   <Button
-                    class="w-full h-10rem m-2"
+                    class="w-full h-10rem m-2 text-left"
                     :severity="
                       !state.card4FlipedBefore ? 'primary' : 'secondary'
                     "
@@ -266,7 +266,7 @@ const rotateCard = () => {};
                 </div>
                 <div class="col">
                   <Button
-                    class="w-full h-10rem m-2"
+                    class="w-full h-10rem m-2 text-left"
                     :severity="
                       !state.card5FlipedBefore ? 'primary' : 'secondary'
                     "
@@ -340,7 +340,12 @@ const rotateCard = () => {};
             }"
           />
 
-          <Button class="m-1" @click="makeRandom" id="start_challenge">
+          <Button
+            class="m-1"
+            @click="makeRandom"
+            id="start_challenge"
+            :disabled="!state.name"
+          >
             {{ $t("newacc.start_challenge") }}
           </Button>
           <Button
@@ -348,6 +353,7 @@ const rotateCard = () => {};
             severity="secondary"
             @click="skipChallange"
             id="skip_challange"
+            :disabled="!state.name"
           >
             {{ $t("newacc.skip_challange") }}
           </Button>

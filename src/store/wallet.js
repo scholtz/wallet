@@ -737,6 +737,8 @@ const actions = {
       await commit("lastActiveAccount", json.lastActiveAccount);
       await commit("setWC", json.wc);
       await commit("setIsOpen", { name, pass });
+
+      localStorage.setItem("lastUsedWallet", name);
     } catch (e) {
       dispatch("toast/openError", "Wrong password", {
         root: true,
@@ -791,6 +793,7 @@ const actions = {
       });
     await dispatch("saveWallet");
     await commit("setIsOpen", { name, pass });
+    return true;
   },
   async getWallets() {
     if (!localStorage.getItem("rs1"))

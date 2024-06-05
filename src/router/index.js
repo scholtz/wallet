@@ -1,6 +1,7 @@
 import { createWebHistory, createRouter } from "vue-router";
 import Privacy from "@/pages/Privacy.vue";
-import ImportWallet from "@/pages/ImportWallet.vue";
+import ImportWallet from "@/pages/Wallet/ImportWallet.vue";
+import NewWallet from "@/pages/Wallet/NewWallet.vue";
 import Accounts from "@/pages/Accounts.vue";
 import AccountOverview from "@/pages/AccountOverview.vue";
 import AccountActions from "@/pages/Account/Actions.vue";
@@ -128,6 +129,11 @@ const routes = [
     path: "/import-wallet",
     name: "ImportWallet",
     component: ImportWallet,
+  },
+  {
+    path: "/new-wallet",
+    name: "NewWallet",
+    component: NewWallet,
   },
   {
     path: "/asset",

@@ -1,7 +1,9 @@
 <template>
   <PublicLayout>
-    <div class="flex align-items-center justify-content-center h-full">
-      <Panel class="w-25">
+    <div
+      class="flex flex-column align-items-center justify-content-center h-full m-2"
+    >
+      <Panel class="col-12 md:col-8 lg:col-6">
         <template #header>
           {{ $t("import.title") }}
         </template>
@@ -53,7 +55,7 @@
 
 <script>
 import { mapActions } from "vuex";
-import PublicLayout from "../layouts/Public.vue";
+import PublicLayout from "../../layouts/Public.vue";
 import { RouterLink } from "vue-router";
 import FileUpload from "primevue/fileupload";
 

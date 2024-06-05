@@ -2,7 +2,7 @@
   <div
     class="flex flex-column align-items-center justify-content-center h-full m-2"
   >
-    <Panel v-if="newWalletForm" class="col-12 md:col-8 lg:col-6">
+    <Panel class="col-12 md:col-8 lg:col-6">
       <template #header>
         {{ $t("login.new_wallet") }}
       </template>
@@ -41,72 +41,12 @@
             <Button type="submit" id="new_wallet_button_create">
               {{ $t("login.new_wallet_button_create") }}
             </Button>
-            <router-link to="/import-wallet" class="mx-2">
-              <Button severity="secondary" id="new_wallet_button_import">
-                {{ $t("login.new_wallet_button_import") }}
-              </Button>
-            </router-link>
-            <Button
-              v-if="wallets.length > 0"
-              severity="secondary"
-              class="mx-2"
-              @click="newWalletForm = false"
-              id="go_back"
-            >
-              {{ $t("global.go_back") }}
-            </Button>
             <p class="my-2">
               {{ $t("login.new_wallet_help1") }}
             </p>
             <p class="my-2">
               {{ $t("login.new_wallet_help2") }}
             </p>
-          </div>
-        </div>
-      </form>
-    </Panel>
-    <Panel v-if="!newWalletForm" class="col-12 md:col-8 lg:col-6">
-      <template #header>
-        {{ $t("login.open_wallet") }}
-      </template>
-      <form @submit="auth">
-        <div class="field grid">
-          <label for="wallet-select" class="col-12 mb-2 md:col-2 md:mb-0">{{
-            $t("login.select_wallet")
-          }}</label>
-          <div class="col-12 md:col-10">
-            <Dropdown
-              id="wallet-select"
-              v-model="wallet"
-              :options="wallets"
-              filter
-              class="my-2 w-full"
-              optionLabel="name"
-              optionValue="code"
-              :placeholder="$t('login.select_wallet')"
-            />
-          </div>
-        </div>
-        <div class="field grid">
-          <label for="wallet-pass" class="col-12 mb-2 md:col-2 md:mb-0">{{
-            $t("login.wallet_password")
-          }}</label>
-          <div class="col-12 md:col-10">
-            <Password
-              inputId="wallet-pass"
-              v-model="pass"
-              class="w-full my-2"
-              inputClass="w-full"
-              :feedback="false"
-            />
-          </div>
-        </div>
-        <div class="field grid">
-          <label for="wallet-pass" class="col-12 mb-2 md:col-2 md:mb-0"></label>
-          <div class="col-12 md:col-10">
-            <Button type="submit" id="new_wallet_button_open">
-              {{ $t("login.new_wallet_button_open") }}
-            </Button>
           </div>
         </div>
       </form>
@@ -202,13 +142,6 @@ export default {
     this.wallet = localStorage.getItem("lastUsedWallet");
 
     this.newWalletForm = this.wallets.length == 0;
-
-    if (this.wallets.length === 0) {
-      this.$router.push("/new-wallet");
-    }
-    if (this.wallets.length === 1) {
-      this.wallet = this.wallets[0].code;
-    }
   },
   methods: {
     ...mapActions({
@@ -233,22 +166,26 @@ export default {
       }
     },
     async createWalletClick(e) {
-      e.preventDefault();
-      const created = await this.createWallet({
-        name: this.newname,
-        pass: this.pass,
-      });
-      if (created) {
-        if (
-          this.$store.state.wallet.lastActiveAccount &&
-          this.$store.state.wallet.lastActiveAccountName
-        ) {
-          this.$router.push(
-            "/account/" + this.$store.state.wallet.lastActiveAccount
-          );
-        } else {
-          this.$router.push("/accounts");
+      try {
+        e.preventDefault();
+        const created = await this.createWallet({
+          name: this.newname,
+          pass: this.pass,
+        });
+        if (created) {
+          if (
+            this.$store.state.wallet.lastActiveAccount &&
+            this.$store.state.wallet.lastActiveAccountName
+          ) {
+            this.$router.push(
+              "/account/" + this.$store.state.wallet.lastActiveAccount
+            );
+          } else {
+            this.$router.push("/accounts");
+          }
         }
+      } catch (e) {
+        console.error(e);
       }
     },
     setLanguage(lang) {

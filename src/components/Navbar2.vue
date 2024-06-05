@@ -285,9 +285,19 @@ const makeMenu = () => {
         icon: "pi pi-home",
         items: [
           {
-            label: "List accounts",
-            icon: "pi pi-server",
+            label: "New Wallet",
+            icon: "pi pi-plus",
+            route: "/new-wallet",
+          },
+          {
+            label: "Open Wallet",
+            icon: "pi pi-shield",
             route: "/accounts",
+          },
+          {
+            label: "Recover Wallet",
+            icon: "pi pi-download",
+            route: "/import-wallet",
           },
         ],
       },
