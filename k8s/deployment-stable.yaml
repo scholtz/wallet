@@ -22,7 +22,7 @@ spec:
       - name: regcred
       containers:
         - name: awallet-stable
-          image: scholtz2/a-wallet:1.2024.06.01-stable
+          image: scholtz2/a-wallet:1.2024.06.05-stable
           imagePullPolicy: Always
           ports: 
             - containerPort: 8080
