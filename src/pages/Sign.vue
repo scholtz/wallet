@@ -444,7 +444,6 @@
                   {{ $t("pay.combine_action") }}
                 </Button>
               </div>
-              {{ JSON.stringify($store.state.signer) }}
               <Button
                 v-if="$route.name != 'PayFromWalletConnect'"
                 class="m-2"

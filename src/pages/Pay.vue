@@ -345,7 +345,6 @@ import InputMask from "primevue/inputmask";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
 //import base64url from "base64url";
-import { JsonViewer } from "vue3-json-viewer";
 import SelectAccount from "../components/SelectAccount.vue";
 import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
@@ -359,7 +358,6 @@ export default {
     QrcodeStream,
     MainLayout,
     InputMask,
-    JsonViewer,
     SelectAccount,
     TabView,
     TabPanel,
