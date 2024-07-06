@@ -335,7 +335,14 @@
         <div v-if="!build" class="grid">
           <div class="md:col-12">
             <h2>{{ $t("gateway.example") }}</h2>
-            <code>
+            <code
+              class="my-2"
+              style="
+                overflow-wrap: anywhere;
+                word-wrap: break-word;
+                hyphens: auto;
+              "
+            >
               &lt;a
               href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9MTAwMDAwMDAmYXNzZXQ9MzEyNzY5/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0LyIsImNhbmNlbCI6Imh0dHBzOi8vd3d3LmEtd2FsbGV0Lm5ldC8ifQ=="
               &gt;{{ $t("merchant.pay") }}&lt;/a&gt;
