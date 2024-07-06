@@ -10,3 +10,22 @@
   --gradient-color-3: #23b684;
   --gradient-color-4: #0f595e;
 }
+
+.p-card,
+.p-menubar,
+.p-tabview-panels,
+.p-tabview-nav,
+.p-panel-header,
+.p-panel-content,
+.p-datatable-header,
+.p-paginator-bottom,
+.p-datatable-wrapper,
+.p-datatable-thead,
+.p-datatable-tbody,
+.p-datatable-tfoot {
+  background: #1f2937aa;
+}
+.wallet-settings,
+.wallet-options {
+  background: #1f2937aa;
+}
