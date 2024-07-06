@@ -1,0 +1,52 @@
+<svg
+  width="110"
+  height="20"
+  viewBox="0 0 550 113.4"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+  class="h-2rem"
+>
+  <polygon
+    style="
+      font-style: normal;
+      font-weight: normal;
+      font-size: 117.333px;
+      line-height: 1.25;
+      font-family: sans-serif;
+      letter-spacing: -12px;
+      fill: var(--primary-color);
+      fill-opacity: 1;
+      stroke: none;
+    "
+    points="36,85 52.4,56.7 68.7,28.3 71.4,23.8 72.6,28.3 77.6,47 72,56.7 55.6,85 39.3,113.4 58.9,113.4 75.3,85 83.8,70.3 87.8,85 95.4,113.4 113,113.4 105.4,85 97.8,56.7 95.8,49.4 108,28.3 90.2,28.3 89.6,26.2 83.4,3 82.6,0 65.5,0 65.1,0.6 49.1,28.3 32.7,56.7 16.4,85 0,113.4 19.6,113.4 "
+    id="polygon4"
+    transform="translate(16.546299)"
+  />
+  <text
+    xml:space="preserve"
+    style="
+      font-style: normal;
+      font-weight: normal;
+      font-size: 117.333px;
+      line-height: 1.25;
+      font-family: sans-serif;
+      letter-spacing: -12px;
+      fill: var(--primary-color);
+      fill-opacity: 1;
+      stroke: none;
+    "
+    x="116.05807"
+    y="113.625"
+    id="text15"
+  >
+    <tspan
+      sodipodi:role="line"
+      id="tspan13"
+      x="116.05807"
+      y="113.625"
+      style="font-style: italic; font-size: 117.333px"
+    >
+      WALLET
+    </tspan>
+  </text>
+</svg>
