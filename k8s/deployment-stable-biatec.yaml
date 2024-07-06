@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: awallet
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: biatec-wallet-stable-deployment
+  namespace: awallet
+spec:
+  selector:
+    matchLabels:
+      app: biatec-wallet-stable
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: biatec-wallet-stable
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: biatec-wallet-stable
+          image: scholtz2/a-wallet:1.2024.07.06-main
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 1
+            timeoutSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 1
+            timeoutSeconds: 5
+            failureThreshold: 2
+            terminationGracePeriodSeconds: 1
+          volumeMounts:
+            - name: biatec-wallet-stable-conf
+              mountPath: /app/config.json
+              subPath: config.json
+      volumes:
+        - name: biatec-wallet-stable-conf
+          configMap:
+            name: biatec-wallet-stable-conf
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: biatec-wallet-stable-service
+  namespace: awallet
+spec:
+  type: ClusterIP
+  selector:
+    app: biatec-wallet-stable
+  ports:
+    - name: http
+      protocol: TCP
+      appProtocol: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: biatec-wallet-www-stable
+  namespace: awallet
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  tls:
+    - hosts:
+        - www.wallet.biatec.io
+      secretName: www.wallet.biatec.io
+  rules:
+    - host: www.wallet.biatec.io
+      http:
+        paths:
+          - path: /(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: biatec-wallet-stable-service
+                port:
+                  number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: biatec-wallet-stable
+  namespace: awallet
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  tls:
+    - hosts:
+        - wallet.biatec.io
+      secretName: wallet.biatec.io
+  rules:
+    - host: wallet.biatec.io
+      http:
+        paths:
+          - path: /(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: biatec-wallet-stable-service
+                port:
+                  number: 8080
