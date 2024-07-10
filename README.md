@@ -29,7 +29,11 @@ Please create a pull request for contribution to the project.
 
 ## Deployments
 
-https://www.a-wallet.net - Most stable deployment - Private onprem K8S cluster run by Scholtz&Co. Docker image released after some time in main branch deployment.
+https://wallet.biatec.io - Most stable deployment - Private onprem K8S cluster run by Scholtz&Co. Docker image released after some time in main branch deployment.
+
+## AWallet
+
+https://www.a-wallet.net - The biatec wallet has been started under brand name AWallet. Under this domain is the same deployment as under the biatec domain with most stable deployment. Note that this environment is deprecated and https://wallet.biatec.io is prefered domain to use the biatec wallet.
 
 ## Main branch deployments
 
