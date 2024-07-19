@@ -192,7 +192,9 @@
     "arc14_help": "ARC 14 is 'n verifikasie-standaard wat onderteken transaksies gebruik. Jy kan die verifikasie-token op hierdie bladsy genereer.",
     "account_actions": "Rekeningaksies",
     "asset_optinArc200": "OptIn na ARC200-bate",
-    "asset_optinArc200_help": "Jy kan op jou rekening die ARC200-bates sien. ARC200-bates is slimkontrakte met 'n funksie wat enigiemand se rekening kan opt-in om die bate te kan ontvang. ARC200-bates kan gevaarlik wees en jy moet 'n betroubare oudit van die slimkontrak vereis sodat jy dit volledig kan vertrou."
+    "asset_optinArc200_help": "Jy kan op jou rekening die ARC200-bates sien. ARC200-bates is slimkontrakte met 'n funksie wat enigiemand se rekening kan opt-in om die bate te kan ontvang. ARC200-bates kan gevaarlik wees en jy moet 'n betroubare oudit van die slimkontrak vereis sodat jy dit volledig kan vertrou.",
+    "scheduled_payment": "Scheduled payment",
+    "scheduled_payment_help": "You can setup and manage a scheduled periodic payments to another accounts"
   },
   "acc_overview_assets": {
     "name": "Naam",
@@ -588,7 +590,9 @@
     "session_proposals": "Session proposals",
     "toggle_camera": "Toggle camera",
     "init_wc": "Initialize connection to Wallet Connect",
-    "sign_all": "Sign all"
+    "sign_all": "Sign all",
+    "proposer": "Proposer",
+    "all_accounts": "Use all wallet accounts"
   },
   "new_account_wc": {
     "title": "Add WalletConnect account",

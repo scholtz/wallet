@@ -110,18 +110,39 @@ const actions = {
 
     return provider;
   },
-  async approveSession({ commit, dispatch }, { id }) {
+  async approveSession({ commit, dispatch }, { id, allAccounts }) {
     const currentChain = await dispatch("publicData/getCurrentChainId", null, {
       root: true,
     });
+
+    const chains = this.state.publicData.genesisList.map((network) => {
+      return `algorand:${network.CAIP10}`;
+    });
     const lastActive = this.state.wallet.lastActiveAccount;
+    const accounts = this.state.publicData.genesisList.map((network) => {
+      return `algorand:${network.CAIP10}:${lastActive}`;
+    });
+
+    if (allAccounts) {
+      for (const address of this.state.wallet.privateAccounts) {
+        for (const network of this.state.publicData.genesisList) {
+          if (address && address.data && address.data[network.network]) {
+            const add = `algorand:${network.CAIP10}:${address.addr}`;
+            if (!accounts.includes(add)) {
+              accounts.push(add);
+            }
+          }
+        }
+      }
+    }
+
     const session = await this.state.wc.web3wallet.approveSession({
       id,
       namespaces: {
         algorand: {
-          accounts: [`algorand:${currentChain}:${lastActive}`],
+          accounts: accounts,
           methods: ["algo_signTxn"],
-          chains: [`algorand:${currentChain}`],
+          chains: chains,
           events: ["chainChanged", "accountsChanged"],
         },
         //skipPairing: true, // optional to skip pairing ( later it can be resumed by invoking .pair())

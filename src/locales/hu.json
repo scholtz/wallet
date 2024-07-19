@@ -191,7 +191,9 @@
     "arc14_help": "Az ARC 14 hitelesítés egy olyan szabvány, amely a hitelesítésre aláírt tranzakciókat használ. A hitelesítési érmék ezen a lapon állíthatól elő.",
     "account_actions": "Számla műveletek",
     "asset_optinArc200": "Benevezés egy ARC200 pénzeszközbe",
-    "asset_optinArc200_help": "A számládon megfigyelheted az ARC200 pénzeszközöket. Az ARC200 pénzeszközök olyan okosszerződések, melyekbe bárki benevezhet, ha szeretne ARC200 pénzeszközt fogadni. Az ARC200 pénzeszközök veszélyesek lehetnek, és az okosszerződés alapos vizsgálatára van szükség a teljes bizalom érdekében."
+    "asset_optinArc200_help": "A számládon megfigyelheted az ARC200 pénzeszközöket. Az ARC200 pénzeszközök olyan okosszerződések, melyekbe bárki benevezhet, ha szeretne ARC200 pénzeszközt fogadni. Az ARC200 pénzeszközök veszélyesek lehetnek, és az okosszerződés alapos vizsgálatára van szükség a teljes bizalom érdekében.",
+    "scheduled_payment": "Scheduled payment",
+    "scheduled_payment_help": "You can setup and manage a scheduled periodic payments to another accounts"
   },
   "acc_overview_assets": {
     "name": "Név",
@@ -586,7 +588,9 @@
     "session_proposals": "Munkamenet javaslatok",
     "toggle_camera": "Kamera be/kikapcsolás",
     "init_wc": "Kapcsolat inicializálása a WalletConnect-hez",
-    "sign_all": "Az összes aláírása"
+    "sign_all": "Az összes aláírása",
+    "proposer": "Proposer",
+    "all_accounts": "Use all wallet accounts"
   },
   "new_account_wc": {
     "title": "WalletConnect számla létrehozása",

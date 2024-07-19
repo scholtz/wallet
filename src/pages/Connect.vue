@@ -397,6 +397,11 @@
                     </div>
                   </template>
                 </Column>
+                <Column :header="$t('connect.all_accounts')">
+                  <template #body="slotProps">
+                    <Checkbox v-model="allAccounts" :binary="true"></Checkbox>
+                  </template>
+                </Column>
                 <Column :header="$t('connect.connected')" :sortable="true">
                   <template #body="slotProps">
                     <Button
@@ -554,6 +559,7 @@ export default {
       expandedRequests: [],
       expandedTransactions: [],
       scan: false,
+      allAccounts: true,
     };
   },
   computed: {
@@ -778,7 +784,7 @@ export default {
     },
     async clickApproveSession(id) {
       try {
-        await this.approveSession({ id });
+        await this.approveSession({ id, allAccounts: this.allAccounts });
       } catch (err) {
         const error = err.message ?? err;
         this.openError(error);

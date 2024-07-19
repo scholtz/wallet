@@ -192,7 +192,9 @@
     "arc14_help": "ARC 14 is authentication standard utilizing signed transactions. You can generate the authentication tokens on this page.",
     "account_actions": "Account actions",
     "asset_optinArc200": "OptIn to ARC200 asset",
-    "asset_optinArc200_help": "You can watch on your account the ARC200 assets. ARC200 assets are smart contracts with feature that anyone can opt in user's account to be able to receive the asset. ARC200 assets may be dangerous and you should require trustworthy audit of the smart contract so that you can fully trust it."
+    "asset_optinArc200_help": "You can watch on your account the ARC200 assets. ARC200 assets are smart contracts with feature that anyone can opt in user's account to be able to receive the asset. ARC200 assets may be dangerous and you should require trustworthy audit of the smart contract so that you can fully trust it.",
+    "scheduled_payment": "Scheduled payment",
+    "scheduled_payment_help": "You can setup and manage a scheduled periodic payments to another accounts"
   },
   "acc_overview_assets": {
     "name": "Name",
@@ -587,7 +589,9 @@
     "session_proposals": "Propuestas de sesión",
     "toggle_camera": "Cambiar de cámara",
     "init_wc": "Inicializar la conexión con WalletConnect",
-    "sign_all": "Firmar todo"
+    "sign_all": "Firmar todo",
+    "proposer": "Proposer",
+    "all_accounts": "Use all wallet accounts"
   },
   "new_account_wc": {
     "title": "Añadir cuenta WalletConnect",

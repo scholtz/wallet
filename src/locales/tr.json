@@ -285,7 +285,9 @@
     "arc14_help": "ARC 14, imzalı işlemleri kullanan kimlik doğrulama standardıdır. Kimlik doğrulama belirteçlerini bu sayfada oluşturabilirsiniz.",
     "account_actions": "Hesap işlemleri",
     "asset_optinArc200": "ARC200 varlığını tercih et",
-    "asset_optinArc200_help": "Hesabınızda ARC200 varlıklarını izleyebilirsiniz. ARC200 varlıkları, herkesin kullanıcının hesabına varlık alabilmeyi seçebileceği özelliğe sahip akıllı sözleşmelerdir. ARC200 varlıkları tehlikeli olabilir ve Akıllı sözleşme böylece ona tamamen güvenebilirsiniz."
+    "asset_optinArc200_help": "Hesabınızda ARC200 varlıklarını izleyebilirsiniz. ARC200 varlıkları, herkesin kullanıcının hesabına varlık alabilmeyi seçebileceği özelliğe sahip akıllı sözleşmelerdir. ARC200 varlıkları tehlikeli olabilir ve Akıllı sözleşme böylece ona tamamen güvenebilirsiniz.",
+    "scheduled_payment": "Scheduled payment",
+    "scheduled_payment_help": "You can setup and manage a scheduled periodic payments to another accounts"
   },
   "acc_overview_assets": {
     "name": "Ad",
@@ -681,7 +683,9 @@
     "session_proposals": "Oturum önerileri",
     "toggle_camera": "Kamerayı değiştir",
     "init_wc": "Wallet Connect bağlantısını başlat",
-    "sign_all": "Tümünü imzala"
+    "sign_all": "Tümünü imzala",
+    "proposer": "Proposer",
+    "all_accounts": "Use all wallet accounts"
   },
   "new_account_wc": {
     "title": "WalletConnect hesabını ekleyin",

@@ -590,7 +590,9 @@
     "session_proposals": "Session proposals",
     "toggle_camera": "Toggle camera",
     "init_wc": "Initialize connection to Wallet Connect",
-    "sign_all": "Sign all"
+    "sign_all": "Sign all",
+    "proposer": "Proposer",
+    "all_accounts": "Use all wallet accounts"
   },
   "new_account_wc": {
     "title": "Add WalletConnect account",

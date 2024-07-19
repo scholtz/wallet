@@ -191,7 +191,9 @@
     "arc14_help": "ARC 14 je autorizačný štandard ktorý využívat podpísané transakcie. Na tejto stránke si môžete vygenerovať autorizačné tokeny k vášmu účtu a externej službe.",
     "account_actions": "Akcie účtu",
     "asset_optinArc200": "Pridať ARC200 aktívum",
-    "asset_optinArc200_help": "Na svojom účte môžete sledovať a robiť prevody ARC200 aktív. ARC200 aktívum je smart kontrakt s výhodou, že otvoriť účet užívateľovi môže ktokoľvek. ARC200 aktívum môže byť nebezpečné a mali by ste vyžadovať bezpečnostný audit smart kontraktu pred tým ako ho začnete používať."
+    "asset_optinArc200_help": "Na svojom účte môžete sledovať a robiť prevody ARC200 aktív. ARC200 aktívum je smart kontrakt s výhodou, že otvoriť účet užívateľovi môže ktokoľvek. ARC200 aktívum môže byť nebezpečné a mali by ste vyžadovať bezpečnostný audit smart kontraktu pred tým ako ho začnete používať.",
+    "scheduled_payment": "Scheduled payment",
+    "scheduled_payment_help": "You can setup and manage a scheduled periodic payments to another accounts"
   },
   "acc_overview_assets": {
     "name": "Name",
@@ -586,7 +588,9 @@
     "session_proposals": "Návrhy pre reláciu",
     "toggle_camera": "Zapnúť/Vypnúť kameru",
     "init_wc": "Vytvoriť spojenie na Wallet Connect",
-    "sign_all": "Podpísať všetky"
+    "sign_all": "Podpísať všetky",
+    "proposer": "Navrhovateľ",
+    "all_accounts": "Použiť všetky účty"
   },
   "new_account_wc": {
     "title": "Pridať WalletConnect účet",
