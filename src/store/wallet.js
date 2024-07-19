@@ -3,7 +3,6 @@ import CryptoJS from "crypto-js";
 import cryptoRandomString from "crypto-random-string";
 import db from "../shared/db";
 import wc from "../shared/wc";
-import { parseEntry } from "@walletconnect/keyvaluestorage";
 import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
 
 const state = () => ({
@@ -19,7 +18,9 @@ const state = () => ({
   transaction: {},
   wc: {},
 });
-
+const parseEntry = (entry) => {
+  return [entry[0], safeJsonParse(entry[1] ?? "")];
+};
 const mutations = {
   setTransaction(state, transaction) {
     state.transaction = transaction;

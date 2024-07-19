@@ -31,6 +31,7 @@ module.exports = {
         path: require.resolve("path-browserify"),
         url: false,
         fs: false,
+        vm: false,
       },
     },
     devServer: {
