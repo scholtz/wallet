@@ -159,6 +159,11 @@ const makeOptInTxs = async () => {
     },
   });
   const fromDecoded = algosdk.decodeAddress(state.account.addr);
+  var boxFromDirect = {
+    // : algosdk.BoxReference
+    appIndex: appId,
+    name: new Uint8Array(Buffer.from(fromDecoded.publicKey)),
+  };
   var boxFrom = {
     // : algosdk.BoxReference
     appIndex: appId,
@@ -166,10 +171,18 @@ const makeOptInTxs = async () => {
       Buffer.concat([Buffer.from([0x00]), Buffer.from(fromDecoded.publicKey)])
     ), // data box
   };
+  var boxFromAddrText = {
+    // : algosdk.BoxReference
+    appIndex: appId,
+    name: new Uint8Array(Buffer.from(state.account.addr, "ascii")), // box as the address encoded as text
+  };
+  console.log("boxes: [boxFromDirect, boxFrom, boxFromAddrText]", {
+    boxes: [boxFromDirect, boxFrom, boxFromAddrText],
+  });
   const compose = client.compose().arc200Transfer(
     { to: state.account.addr, value: BigInt(0) },
     {
-      boxes: [boxFrom],
+      boxes: [boxFromDirect, boxFrom, boxFromAddrText],
     }
   );
   const enc = new TextEncoder();

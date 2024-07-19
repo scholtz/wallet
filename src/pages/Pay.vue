@@ -1027,6 +1027,16 @@ export default {
         });
         const fromDecoded = algosdk.decodeAddress(this.payFrom);
         const toDecoded = algosdk.decodeAddress(this.payTo);
+        var boxFromDirect = {
+          // : algosdk.BoxReference
+          appIndex: appId,
+          name: new Uint8Array(Buffer.from(fromDecoded.publicKey)),
+        };
+        var boxFromPlainAddr = {
+          // : algosdk.BoxReference
+          appIndex: appId,
+          name: new Uint8Array(Buffer.from(this.payFrom, "ascii")),
+        };
         var boxFrom = {
           // : algosdk.BoxReference
           appIndex: appId,
@@ -1036,6 +1046,16 @@ export default {
               Buffer.from(fromDecoded.publicKey),
             ])
           ), // data box
+        };
+        var boxToDirect = {
+          // : algosdk.BoxReference
+          appIndex: appId,
+          name: new Uint8Array(Buffer.from(toDecoded.publicKey)),
+        };
+        var boxToPlainAddr = {
+          // : algosdk.BoxReference
+          appIndex: appId,
+          name: new Uint8Array(Buffer.from(this.payTo, "ascii")),
         };
         var boxTo = {
           // : algosdk.BoxReference
@@ -1050,7 +1070,14 @@ export default {
         const compose = client.compose().arc200Transfer(
           { to: this.payTo, value: BigInt(this.amountLong) },
           {
-            boxes: [boxFrom, boxTo],
+            boxes: [
+              boxFrom,
+              boxFromDirect,
+              boxFromPlainAddr,
+              boxToPlainAddr,
+              boxTo,
+              boxToDirect,
+            ],
           }
         );
 
