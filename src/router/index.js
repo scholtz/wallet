@@ -291,9 +291,9 @@ const routes = [
     component: SignAll,
   },
   {
-    path: "/payWC/",
+    path: "/payWC/:account/:rawSignedTxnInput",
     name: "PayFromWalletConnect",
-    component: Pay,
+    component: Sign,
   },
   {
     path: "/multisig/:account/:rawSignedTxnInput",

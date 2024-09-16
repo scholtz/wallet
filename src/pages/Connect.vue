@@ -692,6 +692,21 @@ export default {
         await this.clickSign(tx);
       }
     },
+    _arrayBufferToBase64(buffer) {
+      var binary = "";
+      var bytes = new Uint8Array(buffer);
+      var len = bytes.byteLength;
+      for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    },
+    base642base64url(input) {
+      return input
+        .replaceAll("+", "-")
+        .replaceAll("/", "_")
+        .replaceAll("=", "");
+    },
     async clickSign(data) {
       const txId = data.txn.txID();
       const isSigned = txId in this.$store.state.signer.signed;
@@ -701,9 +716,15 @@ export default {
       const type = await this.getSignerType({
         from: data.from,
       });
+      console.log("signerType", type);
       if (type == "msig") {
         this.signerToSign({ tx: data.txn });
-        this.$router.push("/payWC/");
+        const encodedtxn = algosdk.encodeUnsignedTransaction(data.txn);
+        const urldataB64 = this._arrayBufferToBase64(encodedtxn);
+        const urldataB64url = this.base642base64url(urldataB64);
+        this.$router.push(
+          `/payWC/${this.$route.params.account}/${urldataB64url}`
+        );
       } else {
         const signed = await this.signerSignTransaction({
           from: data.from,
@@ -714,7 +735,7 @@ export default {
     },
     async clickAccept(data) {
       this.prolong();
-
+      console.log("sendResult", data);
       try {
         await this.sendResult({ data });
         // if (data.ver == 2) {

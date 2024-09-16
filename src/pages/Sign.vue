@@ -333,7 +333,7 @@
                 </Button>
                 <span v-if="!isRawSignedTxnSigned">
                   <Button
-                    v-if="isMultisig && $route.name != 'PayFromWalletConnect'"
+                    v-if="isMultisig"
                     @click="payPaymentClick"
                     class="m-2"
                   >
