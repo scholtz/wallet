@@ -1,4 +1,5 @@
 {
   "d": "63373034393031612D353930392D343266652D626532652D663064643165316133376261",
-  "LOGO": "/img/biatec-wallet.svg"
+  "LOGO": "/img/biatec-wallet.svg",
+  "walletConnectProjectId": "a6bbb163c87c1c72c660af1f60d33612"
 }
