@@ -7,7 +7,7 @@ import indexer from "./indexer";
 import toast from "./toast";
 import vote from "./vote";
 import publicData from "./publicData";
-import kmd from "./kmd";
+import participation from "./participation";
 import arc14 from "./arc14";
 import signer from "./signer";
 import wc from "./wc";
@@ -26,7 +26,7 @@ export default createStore({
     toast,
     vote,
     publicData,
-    kmd,
+    participation,
     arc14,
     signer,
     wc,

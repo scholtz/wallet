@@ -50,6 +50,38 @@
                       {{ payTo }}
                     </div>
                   </div>
+                  <div
+                    class="field grid"
+                    v-if="txn?.type == 'keyreg' && !txn.voteFirst"
+                  >
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                    </label>
+                    <div class="col-12 md:col-10">
+                      Tx to unregister from the participation
+                    </div>
+                  </div>
+                  <div
+                    class="field grid"
+                    v-if="txn?.type == 'keyreg' && txn?.voteFirst"
+                  >
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      First participation round
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ txn.voteFirst }}
+                    </div>
+                  </div>
+                  <div
+                    class="field grid"
+                    v-if="txn?.type == 'keyreg' && txn?.voteLast"
+                  >
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      Last participation round
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ txn.voteLast }}
+                    </div>
+                  </div>
                   <div class="field grid" v-if="paynote">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.note") }}
@@ -69,7 +101,14 @@
                       {{ $store.state.config.env }}
                     </div>
                   </div>
-                  <div class="field grid" v-if="assetObj">
+                  <div
+                    class="field grid"
+                    v-if="
+                      assetObj &&
+                      txn &&
+                      (txn.type == 'pay' || txn.type == 'axfer')
+                    "
+                  >
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("optin.assetId") }}
                     </label>
@@ -210,6 +249,20 @@
                   <div
                     class="field grid"
                     v-if="
+                      multisigDecoded.txn.from &&
+                      multisigDecoded.txn.from.publicKey
+                    "
+                  >
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.from_account") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ encodeAddress(multisigDecoded.txn.from.publicKey) }}
+                    </div>
+                  </div>
+                  <div
+                    class="field grid"
+                    v-if="
                       multisigDecoded.txn.reKeyTo &&
                       multisigDecoded.txn.reKeyTo.publicKey
                     "
@@ -342,19 +395,6 @@
                 </span>
               </div>
             </div>
-            <JsonViewer
-              v-if="
-                txn &&
-                $store &&
-                $store.state &&
-                $store.state.config &&
-                $store.state.config.dev
-              "
-              :value="txn"
-              copyable
-              boxed
-              sort
-            />
 
             <div
               v-if="
@@ -445,7 +485,10 @@
                 </Button>
               </div>
               <Button
-                v-if="$route.name != 'PayFromWalletConnect'"
+                v-if="
+                  $route.name != 'PayFromWalletConnect' &&
+                  $store.state.signer.returnTo != 'Arc14Participation'
+                "
                 class="m-2"
                 :disabled="!thresholdMet"
                 @click="sendMultisig"
@@ -475,6 +518,14 @@
                 @click="retToScheduledPayments"
               >
                 Return to scheduled payment management
+              </Button>
+              <Button
+                v-if="$store.state.signer.returnTo == 'Arc14Participation'"
+                class="m-2"
+                :disabled="!thresholdMet"
+                @click="retToArc14Participation"
+              >
+                Return to the account
               </Button>
               <Button
                 v-if="isSignedByAny"
@@ -524,6 +575,20 @@
             >
               {{ $t("global.last_error") }}: {{ $store.state.toast.lastError }}
             </Message>
+
+            <JsonViewer
+              v-if="
+                txn &&
+                $store &&
+                $store.state &&
+                $store.state.config &&
+                $store.state.config.dev
+              "
+              :value="txn"
+              copyable
+              boxed
+              sort
+            />
           </template>
         </Card>
       </form>
@@ -749,6 +814,7 @@ export default {
         this.multisigDecoded.txn &&
         this.multisigDecoded.txn.type &&
         (this.multisigDecoded.txn.type == "appl" ||
+          this.multisigDecoded.txn.type == "keyreg" ||
           this.multisigDecoded.txn.type == "acfg")
       ) {
         return false;
@@ -757,7 +823,9 @@ export default {
         this.txn &&
         this.txn &&
         this.txn.type &&
-        (this.txn.type == "appl" || this.txn.type == "acfg")
+        (this.txn.type == "appl" ||
+          this.txn.type == "keyreg" ||
+          this.txn.type == "acfg")
       ) {
         return false;
       }
@@ -944,6 +1012,8 @@ export default {
       getRealm: "fa2/getRealm",
       signTwoFactor: "fa2/signTwoFactor",
       resetError: "toast/resetError",
+      storeArc14Auth: "arc14/storeArc14Auth",
+      returnTo: "signer/returnTo",
     }),
     isBase64(str) {
       try {
@@ -1545,14 +1615,50 @@ export default {
       }
     },
     retToWalletConnect() {
+      this.returnTo("");
       this.$router.push({ name: "Connect" });
     },
     retToSignAll() {
+      this.returnTo("");
       this.$router.push({ name: "SignAll" });
     },
     retToScheduledPayments() {
+      this.returnTo("");
       this.$router.push({ name: "scheduled-payment" });
     },
+    async retToArc14Participation() {
+      const encoded = this.rawSignedTxn;
+      console.log("encoded", encoded);
+      const signedAuthTxn = this.rawSignedTxn;
+      console.log("signedAuthTxn", signedAuthTxn);
+      console.log(
+        "check signedAuthTxn",
+        algosdk.decodeSignedTransaction(Buffer.from(signedAuthTxn, "base64")),
+        this.multisigDecoded
+      );
+      const b64 = signedAuthTxn;
+      const auth = "SigTx " + b64;
+      console.log("storeArc14Auth", {
+        chain: this.$store.state.config.env,
+        addr: algosdk.encodeAddress(this.multisigDecoded.txn.from.publicKey),
+        realm: Buffer.from(this.multisigDecoded.txn.note).toString("utf-8"),
+        token: auth,
+      });
+      await this.storeArc14Auth({
+        chain: this.$store.state.config.env,
+        addr: algosdk.encodeAddress(this.multisigDecoded.txn.from.publicKey),
+        realm: Buffer.from(this.multisigDecoded.txn.note).toString("utf-8"),
+        token: auth,
+      });
+      console.log(
+        "this.$store.state.arc14.address2chain2realm2token",
+        this.$store.state.arc14.address2chain2realm2token
+      );
+
+      this.returnTo("");
+      this.$router.push({ name: "AccountOverview" });
+    },
+
     async sign2FAClick(e) {
       try {
         this.prolong();

@@ -15,30 +15,43 @@ const mutations = {
   },
 };
 const actions = {
+  async storeArc14Auth({ commit }, { chain, addr, realm, token }) {
+    await commit("storeArc14Auth", {
+      chain,
+      addr,
+      realm,
+      token,
+    });
+  },
+  async getAuthTx({ dispatch, commit }, { account, realm }) {
+    if (!account) throw new Error("Address not found.");
+    const url = new URL(this.state.config.algod);
+    let algodclient = new algosdk.Algodv2(
+      this.state.config.algodToken,
+      this.state.config.algod,
+      url.port
+    );
+
+    const suggestedParams = await algodclient.getTransactionParams().do();
+
+    const authParams = suggestedParams;
+    authParams.fee = 0;
+    const note = Buffer.from(realm, "utf-8");
+    const authObj = {
+      from: account,
+      to: account,
+      amount: 0,
+      note: new Uint8Array(note),
+      suggestedParams: authParams,
+    };
+    const authTxn =
+      algosdk.makePaymentTxnWithSuggestedParamsFromObject(authObj);
+    return authTxn;
+  },
   async signAuthTx({ dispatch, commit }, { account, realm }) {
     try {
       if (!account) throw new Error("Address not found.");
-      const url = new URL(this.state.config.algod);
-      let algodclient = new algosdk.Algodv2(
-        this.state.config.algodToken,
-        this.state.config.algod,
-        url.port
-      );
-
-      const suggestedParams = await algodclient.getTransactionParams().do();
-
-      const authParams = suggestedParams;
-      authParams.fee = 0;
-      const note = Buffer.from(realm, "utf-8");
-      const authObj = {
-        from: account,
-        to: account,
-        amount: 0,
-        note: new Uint8Array(note),
-        suggestedParams: authParams,
-      };
-      const authTxn =
-        algosdk.makePaymentTxnWithSuggestedParamsFromObject(authObj);
+      const authTxn = await dispatch("getAuthTx");
 
       let signedAuthTxn = await dispatch(
         "signer/signTransaction",

@@ -69,7 +69,6 @@ export default {
       setTransaction: "wallet/setTransaction",
       getAsset: "indexer/getAsset",
       prolong: "wallet/prolong",
-      setAccountOnline: "kmd/setAccountOnline",
       openSuccess: "toast/openSuccess",
       axiosGet: "axios/get",
       getSK: "wallet/getSK",

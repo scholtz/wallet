@@ -83,14 +83,94 @@
               {{ $t("onlineofflinedialog.host") }}:
               {{ $store.state.config.participation }}
             </p>
+            <p v-if="participationRealm">Realm : {{ participationRealm }}</p>
+            <p v-if="participationRealm && isMultisig && !participationAuth">
+              Please sign ARC14 authentication transaction and return back to
+              this form.
+            </p>
+            <p v-if="participationAuth">ARC14 auth has been loaded.</p>
+            <p v-if="changeOnline">
+              Generating participation keys.. Please be patient, the
+              participation node is performing CPU sensitive task.
+            </p>
             <template #footer>
               <Button
                 severity="secondary"
                 size="small"
                 @click="displayOnlineOfflineDialog = false"
               >
-                {{ $t("global.cancel") }} </Button
-              ><Button
+                {{ $t("global.cancel") }}
+              </Button>
+              <Button
+                v-if="!participationWizzard"
+                :severity="isMultisig ? 'primary' : 'secondary'"
+                size="small"
+                @click="participationWizzard = true"
+              >
+                Activate wizard
+              </Button>
+              <Button
+                v-if="participationWizzard && !participationRealm"
+                :severity="!participationRealm ? 'primary' : 'secondary'"
+                size="small"
+                @click="clickFetchArc14Realm"
+              >
+                Step 1/4: Fetch ARC14 realm
+              </Button>
+              <Button
+                v-if="
+                  !isMultisig &&
+                  participationWizzard &&
+                  participationRealm &&
+                  !participationAuth
+                "
+                severity="primary"
+                size="small"
+                @click="clickSignArc14AuthTx"
+              >
+                Step 2/4: Sign ARC14 realm
+              </Button>
+              <Button
+                v-if="
+                  isMultisig &&
+                  participationWizzard &&
+                  participationRealm &&
+                  !participationAuth
+                "
+                severity="primary"
+                size="small"
+                @click="clickSignArc14MsigAuthTx"
+              >
+                Step 2/4: Multisign ARC14 realm
+              </Button>
+              <Button
+                v-if="
+                  participationWizzard &&
+                  participationRealm &&
+                  participationAuth &&
+                  !participationData?.voteKey
+                "
+                severity="primary"
+                size="small"
+                @click="clickLoadParticipationData"
+              >
+                Step 3/4: Load participation data
+              </Button>
+              <Button
+                v-if="
+                  participationWizzard &&
+                  participationRealm &&
+                  participationAuth &&
+                  participationData?.voteKey
+                "
+                severity="primary"
+                size="small"
+                @click="clickSignParticipationTx"
+              >
+                Step 4/4: Sign participation tx
+              </Button>
+              <Button
+                v-if="!isMultisig && !participationWizzard"
                 severity="primary"
                 size="small"
                 @click="setAccountOnlineAtParticipationNode"
@@ -100,8 +180,20 @@
               <Button
                 severity="danger"
                 size="small"
-                v-if="account['status'] == 'Online'"
+                v-if="
+                  !isMultisig &&
+                  accountData['status'] == 'Online' &&
+                  !participationWizzard
+                "
                 @click="setAccountOfflineAtParticipationNode"
+              >
+                {{ $t("onlineofflinedialog.makeOffline") }}
+              </Button>
+              <Button
+                severity="danger"
+                size="small"
+                v-if="isMultisig && accountData['status'] == 'Online'"
+                @click="setAccountOfflineMsigAtParticipationNode"
               >
                 {{ $t("onlineofflinedialog.makeOffline") }}
               </Button>
@@ -488,6 +580,7 @@ import AccountType from "@/components/AccountType.vue";
 import ProgressSpinner from "primevue/progressspinner";
 import { VERIFY_FALLBACK_SERVER } from "@walletconnect/core";
 import { JsonViewer } from "vue3-json-viewer";
+import algosdk from "algosdk";
 
 export default {
   components: {
@@ -510,6 +603,10 @@ export default {
       changeOnline: false,
       changeOffline: false,
       onlineRounds: 500000,
+      participationRealm: "",
+      participationAuth: "",
+      participationData: {},
+      participationWizzard: false,
     };
   },
   computed: {
@@ -560,6 +657,14 @@ export default {
       if (!rekeyedInfo) return null;
       return rekeyedInfo.params;
     },
+    multisigParams() {
+      if (this.rekeyedToInfo) return this.rekeyedMultisigParams;
+      if (!this.account) return {};
+      return this.account.params;
+    },
+    isMultisig() {
+      return !!this.multisigParams;
+    },
   },
   watch: {
     async selection() {
@@ -576,6 +681,10 @@ export default {
     await this.reloadAccount();
     await this.makeAssets();
     this.prolong();
+    if (this.isMultisig) {
+      this.participationWizzard = true;
+    }
+    console.log("account", this.account);
   },
   methods: {
     ...mapActions({
@@ -587,9 +696,15 @@ export default {
       setTransaction: "wallet/setTransaction",
       getAsset: "indexer/getAsset",
       prolong: "wallet/prolong",
-      setAccountOnline: "kmd/setAccountOnline",
-      setAccountOffline: "kmd/setAccountOffline",
+      setAccountOnline: "participation/setAccountOnline",
+      getParticipationData: "participation/getParticipationData",
+      setAccountOffline: "participation/setAccountOffline",
+      getAccountOfflineTx: "participation/getAccountOfflineTx",
+      getARC14ParticipationRealm: "participation/getARC14ParticipationRealm",
       openSuccess: "toast/openSuccess",
+      signAuthTx: "arc14/signAuthTx",
+      getAuthTx: "arc14/getAuthTx",
+      returnTo: "signer/returnTo",
     }),
     async makeAssets() {
       this.assets = [];
@@ -689,13 +804,122 @@ export default {
     sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     },
+    _arrayBufferToBase64(buffer) {
+      var binary = "";
+      var bytes = new Uint8Array(buffer);
+      var len = bytes.byteLength;
+      for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    },
+    base642base64url(input) {
+      return input
+        .replaceAll("+", "-")
+        .replaceAll("/", "_")
+        .replaceAll("=", "");
+    },
+    async clickFetchArc14Realm() {
+      await this.prolong();
+      this.participationRealm = await this.getARC14ParticipationRealm();
+      console.log("this.participationRealm", this.participationRealm);
+
+      // check if we did go through step 2
+
+      if (
+        this.$store.state.arc14.address2chain2realm2token[
+          this.$store.state.config.env
+        ] &&
+        this.$store.state.arc14.address2chain2realm2token[
+          this.$store.state.config.env
+        ][this.$route.params.account] &&
+        this.$store.state.arc14.address2chain2realm2token[
+          this.$store.state.config.env
+        ][this.$route.params.account][this.participationRealm]
+      ) {
+        this.participationAuth =
+          this.$store.state.arc14.address2chain2realm2token[
+            this.$store.state.config.env
+          ][this.$route.params.account][this.participationRealm];
+      }
+      console.log(
+        "this.participationAuth",
+        this.participationAuth,
+        this.$store.state.arc14.address2chain2realm2token
+      );
+    },
+    async clickSignArc14AuthTx() {
+      await this.prolong();
+      this.participationAuth = await this.signAuthTx({
+        account: this.$route.params.account,
+        realm: this.participationRealm,
+      });
+      console.log("this.participationAuth", this.participationAuth);
+    },
+    async clickSignArc14MsigAuthTx() {
+      await this.prolong();
+      const txn = await this.getAuthTx({
+        account: this.$route.params.account,
+        realm: this.participationRealm,
+      });
+      console.log("this.participationAuth", this.participationAuth);
+      const encodedtxn = algosdk.encodeUnsignedTransaction(txn);
+      const urldataB64 = this._arrayBufferToBase64(encodedtxn);
+      const urldataB64url = this.base642base64url(urldataB64);
+      const pushTo = `/multisig/${this.$route.params.account}/${urldataB64url}`;
+      await this.returnTo("Arc14Participation");
+
+      this.$router.push(pushTo);
+    },
+    async clickLoadParticipationData() {
+      await this.prolong();
+      this.changeOnline = true;
+      this.participationData = await this.getParticipationData({
+        account: this.$route.params.account,
+        rounds: this.onlineRounds,
+        participationAuth: this.participationAuth,
+      });
+      this.changeOnline = false;
+      console.log("this.participationData", this.participationData);
+    },
+    async clickSignParticipationTx() {
+      await this.prolong();
+      if (this.isMultisig) {
+        const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
+          this.participationData
+        );
+
+        const encodedtxn = algosdk.encodeUnsignedTransaction(txn);
+        const urldataB64 = this._arrayBufferToBase64(encodedtxn);
+        const urldataB64url = this.base642base64url(urldataB64);
+        const pushTo = `/multisig/${this.$route.params.account}/${urldataB64url}`;
+        this.$router.push(pushTo);
+      } else {
+        const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
+          this.participationData
+        );
+
+        const encodedtxn = algosdk.encodeUnsignedTransaction(txn);
+        const urldataB64 = this._arrayBufferToBase64(encodedtxn);
+        const urldataB64url = this.base642base64url(urldataB64);
+        const pushTo = `/sign/${this.$route.params.account}/${urldataB64url}`;
+        this.$router.push(pushTo);
+      }
+    },
     async setAccountOnlineAtParticipationNode() {
+      await this.prolong();
       this.displayOnlineOfflineDialog = false;
       this.changeOnline = true;
+      this.participationRealm = await this.getARC14ParticipationRealm();
+      this.participationAuth = await this.signAuthTx({
+        account: this.$route.params.account,
+        realm: this.participationRealm,
+      });
       if (
         await this.setAccountOnline({
           account: this.$route.params.account,
           rounds: this.onlineRounds,
+          participationAuth: this.participationAuth,
         })
       ) {
         await this.sleep(5000);
@@ -707,6 +931,7 @@ export default {
       }
     },
     async setAccountOfflineAtParticipationNode() {
+      await this.prolong();
       this.displayOnlineOfflineDialog = false;
       this.changeOffline = true;
       if (
@@ -719,6 +944,18 @@ export default {
       } else {
         this.changeOffline = false;
       }
+    },
+    async setAccountOfflineMsigAtParticipationNode() {
+      await this.prolong();
+      this.displayOnlineOfflineDialog = false;
+      const txn = await this.getAccountOfflineTx({
+        account: this.$route.params.account,
+      });
+      const encodedtxn = algosdk.encodeUnsignedTransaction(txn);
+      const urldataB64 = this._arrayBufferToBase64(encodedtxn);
+      const urldataB64url = this.base642base64url(urldataB64);
+      const pushTo = `/multisig/${this.$route.params.account}/${urldataB64url}`;
+      this.$router.push(pushTo);
     },
   },
 };

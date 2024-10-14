@@ -258,8 +258,6 @@ export default {
       setTransaction: "wallet/setTransaction",
       getAsset: "indexer/getAsset",
       prolong: "wallet/prolong",
-      setAccountOnline: "kmd/setAccountOnline",
-      setAccountOffline: "kmd/setAccountOffline",
       openSuccess: "toast/openSuccess",
       getAlgod: "algod/getAlgod",
       getIndexer: "indexer/getIndexer",
@@ -400,37 +398,6 @@ export default {
     },
     sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
-    },
-    async setAccountOnlineAtParticipationNode() {
-      this.displayOnlineOfflineDialog = false;
-      this.changeOnline = true;
-      if (
-        await this.setAccountOnline({
-          account: this.$route.params.account,
-          rounds: this.onlineRounds,
-        })
-      ) {
-        await this.sleep(5000);
-        this.changeOnline = false;
-        await this.reloadAccount();
-        this.openSuccess("You have set the account to online mode");
-      } else {
-        this.changeOnline = false;
-      }
-    },
-    async setAccountOfflineAtParticipationNode() {
-      this.displayOnlineOfflineDialog = false;
-      this.changeOffline = true;
-      if (
-        await this.setAccountOffline({ account: this.$route.params.account })
-      ) {
-        await this.sleep(5000);
-        this.changeOffline = false;
-        await this.reloadAccount();
-        this.openSuccess("You have set the account to offline mode");
-      } else {
-        this.changeOffline = false;
-      }
     },
   },
 };
