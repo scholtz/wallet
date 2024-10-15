@@ -29,8 +29,10 @@
                 class="m-2 align-items-end"
                 @click="hideAccountClick"
               >
-                <div v-if="account.isHidden">Unhide account</div>
-                <div v-else>Hide account</div>
+                <div v-if="account.isHidden">
+                  {{ $t("acc_overview.unhide_account") }}
+                </div>
+                <div v-else>{{ $t("acc_overview.hide_account") }}</div>
               </Button>
             </div>
           </div>
@@ -70,35 +72,129 @@
             :modal="true"
             class="m-5"
           >
-            <p>{{ $t("onlineofflinedialog.warning") }}</p>
-            <InputNumber
-              v-model="onlineRounds"
-              class="w-full"
-              type="number"
-              :min="0"
-              :max="2000000"
-              :step="10000"
-            />
-            <p>
-              {{ $t("onlineofflinedialog.host") }}:
-              {{ $store.state.config.participation }}
-            </p>
-            <p v-if="participationRealm">Realm : {{ participationRealm }}</p>
-            <p v-if="participationRealm && isMultisig && !participationAuth">
-              Please sign ARC14 authentication transaction and return back to
-              this form.
-            </p>
-            <p v-if="participationAuth">ARC14 auth has been loaded.</p>
-            <p v-if="changeOnline">
-              Generating participation keys.. Please be patient, the
-              participation node is performing CPU sensitive task.
-            </p>
-            <template #footer>
+            <div v-if="customKeyReg">
+              <div class="field grid">
+                <label for="voteFirst" class="col-12 mb-2">
+                  {{ $t("acc_overview.vote_first_round") }}
+                </label>
+                <div class="col-12">
+                  <InputNumber
+                    inputId="voteFirst"
+                    v-model="participationData.voteFirst"
+                    class="w-full"
+                  />
+                </div>
+              </div>
+              <div class="field grid">
+                <label for="voteLast" class="col-12 mb-2">
+                  {{ $t("acc_overview.vote_last_round") }}
+                </label>
+                <div class="col-12">
+                  <InputNumber
+                    inputId="voteLast"
+                    v-model="participationData.voteLast"
+                    class="w-full"
+                  />
+                </div>
+              </div>
+              <div class="field grid">
+                <label for="voteKeyDilution" class="col-12 mb-2">
+                  {{ $t("acc_overview.vote_key_dilution") }}
+                </label>
+                <div class="col-12">
+                  <InputNumber
+                    inputId="voteKeyDilution"
+                    v-model="participationData.voteKeyDilution"
+                    class="w-full"
+                  />
+                </div>
+              </div>
+              <div class="field grid">
+                <label for="selectionKey" class="col-12 mb-2">
+                  {{ $t("acc_overview.selection_key") }}
+                </label>
+                <div class="col-12">
+                  <InputText
+                    id="selectionKey"
+                    v-model="participationData.selectionKey"
+                    class="w-full"
+                  />
+                </div>
+              </div>
+              <div class="field grid">
+                <label for="voteKey" class="col-12 mb-2">
+                  {{ $t("acc_overview.vote_key") }}
+                </label>
+                <div class="col-12">
+                  <InputText
+                    id="voteKey"
+                    v-model="participationData.voteKey"
+                    class="w-full"
+                  />
+                </div>
+              </div>
+              <div class="field grid">
+                <label for="stateProofKey" class="col-12 mb-2">
+                  {{ $t("acc_overview.stateproof_key") }}
+                </label>
+                <div class="col-12">
+                  <InputText
+                    id="stateProofKey"
+                    v-model="participationData.stateProofKey"
+                    class="w-full"
+                  />
+                </div>
+              </div>
+            </div>
+            <div v-else>
+              <p>{{ $t("onlineofflinedialog.warning") }}</p>
+              <InputNumber
+                v-model="onlineRounds"
+                class="w-full"
+                type="number"
+                :min="0"
+                :max="2000000"
+                :step="10000"
+              />
+              <p>
+                {{ $t("onlineofflinedialog.host") }}:
+                {{ $store.state.config.participation }}
+              </p>
+              <p v-if="participationRealm">
+                {{ $t("acc_overview.realm") }} : {{ participationRealm }}
+              </p>
+              <p v-if="participationRealm && isMultisig && !participationAuth">
+                {{ $t("acc_overview.arc14msig_process") }}
+              </p>
+              <p v-if="participationAuth">{{ $t("acc_overview.hasArc14") }}</p>
+              <p v-if="changeOnline">
+                {{ $t("acc_overview.generating_keys") }}
+              </p>
+            </div>
+            <template #footer v-if="customKeyReg">
               <Button
+                v-if="
+                  !participationWizzard || (isMultisig && !participationRealm)
+                "
+                severity="primary"
+                size="small"
+                @click="clickSignCustomKeyRegTx"
+              >
+                {{ $t("acc_overview.button_sign_keyreg") }}
+              </Button>
+              <Button
+                v-if="
+                  !participationWizzard || (isMultisig && !participationRealm)
+                "
                 severity="secondary"
                 size="small"
-                @click="displayOnlineOfflineDialog = false"
+                @click="customKeyReg = !customKeyReg"
               >
+                {{ $t("acc_overview.button_close_custom_keyreg") }}
+              </Button>
+            </template>
+            <template #footer v-else>
+              <Button severity="secondary" size="small" @click="clickCancel">
                 {{ $t("global.cancel") }}
               </Button>
               <Button
@@ -107,7 +203,7 @@
                 size="small"
                 @click="participationWizzard = true"
               >
-                Activate wizard
+                {{ $t("acc_overview.button_activate_wizzard") }}
               </Button>
               <Button
                 v-if="participationWizzard && !participationRealm"
@@ -115,7 +211,7 @@
                 size="small"
                 @click="clickFetchArc14Realm"
               >
-                Step 1/4: Fetch ARC14 realm
+                {{ $t("acc_overview.button_fetch_realm") }}
               </Button>
               <Button
                 v-if="
@@ -128,7 +224,7 @@
                 size="small"
                 @click="clickSignArc14AuthTx"
               >
-                Step 2/4: Sign ARC14 realm
+                {{ $t("acc_overview.button_sign_arc14") }}
               </Button>
               <Button
                 v-if="
@@ -141,7 +237,7 @@
                 size="small"
                 @click="clickSignArc14MsigAuthTx"
               >
-                Step 2/4: Multisign ARC14 realm
+                {{ $t("acc_overview.button_sign_arc14_msig") }}
               </Button>
               <Button
                 v-if="
@@ -154,7 +250,17 @@
                 size="small"
                 @click="clickLoadParticipationData"
               >
-                Step 3/4: Load participation data
+                {{ $t("acc_overview.button_load_participatin_data") }}
+              </Button>
+              <Button
+                v-if="
+                  !participationWizzard || (isMultisig && !participationRealm)
+                "
+                severity="secondary"
+                size="small"
+                @click="customKeyReg = !customKeyReg"
+              >
+                {{ $t("acc_overview.button_custom_keyreg") }}
               </Button>
               <Button
                 v-if="
@@ -167,7 +273,7 @@
                 size="small"
                 @click="clickSignParticipationTx"
               >
-                Step 4/4: Sign participation tx
+                {{ $t("acc_overview.button_sign_keyreg_tx") }}
               </Button>
               <Button
                 v-if="!isMultisig && !participationWizzard"
@@ -381,20 +487,20 @@
                     style="width: 1em; height: 1em"
                     strokeWidth="5"
                   />
-                  Setting your account to online state. Please wait a while
+                  {{ $t("acc_overview.making_account_online") }}
                 </div>
                 <div v-else-if="changeOffline">
                   <ProgressSpinner
                     style="width: 1em; height: 1em"
                     strokeWidth="5"
                   />
-                  Setting your account to offline state. Please wait a while
+                  {{ $t("acc_overview.making_account_offline") }}
                 </div>
                 <div v-else-if="$store.state.config.participation">
                   <Button
                     severity="secondary"
                     size="small"
-                    @click="displayOnlineOfflineDialog = true"
+                    @click="clickOpenParticipationDialog"
                   >
                     {{ accountData["status"] ?? "?" }}
                   </Button>
@@ -607,6 +713,7 @@ export default {
       participationAuth: "",
       participationData: {},
       participationWizzard: false,
+      customKeyReg: false,
     };
   },
   computed: {
@@ -684,7 +791,6 @@ export default {
     if (this.isMultisig) {
       this.participationWizzard = true;
     }
-    console.log("account", this.account);
   },
   methods: {
     ...mapActions({
@@ -705,6 +811,7 @@ export default {
       signAuthTx: "arc14/signAuthTx",
       getAuthTx: "arc14/getAuthTx",
       returnTo: "signer/returnTo",
+      getTransactionParams: "algod/getTransactionParams",
     }),
     async makeAssets() {
       this.assets = [];
@@ -822,7 +929,6 @@ export default {
     async clickFetchArc14Realm() {
       await this.prolong();
       this.participationRealm = await this.getARC14ParticipationRealm();
-      console.log("this.participationRealm", this.participationRealm);
 
       // check if we did go through step 2
 
@@ -842,11 +948,6 @@ export default {
             this.$store.state.config.env
           ][this.$route.params.account][this.participationRealm];
       }
-      console.log(
-        "this.participationAuth",
-        this.participationAuth,
-        this.$store.state.arc14.address2chain2realm2token
-      );
     },
     async clickSignArc14AuthTx() {
       await this.prolong();
@@ -854,7 +955,6 @@ export default {
         account: this.$route.params.account,
         realm: this.participationRealm,
       });
-      console.log("this.participationAuth", this.participationAuth);
     },
     async clickSignArc14MsigAuthTx() {
       await this.prolong();
@@ -862,7 +962,6 @@ export default {
         account: this.$route.params.account,
         realm: this.participationRealm,
       });
-      console.log("this.participationAuth", this.participationAuth);
       const encodedtxn = algosdk.encodeUnsignedTransaction(txn);
       const urldataB64 = this._arrayBufferToBase64(encodedtxn);
       const urldataB64url = this.base642base64url(urldataB64);
@@ -880,10 +979,37 @@ export default {
         participationAuth: this.participationAuth,
       });
       this.changeOnline = false;
-      console.log("this.participationData", this.participationData);
     },
     async clickSignParticipationTx() {
       await this.prolong();
+      if (this.isMultisig) {
+        const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
+          this.participationData
+        );
+
+        const encodedtxn = algosdk.encodeUnsignedTransaction(txn);
+        const urldataB64 = this._arrayBufferToBase64(encodedtxn);
+        const urldataB64url = this.base642base64url(urldataB64);
+        const pushTo = `/multisig/${this.$route.params.account}/${urldataB64url}`;
+        this.$router.push(pushTo);
+      } else {
+        const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
+          this.participationData
+        );
+
+        const encodedtxn = algosdk.encodeUnsignedTransaction(txn);
+        const urldataB64 = this._arrayBufferToBase64(encodedtxn);
+        const urldataB64url = this.base642base64url(urldataB64);
+        const pushTo = `/sign/${this.$route.params.account}/${urldataB64url}`;
+        this.$router.push(pushTo);
+      }
+    },
+    async clickSignCustomKeyRegTx() {
+      await this.prolong();
+      const params = await this.getTransactionParams();
+      this.participationData.suggestedParams = params;
+      this.participationData.from = this.$route.params.account;
+
       if (this.isMultisig) {
         const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
           this.participationData
@@ -956,6 +1082,21 @@ export default {
       const urldataB64url = this.base642base64url(urldataB64);
       const pushTo = `/multisig/${this.$route.params.account}/${urldataB64url}`;
       this.$router.push(pushTo);
+    },
+    clickCancel() {
+      this.displayOnlineOfflineDialog = false;
+      this.participationAuth = "";
+      this.participationRealm = "";
+      this.participationWizzard = false;
+    },
+    clickOpenParticipationDialog() {
+      this.displayOnlineOfflineDialog = true;
+      if (this.isMultisig) {
+        this.participationWizzard = true;
+      } else {
+        this.participationWizzard = false;
+      }
+      this.customKeyReg = false;
     },
   },
 };
