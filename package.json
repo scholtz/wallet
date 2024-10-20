@@ -83,7 +83,7 @@
     "@vue/cli-service": "^5.0.8",
     "@vue/compiler-sfc": "*",
     "@vue/eslint-config-typescript": "^11.0.3",
-    "browser-sync": "^3.0.2",
+    "browser-sync": "^3.0.3",
     "cypress": "^13.10.0",
     "eslint": "^8.56.0",
     "eslint-plugin-vue": "^9.21.1",
