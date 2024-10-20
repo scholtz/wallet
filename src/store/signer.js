@@ -48,10 +48,19 @@ const actions = {
       if (!fromAccount) {
         throw new Error("The from address is not in the list of accounts.");
       }
+      if (!this.state.config.env) {
+        throw new Error(
+          "Environment is not properly configured. Please switch to another network and select your network again."
+        );
+      }
 
-      if (fromAccount.rekeyedTo && fromAccount.rekeyedTo != from) {
+      if (
+        fromAccount.data[this.state.config.env] &&
+        fromAccount.data[this.state.config.env].rekeyedTo &&
+        fromAccount.data[this.state.config.env].rekeyedTo != from
+      ) {
         fromAccount = this.state.wallet.privateAccounts.find(
-          (a) => a.addr == fromAccount.rekeyedTo
+          (a) => a.addr == fromAccount.data[this.state.config.env].rekeyedTo
         );
         if (!fromAccount) {
           throw new Error(
@@ -134,10 +143,19 @@ const actions = {
       if (!fromAccount) {
         return "?";
       }
+      if (!this.state.config.env) {
+        throw new Error(
+          "Environment is not properly configured. Please switch to another network and select your network again."
+        );
+      }
 
-      if (fromAccount.rekeyedTo && fromAccount.rekeyedTo != from) {
+      if (
+        fromAccount.data[this.state.config.env] &&
+        fromAccount.data[this.state.config.env].rekeyedTo &&
+        fromAccount.data[this.state.config.env].rekeyedTo != from
+      ) {
         fromAccount = this.state.wallet.privateAccounts.find(
-          (a) => a.addr == fromAccount.rekeyedTo
+          (a) => a.addr == fromAccount.data[this.state.config.env].rekeyedTo
         );
         if (!fromAccount) {
           throw new Error(
@@ -324,14 +342,22 @@ const actions = {
     if (!txn || !txn.from || !txn.from.publicKey) {
       throw new Error("Transaction object is not correct");
     }
+    if (!this.state.config.env) {
+      throw new Error(
+        "Environment is not properly configured. Please switch to another network and select your network again."
+      );
+    }
     const from = algosdk.encodeAddress(txn.from.publicKey);
     let fromAccount = this.state.wallet.privateAccounts.find(
       (a) => a.addr == from
     );
-
-    if (fromAccount.rekeyedTo && fromAccount.rekeyedTo != from) {
+    if (
+      fromAccount.data[this.state.config.env] &&
+      fromAccount.data[this.state.config.env].rekeyedTo &&
+      fromAccount.data[this.state.config.env].rekeyedTo != from
+    ) {
       fromAccount = this.state.wallet.privateAccounts.find(
-        (a) => a.addr == fromAccount.rekeyedTo
+        (a) => a.addr == fromAccount.data[this.state.config.env].rekeyedTo
       );
       if (!fromAccount) {
         throw new Error(
@@ -339,7 +365,6 @@ const actions = {
         );
       }
     }
-
     if (!fromAccount.params) {
       throw new Error(`Address is not multisig: ${fromAccount.addr}`);
     }
