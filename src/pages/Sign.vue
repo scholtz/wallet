@@ -12,7 +12,12 @@
     <div v-if="account">
       <form v-if="page == 'review'" @submit="signTxClick">
         <h1>{{ $t("pay.review_payment") }}</h1>
-        <Card>
+        <Card v-if="fatal">
+          <template #content>
+            {{ fatal }}
+          </template>
+        </Card>
+        <Card v-else>
           <template #content>
             <p>{{ $t("pay.review_payment_help") }}</p>
             <div class="grid">
@@ -191,7 +196,16 @@
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.amount") }}
                     </label>
-                    <div class="col-12 md:col-10">
+                    <div class="col-12 md:col-10" v-if="assetObj">
+                      {{
+                        $filters.formatCurrency(
+                          multisigDecoded.txn.amount,
+                          assetObj.name,
+                          assetObj.decimals
+                        )
+                      }}
+                    </div>
+                    <div class="col-12 md:col-10" v-else>
                       {{ $filters.formatCurrency(multisigDecoded.txn.amount) }}
                     </div>
                   </div>
@@ -657,6 +671,7 @@ export default {
       accountFor2FAAuthToken: "",
       showFormSend: false,
       showFormCombine: false,
+      fatal: "",
     };
   },
   computed: {
@@ -950,7 +965,9 @@ export default {
         this.asset = this.txn.assetIndex ?? 0;
         await this.makeAssets();
         this.payamount = Number(this.txn.amount ?? 0) / this.decimalsPower;
-
+        if (this.txn.genesisID != this.$store.state.config.env) {
+          this.fatal = `Genesis id of the tx ${this.txn.genesisID} does not match current network ${this.$store.state.config.env}`;
+        }
         this.page = "review";
       } catch (e) {
         console.error("Input is not valid base64-url format ", e);
