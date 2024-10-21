@@ -34,6 +34,15 @@
           </div>
           <div class="field grid">
             <label for="swap_asset_to" class="col-12 mb-2 md:col-2 md:mb-0">
+            </label>
+            <div class="col-12 md:col-10">
+              <Button :disabled="asset < 0 && toAsset < 0" @click="swapTokens">
+                ⇅ Exchange source and destination token
+              </Button>
+            </div>
+          </div>
+          <div class="field grid">
+            <label for="swap_asset_to" class="col-12 mb-2 md:col-2 md:mb-0">
               {{ $t("swap.swap_asset_to") }}
             </label>
             <div class="col-12 md:col-10">
@@ -178,12 +187,28 @@
               "
               @click="clickExecuteDeflex"
             >
-              <ProgressSpinner
-                v-if="processingTradeDeflex"
-                style="width: 1em; height: 1em"
-                strokeWidth="5"
-              />
-              {{ $t("swap.execute_button_deflex") }}
+              <div>
+                <div>
+                  <ProgressSpinner
+                    v-if="processingTradeDeflex"
+                    style="width: 1em; height: 1em"
+                    strokeWidth="5"
+                  />
+                  {{ $t("swap.execute_button_deflex") }}
+                </div>
+
+                <div v-if="this.deflexQuotes.quote">
+                  {{
+                    this.$filters.formatCurrency(
+                      (10 ** 6 * Number(this.deflexQuotes.quote)) /
+                        10 ** this.toAssetDecimals /
+                        this.payamount,
+                      this.pair,
+                      6
+                    )
+                  }}
+                </div>
+              </div>
             </Button>
             <Button
               v-if="useFolks"
@@ -196,12 +221,28 @@
               "
               @click="clickExecuteFolks"
             >
-              <ProgressSpinner
-                v-if="processingTradeFolks"
-                style="width: 1em; height: 1em"
-                strokeWidth="5"
-              />
-              {{ $t("swap.execute_button_folks") }}
+              <div>
+                <div>
+                  <ProgressSpinner
+                    v-if="processingTradeFolks"
+                    style="width: 1em; height: 1em"
+                    strokeWidth="5"
+                  />
+                  {{ $t("swap.execute_button_folks") }}
+                  <br />
+                </div>
+                <div v-if="this.folksQuote.quoteAmount">
+                  {{
+                    this.$filters.formatCurrency(
+                      (10 ** 6 * Number(this.folksQuote.quoteAmount)) /
+                        10 ** this.toAssetDecimals /
+                        this.payamount,
+                      this.pair,
+                      6
+                    )
+                  }}
+                </div>
+              </div>
             </Button>
           </div>
         </div>
@@ -226,12 +267,13 @@ export default {
       asset: null,
       toAsset: null,
       payamount: 0,
-      assetObj: {},
+      fromAssetObj: {},
+      toAssetObj: {},
       deflexTxs: { groupMetadata: [] },
       folksQuote: {},
       folksTxns: [],
       txsDetails: "Select assets, quantity and request quote",
-      quotes: {},
+      deflexQuotes: {},
       hasSK: null,
       processingQuote: false,
       processingOptin: false,
@@ -269,15 +311,22 @@ export default {
         (a) => a["asset-id"] == this.asset
       );
     },
-    decimals() {
+    fromAssetDecimals() {
       let decimals = 6;
-      if (this.assetObj && this.assetObj.decimals !== undefined) {
-        decimals = this.assetObj.decimals;
+      if (this.fromAssetObj && this.fromAssetObj.decimals !== undefined) {
+        decimals = this.fromAssetObj.decimals;
       }
       return decimals;
     },
     decimalsPower() {
-      return Math.pow(10, this.decimals);
+      return Math.pow(10, this.fromAssetDecimals);
+    },
+    toAssetDecimals() {
+      let decimals = 6;
+      if (this.toAssetObj && this.toAssetObj.decimals !== undefined) {
+        decimals = this.toAssetObj.decimals;
+      }
+      return decimals;
     },
     assetData() {
       return this.assets.find((a) => a["asset-id"] == this.asset);
@@ -296,7 +345,7 @@ export default {
       }
     },
     stepAmount() {
-      return Math.pow(10, -1 * this.decimals);
+      return Math.pow(10, -1 * this.fromAssetDecimals);
     },
     allowExecuteDeflex() {
       if (
@@ -317,7 +366,7 @@ export default {
       /**/
     },
     appsToOptIn() {
-      const requiredAppOptIns = this.quotes?.requiredAppOptIns ?? [];
+      const requiredAppOptIns = this.deflexQuotes?.requiredAppOptIns ?? [];
       const ret = [];
       if (!this.account) return false;
       const optedInAppIds =
@@ -337,9 +386,22 @@ export default {
       return this.appsToOptIn.length > 0;
     },
     unit() {
-      if (!this.assetObj) return "";
-      if (this.assetObj["unit-name"]) return this.assetObj["unit-name"];
-      return this.assetObj["name"];
+      if (!this.fromAssetObj) return "";
+      if (this.fromAssetObj["unit-name"]) return this.fromAssetObj["unit-name"];
+      return this.fromAssetObj["name"];
+    },
+    fromAssetUnit() {
+      if (!this.fromAssetObj) return "";
+      if (this.fromAssetObj["unit-name"]) return this.fromAssetObj["unit-name"];
+      return this.fromAssetObj["name"];
+    },
+    toAssetUnit() {
+      if (!this.toAssetObj) return "";
+      if (this.toAssetObj["unit-name"]) return this.toAssetObj["unit-name"];
+      return this.toAssetObj["name"];
+    },
+    pair() {
+      return `${this.fromAssetUnit}/${this.toAssetUnit}`;
     },
     isFolksQuoteBetter() {
       if (!this.folksQuote) {
@@ -348,23 +410,23 @@ export default {
       if (!this.folksQuote.quoteAmount) {
         return false;
       }
-      if (!this.quotes) {
+      if (!this.deflexQuotes) {
         return true;
       }
-      if (!this.quotes.quote) {
+      if (!this.deflexQuotes.quote) {
         return true;
       }
-      const deflex = BigInt(this.quotes.quote).toString();
+      const deflex = BigInt(this.deflexQuotes.quote).toString();
       const folks = BigInt(this.folksQuote.quoteAmount).toString();
       if (deflex.length > folks.length) return false;
       if (folks.length > deflex.length) return true;
       return folks > deflex;
     },
     isDeflexQuoteBetter() {
-      if (!this.quotes) {
+      if (!this.deflexQuotes) {
         return false;
       }
-      if (!this.quotes.quote) {
+      if (!this.deflexQuotes.quote) {
         return false;
       }
       if (!this.folksQuote) {
@@ -373,7 +435,7 @@ export default {
       if (!this.folksQuote.quoteAmount) {
         return true;
       }
-      const deflex = BigInt(this.quotes.quote).toString();
+      const deflex = BigInt(this.deflexQuotes.quote).toString();
       const folks = BigInt(this.folksQuote.quoteAmount).toString();
       if (folks.length > deflex.length) return false;
       if (deflex.length > folks.length) return true;
@@ -383,12 +445,13 @@ export default {
   watch: {
     async asset() {
       this.deflexTxs = { groupMetadata: [] };
+      this.folksTxns = [];
       if (this.asset > 0) {
-        this.assetObj = await this.getAsset({
+        this.fromAssetObj = await this.getAsset({
           assetIndex: this.asset,
         });
       } else {
-        this.assetObj = {
+        this.fromAssetObj = {
           "asset-id": -1,
           name: "ALGO",
           "unit-name": "Algo",
@@ -397,14 +460,26 @@ export default {
       }
       this.payamount = 0;
     },
+    async toAsset() {
+      this.deflexTxs = { groupMetadata: [] };
+      this.folksTxns = [];
+      if (this.toAsset > 0) {
+        this.toAssetObj = await this.getAsset({
+          assetIndex: this.toAsset,
+        });
+      } else {
+        this.toAssetObj = {
+          "asset-id": -1,
+          name: "ALGO",
+          "unit-name": "Algo",
+          decimals: 6,
+        };
+      }
+    },
     account() {
       this.deflexTxs = { groupMetadata: [] };
       this.folksTxns = [];
       this.makeAssets();
-    },
-    toAsset() {
-      this.deflexTxs = { groupMetadata: [] };
-      this.folksTxns = [];
     },
     payamount() {
       this.deflexTxs = { groupMetadata: [] };
@@ -417,7 +492,12 @@ export default {
     await this.makeAssets();
 
     this.asset = -1;
-    this.toAsset = 452399768;
+    const vote = this.assets.find((a) => a["asset-id"] == 452399768);
+    if (vote) {
+      this.toAsset = 452399768;
+    } else {
+      this.toAsset = -1;
+    }
     this.payamount = 1;
     if (this.$route.params.fromAsset) {
       this.asset = this.$route.params.fromAsset;
@@ -528,7 +608,10 @@ export default {
     },
     async requestDeflexQuote() {
       try {
-        const amount = this.payamount * 10 ** this.assetObj.decimals;
+        this.deflexQuotes = {};
+        const amount = BigInt(
+          Math.round(this.payamount * 10 ** this.fromAssetDecimals)
+        );
         const fromAsset = this.asset > 0 ? this.asset : 0;
         const toAsset = this.toAsset > 0 ? this.toAsset : 0;
         const chain = this.checkNetwork();
@@ -558,11 +641,11 @@ export default {
           this.error = "No deflex quotes available";
           return;
         }
-        this.quotes = quotes;
+        this.deflexQuotes = quotes;
         const params = JSON.stringify({
           address: this.account.addr,
           slippage: this.slippage, // 1 = 1%
-          txnPayloadJSON: this.quotes.txnPayload,
+          txnPayloadJSON: this.deflexQuotes.txnPayload,
           apiKey,
         });
         const config = {
@@ -612,7 +695,10 @@ export default {
     },
     async fetchFolksRouterQuotes() {
       try {
-        const amount = this.payamount * 10 ** this.assetObj.decimals;
+        this.folksQuote = {};
+        const amount = BigInt(
+          Math.round(this.payamount * 10 ** this.fromAssetObj.decimals)
+        );
         const folksRouterClient = this.getFolksClient();
         if (!folksRouterClient)
           throw Error(
@@ -786,7 +872,11 @@ export default {
       this.processingTradeDeflex = false;
       await this.reloadAccount();
     },
-
+    swapTokens() {
+      const tmp = this.toAsset;
+      this.toAsset = this.asset;
+      this.asset = tmp;
+    },
     async clickOptInToApps() {
       this.processingOptin = true;
       const params = await this.getTransactionParams();
