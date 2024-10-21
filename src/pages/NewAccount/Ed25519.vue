@@ -75,11 +75,14 @@ const makeRandom = () => {
 
 async function skipChallange() {
   try {
-    await store.dispatch("wallet/addPrivateAccount", {
-      mn: state.w,
-      name: state.name,
-    });
-    router.push("/account/" + state.a);
+    if (
+      await store.dispatch("wallet/addPrivateAccount", {
+        mn: state.w,
+        name: state.name,
+      })
+    ) {
+      router.push("/account/" + state.a);
+    }
   } catch (err: any) {
     const error = err.message ?? err;
     console.error("failed to create account", error, err);
@@ -90,11 +93,14 @@ async function skipChallange() {
 async function confirmCreate() {
   try {
     if (state.words[state.r - 1] == state.guess.trim()) {
-      await store.dispatch("wallet/addPrivateAccount", {
-        mn: state.w,
-        name: state.name,
-      });
-      router.push("/account/" + state.a);
+      if (
+        await store.dispatch("wallet/addPrivateAccount", {
+          mn: state.w,
+          name: state.name,
+        })
+      ) {
+        router.push("/account/" + state.a);
+      }
     } else {
       await store.dispatch("toast/openError", "Invalid word");
     }

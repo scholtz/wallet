@@ -25,11 +25,14 @@ const router = useRouter();
 
 async function importAccountClick() {
   try {
-    await store.dispatch("wallet/addPrivateAccount", {
-      mn: state.w,
-      name: state.name,
-    });
-    router.push({ name: "Accounts" });
+    if (
+      await store.dispatch("wallet/addPrivateAccount", {
+        mn: state.w,
+        name: state.name,
+      })
+    ) {
+      router.push({ name: "Accounts" });
+    }
   } catch (err) {
     const error = err.message ?? err;
     console.error("failed to create account", error, err);

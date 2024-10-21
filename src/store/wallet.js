@@ -370,9 +370,13 @@ const actions = {
       return true;
     } catch (e) {
       console.error("error", e);
-      dispatch("toast/openError", "Account has not been created", {
-        root: true,
-      });
+      dispatch(
+        "toast/openError",
+        "Account has not been created: " + e.message,
+        {
+          root: true,
+        }
+      );
     }
   },
   async addPublicAccount({ dispatch, commit }, { name, addr }) {

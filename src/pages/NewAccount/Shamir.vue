@@ -119,11 +119,14 @@ const recover = async () => {
     const reassembled = Shamir.combine(bytesArr);
     const mn = algosdk.mnemonicFromSeed(reassembled);
 
-    await store.dispatch("wallet/addPrivateAccount", {
-      mn: mn,
-      name: state.name,
-    });
-    router.push({ name: "Accounts" });
+    if (
+      await store.dispatch("wallet/addPrivateAccount", {
+        mn: mn,
+        name: state.name,
+      })
+    ) {
+      router.push({ name: "Accounts" });
+    }
   } catch (err: any) {
     const error = err?.message ?? err;
     await store.dispatch("toast/openError", error);
