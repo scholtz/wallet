@@ -8,6 +8,16 @@ import { mapActions } from "vuex";
 import { Buffer } from "buffer";
 // @ts-ignore
 window.Buffer = Buffer;
+
+// fix old wallet connect library
+// @ts-ignore
+window.global ||= window;
+// fix new wallet connect library
+// @ts-ignore
+window.process = {
+  env: {},
+  version: "",
+};
 import wc from "./shared/wc";
 import { usePrimeVue } from "primevue/config";
 import { Gradient } from "whatamesh";

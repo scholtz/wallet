@@ -239,12 +239,14 @@ const makeMenu = () => {
         },
       ],
     });
-    menu.push({
-      label: t("acc_overview.connect"),
-      icon: "pi pi-bolt",
-      route: "/account/connect/" + store.state.wallet.lastActiveAccount,
-      badge: store.state.wc.requests.length,
-    });
+    if (store.state.wallet.lastActiveAccount) {
+      menu.push({
+        label: t("acc_overview.connect"),
+        icon: "pi pi-bolt",
+        route: "/account/connect/" + store.state.wallet.lastActiveAccount,
+        badge: store.state.wc.requests.length,
+      });
+    }
     menu.push({
       label: store.state.config.env,
       icon: "pi pi-cog",

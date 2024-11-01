@@ -31,13 +31,13 @@
           <template #header>
             <div class="grid" v-if="filters['global']">
               <div class="col">
-                <span class="p-input-icon-left">
-                  <i class="pi pi-search" />
+                <InputGroup>
+                  <InputGroupAddon><i class="pi pi-search" /></InputGroupAddon>
                   <InputText
                     v-model="filters['global'].value"
                     placeholder="Keyword Search"
                   />
-                </span>
+                </InputGroup>
               </div>
               <div class="col h-full align-items-stretch">
                 <div
@@ -167,6 +167,8 @@ import { mapActions } from "vuex";
 import Checkbox from "primevue/checkbox";
 import AccountType from "@/components/AccountType.vue";
 import { FilterMatchMode } from "primevue/api";
+import InputGroup from "primevue/inputgroup";
+import InputGroupAddon from "primevue/inputgroupaddon";
 
 //import VGrid, { VGridVueTemplate } from "@revolist/vue3-datagrid";
 //import VGridButton from "../components/VGridButton.vue";
