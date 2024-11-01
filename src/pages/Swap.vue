@@ -196,7 +196,17 @@
                   />
                   {{ $t("swap.execute_button_deflex") }}
                 </div>
-
+                <div v-if="this.deflexQuotes.quote">Quote:</div>
+                <div v-if="this.folksQuote.quoteAmount">
+                  {{
+                    this.$filters.formatCurrency(
+                      Number(this.deflexQuotes.quote),
+                      "",
+                      this.toAssetDecimals
+                    )
+                  }}
+                </div>
+                <div v-if="this.deflexQuotes.quote">Price:</div>
                 <div v-if="this.deflexQuotes.quote">
                   {{
                     this.$filters.formatCurrency(
@@ -204,6 +214,19 @@
                         10 ** this.toAssetDecimals /
                         this.payamount,
                       this.pair,
+                      6
+                    )
+                  }}
+                </div>
+                <div v-if="this.deflexQuotes.quote">
+                  {{
+                    this.$filters.formatCurrency(
+                      10 ** 6 /
+                        ((10 ** 6 * Number(this.deflexQuotes.quote)) /
+                          10 ** this.toAssetDecimals /
+                          this.payamount /
+                          10 ** 6),
+                      this.pairReversed,
                       6
                     )
                   }}
@@ -231,6 +254,17 @@
                   {{ $t("swap.execute_button_folks") }}
                   <br />
                 </div>
+                <div v-if="this.deflexQuotes.quote">Quote:</div>
+                <div v-if="this.folksQuote.quoteAmount">
+                  {{
+                    this.$filters.formatCurrency(
+                      Number(this.folksQuote.quoteAmount),
+                      "",
+                      this.toAssetDecimals
+                    )
+                  }}
+                </div>
+                <div v-if="this.deflexQuotes.quote">Price:</div>
                 <div v-if="this.folksQuote.quoteAmount">
                   {{
                     this.$filters.formatCurrency(
@@ -238,6 +272,19 @@
                         10 ** this.toAssetDecimals /
                         this.payamount,
                       this.pair,
+                      6
+                    )
+                  }}
+                </div>
+                <div v-if="this.folksQuote.quoteAmount">
+                  {{
+                    this.$filters.formatCurrency(
+                      10 ** 6 /
+                        ((10 ** 6 * Number(this.folksQuote.quoteAmount)) /
+                          10 ** this.toAssetDecimals /
+                          this.payamount /
+                          10 ** 6),
+                      this.pairReversed,
                       6
                     )
                   }}
@@ -403,6 +450,9 @@ export default {
     pair() {
       return `${this.fromAssetUnit}/${this.toAssetUnit}`;
     },
+    pairReversed() {
+      return `${this.toAssetUnit}/${this.fromAssetUnit}`;
+    },
     isFolksQuoteBetter() {
       if (!this.folksQuote) {
         return false;
@@ -459,6 +509,7 @@ export default {
         };
       }
       this.payamount = 0;
+      localStorage.setItem("last-swap-from-asset", this.asset);
     },
     async toAsset() {
       this.deflexTxs = { groupMetadata: [] };
@@ -475,6 +526,7 @@ export default {
           decimals: 6,
         };
       }
+      localStorage.setItem("last-swap-to-asset", this.toAsset);
     },
     account() {
       this.deflexTxs = { groupMetadata: [] };
@@ -501,9 +553,19 @@ export default {
     this.payamount = 1;
     if (this.$route.params.fromAsset) {
       this.asset = this.$route.params.fromAsset;
+    } else {
+      const asset = localStorage.getItem("last-swap-from-asset");
+      if (asset) {
+        this.asset = Number(asset);
+      }
     }
     if (this.$route.params.toAsset) {
       this.toAsset = this.$route.params.toAsset;
+    } else {
+      const asset = localStorage.getItem("last-swap-to-asset");
+      if (asset) {
+        this.toAsset = Number(asset);
+      }
     }
   },
   methods: {
