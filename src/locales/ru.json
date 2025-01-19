@@ -646,7 +646,11 @@
     "warning": "Вы можете выбрать узел публичного участия, чтобы проверить блоки в сети. Вы сгенерируете новые ключи участия на общедоступном сервере алгоритмов и подпишете транзакцию, чтобы позволить этим ключам участия собирать данные блоков. Это будет стоить вам как одна транзакция в сети (алгоритм 0,001). Состояние онлайн-аккаунта не означает, что ваш закрытый ключ доступен в Интернете. Это означает, что ваша учетная запись зарегистрирована на узле онлайн-алгода, который защищает блокчейн.",
     "makeOnline": "Создать аккаунт онлайн",
     "makeOffline": "Отключить аккаунт",
-    "host": "Хост Algod"
+    "host": "Хост Algod",
+    "fromclipboard": "Process data from clipboard",
+    "stakingRegistration": "Register for staking - 2A network fee",
+    "stakingHelp": "By paying 2 algorand now as network fee, and having more than 30k algos on your account, you are eligible to receive the staking rewards anytime the staking node mints new block.",
+    "onlineRounds": "Number of rounds to protect the network"
   },
   "new_account_shamir": {
     "header": "Восстановление резервной учетной записи threshold",

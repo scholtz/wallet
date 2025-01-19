@@ -74,6 +74,18 @@
           >
             <div v-if="customKeyReg">
               <div class="field grid">
+                <div class="col-12">
+                  <Button
+                    @click="processClipboardData"
+                    :severity="
+                      hasAnyParticipationData ? 'secondary' : 'primary'
+                    "
+                  >
+                    {{ $t("onlineofflinedialog.fromclipboard") }}
+                  </Button>
+                </div>
+              </div>
+              <div class="field grid">
                 <label for="voteFirst" class="col-12 mb-2">
                   {{ $t("acc_overview.vote_first_round") }}
                 </label>
@@ -145,17 +157,59 @@
                   />
                 </div>
               </div>
+              <div class="field grid">
+                <label for="stateProofKey" class="col-12 mb-2"> </label>
+                <div class="col-12">
+                  <Checkbox
+                    binary
+                    inputId="stakingRegistration1"
+                    type="checkbox"
+                    v-model="participationData.stakingRegistration"
+                  />
+                  <label for="stakingRegistration1" class="ml-1">{{
+                    $t("onlineofflinedialog.stakingRegistration")
+                  }}</label>
+                </div>
+              </div>
+              <p>
+                {{ $t("onlineofflinedialog.stakingHelp") }}
+              </p>
             </div>
             <div v-else>
               <p>{{ $t("onlineofflinedialog.warning") }}</p>
-              <InputNumber
-                v-model="onlineRounds"
-                class="w-full"
-                type="number"
-                :min="0"
-                :max="2000000"
-                :step="10000"
-              />
+              <div class="field grid">
+                <label for="stateProofKey" class="col-12 mb-2">
+                  {{ $t("onlineofflinedialog.onlineRounds") }}
+                </label>
+                <div class="col-12">
+                  <InputNumber
+                    v-model="onlineRounds"
+                    class="w-full"
+                    type="number"
+                    :min="0"
+                    :max="2000000"
+                    :step="10000"
+                  />
+                </div>
+              </div>
+
+              <div class="field grid">
+                <label for="stateProofKey" class="col-12 mb-2"> </label>
+                <div class="col-12">
+                  <Checkbox
+                    binary
+                    inputId="stakingRegistration2"
+                    type="checkbox"
+                    v-model="participationData.stakingRegistration"
+                  />
+                  <label for="stakingRegistration2" class="ml-1">{{
+                    $t("onlineofflinedialog.stakingRegistration")
+                  }}</label>
+                </div>
+              </div>
+              <p>
+                {{ $t("onlineofflinedialog.stakingHelp") }}
+              </p>
               <p>
                 {{ $t("onlineofflinedialog.host") }}:
                 {{ $store.state.config.participation }}
@@ -711,7 +765,15 @@ export default {
       onlineRounds: 500000,
       participationRealm: "",
       participationAuth: "",
-      participationData: {},
+      participationData: {
+        stakingRegistration: true,
+        voteFirst: 0,
+        voteLast: 0,
+        voteKeyDilution: 0,
+        selectionKey: "",
+        voteKey: "",
+        stateProofKey: "",
+      },
       participationWizzard: false,
       customKeyReg: false,
     };
@@ -772,6 +834,16 @@ export default {
     isMultisig() {
       return !!this.multisigParams;
     },
+    hasAnyParticipationData() {
+      if (Object.keys(this.participationData).length == 0) return false;
+      if (this.participationData.voteFirst > 0) return true;
+      if (this.participationData.voteLast > 0) return true;
+      if (this.participationData.voteKeyDilution > 0) return true;
+      if (this.participationData.selectionKey) return true;
+      if (this.participationData.voteKey) return true;
+      if (this.participationData.stateProofKey) return true;
+      return false;
+    },
   },
   watch: {
     async selection() {
@@ -790,6 +862,18 @@ export default {
     this.prolong();
     if (this.isMultisig) {
       this.participationWizzard = true;
+    }
+    if (
+      !this.$store.state.config.env ||
+      this.$store.state.config.env == "undefined"
+    ) {
+      this.setEnv({ env: "mainnet-v1.0" });
+    }
+    if (
+      !this.$store.state.config.participation &&
+      this.$store.state.config.env
+    ) {
+      this.setEnv({ env: this.$store.state.config.env });
     }
   },
   methods: {
@@ -812,6 +896,7 @@ export default {
       getAuthTx: "arc14/getAuthTx",
       returnTo: "signer/returnTo",
       getTransactionParams: "algod/getTransactionParams",
+      setEnv: "config/setEnv",
     }),
     async makeAssets() {
       this.assets = [];
@@ -978,6 +1063,7 @@ export default {
         rounds: this.onlineRounds,
         participationAuth: this.participationAuth,
       });
+      this.participationData.stakingRegistration = true;
       this.changeOnline = false;
     },
     async clickSignParticipationTx() {
@@ -986,6 +1072,9 @@ export default {
         const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
           this.participationData
         );
+        if (this.participationData.stakingRegistration) {
+          txn.fee = 2000000;
+        }
 
         const encodedtxn = algosdk.encodeUnsignedTransaction(txn);
         const urldataB64 = this._arrayBufferToBase64(encodedtxn);
@@ -996,6 +1085,9 @@ export default {
         const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
           this.participationData
         );
+        if (this.participationData.stakingRegistration) {
+          txn.fee = 2000000;
+        }
 
         const encodedtxn = algosdk.encodeUnsignedTransaction(txn);
         const urldataB64 = this._arrayBufferToBase64(encodedtxn);
@@ -1014,6 +1106,9 @@ export default {
         const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
           this.participationData
         );
+        if (this.participationData.stakingRegistration) {
+          txn.fee = 2000000;
+        }
 
         const encodedtxn = algosdk.encodeUnsignedTransaction(txn);
         const urldataB64 = this._arrayBufferToBase64(encodedtxn);
@@ -1024,6 +1119,9 @@ export default {
         const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
           this.participationData
         );
+        if (this.participationData.stakingRegistration) {
+          txn.fee = 2000000;
+        }
 
         const encodedtxn = algosdk.encodeUnsignedTransaction(txn);
         const urldataB64 = this._arrayBufferToBase64(encodedtxn);
@@ -1046,6 +1144,7 @@ export default {
           account: this.$route.params.account,
           rounds: this.onlineRounds,
           participationAuth: this.participationAuth,
+          stakingRegistration: this.participationData.stakingRegistration,
         })
       ) {
         await this.sleep(5000);
@@ -1097,6 +1196,48 @@ export default {
         this.participationWizzard = false;
       }
       this.customKeyReg = false;
+    },
+    async processClipboardData() {
+      // process data like and fill in the form
+      //
+      // Participation ID:          GPIVRAYLBIC7Q5R6QUXUZKERDSDLZANQEBYQBADBDPYJIDL25VVA
+      // Parent address:            ARAMIDFJYV2TOFB5MRNZJIXBSAVZCVAUDAPFGKR5PNX4MTILGAZABBTXQQ
+      // Last vote round:           4003147
+      // Last block proposal round: 4003148
+      // Effective first round:     3989318
+      // Effective last round:      20000000
+      // First round:               3988540
+      // Last round:                20000000
+      // Key dilution:              4002
+      // Selection key:             lSXR/s9rjlS1+T8hspN0YDqZiWIOvI/swjFp++7OOks=
+      // Voting key:                70KQr3TevgpsEL/4MeTEEmVaUPhuVbuKsBITdlh6smQ=
+      // State proof key:           nLTVu2ypW4tEkAQTUeM0r9ZDBQXxchmcu2yoUwlggkV7OZ/FwqWj80c7AWQV4Yjj2j+FuMngz2KHs92hPnfgeg==
+
+      const clipboardData = await navigator.clipboard.readText();
+      console.log("clipboardata", clipboardData);
+      for (const line of clipboardData.split("\n")) {
+        const parts = line.split(":");
+        if (parts.length == 2) {
+          if (parts[0].trim() == "First round") {
+            this.participationData.voteFirst = Number(parts[1].trim());
+          }
+          if (parts[0].trim() == "Last round") {
+            this.participationData.voteLast = Number(parts[1].trim());
+          }
+          if (parts[0].trim() == "Key dilution") {
+            this.participationData.voteKeyDilution = Number(parts[1].trim());
+          }
+          if (parts[0].trim() == "Selection key") {
+            this.participationData.selectionKey = parts[1].trim();
+          }
+          if (parts[0].trim() == "Voting key") {
+            this.participationData.voteKey = parts[1].trim();
+          }
+          if (parts[0].trim() == "State proof key") {
+            this.participationData.stateProofKey = parts[1].trim();
+          }
+        }
+      }
     },
   },
 };

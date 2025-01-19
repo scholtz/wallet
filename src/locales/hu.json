@@ -646,7 +646,11 @@
     "warning": "Kiválaszthatsz egy nyilvános hálózati csomópontot, amellyel a hálózat blokkjai ellenőrizhetők. Az új blokkok alkotásához szükséges részvételi kulcsok (participation keys) ezen a nyilvános algod szerverek fognak előállni, az aláírásoddal pedig engedélyezheted, hogy ezek a részvételi kulcsok részt vegyenek a blokkok előállításában. Ennek költsége csupán egy hálózati tranzakciót (0,001 Algó) tesz ki. A számla online lekötése nem azt jelenti, hogy a privát kulcsod elérhető lesz az interneten, hanem azt, hogy a számlád regisztrálva lett az online algod csomópontbban, amely védi a blokkláncot.",
     "makeOnline": "A számla online-ba állítása",
     "makeOffline": "A számla offline-ba állítása",
-    "host": "Algod számítógép"
+    "host": "Algod számítógép",
+    "fromclipboard": "Process data from clipboard",
+    "stakingRegistration": "Register for staking - 2A network fee",
+    "stakingHelp": "By paying 2 algorand now as network fee, and having more than 30k algos on your account, you are eligible to receive the staking rewards anytime the staking node mints new block.",
+    "onlineRounds": "Number of rounds to protect the network"
   },
   "new_account_shamir": {
     "header": "Számla helyreállítás Shamir biztonsági mentésből",

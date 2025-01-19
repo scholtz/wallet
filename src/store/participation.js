@@ -67,7 +67,10 @@ const actions = {
       });
     }
   },
-  async setAccountOnline({ dispatch }, { account, rounds, participationAuth }) {
+  async setAccountOnline(
+    { dispatch },
+    { account, rounds, participationAuth, stakingRegistration }
+  ) {
     try {
       if (!this.state.config || !this.state.config.participation)
         throw new Error("Please setup participation server in your settings.");
@@ -136,7 +139,9 @@ const actions = {
       };
       const txn =
         algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(toSignData);
-
+      if (stakingRegistration) {
+        txn.fee = 2000000;
+      }
       let signedTxn = await dispatch(
         "signer/signTransaction",
         { from: account, tx: txn },

@@ -642,11 +642,15 @@
     "save_button": "Uložiť účet"
   },
   "onlineofflinedialog": {
-    "header": "Protect the network with your account's balance",
-    "warning": "You can select public participation node in order to verify the blocks in the network. You will generate new participation keys at the public algod server and sign the transaction to allow these participation keys collect blocks data. This will cost you as one transaction on the network (0.001 algo). Online account state does not mean that your private key is exposed to the internet. It means that your account is registered at the online algod node which is protecting blockchain.",
-    "makeOnline": "Make account online",
-    "makeOffline": "Make account offline",
-    "host": "Algod host"
+    "header": "Ochraňujte blockchain Vašim účtom",
+    "warning": "Môžete si vybrať server ktorý bude Vašim účtom ochraňovať sieť. Server vygeneruje tajné kľúče ktorými bude ochraňovať sieť a vašim účtom podpíšete transakciu kde oprávnite tými tajnými kľúčami ochraňovať sieť. Ak máte na účte aspoň 30000 algo, a zaplatíte poplatok 2 algo za registráciu do stakingu, pri každom novom bloku ktorý vytvorí Váš delegovaný server zarobíte staking odmenu ktorá je zložená z vyzbieraných poplatkov z transakcií a z ďalších prostriedkov pre incentivizáciu stakingu.",
+    "makeOnline": "Nastaviť ochranu siete",
+    "makeOffline": "Vypnúť ochranu siete",
+    "host": "Algod server",
+    "fromclipboard": "Sprocesovať dáta zo schránky",
+    "stakingRegistration": "Zaregistrovať pre staking - 2A tx poplatok",
+    "stakingHelp": "Zaplatením 2A a uchovaním zostatku na účte cez 30000 algo získate staking odmeny. Pri každom novom bloku ktorý vytvorý delegovaný server na Váš účet príde staking odmena.",
+    "onlineRounds": "Počet blokov s aktívnou ochranou siete"
   },
   "new_account_shamir": {
     "header": "Obnova účtu pomocou shamir backup",

@@ -647,7 +647,11 @@
     "warning": "Puede seleccionar el nodo de participación pública para verificar los bloques en la red. Usted generará nuevas claves de participación en el servidor algod público y firmará la transacción para permitir que estas claves de participación recopilen los datos de los bloques. Esto le costará como una transacción en la red (0,001 algo). El estado de cuenta en línea no significa que su clave privada esté expuesta a Internet. Significa que su cuenta está registrada en el nodo algod online que está protegiendo blockchain.",
     "makeOnline": "Volver la cuenta \"online\"",
     "makeOffline": "Volver la cuenta \"offline\"",
-    "host": "Algod anfitrión"
+    "host": "Algod anfitrión",
+    "fromclipboard": "Process data from clipboard",
+    "stakingRegistration": "Register for staking - 2A network fee",
+    "stakingHelp": "By paying 2 algorand now as network fee, and having more than 30k algos on your account, you are eligible to receive the staking rewards anytime the staking node mints new block.",
+    "onlineRounds": "Number of rounds to protect the network"
   },
   "new_account_shamir": {
     "header": "Copia de seguridad Shamir de recuperación",

@@ -741,7 +741,11 @@
     "warning": "Ağdaki blokları doğrulamak için genel katılım düğümünü seçebilirsiniz. Genel algod sunucusunda yeni katılım anahtarları üretecek ve bu katılım anahtarlarının blok verilerini toplamasına izin vermek için işlemi imzalayacaksınız. Bu size maliyet olarak yansıyacaktır. ağ üzerinde bir işlem (0.001 algo). Çevrimiçi hesap durumu, özel anahtarınızın internete açık olduğu anlamına gelmez. Hesabınızın, blockchain'i koruyan çevrimiçi algod düğümünde kayıtlı olduğu anlamına gelir.",
     "makeOnline": "Hesabı çevrimiçi yapın",
     "makeOffline": "Hesabı çevrimdışı yap",
-    "host": "Algod ana bilgisayarı"
+    "host": "Algod ana bilgisayarı",
+    "fromclipboard": "Process data from clipboard",
+    "stakingRegistration": "Register for staking - 2A network fee",
+    "stakingHelp": "By paying 2 algorand now as network fee, and having more than 30k algos on your account, you are eligible to receive the staking rewards anytime the staking node mints new block.",
+    "onlineRounds": "Number of rounds to protect the network"
   },
   "new_account_shamir": {
     "header": "Shamir yedek hesap kurtarma",
