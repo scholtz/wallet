@@ -208,8 +208,12 @@ const actions = {
       tokenSymbol = "aAlgo";
     } else if (env == "voitestnet" || env == "voitest-v1") {
       tokenSymbol = "Voi";
-    } else if (this.env == "voi" || env == "voi-v1.0") {
-      //TODO - Support Voi Mainnet
+    } else if (
+      env == "voi" ||
+      env == "voimain" ||
+      env == "voi-v1.0" ||
+      env == "voimain-v1.0"
+    ) {
       tokenSymbol = "Voi";
     } else if (env == "testnet" || env == "testnet-v1.0") {
       tokenSymbol = "Algo";
