@@ -693,7 +693,7 @@ export default {
         }
 
         const apiKey = this.$store.state.config.deflex;
-        const request = `https://api.deflex.fi/api/fetchQuote?chain=${chain}&algodUri=${algodUri}&algodToken=${algodToken}&algodPort=${algodPort}&fromASAID=${fromAsset}&toASAID=${toAsset}&atomicOnly=true&amount=${amount}&type=fixed-input&disabledProtocols=&referrerAddress=AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y&apiKey=${apiKey}`;
+        const request = `https://deflex.txnlab.dev/api/fetchQuote?chain=${chain}&algodUri=${algodUri}&algodToken=${algodToken}&algodPort=${algodPort}&fromASAID=${fromAsset}&toASAID=${toAsset}&atomicOnly=true&amount=${amount}&type=fixed-input&disabledProtocols=&referrerAddress=AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y&apiKey=${apiKey}`;
         const quotes = await this.axiosGet({ url: request }).catch((e) => {
           this.error = "No deflex quotes available " + e.message;
           return;
@@ -717,7 +717,7 @@ export default {
         };
 
         const txs = await this.axiosPost({
-          url: "https://api.deflex.fi/api/fetchExecuteSwapTxns",
+          url: "https://deflex.txnlab.dev/api/fetchExecuteSwapTxns",
           body: params,
           config,
         }).catch((e) => {
