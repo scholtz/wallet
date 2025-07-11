@@ -22,7 +22,7 @@ spec:
         - name: regcred
       containers:
         - name: biatec-wallet-stable
-          image: scholtz2/a-wallet:1.2025.01.22-stable
+          image: scholtz2/a-wallet:1.2025.07.11-stable
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
