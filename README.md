@@ -1,4 +1,4 @@
-# AWallet
+Algorand community wallet built by community for community, fully open source since 2021# AWallet
 
 ```
 Algorand community wallet built by community for community, fully open source since 2021
