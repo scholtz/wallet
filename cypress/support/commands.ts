@@ -17,9 +17,11 @@ Cypress.Commands.add('clearAWalletDB', () => {
 
 // Custom command for creating a test wallet
 Cypress.Commands.add('createTestWallet', (walletName: string = 'Test Wallet', password: string = 'Test Password') => {
-  cy.get('#newwallet-pass').type(password);
-  cy.wait(1000);
-  cy.get('#newwallet-name').type(walletName);
-  cy.get('#new_wallet_button_create').click();
-  cy.wait(1000);
+  // Ensure elements are visible before interacting
+  cy.get('#newwallet-pass').should('be.visible').type(password);
+  cy.get('#newwallet-name').should('be.visible').type(walletName);
+  cy.get('#new_wallet_button_create').should('be.visible').click();
+  
+  // Wait for navigation after wallet creation
+  cy.url().should('not.include', '/new-wallet');
 });

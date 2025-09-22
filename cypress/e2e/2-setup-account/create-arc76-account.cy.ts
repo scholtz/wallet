@@ -4,8 +4,12 @@ describe("Create ARC76 Account", () => {
   it("should create a new wallet and ARC76 account", () => {
     cy.clearAWalletDB();
     cy.viewport(1920, 1050);
-    cy.visit("/");
-    cy.wait(1000);
+    cy.visit("/new-wallet");
+    
+    // Wait for page to load and ensure form is visible
+    cy.get("#newwallet-name").should("be.visible");
+    cy.get("#newwallet-pass").should("be.visible");
+    cy.get("#new_wallet_button_create").should("be.visible");
     
     // Create wallet using custom command
     cy.createTestWallet();
@@ -35,6 +39,5 @@ describe("Create ARC76 Account", () => {
     
     // Verify account creation
     cy.get(".account-qr", { timeout: 10000 }).should("be.visible");
-    cy.wait(1000);
   });
 });

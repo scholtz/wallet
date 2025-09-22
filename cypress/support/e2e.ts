@@ -13,6 +13,5 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 
-// Import commands.ts and type declarations
+// Import commands.ts 
 import './commands'
-import './index.d.ts'
