@@ -1,4 +1,4 @@
-FROM node:20 AS build
+FROM node:22 AS build
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt update \
   && apt dist-upgrade -y \

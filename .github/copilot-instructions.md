@@ -120,7 +120,7 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 
 ### Docker Deployment
 - Build Docker image: `cd docker && ./compose.sh`
-  - Uses Node 20 for build stage
+  - Uses Node 22 for build stage
   - Serves via nginx on port 8080
   - Build process includes `npm ci`, `npm run build`
 
