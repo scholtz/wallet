@@ -11,4 +11,13 @@ export default defineConfig({
     requestTimeout: 10000,
     responseTimeout: 30000,
   },
+
+  setupNodeEvents(on, config) {
+    on("before:browser:launch", (browser, launchOptions) => {
+      if (browser.family === "chromium" && browser.name !== "electron") {
+        launchOptions.preferences.default.intl = { accept_languages: "en" };
+        return launchOptions;
+      }
+    });
+  },
 });

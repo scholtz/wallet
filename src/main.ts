@@ -12,7 +12,7 @@ const DefaultComponent = markRaw({
 });
 /**/
 
-import "vue3-json-viewer/dist/index.css";
+import JsonViewer from "vue3-json-viewer";
 
 //import "bootstrap";
 //import "bootstrap/dist/css/bootstrap.min.css";
@@ -107,6 +107,8 @@ myApp.component("Message", Message);
 myApp.component("ProgressSpinner", ProgressSpinner);
 myApp.directive("ripple", Ripple);
 myApp.directive("tooltip", Tooltip);
+
+myApp.use(JsonViewer);
 
 myApp.config.globalProperties.$filters = {
   formatCurrencyBigInt(
