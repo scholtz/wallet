@@ -14,17 +14,15 @@ describe("Create ARC76 Account", () => {
     // Create wallet using custom command
     cy.createTestWallet();
     
-    // Navigate to account creation via menu
-    cy.get(".pi-home", { timeout: 10000 })
-      .first()
-      .should("be.visible")
-      .click();
+    // Navigate to account creation via menu using text-based selectors
+    // First expand the Wallet menu
+    cy.contains("Wallet", { timeout: 10000 }).click();
     
-    // Wait for menu to expand and click on New account
-    cy.get(".pi-plus", { timeout: 10000 }).first().should("be.visible").click();
+    // Wait for menu to expand and click on "New account"
+    cy.contains("New account", { timeout: 10000 }).should("be.visible").click();
     
-    // Click on Email & Password account (ARC76)
-    cy.get(".pi-at").first().should("be.visible").click();
+    // Wait for submenu to appear and click on "Email & Password account"
+    cy.contains("Email & Password account", { timeout: 10000 }).should("be.visible").click();
     
     // Wait for ARC76 form to load
     cy.url().should("include", "/new-account/email-password");
