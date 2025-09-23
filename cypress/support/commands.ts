@@ -23,7 +23,7 @@ Cypress.Commands.add('clearAWalletDB', () => {
 });
 
 // Custom command for creating a test wallet
-Cypress.Commands.add('createTestWallet', (walletName: string = 'Test Wallet', password: string = 'Test Password') => {
+Cypress.Commands.add('createTestWallet', (walletName: string = 'Test Wallet', password: string = 'TestPassword123') => {
   // Ensure elements are visible before interacting
   cy.get('#newwallet-name').should('be.visible').clear().type(walletName);
   cy.get('#newwallet-pass').should('be.visible').clear().type(password);

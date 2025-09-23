@@ -15,11 +15,19 @@ describe("Create ED25519 Account", () => {
     cy.createTestWallet();
     
     // Wait for accounts page to load and create account
+    cy.url().should("include", "/accounts");
     cy.get("#create-first", { timeout: 10000 }).should("be.visible").click();
-    cy.get("#name", { timeout: 10000 }).should("be.visible").type("Test Account");
+    
+    // Wait for account creation page
+    cy.url().should("include", "/new-account/ed25519");
+    cy.get("#name", { timeout: 10000 }).should("be.visible").clear().type("Test Account");
     cy.get("#skip_challange").should("be.visible").click();
     
-    // Verify account creation
-    cy.get(".account-qr", { timeout: 15000 }).should("be.visible");
+    // Verify account creation - check for account page navigation or account overview
+    cy.url().should("include", "/account/", { timeout: 15000 });
+    cy.contains("Test Account").should("be.visible");
+    
+    // Alternative verification: check for account overview heading
+    cy.get("h1").should("contain", "Account overview");
   });
 });
