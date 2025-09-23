@@ -5,8 +5,11 @@ describe("Basic Application Load", () => {
     cy.clearAWalletDB();
     cy.viewport(1920, 1050);
     cy.visit("/");
-    // Wait for potential redirect to complete
+    // Wait for potential redirect to complete and page to load
     cy.location('pathname').should('match', /^\/(new-wallet)?$/);
-    cy.get(".p-button").should("be.visible");
+    // Wait for page to be fully loaded
+    cy.get("body").should("be.visible");
+    // Check for p-button elements with a reasonable timeout
+    cy.get(".p-button", { timeout: 10000 }).should("be.visible");
   });
 });

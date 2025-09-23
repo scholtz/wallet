@@ -7,21 +7,19 @@ describe("Create ED25519 Account", () => {
     cy.visit("/new-wallet");
     
     // Wait for page to load and ensure form is visible
-    cy.get("#newwallet-name").should("be.visible");
+    cy.get("#newwallet-name", { timeout: 10000 }).should("be.visible");
     cy.get("#newwallet-pass").should("be.visible");
     cy.get("#new_wallet_button_create").should("be.visible");
     
     // Create wallet using custom command
     cy.createTestWallet();
     
-    // Create account
-    cy.get("#create-first").click();
-    cy.wait(1000);
-    cy.get("#name").type("Test Account");
-    cy.get("#skip_challange").click();
-    cy.wait(5000);
+    // Wait for accounts page to load and create account
+    cy.get("#create-first", { timeout: 10000 }).should("be.visible").click();
+    cy.get("#name", { timeout: 10000 }).should("be.visible").type("Test Account");
+    cy.get("#skip_challange").should("be.visible").click();
     
     // Verify account creation
-    cy.get(".account-qr", { timeout: 10000 }).should("be.visible");
+    cy.get(".account-qr", { timeout: 15000 }).should("be.visible");
   });
 });
