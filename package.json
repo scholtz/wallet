@@ -11,7 +11,7 @@
     "cypress:run": "cypress run --config-file cypress.config.ts",
     "cypress:run-video": "cypress run --config-file cypress.config.video.ts",
     "i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/locales/**/*.json\"",
-    "server": "browser-sync start --port 8083 --server dist --no-open",
+    "server": "browser-sync start --config bs-config.js",
     "run-app-for-test": "npm run serve -- --port 8083",
     "test": "run-p -r server cypress:run",
     "test:video": "run-p -r server cypress:run-video",
