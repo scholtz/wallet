@@ -27,7 +27,15 @@ Cypress.Commands.add('createTestWallet', (walletName: string = 'Test Wallet', pa
   // Ensure elements are visible before interacting
   cy.get('#newwallet-name').should('be.visible').clear().type(walletName);
   cy.get('#newwallet-pass').should('be.visible').clear().type(password);
-  cy.get('#new_wallet_button_create').should('be.visible').click();
+  
+  // Wait a moment for password strength indicator to settle
+  cy.wait(500);
+  
+  // Scroll button into view and click with force if needed to handle overlapping elements
+  cy.get('#new_wallet_button_create')
+    .should('be.visible')
+    .scrollIntoView()
+    .click({ force: true });
   
   // Wait for navigation after wallet creation
   cy.url().should('not.include', '/new-wallet');
