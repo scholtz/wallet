@@ -1,38 +1,27 @@
-version: 2
-jobs:
-  build:
-    docker:
-      - image: cypress/base:18.16.0
-        environment:
-          ## this enables colors in the output
-          TERM: xterm
-    working_directory: ~/app
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - v1-deps-{{ .Branch }}-{{ checksum "package-lock.json" }}
-            - v1-deps-{{ .Branch }}
-            - v1-deps
-      - run:
-          name: Install Dependencies
-          command: npm i
-      - save_cache:
-          key: v1-deps-{{ .Branch }}-{{ checksum "package-lock.json" }}
-          # cache NPM modules and the folder with the Cypress binary
-          paths:
-            - ~/.npm
-            - ~/.node_modules
-            - ~/.cache
-      - run:
-          name: Build
-          command: npm run build
-      - run:
-          name: Run tests
-          command: npm run test
+version: 2.1
 
-      - store_artifacts:
-          path: cypress/videos
-      - store_artifacts:
-          path: cypress/screenshots
-#      - run: $(npm bin)/cypress run --record --key <record_key>
+orbs:
+  cypress: cypress-io/cypress@4
+
+workflows:
+  build:
+    jobs:
+      - cypress/run:
+          # Build the production bundle first (serves from dist/)
+          build: npm run build
+          # Start the app server used by E2E tests
+          start-command: npm run server
+          # Wait until the server is reachable before running tests
+          wait-on: "http://localhost:8083"
+          # Use project Cypress script (ensures TS config is used)
+          cypress-command: npm run cypress:run
+          # Optionally store Cypress artifacts
+          post-steps:
+            - store_artifacts:
+                path: cypress/videos
+            - store_artifacts:
+                path: cypress/screenshots
+          # If you need to pin a specific Cypress Docker image/executor, uncomment below
+          # executor: cypress/default
+          # tag: '18.16.0'
+          # Note: Adjust executor/tag to a desired Node/Cypress image when needed

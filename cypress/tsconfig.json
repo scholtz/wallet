@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["es5", "dom"],
+    "types": ["cypress", "node"],
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "declaration": true,
+    "typeRoots": ["../node_modules/@types", "./support"]
+  },
+  "include": [
+    "**/*.ts",
+    "support/*.d.ts"
+  ]
+}

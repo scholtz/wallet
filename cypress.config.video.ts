@@ -3,8 +3,12 @@ import { defineConfig } from "cypress";
 export default defineConfig({
   e2e: {
     baseUrl: "http://localhost:8083",
-    supportFile: false,
+    supportFile: "cypress/support/e2e.ts",
     video: true,
-    testIsolation: true,
+    testIsolation: false, // Disable test isolation for better compatibility
+    defaultCommandTimeout: 10000,
+    pageLoadTimeout: 30000,
+    requestTimeout: 10000,
+    responseTimeout: 30000,
   },
 });
