@@ -7,12 +7,8 @@ workflows:
   build:
     jobs:
       - cypress/run:
-          # Build the production bundle first (serves from dist/)
-          build: npm run build
           # Start the app server used by E2E tests
           start-command: npm run server
-          # Wait until the server is reachable before running tests
-          wait-on: "http://localhost:8083"
           # Use project Cypress script (ensures TS config is used)
           cypress-command: npm run cypress:run
           # Optionally store Cypress artifacts
