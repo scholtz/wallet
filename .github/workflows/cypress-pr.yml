@@ -1,0 +1,54 @@
+name: Cypress E2E (PR)
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+      - "**"
+
+jobs:
+  cypress-run:
+    name: Run Cypress on PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app
+        run: npm run build
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v6
+        with:
+          start: npm run server
+          wait-on: "http://localhost:8083"
+          command: npm run cypress:run
+          browser: chrome
+        env:
+          CYPRESS_INSTALL_BINARY: 1
+
+      - name: Upload Cypress videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: cypress/videos
+          if-no-files-found: ignore
+
+      - name: Upload Cypress screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+          if-no-files-found: ignore
