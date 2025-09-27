@@ -30,7 +30,7 @@
             <i class="pi pi-search" />
             <InputText
               v-model="filters['global'].value"
-              placeholder="Keyword Search"
+              :placeholder="$t('placeholders.keyword_search')"
             />
           </span>
         </div>
@@ -49,7 +49,7 @@
             type="text"
             @input="filterCallback()"
             class="p-column-filter"
-            placeholder="Search by type"
+            :placeholder="$t('placeholders.search_by_type')"
           />
         </template>
       </Column>

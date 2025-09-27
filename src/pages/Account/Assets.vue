@@ -79,7 +79,7 @@
             type="text"
             @input="filterCallback()"
             class="p-column-filter"
-            placeholder="Search by asset id"
+            :placeholder="$t('placeholders.search_by_asset_id')"
             :placeholder="$t('acc_overview_assets.search_by_id')"
           />
         </template>

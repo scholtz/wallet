@@ -18,7 +18,7 @@
             id="realm"
             v-model="realm"
             class="w-full"
-            placeholder="Service realm. For example 2FA#ARC14"
+            :placeholder="$t('placeholders.service_realm')"
           />
           <div>
             <Button
