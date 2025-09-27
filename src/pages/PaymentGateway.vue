@@ -205,7 +205,7 @@
                       :step="0.000001"
                       :maxFractionDigits="6"
                     />
-                    <InputGroupAddon>Algo</InputGroupAddon>
+                    <InputGroupAddon>{{ $t("common.algo") }}</InputGroupAddon>
                   </InputGroup>
                 </div>
                 <span v-if="!build">
@@ -328,7 +328,7 @@
             </div>
             <br />
             <a :href="url" target="_blank" rel="noreferrer">
-              <Button>Try it out</Button>
+              <Button>{{ $t("buttons.try_it_out") }}</Button>
             </a>
           </div>
         </div>

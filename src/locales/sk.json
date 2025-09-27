@@ -731,5 +731,80 @@
     "load_script_title": "Load app execution profile",
     "load_click": "Load",
     "xgov_promo": "This work has been performed with support from the Algorand Foundation xGov Grants Program"
+  },
+  "donation": {
+    "title": "Prosím pomôžte nám",
+    "project_intro": "Tento projekt sa začal v júni 2021 ako prvá algorand peňaženka s otvoreným kódom.",
+    "funding_received": "Vďaka expertným guvernérom sme dostali financie na vytvorenie",
+    "twofa_accounts": "účtov s dvojúrovňovou autorizáciou",
+    "and": "a",
+    "payment_scheduler": "plánovač platieb",
+    "community_active": "Sme aktívni v algorand komunite. Vytvorili sme",
+    "algorand_directory": "Algorand Directory",
+    "wallet_support": ", okrem podpory peňaženky, vytvorili sme",
+    "payment_gateway": "platobný gateway",
+    "no_middleman": "ktorý nevyžaduje finančného prostredníka, vytvorili sme open source decentralizovaný hlasovací systém postavený na algorand sieti a vybudovali sme decentralizovaný",
+    "donation_web": "web pre dary",
+    "future_vision": "Máme niekoľko vízií, kde môžeme pomôcť rásť algorand komunite.",
+    "graphics_designer": "Chceli by sme najať grafického dizajnéra na vylepšenie vzhľadu AWallet. Očakávame náklady približne 1000 USDt.",
+    "donate_now": "Darovať teraz",
+    "translation_cost": "Preklad do iného jazyka stojí približne 50 USD. Pošlite nám v poznámke informáciu, do akého jazyka by ste chceli mať AWallet preložený.",
+    "magento_gateway": "Implementácia platobného gateway pre Magento - Žiadny prostredník, prijímate platby na svoj účet, spárujte s faktúrami",
+    "accept_donations": "Prijímame dary na tento účet:",
+    "thank_you": "Ďakujeme",
+    "ludo_scholtz": "Ludo Scholtz",
+    "company_name": "Scholtz&Company, jsa"
+  },
+  "placeholders": {
+    "source_asset": "Zdrojové aktívum",
+    "destination_asset": "Cieľové aktívum",
+    "service_realm": "Servisná doména. Napríklad 2FA#ARC14",
+    "keyword_search": "Fulltextové vyhľadávanie",
+    "search_by_asset_id": "Vyhľadať podľa ID aktíva",
+    "search_by_type": "Vyhľadať podľa typu",
+    "search_by_date": "Vyhľadať podľa dátumu",
+    "search_by_amount": "Vyhľadať podľa sumy",
+    "search_by_sender": "Vyhľadať podľa odosielateľa",
+    "search_by_receiver": "Vyhľadať podľa príjemcu",
+    "search_by_fee": "Vyhľadať podľa poplatku",
+    "search_by_round": "Vyhľadať podľa bloku",
+    "search_by_name": "Vyhľadať podľa názvu",
+    "search_by_address": "Vyhľadať podľa adresy"
+  },
+  "buttons": {
+    "try_it_out": "Vyskúšať",
+    "exchange_tokens": "⇅ Vymeniť zdrojové a cieľové tokeny"
+  },
+  "labels": {
+    "use_folks_router": "Používať Folks router",
+    "use_deflex": "Používať Deflex",
+    "quote": "Kotácia:",
+    "price": "Cena:"
+  },
+  "success": {
+    "payment_successful": "Platba bola úspešná",
+    "thank_you_payment": "Ďakujeme za vašu platbu"
+  },
+  "sign_all": {
+    "title": "Podpísať viacero transakcií",
+    "transaction_confirmed": "Transakcia bola potvrdená v bloku"
+  },
+  "arc14": {
+    "service_realm_title": "Servisná doména",
+    "network_note": "Všimnite si, že ARC14 vyžaduje výber siete. Uistite sa, že používate rovnakú sieť ako cieľová služba."
+  },
+  "tools": {
+    "opt_in_governance_title": "Prihlásenie sa k algorand governance z viacerých účtov naraz",
+    "opt_in_governance_help": "Aby ste sa prihlásili ako gubernátor, musíte poslať správu zo svojho účtu na konkrétny účet algorand foundation so správou o tom, koľko algos prihlasujete v konkrétnom období.",
+    "merge_accounts_title": "Zlúčiť viacero účtov do jedného",
+    "pay_multiple_title": "Platiť na viacero účtov z jedného účtu - Distribuovať algos",
+    "pay_from_multiple_title": "Platiť z viacerých účtov naraz",
+    "generate_accounts_title": "Generovať viacero účtov",
+    "results": "Výsledky"
+  },
+  "common": {
+    "go": "Ísť",
+    "algo": "Algo",
+    "algorand": "Algorand"
   }
 }

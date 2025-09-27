@@ -732,5 +732,80 @@
     "load_script_title": "Load app execution profile",
     "load_click": "Load",
     "xgov_promo": "This work has been performed with support from the Algorand Foundation xGov Grants Program"
+  },
+  "donation": {
+    "title": "Por favor ayúdanos",
+    "project_intro": "Este proyecto fue iniciado en junio de 2021 como la primera cartera algorand de código abierto.",
+    "funding_received": "Gracias a gobernadores expertos, hemos recibido fondos para crear",
+    "twofa_accounts": "cuentas de autenticación de dos factores",
+    "and": "y",
+    "payment_scheduler": "programador de pagos",
+    "community_active": "Somos activos en la comunidad algorand. Hemos creado",
+    "algorand_directory": "Directorio Algorand",
+    "wallet_support": ", además del soporte de cartera, hemos creado la",
+    "payment_gateway": "pasarela de pago",
+    "no_middleman": "que no requiere intermediario financiero, hemos creado sistema de votación descentralizado de código abierto construido en la red algorand, y hemos construido el",
+    "donation_web": "web de donaciones",
+    "future_vision": "Tenemos varias visiones donde podemos ayudar a crecer a la comunidad algorand.",
+    "graphics_designer": "Nos gustaría contratar diseñador gráfico para mejorar la apariencia de AWallet. Esperamos costos de aproximadamente 1000 USDt.",
+    "donate_now": "Donar ahora",
+    "translation_cost": "La traducción a otro idioma cuesta aproximadamente 50 USD. Por favor envíanos en la nota información sobre a qué idioma te gustaría que AWallet fuera traducido.",
+    "magento_gateway": "Implementación de pasarela de pago para Magento - Sin intermediario, aceptas pagos en tu cuenta, empareja con facturas",
+    "accept_donations": "Aceptamos donaciones en esta cuenta:",
+    "thank_you": "Gracias",
+    "ludo_scholtz": "Ludo Scholtz",
+    "company_name": "Scholtz&Company, jsa"
+  },
+  "placeholders": {
+    "source_asset": "Activo origen",
+    "destination_asset": "Activo destino",
+    "service_realm": "Dominio de servicio. Por ejemplo 2FA#ARC14",
+    "keyword_search": "Búsqueda por palabra clave",
+    "search_by_asset_id": "Buscar por ID de activo",
+    "search_by_type": "Buscar por tipo",
+    "search_by_date": "Buscar por fecha",
+    "search_by_amount": "Buscar por cantidad",
+    "search_by_sender": "Buscar por remitente",
+    "search_by_receiver": "Buscar por receptor",
+    "search_by_fee": "Buscar por tarifa",
+    "search_by_round": "Buscar por ronda",
+    "search_by_name": "Buscar por nombre",
+    "search_by_address": "Buscar por dirección"
+  },
+  "buttons": {
+    "try_it_out": "Pruébalo",
+    "exchange_tokens": "⇅ Intercambiar tokens origen y destino"
+  },
+  "labels": {
+    "use_folks_router": "Usar Folks router",
+    "use_deflex": "Usar Deflex",
+    "quote": "Cotización:",
+    "price": "Precio:"
+  },
+  "success": {
+    "payment_successful": "El pago ha sido exitoso",
+    "thank_you_payment": "Gracias por su pago"
+  },
+  "sign_all": {
+    "title": "Firmar múltiples transacciones",
+    "transaction_confirmed": "Transacción confirmada en ronda"
+  },
+  "arc14": {
+    "service_realm_title": "Dominio de servicio",
+    "network_note": "Tenga en cuenta que ARC14 requiere selección de red. Asegúrese de usar la misma red que el servicio de destino."
+  },
+  "tools": {
+    "opt_in_governance_title": "Optar por la gobernanza de algorand desde múltiples cuentas a la vez",
+    "opt_in_governance_help": "Para optar como gobernador, necesita enviar mensaje desde su cuenta a la cuenta específica de algorand foundation con mensaje de cuántos algos opta en período específico.",
+    "merge_accounts_title": "Fusionar múltiples cuentas en una",
+    "pay_multiple_title": "Pagar a múltiples cuentas desde una sola cuenta - Distribuir algos",
+    "pay_from_multiple_title": "Pagar desde múltiples cuentas a la vez",
+    "generate_accounts_title": "Generar múltiples cuentas",
+    "results": "Resultados"
+  },
+  "common": {
+    "go": "Ir",
+    "algo": "Algo",
+    "algorand": "Algorand"
   }
 }
