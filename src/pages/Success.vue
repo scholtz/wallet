@@ -1,10 +1,10 @@
 <template>
   <PublicLayout>
-    <h1>Payment has been successful</h1>
+    <h1>{{ $t("success.payment_successful") }}</h1>
 
     <Card>
       <template #content>
-        <p>Thank you for your payment</p>
+        <p>{{ $t("success.thank_you_payment") }}</p>
       </template>
     </Card>
   </PublicLayout>

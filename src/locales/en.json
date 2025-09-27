@@ -733,5 +733,80 @@
     "load_script_title": "Load app execution profile",
     "load_click": "Load",
     "xgov_promo": "This work has been performed with support from the Algorand Foundation xGov Grants Program"
+  },
+  "donation": {
+    "title": "Please help us",
+    "project_intro": "This project has been started in June 2021 as the first open source algorand wallet.",
+    "funding_received": "Thank to expert governors, we have received funds to create",
+    "twofa_accounts": "two factor authentication accounts",
+    "and": "and",
+    "payment_scheduler": "payment scheduler",
+    "community_active": "We are active in algorand community. We have created",
+    "algorand_directory": "Algorand Directory",
+    "wallet_support": ", besides the wallet support, we have created the",
+    "payment_gateway": "payment gateway",
+    "no_middleman": "which does not require any financial middleman, we have created open source decentralized voting system built on the algorand network, and we have built the decentralized",
+    "donation_web": "donation web",
+    "future_vision": "We have several visions where we can help the algorand community grow.",
+    "graphics_designer": "We would like to hire graphics designer to improve the Look&Feel of the AWallet. We expect costs approximately 1000 USDt.",
+    "donate_now": "Donate now",
+    "translation_cost": "Translation to other language costs approx 50 USD. Please send us in the note info to which language you would like the AWallet to be translated.",
+    "magento_gateway": "Payment gateway implementation to Magento - No middleman, you accept the payments to your account, match with invoices",
+    "accept_donations": "We accept donations to this account:",
+    "thank_you": "Thank you",
+    "ludo_scholtz": "Ludo Scholtz",
+    "company_name": "Scholtz&Company, jsa"
+  },
+  "placeholders": {
+    "source_asset": "Source asset",
+    "destination_asset": "Destination asset", 
+    "service_realm": "Service realm. For example 2FA#ARC14",
+    "keyword_search": "Keyword Search",
+    "search_by_asset_id": "Search by asset id",
+    "search_by_type": "Search by type", 
+    "search_by_date": "Search by date",
+    "search_by_amount": "Search by amount",
+    "search_by_sender": "Search by sender",
+    "search_by_receiver": "Search by receiver",
+    "search_by_fee": "Search by fee",
+    "search_by_round": "Search by round",
+    "search_by_name": "Search by name",
+    "search_by_address": "Search by address"
+  },
+  "buttons": {
+    "try_it_out": "Try it out",
+    "exchange_tokens": "⇅ Exchange source and destination token"
+  },
+  "labels": {
+    "use_folks_router": "Use Folks router",
+    "use_deflex": "Use Deflex",
+    "quote": "Quote:",
+    "price": "Price:"
+  },
+  "success": {
+    "payment_successful": "Payment has been successful",
+    "thank_you_payment": "Thank you for your payment"
+  },
+  "sign_all": {
+    "title": "Sign multiple transactions",
+    "transaction_confirmed": "Transaction confirmed in round"
+  },
+  "arc14": {
+    "service_realm_title": "Service realm",
+    "network_note": "Note that ARC14 requires selection of the network. Make sure that you are using same network as destination service."
+  },
+  "tools": {
+    "opt_in_governance_title": "Opt in for algorand governance from multiple accounts at once",
+    "opt_in_governance_help": "To opt in as a governor, you need to send message from your account to the algorand foundation specific account with message how much algos you opt in in specific perior.",
+    "merge_accounts_title": "Merge multiple accounts to one",
+    "pay_multiple_title": "Pay to multiple accounts from single account - Distribute algos", 
+    "pay_from_multiple_title": "Pay from multiple accounts at once",
+    "generate_accounts_title": "Generate multiple accounts",
+    "results": "Results"
+  },
+  "common": {
+    "go": "Go",
+    "algo": "Algo",
+    "algorand": "Algorand"
   }
 }

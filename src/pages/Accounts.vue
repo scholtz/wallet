@@ -35,7 +35,7 @@
                   <InputGroupAddon><i class="pi pi-search" /></InputGroupAddon>
                   <InputText
                     v-model="filters['global'].value"
-                    placeholder="Keyword Search"
+                    :placeholder="$t('placeholders.keyword_search')"
                   />
                 </InputGroup>
               </div>
@@ -72,7 +72,7 @@
                 type="text"
                 @input="filterCallback()"
                 class="p-column-filter"
-                placeholder="Search by name"
+                :placeholder="$t('placeholders.search_by_name')"
               />
             </template>
           </Column>
@@ -106,7 +106,7 @@
                 type="text"
                 @input="filterCallback()"
                 class="p-column-filter"
-                placeholder="Search by amount"
+                :placeholder="$t('placeholders.search_by_amount')"
               />
             </template>
           </Column>
@@ -121,7 +121,7 @@
                 type="text"
                 @input="filterCallback()"
                 class="p-column-filter"
-                placeholder="Search by address"
+                :placeholder="$t('placeholders.search_by_address')"
               />
             </template>
           </Column>

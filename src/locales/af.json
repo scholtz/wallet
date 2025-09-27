@@ -733,5 +733,80 @@
     "load_script_title": "Load app execution profile",
     "load_click": "Load",
     "xgov_promo": "This work has been performed with support from the Algorand Foundation xGov Grants Program"
+  },
+  "donation": {
+    "title": "Help ons asseblief",
+    "project_intro": "Hierdie projek is in Junie 2021 begin as die eerste oop bron algorand beursie.",
+    "funding_received": "Danksy kundige goewerneurs het ons befondsing ontvang om te skep",
+    "twofa_accounts": "twee-faktor verifikasie rekening",
+    "and": "en",
+    "payment_scheduler": "betaling skeduleerder",
+    "community_active": "Ons is aktief in die algorand gemeenskap. Ons het geskep",
+    "algorand_directory": "Algorand Gids",
+    "wallet_support": ", naas die beursie ondersteuning, het ons geskep die",
+    "payment_gateway": "betaling hek",
+    "no_middleman": "wat geen finansiële tussenganger benodig nie, ons het oop bron gedesentraliseerde stemstelsel gebou op die algorand netwerk, en ons het die gedesentraliseerde",
+    "donation_web": "skenking web",
+    "future_vision": "Ons het verskeie visies waar ons die algorand gemeenskap kan help groei.",
+    "graphics_designer": "Ons sou graag 'n grafiese ontwerper wil huur om die voorkoms van AWallet te verbeter. Ons verwag koste van ongeveer 1000 USDt.",
+    "donate_now": "Skenk nou",
+    "translation_cost": "Vertaling na ander taal kos ongeveer 50 USD. Stuur ons asseblief in die nota inligting na watter taal jy AWallet vertaal wil hê.",
+    "magento_gateway": "Betaling hek implementering vir Magento - Geen tussenganger, jy aanvaar betalings na jou rekening, koppel met fakture",
+    "accept_donations": "Ons aanvaar skenkings na hierdie rekening:",
+    "thank_you": "Dankie",
+    "ludo_scholtz": "Ludo Scholtz",
+    "company_name": "Scholtz&Company, jsa"
+  },
+  "placeholders": {
+    "source_asset": "Bron bate",
+    "destination_asset": "Bestemming bate",
+    "service_realm": "Diens domein. Byvoorbeeld 2FA#ARC14",
+    "keyword_search": "Sleutelwoord soek",
+    "search_by_asset_id": "Soek deur bate ID",
+    "search_by_type": "Soek deur tipe",
+    "search_by_date": "Soek deur datum",
+    "search_by_amount": "Soek deur bedrag",
+    "search_by_sender": "Soek deur stuurder",
+    "search_by_receiver": "Soek deur ontvanger",
+    "search_by_fee": "Soek deur fooi",
+    "search_by_round": "Soek deur ronde",
+    "search_by_name": "Soek deur naam",
+    "search_by_address": "Soek deur adres"
+  },
+  "buttons": {
+    "try_it_out": "Probeer dit",
+    "exchange_tokens": "⇅ Ruil bron en bestemming tokens"
+  },
+  "labels": {
+    "use_folks_router": "Gebruik Folks router",
+    "use_deflex": "Gebruik Deflex",
+    "quote": "Kwotasie:",
+    "price": "Prys:"
+  },
+  "success": {
+    "payment_successful": "Betaling was suksesvol",
+    "thank_you_payment": "Dankie vir jou betaling"
+  },
+  "sign_all": {
+    "title": "Teken meervoudige transaksies",
+    "transaction_confirmed": "Transaksie bevestig in ronde"
+  },
+  "arc14": {
+    "service_realm_title": "Diens domein",
+    "network_note": "Let wel dat ARC14 netwerk seleksie vereis. Maak seker jy gebruik dieselfde netwerk as die bestemming diens."
+  },
+  "tools": {
+    "opt_in_governance_title": "Sluit aan vir algorand regering vanaf veelvuldige rekeninge gelyktydig",
+    "opt_in_governance_help": "Om aan te sluit as 'n goewerneur, moet jy boodskap stuur vanaf jou rekening na die algorand stigting spesifieke rekening met boodskap hoeveel algos jy aansluit in spesifieke periode.",
+    "merge_accounts_title": "Saamvoeg veelvuldige rekeninge na een",
+    "pay_multiple_title": "Betaal na veelvuldige rekeninge vanaf enkele rekening - Versprei algos",
+    "pay_from_multiple_title": "Betaal vanaf veelvuldige rekeninge gelyktydig",
+    "generate_accounts_title": "Genereer veelvuldige rekeninge",
+    "results": "Resultate"
+  },
+  "common": {
+    "go": "Gaan",
+    "algo": "Algo",
+    "algorand": "Algorand"
   }
 }

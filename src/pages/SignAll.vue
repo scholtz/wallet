@@ -221,7 +221,7 @@ const submitSignedClick = async () => {
       state.confirmedRound = confirmation["confirmed-round"];
       store.dispatch(
         "toast/openSuccess",
-        `Transaction confirmed in round ${state.confirmedRound}`
+        `${t("sign_all.transaction_confirmed")} ${state.confirmedRound}`
       );
     }
     if (confirmation["pool-error"]) {
@@ -257,12 +257,12 @@ const getAssetDecimals = (id) => {
 </script>
 <template>
   <MainLayout>
-    <h1>Sign multiple transactions</h1>
+    <h1>{{ $t("sign_all.title") }}</h1>
     <Card>
       <template #content>
         <Message severity="error" v-if="state.error">{{ state.error }}</Message>
         <Message severity="success" v-if="state.confirmedRound">
-          {{ `Transaction confirmed in round ${state.confirmedRound}` }}
+          {{ `${$t("sign_all.transaction_confirmed")} ${state.confirmedRound}` }}
         </Message>
 
         <div>

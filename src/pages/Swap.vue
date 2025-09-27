@@ -26,7 +26,7 @@
                 :options="assets"
                 option-label="label"
                 option-value="asset-id"
-                placeholder="Source asset"
+                placeholder="{{ $t('placeholders.source_asset') }}"
                 class="w-full"
               >
               </Dropdown>
@@ -37,7 +37,7 @@
             </label>
             <div class="col-12 md:col-10">
               <Button :disabled="asset < 0 && toAsset < 0" @click="swapTokens">
-                ⇅ Exchange source and destination token
+                {{ $t("buttons.exchange_tokens") }}
               </Button>
             </div>
           </div>
@@ -53,7 +53,7 @@
                 filter
                 option-label="label"
                 option-value="asset-id"
-                placeholder="Destination asset"
+                placeholder="{{ $t('placeholders.destination_asset') }}"
                 class="w-full"
               >
               </Dropdown>
@@ -109,7 +109,7 @@
                 v-model="useFolks"
               />
               <label for="useFolksCheckbox" class="ml-1"
-                >Use Folks router</label
+                >{{ $t("labels.use_folks_router") }}</label
               >
             </div>
           </div>
@@ -122,7 +122,7 @@
                 type="checkbox"
                 v-model="useDeflex"
               />
-              <label for="useDeflexCheckbox" class="ml-1">Use Deflex</label>
+              <label for="useDeflexCheckbox" class="ml-1">{{ $t("labels.use_deflex") }}</label>
             </div>
           </div>
           <div class="field grid">
@@ -196,7 +196,7 @@
                   />
                   {{ $t("swap.execute_button_deflex") }}
                 </div>
-                <div v-if="this.deflexQuotes.quote">Quote:</div>
+                <div v-if="this.deflexQuotes.quote">{{ $t("labels.quote") }}</div>
                 <div v-if="this.folksQuote.quoteAmount">
                   {{
                     this.$filters.formatCurrency(
@@ -206,7 +206,7 @@
                     )
                   }}
                 </div>
-                <div v-if="this.deflexQuotes.quote">Price:</div>
+                <div v-if="this.deflexQuotes.quote">{{ $t("labels.price") }}</div>
                 <div v-if="this.deflexQuotes.quote">
                   {{
                     this.$filters.formatCurrency(
@@ -254,7 +254,7 @@
                   {{ $t("swap.execute_button_folks") }}
                   <br />
                 </div>
-                <div v-if="this.deflexQuotes.quote">Quote:</div>
+                <div v-if="this.deflexQuotes.quote">{{ $t("labels.quote") }}</div>
                 <div v-if="this.folksQuote.quoteAmount">
                   {{
                     this.$filters.formatCurrency(
@@ -264,7 +264,7 @@
                     )
                   }}
                 </div>
-                <div v-if="this.deflexQuotes.quote">Price:</div>
+                <div v-if="this.deflexQuotes.quote">{{ $t("labels.price") }}</div>
                 <div v-if="this.folksQuote.quoteAmount">
                   {{
                     this.$filters.formatCurrency(
