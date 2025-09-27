@@ -1,23 +1,26 @@
 version: 2.1
 
-orbs:
-  cypress: cypress-io/cypress@4
-
 workflows:
   build:
     jobs:
-      - cypress/run:
-          # Start the app server used by E2E tests
-          start-command: npm run server
-          # Use project Cypress script (ensures TS config is used)
-          cypress-command: npm run cypress:run
-          # Optionally store Cypress artifacts
-          post-steps:
-            - store_artifacts:
-                path: cypress/videos
-            - store_artifacts:
-                path: cypress/screenshots
-          # If you need to pin a specific Cypress Docker image/executor, uncomment below
-          # executor: cypress/default
-          # tag: '18.16.0'
-          # Note: Adjust executor/tag to a desired Node/Cypress image when needed
+      - test-job
+
+jobs:
+  test-job:
+    docker:
+      - image: cimg/node:20.19.0-browsers  # Use image with browsers for Cypress
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - run:
+          name: Build application
+          command: npm run build
+      - run:
+          name: Run tests with intelligent runner
+          command: npm run test
+      - store_artifacts:
+          path: cypress/videos
+      - store_artifacts:
+          path: cypress/screenshots
