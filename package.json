@@ -13,12 +13,14 @@
     "i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/locales/**/*.json\"",
     "server": "browser-sync start --config bs-config.js",
     "run-app-for-test": "npm run serve -- --port 8083",
-    "test": "run-p -r server cypress:run",
-    "test:video": "run-p -r server cypress:run-video",
-    "test:arc76": "cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/2-setup-account/create-arc76-account.cy.ts'",
-    "test:ed25519": "cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/2-setup-account/create-ed25519-account.cy.ts'",
-    "test:basic": "cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/1-basic-tests/load-index.cy.ts'",
-    "test:open": "run-p -r server cypress:open"
+    "test": "node scripts/run-tests.js",
+    "test:parallel": "run-p server cypress:run",
+    "test:video": "run-p server cypress:run-video",
+    "test:prepare": "npm run build",
+    "test:arc76": "node scripts/run-test-with-server.js cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/2-setup-account/create-arc76-account.cy.ts'",
+    "test:ed25519": "node scripts/run-test-with-server.js cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/2-setup-account/create-ed25519-account.cy.ts'",
+    "test:basic": "node scripts/run-test-with-server.js cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/1-basic-tests/load-index.cy.ts'",
+    "test:open": "run-p server cypress:open"
   },
   "dependencies": {
     "@algorandfoundation/algokit-utils": "^6.2.1",
