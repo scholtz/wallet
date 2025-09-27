@@ -73,7 +73,7 @@
             type="text"
             @input="filterCallback()"
             class="p-column-filter"
-            placeholder="Search by date"
+            :placeholder="$t('placeholders.search_by_date')"
           />
         </template>
       </Column>
@@ -123,7 +123,7 @@
             type="number"
             @input="filterCallback()"
             class="p-column-filter"
-            placeholder="Search by amount"
+            :placeholder="$t('placeholders.search_by_amount')"
           />
         </template>
       </Column>
@@ -139,7 +139,7 @@
             type="text"
             @input="filterCallback()"
             class="p-column-filter"
-            placeholder="Search by sender"
+            :placeholder="$t('placeholders.search_by_sender')"
           />
         </template>
       </Column>
@@ -155,7 +155,7 @@
             type="text"
             @input="filterCallback()"
             class="p-column-filter"
-            placeholder="Search by receiver"
+            :placeholder="$t('placeholders.search_by_receiver')"
           />
         </template>
       </Column>
@@ -179,7 +179,7 @@
             type="text"
             @input="filterCallback()"
             class="p-column-filter"
-            placeholder="Search by fee"
+            :placeholder="$t('placeholders.search_by_fee')"
           />
         </template>
       </Column>
@@ -194,7 +194,7 @@
             type="number"
             @input="filterCallback()"
             class="p-column-filter"
-            placeholder="Search by round"
+            :placeholder="$t('placeholders.search_by_round')"
           />
         </template>
       </Column>

@@ -9,11 +9,10 @@
           swaggers.
         </p>
         <p>
-          Note that ARC14 requires selection of the network. Make sure that you
-          are using same network as destination service.
+          {{ $t("arc14.network_note") }}
         </p>
         <div>
-          <h2>Service realm</h2>
+          <h2>{{ $t("arc14.service_realm_title") }}</h2>
           <InputText
             id="realm"
             v-model="realm"

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Pay to multiple accounts from single account - Distribute algos</h1>
+    <h1>{{ $t("tools.pay_multiple_title") }}</h1>
     <div v-if="current" class="field grid">
       <label for="payFromDirect" class="col-12 mb-2 md:col-2 md:mb-0">
         Select internal account from which you want to distribute algos
@@ -38,7 +38,7 @@
             :maxFractionDigits="6"
             class="w-full"
           />
-          <InputGroupAddon>Algo</InputGroupAddon>
+          <InputGroupAddon>{{ $t("common.algo") }}</InputGroupAddon>
         </InputGroup>
       </div>
     </div>
@@ -63,7 +63,7 @@
       <label
         class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
         for="results"
-        >Results</label
+        >{{ $t("tools.results") }}</label
       >
       <div class="col-12 md:col-10">
         <Textarea id="results" v-model="results" class="w-full" rows="20" />

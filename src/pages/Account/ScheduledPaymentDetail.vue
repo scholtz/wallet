@@ -581,7 +581,7 @@ const loadScript = async () => {
                   <i class="pi pi-search" />
                   <InputText
                     v-model="state.filters['global'].value"
-                    placeholder="Keyword Search"
+                    :placeholder="$t('placeholders.keyword_search')"
                   />
                 </span>
               </div>

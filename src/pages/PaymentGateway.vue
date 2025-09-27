@@ -205,7 +205,7 @@
                       :step="0.000001"
                       :maxFractionDigits="6"
                     />
-                    <InputGroupAddon>Algo</InputGroupAddon>
+                    <InputGroupAddon>{{ $t("common.algo") }}</InputGroupAddon>
                   </InputGroup>
                 </div>
                 <span v-if="!build">

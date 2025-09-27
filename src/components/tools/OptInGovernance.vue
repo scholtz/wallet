@@ -2,11 +2,9 @@
   <div class="container-fluid">
     <div class="grid">
       <div class="col-12">
-        <h1>Opt in for algorand governance from multiple accounts at once</h1>
+        <h1>{{ $t("tools.opt_in_governance_title") }}</h1>
         <p>
-          To opt in as a governor, you need to send message from your account to
-          the algorand foundation specific account with message how much algos
-          you opt in in specific perior.
+          {{ $t("tools.opt_in_governance_help") }}
         </p>
 
         <div class="field grid">
@@ -42,7 +40,7 @@
                 :maxFractionDigits="6"
                 class="w-full"
               />
-              <InputGroupAddon>Algo</InputGroupAddon>
+              <InputGroupAddon>{{ $t("common.algo") }}</InputGroupAddon>
             </InputGroup>
           </div>
         </div>

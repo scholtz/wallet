@@ -1,7 +1,7 @@
 <template>
   <div class="grid">
     <div class="col-12">
-      <h1>Generate multiple accounts</h1>
+      <h1>{{ $t("tools.generate_accounts_title") }}</h1>
 
       <div class="field grid">
         <label for="amount" class="col-12 mb-2 md:col-2 md:mb-0">

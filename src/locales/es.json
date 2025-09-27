@@ -781,5 +781,31 @@
     "use_deflex": "Usar Deflex",
     "quote": "Cotización:",
     "price": "Precio:"
+  },
+  "success": {
+    "payment_successful": "El pago ha sido exitoso",
+    "thank_you_payment": "Gracias por su pago"
+  },
+  "sign_all": {
+    "title": "Firmar múltiples transacciones",
+    "transaction_confirmed": "Transacción confirmada en ronda"
+  },
+  "arc14": {
+    "service_realm_title": "Dominio de servicio",
+    "network_note": "Tenga en cuenta que ARC14 requiere selección de red. Asegúrese de usar la misma red que el servicio de destino."
+  },
+  "tools": {
+    "opt_in_governance_title": "Optar por la gobernanza de algorand desde múltiples cuentas a la vez",
+    "opt_in_governance_help": "Para optar como gobernador, necesita enviar mensaje desde su cuenta a la cuenta específica de algorand foundation con mensaje de cuántos algos opta en período específico.",
+    "merge_accounts_title": "Fusionar múltiples cuentas en una",
+    "pay_multiple_title": "Pagar a múltiples cuentas desde una sola cuenta - Distribuir algos",
+    "pay_from_multiple_title": "Pagar desde múltiples cuentas a la vez",
+    "generate_accounts_title": "Generar múltiples cuentas",
+    "results": "Resultados"
+  },
+  "common": {
+    "go": "Ir",
+    "algo": "Algo",
+    "algorand": "Algorand"
   }
 }

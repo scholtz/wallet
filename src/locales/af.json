@@ -782,5 +782,31 @@
     "use_deflex": "Gebruik Deflex",
     "quote": "Kwotasie:",
     "price": "Prys:"
+  },
+  "success": {
+    "payment_successful": "Betaling was suksesvol",
+    "thank_you_payment": "Dankie vir jou betaling"
+  },
+  "sign_all": {
+    "title": "Teken meervoudige transaksies",
+    "transaction_confirmed": "Transaksie bevestig in ronde"
+  },
+  "arc14": {
+    "service_realm_title": "Diens domein",
+    "network_note": "Let wel dat ARC14 netwerk seleksie vereis. Maak seker jy gebruik dieselfde netwerk as die bestemming diens."
+  },
+  "tools": {
+    "opt_in_governance_title": "Sluit aan vir algorand regering vanaf veelvuldige rekeninge gelyktydig",
+    "opt_in_governance_help": "Om aan te sluit as 'n goewerneur, moet jy boodskap stuur vanaf jou rekening na die algorand stigting spesifieke rekening met boodskap hoeveel algos jy aansluit in spesifieke periode.",
+    "merge_accounts_title": "Saamvoeg veelvuldige rekeninge na een",
+    "pay_multiple_title": "Betaal na veelvuldige rekeninge vanaf enkele rekening - Versprei algos",
+    "pay_from_multiple_title": "Betaal vanaf veelvuldige rekeninge gelyktydig",
+    "generate_accounts_title": "Genereer veelvuldige rekeninge",
+    "results": "Resultate"
+  },
+  "common": {
+    "go": "Gaan",
+    "algo": "Algo",
+    "algorand": "Algorand"
   }
 }
