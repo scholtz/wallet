@@ -16,9 +16,10 @@
     "test": "node scripts/run-tests.js",
     "test:parallel": "run-p server cypress:run",
     "test:video": "run-p server cypress:run-video",
-    "test:arc76": "cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/2-setup-account/create-arc76-account.cy.ts'",
-    "test:ed25519": "cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/2-setup-account/create-ed25519-account.cy.ts'",
-    "test:basic": "cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/1-basic-tests/load-index.cy.ts'",
+    "test:prepare": "npm run build",
+    "test:arc76": "node scripts/run-test-with-server.js cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/2-setup-account/create-arc76-account.cy.ts'",
+    "test:ed25519": "node scripts/run-test-with-server.js cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/2-setup-account/create-ed25519-account.cy.ts'",
+    "test:basic": "node scripts/run-test-with-server.js cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/1-basic-tests/load-index.cy.ts'",
     "test:open": "run-p server cypress:open"
   },
   "dependencies": {

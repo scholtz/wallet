@@ -39,7 +39,14 @@ function runCommand(command, args, options = {}) {
 }
 
 async function main() {
-  console.log('🚀 Starting AWallet test runner...');
+  const args = process.argv.slice(2);
+  if (args.length === 0) {
+    console.error('❌ Usage: node run-test-with-server.js <cypress-command-and-args>');
+    console.error('   Example: node run-test-with-server.js cypress run --spec "cypress/e2e/1-basic-tests/load-index.cy.ts"');
+    process.exit(1);
+  }
+
+  console.log('🚀 Starting AWallet test runner with server...');
   
   const hasCypressBinary = checkCypressBinary();
   console.log(`📦 Cypress binary available: ${hasCypressBinary ? '✅ Yes' : '❌ No'}`);
@@ -86,11 +93,11 @@ async function main() {
     console.log('⏳ Waiting for server to be ready...');
     await runCommand('node', ['scripts/wait-for-server.js']);
 
-    // Run Cypress tests
-    console.log('🧪 Running Cypress tests...');
-    await runCommand('npm', ['run', 'cypress:run']);
+    // Run the provided Cypress command
+    console.log(`🧪 Running: ${args.join(' ')}`);
+    await runCommand(args[0], args.slice(1));
     
-    console.log('✅ All tests completed successfully!');
+    console.log('✅ Test completed successfully!');
     process.exit(0);
 
   } catch (error) {
