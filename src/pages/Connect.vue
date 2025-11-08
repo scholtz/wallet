@@ -54,6 +54,12 @@
                     >
                       {{ $t("connect.sendBack") }}
                     </Button>
+                    <Button
+                      class="m-1"
+                      @click="clickCopyPayload(slotProps.data)"
+                    >
+                      <i class="pi pi-copy"></i>
+                    </Button>
                     <span v-if="!atLeastOneSigned(slotProps.data)" class="m-2">
                       {{ $t("connect.sign_txs") }}
                     </span>
@@ -767,6 +773,29 @@ export default {
         summary: "Request rejected",
         life: 3000,
       });
+    },
+    async clickCopyPayload(data) {
+      this.prolong();
+      try {
+        const encoded = data.transactions.map((tx) => {
+          const encodedtxn = algosdk.encodeUnsignedTransaction(tx.txn);
+          return this._arrayBufferToBase64(encodedtxn);
+        });
+        const payload = JSON.stringify(encoded);
+        await navigator.clipboard.writeText(payload);
+        this.openSuccess({
+          severity: "info",
+          summary: "Payload copied to clipboard",
+          life: 3000,
+        });
+      } catch (ex) {
+        this.openError({
+          severity: "error",
+          summary: "Copy payload failed",
+          detail: ex,
+          life: 5000,
+        });
+      }
     },
     async clickDisconnect(id) {
       this.prolong();
