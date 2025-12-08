@@ -14,284 +14,61 @@
           {{ $t("swap.has_sk") }}
         </Message>
         <div>
-          <div class="field grid">
-            <label for="swap_asset_from" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("swap.swap_asset_from") }}
-            </label>
-            <div class="col-12 md:col-10">
-              <Dropdown
-                inputId="swap_asset_from"
-                v-model="asset"
-                filter
-                :options="assets"
-                option-label="label"
-                option-value="asset-id"
-                placeholder="{{ $t('placeholders.source_asset') }}"
-                class="w-full"
-              >
-              </Dropdown>
-            </div>
-          </div>
-          <div class="field grid">
-            <label for="swap_asset_to" class="col-12 mb-2 md:col-2 md:mb-0">
-            </label>
-            <div class="col-12 md:col-10">
-              <Button :disabled="asset < 0 && toAsset < 0" @click="swapTokens">
-                {{ $t("buttons.exchange_tokens") }}
-              </Button>
-            </div>
-          </div>
-          <div class="field grid">
-            <label for="swap_asset_to" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("swap.swap_asset_to") }}
-            </label>
-            <div class="col-12 md:col-10">
-              <Dropdown
-                inputId="swap_asset_to"
-                v-model="toAsset"
-                :options="assets"
-                filter
-                option-label="label"
-                option-value="asset-id"
-                placeholder="{{ $t('placeholders.destination_asset') }}"
-                class="w-full"
-              >
-              </Dropdown>
-            </div>
-          </div>
-          <div class="field grid">
-            <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("swap.swap_amount") }}
-            </label>
-            <div class="col-12 md:col-10">
-              <InputGroup>
-                <InputNumber
-                  inputId="payamount"
-                  v-model="payamount"
-                  type="number"
-                  :min="0"
-                  :max="maxAmount"
-                  :step="stepAmount"
-                  :maxFractionDigits="decimals"
-                  class="w-full"
-                />
-                <InputGroupAddon v-if="unit">{{ unit }}</InputGroupAddon>
-                <Button severity="secondary" @click="payamount = maxAmount">{{
-                  $t("pay.set_max")
-                }}</Button>
-              </InputGroup>
-            </div>
-          </div>
-          <div class="field grid">
-            <label for="slippage" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("swap.slippage") }}
-            </label>
-            <div class="col-12 md:col-10">
-              <InputNumber
-                inputId="slippage"
-                v-model="slippage"
-                type="number"
-                :min="0"
-                :max="1"
-                :step="0.01"
-                :maxFractionDigits="6"
-                class="w-full"
-              />
-            </div>
-          </div>
-          <div class="field grid">
-            <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-            <div class="col-12 md:col-10">
-              <Checkbox
-                binary
-                inputId="useFolksCheckbox"
-                type="checkbox"
-                v-model="useFolks"
-              />
-              <label for="useFolksCheckbox" class="ml-1"
-                >{{ $t("labels.use_folks_router") }}</label
-              >
-            </div>
-          </div>
-          <div class="field grid">
-            <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-            <div class="col-12 md:col-10">
-              <Checkbox
-                binary
-                inputId="useDeflexCheckbox"
-                type="checkbox"
-                v-model="useDeflex"
-              />
-              <label for="useDeflexCheckbox" class="ml-1">{{ $t("labels.use_deflex") }}</label>
-            </div>
-          </div>
-          <div class="field grid">
-            <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-            <div class="col-12 md:col-10">
-              <Button
-                class="my-2"
-                :disabled="formInvalid"
-                :severity="
-                  allowExecuteDeflex || requiresOptIn ? 'secondary' : 'primary'
-                "
-                @click="clickGetQuote"
-              >
-                {{ $t("swap.get_quote") }}
-                <ProgressSpinner
-                  v-if="processingQuote"
-                  style="width: 1em; height: 1em"
-                  strokeWidth="5"
-                />
-              </Button>
-            </div>
-          </div>
-          <div v-if="requiresOptIn">
-            <h2>{{ $t("swap.apps_optin") }}</h2>
-            <ul>
-              <li v-for="app in appsToOptIn" :key="app">
-                {{ app }}
-              </li>
-            </ul>
-            <Button
-              class="my-2"
-              :disabled="processingOptin"
-              @click="clickOptInToApps"
-            >
-              <ProgressSpinner
-                v-if="processingOptin"
-                style="width: 1em; height: 1em"
-                strokeWidth="5"
-              />
-
-              {{ $t("swap.apps_optin_button") }}
-            </Button>
-          </div>
-          <div>
-            <Textarea v-model="txsDetails" disabled class="w-full" rows="5" />
-          </div>
-          <Message severity="success" v-if="note" class="my-2">
-            {{ note }}
-          </Message>
-          <Message severity="error" v-if="error" class="my-2">
-            {{ error }}
-          </Message>
-          <div>
-            <Button
-              v-if="useDeflex"
-              class="my-2 mx-1"
-              :disabled="!allowExecuteDeflex || processingTradeDeflex"
-              :severity="
-                allowExecuteDeflex && isDeflexQuoteBetter
-                  ? 'primary'
-                  : 'secondary'
-              "
-              @click="clickExecuteDeflex"
-            >
-              <div>
-                <div>
-                  <ProgressSpinner
-                    v-if="processingTradeDeflex"
-                    style="width: 1em; height: 1em"
-                    strokeWidth="5"
-                  />
-                  {{ $t("swap.execute_button_deflex") }}
-                </div>
-                <div v-if="this.deflexQuotes.quote">{{ $t("labels.quote") }}</div>
-                <div v-if="this.folksQuote.quoteAmount">
-                  {{
-                    this.$filters.formatCurrency(
-                      Number(this.deflexQuotes.quote),
-                      "",
-                      this.toAssetDecimals
-                    )
-                  }}
-                </div>
-                <div v-if="this.deflexQuotes.quote">{{ $t("labels.price") }}</div>
-                <div v-if="this.deflexQuotes.quote">
-                  {{
-                    this.$filters.formatCurrency(
-                      (10 ** 6 * Number(this.deflexQuotes.quote)) /
-                        10 ** this.toAssetDecimals /
-                        this.payamount,
-                      this.pair,
-                      6
-                    )
-                  }}
-                </div>
-                <div v-if="this.deflexQuotes.quote">
-                  {{
-                    this.$filters.formatCurrency(
-                      10 ** 6 /
-                        ((10 ** 6 * Number(this.deflexQuotes.quote)) /
-                          10 ** this.toAssetDecimals /
-                          this.payamount /
-                          10 ** 6),
-                      this.pairReversed,
-                      6
-                    )
-                  }}
-                </div>
-              </div>
-            </Button>
-            <Button
-              v-if="useFolks"
-              class="my-2"
-              :disabled="!allowExecuteFolks || processingTradeFolks"
-              :severity="
-                allowExecuteFolks && isFolksQuoteBetter
-                  ? 'primary'
-                  : 'secondary'
-              "
-              @click="clickExecuteFolks"
-            >
-              <div>
-                <div>
-                  <ProgressSpinner
-                    v-if="processingTradeFolks"
-                    style="width: 1em; height: 1em"
-                    strokeWidth="5"
-                  />
-                  {{ $t("swap.execute_button_folks") }}
-                  <br />
-                </div>
-                <div v-if="this.deflexQuotes.quote">{{ $t("labels.quote") }}</div>
-                <div v-if="this.folksQuote.quoteAmount">
-                  {{
-                    this.$filters.formatCurrency(
-                      Number(this.folksQuote.quoteAmount),
-                      "",
-                      this.toAssetDecimals
-                    )
-                  }}
-                </div>
-                <div v-if="this.deflexQuotes.quote">{{ $t("labels.price") }}</div>
-                <div v-if="this.folksQuote.quoteAmount">
-                  {{
-                    this.$filters.formatCurrency(
-                      (10 ** 6 * Number(this.folksQuote.quoteAmount)) /
-                        10 ** this.toAssetDecimals /
-                        this.payamount,
-                      this.pair,
-                      6
-                    )
-                  }}
-                </div>
-                <div v-if="this.folksQuote.quoteAmount">
-                  {{
-                    this.$filters.formatCurrency(
-                      10 ** 6 /
-                        ((10 ** 6 * Number(this.folksQuote.quoteAmount)) /
-                          10 ** this.toAssetDecimals /
-                          this.payamount /
-                          10 ** 6),
-                      this.pairReversed,
-                      6
-                    )
-                  }}
-                </div>
-              </div>
-            </Button>
-          </div>
+          <SwapAssetSelector
+            :assets="assets"
+            v-model:asset="asset"
+            v-model:toAsset="toAsset"
+            @swap-tokens="swapTokens"
+          />
+          <SwapAmountInput
+            v-model:payamount="payamount"
+            :maxAmount="maxAmount"
+            :stepAmount="stepAmount"
+            :decimals="decimals"
+            :unit="unit"
+            @set-max="payamount = maxAmount"
+          />
+          <SwapSlippageInput v-model:slippage="slippage" />
+          <SwapOptions
+            v-model:useFolks="useFolks"
+            v-model:useDeflex="useDeflex"
+          />
+          <SwapQuoteButton
+            :formInvalid="formInvalid"
+            :allowExecuteDeflex="allowExecuteDeflex"
+            :requiresOptIn="requiresOptIn"
+            :processingQuote="processingQuote"
+            @get-quote="clickGetQuote"
+          />
+          <SwapOptIn
+            :requiresOptIn="requiresOptIn"
+            :appsToOptIn="appsToOptIn"
+            :processingOptin="processingOptin"
+            @opt-in="clickOptInToApps"
+          />
+          <SwapTransactionDetails
+            v-model:txsDetails="txsDetails"
+            :note="note"
+            :error="error"
+          />
+          <SwapExecuteButtons
+            :useDeflex="useDeflex"
+            :useFolks="useFolks"
+            :allowExecuteDeflex="allowExecuteDeflex"
+            :allowExecuteFolks="allowExecuteFolks"
+            :processingTradeDeflex="processingTradeDeflex"
+            :processingTradeFolks="processingTradeFolks"
+            :isDeflexQuoteBetter="isDeflexQuoteBetter"
+            :isFolksQuoteBetter="isFolksQuoteBetter"
+            :deflexQuotes="deflexQuotes"
+            :folksQuote="folksQuote"
+            :toAssetDecimals="toAssetDecimals"
+            :payamount="payamount"
+            :pair="pair"
+            :pairReversed="pairReversed"
+            @execute-deflex="clickExecuteDeflex"
+            @execute-folks="clickExecuteFolks"
+          />
         </div>
       </template>
     </Card>
@@ -300,6 +77,14 @@
 
 <script>
 import MainLayout from "../layouts/Main.vue";
+import SwapAssetSelector from "../components/SwapAssetSelector.vue";
+import SwapAmountInput from "../components/SwapAmountInput.vue";
+import SwapSlippageInput from "../components/SwapSlippageInput.vue";
+import SwapOptions from "../components/SwapOptions.vue";
+import SwapQuoteButton from "../components/SwapQuoteButton.vue";
+import SwapOptIn from "../components/SwapOptIn.vue";
+import SwapTransactionDetails from "../components/SwapTransactionDetails.vue";
+import SwapExecuteButtons from "../components/SwapExecuteButtons.vue";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
 import { FolksRouterClient, Network, SwapMode } from "@folks-router/js-sdk";
@@ -307,6 +92,14 @@ import { FolksRouterClient, Network, SwapMode } from "@folks-router/js-sdk";
 export default {
   components: {
     MainLayout,
+    SwapAssetSelector,
+    SwapAmountInput,
+    SwapSlippageInput,
+    SwapOptions,
+    SwapQuoteButton,
+    SwapOptIn,
+    SwapTransactionDetails,
+    SwapExecuteButtons,
   },
   data() {
     return {
