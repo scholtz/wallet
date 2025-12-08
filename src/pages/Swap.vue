@@ -30,6 +30,7 @@
           />
           <SwapSlippageInput v-model:slippage="slippage" />
           <SwapOptions
+            :aggregators="dexAggregators"
             v-model:useFolks="useFolks"
             v-model:useDeflex="useDeflex"
           />
@@ -88,6 +89,7 @@ import SwapExecuteButtons from "../components/SwapExecuteButtons.vue";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
 import { FolksRouterClient, Network, SwapMode } from "@folks-router/js-sdk";
+import { dexAggregators } from "../scripts/dexAggregators.js";
 
 export default {
   components: {
@@ -102,6 +104,15 @@ export default {
     SwapExecuteButtons,
   },
   data() {
+    // Initialize aggregator data dynamically
+    const aggregatorData = {};
+    dexAggregators.forEach(agg => {
+      aggregatorData[agg.quotesKey] = {};
+      aggregatorData[agg.txnsKey] = agg.txnsKey === 'deflexTxs' ? { groupMetadata: [] } : [];
+      aggregatorData[agg.processingKey] = false;
+      aggregatorData[agg.enabledKey] = agg.name === 'folks' || agg.name === 'deflex'; // Default enabled
+    });
+
     return {
       assets: [],
       asset: null,
@@ -109,22 +120,17 @@ export default {
       payamount: 0,
       fromAssetObj: {},
       toAssetObj: {},
-      deflexTxs: { groupMetadata: [] },
-      folksQuote: {},
-      folksTxns: [],
       txsDetails: "Select assets, quantity and request quote",
-      deflexQuotes: {},
       hasSK: null,
       processingQuote: false,
       processingOptin: false,
-      processingTradeDeflex: false,
-      processingTradeFolks: false,
       note: "",
       error: "",
-      useFolks: true,
-      useDeflex: true,
       slippage: 0.1,
       fee: 0,
+      dexAggregators,
+      // Spread aggregator data
+      ...aggregatorData,
     };
   },
   computed: {
@@ -188,22 +194,12 @@ export default {
       return Math.pow(10, -1 * this.fromAssetDecimals);
     },
     allowExecuteDeflex() {
-      if (
-        !this.deflexTxs ||
-        !this.deflexTxs.txns ||
-        Object.values(this.deflexTxs.groupMetadata).length <= 0
-      ) {
-        return false;
-      }
-      return !this.requiresOptIn;
-      /**/
+      const agg = this.dexAggregators.find(a => a.name === 'deflex');
+      return agg ? agg.allowExecute(this) : false;
     },
     allowExecuteFolks() {
-      if (this.folksTxns && this.folksQuote && this.folksTxns.length > 0) {
-        return true;
-      }
-      return false;
-      /**/
+      const agg = this.dexAggregators.find(a => a.name === 'folks');
+      return agg ? agg.allowExecute(this) : false;
     },
     appsToOptIn() {
       const requiredAppOptIns = this.deflexQuotes?.requiredAppOptIns ?? [];
@@ -247,48 +243,21 @@ export default {
       return `${this.toAssetUnit}/${this.fromAssetUnit}`;
     },
     isFolksQuoteBetter() {
-      if (!this.folksQuote) {
-        return false;
-      }
-      if (!this.folksQuote.quoteAmount) {
-        return false;
-      }
-      if (!this.deflexQuotes) {
-        return true;
-      }
-      if (!this.deflexQuotes.quote) {
-        return true;
-      }
-      const deflex = BigInt(this.deflexQuotes.quote).toString();
-      const folks = BigInt(this.folksQuote.quoteAmount).toString();
-      if (deflex.length > folks.length) return false;
-      if (folks.length > deflex.length) return true;
-      return folks > deflex;
+      const agg = this.dexAggregators.find(a => a.name === 'folks');
+      return agg ? agg.isQuoteBetter(this) : false;
     },
     isDeflexQuoteBetter() {
-      if (!this.deflexQuotes) {
-        return false;
-      }
-      if (!this.deflexQuotes.quote) {
-        return false;
-      }
-      if (!this.folksQuote) {
-        return true;
-      }
-      if (!this.folksQuote.quoteAmount) {
-        return true;
-      }
-      const deflex = BigInt(this.deflexQuotes.quote).toString();
-      const folks = BigInt(this.folksQuote.quoteAmount).toString();
-      if (folks.length > deflex.length) return false;
-      if (deflex.length > folks.length) return true;
-      return deflex > folks;
+      const agg = this.dexAggregators.find(a => a.name === 'deflex');
+      return agg ? agg.isQuoteBetter(this) : false;
     },
   },
   watch: {
     async asset() {
-      this.deflexTxs = { groupMetadata: [] };
-      this.folksTxns = [];
+      // Reset all aggregator data
+      this.dexAggregators.forEach(agg => {
+        this[agg.quotesKey] = {};
+        this[agg.txnsKey] = agg.txnsKey === 'deflexTxs' ? { groupMetadata: [] } : [];
+      });
       if (this.asset > 0) {
         this.fromAssetObj = await this.getAsset({
           assetIndex: this.asset,
@@ -305,8 +274,11 @@ export default {
       localStorage.setItem("last-swap-from-asset", this.asset);
     },
     async toAsset() {
-      this.deflexTxs = { groupMetadata: [] };
-      this.folksTxns = [];
+      // Reset all aggregator data
+      this.dexAggregators.forEach(agg => {
+        this[agg.quotesKey] = {};
+        this[agg.txnsKey] = agg.txnsKey === 'deflexTxs' ? { groupMetadata: [] } : [];
+      });
       if (this.toAsset > 0) {
         this.toAssetObj = await this.getAsset({
           assetIndex: this.toAsset,
@@ -322,13 +294,19 @@ export default {
       localStorage.setItem("last-swap-to-asset", this.toAsset);
     },
     account() {
-      this.deflexTxs = { groupMetadata: [] };
-      this.folksTxns = [];
+      // Reset all aggregator data
+      this.dexAggregators.forEach(agg => {
+        this[agg.quotesKey] = {};
+        this[agg.txnsKey] = agg.txnsKey === 'deflexTxs' ? { groupMetadata: [] } : [];
+      });
       this.makeAssets();
     },
     payamount() {
-      this.deflexTxs = { groupMetadata: [] };
-      this.folksTxns = [];
+      // Reset all aggregator data
+      this.dexAggregators.forEach(agg => {
+        this[agg.quotesKey] = {};
+        this[agg.txnsKey] = agg.txnsKey === 'deflexTxs' ? { groupMetadata: [] } : [];
+      });
     },
   },
   async mounted() {
@@ -461,148 +439,25 @@ export default {
         }
       }
     },
-    async requestDeflexQuote() {
-      try {
-        this.deflexQuotes = {};
-        const amount = BigInt(
-          Math.round(this.payamount * 10 ** this.fromAssetDecimals)
-        );
-        const fromAsset = this.asset > 0 ? this.asset : 0;
-        const toAsset = this.toAsset > 0 ? this.toAsset : 0;
-        const chain = this.checkNetwork();
-        if (!chain) {
-          this.txsDetails += "\nDEFLEX: Wrong network selected";
-          this.txsDetails = this.txsDetails.trim();
-          this.processingQuote = false;
-          return;
-        }
-        var algodUri = encodeURIComponent("https://mainnet-api.algonode.cloud");
-        var algodToken = "";
-        var algodPort = 443;
-        if (chain == "testnet") {
-          algodUri = encodeURIComponent("https://testnet-api.algonode.cloud");
-          algodToken = "";
-          algodPort = 443;
-        }
 
-        const apiKey = this.$store.state.config.deflex;
-        const request = `https://deflex.txnlab.dev/api/fetchQuote?chain=${chain}&algodUri=${algodUri}&algodToken=${algodToken}&algodPort=${algodPort}&fromASAID=${fromAsset}&toASAID=${toAsset}&atomicOnly=true&amount=${amount}&type=fixed-input&disabledProtocols=&referrerAddress=AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y&apiKey=${apiKey}`;
-        const quotes = await this.axiosGet({ url: request }).catch((e) => {
-          this.error = "No deflex quotes available " + e.message;
-          return;
-        });
-
-        if (!quotes || !quotes.txnPayload) {
-          this.error = "No deflex quotes available";
-          return;
-        }
-        this.deflexQuotes = quotes;
-        const params = JSON.stringify({
-          address: this.account.addr,
-          slippage: this.slippage, // 1 = 1%
-          txnPayloadJSON: this.deflexQuotes.txnPayload,
-          apiKey,
-        });
-        const config = {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        };
-
-        const txs = await this.axiosPost({
-          url: "https://deflex.txnlab.dev/api/fetchExecuteSwapTxns",
-          body: params,
-          config,
-        }).catch((e) => {
-          this.error += "No deflex quotes available " + e.message + "\n";
-          return;
-        });
-        if (!txs) {
-          this.error = "No deflex quotes available\n";
-          this.processingQuote = false;
-          return;
-        }
-        this.deflexTxs = txs;
-
-        const ret2 = this.deflexTxs.groupMetadata
-          .map((tx) => tx.labelText)
-          .join(",\n");
-        this.txsDetails += "\nDEFLEX: " + ret2;
-        this.txsDetails = this.txsDetails.trim();
-      } catch (e) {
-        this.openError("Error fetching quote from deflex: " + e.message);
-      }
-    },
-    getFolksClient() {
-      if (this.$store.state.config.env == "mainnet-v1.0") {
-        return new FolksRouterClient(Network.MAINNET);
-      }
-      if (this.$store.state.config.env == "mainnet") {
-        return new FolksRouterClient(Network.MAINNET);
-      }
-      if (this.$store.state.config.env == "testnet-v1.0") {
-        return new FolksRouterClient(Network.TESTNET);
-      }
-      if (this.$store.state.config.env == "testnet") {
-        return new FolksRouterClient(Network.TESTNET);
-      }
-      return null;
-    },
-    async fetchFolksRouterQuotes() {
-      try {
-        this.folksQuote = {};
-        const amount = BigInt(
-          Math.round(this.payamount * 10 ** this.fromAssetObj.decimals)
-        );
-        const folksRouterClient = this.getFolksClient();
-        if (!folksRouterClient)
-          throw Error(
-            "Unable to create folks router client for specified network"
-          );
-        const fromAsset = this.asset > 0 ? this.asset : 0;
-        const toAsset = this.toAsset > 0 ? this.toAsset : 0;
-
-        this.folksQuote = await folksRouterClient.fetchSwapQuote(
-          fromAsset,
-          toAsset,
-          amount,
-          SwapMode.FIXED_INPUT,
-          15,
-          10,
-          "AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
-        );
-        const slippage = Math.round(this.slippage * 100);
-        this.folksTxns = await folksRouterClient.prepareSwapTransactions(
-          this.$route.params.account,
-          slippage,
-          this.folksQuote
-        );
-        const token = await this.getAsset({
-          assetIndex: toAsset,
-        });
-        this.txsDetails += `\nFOLKS ROUTER: Quote Amount: ${
-          Number(this.folksQuote.quoteAmount) / 10 ** token.decimals
-        }, Price Impact: ${
-          Math.round(Number(this.folksQuote.priceImpact) * 10000) / 100
-        }%, Txs fees: ${
-          Number(this.folksQuote.microalgoTxnsFee) / 10 ** 6
-        } Algo`;
-        this.txsDetails = this.txsDetails.trim();
-      } catch (e) {
-        this.openError(`Error fetching quote from folks: ${e.message}`);
-      }
-    },
     async clickGetQuote() {
       this.prolong();
       this.note = "";
       this.error = "";
       this.processingQuote = true;
       this.txsDetails = "";
-      this.deflexTxs = { groupMetadata: [] };
-      this.folksTxns = [];
-      var promises = [];
-      if (this.useDeflex) promises.push(this.requestDeflexQuote());
-      if (this.useFolks) promises.push(this.fetchFolksRouterQuotes());
+      // Reset all aggregator data
+      this.dexAggregators.forEach(agg => {
+        this[agg.quotesKey] = {};
+        this[agg.txnsKey] = agg.txnsKey === 'deflexTxs' ? { groupMetadata: [] } : [];
+      });
+
+      const promises = [];
+      this.dexAggregators.forEach(agg => {
+        if (this[agg.enabledKey]) {
+          promises.push(agg.getQuote(this));
+        }
+      });
       await Promise.all(promises);
       this.processingQuote = false;
     },
@@ -622,110 +477,16 @@ export default {
       return false;
     },
     async clickExecuteFolks() {
-      this.prolong();
-      this.processingTradeFolks = true;
-      this.note = "";
-      this.error = "";
-      const senderSK = await this.getSK({
-        addr: this.account.addr,
-      });
-      if (!senderSK) {
-        this.processingTradeFolks = false;
-        return;
+      const agg = this.dexAggregators.find(a => a.name === 'folks');
+      if (agg) {
+        await agg.execute(this);
       }
-      const unsignedTxns = this.folksTxns.map((txn) =>
-        algosdk.decodeUnsignedTransaction(Buffer.from(txn, "base64"))
-      );
-      const signedTxns = unsignedTxns.map((txn) => txn.signTxn(senderSK));
-      if (!signedTxns) {
-        this.processingTradeFolks = false;
-        return;
-      }
-      let tx = await this.sendRawTransaction({
-        signedTxn: signedTxns,
-      }).catch((e) => {
-        this.error = e.message;
-        this.processingTradeFolks = false;
-        this.openError(e.message);
-        return;
-      });
-
-      let ret = "Processed in txs: ";
-
-      if (!tx || !tx.txId) return;
-      const confirmation = await this.waitForConfirmation({
-        txId: tx.txId,
-        timeout: 4,
-      });
-      if (confirmation) {
-        ret += tx.txId + ", ";
-      } else {
-        this.processingOptin = false;
-        await this.reloadAccount();
-        return;
-      }
-      this.note = ret.trim().trim(",");
-      this.processingTradeFolks = false;
-      await this.reloadAccount();
     },
     async clickExecuteDeflex() {
-      this.prolong();
-      this.processingTradeDeflex = true;
-      this.note = "";
-      this.error = "";
-      const senderSK = await this.getSK({
-        addr: this.account.addr,
-      });
-      if (!senderSK) {
-        this.processingTradeDeflex = false;
-        return;
+      const agg = this.dexAggregators.find(a => a.name === 'deflex');
+      if (agg) {
+        await agg.execute(this);
       }
-      const byGroup = this.deflexTxs.txns.reduce(
-        (entryMap, e) =>
-          entryMap.set(e.group, [...(entryMap.get(e.group) || []), e]),
-        new Map()
-      );
-      const byGroupMap = [...byGroup].map((m) => m[1]);
-
-      let ret = "Processed in txs: ";
-      for (let group of byGroupMap) {
-        const signedTxns = group.map((txn) => {
-          if (txn.logicSigBlob !== false) {
-            return Uint8Array.from(Object.values(txn.logicSigBlob));
-          } else {
-            let bytes = new Uint8Array(Buffer.from(txn.data, "base64"));
-            const decoded = algosdk.decodeUnsignedTransaction(bytes);
-            return algosdk.signTransaction(decoded, senderSK).blob;
-          }
-        });
-        if (!signedTxns) {
-          this.processingTradeDeflex = false;
-          return;
-        }
-        const tx = await this.sendRawTransaction({
-          signedTxn: signedTxns,
-        }).catch((e) => {
-          this.error = e.message;
-          this.processingTradeDeflex = false;
-          this.openError(e.message);
-          return;
-        });
-        if (!tx || !tx.txId) return;
-        const confirmation = await this.waitForConfirmation({
-          txId: tx.txId,
-          timeout: 4,
-        });
-        if (confirmation) {
-          ret += tx.txId + ", ";
-        } else {
-          this.processingOptin = false;
-          await this.reloadAccount();
-          return;
-        }
-      }
-      this.note = ret.trim().trim(",");
-      this.processingTradeDeflex = false;
-      await this.reloadAccount();
     },
     swapTokens() {
       const tmp = this.toAsset;
