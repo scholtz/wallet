@@ -106,11 +106,13 @@ export default {
   data() {
     // Initialize aggregator data dynamically
     const aggregatorData = {};
-    dexAggregators.forEach(agg => {
+    dexAggregators.forEach((agg) => {
       aggregatorData[agg.quotesKey] = {};
-      aggregatorData[agg.txnsKey] = agg.txnsKey === 'deflexTxs' ? { groupMetadata: [] } : [];
+      aggregatorData[agg.txnsKey] =
+        agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
       aggregatorData[agg.processingKey] = false;
-      aggregatorData[agg.enabledKey] = agg.name === 'folks' || agg.name === 'deflex'; // Default enabled
+      aggregatorData[agg.enabledKey] =
+        agg.name === "folks" || agg.name === "deflex"; // Default enabled
     });
 
     return {
@@ -194,11 +196,11 @@ export default {
       return Math.pow(10, -1 * this.fromAssetDecimals);
     },
     allowExecuteDeflex() {
-      const agg = this.dexAggregators.find(a => a.name === 'deflex');
+      const agg = this.dexAggregators.find((a) => a.name === "deflex");
       return agg ? agg.allowExecute(this) : false;
     },
     allowExecuteFolks() {
-      const agg = this.dexAggregators.find(a => a.name === 'folks');
+      const agg = this.dexAggregators.find((a) => a.name === "folks");
       return agg ? agg.allowExecute(this) : false;
     },
     appsToOptIn() {
@@ -243,20 +245,21 @@ export default {
       return `${this.toAssetUnit}/${this.fromAssetUnit}`;
     },
     isFolksQuoteBetter() {
-      const agg = this.dexAggregators.find(a => a.name === 'folks');
+      const agg = this.dexAggregators.find((a) => a.name === "folks");
       return agg ? agg.isQuoteBetter(this) : false;
     },
     isDeflexQuoteBetter() {
-      const agg = this.dexAggregators.find(a => a.name === 'deflex');
+      const agg = this.dexAggregators.find((a) => a.name === "deflex");
       return agg ? agg.isQuoteBetter(this) : false;
     },
   },
   watch: {
     async asset() {
       // Reset all aggregator data
-      this.dexAggregators.forEach(agg => {
+      this.dexAggregators.forEach((agg) => {
         this[agg.quotesKey] = {};
-        this[agg.txnsKey] = agg.txnsKey === 'deflexTxs' ? { groupMetadata: [] } : [];
+        this[agg.txnsKey] =
+          agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
       });
       if (this.asset > 0) {
         this.fromAssetObj = await this.getAsset({
@@ -275,9 +278,10 @@ export default {
     },
     async toAsset() {
       // Reset all aggregator data
-      this.dexAggregators.forEach(agg => {
+      this.dexAggregators.forEach((agg) => {
         this[agg.quotesKey] = {};
-        this[agg.txnsKey] = agg.txnsKey === 'deflexTxs' ? { groupMetadata: [] } : [];
+        this[agg.txnsKey] =
+          agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
       });
       if (this.toAsset > 0) {
         this.toAssetObj = await this.getAsset({
@@ -295,17 +299,19 @@ export default {
     },
     account() {
       // Reset all aggregator data
-      this.dexAggregators.forEach(agg => {
+      this.dexAggregators.forEach((agg) => {
         this[agg.quotesKey] = {};
-        this[agg.txnsKey] = agg.txnsKey === 'deflexTxs' ? { groupMetadata: [] } : [];
+        this[agg.txnsKey] =
+          agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
       });
       this.makeAssets();
     },
     payamount() {
       // Reset all aggregator data
-      this.dexAggregators.forEach(agg => {
+      this.dexAggregators.forEach((agg) => {
         this[agg.quotesKey] = {};
-        this[agg.txnsKey] = agg.txnsKey === 'deflexTxs' ? { groupMetadata: [] } : [];
+        this[agg.txnsKey] =
+          agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
       });
     },
   },
@@ -447,13 +453,14 @@ export default {
       this.processingQuote = true;
       this.txsDetails = "";
       // Reset all aggregator data
-      this.dexAggregators.forEach(agg => {
+      this.dexAggregators.forEach((agg) => {
         this[agg.quotesKey] = {};
-        this[agg.txnsKey] = agg.txnsKey === 'deflexTxs' ? { groupMetadata: [] } : [];
+        this[agg.txnsKey] =
+          agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
       });
 
       const promises = [];
-      this.dexAggregators.forEach(agg => {
+      this.dexAggregators.forEach((agg) => {
         if (this[agg.enabledKey]) {
           promises.push(agg.getQuote(this));
         }
@@ -477,13 +484,13 @@ export default {
       return false;
     },
     async clickExecuteFolks() {
-      const agg = this.dexAggregators.find(a => a.name === 'folks');
+      const agg = this.dexAggregators.find((a) => a.name === "folks");
       if (agg) {
         await agg.execute(this);
       }
     },
     async clickExecuteDeflex() {
-      const agg = this.dexAggregators.find(a => a.name === 'deflex');
+      const agg = this.dexAggregators.find((a) => a.name === "deflex");
       if (agg) {
         await agg.execute(this);
       }

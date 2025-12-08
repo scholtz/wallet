@@ -1,5 +1,9 @@
 <template>
-  <div v-for="aggregator in aggregators" :key="aggregator.name" class="field grid">
+  <div
+    v-for="aggregator in aggregators"
+    :key="aggregator.name"
+    class="field grid"
+  >
     <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
     <div class="col-12 md:col-10">
       <Checkbox
@@ -26,18 +30,18 @@ export default {
   },
   methods: {
     getValue(aggregator) {
-      if (aggregator.name === 'folks') return this.useFolks;
-      if (aggregator.name === 'deflex') return this.useDeflex;
+      if (aggregator.name === "folks") return this.useFolks;
+      if (aggregator.name === "deflex") return this.useDeflex;
       return false;
     },
     updateValue(aggregator, value) {
-      if (aggregator.name === 'folks') {
-        this.$emit('update:useFolks', value);
-      } else if (aggregator.name === 'deflex') {
-        this.$emit('update:useDeflex', value);
+      if (aggregator.name === "folks") {
+        this.$emit("update:useFolks", value);
+      } else if (aggregator.name === "deflex") {
+        this.$emit("update:useDeflex", value);
       }
-    }
+    },
   },
-  emits: ['update:useFolks', 'update:useDeflex']
+  emits: ["update:useFolks", "update:useDeflex"],
 };
 </script>
