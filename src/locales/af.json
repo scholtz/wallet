@@ -778,8 +778,9 @@
     "exchange_tokens": "⇅ Ruil bron en bestemming tokens"
   },
   "labels": {
-    "use_folks_router": "Gebruik Folks router",
+    "use_folks": "Gebruik Folks router",
     "use_deflex": "Gebruik Deflex",
+    "use_biatec": "Gebruik Biatec router",
     "quote": "Kwotasie:",
     "price": "Prys:"
   },

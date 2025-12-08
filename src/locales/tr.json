@@ -871,8 +871,9 @@
     "exchange_tokens": "⇅ Exchange source and destination token"
   },
   "labels": {
-    "use_folks_router": "Use Folks router",
+    "use_folks": "Use Folks router",
     "use_deflex": "Use Deflex",
+    "use_biatec": "Use Biatec router",
     "quote": "Quote:",
     "price": "Price:"
   },

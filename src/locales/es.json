@@ -777,8 +777,9 @@
     "exchange_tokens": "⇅ Intercambiar tokens origen y destino"
   },
   "labels": {
-    "use_folks_router": "Usar Folks router",
+    "use_folks": "Usar Folks router",
     "use_deflex": "Usar Deflex",
+    "use_biatec": "Usar Biatec router",
     "quote": "Cotización:",
     "price": "Precio:"
   },

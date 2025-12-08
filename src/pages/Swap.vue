@@ -24,7 +24,7 @@
             v-model:payamount="payamount"
             :maxAmount="maxAmount"
             :stepAmount="stepAmount"
-            :decimals="decimals"
+            :decimals="fromAssetDecimals"
             :unit="unit"
             @set-max="payamount = maxAmount"
           />
@@ -89,7 +89,7 @@ import SwapExecuteButtons from "../components/SwapExecuteButtons.vue";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
 import { FolksRouterClient, Network, SwapMode } from "@folks-router/js-sdk";
-import { dexAggregators } from "../scripts/dexAggregators.js";
+import { dexAggregators } from "../scripts/dexAggregators.ts";
 
 export default {
   components: {
@@ -267,7 +267,7 @@ export default {
         });
       } else {
         this.fromAssetObj = {
-          "asset-id": -1,
+          "asset-id": 0,
           name: "ALGO",
           "unit-name": "Algo",
           decimals: 6,
@@ -289,7 +289,7 @@ export default {
         });
       } else {
         this.toAssetObj = {
-          "asset-id": -1,
+          "asset-id": 0,
           name: "ALGO",
           "unit-name": "Algo",
           decimals: 6,
@@ -320,12 +320,12 @@ export default {
     await this.reloadAccount();
     await this.makeAssets();
 
-    this.asset = -1;
+    this.asset = 0;
     const vote = this.assets.find((a) => a["asset-id"] == 452399768);
     if (vote) {
       this.toAsset = 452399768;
     } else {
-      this.toAsset = -1;
+      this.toAsset = 0;
     }
     this.payamount = 1;
     if (this.$route.params.fromAsset) {
@@ -391,7 +391,7 @@ export default {
           6
         );
         this.assets.push({
-          "asset-id": "0",
+          "asset-id": 0,
           amount: this.accountData.amount,
           name: this.$store.state.config.tokenSymbol,
           decimals: 6,

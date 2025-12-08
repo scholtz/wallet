@@ -776,8 +776,9 @@
     "exchange_tokens": "⇅ Vymeniť zdrojové a cieľové tokeny"
   },
   "labels": {
-    "use_folks_router": "Používať Folks router",
+    "use_folks": "Používať Folks router",
     "use_deflex": "Používať Deflex",
+    "use_biatec": "Používať Biatec router",
     "quote": "Kotácia:",
     "price": "Cena:"
   },

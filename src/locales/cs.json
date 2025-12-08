@@ -776,8 +776,9 @@
     "exchange_tokens": "⇅ Vyměnit zdrojové a cílové tokeny"
   },
   "labels": {
-    "use_folks_router": "Používat Folks router",
+    "use_folks": "Používat Folks router",
     "use_deflex": "Používat Deflex",
+    "use_biatec": "Používat Biatec router",
     "quote": "Kotace:",
     "price": "Cena:"
   },
@@ -798,7 +799,7 @@
     "opt_in_governance_help": "Abyste se přihlásili jako guvernér, musíte poslat zprávu ze svého účtu na konkrétní účet algorand foundation se zprávou o tom, kolik algos přihlašujete v konkrétním období.",
     "merge_accounts_title": "Sloučit více účtů do jednoho",
     "pay_multiple_title": "Platit na více účtů z jednoho účtu - Distribuovat algos",
-    "pay_from_multiple_title": "Platit z více účtů najednou", 
+    "pay_from_multiple_title": "Platit z více účtů najednou",
     "generate_accounts_title": "Generovat více účtů",
     "results": "Výsledky"
   },

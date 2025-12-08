@@ -30,8 +30,25 @@
 // Each aggregator implements a common interface for getting quotes and executing swaps
 
 import { FolksRouterClient, Network, SwapMode } from "@folks-router/js-sdk";
+import { biatecRouter } from "biatec-router";
+import algosdk, { SuggestedParams } from "algosdk";
 
-export const dexAggregators = [
+// Type definitions
+interface DexAggregator {
+  name: string;
+  displayName: string;
+  enabledKey: string;
+  quotesKey: string;
+  txnsKey: string;
+  processingKey: string;
+  getQuote: (component: any) => Promise<void>;
+  execute: (component: any) => Promise<void>;
+  allowExecute: { (component: any): boolean };
+  isQuoteBetter: { (component: any): boolean };
+  getFolksClient?: (component: any) => FolksRouterClient | null;
+}
+
+export const dexAggregators: DexAggregator[] = [
   {
     name: "deflex",
     displayName: "Deflex",
@@ -40,7 +57,7 @@ export const dexAggregators = [
     txnsKey: "deflexTxs",
     processingKey: "processingTradeDeflex",
 
-    async getQuote(component) {
+    async getQuote(component: any) {
       try {
         component.deflexQuotes = {};
         const amount = BigInt(
@@ -66,10 +83,12 @@ export const dexAggregators = [
 
         const apiKey = component.$store.state.config.deflex;
         const request = `https://deflex.txnlab.dev/api/fetchQuote?chain=${chain}&algodUri=${algodUri}&algodToken=${algodToken}&algodPort=${algodPort}&fromASAID=${fromAsset}&toASAID=${toAsset}&atomicOnly=true&amount=${amount}&type=fixed-input&disabledProtocols=&referrerAddress=AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y&apiKey=${apiKey}`;
-        const quotes = await component.axiosGet({ url: request }).catch((e) => {
-          component.error = "No deflex quotes available " + e.message;
-          return;
-        });
+        const quotes = await component
+          .axiosGet({ url: request })
+          .catch((e: any) => {
+            component.error = "No deflex quotes available " + e.message;
+            return;
+          });
 
         if (!quotes || !quotes.txnPayload) {
           component.error = "No deflex quotes available";
@@ -94,7 +113,7 @@ export const dexAggregators = [
             body: params,
             config,
           })
-          .catch((e) => {
+          .catch((e: any) => {
             component.error += "No deflex quotes available " + e.message + "\n";
             return;
           });
@@ -106,16 +125,18 @@ export const dexAggregators = [
         component.deflexTxs = txs;
 
         const ret2 = component.deflexTxs.groupMetadata
-          .map((tx) => tx.labelText)
+          .map((tx: any) => tx.labelText)
           .join(",\n");
         component.txsDetails += "\nDEFLEX: " + ret2;
         component.txsDetails = component.txsDetails.trim();
       } catch (e) {
-        component.openError("Error fetching quote from deflex: " + e.message);
+        component.openError(
+          "Error fetching quote from deflex: " + (e as Error).message
+        );
       }
     },
 
-    async execute(component) {
+    async execute(component: any) {
       component.prolong();
       component.processingTradeDeflex = true;
       component.note = "";
@@ -128,7 +149,7 @@ export const dexAggregators = [
         return;
       }
       const byGroup = component.deflexTxs.txns.reduce(
-        (entryMap, e) =>
+        (entryMap: any, e: any) =>
           entryMap.set(e.group, [...(entryMap.get(e.group) || []), e]),
         new Map()
       );
@@ -136,13 +157,17 @@ export const dexAggregators = [
 
       let ret = "Processed in txs: ";
       for (let group of byGroupMap) {
-        const signedTxns = group.map((txn) => {
+        const signedTxns = group.map((txn: any) => {
           if (txn.logicSigBlob !== false) {
             return Uint8Array.from(Object.values(txn.logicSigBlob));
           } else {
             let bytes = new Uint8Array(Buffer.from(txn.data, "base64"));
-            const decoded = algosdk.decodeUnsignedTransaction(bytes);
-            return algosdk.signTransaction(decoded, senderSK).blob;
+            const decoded =
+              component.$store.getters.algosdk.decodeUnsignedTransaction(bytes);
+            return component.$store.getters.algosdk.signTransaction(
+              decoded,
+              senderSK
+            ).blob;
           }
         });
         if (!signedTxns) {
@@ -153,7 +178,7 @@ export const dexAggregators = [
           .sendRawTransaction({
             signedTxn: signedTxns,
           })
-          .catch((e) => {
+          .catch((e: any) => {
             component.error = e.message;
             component.processingTradeDeflex = false;
             component.openError(e.message);
@@ -172,13 +197,13 @@ export const dexAggregators = [
           return;
         }
       }
-      component.note = ret.trim().trim(",");
+      component.note = ret.trim().replace(/,$/, "");
       component.processingTradeDeflex = false;
       await component.reloadAccount();
     },
 
     get allowExecute() {
-      return function (component) {
+      return function (component: any) {
         if (
           !component.deflexTxs ||
           !component.deflexTxs.txns ||
@@ -191,7 +216,7 @@ export const dexAggregators = [
     },
 
     get isQuoteBetter() {
-      return function (component) {
+      return function (component: any) {
         if (!component.deflexQuotes) {
           return false;
         }
@@ -200,7 +225,7 @@ export const dexAggregators = [
         }
         // Compare with other aggregators
         const others = component.dexAggregators.filter(
-          (a) => a.name !== "deflex" && component[a.enabledKey]
+          (a: any) => a.name !== "deflex" && component[a.enabledKey]
         );
         for (let other of others) {
           const otherQuote =
@@ -243,7 +268,7 @@ export const dexAggregators = [
       return null;
     },
 
-    async getQuote(component) {
+    async getQuote(component: any) {
       try {
         component.folksQuote = {};
         const amount = BigInt(
@@ -251,7 +276,7 @@ export const dexAggregators = [
             component.payamount * 10 ** component.fromAssetObj.decimals
           )
         );
-        const folksRouterClient = this.getFolksClient(component);
+        const folksRouterClient = (this as any).getFolksClient(component);
         if (!folksRouterClient)
           throw Error(
             "Unable to create folks router client for specified network"
@@ -286,11 +311,13 @@ export const dexAggregators = [
         } Algo`;
         component.txsDetails = component.txsDetails.trim();
       } catch (e) {
-        component.openError(`Error fetching quote from folks: ${e.message}`);
+        component.openError(
+          `Error fetching quote from folks: ${(e as Error).message}`
+        );
       }
     },
 
-    async execute(component) {
+    async execute(component: any) {
       component.prolong();
       component.processingTradeFolks = true;
       component.note = "";
@@ -302,10 +329,12 @@ export const dexAggregators = [
         component.processingTradeFolks = false;
         return;
       }
-      const unsignedTxns = component.folksTxns.map((txn) =>
-        component.algosdk.decodeUnsignedTransaction(Buffer.from(txn, "base64"))
+      const unsignedTxns = component.folksTxns.map((txn: any) =>
+        component.$store.getters.algosdk.decodeUnsignedTransaction(
+          Buffer.from(txn, "base64")
+        )
       );
-      const signedTxns = unsignedTxns.map((txn) => txn.signTxn(senderSK));
+      const signedTxns = unsignedTxns.map((txn: any) => txn.signTxn(senderSK));
       if (!signedTxns) {
         component.processingTradeFolks = false;
         return;
@@ -314,7 +343,7 @@ export const dexAggregators = [
         .sendRawTransaction({
           signedTxn: signedTxns,
         })
-        .catch((e) => {
+        .catch((e: any) => {
           component.error = e.message;
           component.processingTradeFolks = false;
           component.openError(e.message);
@@ -335,13 +364,13 @@ export const dexAggregators = [
         await component.reloadAccount();
         return;
       }
-      component.note = ret.trim().trim(",");
+      component.note = ret.trim().replace(/,$/, "");
       component.processingTradeFolks = false;
       await component.reloadAccount();
     },
 
     get allowExecute() {
-      return function (component) {
+      return function (component: any) {
         if (
           component.folksTxns &&
           component.folksQuote &&
@@ -354,7 +383,7 @@ export const dexAggregators = [
     },
 
     get isQuoteBetter() {
-      return function (component) {
+      return function (component: any) {
         if (!component.folksQuote) {
           return false;
         }
@@ -363,7 +392,7 @@ export const dexAggregators = [
         }
         // Compare with other aggregators
         const others = component.dexAggregators.filter(
-          (a) => a.name !== "folks" && component[a.enabledKey]
+          (a: any) => a.name !== "folks" && component[a.enabledKey]
         );
         for (let other of others) {
           const otherQuote =
@@ -381,9 +410,177 @@ export const dexAggregators = [
       };
     },
   },
+
+  // // Biatec Router Aggregator
+  // {
+  //   name: "biatec",
+  //   displayName: "Biatec Router",
+  //   enabledKey: "useBiatec",
+  //   quotesKey: "biatecQuotes",
+  //   txnsKey: "biatecTxns",
+  //   processingKey: "processingTradeBiatec",
+
+  //   async getQuote(component: any) {
+  //     try {
+  //       component.biatecQuotes = {};
+
+  //       // TODO: Implement ARC14 authentication properly
+  //       // For now, skip authentication - this may not work in production
+  //       // if (!biatecRouter.OpenAPI.HEADERS?.Authorization) {
+  //       //   const params = await component.$store.state.algod.client.getTransactionParams().do();
+  //       //   const authTx = await createAuthTransaction(component.account.addr.toString(), params, component.$store.getters.algosdk);
+  //       //   const signed = authTx.signTxn(component.account.sk);
+  //       //   const authHeader = makeArc14AuthHeader(signed);
+  //       //   biatecRouter.OpenAPI.HEADERS = { 'Authorization': authHeader };
+  //       // }
+
+  //       const requestBody = {
+  //         sender: component.account.addr.toString(),
+  //         fromAsset: component.asset > 0 ? component.asset : 0,
+  //         toAsset: component.toAsset > 0 ? component.toAsset : 0,
+  //         swapAmount: Math.round(
+  //           component.payamount * 10 ** component.fromAssetDecimals
+  //         ),
+  //         receiveMinimum: 0,
+  //         routesCount: 1,
+  //         maxHops: 3,
+  //       };
+
+  //       const response =
+  //         await biatecRouter.RouterService.postApiV1RouterRouteTxs(requestBody);
+
+  //       if (!response.routes || response.routes.length === 0) {
+  //         component.error = "No Biatec Router routes available";
+  //         return;
+  //       }
+
+  //       const route = response.routes[0];
+  //       component.biatecQuotes = {
+  //         route: route,
+  //         quoteAmount:
+  //           (route as any).expectedReceiveAmount ||
+  //           (route as any).receiveAmount ||
+  //           0,
+  //         priceImpact: (route as any).priceImpact || 0,
+  //         fees: (route as any).totalFees || 0,
+  //       };
+
+  //       component.txsDetails +=
+  //         "\nBIATEC: " +
+  //         ((route as any).expectedReceiveAmount ||
+  //           (route as any).receiveAmount ||
+  //           0) +
+  //         " expected receive";
+  //       component.txsDetails = component.txsDetails.trim();
+  //     } catch (e) {
+  //       component.error =
+  //         "Error fetching quote from Biatec Router: " + (e as Error).message;
+  //       component.openError(
+  //         "Error fetching quote from Biatec Router: " + (e as Error).message
+  //       );
+  //     }
+  //   },
+
+  //   async execute(component: any) {
+  //     component.prolong();
+  //     component.processingTradeBiatec = true;
+  //     component.note = "";
+  //     component.error = "";
+
+  //     try {
+  //       if (
+  //         !component.biatecQuotes?.route?.txsToSign ||
+  //         component.biatecQuotes.route.txsToSign.length === 0
+  //       ) {
+  //         throw new Error("No transactions to sign in the Biatec route.");
+  //       }
+
+  //       // Decode and group transactions
+  //       const transactions = [];
+  //       for (const txBase64 of component.biatecQuotes.route.txsToSign) {
+  //         const txBytes = new Uint8Array(Buffer.from(txBase64, "base64"));
+  //         const tx =
+  //           component.$store.getters.algosdk.decodeUnsignedTransaction(txBytes);
+  //         transactions.push(tx);
+  //       }
+
+  //       // Clear group and compute new group ID
+  //       transactions.forEach((tx) => {
+  //         tx.group = undefined;
+  //       });
+  //       const groupId =
+  //         component.$store.getters.algosdk.computeGroupID(transactions);
+  //       transactions.forEach((tx) => (tx.group = groupId));
+
+  //       // Sign transactions
+  //       const signedTxs = [];
+  //       for (const tx of transactions) {
+  //         const signedTx = tx.signTxn(component.account.sk);
+  //         signedTxs.push(signedTx);
+  //       }
+
+  //       // Send transaction
+  //       const txResponse = await component.$store.state.algod.client
+  //         .sendRawTransaction(signedTxs)
+  //         .do();
+
+  //       // Wait for confirmation
+  //       const confirmation =
+  //         await component.$store.getters.algosdk.waitForConfirmation(
+  //           component.$store.state.algod.client,
+  //           txResponse.txId,
+  //           4
+  //         );
+
+  //       component.note = txResponse.txId;
+  //       component.processingTradeBiatec = false;
+  //       await component.reloadAccount();
+  //     } catch (e) {
+  //       component.error = (e as Error).message;
+  //       component.processingTradeBiatec = false;
+  //       component.openError((e as Error).message);
+  //     }
+  //   },
+
+  //   get allowExecute() {
+  //     return function (component: any) {
+  //       return (
+  //         component.biatecQuotes?.route?.txsToSign?.length > 0 &&
+  //         !component.requiresOptIn
+  //       );
+  //     };
+  //   },
+
+  //   get isQuoteBetter() {
+  //     return function (component: any) {
+  //       if (!component.biatecQuotes?.quoteAmount) {
+  //         return false;
+  //       }
+  //       // Compare with other aggregators
+  //       const others = component.dexAggregators.filter(
+  //         (a: any) => a.name !== "biatec" && component[a.enabledKey]
+  //       );
+  //       for (let other of others) {
+  //         const otherQuote =
+  //           component[other.quotesKey]?.quoteAmount ||
+  //           component[other.quotesKey]?.quote;
+  //         if (otherQuote) {
+  //           const biatec = BigInt(
+  //             component.biatecQuotes.quoteAmount
+  //           ).toString();
+  //           const otherVal = BigInt(otherQuote).toString();
+  //           if (otherVal.length > biatec.length) return false;
+  //           if (biatec.length > otherVal.length) return true;
+  //           if (otherVal > biatec) return false;
+  //         }
+  //       }
+  //       return true;
+  //     };
+  //   },
+  // },
 ];
 
 // Helper function to add a new aggregator
-export function addDexAggregator(aggregator) {
+export function addDexAggregator(aggregator: DexAggregator) {
   dexAggregators.push(aggregator);
 }
