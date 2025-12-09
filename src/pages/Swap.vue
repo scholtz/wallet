@@ -16,8 +16,10 @@
         <div>
           <SwapAssetSelector
             :assets="assets"
-            v-model:asset="asset"
-            v-model:toAsset="toAsset"
+            :asset="asset ?? undefined"
+            @update:asset="asset = $event"
+            :toAsset="toAsset ?? undefined"
+            @update:toAsset="toAsset = $event"
             @swap-tokens="swapTokens"
           />
           <SwapAmountInput

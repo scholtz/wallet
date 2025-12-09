@@ -219,6 +219,7 @@ export function useSwap() {
       $store: store,
       $route: route as any,
       dexAggregators,
+      algosdk,
 
       // Methods
       openSuccess: (message: string) =>

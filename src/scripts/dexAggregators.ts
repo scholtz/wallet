@@ -505,19 +505,22 @@ export const dexAggregators: DexAggregator[] = [
 
         // Decode and group transactions
         const transactions = [];
+        console.log(
+          "component.biatecQuotes.route",
+          component.biatecQuotes.route
+        );
         for (const txBase64 of component.biatecQuotes.route.txsToSign) {
           const txBytes = new Uint8Array(Buffer.from(txBase64, "base64"));
-          const tx =
-            component.$store.getters.algosdk.decodeUnsignedTransaction(txBytes);
+          const tx = component.algosdk.decodeUnsignedTransaction(txBytes);
+          console.log("tx", tx);
           transactions.push(tx);
         }
-
+        console.log("transactions", transactions);
         // Clear group and compute new group ID
         transactions.forEach((tx) => {
           tx.group = undefined;
         });
-        const groupId =
-          component.$store.getters.algosdk.computeGroupID(transactions);
+        const groupId = component.algosdk.computeGroupID(transactions);
         transactions.forEach((tx) => (tx.group = groupId));
 
         // Sign transactions
@@ -526,6 +529,7 @@ export const dexAggregators: DexAggregator[] = [
           const signedTx = tx.signTxn(component.account.sk);
           signedTxs.push(signedTx);
         }
+        console.log("signedTxs", signedTxs);
 
         // Send transaction
         const txResponse = await component.$store.state.algod.client
