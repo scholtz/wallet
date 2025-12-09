@@ -206,7 +206,7 @@ export const dexAggregators: DexAggregator[] = [
         if (confirmation) {
           ret += tx.txId + ", ";
         } else {
-          component.processingOptin = false;
+          component.processingTradeDeflex = false;
           await component.reloadAccount();
           return;
         }
@@ -376,7 +376,7 @@ export const dexAggregators: DexAggregator[] = [
       if (confirmation) {
         ret += tx.txId + ", ";
       } else {
-        component.processingOptin = false;
+        component.processingTradeFolks = false;
         await component.reloadAccount();
         return;
       }
@@ -496,6 +496,13 @@ export const dexAggregators: DexAggregator[] = [
       component.error = "";
 
       try {
+        const senderSK = await component.getSK({
+          addr: component.account.addr,
+        });
+        if (!senderSK) {
+          component.processingTradeBiatec = false;
+          return;
+        }
         if (
           !component.biatecQuotes?.route?.txsToSign ||
           component.biatecQuotes.route.txsToSign.length === 0
@@ -510,7 +517,16 @@ export const dexAggregators: DexAggregator[] = [
           component.biatecQuotes.route
         );
         for (const txBase64 of component.biatecQuotes.route.txsToSign) {
-          const txBytes = new Uint8Array(Buffer.from(txBase64, "base64"));
+          console.log("txBase64", txBase64);
+          let txBytes = new Uint8Array(Buffer.from(txBase64, "base64"));
+          // Check for "TX" prefix (0x54, 0x58)
+          if (
+            txBytes.length > 2 &&
+            txBytes[0] === 0x54 &&
+            txBytes[1] === 0x58
+          ) {
+            txBytes = txBytes.slice(2);
+          }
           const tx = component.algosdk.decodeUnsignedTransaction(txBytes);
           console.log("tx", tx);
           transactions.push(tx);
@@ -526,25 +542,35 @@ export const dexAggregators: DexAggregator[] = [
         // Sign transactions
         const signedTxs = [];
         for (const tx of transactions) {
-          const signedTx = tx.signTxn(component.account.sk);
+          const signedTx = tx.signTxn(senderSK);
           signedTxs.push(signedTx);
         }
         console.log("signedTxs", signedTxs);
+        const tx = await component
+          .sendRawTransaction({
+            signedTxn: signedTxs,
+          })
+          .catch((e: any) => {
+            component.error = e.message;
+            component.processingTradeBiatec = false;
+            component.openError(e.message);
+            return;
+          });
+        let ret = "Processed in txs: ";
 
-        // Send transaction
-        const txResponse = await component.$store.state.algod.client
-          .sendRawTransaction(signedTxs)
-          .do();
-
-        // Wait for confirmation
-        const confirmation =
-          await component.$store.getters.algosdk.waitForConfirmation(
-            component.$store.state.algod.client,
-            txResponse.txId,
-            4
-          );
-
-        component.note = txResponse.txId;
+        if (!tx || !tx.txId) return;
+        const confirmation = await component.waitForConfirmation({
+          txId: tx.txId,
+          timeout: 4,
+        });
+        if (confirmation) {
+          ret += tx.txId + ", ";
+        } else {
+          component.processingTradeBiatec = false;
+          await component.reloadAccount();
+          return;
+        }
+        component.note = ret.trim().replace(/,$/, "");
         component.processingTradeBiatec = false;
         await component.reloadAccount();
       } catch (e) {
