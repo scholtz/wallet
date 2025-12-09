@@ -32,85 +32,18 @@
 import { FolksRouterClient, Network, SwapMode } from "@folks-router/js-sdk";
 import { biatecRouter, authTransaction } from "biatec-router";
 import arc14 from "arc14";
+import type {
+  SwapComponentData,
+  SwapMethods,
+  SwapStore,
+  SwapRoute,
+} from "../types/swap";
+
 // Type definitions
-interface SwapComponent {
-  // Basic properties
-  asset: number | null;
-  toAsset: number | null;
-  payamount: number;
-  account: any;
-  slippage: number;
-  txsDetails: string;
-  error: string;
-  note: string;
-  processingQuote: boolean;
-  processingOptin: boolean;
-  fromAssetObj: any;
-  toAssetObj: any;
-
-  // Computed properties
-  fromAssetDecimals: number;
-  toAssetDecimals: number;
-  requiresOptIn: boolean;
-
-  // Store access
-  $store: {
-    state: {
-      config: {
-        env: string;
-        deflex: string;
-      };
-      algod: {
-        client: any;
-      };
-      wallet: {
-        privateAccounts: any[];
-      };
-    };
-    getters: {
-      algosdk: {
-        decodeUnsignedTransaction: (bytes: Uint8Array) => any;
-        signTransaction: (tx: any, sk: Uint8Array) => any;
-        computeGroupID: (txs: any[]) => Uint8Array;
-        waitForConfirmation: (
-          client: any,
-          txId: string,
-          timeout: number
-        ) => Promise<any>;
-      };
-    };
-  };
-
-  // Route params
-  $route: {
-    params: {
-      account: string;
-    };
-  };
-
-  // Methods
-  openError: (message: string) => void;
-  axiosGet: (config: { url: string }) => Promise<any>;
-  axiosPost: (config: {
-    url: string;
-    body?: any;
-    config?: any;
-  }) => Promise<any>;
-  getSK: (config: { addr: string }) => Promise<Uint8Array>;
-  getAsset: (config: { assetIndex: number }) => Promise<any>;
-  sendRawTransaction: (config: {
-    signedTxn: Uint8Array | Uint8Array[];
-  }) => Promise<{ txId: string }>;
-  waitForConfirmation: (config: {
-    txId: string;
-    timeout: number;
-  }) => Promise<any>;
-  prolong: () => Promise<void>;
-  reloadAccount: () => Promise<void>;
-  checkNetwork: () => string | false;
-
-  // Dynamically created aggregator properties
-  [key: string]: any; // For aggregator-specific properties like deflexQuotes, folksQuote, biatecQuotes, etc.
+interface SwapComponent extends SwapComponentData, SwapMethods {
+  // Store and route access
+  $store: SwapStore;
+  $route: SwapRoute;
 }
 
 interface DexAggregator {
@@ -122,8 +55,8 @@ interface DexAggregator {
   processingKey: string;
   getQuote: (component: SwapComponent) => Promise<void>;
   execute: (component: SwapComponent) => Promise<void>;
-  allowExecute: { (component: SwapComponent): boolean };
-  isQuoteBetter: { (component: SwapComponent): boolean };
+  allowExecute: (component: SwapComponent) => boolean;
+  isQuoteBetter: (component: SwapComponent) => boolean;
   getFolksClient?: (component: SwapComponent) => FolksRouterClient | null;
 }
 
@@ -354,7 +287,7 @@ export const dexAggregators: DexAggregator[] = [
         component.folksQuote = {};
         const amount = BigInt(
           Math.round(
-            component.payamount * 10 ** component.fromAssetObj.decimals
+            component.payamount * 10 ** (component.fromAssetObj?.decimals ?? 6)
           )
         );
         const folksRouterClient = (this as any).getFolksClient(component);

@@ -37,7 +37,7 @@
     <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
     <div class="col-12 md:col-10">
       <Button
-        :disabled="assetModel < 0 && toAssetModel < 0"
+        :disabled="assetModel === null || toAssetModel === null"
         @click="$emit('swap-tokens')"
       >
         {{ $t("buttons.exchange_tokens") }}
