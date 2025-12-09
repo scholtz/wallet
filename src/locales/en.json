@@ -64,6 +64,7 @@
     "apps_optin_button": "Opt in to the apps",
     "execute_button_deflex": "Execute using Deflex",
     "execute_button_folks": "Execute using Folks router",
+    "execute_button_biatec": "Execute using Biatec router",
     "slippage": "Slippage percentage"
   },
   "govtoolsmenu": {

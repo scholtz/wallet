@@ -27,11 +27,13 @@ export default {
     aggregators: Array,
     useFolks: Boolean,
     useDeflex: Boolean,
+    useBiatec: Boolean,
   },
   methods: {
     getValue(aggregator) {
       if (aggregator.name === "folks") return this.useFolks;
       if (aggregator.name === "deflex") return this.useDeflex;
+      if (aggregator.name === "biatec") return this.useBiatec;
       return false;
     },
     updateValue(aggregator, value) {
@@ -39,9 +41,11 @@ export default {
         this.$emit("update:useFolks", value);
       } else if (aggregator.name === "deflex") {
         this.$emit("update:useDeflex", value);
+      } else if (aggregator.name === "biatec") {
+        this.$emit("update:useBiatec", value);
       }
     },
   },
-  emits: ["update:useFolks", "update:useDeflex"],
+  emits: ["update:useFolks", "update:useDeflex", "update:useBiatec"],
 };
 </script>

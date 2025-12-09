@@ -57,7 +57,7 @@
     </Button>
     <Button
       v-if="useFolks"
-      class="my-2"
+      class="my-2 mx-1"
       :disabled="!allowExecuteFolks || processingTradeFolks"
       :severity="
         allowExecuteFolks && isFolksQuoteBetter ? 'primary' : 'secondary'
@@ -111,6 +111,62 @@
         </div>
       </div>
     </Button>
+    <Button
+      v-if="useBiatec"
+      class="my-2 mx-1"
+      :disabled="!allowExecuteBiatec || processingTradeBiatec"
+      :severity="
+        allowExecuteBiatec && isBiatecQuoteBetter ? 'primary' : 'secondary'
+      "
+      @click="$emit('execute-biatec')"
+    >
+      <div>
+        <div>
+          <ProgressSpinner
+            v-if="processingTradeBiatec"
+            style="width: 1em; height: 1em"
+            strokeWidth="5"
+          />
+          {{ $t("swap.execute_button_biatec") }}
+          <br />
+        </div>
+        <div v-if="biatecQuotes?.quoteAmount">{{ $t("labels.quote") }}</div>
+        <div v-if="biatecQuotes?.quoteAmount">
+          {{
+            $filters.formatCurrency(
+              Number(biatecQuotes.quoteAmount),
+              "",
+              toAssetDecimals
+            )
+          }}
+        </div>
+        <div v-if="biatecQuotes?.quoteAmount">{{ $t("labels.price") }}</div>
+        <div v-if="biatecQuotes?.quoteAmount">
+          {{
+            $filters.formatCurrency(
+              (10 ** 6 * Number(biatecQuotes.quoteAmount)) /
+                10 ** toAssetDecimals /
+                payamount,
+              pair,
+              6
+            )
+          }}
+        </div>
+        <div v-if="biatecQuotes?.quoteAmount">
+          {{
+            $filters.formatCurrency(
+              10 ** 6 /
+                ((10 ** 6 * Number(biatecQuotes.quoteAmount)) /
+                  10 ** toAssetDecimals /
+                  payamount /
+                  10 ** 6),
+              pairReversed,
+              6
+            )
+          }}
+        </div>
+      </div>
+    </Button>
   </div>
 </template>
 
@@ -120,19 +176,24 @@ export default {
   props: {
     useDeflex: Boolean,
     useFolks: Boolean,
+    useBiatec: Boolean,
     allowExecuteDeflex: Boolean,
     allowExecuteFolks: Boolean,
+    allowExecuteBiatec: Boolean,
     processingTradeDeflex: Boolean,
     processingTradeFolks: Boolean,
+    processingTradeBiatec: Boolean,
     isDeflexQuoteBetter: Boolean,
     isFolksQuoteBetter: Boolean,
+    isBiatecQuoteBetter: Boolean,
     deflexQuotes: Object,
     folksQuote: Object,
+    biatecQuotes: Object,
     toAssetDecimals: Number,
     payamount: Number,
     pair: String,
     pairReversed: String,
   },
-  emits: ["execute-deflex", "execute-folks"],
+  emits: ["execute-deflex", "execute-folks", "execute-biatec"],
 };
 </script>

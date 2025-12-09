@@ -33,6 +33,7 @@
             :aggregators="dexAggregators"
             v-model:useFolks="useFolks"
             v-model:useDeflex="useDeflex"
+            v-model:useBiatec="useBiatec"
           />
           <SwapQuoteButton
             :formInvalid="formInvalid"
@@ -55,20 +56,26 @@
           <SwapExecuteButtons
             :useDeflex="useDeflex"
             :useFolks="useFolks"
+            :useBiatec="useBiatec"
             :allowExecuteDeflex="allowExecuteDeflex"
             :allowExecuteFolks="allowExecuteFolks"
+            :allowExecuteBiatec="allowExecuteBiatec"
             :processingTradeDeflex="processingTradeDeflex"
             :processingTradeFolks="processingTradeFolks"
+            :processingTradeBiatec="processingTradeBiatec"
             :isDeflexQuoteBetter="isDeflexQuoteBetter"
             :isFolksQuoteBetter="isFolksQuoteBetter"
+            :isBiatecQuoteBetter="isBiatecQuoteBetter"
             :deflexQuotes="deflexQuotes"
             :folksQuote="folksQuote"
+            :biatecQuotes="biatecQuotes"
             :toAssetDecimals="toAssetDecimals"
             :payamount="payamount"
             :pair="pair"
             :pairReversed="pairReversed"
             @execute-deflex="clickExecuteDeflex"
             @execute-folks="clickExecuteFolks"
+            @execute-biatec="clickExecuteBiatec"
           />
         </div>
       </template>
@@ -112,7 +119,7 @@ export default {
         agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
       aggregatorData[agg.processingKey] = false;
       aggregatorData[agg.enabledKey] =
-        agg.name === "folks" || agg.name === "deflex"; // Default enabled
+        agg.name === "folks" || agg.name === "deflex" || agg.name === "biatec"; // Default enabled
     });
 
     return {
@@ -203,6 +210,10 @@ export default {
       const agg = this.dexAggregators.find((a) => a.name === "folks");
       return agg ? agg.allowExecute(this) : false;
     },
+    allowExecuteBiatec() {
+      const agg = this.dexAggregators.find((a) => a.name === "biatec");
+      return agg ? agg.allowExecute(this) : false;
+    },
     appsToOptIn() {
       const requiredAppOptIns = this.deflexQuotes?.requiredAppOptIns ?? [];
       const ret = [];
@@ -246,6 +257,10 @@ export default {
     },
     isFolksQuoteBetter() {
       const agg = this.dexAggregators.find((a) => a.name === "folks");
+      return agg ? agg.isQuoteBetter(this) : false;
+    },
+    isBiatecQuoteBetter() {
+      const agg = this.dexAggregators.find((a) => a.name === "biatec");
       return agg ? agg.isQuoteBetter(this) : false;
     },
     isDeflexQuoteBetter() {
@@ -363,6 +378,7 @@ export default {
       sendRawTransaction: "algod/sendRawTransaction",
       waitForConfirmation: "algod/waitForConfirmation",
       signTransaction: "signer/signTransaction",
+      signAuthTx: "arc14/signAuthTx",
     }),
 
     async reloadAccount() {
@@ -485,6 +501,12 @@ export default {
     },
     async clickExecuteFolks() {
       const agg = this.dexAggregators.find((a) => a.name === "folks");
+      if (agg) {
+        await agg.execute(this);
+      }
+    },
+    async clickExecuteBiatec() {
+      const agg = this.dexAggregators.find((a) => a.name === "biatec");
       if (agg) {
         await agg.execute(this);
       }

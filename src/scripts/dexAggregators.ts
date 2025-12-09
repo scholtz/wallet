@@ -30,10 +30,89 @@
 // Each aggregator implements a common interface for getting quotes and executing swaps
 
 import { FolksRouterClient, Network, SwapMode } from "@folks-router/js-sdk";
-import { biatecRouter } from "biatec-router";
-import algosdk, { SuggestedParams } from "algosdk";
-
+import { biatecRouter, authTransaction } from "biatec-router";
+import arc14 from "arc14";
 // Type definitions
+interface SwapComponent {
+  // Basic properties
+  asset: number | null;
+  toAsset: number | null;
+  payamount: number;
+  account: any;
+  slippage: number;
+  txsDetails: string;
+  error: string;
+  note: string;
+  processingQuote: boolean;
+  processingOptin: boolean;
+  fromAssetObj: any;
+  toAssetObj: any;
+
+  // Computed properties
+  fromAssetDecimals: number;
+  toAssetDecimals: number;
+  requiresOptIn: boolean;
+
+  // Store access
+  $store: {
+    state: {
+      config: {
+        env: string;
+        deflex: string;
+      };
+      algod: {
+        client: any;
+      };
+      wallet: {
+        privateAccounts: any[];
+      };
+    };
+    getters: {
+      algosdk: {
+        decodeUnsignedTransaction: (bytes: Uint8Array) => any;
+        signTransaction: (tx: any, sk: Uint8Array) => any;
+        computeGroupID: (txs: any[]) => Uint8Array;
+        waitForConfirmation: (
+          client: any,
+          txId: string,
+          timeout: number
+        ) => Promise<any>;
+      };
+    };
+  };
+
+  // Route params
+  $route: {
+    params: {
+      account: string;
+    };
+  };
+
+  // Methods
+  openError: (message: string) => void;
+  axiosGet: (config: { url: string }) => Promise<any>;
+  axiosPost: (config: {
+    url: string;
+    body?: any;
+    config?: any;
+  }) => Promise<any>;
+  getSK: (config: { addr: string }) => Promise<Uint8Array>;
+  getAsset: (config: { assetIndex: number }) => Promise<any>;
+  sendRawTransaction: (config: {
+    signedTxn: Uint8Array | Uint8Array[];
+  }) => Promise<{ txId: string }>;
+  waitForConfirmation: (config: {
+    txId: string;
+    timeout: number;
+  }) => Promise<any>;
+  prolong: () => Promise<void>;
+  reloadAccount: () => Promise<void>;
+  checkNetwork: () => string | false;
+
+  // Dynamically created aggregator properties
+  [key: string]: any; // For aggregator-specific properties like deflexQuotes, folksQuote, biatecQuotes, etc.
+}
+
 interface DexAggregator {
   name: string;
   displayName: string;
@@ -41,11 +120,11 @@ interface DexAggregator {
   quotesKey: string;
   txnsKey: string;
   processingKey: string;
-  getQuote: (component: any) => Promise<void>;
-  execute: (component: any) => Promise<void>;
-  allowExecute: { (component: any): boolean };
-  isQuoteBetter: { (component: any): boolean };
-  getFolksClient?: (component: any) => FolksRouterClient | null;
+  getQuote: (component: SwapComponent) => Promise<void>;
+  execute: (component: SwapComponent) => Promise<void>;
+  allowExecute: { (component: SwapComponent): boolean };
+  isQuoteBetter: { (component: SwapComponent): boolean };
+  getFolksClient?: (component: SwapComponent) => FolksRouterClient | null;
 }
 
 export const dexAggregators: DexAggregator[] = [
@@ -57,14 +136,16 @@ export const dexAggregators: DexAggregator[] = [
     txnsKey: "deflexTxs",
     processingKey: "processingTradeDeflex",
 
-    async getQuote(component: any) {
+    async getQuote(component: SwapComponent) {
       try {
         component.deflexQuotes = {};
         const amount = BigInt(
           Math.round(component.payamount * 10 ** component.fromAssetDecimals)
         );
-        const fromAsset = component.asset > 0 ? component.asset : 0;
-        const toAsset = component.toAsset > 0 ? component.toAsset : 0;
+        const fromAsset =
+          component.asset && component.asset > 0 ? component.asset : 0;
+        const toAsset =
+          component.toAsset && component.toAsset > 0 ? component.toAsset : 0;
         const chain = component.checkNetwork();
         if (!chain) {
           component.txsDetails += "\nDEFLEX: Wrong network selected";
@@ -136,7 +217,7 @@ export const dexAggregators: DexAggregator[] = [
       }
     },
 
-    async execute(component: any) {
+    async execute(component: SwapComponent) {
       component.prolong();
       component.processingTradeDeflex = true;
       component.note = "";
@@ -203,7 +284,7 @@ export const dexAggregators: DexAggregator[] = [
     },
 
     get allowExecute() {
-      return function (component: any) {
+      return function (component: SwapComponent) {
         if (
           !component.deflexTxs ||
           !component.deflexTxs.txns ||
@@ -216,7 +297,7 @@ export const dexAggregators: DexAggregator[] = [
     },
 
     get isQuoteBetter() {
-      return function (component: any) {
+      return function (component: SwapComponent) {
         if (!component.deflexQuotes) {
           return false;
         }
@@ -252,7 +333,7 @@ export const dexAggregators: DexAggregator[] = [
     txnsKey: "folksTxns",
     processingKey: "processingTradeFolks",
 
-    getFolksClient(component) {
+    getFolksClient(component: SwapComponent) {
       if (component.$store.state.config.env == "mainnet-v1.0") {
         return new FolksRouterClient(Network.MAINNET);
       }
@@ -268,7 +349,7 @@ export const dexAggregators: DexAggregator[] = [
       return null;
     },
 
-    async getQuote(component: any) {
+    async getQuote(component: SwapComponent) {
       try {
         component.folksQuote = {};
         const amount = BigInt(
@@ -281,8 +362,10 @@ export const dexAggregators: DexAggregator[] = [
           throw Error(
             "Unable to create folks router client for specified network"
           );
-        const fromAsset = component.asset > 0 ? component.asset : 0;
-        const toAsset = component.toAsset > 0 ? component.toAsset : 0;
+        const fromAsset =
+          component.asset && component.asset > 0 ? component.asset : 0;
+        const toAsset =
+          component.toAsset && component.toAsset > 0 ? component.toAsset : 0;
 
         component.folksQuote = await folksRouterClient.fetchSwapQuote(
           fromAsset,
@@ -317,7 +400,7 @@ export const dexAggregators: DexAggregator[] = [
       }
     },
 
-    async execute(component: any) {
+    async execute(component: SwapComponent) {
       component.prolong();
       component.processingTradeFolks = true;
       component.note = "";
@@ -331,7 +414,7 @@ export const dexAggregators: DexAggregator[] = [
       }
       const unsignedTxns = component.folksTxns.map((txn: any) =>
         component.$store.getters.algosdk.decodeUnsignedTransaction(
-          Buffer.from(txn, "base64")
+          new Uint8Array(Buffer.from(txn, "base64"))
         )
       );
       const signedTxns = unsignedTxns.map((txn: any) => txn.signTxn(senderSK));
@@ -370,7 +453,7 @@ export const dexAggregators: DexAggregator[] = [
     },
 
     get allowExecute() {
-      return function (component: any) {
+      return function (component: SwapComponent) {
         if (
           component.folksTxns &&
           component.folksQuote &&
@@ -383,7 +466,7 @@ export const dexAggregators: DexAggregator[] = [
     },
 
     get isQuoteBetter() {
-      return function (component: any) {
+      return function (component: SwapComponent) {
         if (!component.folksQuote) {
           return false;
         }
@@ -411,173 +494,165 @@ export const dexAggregators: DexAggregator[] = [
     },
   },
 
-  // // Biatec Router Aggregator
-  // {
-  //   name: "biatec",
-  //   displayName: "Biatec Router",
-  //   enabledKey: "useBiatec",
-  //   quotesKey: "biatecQuotes",
-  //   txnsKey: "biatecTxns",
-  //   processingKey: "processingTradeBiatec",
+  // Biatec Router Aggregator
+  {
+    name: "biatec",
+    displayName: "Biatec Router",
+    enabledKey: "useBiatec",
+    quotesKey: "biatecQuotes",
+    txnsKey: "biatecTxns",
+    processingKey: "processingTradeBiatec",
 
-  //   async getQuote(component: any) {
-  //     try {
-  //       component.biatecQuotes = {};
+    async getQuote(component: SwapComponent) {
+      try {
+        component.biatecQuotes = {};
 
-  //       // TODO: Implement ARC14 authentication properly
-  //       // For now, skip authentication - this may not work in production
-  //       // if (!biatecRouter.OpenAPI.HEADERS?.Authorization) {
-  //       //   const params = await component.$store.state.algod.client.getTransactionParams().do();
-  //       //   const authTx = await createAuthTransaction(component.account.addr.toString(), params, component.$store.getters.algosdk);
-  //       //   const signed = authTx.signTxn(component.account.sk);
-  //       //   const authHeader = makeArc14AuthHeader(signed);
-  //       //   biatecRouter.OpenAPI.HEADERS = { 'Authorization': authHeader };
-  //       // }
+        const authHeader = await component.signAuthTx({
+          account: component.account.addr.toString(),
+          realm: "BiatecRouter#ARC14",
+        });
+        biatecRouter.OpenAPI.HEADERS = { Authorization: authHeader };
+        biatecRouter.OpenAPI.BASE = "https://router.api.biatec.io";
 
-  //       const requestBody = {
-  //         sender: component.account.addr.toString(),
-  //         fromAsset: component.asset > 0 ? component.asset : 0,
-  //         toAsset: component.toAsset > 0 ? component.toAsset : 0,
-  //         swapAmount: Math.round(
-  //           component.payamount * 10 ** component.fromAssetDecimals
-  //         ),
-  //         receiveMinimum: 0,
-  //         routesCount: 1,
-  //         maxHops: 3,
-  //       };
+        const requestBody = {
+          sender: component.account.addr.toString(),
+          fromAsset:
+            component.asset && component.asset > 0 ? component.asset : 0,
+          toAsset:
+            component.toAsset && component.toAsset > 0 ? component.toAsset : 0,
+          swapAmount: Math.round(
+            component.payamount * 10 ** component.fromAssetDecimals
+          ),
+          receiveMinimum: 0,
+          routesCount: 1,
+          maxHops: 3,
+        };
 
-  //       const response =
-  //         await biatecRouter.RouterService.postApiV1RouterRouteTxs(requestBody);
+        const response =
+          await biatecRouter.RouterService.postApiV1RouterRouteTxs(requestBody);
 
-  //       if (!response.routes || response.routes.length === 0) {
-  //         component.error = "No Biatec Router routes available";
-  //         return;
-  //       }
+        if (!response.routes || response.routes.length === 0) {
+          component.error = "No Biatec Router routes available";
+          return;
+        }
 
-  //       const route = response.routes[0];
-  //       component.biatecQuotes = {
-  //         route: route,
-  //         quoteAmount:
-  //           (route as any).expectedReceiveAmount ||
-  //           (route as any).receiveAmount ||
-  //           0,
-  //         priceImpact: (route as any).priceImpact || 0,
-  //         fees: (route as any).totalFees || 0,
-  //       };
+        const route = response.routes[0];
+        component.biatecQuotes = {
+          route: route,
+          quoteAmount: route.route?.outputAmount || 0,
+          fees: route.route?.totalNetworkFeeMicroAlgos || 0,
+        };
 
-  //       component.txsDetails +=
-  //         "\nBIATEC: " +
-  //         ((route as any).expectedReceiveAmount ||
-  //           (route as any).receiveAmount ||
-  //           0) +
-  //         " expected receive";
-  //       component.txsDetails = component.txsDetails.trim();
-  //     } catch (e) {
-  //       component.error =
-  //         "Error fetching quote from Biatec Router: " + (e as Error).message;
-  //       component.openError(
-  //         "Error fetching quote from Biatec Router: " + (e as Error).message
-  //       );
-  //     }
-  //   },
+        component.txsDetails +=
+          "\nBIATEC: " + (route.route?.outputAmount || 0) + " expected receive";
+        component.txsDetails = component.txsDetails.trim();
+      } catch (e) {
+        console.error("Error fetching Biatec Router quote:", e);
+        component.error =
+          "Error fetching quote from Biatec Router: " + (e as Error).message;
+        component.openError(
+          "Error fetching quote from Biatec Router: " + (e as Error).message
+        );
+      }
+    },
 
-  //   async execute(component: any) {
-  //     component.prolong();
-  //     component.processingTradeBiatec = true;
-  //     component.note = "";
-  //     component.error = "";
+    async execute(component: SwapComponent) {
+      component.prolong();
+      component.processingTradeBiatec = true;
+      component.note = "";
+      component.error = "";
 
-  //     try {
-  //       if (
-  //         !component.biatecQuotes?.route?.txsToSign ||
-  //         component.biatecQuotes.route.txsToSign.length === 0
-  //       ) {
-  //         throw new Error("No transactions to sign in the Biatec route.");
-  //       }
+      try {
+        if (
+          !component.biatecQuotes?.route?.txsToSign ||
+          component.biatecQuotes.route.txsToSign.length === 0
+        ) {
+          throw new Error("No transactions to sign in the Biatec route.");
+        }
 
-  //       // Decode and group transactions
-  //       const transactions = [];
-  //       for (const txBase64 of component.biatecQuotes.route.txsToSign) {
-  //         const txBytes = new Uint8Array(Buffer.from(txBase64, "base64"));
-  //         const tx =
-  //           component.$store.getters.algosdk.decodeUnsignedTransaction(txBytes);
-  //         transactions.push(tx);
-  //       }
+        // Decode and group transactions
+        const transactions = [];
+        for (const txBase64 of component.biatecQuotes.route.txsToSign) {
+          const txBytes = new Uint8Array(Buffer.from(txBase64, "base64"));
+          const tx =
+            component.$store.getters.algosdk.decodeUnsignedTransaction(txBytes);
+          transactions.push(tx);
+        }
 
-  //       // Clear group and compute new group ID
-  //       transactions.forEach((tx) => {
-  //         tx.group = undefined;
-  //       });
-  //       const groupId =
-  //         component.$store.getters.algosdk.computeGroupID(transactions);
-  //       transactions.forEach((tx) => (tx.group = groupId));
+        // Clear group and compute new group ID
+        transactions.forEach((tx) => {
+          tx.group = undefined;
+        });
+        const groupId =
+          component.$store.getters.algosdk.computeGroupID(transactions);
+        transactions.forEach((tx) => (tx.group = groupId));
 
-  //       // Sign transactions
-  //       const signedTxs = [];
-  //       for (const tx of transactions) {
-  //         const signedTx = tx.signTxn(component.account.sk);
-  //         signedTxs.push(signedTx);
-  //       }
+        // Sign transactions
+        const signedTxs = [];
+        for (const tx of transactions) {
+          const signedTx = tx.signTxn(component.account.sk);
+          signedTxs.push(signedTx);
+        }
 
-  //       // Send transaction
-  //       const txResponse = await component.$store.state.algod.client
-  //         .sendRawTransaction(signedTxs)
-  //         .do();
+        // Send transaction
+        const txResponse = await component.$store.state.algod.client
+          .sendRawTransaction(signedTxs)
+          .do();
 
-  //       // Wait for confirmation
-  //       const confirmation =
-  //         await component.$store.getters.algosdk.waitForConfirmation(
-  //           component.$store.state.algod.client,
-  //           txResponse.txId,
-  //           4
-  //         );
+        // Wait for confirmation
+        const confirmation =
+          await component.$store.getters.algosdk.waitForConfirmation(
+            component.$store.state.algod.client,
+            txResponse.txId,
+            4
+          );
 
-  //       component.note = txResponse.txId;
-  //       component.processingTradeBiatec = false;
-  //       await component.reloadAccount();
-  //     } catch (e) {
-  //       component.error = (e as Error).message;
-  //       component.processingTradeBiatec = false;
-  //       component.openError((e as Error).message);
-  //     }
-  //   },
+        component.note = txResponse.txId;
+        component.processingTradeBiatec = false;
+        await component.reloadAccount();
+      } catch (e) {
+        component.error = (e as Error).message;
+        component.processingTradeBiatec = false;
+        component.openError((e as Error).message);
+      }
+    },
 
-  //   get allowExecute() {
-  //     return function (component: any) {
-  //       return (
-  //         component.biatecQuotes?.route?.txsToSign?.length > 0 &&
-  //         !component.requiresOptIn
-  //       );
-  //     };
-  //   },
+    get allowExecute() {
+      return function (component: SwapComponent) {
+        return (
+          component.biatecQuotes?.route?.txsToSign?.length > 0 &&
+          !component.requiresOptIn
+        );
+      };
+    },
 
-  //   get isQuoteBetter() {
-  //     return function (component: any) {
-  //       if (!component.biatecQuotes?.quoteAmount) {
-  //         return false;
-  //       }
-  //       // Compare with other aggregators
-  //       const others = component.dexAggregators.filter(
-  //         (a: any) => a.name !== "biatec" && component[a.enabledKey]
-  //       );
-  //       for (let other of others) {
-  //         const otherQuote =
-  //           component[other.quotesKey]?.quoteAmount ||
-  //           component[other.quotesKey]?.quote;
-  //         if (otherQuote) {
-  //           const biatec = BigInt(
-  //             component.biatecQuotes.quoteAmount
-  //           ).toString();
-  //           const otherVal = BigInt(otherQuote).toString();
-  //           if (otherVal.length > biatec.length) return false;
-  //           if (biatec.length > otherVal.length) return true;
-  //           if (otherVal > biatec) return false;
-  //         }
-  //       }
-  //       return true;
-  //     };
-  //   },
-  // },
+    get isQuoteBetter() {
+      return function (component: SwapComponent) {
+        if (!component.biatecQuotes?.quoteAmount) {
+          return false;
+        }
+        // Compare with other aggregators
+        const others = component.dexAggregators.filter(
+          (a: any) => a.name !== "biatec" && component[a.enabledKey]
+        );
+        for (let other of others) {
+          const otherQuote =
+            component[other.quotesKey]?.quoteAmount ||
+            component[other.quotesKey]?.quote;
+          if (otherQuote) {
+            const biatec = BigInt(
+              component.biatecQuotes.quoteAmount
+            ).toString();
+            const otherVal = BigInt(otherQuote).toString();
+            if (otherVal.length > biatec.length) return false;
+            if (biatec.length > otherVal.length) return true;
+            if (otherVal > biatec) return false;
+          }
+        }
+        return true;
+      };
+    },
+  },
 ];
 
 // Helper function to add a new aggregator
