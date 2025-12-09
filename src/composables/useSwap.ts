@@ -248,6 +248,23 @@ export function useSwap() {
     // Create a proxy that updates reactive refs when aggregator properties are set
     return new Proxy(context, {
       get(target, prop) {
+        // Map key reactive fields back to refs so changes are visible in the UI
+        if (prop === "txsDetails") {
+          return txsDetails.value;
+        }
+        if (prop === "note") {
+          return note.value;
+        }
+        if (prop === "error") {
+          return error.value;
+        }
+        if (prop === "processingQuote") {
+          return processingQuote.value;
+        }
+        if (prop === "processingOptin") {
+          return processingOptin.value;
+        }
+
         // First check if it's a direct property
         if (prop in target) {
           return target[prop as keyof typeof target];
@@ -259,6 +276,28 @@ export function useSwap() {
         return undefined;
       },
       set(target, prop, value) {
+        // Keep key fields in sync with refs when aggregators write to them
+        if (prop === "txsDetails") {
+          txsDetails.value = value as string;
+          return true;
+        }
+        if (prop === "note") {
+          note.value = value as string;
+          return true;
+        }
+        if (prop === "error") {
+          error.value = value as string;
+          return true;
+        }
+        if (prop === "processingQuote") {
+          processingQuote.value = Boolean(value);
+          return true;
+        }
+        if (prop === "processingOptin") {
+          processingOptin.value = Boolean(value);
+          return true;
+        }
+
         // If it's an aggregator data property, update the reactive ref
         if (prop in aggregatorData) {
           aggregatorData[prop as keyof typeof aggregatorData].value = value;
