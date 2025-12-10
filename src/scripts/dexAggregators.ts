@@ -504,6 +504,51 @@ export const dexAggregators: DexAggregator[] = [
           component.processingTradeBiatec = false;
           return;
         }
+
+        if (!component.biatecQuotes?.route?.outputAmount) {
+          throw new Error("Cannot calculate the minimum amount to receive.");
+        }
+        const authHeader = await component.signAuthTx({
+          account: component.account.addr.toString(),
+          realm: "BiatecRouter#ARC14",
+        });
+        biatecRouter.OpenAPI.HEADERS = { Authorization: authHeader };
+        biatecRouter.OpenAPI.BASE = "https://router.api.biatec.io";
+
+        const minimumReceiveAmount = Math.floor(
+          (component.biatecQuotes.route.outputAmount *
+            (10000 - component.slippage * 100)) / // component.slippage is in percentage (e.g., 1 = 1%)
+            10000
+        );
+
+        const requestBody = {
+          sender: component.account.addr.toString(),
+          fromAsset:
+            component.asset && component.asset > 0 ? component.asset : 0,
+          toAsset:
+            component.toAsset && component.toAsset > 0 ? component.toAsset : 0,
+          swapAmount: Math.round(
+            component.payamount * 10 ** component.fromAssetDecimals
+          ),
+          receiveMinimum: minimumReceiveAmount, // ensure the minimum receive amount is set appropriately
+          routesCount: 1,
+          maxHops: 3,
+        };
+
+        const response =
+          await biatecRouter.RouterService.postApiV1RouterRouteTxs(requestBody);
+        if (!response.routes || response.routes.length === 0) {
+          component.error = "No Biatec Router routes available";
+          return;
+        }
+
+        const route = response.routes[0];
+        component.biatecQuotes = {
+          route: route,
+          quoteAmount: route.route?.outputAmount || 0,
+          fees: route.route?.totalNetworkFeeMicroAlgos || 0,
+        };
+
         if (
           !component.biatecQuotes?.route?.txsToSign ||
           component.biatecQuotes.route.txsToSign.length === 0
