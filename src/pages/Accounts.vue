@@ -243,8 +243,9 @@ export default {
     },
     fillAccounts() {
       this.showNoAccountsForNetworkWarning = false;
+      let filteredAccounts = [];
       if (this.showNetworkAccounts) {
-        this.accounts = Object.values(
+        filteredAccounts = Object.values(
           this.$store.state.wallet.privateAccounts
         ).filter(
           (a) =>
@@ -258,17 +259,25 @@ export default {
                   (a) => a.balance > 0
                 )))
         );
-        if (!this.accounts.length) {
-          this.accounts = Object.values(
+        if (!filteredAccounts.length) {
+          filteredAccounts = Object.values(
             this.$store.state.wallet.privateAccounts
           );
-          if (this.accounts.length > 0) {
+          if (filteredAccounts.length > 0) {
             this.showNoAccountsForNetworkWarning = true;
           }
         }
       } else {
-        this.accounts = Object.values(this.$store.state.wallet.privateAccounts);
+        filteredAccounts = Object.values(
+          this.$store.state.wallet.privateAccounts
+        );
       }
+
+      // Add flat amount property for sorting
+      this.accounts = filteredAccounts.map((account) => ({
+        ...account,
+        amount: this.accountData(account)?.amount || 0,
+      }));
     },
     sleep(ms) {
       return new Promise((resolve) => {
