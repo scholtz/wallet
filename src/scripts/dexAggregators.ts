@@ -38,6 +38,7 @@ import type {
   SwapStore,
   SwapRoute,
 } from "../types/swap";
+import algosdk from "algosdk";
 
 // Type definitions
 interface SwapComponent extends SwapComponentData, SwapMethods {
@@ -520,14 +521,9 @@ export const dexAggregators: DexAggregator[] = [
           console.log("txBase64", txBase64);
           let txBytes = new Uint8Array(Buffer.from(txBase64, "base64"));
           // Check for "TX" prefix (0x54, 0x58)
-          if (
-            txBytes.length > 2 &&
-            txBytes[0] === 0x54 &&
-            txBytes[1] === 0x58
-          ) {
-            txBytes = txBytes.slice(2);
-          }
-          const tx = component.algosdk.decodeUnsignedTransaction(txBytes);
+          const tx = component.algosdk.decodeUnsignedTransaction(
+            txBytes
+          ) as algosdk.Transaction;
           console.log("tx", tx);
           transactions.push(tx);
         }
@@ -538,6 +534,12 @@ export const dexAggregators: DexAggregator[] = [
         });
         const groupId = component.algosdk.computeGroupID(transactions);
         transactions.forEach((tx) => (tx.group = groupId));
+        console.log(
+          "grouped transactions",
+          transactions.map((tx) => {
+            return tx.txID();
+          })
+        );
 
         // Sign transactions
         const signedTxs = [];
