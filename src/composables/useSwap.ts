@@ -358,10 +358,19 @@ export function useSwap() {
     }
 
     if (accountData.value && accountData.value.assets) {
-      for (let index in accountData.value.assets) {
-        const assetInfo = await store.dispatch("indexer/getAsset", {
-          assetIndex: accountData.value.assets[index]["asset-id"],
-        });
+      // Parallel fetch all asset infos
+      const assetPromises = accountData.value.assets.map(
+        (asset: any) =>
+          store
+            .dispatch("indexer/getAsset", {
+              assetIndex: asset["asset-id"],
+            })
+            .catch(() => null) // Ignore errors for individual assets
+      );
+      const assetInfos = await Promise.all(assetPromises);
+
+      for (let index = 0; index < accountData.value.assets.length; index++) {
+        const assetInfo = assetInfos[index];
         if (assetInfo) {
           const balance = formatCurrency(
             accountData.value.assets[index]["amount"],
