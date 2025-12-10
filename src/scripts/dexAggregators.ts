@@ -504,8 +504,8 @@ export const dexAggregators: DexAggregator[] = [
           component.processingTradeBiatec = false;
           return;
         }
-
-        if (!component.biatecQuotes?.route?.outputAmount) {
+        console.log("component.biatecQuotes", component.biatecQuotes);
+        if (!component.biatecQuotes?.route?.route?.outputAmount) {
           throw new Error("Cannot calculate the minimum amount to receive.");
         }
         const authHeader = await component.signAuthTx({
@@ -516,7 +516,7 @@ export const dexAggregators: DexAggregator[] = [
         biatecRouter.OpenAPI.BASE = "https://router.api.biatec.io";
 
         const minimumReceiveAmount = Math.floor(
-          (component.biatecQuotes.route.outputAmount *
+          (component.biatecQuotes.route.route.outputAmount *
             (10000 - component.slippage * 100)) / // component.slippage is in percentage (e.g., 1 = 1%)
             10000
         );
