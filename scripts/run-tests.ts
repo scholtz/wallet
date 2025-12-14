@@ -15,7 +15,8 @@ function getCypressCacheDir(): string | null {
   const platform = process.platform;
 
   if (platform === "win32") {
-    const base = process.env.LOCALAPPDATA || path.join(homeDir, "AppData", "Local");
+    const base =
+      process.env.LOCALAPPDATA || path.join(homeDir, "AppData", "Local");
     return path.join(base, "Cypress", "Cache");
   }
 
