@@ -10,7 +10,7 @@
     "cypress:open": "cypress open",
     "i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/locales/**/*.json\"",
     "server": "browser-sync start --port 8484 --server dist --no-open",
-    "run-app-for-test": "npm run serve -- --port 8083",
+    "run-app-for-test": "npm run serve -- --port 8080",
     "test": "cypress run",
     "gen-videos": "cypress run --no-runner-ui --config video=true --config-file ",
     "test:open": "run-p -r server cypress:open"

@@ -2,11 +2,35 @@
 
 import { spawn, type SpawnOptions, type ChildProcess } from "child_process";
 import fs from "fs";
+import os from "os";
 import path from "path";
 
+function getCypressCacheDir(): string | null {
+  const envCache = process.env.CYPRESS_CACHE_FOLDER;
+  if (envCache && envCache.trim()) {
+    return envCache;
+  }
+
+  const homeDir = os.homedir();
+  const platform = process.platform;
+
+  if (platform === "win32") {
+    const base = process.env.LOCALAPPDATA || path.join(homeDir, "AppData", "Local");
+    return path.join(base, "Cypress", "Cache");
+  }
+
+  if (platform === "darwin") {
+    return path.join(homeDir, "Library", "Caches", "Cypress");
+  }
+
+  // Linux and other unix-like
+  return path.join(homeDir, ".cache", "Cypress");
+}
+
 function checkCypressBinary(): boolean {
-  const homeDir = process.env.HOME || "";
-  const cypressPath = path.join(homeDir, ".cache", "Cypress");
+  const cypressPath = getCypressCacheDir();
+  if (!cypressPath) return false;
+
   try {
     return fs.existsSync(cypressPath) && fs.readdirSync(cypressPath).length > 0;
   } catch {
