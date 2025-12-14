@@ -14,13 +14,13 @@ jobs:
           node-version: "22.x"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Install and Build 🔧 # Install
+      - name: npm install 🔧 # Install
         run: |
           npm install
-      - name: Install and Build 🔧 # Build
+      - name: npm run build 🔧 # Build
         run: |
           npm run build
-      - name: Install and Build 🔧 # Test
+      - name: npm run test 🔧 # Test
         run: |
           npm run test
 
