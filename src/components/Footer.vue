@@ -96,6 +96,7 @@ export default {
         this.displayTimeoutDialog = true;
       }
       if (t < 0) {
+        this.displayTimeoutDialog = false;
         this.logout();
       }
       if (this.$store.state.wallet.isOpen) {
@@ -103,6 +104,7 @@ export default {
       } else {
         if (this.t) {
           // unauth
+          this.displayTimeoutDialog = false;
           this.logout();
         }
         this.t = "";
