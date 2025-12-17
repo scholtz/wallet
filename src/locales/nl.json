@@ -4,7 +4,10 @@
     "text": "De pagina die je zoekt is niet gevonden"
   },
   "footer": {
-    "text": "A-Wallet - Open source PWA Algorand community wallet"
+    "text": "A-Wallet - Open source PWA Algorand community wallet",
+    "session_timeout_header": "Sessie time-out waarschuwing",
+    "session_timeout_message": "Uw sessie verloopt binnenkort. Wilt u doorgaan?",
+    "session_timeout_continue": "Sessie voortzetten"
   },
   "login": {
     "new_wallet": "Nieuwe portemonnee",

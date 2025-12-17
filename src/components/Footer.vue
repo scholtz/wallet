@@ -19,6 +19,19 @@
         </Button>
       </div>
     </div>
+    <Dialog
+      v-model:visible="displayTimeoutDialog"
+      :header="$t('footer.session_timeout_header')"
+      :modal="true"
+      class="m-5"
+    >
+      <p>{{ $t("footer.session_timeout_message") }}</p>
+      <template #footer>
+        <Button size="small" @click="continueSession">
+          {{ $t("footer.session_timeout_continue") }}
+        </Button>
+      </template>
+    </Dialog>
   </footer>
 </template>
 <script>
@@ -30,6 +43,7 @@ export default {
       t: "",
       b: "white",
       envStatus: "",
+      displayTimeoutDialog: false,
     };
   },
   mounted() {
@@ -47,6 +61,10 @@ export default {
       prolong: "wallet/prolong",
       logout: "wallet/logout",
     }),
+    continueSession() {
+      this.prolong();
+      this.displayTimeoutDialog = false;
+    },
     setTime() {
       const elapsed = new Date() - this.$store.state.wallet.time;
       const t = 300000 - elapsed;
@@ -63,6 +81,10 @@ export default {
         }
       } else {
         this.b = "white";
+      }
+      // Show dialog at t-30 seconds
+      if (t <= 30000 && t > 0 && !this.displayTimeoutDialog) {
+        this.displayTimeoutDialog = true;
       }
       if (t < 0) {
         this.logout();

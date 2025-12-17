@@ -4,7 +4,10 @@
     "text": "Stránka, kterou hledáte, není bohužel k dispozici. Zkuste přejít na hlavní stránku."
   },
   "footer": {
-    "text": "A-Wallet - Open source PWA Algorand community wallet"
+    "text": "A-Wallet - Open source PWA Algorand community wallet",
+    "session_timeout_header": "Upozornění na vypršení relace",
+    "session_timeout_message": "Vaše relace brzy vyprší. Chcete pokračovat?",
+    "session_timeout_continue": "Pokračovat v relaci"
   },
   "login": {
     "new_wallet": "Nová peněženka",

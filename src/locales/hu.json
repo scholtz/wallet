@@ -4,7 +4,10 @@
     "text": "A keresett webhely nem található."
   },
   "footer": {
-    "text": "Algo pénztárca"
+    "text": "Algo pénztárca",
+    "session_timeout_header": "Munkamenet időtúllépési figyelmeztetés",
+    "session_timeout_message": "A munkamenet hamarosan lejár. Szeretné folytatni?",
+    "session_timeout_continue": "Munkamenet folytatása"
   },
   "login": {
     "new_wallet": "Új pénztárca",

@@ -4,7 +4,10 @@
     "text": "The website you are looking for cannot be found."
   },
   "footer": {
-    "text": "A-Wallet - Open source PWA Algorand community wallet"
+    "text": "A-Wallet - Open source PWA Algorand community wallet",
+    "session_timeout_header": "Session Timeout Warning",
+    "session_timeout_message": "Your session will expire soon. Would you like to continue?",
+    "session_timeout_continue": "Continue Session"
   },
   "login": {
     "new_wallet": "New wallet",

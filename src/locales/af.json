@@ -4,7 +4,10 @@
     "text": "Die webwerf wat jy soek, kan nie gevind word nie."
   },
   "footer": {
-    "text": "A-Wallet - Oopbron PWA Algorand gemeenskap beursie"
+    "text": "A-Wallet - Oopbron PWA Algorand gemeenskap beursie",
+    "session_timeout_header": "Sessie tydlimiet waarskuwing",
+    "session_timeout_message": "Jou sessie sal binnekort verval. Wil jy voortgaan?",
+    "session_timeout_continue": "Gaan voort met sessie"
   },
   "login": {
     "new_wallet": "Nuwe beursie",

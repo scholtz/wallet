@@ -4,7 +4,10 @@
     "text": "Il contenuto che state cercando non è stato trovato"
   },
   "footer": {
-    "text": "A-Wallet - Open source PWA Algorand community wallet"
+    "text": "A-Wallet - Open source PWA Algorand community wallet",
+    "session_timeout_header": "Avviso di timeout della sessione",
+    "session_timeout_message": "La tua sessione scadrà presto. Vuoi continuare?",
+    "session_timeout_continue": "Continua sessione"
   },
   "login": {
     "new_wallet": "Nuovo wallet",

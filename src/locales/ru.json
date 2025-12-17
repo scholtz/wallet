@@ -4,7 +4,10 @@
     "text": "Веб-сайт, который вы ищете, не найден."
   },
   "footer": {
-    "text": "A-Wallet — кошелек сообщества PWA Algorand с открытым исходным кодом"
+    "text": "A-Wallet — кошелек сообщества PWA Algorand с открытым исходным кодом",
+    "session_timeout_header": "Предупреждение об истечении времени сеанса",
+    "session_timeout_message": "Ваш сеанс скоро истечет. Хотите продолжить?",
+    "session_timeout_continue": "Продолжить сеанс"
   },
   "login": {
     "new_wallet": "Новый кошелек",
