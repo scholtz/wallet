@@ -4,7 +4,10 @@
     "text": "Aradığınız web sitesi bulunamıyor."
   },
   "footer": {
-    "text": "A-Wallet - Açık kaynak PWA Algorand topluluk cüzdanı"
+    "text": "A-Wallet - Açık kaynak PWA Algorand topluluk cüzdanı",
+    "session_timeout_header": "Oturum zaman aşımı uyarısı",
+    "session_timeout_message": "Oturumunuz yakında sona erecek. Devam etmek istiyor musunuz?",
+    "session_timeout_continue": "Oturuma devam et"
   },
   "login": {
     "new_wallet": "Yeni cüzdan",

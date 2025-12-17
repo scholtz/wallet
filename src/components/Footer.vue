@@ -19,17 +19,35 @@
         </Button>
       </div>
     </div>
+    <Dialog
+      v-model:visible="displayTimeoutDialog"
+      :header="$t('footer.session_timeout_header')"
+      :modal="true"
+      class="m-5"
+    >
+      <p>{{ $t("footer.session_timeout_message") }}</p>
+      <template #footer>
+        <Button size="small" @click="continueSession">
+          {{ $t("footer.session_timeout_continue") }}
+        </Button>
+      </template>
+    </Dialog>
   </footer>
 </template>
 <script>
 import { mapActions } from "vuex";
 import moment from "moment";
+
+const SESSION_TIMEOUT_MS = 300000; // 5 minutes
+const WARNING_THRESHOLD_MS = 30000; // 30 seconds
+
 export default {
   data() {
     return {
       t: "",
       b: "white",
       envStatus: "",
+      displayTimeoutDialog: false,
     };
   },
   mounted() {
@@ -47,9 +65,18 @@ export default {
       prolong: "wallet/prolong",
       logout: "wallet/logout",
     }),
+    async continueSession() {
+      try {
+        await this.prolong();
+        this.displayTimeoutDialog = false;
+      } catch (error) {
+        console.error("Failed to prolong session:", error);
+        // Keep dialog open if prolong fails
+      }
+    },
     setTime() {
       const elapsed = new Date() - this.$store.state.wallet.time;
-      const t = 300000 - elapsed;
+      const t = SESSION_TIMEOUT_MS - elapsed;
       if (t < 60000) {
         const sec = Math.round(t / 1000) % 3;
         if (sec == 0) {
@@ -64,7 +91,12 @@ export default {
       } else {
         this.b = "white";
       }
+      // Show dialog at warning threshold
+      if (t <= WARNING_THRESHOLD_MS && t > 0 && !this.displayTimeoutDialog) {
+        this.displayTimeoutDialog = true;
+      }
       if (t < 0) {
+        this.displayTimeoutDialog = false;
         this.logout();
       }
       if (this.$store.state.wallet.isOpen) {
@@ -72,6 +104,7 @@ export default {
       } else {
         if (this.t) {
           // unauth
+          this.displayTimeoutDialog = false;
           this.logout();
         }
         this.t = "";

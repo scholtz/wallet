@@ -4,7 +4,10 @@
     "text": "El sitio web que buscas no pudo ser encontrado."
   },
   "footer": {
-    "text": "Algo Wallet"
+    "text": "Algo Wallet",
+    "session_timeout_header": "Advertencia de tiempo de espera de sesión",
+    "session_timeout_message": "Su sesión expirará pronto. ¿Desea continuar?",
+    "session_timeout_continue": "Continuar sesión"
   },
   "login": {
     "new_wallet": "Nueva billetera",

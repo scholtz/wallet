@@ -4,7 +4,10 @@
     "text": "Stránka ktorú hľadáte nie je bohužiaľ k dispozícii. Skúste prejsť na hlavnú stránku."
   },
   "footer": {
-    "text": "A-Wallet - Komunitná algorand peňaženka s otvoreným kódom"
+    "text": "A-Wallet - Komunitná algorand peňaženka s otvoreným kódom",
+    "session_timeout_header": "Upozornenie na vypršanie relácie",
+    "session_timeout_message": "Vaša relácia čoskoro vyprší. Chcete pokračovať?",
+    "session_timeout_continue": "Pokračovať v relácii"
   },
   "login": {
     "new_wallet": "Nová peňaženka",
