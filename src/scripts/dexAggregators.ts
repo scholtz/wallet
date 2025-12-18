@@ -177,12 +177,8 @@ export const dexAggregators: DexAggregator[] = [
             return Uint8Array.from(Object.values(txn.logicSigBlob));
           } else {
             let bytes = new Uint8Array(Buffer.from(txn.data, "base64"));
-            const decoded =
-              component.$store.getters.algosdk.decodeUnsignedTransaction(bytes);
-            return component.$store.getters.algosdk.signTransaction(
-              decoded,
-              senderSK
-            ).blob;
+            const decoded = algosdk.decodeUnsignedTransaction(bytes);
+            return algosdk.signTransaction(decoded, senderSK).blob;
           }
         });
         if (!signedTxns) {
@@ -346,8 +342,9 @@ export const dexAggregators: DexAggregator[] = [
         component.processingTradeFolks = false;
         return;
       }
+
       const unsignedTxns = component.folksTxns.map((txn: any) =>
-        component.$store.getters.algosdk.decodeUnsignedTransaction(
+        algosdk.decodeUnsignedTransaction(
           new Uint8Array(Buffer.from(txn, "base64"))
         )
       );
@@ -566,7 +563,7 @@ export const dexAggregators: DexAggregator[] = [
           console.log("txBase64", txBase64);
           let txBytes = new Uint8Array(Buffer.from(txBase64, "base64"));
           // Check for "TX" prefix (0x54, 0x58)
-          const tx = component.algosdk.decodeUnsignedTransaction(
+          const tx = algosdk.decodeUnsignedTransaction(
             txBytes
           ) as algosdk.Transaction;
           console.log("tx", tx);
@@ -577,7 +574,7 @@ export const dexAggregators: DexAggregator[] = [
         transactions.forEach((tx) => {
           tx.group = undefined;
         });
-        const groupId = component.algosdk.computeGroupID(transactions);
+        const groupId = algosdk.computeGroupID(transactions);
         transactions.forEach((tx) => (tx.group = groupId));
         console.log(
           "grouped transactions",
