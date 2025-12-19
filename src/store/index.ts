@@ -2,6 +2,9 @@ import { createStore, Store, useStore as baseUseStore } from "vuex";
 import type { AlgodState } from "./algod";
 import type { Arc14State } from "./arc14";
 import type { AxiosState } from "./axios";
+import type { ConfigState } from "./config";
+import type { Fa2State } from "./fa2";
+import type { IndexerState } from "./indexer";
 import type { WalletState } from "./wallet";
 import algod from "./algod";
 import axios from "./axios";
@@ -21,9 +24,9 @@ import fa2 from "./fa2";
 export interface RootState {
   algod: AlgodState;
   axios: AxiosState;
-  config: Record<string, unknown>;
+  config: ConfigState;
   wallet: WalletState;
-  indexer: Record<string, unknown>;
+  indexer: IndexerState;
   toast: Record<string, unknown>;
   vote: Record<string, unknown>;
   publicData: Record<string, unknown>;
@@ -32,7 +35,7 @@ export interface RootState {
   signer: Record<string, unknown>;
   wc: Record<string, unknown>;
   wcClient: Record<string, unknown>;
-  fa2: Record<string, unknown>;
+  fa2: Fa2State;
 }
 
 const debugStrict = process.env.NODE_ENV !== "production";

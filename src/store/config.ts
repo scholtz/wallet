@@ -1,4 +1,57 @@
-const state = () => ({
+import { Buffer } from "buffer";
+import type { ActionTree, MutationTree } from "vuex";
+import type { RootState } from "./index";
+
+export interface WalletConnectMetadata {
+  name: string;
+  description: string;
+  url: string;
+  icons: string[];
+}
+
+export interface ConfigState {
+  debug: boolean;
+  LOGO: string;
+  env: string;
+  envName: string;
+  tokenSymbol: string;
+  algod: string;
+  participation: string;
+  indexer: string;
+  algodToken: string;
+  participationToken: string;
+  indexerToken: string;
+  twoFactorServer: string;
+  walletConnectProjectId: string;
+  walletConnectMetadata: WalletConnectMetadata;
+  languages: string[];
+  noredirect: boolean;
+  dev: boolean;
+  deflex: string;
+  language: string;
+  theme: string;
+}
+
+export interface RemoteConfig
+  extends Partial<Omit<ConfigState, "walletConnectMetadata">> {
+  walletConnectMetadata?: Partial<WalletConnectMetadata>;
+  d?: string;
+  languages?: string[];
+}
+
+export interface SetHostsPayload {
+  env?: string;
+  envName?: string;
+  tokenSymbol?: string;
+  algod?: string;
+  participation?: string;
+  indexer?: string;
+  algodToken?: string;
+  participationToken?: string;
+  indexerToken?: string;
+}
+
+const state = (): ConfigState => ({
   debug: false,
   LOGO: "/img/logo.svg",
   env: "mainnet-v1.0",
@@ -22,115 +75,128 @@ const state = () => ({
     icons: [],
   },
   languages: ["en", "hu", "it", "nl", "sk", "cs", "es", "tr"],
-  noredirect: false, // redirect to account page after successfull login
+  noredirect: false,
   dev: false,
   deflex: "",
   language: "en-US",
   theme: "",
 });
 
-const mutations = {
-  setDev(state, value) {
-    localStorage.setItem("dev", value);
-    state.dev = value;
+const methodsToDisable = ["log", "debug", "warn", "info"] as const;
+
+const disableConsoleLogs = (): void => {
+  if (!window.console) {
+    (window as Window & { console: Console }).console = {} as Console;
+  }
+  const consoleAny = window.console as unknown as Record<
+    string,
+    (...args: unknown[]) => void
+  >;
+  methodsToDisable.forEach((method) => {
+    consoleAny[method] = () => {};
+  });
+};
+
+const mutations: MutationTree<ConfigState> = {
+  setDev(currentState, value: boolean) {
+    localStorage.setItem("dev", String(value));
+    currentState.dev = value;
   },
-  setTheme(state) {
+  setTheme(currentState) {
     const value = localStorage.getItem("lastTheme");
-    state.theme = value;
+    currentState.theme = value ?? currentState.theme;
   },
-  setConfig(state, value) {
+  setConfig(currentState, value: RemoteConfig) {
     const removeConsoleLogs = !value.debug;
 
     console.info("Welcome to AWallet");
     if (removeConsoleLogs) {
       console.info("Logs has been removed in production environment");
-      if (!window.console) window.console = {};
-      const methods = ["log", "debug", "warn", "info"];
-      for (var i = 0; i < methods.length; i++) {
-        console[methods[i]] = function () {};
-      }
+      disableConsoleLogs();
     }
 
     if (value.walletConnectProjectId) {
-      state.walletConnectProjectId = value.walletConnectProjectId;
+      currentState.walletConnectProjectId = value.walletConnectProjectId;
     }
     if (value.walletConnectMetadata) {
-      state.walletConnectMetadata = value.walletConnectMetadata;
+      currentState.walletConnectMetadata = {
+        ...currentState.walletConnectMetadata,
+        ...value.walletConnectMetadata,
+      };
     }
     if (value.LOGO) {
-      state.LOGO = value.LOGO;
+      currentState.LOGO = value.LOGO;
     }
     if (value.algod) {
-      state.algod = value.algod;
+      currentState.algod = value.algod;
     }
     if (value.participation) {
-      state.participation = value.participation;
+      currentState.participation = value.participation;
     }
     if (value.languages) {
-      state.languages = value.languages;
+      currentState.languages = value.languages;
     }
     if (value.indexer) {
-      state.indexer = value.indexer;
+      currentState.indexer = value.indexer;
     }
     if (value.algodToken) {
-      state.algodToken = value.algodToken;
+      currentState.algodToken = value.algodToken;
     }
     if (value.participationToken) {
-      state.participationToken = value.participationToken;
+      currentState.participationToken = value.participationToken;
     }
     if (value.indexerToken) {
-      state.indexerToken = value.indexerToken;
+      currentState.indexerToken = value.indexerToken;
     }
     if (value.d) {
-      state.deflex = Buffer.from(value.d, "hex").toString("utf8");
+      currentState.deflex = Buffer.from(value.d, "hex").toString("utf8");
     }
     const dev = localStorage.getItem("dev");
-    if (dev && dev != "false") {
-      state.dev = true;
+    if (dev && dev !== "false") {
+      currentState.dev = true;
     }
     const algodHost = localStorage.getItem("algodHost");
     if (algodHost) {
-      state.algod = algodHost;
+      currentState.algod = algodHost;
     }
     const env = localStorage.getItem("env");
     if (env) {
-      state.env = env;
+      currentState.env = env;
     }
     const envName = localStorage.getItem("envName");
     if (envName) {
-      state.envName = envName;
+      currentState.envName = envName;
     }
 
     const tokenSymbol = localStorage.getItem("tokenSymbol");
     if (tokenSymbol) {
-      state.tokenSymbol = tokenSymbol;
+      currentState.tokenSymbol = tokenSymbol;
     }
 
     const participationHost = localStorage.getItem("participationHost");
     if (participationHost) {
-      state.participation = participationHost;
+      currentState.participation = participationHost;
     }
     const indexerHost = localStorage.getItem("indexerHost");
     if (indexerHost) {
-      state.indexer = indexerHost;
+      currentState.indexer = indexerHost;
     }
 
     const algodToken = localStorage.getItem("algodToken");
     if (algodToken) {
-      state.algodToken = algodToken;
+      currentState.algodToken = algodToken;
     }
     const participationToken = localStorage.getItem("participationToken");
     if (participationToken) {
-      state.participationToken = participationToken;
+      currentState.participationToken = participationToken;
     }
     const indexerToken = localStorage.getItem("indexerToken");
     if (indexerToken) {
-      state.indexerToken = indexerToken;
+      currentState.indexerToken = indexerToken;
     }
   },
-  setHosts(
-    state,
-    {
+  setHosts(currentState, payload: SetHostsPayload) {
+    const {
       env,
       envName,
       tokenSymbol,
@@ -140,107 +206,101 @@ const mutations = {
       algodToken,
       participationToken,
       indexerToken,
-    }
-  ) {
+    } = payload;
     if (env) {
-      state.env = env;
+      currentState.env = env;
       localStorage.setItem("env", env);
     }
     if (envName) {
-      state.envName = envName;
+      currentState.envName = envName;
       localStorage.setItem("envName", envName);
     }
     if (tokenSymbol) {
-      state.tokenSymbol = tokenSymbol;
+      currentState.tokenSymbol = tokenSymbol;
       localStorage.setItem("tokenSymbol", tokenSymbol);
     }
     if (algod) {
-      state.algod = algod;
+      currentState.algod = algod;
       localStorage.setItem("algodHost", algod);
     }
     if (participation) {
-      state.participation = participation;
+      currentState.participation = participation;
       localStorage.setItem("participationHost", participation);
     }
     if (indexer) {
-      state.indexer = indexer;
+      currentState.indexer = indexer;
       localStorage.setItem("indexerHost", indexer);
     }
     if (algodToken) {
-      state.algodToken = algodToken;
+      currentState.algodToken = algodToken;
       localStorage.setItem("algodToken", algodToken);
     }
     if (participationToken) {
-      state.participationToken = participationToken;
+      currentState.participationToken = participationToken;
       localStorage.setItem("participationToken", participationToken);
     }
     if (indexerToken) {
-      state.indexerToken = indexerToken;
+      currentState.indexerToken = indexerToken;
       localStorage.setItem("indexerToken", indexerToken);
     }
   },
-  setLanguage(state, value) {
-    state.language = value;
+  setLanguage(currentState, value: string) {
+    currentState.language = value;
     localStorage.setItem("lang", value);
   },
-  setNoRedirect(state) {
-    state.noredirect = true;
+  setNoRedirect(currentState) {
+    currentState.noredirect = true;
   },
 };
-const actions = {
+
+interface EnvPayload {
+  env: string;
+}
+
+interface SetDevPayload {
+  dev: boolean;
+}
+
+const actions: ActionTree<ConfigState, RootState> = {
   async setHosts(
-    { commit },
-    {
-      env,
-      envName,
-      algod,
-      participation,
-      indexer,
-      algodToken,
-      participationToken,
-      indexerToken,
-    }
+    { commit, state },
+    payload: SetHostsPayload & { env?: string }
   ) {
-    let tokenSymbol = this.tokenSymbol;
-    if (env == "mainnet" || env == "mainnet-v1.0") {
+    let tokenSymbol = state.tokenSymbol;
+    const { env } = payload;
+    if (env === "mainnet" || env === "mainnet-v1.0") {
       tokenSymbol = "Algo";
-    } else if (env == "aramidmain" || env == "aramidmain-v1.0") {
+    } else if (env === "aramidmain" || env === "aramidmain-v1.0") {
       tokenSymbol = "aAlgo";
-    } else if (env == "voitestnet" || env == "voitest-v1") {
+    } else if (env === "voitestnet" || env === "voitest-v1") {
       tokenSymbol = "Voi";
     } else if (
-      env == "voi" ||
-      env == "voimain" ||
-      env == "voi-v1.0" ||
-      env == "voimain-v1.0"
+      env === "voi" ||
+      env === "voimain" ||
+      env === "voi-v1.0" ||
+      env === "voimain-v1.0"
     ) {
       tokenSymbol = "Voi";
-    } else if (env == "testnet" || env == "testnet-v1.0") {
+    } else if (env === "testnet" || env === "testnet-v1.0") {
       tokenSymbol = "Algo";
-    } else if (env == "devnet") {
+    } else if (env === "devnet") {
       tokenSymbol = "Algo";
-    } else if (env == "sandbox" || env == "sandnet-v1") {
+    } else if (env === "sandbox" || env === "sandnet-v1") {
       tokenSymbol = "Algo";
     }
 
-    await commit("setHosts", {
-      env,
-      envName,
+    commit("setHosts", {
+      ...payload,
       tokenSymbol,
-      algod,
-      participation,
-      indexer,
-      algodToken,
-      participationToken,
-      indexerToken,
     });
   },
-  async setLanguage({ commit }, value) {
-    await commit("setLanguage", value);
+  async setLanguage({ commit }, value: string) {
+    commit("setLanguage", value);
   },
-  async setEnv({ dispatch }, { env }) {
-    if (env == "mainnet" || env == "mainnet-v1.0") {
-      dispatch("setHosts", {
+  async setEnv({ dispatch, state }, { env }: EnvPayload) {
+    const currentEnv = state.env;
+    if (env === "mainnet" || env === "mainnet-v1.0") {
+      await dispatch("setHosts", {
         env: "mainnet",
         envName: "Mainnet",
         algod: "https://mainnet-api.algonode.cloud",
@@ -249,8 +309,8 @@ const actions = {
       });
     }
 
-    if (this.env == "aramidmain" || env == "aramidmain-v1.0") {
-      dispatch("setHosts", {
+    if (currentEnv === "aramidmain" || env === "aramidmain-v1.0") {
+      await dispatch("setHosts", {
         env: "aramidmain",
         envName: "Aramid Mainnet",
         algod: "https://algod.aramidmain.a-wallet.net",
@@ -265,8 +325,8 @@ const actions = {
       });
     }
 
-    if (this.env == "voitestnet" || env == "voitest-v1") {
-      dispatch("setHosts", {
+    if (currentEnv === "voitestnet" || env === "voitest-v1") {
+      await dispatch("setHosts", {
         env: "voitestnet",
         envName: "Voi Testnet",
         algod: "https://testnet-api.voi.nodly.io/",
@@ -275,25 +335,8 @@ const actions = {
       });
     }
 
-    //TODO: Add Voi Mainnet when live
-    // if (this.env == "voi" || env == "") {
-    //   dispatch("setHosts", {
-    //     env: "voi",
-    //     envName: "Voi Mainnet",
-    //     algod: "",
-    //     participation: "",
-    //     indexer: "",
-    //     algodToken:
-    //       "",
-    //     participationToken:
-    //       "",
-    //     indexerToken:
-    //       "",
-    //   });
-    // }
-
-    if (env == "testnet" || env == "testnet-v1.0") {
-      dispatch("setHosts", {
+    if (env === "testnet" || env === "testnet-v1.0") {
+      await dispatch("setHosts", {
         env: "testnet",
         envName: "Testnet",
         algod: "https://testnet-api.algonode.cloud",
@@ -301,8 +344,8 @@ const actions = {
         indexer: "https://testnet-idx.algonode.cloud",
       });
     }
-    if (env == "devnet") {
-      dispatch("setHosts", {
+    if (env === "devnet") {
+      await dispatch("setHosts", {
         env: "devnet",
         envName: "Devnet",
         algod: "http://localhost:4180",
@@ -313,8 +356,8 @@ const actions = {
         indexerToken: "reach-devnet",
       });
     }
-    if (env == "sandbox" || env == "sandnet-v1") {
-      dispatch("setHosts", {
+    if (env === "sandbox" || env === "sandnet-v1") {
+      await dispatch("setHosts", {
         env: "sandbox",
         envName: "Sandbox",
         algod: "http://localhost:4001",
@@ -331,33 +374,35 @@ const actions = {
     localStorage.setItem("env", env);
   },
   async setNoRedirect({ commit }) {
-    await commit("setNoRedirect");
+    commit("setNoRedirect");
   },
-  async setDev({ commit }, { dev }) {
-    await commit("setDev", dev);
+  async setDev({ commit }, { dev }: SetDevPayload) {
+    commit("setDev", dev);
   },
   async setTheme({ commit }) {
-    await commit("setTheme");
+    commit("setTheme");
   },
   async getConfig({ dispatch, commit }) {
     try {
-      const data = await dispatch(
+      const data = (await dispatch(
         "axios/get",
         {
           url: "/config.json",
           silent: true,
         },
         { root: true }
-      );
+      )) as RemoteConfig | undefined;
       if (data) {
-        await commit("setConfig", data);
+        commit("setConfig", data);
         return data;
       }
     } catch (error) {
       console.error(error);
     }
+    return undefined;
   },
 };
+
 export default {
   namespaced: true,
   state,
