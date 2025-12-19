@@ -195,9 +195,11 @@ const actions: ActionTree<AlgodState, RootState> = {
         );
         return (ret.txid as string) ?? undefined;
       } catch (error) {
-        const responseMessage = (error as {
-          response?: { body?: { message?: string } };
-        })?.response?.body?.message;
+        const responseMessage = (
+          error as {
+            response?: { body?: { message?: string } };
+          }
+        )?.response?.body?.message;
         if (responseMessage) {
           dispatch("toast/openError", responseMessage, { root: true });
         }
@@ -209,7 +211,10 @@ const actions: ActionTree<AlgodState, RootState> = {
       return undefined;
     }
   },
-  async sendRawTransaction({ rootState }, { signedTxn }: SendRawTransactionPayload) {
+  async sendRawTransaction(
+    { rootState },
+    { signedTxn }: SendRawTransactionPayload
+  ) {
     const algodClient = createAlgodClient(rootState);
     return algodClient.sendRawTransaction(signedTxn).do();
   },
