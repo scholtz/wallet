@@ -7,9 +7,7 @@ import type { Asset } from "../types/swap";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 
-const normalizeAmount = (
-  value: number | bigint | undefined | null
-): number => {
+const normalizeAmount = (value: number | bigint | undefined | null): number => {
   if (typeof value === "bigint") return Number(value);
   if (typeof value === "number") return value;
   if (value === null || value === undefined) return 0;
