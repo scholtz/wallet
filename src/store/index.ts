@@ -1,5 +1,6 @@
 import { createStore, Store, useStore as baseUseStore } from "vuex";
 import type { AlgodState } from "./algod";
+import type { Arc14State } from "./arc14";
 import type { WalletState } from "./wallet";
 import algod from "./algod";
 import axios from "./axios";
@@ -26,7 +27,7 @@ export interface RootState {
   vote: Record<string, unknown>;
   publicData: Record<string, unknown>;
   participation: Record<string, unknown>;
-  arc14: Record<string, unknown>;
+  arc14: Arc14State;
   signer: Record<string, unknown>;
   wc: Record<string, unknown>;
   wcClient: Record<string, unknown>;
