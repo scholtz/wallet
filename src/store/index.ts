@@ -10,6 +10,8 @@ import type { PublicDataState } from "./publicData";
 import type { ToastState } from "./toast";
 import type { VoteState } from "./vote";
 import type { WalletState } from "./wallet";
+import type { WcState } from "./wc";
+import type { WcClientState } from "./wcClient";
 import algod from "./algod";
 import axios from "./axios";
 import config from "./config";
@@ -37,8 +39,8 @@ export interface RootState {
   participation: ParticipationState;
   arc14: Arc14State;
   signer: Record<string, unknown>;
-  wc: Record<string, unknown>;
-  wcClient: Record<string, unknown>;
+  wc: WcState;
+  wcClient: WcClientState;
   fa2: Fa2State;
 }
 
