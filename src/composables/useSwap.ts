@@ -7,6 +7,15 @@ import type { Asset } from "../types/swap";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 
+const normalizeAmount = (
+  value: number | bigint | undefined | null
+): number => {
+  if (typeof value === "bigint") return Number(value);
+  if (typeof value === "number") return value;
+  if (value === null || value === undefined) return 0;
+  return Number(value);
+};
+
 export function useSwap() {
   const store = useStore();
   const route = useRoute();
@@ -95,16 +104,26 @@ export function useSwap() {
 
   const maxAmount = computed<number>(() => {
     if (!account.value) return 0;
+    const accountInfo =
+      accountData.value && typeof accountData.value === "object"
+        ? accountData.value
+        : null;
+    if (!accountInfo) return 0;
+
     if (asset.value && asset.value > 0) {
-      if (!selectedAssetFromAccount.value) return 0;
-      return selectedAssetFromAccount.value.amount / decimalsPower.value;
-    } else {
-      let ret = accountData.value.amount / 1000000 - 0.1;
-      ret = ret - fee.value;
-      if (accountData.value["assets"] && accountData.value["assets"].length > 0)
-        ret = ret - accountData.value["assets"].length * 0.1;
-      return ret;
+      const selectedAmount = normalizeAmount(
+        selectedAssetFromAccount.value?.amount
+      );
+      return selectedAmount / decimalsPower.value;
     }
+
+    let ret = normalizeAmount(accountInfo.amount) / 1_000_000 - 0.1;
+    ret -= fee.value;
+    const assetsLength = accountInfo["assets"]?.length ?? 0;
+    if (assetsLength > 0) {
+      ret -= assetsLength * 0.1;
+    }
+    return ret;
   });
 
   const stepAmount = computed<number>(() =>
