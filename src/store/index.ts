@@ -1,4 +1,5 @@
 import { createStore, Store, useStore as baseUseStore } from "vuex";
+import type { WalletState } from "./wallet";
 import algod from "./algod";
 import axios from "./axios";
 import config from "./config";
@@ -18,7 +19,7 @@ export interface RootState {
   algod: Record<string, unknown>;
   axios: Record<string, unknown>;
   config: Record<string, unknown>;
-  wallet: Record<string, unknown>;
+  wallet: WalletState;
   indexer: Record<string, unknown>;
   toast: Record<string, unknown>;
   vote: Record<string, unknown>;

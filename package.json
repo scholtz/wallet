@@ -85,6 +85,7 @@
     "@babel/core": "^7.28.4",
     "@babel/eslint-parser": "^7.28.4",
     "@intlify/vue-i18n-loader": "^4.2.0",
+    "@types/crypto-js": "^4.2.2",
     "@types/node": "^25.0.2",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",

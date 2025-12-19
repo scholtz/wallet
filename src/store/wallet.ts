@@ -1,11 +1,41 @@
-// @ts-nocheck
+import type { ActionContext, ActionTree, MutationTree, Store } from "vuex";
 import algosdk from "algosdk";
 import CryptoJS from "crypto-js";
 import cryptoRandomString from "crypto-random-string";
 import db from "../shared/db";
 import wc from "../shared/wc";
 import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
-const state = () => ({
+import type { RootState } from "./index";
+
+interface WalletAccount {
+  addr?: string;
+  name?: string;
+  [key: string]: any;
+}
+
+interface WalletRecord {
+  id?: number;
+  name: string;
+  data: string;
+}
+
+export interface WalletState {
+  name: string;
+  isOpen: boolean;
+  time: number | Date;
+  pass: string;
+  privateAccounts: WalletAccount[];
+  algodHost: string[];
+  lastPayTo: string;
+  lastActiveAccount: string;
+  lastActiveAccountName: string;
+  transaction: Record<string, any>;
+  wc: Record<string, string>;
+}
+
+const dbAny = db as any;
+
+const state = (): WalletState => ({
   name: "w2",
   isOpen: false,
   time: 2000000000000,
@@ -18,10 +48,24 @@ const state = () => ({
   transaction: {},
   wc: {},
 });
-const parseEntry = (entry) => {
-  return [entry[0], safeJsonParse(entry[1] ?? "")];
+const parseEntry = (entry: [string, unknown]) => {
+  const serialized = typeof entry[1] === "string" ? entry[1] : "";
+  return [entry[0], safeJsonParse(serialized)];
 };
-const mutations = {
+const toErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+};
+const getRequiredLocalStorage = (key: string): string => {
+  const value = localStorage.getItem(key);
+  if (value === null) {
+    throw new Error(`${key} not found in localStorage`);
+  }
+  return value;
+};
+const mutations: MutationTree<WalletState> = {
   setTransaction(state, transaction) {
     state.transaction = transaction;
   },
@@ -32,7 +76,7 @@ const mutations = {
     const current = state.privateAccounts.find((a) => a.addr == addr);
     if (current) {
       state.lastActiveAccount = addr;
-      state.lastActiveAccountName = current.name;
+      state.lastActiveAccountName = current.name ?? "";
     }
   },
   addPrivateAccount(state, { name, secret }) {
@@ -43,6 +87,10 @@ const mutations = {
   },
   addArc200Asset(state, { addr, arc200Info, network }) {
     const acc = state.privateAccounts.find((x) => x.addr == addr);
+    if (!acc) {
+      console.error(`Account ${addr} not found while adding ARC-200 asset.`);
+      return;
+    }
     if (!acc.data) acc.data = {};
     if (!acc.data[network]) acc.data[network] = {};
     if (!acc.data[network]["arc200"]) acc.data[network]["arc200"] = {};
@@ -50,6 +98,10 @@ const mutations = {
   },
   updateArc200Balance(state, { addr, network, arc200Id, balance }) {
     const acc = state.privateAccounts.find((x) => x.addr == addr);
+    if (!acc) {
+      console.error(`Account ${addr} not found while updating ARC-200 balance.`);
+      return;
+    }
     if (!acc.data) acc.data = {};
     if (!acc.data[network]) acc.data[network] = {};
     if (!acc.data[network]["arc200"]) acc.data[network]["arc200"] = {};
@@ -114,7 +166,7 @@ const mutations = {
     state,
     { name, savePassword, email, genAccount, network }
   ) {
-    const account = {
+    const account: WalletAccount = {
       addr: genAccount.addr,
       address: genAccount.addr,
       savePassword,
@@ -254,7 +306,8 @@ const mutations = {
         "rs2",
         cryptoRandomString({ length: 30, type: "alphanumeric" })
       );
-    const dataencoded = CryptoJS.AES.encrypt(pass, localStorage.getItem("rs1"));
+    const rs1 = getRequiredLocalStorage("rs1");
+    const dataencoded = CryptoJS.AES.encrypt(pass, rs1);
 
     state.pass = dataencoded.toString();
 
@@ -267,7 +320,14 @@ const mutations = {
     delete state.wc[key];
   },
 };
-const actions = {
+type WalletActionContext = ActionContext<WalletState, RootState>;
+type WalletActionHandler = (
+  this: Store<RootState>,
+  context: WalletActionContext,
+  payload?: any
+) => any;
+
+const actionHandlers: Record<string, WalletActionHandler> = {
   async setTransaction({ commit }, { transaction }) {
     commit("setTransaction", transaction);
   },
@@ -287,15 +347,16 @@ const actions = {
       (a) => a.addr == addr
     );
     if (address) {
+      const network = String(this.state.config.env);
       if (
         address &&
         address.data &&
-        address.data[this.state.config.env] &&
-        address.data[this.state.config.env].rekeyedTo &&
-        address.data[this.state.config.env].rekeyedTo != addr
+        address.data[network] &&
+        address.data[network].rekeyedTo &&
+        address.data[network].rekeyedTo != addr
       ) {
         return await dispatch("getSK", {
-          addr: address.data[this.state.config.env].rekeyedTo,
+          addr: address.data[network].rekeyedTo,
           checkRekey: false,
         });
       }
@@ -368,11 +429,11 @@ const actions = {
       });
       await dispatch("saveWallet");
       return true;
-    } catch (e) {
-      console.error("error", e);
+    } catch (error) {
+      console.error("error", error);
       dispatch(
         "toast/openError",
-        "Account has not been created: " + e.message,
+        "Account has not been created: " + toErrorMessage(error),
         {
           root: true,
         }
@@ -394,9 +455,9 @@ const actions = {
       });
       await dispatch("saveWallet");
       return true;
-    } catch (e) {
-      console.error("error", e);
-      dispatch("toast/openError", "Account has not been created", {
+    } catch (error) {
+      console.error("error", error);
+      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
         root: true,
       });
     }
@@ -422,9 +483,9 @@ const actions = {
       });
       await dispatch("saveWallet");
       return true;
-    } catch (e) {
-      console.error("error", e);
-      dispatch("toast/openError", "Account has not been created", {
+    } catch (error) {
+      console.error("error", error);
+      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
         root: true,
       });
     }
@@ -472,12 +533,12 @@ const actions = {
       });
       await dispatch("saveWallet");
       return true;
-    } catch (e) {
-      console.error("error", e);
-      dispatch("toast/openError", "Account has not been created", {
+    } catch (error) {
+      console.error("error", error);
+      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
         root: true,
       });
-      throw e;
+      throw error;
     }
   },
   async addMultiAccount({ dispatch, commit }, { params, name }) {
@@ -498,10 +559,10 @@ const actions = {
       });
       await dispatch("saveWallet");
       return true;
-    } catch (e) {
-      console.error("error", e);
+    } catch (error) {
+      console.error("error", error);
 
-      dispatch("toast/openError", "Account has not been created", {
+      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
         root: true,
       });
     }
@@ -552,9 +613,9 @@ const actions = {
       });
       await dispatch("saveWallet");
       return true;
-    } catch (e) {
-      console.error("error", e);
-      dispatch("toast/openError", "Account has not been created", {
+    } catch (error) {
+      console.error("error", error);
+      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
         root: true,
       });
     }
@@ -576,9 +637,9 @@ const actions = {
       });
       await dispatch("saveWallet");
       return true;
-    } catch (e) {
-      console.error("error", e);
-      dispatch("toast/openError", "Account has not been created", {
+    } catch (error) {
+      console.error("error", error);
+      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
         root: true,
       });
     }
@@ -599,9 +660,9 @@ const actions = {
       });
       await dispatch("saveWallet");
       return true;
-    } catch (e) {
-      console.error("error", e);
-      dispatch("toast/openError", "Account has not been created", {
+    } catch (error) {
+      console.error("error", error);
+      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
         root: true,
       });
     }
@@ -637,9 +698,9 @@ const actions = {
       });
       await dispatch("saveWallet");
       return true;
-    } catch (e) {
-      console.error("error", e);
-      dispatch("toast/openError", "Account has not been created", {
+    } catch (error) {
+      console.error("error", error);
+      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
         root: true,
       });
     }
@@ -674,7 +735,7 @@ const actions = {
       return;
     }
 
-    const walletRecord = await db.wallets.get({ name: this.state.wallet.name });
+    const walletRecord = await dbAny.wallets.get({ name: this.state.wallet.name });
 
     const data = JSON.stringify(
       this.state.wallet,
@@ -682,15 +743,13 @@ const actions = {
     );
     const dataencoded = CryptoJS.AES.encrypt(data, passw2);
     walletRecord.data = dataencoded.toString();
-    await db.wallets.update(walletRecord.id, walletRecord);
+    await dbAny.wallets.update(walletRecord.id, walletRecord);
     return true;
   },
   async saveWallet({ dispatch }) {
     const encryptedPass = this.state.wallet.pass;
-    const decryptedData = await CryptoJS.AES.decrypt(
-      encryptedPass,
-      localStorage.getItem("rs1")
-    );
+    const rs1 = getRequiredLocalStorage("rs1");
+    const decryptedData = await CryptoJS.AES.decrypt(encryptedPass, rs1);
     const pass = decryptedData.toString(CryptoJS.enc.Utf8);
 
     if (!pass) {
@@ -711,7 +770,7 @@ const actions = {
     ) {
       return false; // check not to empty the wallet
     }
-    const walletRecord = await db.wallets.get({ name: this.state.wallet.name });
+    const walletRecord = await dbAny.wallets.get({ name: this.state.wallet.name });
     if (!walletRecord) return;
     if (!walletRecord || !walletRecord.id) {
       dispatch("toast/openError", "Error in wallet record update", {
@@ -727,12 +786,12 @@ const actions = {
       const dataencoded = CryptoJS.AES.encrypt(data, pass);
       if (walletRecord && dataencoded) {
         walletRecord.data = dataencoded.toString();
-        await db.wallets.update(walletRecord.id, walletRecord);
+        await dbAny.wallets.update(walletRecord.id, walletRecord);
       }
     }
   },
   async openWallet({ commit, dispatch }, { name, pass }) {
-    const walletRecord = await db.wallets.get({ name });
+    const walletRecord = await dbAny.wallets.get({ name });
     const encryptedData = walletRecord.data;
     try {
       const decryptedData = CryptoJS.AES.decrypt(encryptedData, pass);
@@ -744,11 +803,11 @@ const actions = {
       await commit("setIsOpen", { name, pass });
 
       localStorage.setItem("lastUsedWallet", name);
-    } catch (e) {
+    } catch (error) {
       dispatch("toast/openError", "Wrong password", {
         root: true,
       });
-      console.error("wrong password", e);
+      console.error("wrong password", error);
       return;
     }
 
@@ -757,13 +816,13 @@ const actions = {
   },
   async checkPassword({ dispatch }, { pass }) {
     const name = await dispatch("getName");
-    const walletRecord = await db.wallets.get({ name });
+    const walletRecord = await dbAny.wallets.get({ name });
     const encryptedData = walletRecord.data;
     try {
       const decryptedData = CryptoJS.AES.decrypt(encryptedData, pass);
       const json = JSON.parse(decryptedData.toString(CryptoJS.enc.Utf8));
       return !!json;
-    } catch (e) {
+    } catch (error) {
       return false;
     }
   },
@@ -774,7 +833,8 @@ const actions = {
       });
       return false;
     }
-    if ((await db.wallets.toArray()).map((v) => v.name).includes(name)) {
+    const existingWallets = (await dbAny.wallets.toArray()) as WalletRecord[];
+    if (existingWallets.some((wallet) => wallet.name === name)) {
       dispatch("toast/openError", "Wallet with the same name already exists", {
         root: true,
       });
@@ -786,13 +846,14 @@ const actions = {
     );
     const dataencoded = CryptoJS.AES.encrypt(data, pass);
 
-    db.wallets
+    dbAny.wallets
       .add({ name, data: dataencoded.toString() })
       .then(function () {
         return true;
       })
-      .catch(function (e) {
-        dispatch("toast/openError", "Error: " + (e.stack || e), {
+      .catch((error: unknown) => {
+        const stack = (error as Error).stack;
+        dispatch("toast/openError", "Error: " + (stack || toErrorMessage(error)), {
           root: true,
         });
       });
@@ -811,11 +872,11 @@ const actions = {
         "rs2",
         cryptoRandomString({ length: 30, type: "alphanumeric" })
       );
-    //db.wallets.clear();
-    //db.wallets.drop();
+    //dbAny.wallets.clear();
+    //dbAny.wallets.drop();
     try {
-      const w = await db.wallets.toArray();
-      return w.map((v) => v.name);
+      const w = (await dbAny.wallets.toArray()) as WalletRecord[];
+      return w.map((wallet) => wallet.name);
     } catch {
       console.error("no wallet exists yet");
       return [];
@@ -830,13 +891,21 @@ const actions = {
         });
         return;
       }
-      const walletRecord = await db.wallets.get({ name });
+      const walletRecord = (await dbAny.wallets.get({ name })) as
+        | WalletRecord
+        | undefined;
+      if (!walletRecord) {
+        dispatch("toast/openError", "Wallet backup not found", {
+          root: true,
+        });
+        return;
+      }
       return btoa(walletRecord.data);
-    } catch (e) {
-      dispatch("toast/openError", "Error occurred: " + e, {
+    } catch (error) {
+      dispatch("toast/openError", "Error occurred: " + toErrorMessage(error), {
         root: true,
       });
-      console.error("error", e);
+      console.error("error", error);
     }
   },
   async destroyWallet({ commit, dispatch }) {
@@ -854,8 +923,8 @@ const actions = {
           " and all private keys within it?"
       )
     ) {
-      const walletRecord = await db.wallets.get({ name });
-      await db.wallets.delete(walletRecord.id);
+      const walletRecord = await dbAny.wallets.get({ name });
+      await dbAny.wallets.delete(walletRecord.id);
       commit("logout");
     }
   },
@@ -872,23 +941,21 @@ const actions = {
       });
       return;
     }
-    const walletRecord = await db.wallets.get({ name });
+    const walletRecord = await dbAny.wallets.get({ name });
     if (walletRecord) {
       dispatch("toast/openError", "Wallet with the same name already exists", {
         root: true,
       });
       return;
     }
-    await db.wallets.add({ name, data });
+    await dbAny.wallets.add({ name, data });
     localStorage.setItem("lastUsedWallet", name);
     return true;
   },
   encrypt: async (store, { data }) => {
     const encryptedPass = store.state.pass;
-    const decryptedData = await CryptoJS.AES.decrypt(
-      encryptedPass,
-      localStorage.getItem("rs1")
-    );
+    const rs1 = getRequiredLocalStorage("rs1");
+    const decryptedData = await CryptoJS.AES.decrypt(encryptedPass, rs1);
 
     const pass = decryptedData.toString(CryptoJS.enc.Utf8);
     const cipher = CryptoJS.AES.encrypt(data, pass).toString();
@@ -896,10 +963,8 @@ const actions = {
   },
   decrypt: async (store, { data }) => {
     const encryptedPass = store.state.pass;
-    const decryptedData = await CryptoJS.AES.decrypt(
-      encryptedPass,
-      localStorage.getItem("rs1")
-    );
+    const rs1 = getRequiredLocalStorage("rs1");
+    const decryptedData = await CryptoJS.AES.decrypt(encryptedPass, rs1);
 
     const pass = decryptedData.toString(CryptoJS.enc.Utf8);
     const plain = CryptoJS.AES.decrypt(data, pass).toString(CryptoJS.enc.Utf8);
@@ -925,11 +990,14 @@ const actions = {
     await commit("wcSetItem", { key, value });
     await dispatch("saveWallet");
   },
-  async wcRemoveItem({ dispatch }, { key }) {
+  async wcRemoveItem({ dispatch, commit }, { key }) {
     await commit("wcRemoveItem", { key });
     await dispatch("saveWallet");
   },
 };
+
+const actions = actionHandlers as ActionTree<WalletState, RootState>;
+
 export default {
   namespaced: true,
   state,
