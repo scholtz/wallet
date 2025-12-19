@@ -740,7 +740,6 @@ import AccountTopMenu from "../components/AccountTopMenu.vue";
 import QRCodeVue3 from "qrcode-vue3";
 import AccountType from "@/components/AccountType.vue";
 import ProgressSpinner from "primevue/progressspinner";
-import { VERIFY_FALLBACK_SERVER } from "@walletconnect/core";
 import { JsonViewer } from "vue3-json-viewer";
 import algosdk from "algosdk";
 

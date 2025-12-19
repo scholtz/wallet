@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive } from "vue";
 import MainLayout from "../../layouts/Main.vue";
-import algosdk, { TransactionSigner } from "algosdk";
+import algosdk from "algosdk";
 import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
 import { getArc200Client } from "arc200-client";
@@ -167,7 +167,7 @@ const accountIsOptedInToArc200Asset = async (addr: string) => {
     Buffer.concat([Buffer.from([0x00]), Buffer.from(fromDecoded.publicKey)])
   );
   try {
-    const box = await indexerClient
+    await indexerClient
       .lookupApplicationBoxByIDandName(state.arc200Info.arc200id, boxName)
       .do();
     return true;

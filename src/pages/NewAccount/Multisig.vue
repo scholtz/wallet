@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import MainLayout from "../../layouts/Main.vue";
-import { onMounted, reactive, ref, watch } from "vue";
+import { onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-import algosdk from "algosdk";
 import MultiSelect from "primevue/multiselect";
 import Slider from "primevue/slider";
 import { RootState } from "@/store";

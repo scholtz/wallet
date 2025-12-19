@@ -3,24 +3,19 @@ import MainLayout from "../../layouts/Main.vue";
 import { useStore } from "vuex";
 import { onMounted, reactive, watch } from "vue";
 import { FilterMatchMode } from "primevue/api";
-import SelectAccount from "../../components/SelectAccount.vue";
-import SelectAsset from "../../components/SelectAsset.vue";
 import DropDown from "primevue/dropdown";
 import Button from "primevue/button";
 import CAsset from "@/scripts/interface/CAsset";
 import base642base64url from "@/scripts/encoding/base642base64url";
 import { useRoute, useRouter } from "vue-router";
-import AlgorandAddress from "@/components/AlgorandAddress.vue";
 import formatCurrency from "@/scripts/numbers/formatCurrency";
 import * as algokit from "@algorandfoundation/algokit-utils";
 
 import copy from "copy-to-clipboard";
-import YAML from "yaml";
 import {
   BiatecTaskManagerClient,
   BiatecCronJobShortHashClient,
   getPoolManagerApp,
-  getBoxReferenceUser,
   getBoxReferenceApp,
   parseBoxData,
 } from "biatec-scheduler";
@@ -143,8 +138,6 @@ const loadTableData = async () => {
       assetIndex: fa,
     });
 
-    const addr = route.params.account as string;
-    const decodedAddr = algosdk.decodeAddress(addr);
     const appId = Number(route.params.appId);
     state.appId = appId.toString();
     const boxApp = await algod
@@ -386,8 +379,6 @@ const withdrawFromEscrow = async () => {
         }
       );
     }
-    const params = await algod.getTransactionParams().do();
-
     const grouped = atc.buildGroup().map((tx) => tx.txn);
     await store.dispatch("signer/returnTo", "ScheduledPayments");
     await store.dispatch("signer/toSign", { txx: grouped[0] });

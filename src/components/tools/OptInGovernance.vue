@@ -132,7 +132,6 @@ export default {
               "Line does not conaint mnemonic phrase: " + line + "\n";
             continue;
           }
-          let account = "";
           // mnemonic import
           let mn = "";
           for (let i = 0; i < 25; i++) {
@@ -141,7 +140,6 @@ export default {
           let secret = null;
           try {
             secret = algosdk.mnemonicToSecretKey(mn.trim());
-            account = secret.addr;
           } catch (e) {
             this.results += "Mnemonic is invalid: " + line + "\n";
             continue;

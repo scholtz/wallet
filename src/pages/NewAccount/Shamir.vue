@@ -2,7 +2,6 @@
 import { useStore } from "vuex";
 import MainLayout from "../../layouts/Main.vue";
 import { reactive, onMounted } from "vue";
-import { useI18n } from "vue-i18n";
 import Password from "primevue/password";
 import Button from "primevue/button";
 import { wordlist } from "@scure/bip39/wordlists/english";
@@ -14,7 +13,6 @@ import { useRouter } from "vue-router";
 import { RootState } from "@/store";
 const store = useStore<RootState>();
 const router = useRouter();
-const { t } = useI18n(); // use as global scope
 const state = reactive({
   mn: [""],
   name: "",

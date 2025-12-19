@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import MainLayout from "../../layouts/Main.vue";
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 import Password from "primevue/password";
 import InputText from "primevue/inputtext";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import InputSwitch from "primevue/inputswitch";
-import { passwordStrength } from "check-password-strength";
 import { RootState } from "@/store";
 
 const state = reactive({

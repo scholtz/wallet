@@ -8,17 +8,14 @@ import { JsonViewer } from "vue3-json-viewer";
 import { Shamir } from "@spliterati/shamir";
 import { Buffer } from "buffer";
 import algosdk from "algosdk";
-import { entropyToMnemonic } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
 import QRCodeVue3 from "qrcode-vue3";
 import sha512 from "js-sha512";
 import copy from "copy-to-clipboard";
-import { useI18n } from "vue-i18n";
 import { RootState } from "@/store";
 
 const store = useStore<RootState>();
 const route = useRoute();
-const { t } = useI18n(); // use as global scope
 
 const state = reactive({
   json: {},

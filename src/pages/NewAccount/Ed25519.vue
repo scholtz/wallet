@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import MainLayout from "../../layouts/Main.vue";
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
@@ -117,8 +117,6 @@ onMounted(async () => {
   await store.dispatch("wallet/prolong");
   await createAccount();
 });
-
-const rotateCard = () => {};
 </script>
 <template>
   <MainLayout>

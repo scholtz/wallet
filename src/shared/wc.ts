@@ -13,22 +13,24 @@ interface WalletConnectRecord {
   data: string;
 }
 
+/* eslint-disable no-unused-vars */
 type WalletConnectConnector = InstanceType<typeof WalletConnect> & {
   clientId: string;
   connected: boolean;
   session: unknown;
   killSession(): Promise<void>;
-  approveSession(response: { accounts: string[]; chainId: number }): void;
-  approveRequest(response: {
+  approveSession(_response: { accounts: string[]; chainId: number }): void;
+  approveRequest(_response: {
     id: string | number;
     result: (string | null)[];
   }): void;
-  rejectRequest(response: {
+  rejectRequest(_response: {
     id: string | number;
     error: { code: number; message: string };
   }): void;
   transportClose(): void;
 };
+/* eslint-enable no-unused-vars */
 
 interface WalletConnectPeerMeta {
   url?: string;

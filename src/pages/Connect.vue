@@ -747,7 +747,7 @@ export default {
           `/payWC/${this.$route.params.account}/${urldataB64url}`
         );
       } else {
-        const signed = await this.signerSignTransaction({
+        await this.signerSignTransaction({
           from: data.from,
           signator: data.from,
           tx: data.txn,

@@ -280,7 +280,7 @@ const actions: ActionTree<SignerState, RootState> = {
     commit("setSigned", signedBytes);
     return signedBytes;
   },
-  async signByWC2({ dispatch, commit, rootState }, payload: SignByPayload) {
+  async signByWC2({ dispatch, commit }, payload: SignByPayload) {
     const provider = (await dispatch("wcClient/init", null, {
       root: true,
     })) as any;

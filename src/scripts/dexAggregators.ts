@@ -30,8 +30,7 @@
 // Each aggregator implements a common interface for getting quotes and executing swaps
 
 import { FolksRouterClient, Network, SwapMode } from "@folks-router/js-sdk";
-import { biatecRouter, authTransaction } from "biatec-router";
-import arc14 from "arc14";
+import { biatecRouter } from "biatec-router";
 import type {
   SwapComponentData,
   SwapMethods,
@@ -47,6 +46,7 @@ interface SwapComponent extends SwapComponentData, SwapMethods {
   $route: SwapRoute;
 }
 
+/* eslint-disable no-unused-vars */
 interface DexAggregator {
   name: string;
   displayName: string;
@@ -54,12 +54,13 @@ interface DexAggregator {
   quotesKey: string;
   txnsKey: string;
   processingKey: string;
-  getQuote: (component: SwapComponent) => Promise<void>;
-  execute: (component: SwapComponent) => Promise<void>;
-  allowExecute: (component: SwapComponent) => boolean;
-  isQuoteBetter: (component: SwapComponent) => boolean;
-  getFolksClient?: (component: SwapComponent) => FolksRouterClient | null;
+  getQuote: (_component: SwapComponent) => Promise<void>;
+  execute: (_component: SwapComponent) => Promise<void>;
+  allowExecute: (_component: SwapComponent) => boolean;
+  isQuoteBetter: (_component: SwapComponent) => boolean;
+  getFolksClient?: (_component: SwapComponent) => FolksRouterClient | null;
 }
+/* eslint-enable no-unused-vars */
 
 export const dexAggregators: DexAggregator[] = [
   {

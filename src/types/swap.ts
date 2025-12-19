@@ -1,4 +1,5 @@
 // types/swap.ts - Type definitions for the Swap component
+/* eslint-disable no-unused-vars */
 export interface Asset {
   "asset-id": number;
   amount: number;
@@ -40,13 +41,13 @@ export interface SwapStore {
   };
   getters: {
     algosdk: {
-      decodeUnsignedTransaction: (bytes: Uint8Array) => any;
-      signTransaction: (tx: any, sk: Uint8Array) => any;
-      computeGroupID: (txs: any[]) => Uint8Array;
+      decodeUnsignedTransaction: (_bytes: Uint8Array) => any;
+      signTransaction: (_tx: any, _sk: Uint8Array) => any;
+      computeGroupID: (_txs: any[]) => Uint8Array;
       waitForConfirmation: (
-        client: any,
-        txId: string,
-        timeout: number
+        _client: any,
+        _txId: string,
+        _timeout: number
       ) => Promise<any>;
     };
   };
@@ -80,20 +81,20 @@ export interface SwapComponentData {
 }
 
 export interface SwapMethods {
-  openSuccess: (message: string) => void;
-  openError: (message: string) => void;
-  axiosGet: (config: { url: string }) => Promise<any>;
-  axiosPost: (config: {
+  openSuccess: (_message: string) => void;
+  openError: (_message: string) => void;
+  axiosGet: (_config: { url: string }) => Promise<any>;
+  axiosPost: (_config: {
     url: string;
     body?: any;
     config?: any;
   }) => Promise<any>;
-  getSK: (config: { addr: string }) => Promise<Uint8Array>;
-  getAsset: (config: { assetIndex: number }) => Promise<Asset>;
-  sendRawTransaction: (config: {
+  getSK: (_config: { addr: string }) => Promise<Uint8Array>;
+  getAsset: (_config: { assetIndex: number }) => Promise<Asset>;
+  sendRawTransaction: (_config: {
     signedTxn: Uint8Array | Uint8Array[];
   }) => Promise<{ txId: string }>;
-  waitForConfirmation: (config: {
+  waitForConfirmation: (_config: {
     txId: string;
     timeout: number;
   }) => Promise<any>;
@@ -101,3 +102,5 @@ export interface SwapMethods {
   reloadAccount: () => Promise<void>;
   checkNetwork: () => string | false;
 }
+
+/* eslint-enable no-unused-vars */

@@ -1,12 +1,11 @@
 // composables/useSwap.ts - Composable for swap functionality
 import { ref, computed, Ref } from "vue";
-import { Store, useStore } from "vuex";
+import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { dexAggregators } from "../scripts/dexAggregators";
 import type { Asset } from "../types/swap";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
-import { RootState } from "@/store";
 
 export function useSwap() {
   const store = useStore();

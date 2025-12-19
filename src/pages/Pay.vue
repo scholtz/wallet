@@ -350,7 +350,6 @@ import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
 import MultiSelect from "primevue/multiselect";
-import Contract from "arc200js";
 import { getArc200Client } from "arc200-client";
 
 export default {
@@ -1003,7 +1002,7 @@ export default {
         Buffer.concat([Buffer.from([0x00]), Buffer.from(fromDecoded.publicKey)])
       );
       try {
-        const box = await indexerClient
+        await indexerClient
           .lookupApplicationBoxByIDandName(state.arc200Info.arc200id, boxName)
           .do();
         return true;

@@ -88,12 +88,16 @@ const disableConsoleLogs = (): void => {
   if (!window.console) {
     (window as Window & { console: Console }).console = {} as Console;
   }
+  /* eslint-disable no-unused-vars */
   const consoleAny = window.console as unknown as Record<
     string,
     (...args: unknown[]) => void
   >;
+  /* eslint-enable no-unused-vars */
   methodsToDisable.forEach((method) => {
-    consoleAny[method] = () => {};
+    consoleAny[method] = (...args: unknown[]) => {
+      void args;
+    };
   });
 };
 

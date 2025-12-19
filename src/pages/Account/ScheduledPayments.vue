@@ -14,7 +14,6 @@ import formatCurrency from "@/scripts/numbers/formatCurrency";
 
 import YAML from "yaml";
 import {
-  BiatecTaskManagerClient,
   getPoolManagerApp,
   getBoxReferenceUser,
   getBoxReferenceApp,
@@ -111,9 +110,6 @@ watch(
 const loadTableData = async () => {
   try {
     const algod = (await store.dispatch("algod/getAlgod")) as algosdk.Algodv2;
-    const indexer = (await store.dispatch(
-      "indexer/getIndexer"
-    )) as algosdk.Indexer;
     // var client = new BiatecTaskManagerClient(
     //   {
     //     resolveBy: "id",

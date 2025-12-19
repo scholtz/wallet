@@ -130,7 +130,7 @@ export default {
       addWalletConnect2Account: "wallet/addWalletConnect2Account",
       initWC: "wcClient/init",
     }),
-    onSessionEvent(e) {},
+    onSessionEvent() {},
     async clickCopy() {
       if (copy(this.uri)) {
         this.openSuccess(this.$t("global.copied_to_clipboard"));

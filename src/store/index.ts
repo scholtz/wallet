@@ -1,4 +1,4 @@
-import { createStore, Store, useStore as baseUseStore } from "vuex";
+import { createStore, useStore as baseUseStore } from "vuex";
 import type { AlgodState } from "./algod";
 import type { Arc14State } from "./arc14";
 import type { AxiosState } from "./axios";

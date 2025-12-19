@@ -83,8 +83,10 @@ const clickSign = async (data) => {
   const isSigned = txId in store.state.signer.signed;
   if (isSigned) {
     for (const index in state.transactions) {
-      if (state.transactions[item].txn.txID() == txId) {
-        state.transactions[item].toBeSigned = await toBeSigned({ txn });
+      if (state.transactions[index].txn.txID() == txId) {
+        state.transactions[index].toBeSigned = await toBeSigned({
+          txn: state.transactions[index].txn,
+        });
       }
     }
     await checkAtLeastOneSigned();
@@ -104,7 +106,7 @@ const clickSign = async (data) => {
     );
     router.push(`/sign/${data.from}/${encoded}`);
   } else {
-    const signed = await store.dispatch("signer/signTransaction", {
+    await store.dispatch("signer/signTransaction", {
       from: data.from,
       signator: data.from,
       tx: data.txn,
@@ -112,7 +114,7 @@ const clickSign = async (data) => {
     for (const index in state.transactions) {
       if (state.transactions[index].txn.txID() == txId) {
         state.transactions[index].toBeSigned = await toBeSigned({
-          txn: data.txn,
+          txn: state.transactions[index].txn,
         });
       }
     }

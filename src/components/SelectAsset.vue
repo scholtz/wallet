@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { onMounted, reactive, watch } from "vue";
 import { useStore } from "vuex";
 import Dropdown from "primevue/dropdown";
-import { useI18n } from "vue-i18n";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import CAsset from "../scripts/interface/CAsset";
 import IAsset from "../scripts/interface/IAsset";
@@ -18,26 +17,7 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue"]);
 
-const model = computed({
-  get() {
-    return props.modelValue;
-  },
-
-  set(value) {
-    return emit("update:modelValue", value);
-  },
-});
-
 const store = useStore<RootState>();
-const { t } = useI18n();
-
-function getAccountName() {
-  const ret = store.state.wallet.privateAccounts.find(
-    (a: any) => a.addr == props.modelValue
-  );
-  if (!ret) return props.modelValue;
-  return `${ret.name}: ${props.modelValue}`;
-}
 const state = reactive({
   assetId: "",
   assets: [] as IAsset[],

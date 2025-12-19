@@ -462,11 +462,13 @@ const mutations: MutationTree<WalletState> = {
   },
 };
 type WalletActionContext = ActionContext<WalletState, RootState>;
+/* eslint-disable no-unused-vars */
 type WalletActionHandler = (
   this: Store<RootState>,
-  context: WalletActionContext,
-  payload?: any
+  _context: WalletActionContext,
+  _payload?: any
 ) => any;
+/* eslint-enable no-unused-vars */
 
 const actionHandlers: Record<string, WalletActionHandler> = {
   async setTransaction(
@@ -484,13 +486,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     await commit("lastActiveAccount", addr);
     await dispatch("saveWallet");
   },
-  async getAccount({ dispatch }, { addr }: { addr: string }) {
+  async getAccount(_context, { addr }: { addr: string }) {
     return this.state.wallet.privateAccounts.find((a) => a.addr == addr);
   },
-  async getSK(
-    { dispatch },
-    { addr, checkRekey = true }: { addr: string; checkRekey?: boolean }
-  ) {
+  async getSK({ dispatch }, { addr }: { addr: string }) {
     const address = this.state.wallet.privateAccounts.find(
       (a) => a.addr == addr
     );
@@ -505,7 +504,6 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       ) {
         return await dispatch("getSK", {
           addr: address.data[network].rekeyedTo,
-          checkRekey: false,
         });
       }
       if (address.sk) {
@@ -1181,7 +1179,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     }
   },
   async importWallet(
-    { commit, dispatch },
+    { dispatch },
     { name, data }: { name: string; data: string }
   ) {
     if (!name) {
@@ -1234,7 +1232,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
   async wcGetEntries() {
     return Object.entries(this.state.wallet.wc).map(parseEntry);
   },
-  async wcGetItem({ dispatch }, { key }: { key: string }) {
+  async wcGetItem(_context, { key }: { key: string }) {
     const item = this.state.wallet.wc[key];
     if (!item) {
       return undefined;

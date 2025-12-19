@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { mapActions, useStore } from "vuex";
+import { useStore } from "vuex";
 import MainLayout from "../../layouts/Main.vue";
 import { reactive } from "vue";
 import { useI18n } from "vue-i18n";
@@ -7,7 +7,6 @@ import InputMask from "primevue/inputmask";
 import SelectAccount from "@/components/SelectAccount.vue";
 import Select2FAServer from "@/components/Select2FAServer.vue";
 
-import algosdk from "algosdk";
 import { useRouter } from "vue-router";
 import { RootState } from "@/store";
 const state = reactive({
