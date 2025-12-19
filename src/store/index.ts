@@ -1,6 +1,7 @@
 import { createStore, Store, useStore as baseUseStore } from "vuex";
 import type { AlgodState } from "./algod";
 import type { Arc14State } from "./arc14";
+import type { AxiosState } from "./axios";
 import type { WalletState } from "./wallet";
 import algod from "./algod";
 import axios from "./axios";
@@ -19,7 +20,7 @@ import fa2 from "./fa2";
 
 export interface RootState {
   algod: AlgodState;
-  axios: Record<string, unknown>;
+  axios: AxiosState;
   config: Record<string, unknown>;
   wallet: WalletState;
   indexer: Record<string, unknown>;
