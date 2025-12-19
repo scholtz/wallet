@@ -819,7 +819,7 @@ watch(isAuth, (auth) => {
     store.state.wallet.privateAccounts &&
     store.state.wallet.privateAccounts.length === 1
   ) {
-    state.payFromDirect = store.state.wallet.privateAccounts[0].addr || '';
+    state.payFromDirect = store.state.wallet.privateAccounts[0].addr || "";
   }
 });
 
@@ -914,7 +914,7 @@ onMounted(async () => {
     store.state.wallet.privateAccounts &&
     store.state.wallet.privateAccounts.length === 1
   ) {
-    state.payFromDirect = store.state.wallet.privateAccounts[0].addr || '';
+    state.payFromDirect = store.state.wallet.privateAccounts[0].addr || "";
   }
 
   if (isRekey.value && accountData.value?.addr) {

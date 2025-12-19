@@ -1,1 +1,1 @@
-declare module 'qrcode-reader-vue3';
+declare module "qrcode-reader-vue3";
