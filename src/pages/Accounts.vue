@@ -294,11 +294,27 @@ const updateBalance = async () => {
     if (!account.addr) {
       continue;
     }
-    const info = await accountInformation({
-      addr: account.addr,
-    });
-    if (info) {
-      await updateAccount({ info });
+    try {
+      const info = await accountInformation({
+        addr: account.addr,
+      });
+      if (info) {
+        await updateAccount({ info });
+      }
+    } catch (error) {
+      const message =
+        (error as Error)?.message || "accountInformation request failed";
+      if (message.includes("no accounts found")) {
+        console.warn(
+          `Skipping missing account ${account.addr}: ${message}`,
+          error
+        );
+      } else {
+        console.error(
+          `Failed to refresh account ${account.addr}: ${message}`,
+          error
+        );
+      }
     }
   }
 };
