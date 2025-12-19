@@ -1,5 +1,8 @@
 import type { ActionContext, ActionTree, MutationTree, Store } from "vuex";
-import algosdk from "algosdk";
+import algosdk, {
+  type Account as AlgorandAccount,
+  type MultisigMetadata,
+} from "algosdk";
 import CryptoJS from "crypto-js";
 import cryptoRandomString from "crypto-random-string";
 import db from "../shared/db";
@@ -7,9 +10,12 @@ import wc from "../shared/wc";
 import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
 import type { RootState } from "./index";
 
+type WalletAccountData = Record<string, Record<string, any>>;
+
 interface WalletAccount {
   addr?: string;
   name?: string;
+  data?: WalletAccountData;
   [key: string]: any;
 }
 
@@ -32,6 +38,99 @@ export interface WalletState {
   transaction: Record<string, any>;
   wc: Record<string, string>;
 }
+
+type Arc200Info = {
+  arc200id: string;
+  [key: string]: unknown;
+};
+
+type AddPrivateAccountPayload = {
+  name: string;
+  secret: AlgorandAccount & { name?: string };
+  network: string;
+};
+
+type AddArc200AssetPayload = {
+  addr: string;
+  arc200Info: Arc200Info;
+  network: string;
+};
+
+type UpdateArc200BalancePayload = {
+  addr: string;
+  network: string;
+  arc200Id: string;
+  balance: number;
+};
+
+type PublicAccountPayload = {
+  name: string;
+  addr: string;
+};
+
+type DeleteAccountPayload = PublicAccountPayload;
+
+type SetPrivateAccountPayload = {
+  info: WalletAccount & { address?: string };
+  network: string;
+};
+
+type AddEmailPasswordAccountPayload = {
+  name: string;
+  savePassword: boolean;
+  email: string;
+  genAccount: AlgorandAccount;
+  network: string;
+};
+
+type AddMultiAccountPayload = {
+  addr: string;
+  params: MultisigMetadata;
+  name: string;
+  network: string;
+};
+
+type Add2FAAccountPayload = {
+  params: MultisigMetadata;
+  addr: string;
+  name: string;
+  primaryAccount: string;
+  recoveryAccount: string;
+  twoFactorAccount: string;
+  network: string;
+};
+
+type Add2FAApiAccountPayload = {
+  addr: string;
+  name: string;
+  primaryAccount: string;
+  recoveryAccount: string;
+  multisigAccount: string;
+  network: string;
+  twoFactorAuthProvider: string;
+};
+
+type AddLedgerAccountPayload = {
+  name: string;
+  addr: string;
+  addr0: string;
+  slot: number;
+  network: string;
+};
+
+type AddWalletConnectAccountPayload = {
+  name: string;
+  addr: string;
+  session: unknown;
+  network: string;
+};
+
+type SetIsOpenPayload = {
+  name: string;
+  pass: string;
+};
+
+type WalletConnectStorage = Record<string, string>;
 
 const dbAny = db as any;
 
@@ -66,26 +165,33 @@ const getRequiredLocalStorage = (key: string): string => {
   return value;
 };
 const mutations: MutationTree<WalletState> = {
-  setTransaction(state, transaction) {
+  setTransaction(state, transaction: Record<string, unknown>) {
     state.transaction = transaction;
   },
-  lastPayTo(state, addr) {
+  lastPayTo(state, addr: string) {
     state.lastPayTo = addr;
   },
-  lastActiveAccount(state, addr) {
+  lastActiveAccount(state, addr: string) {
+    console.log("lastActiveAccount set to", addr, state.privateAccounts);
     const current = state.privateAccounts.find((a) => a.addr == addr);
     if (current) {
       state.lastActiveAccount = addr;
       state.lastActiveAccountName = current.name ?? "";
     }
   },
-  addPrivateAccount(state, { name, secret }) {
-    state.lastActiveAccount = secret.addr;
+  addPrivateAccount(state, { name, secret }: AddPrivateAccountPayload) {
+    const addr = String(secret.addr);
+    const account: WalletAccount = {
+      ...secret,
+      addr,
+      address: addr,
+      name,
+    };
+    state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
-    secret.name = name;
-    state.privateAccounts.push(secret);
+    state.privateAccounts.push(account);
   },
-  addArc200Asset(state, { addr, arc200Info, network }) {
+  addArc200Asset(state, { addr, arc200Info, network }: AddArc200AssetPayload) {
     const acc = state.privateAccounts.find((x) => x.addr == addr);
     if (!acc) {
       console.error(`Account ${addr} not found while adding ARC-200 asset.`);
@@ -96,7 +202,10 @@ const mutations: MutationTree<WalletState> = {
     if (!acc.data[network]["arc200"]) acc.data[network]["arc200"] = {};
     acc.data[network]["arc200"][arc200Info.arc200id] = arc200Info;
   },
-  updateArc200Balance(state, { addr, network, arc200Id, balance }) {
+  updateArc200Balance(
+    state,
+    { addr, network, arc200Id, balance }: UpdateArc200BalancePayload
+  ) {
     const acc = state.privateAccounts.find((x) => x.addr == addr);
     if (!acc) {
       console.error(
@@ -112,19 +221,19 @@ const mutations: MutationTree<WalletState> = {
     }
     acc.data[network]["arc200"][arc200Id].balance = balance;
   },
-  addPublicAccount(state, { name, addr }) {
+  addPublicAccount(state, { name, addr }: PublicAccountPayload) {
     const acc = { name, addr, address: addr };
     state.privateAccounts.push(acc);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
-  deleteAccount(state, { name, addr }) {
+  deleteAccount(state, { name, addr }: DeleteAccountPayload) {
     const index = state.privateAccounts.findIndex(
       (acc) => acc.name == name && acc.addr == addr
     );
     state.privateAccounts.splice(index, 1);
   },
-  setPrivateAccount(state, { info, network }) {
+  setPrivateAccount(state, { info, network }: SetPrivateAccountPayload) {
     if (!info.address) {
       if (!info.addr) return;
       info.address = info.addr;
@@ -166,11 +275,18 @@ const mutations: MutationTree<WalletState> = {
   },
   addEmailPasswordAccount(
     state,
-    { name, savePassword, email, genAccount, network }
+    {
+      name,
+      savePassword,
+      email,
+      genAccount,
+      network,
+    }: AddEmailPasswordAccountPayload
   ) {
+    const addr = String(genAccount.addr);
     const account: WalletAccount = {
-      addr: genAccount.addr,
-      address: genAccount.addr,
+      addr,
+      address: addr,
       savePassword,
       name,
       email,
@@ -181,10 +297,13 @@ const mutations: MutationTree<WalletState> = {
       account.sk = genAccount.sk;
     }
     state.privateAccounts.push(account);
-    state.lastActiveAccount = genAccount.addr;
+    state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
-  addMultiAccount(state, { addr, params, name, network }) {
+  addMultiAccount(
+    state,
+    { addr, params, name, network }: AddMultiAccountPayload
+  ) {
     const multsigaddr = {
       addr,
       address: addr,
@@ -207,7 +326,7 @@ const mutations: MutationTree<WalletState> = {
       recoveryAccount,
       twoFactorAccount,
       network,
-    }
+    }: Add2FAAccountPayload
   ) {
     const multsigaddr = {
       addr,
@@ -234,7 +353,7 @@ const mutations: MutationTree<WalletState> = {
       multisigAccount,
       network,
       twoFactorAuthProvider,
-    }
+    }: Add2FAApiAccountPayload
   ) {
     const multsigaddr = {
       addr,
@@ -252,32 +371,41 @@ const mutations: MutationTree<WalletState> = {
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
-  addLedgerAccount(state, { name, addr, addr0, slot, network }) {
+  addLedgerAccount(
+    state,
+    { name, addr, addr0, slot, network }: AddLedgerAccountPayload
+  ) {
     const account = { name, addr, addr0, slot, network, type: "ledger" };
     state.privateAccounts.push(account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
-  addWalletConnectAccount(state, { name, addr, session, network }) {
+  addWalletConnectAccount(
+    state,
+    { name, addr, session, network }: AddWalletConnectAccountPayload
+  ) {
     const account = { name, addr, session, network, ver: "1", type: "wc" };
     state.privateAccounts.push(account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
-  addWalletConnect2Account(state, { name, addr, session, network }) {
+  addWalletConnect2Account(
+    state,
+    { name, addr, session, network }: AddWalletConnectAccountPayload
+  ) {
     const account = { name, addr, session, network, ver: "2", type: "wc" };
     state.privateAccounts.push(account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
-  setPrivateAccounts(state, accts) {
+  setPrivateAccounts(state, accts?: WalletAccount[]) {
     if (accts) {
       state.privateAccounts = accts;
     } else {
       state.privateAccounts = [];
     }
   },
-  setWC(state, wc) {
+  setWC(state, wc?: WalletConnectStorage) {
     if (wc) {
       state.wc = wc;
     } else {
@@ -295,7 +423,7 @@ const mutations: MutationTree<WalletState> = {
   prolong(state) {
     state.time = new Date();
   },
-  setIsOpen(state, { name, pass }) {
+  setIsOpen(state, { name, pass }: SetIsOpenPayload) {
     state.isOpen = true;
     state.name = name;
     if (!localStorage.getItem("rs1"))
@@ -315,10 +443,10 @@ const mutations: MutationTree<WalletState> = {
 
     state.time = new Date();
   },
-  wcSetItem(state, { key, value }) {
+  wcSetItem(state, { key, value }: { key: string; value: unknown }) {
     state.wc[key] = safeJsonStringify(value);
   },
-  wcRemoveItem(state, { key }) {
+  wcRemoveItem(state, { key }: { key: string }) {
     delete state.wc[key];
   },
 };
@@ -330,21 +458,28 @@ type WalletActionHandler = (
 ) => any;
 
 const actionHandlers: Record<string, WalletActionHandler> = {
-  async setTransaction({ commit }, { transaction }) {
+  async setTransaction(
+    { commit },
+    { transaction }: { transaction: Record<string, unknown> }
+  ) {
     commit("setTransaction", transaction);
   },
-  async lastPayTo({ commit, dispatch }, { addr }) {
+  async lastPayTo({ commit, dispatch }, { addr }: { addr: string }) {
     commit("lastPayTo", addr);
     await dispatch("saveWallet");
   },
-  async lastActiveAccount({ commit, dispatch }, { addr }) {
+  async lastActiveAccount({ commit, dispatch }, { addr }: { addr: string }) {
+    console.log("lastActiveAccount action handler called with", addr);
     await commit("lastActiveAccount", addr);
     await dispatch("saveWallet");
   },
-  async getAccount({ dispatch }, { addr }) {
+  async getAccount({ dispatch }, { addr }: { addr: string }) {
     return this.state.wallet.privateAccounts.find((a) => a.addr == addr);
   },
-  async getSK({ dispatch }, { addr, checkRekey = true }) {
+  async getSK(
+    { dispatch },
+    { addr, checkRekey = true }: { addr: string; checkRekey?: boolean }
+  ) {
     const address = this.state.wallet.privateAccounts.find(
       (a) => a.addr == addr
     );
@@ -375,7 +510,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
   async prolong({ commit }) {
     await commit("prolong");
   },
-  async addArc200Asset({ dispatch, commit }, { addr, arc200Info }) {
+  async addArc200Asset(
+    { dispatch, commit },
+    { addr, arc200Info }: { addr: string; arc200Info: Arc200Info }
+  ) {
     await commit("prolong");
     if (!addr) {
       dispatch("toast/openError", "addr is empty", {
@@ -392,7 +530,18 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     await dispatch("saveWallet");
     return true;
   },
-  async updateArc200Balance({ dispatch, commit }, { addr, arc200Id, balance }) {
+  async updateArc200Balance(
+    { dispatch, commit },
+    {
+      addr,
+      arc200Id,
+      balance,
+    }: {
+      addr: string;
+      arc200Id: string;
+      balance: number;
+    }
+  ) {
     if (!addr) {
       dispatch("toast/openError", "addr is empty", {
         root: true,
@@ -415,7 +564,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     await dispatch("saveWallet");
     return true;
   },
-  async addPrivateAccount({ dispatch, commit }, { mn, name }) {
+  async addPrivateAccount(
+    { dispatch, commit },
+    { mn, name }: { mn: string; name: string }
+  ) {
     if (!name) {
       dispatch("toast/openError", "Plase set account name", {
         root: true,
@@ -442,7 +594,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       );
     }
   },
-  async addPublicAccount({ dispatch, commit }, { name, addr }) {
+  async addPublicAccount(
+    { dispatch, commit },
+    { name, addr }: PublicAccountPayload
+  ) {
     if (!name) {
       dispatch("toast/openError", "Plase set account name", {
         root: true,
@@ -468,7 +623,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       );
     }
   },
-  async deleteAccount({ dispatch, commit }, { name, addr }) {
+  async deleteAccount(
+    { dispatch, commit },
+    { name, addr }: DeleteAccountPayload
+  ) {
     if (!name) {
       dispatch("toast/openError", "Plase define account name", {
         root: true,
@@ -502,7 +660,12 @@ const actionHandlers: Record<string, WalletActionHandler> = {
   },
   async addEmailPasswordAccount(
     { dispatch, commit },
-    { name, savePassword, email, password }
+    {
+      name,
+      savePassword,
+      email,
+      password,
+    }: { name: string; savePassword: boolean; email: string; password: string }
   ) {
     if (!name) {
       throw Error("Plase set account name");
@@ -555,7 +718,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       throw error;
     }
   },
-  async addMultiAccount({ dispatch, commit }, { params, name }) {
+  async addMultiAccount(
+    { dispatch, commit },
+    { params, name }: { params: MultisigMetadata; name: string }
+  ) {
     if (!name) {
       dispatch("toast/openError", "Plase set account name", {
         root: true,
@@ -593,6 +759,12 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       recoveryAccount,
       twoFactorAccount,
       twoFactorAuthProvider,
+    }: {
+      name: string;
+      primaryAccount: string;
+      recoveryAccount: string;
+      twoFactorAccount: string;
+      twoFactorAuthProvider: string;
     }
   ) {
     if (!name) {
@@ -642,7 +814,15 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       );
     }
   },
-  async addLedgerAccount({ dispatch, commit }, { name, addr, addr0, slot }) {
+  async addLedgerAccount(
+    { dispatch, commit },
+    {
+      name,
+      addr,
+      addr0,
+      slot,
+    }: { name: string; addr: string; addr0: string; slot: number }
+  ) {
     if (!name) {
       dispatch("toast/openError", "Plase set account name", {
         root: true,
@@ -670,7 +850,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       );
     }
   },
-  async addWalletConnectAccount({ dispatch, commit }, { name, addr, session }) {
+  async addWalletConnectAccount(
+    { dispatch, commit },
+    { name, addr, session }: { name: string; addr: string; session: unknown }
+  ) {
     if (!name) {
       dispatch("toast/openError", "Plase set account name", {
         root: true,
@@ -699,7 +882,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
   },
   async addWalletConnect2Account(
     { dispatch, commit },
-    { name, addr, session }
+    { name, addr, session }: { name: string; addr: string; session: unknown }
   ) {
     if (!name) {
       dispatch("toast/openError", "Plase set account name", {
@@ -739,14 +922,24 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       );
     }
   },
-  async updateAccount({ dispatch, commit }, { info }) {
+  async updateAccount(
+    { dispatch, commit },
+    { info }: { info: WalletAccount & { address?: string } }
+  ) {
     if (!info) {
       return false;
     }
     await commit("setPrivateAccount", { info, network: this.state.config.env });
     await dispatch("saveWallet");
   },
-  async changePassword({ dispatch }, { passw1, passw2, passw3 }) {
+  async changePassword(
+    { dispatch },
+    {
+      passw1,
+      passw2,
+      passw3,
+    }: { passw1: string; passw2: string; passw3: string }
+  ) {
     if (passw2 != passw3) {
       dispatch("toast/openError", "Passwords does not match", {
         root: true,
@@ -828,7 +1021,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       }
     }
   },
-  async openWallet({ commit, dispatch }, { name, pass }) {
+  async openWallet(
+    { commit, dispatch },
+    { name, pass }: { name: string; pass: string }
+  ) {
     const walletRecord = await dbAny.wallets.get({ name });
     const encryptedData = walletRecord.data;
     try {
@@ -852,7 +1048,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     await wc.restore();
     return true;
   },
-  async checkPassword({ dispatch }, { pass }) {
+  async checkPassword({ dispatch }, { pass }: { pass: string }) {
     const name = await dispatch("getName");
     const walletRecord = await dbAny.wallets.get({ name });
     const encryptedData = walletRecord.data;
@@ -864,7 +1060,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return false;
     }
   },
-  async createWallet({ dispatch, commit }, { name, pass }) {
+  async createWallet(
+    { dispatch, commit },
+    { name, pass }: { name: string; pass: string }
+  ) {
     if (!name) {
       dispatch("toast/openError", "Plase set wallet name", {
         root: true,
@@ -970,7 +1169,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       commit("logout");
     }
   },
-  async importWallet({ commit, dispatch }, { name, data }) {
+  async importWallet(
+    { commit, dispatch },
+    { name, data }: { name: string; data: string }
+  ) {
     if (!name) {
       dispatch("toast/openError", "Wallet name not found", {
         root: true,
@@ -994,7 +1196,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     localStorage.setItem("lastUsedWallet", name);
     return true;
   },
-  encrypt: async (store, { data }) => {
+  encrypt: async (store: WalletActionContext, { data }: { data: string }) => {
     const encryptedPass = store.state.pass;
     const rs1 = getRequiredLocalStorage("rs1");
     const decryptedData = await CryptoJS.AES.decrypt(encryptedPass, rs1);
@@ -1003,7 +1205,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     const cipher = CryptoJS.AES.encrypt(data, pass).toString();
     return cipher;
   },
-  decrypt: async (store, { data }) => {
+  decrypt: async (store: WalletActionContext, { data }: { data: string }) => {
     const encryptedPass = store.state.pass;
     const rs1 = getRequiredLocalStorage("rs1");
     const decryptedData = await CryptoJS.AES.decrypt(encryptedPass, rs1);
@@ -1012,7 +1214,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     const plain = CryptoJS.AES.decrypt(data, pass).toString(CryptoJS.enc.Utf8);
     return plain;
   },
-  getName: (store) => {
+  getName: (store: WalletActionContext) => {
     return store.state.name;
   },
   async wcGetKeys() {
@@ -1021,18 +1223,21 @@ const actionHandlers: Record<string, WalletActionHandler> = {
   async wcGetEntries() {
     return Object.entries(this.state.wallet.wc).map(parseEntry);
   },
-  async wcGetItem({ dispatch }, { key }) {
+  async wcGetItem({ dispatch }, { key }: { key: string }) {
     const item = this.state.wallet.wc[key];
     if (!item) {
       return undefined;
     }
     return safeJsonParse(item);
   },
-  async wcSetItem({ dispatch, commit }, { key, value }) {
+  async wcSetItem(
+    { dispatch, commit },
+    { key, value }: { key: string; value: unknown }
+  ) {
     await commit("wcSetItem", { key, value });
     await dispatch("saveWallet");
   },
-  async wcRemoveItem({ dispatch, commit }, { key }) {
+  async wcRemoveItem({ dispatch, commit }, { key }: { key: string }) {
     await commit("wcRemoveItem", { key });
     await dispatch("saveWallet");
   },

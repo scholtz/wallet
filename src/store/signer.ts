@@ -88,7 +88,7 @@ const resolveEnvRekey = (
   originalAddress: string
 ): PrivateAccount => {
   const envRekey = account.data?.[env]?.rekeyedTo;
-  if (envRekey && envRekey !== originalAddress) {
+  if (typeof envRekey === "string" && envRekey !== originalAddress) {
     return ensureAccount(rootState, envRekey, missingRekeyMessage);
   }
   return account;
