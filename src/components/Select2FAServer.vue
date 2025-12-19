@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed } from "vue";
 import { useStore } from "vuex";
 import Dropdown from "primevue/dropdown";
 import { useI18n } from "vue-i18n";
@@ -39,7 +39,7 @@ if (options && options.length == 1) {
     :options="options"
     optionLabel="providerName"
     optionValue="id"
-    :placeholder="$t('account.select_account')"
+    :placeholder="t('account.select_account')"
     class="w-full"
     inputClass="w-full"
     :itemid="props.itemId"
