@@ -4,6 +4,8 @@ import MainLayout from "../../layouts/Main.vue";
 import { onMounted, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
+import { useI18n } from "vue-i18n";
+const { t } = useI18n();
 
 const state = reactive({
   addr: "",
@@ -40,13 +42,13 @@ onMounted(async () => {
 </script>
 <template>
   <MainLayout>
-    <h1>{{ $t("newacc.watch_account") }}</h1>
+    <h1>{{ t("newacc.watch_account") }}</h1>
 
     <Card>
       <template #content>
         <div class="field grid">
           <label for="address" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("newacc.address") }}
+            {{ t("newacc.address") }}
           </label>
           <div class="col-12 md:col-10">
             <InputText id="address" v-model="state.addr" class="w-full" />
@@ -54,7 +56,7 @@ onMounted(async () => {
         </div>
         <div class="field grid">
           <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("newacc.name") }}
+            {{ t("newacc.name") }}
           </label>
           <div class="col-12 md:col-10">
             <InputText id="name" v-model="state.name" class="w-full" />
@@ -64,10 +66,10 @@ onMounted(async () => {
           <label for="address" class="col-12 mb-2 md:col-2 md:mb-0"></label>
           <div class="col-12 md:col-10">
             <Button severity="primary" class="my-1" @click="watchAccountClick">
-              {{ $t("newacc.watch_account") }}
+              {{ t("newacc.watch_account") }}
             </Button>
             <Button severity="secondary" class="m-1" @click="reset">
-              {{ $t("global.go_back") }}
+              {{ t("global.go_back") }}
             </Button>
           </div>
         </div>

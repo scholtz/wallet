@@ -9,10 +9,12 @@ import formatCurrencyBigInt from "../../scripts/numbers/formatCurrencyBigInt";
 import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import { BoxReference } from "@algorandfoundation/algokit-utils/types/app-manager";
 import { RootState } from "@/store";
+import { useI18n } from "vue-i18n";
 const store = useStore<RootState>();
 const route = useRoute();
 const router = useRouter();
 
+const { t } = useI18n();
 const state = reactive({
   account: {
     name: "",
@@ -284,13 +286,13 @@ const delay = (ms: any) => {
 
 <template>
   <MainLayout v-if="state">
-    <h1>{{ $t("arc200.optin_header") }} {{ state?.account?.name }}</h1>
+    <h1>{{ t("arc200.optin_header") }} {{ state?.account?.name }}</h1>
     <Card>
       <template #content>
-        <p>{{ $t("acc_overview.asset_optinArc200_help") }}</p>
+        <p>{{ t("acc_overview.asset_optinArc200_help") }}</p>
         <div class="field grid">
           <label for="arc200id" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("arc200.app_id") }}
+            {{ t("arc200.app_id") }}
           </label>
           <div class="col-12 md:col-10">
             <InputText id="arc200id" v-model="state.arc200id" class="w-full" />
@@ -305,7 +307,7 @@ const delay = (ms: any) => {
               :severity="state.arc200Info.name ? 'secondary' : 'primary'"
               :disabled="state.loading || !state.arc200id"
             >
-              {{ $t("arc200.fetch_action") }}
+              {{ t("arc200.fetch_action") }}
               <ProgressSpinner
                 class="ml-2"
                 v-if="state.loading"
@@ -324,7 +326,7 @@ const delay = (ms: any) => {
               "
               severity="secondary"
             >
-              {{ $t("arc200.reset") }}
+              {{ t("arc200.reset") }}
             </Button>
           </div>
         </div>
@@ -337,7 +339,7 @@ const delay = (ms: any) => {
           "
         >
           <label class="col-12 mb-2 md:col-2 md:mb-0">{{
-            $t("arc200.examples")
+            t("arc200.examples")
           }}</label>
           <div class="col-12 md:col-10">
             <Button
@@ -375,7 +377,7 @@ const delay = (ms: any) => {
           v-if="state.arc200Info.arc200id && !state.loading"
         >
           <label class="col-12 mb-2 md:col-2 md:mb-0">{{
-            $t("arc200.app_id")
+            t("arc200.app_id")
           }}</label>
           <div class="col-12 md:col-10">
             {{ state.arc200Info.arc200id }}
@@ -386,7 +388,7 @@ const delay = (ms: any) => {
           v-if="state.arc200Info.arc200id && !state.loading"
         >
           <label class="col-12 mb-2 md:col-2 md:mb-0">{{
-            $t("arc200.name")
+            t("arc200.name")
           }}</label>
           <div class="col-12 md:col-10">
             {{ state.arc200Info.name }}
@@ -397,7 +399,7 @@ const delay = (ms: any) => {
           v-if="state.arc200Info.arc200id && !state.loading"
         >
           <label class="col-12 mb-2 md:col-2 md:mb-0">{{
-            $t("arc200.symbol")
+            t("arc200.symbol")
           }}</label>
           <div class="col-12 md:col-10">
             {{ state.arc200Info.symbol }}
@@ -408,7 +410,7 @@ const delay = (ms: any) => {
           v-if="state.arc200Info.arc200id && !state.loading"
         >
           <label class="col-12 mb-2 md:col-2 md:mb-0">{{
-            $t("arc200.decimals")
+            t("arc200.decimals")
           }}</label>
           <div class="col-12 md:col-10">
             {{ state.arc200Info.decimals }}
@@ -419,7 +421,7 @@ const delay = (ms: any) => {
           v-if="state.arc200Info.arc200id && !state.loading"
         >
           <label class="col-12 mb-2 md:col-2 md:mb-0">{{
-            $t("arc200.supply")
+            t("arc200.supply")
           }}</label>
           <div class="col-12 md:col-10">
             {{
@@ -436,7 +438,7 @@ const delay = (ms: any) => {
           v-if="state.arc200Info.arc200id && !state.loading"
         >
           <label class="col-12 mb-2 md:col-2 md:mb-0">{{
-            $t("arc200.balance")
+            t("arc200.balance")
           }}</label>
           <div class="col-12 md:col-10">
             {{
@@ -453,7 +455,7 @@ const delay = (ms: any) => {
           v-if="state.arc200Info.arc200id && !state.loading"
         >
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("arc200.is_opted_in") }}
+            {{ t("arc200.is_opted_in") }}
           </label>
           <div class="col-12 md:col-10">
             {{ !state.boxNotFound }}
@@ -474,7 +476,7 @@ const delay = (ms: any) => {
               v-if="state.boxNotFound"
               severity="primary"
             >
-              {{ $t("arc200.create_box") }}
+              {{ t("arc200.create_box") }}
             </Button>
             <Button
               class="my-2"
@@ -482,7 +484,7 @@ const delay = (ms: any) => {
               :disabled="state.boxNotFound"
               :severity="state.boxNotFound ? 'secondary' : 'primary'"
             >
-              {{ $t("arc200.save_action") }}
+              {{ t("arc200.save_action") }}
             </Button>
           </div>
         </div>

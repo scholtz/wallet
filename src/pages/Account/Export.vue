@@ -13,7 +13,9 @@ import QRCodeVue3 from "qrcode-vue3";
 import sha512 from "js-sha512";
 import copy from "copy-to-clipboard";
 import { RootState } from "@/store";
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n();
 const store = useStore<RootState>();
 const route = useRoute();
 
@@ -172,14 +174,14 @@ async function copyToClipboard(text) {
 
 <template>
   <MainLayout>
-    <h1>{{ $t("account_export.header") }}</h1>
+    <h1>{{ t("account_export.header") }}</h1>
     <Card>
       <template #content>
-        <p>{{ $t("account_export.help") }}</p>
+        <p>{{ t("account_export.help") }}</p>
         <div v-if="!state.pwdChecked">
           <div class="field grid">
             <label for="pwd" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("account_export.password") }}
+              {{ t("account_export.password") }}
             </label>
             <div class="col-12 md:col-10">
               <Password
@@ -194,7 +196,7 @@ async function copyToClipboard(text) {
             <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
             <div class="col-12 md:col-10">
               <Button @click="checkPwd">
-                {{ $t("account_export.continue") }}
+                {{ t("account_export.continue") }}
               </Button>
             </div>
           </div>
@@ -206,13 +208,13 @@ async function copyToClipboard(text) {
                 class="m-2 w-100"
                 :severity="state.state == 'step1' ? 'primary' : 'secondary'"
                 @click="algorandMnemonics"
-                >{{ $t("account_export.algo_mnemonic") }}</Button
+                >{{ t("account_export.algo_mnemonic") }}</Button
               >
               <Button
                 class="m-2 w-100"
                 :severity="state.state == 'step1' ? 'primary' : 'secondary'"
                 @click="state.state = 'shamir'"
-                >{{ $t("account_export.shamir_backup") }}</Button
+                >{{ t("account_export.shamir_backup") }}</Button
               >
             </div>
           </div>
@@ -221,12 +223,12 @@ async function copyToClipboard(text) {
               class="m-2"
               @click="state.qr = !state.qr"
               severity="secondary"
-              >{{ $t("account_export.toggle_qr") }}</Button
+              >{{ t("account_export.toggle_qr") }}</Button
             >
           </div>
           <div v-if="state.state == 'shamir' || state.state == 'shamir2'">
             <label for="shamirMin"
-              >{{ $t("account_export.recovery_threshold") }}:</label
+              >{{ t("account_export.recovery_threshold") }}:</label
             >
             <InputNumber
               inputId="shamirMin"
@@ -236,7 +238,7 @@ async function copyToClipboard(text) {
               :max="100"
             ></InputNumber>
             <label for="shamirCount"
-              >{{ $t("account_export.number_of_mnemonics") }}:</label
+              >{{ t("account_export.number_of_mnemonics") }}:</label
             >
             <InputNumber
               inputId="shamirCount"
@@ -249,7 +251,7 @@ async function copyToClipboard(text) {
               class="m-2"
               @click="shamirBackup"
               :severity="state.state == 'shamir' ? 'primary' : 'secondary'"
-              >{{ $t("account_export.generate_shamir") }}</Button
+              >{{ t("account_export.generate_shamir") }}</Button
             >
           </div>
           <div v-if="state.state == 'shamir2'">
@@ -257,32 +259,32 @@ async function copyToClipboard(text) {
               class="m-2"
               @click="state.qr = !state.qr"
               severity="secondary"
-              >{{ $t("account_export.toggle_qr") }}</Button
+              >{{ t("account_export.toggle_qr") }}</Button
             >
             <Button
               class="m-2"
               v-if="state.sh && state.shIndex >= 0"
               :disabled="state.shIndex == 0"
               @click="setShamirIndex(state.shIndex - 1)"
-              >{{ $t("account_export.previous") }}</Button
+              >{{ t("account_export.previous") }}</Button
             >
             <Button
               class="m-2"
               v-if="state.sh && state.shIndex >= 0"
               :disabled="state.shIndex == state.sh.length - 1"
               @click="setShamirIndex(state.shIndex + 1)"
-              >{{ $t("account_export.next") }}</Button
+              >{{ t("account_export.next") }}</Button
             >
           </div>
           <div v-if="state.mn" class="m-5">
             <div v-if="state.shIndex >= 0">
-              {{ $t("account_export.index") }} {{ state.shIndex + 1 }} /
+              {{ t("account_export.index") }} {{ state.shIndex + 1 }} /
               {{ state.sh.length }}
-              <b>{{ $t("account_export.shamir_help") }} </b>
+              <b>{{ t("account_export.shamir_help") }} </b>
             </div>
             <div v-else>
               <div>
-                <b>{{ $t("account_export.algo_help") }}</b>
+                <b>{{ t("account_export.algo_help") }}</b>
               </div>
             </div>
             <Button
@@ -306,7 +308,7 @@ async function copyToClipboard(text) {
             />
           </div>
           <div v-if="$store.state.config.dev && state.json">
-            <h2>{{ $t("account_export.dev_info") }}</h2>
+            <h2>{{ t("account_export.dev_info") }}</h2>
             <JsonViewer :value="state.json" copyable boxed sort />
           </div>
         </div>

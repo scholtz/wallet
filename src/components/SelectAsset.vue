@@ -7,7 +7,9 @@ import CAsset from "../scripts/interface/CAsset";
 import IAsset from "../scripts/interface/IAsset";
 import IARC200 from "../scripts/interface/IARC200";
 import { RootState } from "@/store";
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n();
 const props = defineProps({
   modelValue: CAsset,
   itemId: String,
@@ -148,7 +150,7 @@ onMounted(async () => {
     :options="state.assets"
     optionLabel="label"
     optionValue="asset-id"
-    :placeholder="$t('pay.asset')"
+    :placeholder="t('pay.asset')"
     class="w-full"
     inputClass="w-full"
   >

@@ -22,7 +22,9 @@ import {
 import algosdk, { AtomicTransactionComposer } from "algosdk";
 import axios from "axios";
 import { RootState } from "@/store";
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n();
 const route = useRoute();
 const store = useStore<RootState>();
 const router = useRouter();
@@ -443,16 +445,16 @@ const loadScript = async () => {
 </script>
 <template>
   <MainLayout>
-    <h1>{{ $t("scheduled_payments.title") }}</h1>
+    <h1>{{ t("scheduled_payments.title") }}</h1>
     <Card>
       <template #content>
         <p>
-          {{ $t("scheduled_payments.description_detail") }}
+          {{ t("scheduled_payments.description_detail") }}
         </p>
-        <h2>{{ $t("scheduled_payments.details_title") }}</h2>
+        <h2>{{ t("scheduled_payments.details_title") }}</h2>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.app_id") }}
+            {{ t("scheduled_payments.app_id") }}
           </label>
           <div class="col-12 md:col-10">
             {{ state.appInfo.appId }}
@@ -460,7 +462,7 @@ const loadScript = async () => {
         </div>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.appAddress") }}
+            {{ t("scheduled_payments.appAddress") }}
           </label>
           <div class="col-12 md:col-10">
             {{ state.appInfo.appAddress }}
@@ -468,15 +470,15 @@ const loadScript = async () => {
         </div>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.period") }}
+            {{ t("scheduled_payments.period") }}
           </label>
           <div class="col-12 md:col-10">
-            {{ state.appInfo.period }} {{ $t("scheduled_payments.seconds") }}
+            {{ state.appInfo.period }} {{ t("scheduled_payments.seconds") }}
           </div>
         </div>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.start") }}
+            {{ t("scheduled_payments.start") }}
           </label>
           <div class="col-12 md:col-10">
             {{ new Date(state.appInfo.start * 1000) }}
@@ -484,7 +486,7 @@ const loadScript = async () => {
         </div>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.feeBalance") }}
+            {{ t("scheduled_payments.feeBalance") }}
           </label>
           <div class="col-12 md:col-10">
             {{
@@ -498,7 +500,7 @@ const loadScript = async () => {
         </div>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.execution_fee") }}
+            {{ t("scheduled_payments.execution_fee") }}
           </label>
           <div class="col-12 md:col-10">
             {{
@@ -511,11 +513,11 @@ const loadScript = async () => {
           </div>
         </div>
 
-        <h2>{{ $t("scheduled_payments.deposit_fee_title") }}</h2>
+        <h2>{{ t("scheduled_payments.deposit_fee_title") }}</h2>
 
         <div class="field grid">
           <label for="amountToDeposit" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.fee_asset_id") }}
+            {{ t("scheduled_payments.fee_asset_id") }}
           </label>
           <div class="col-12 md:col-10">
             <Button
@@ -526,13 +528,13 @@ const loadScript = async () => {
               {{ state.feeAssetId }}
             </Button>
             <Button severity="secondary" size="small" @click="toSwap">
-              {{ $t("scheduled_payments.get_more") }}
+              {{ t("scheduled_payments.get_more") }}
             </Button>
           </div>
         </div>
         <div class="field grid">
           <label for="amountToDeposit" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.amount_to_deposit") }}
+            {{ t("scheduled_payments.amount_to_deposit") }}
           </label>
           <div class="col-12 md:col-10">
             <InputNumber
@@ -549,12 +551,12 @@ const loadScript = async () => {
           <label class="col-12 mb-2 md:col-2 md:mb-0"> </label>
           <div class="col-12 md:col-10">
             <Button severity="primary" @click="depositToFeePool">
-              {{ $t("scheduled_payments.deposit") }}
+              {{ t("scheduled_payments.deposit") }}
             </Button>
           </div>
         </div>
 
-        <h2>{{ $t("scheduled_payments.list_of_assets") }}</h2>
+        <h2>{{ t("scheduled_payments.list_of_assets") }}</h2>
         <DataTable
           v-model:selection="state.selection"
           :value="state.assets"
@@ -573,36 +575,33 @@ const loadScript = async () => {
                   <i class="pi pi-search" />
                   <InputText
                     v-model="state.filters['global'].value"
-                    :placeholder="$t('placeholders.keyword_search')"
+                    :placeholder="t('placeholders.keyword_search')"
                   />
                 </span>
               </div>
             </div>
           </template>
           <template #empty>
-            {{ $t("scheduled_payments.assets_loading") }}
+            {{ t("scheduled_payments.assets_loading") }}
           </template>
           <Column
             field="assetName"
-            :header="$t('scheduled_payments.asset_id')"
+            :header="t('scheduled_payments.asset_id')"
             :sortable="true"
           />
-          <Column :header="$t('scheduled_payments.asset_id')" :sortable="true">
+          <Column :header="t('scheduled_payments.asset_id')" :sortable="true">
             <template #body="slotProps">
               {{ slotProps.data["asset-id"] }}
             </template>
           </Column>
-          <Column
-            :header="$t('scheduled_payments.asset_name')"
-            :sortable="true"
-          >
+          <Column :header="t('scheduled_payments.asset_name')" :sortable="true">
             <template #body="slotProps">
               {{ slotProps.data.info.name }}
             </template>
           </Column>
           <Column
             field="amount"
-            :header="$t('scheduled_payments.asset_amount')"
+            :header="t('scheduled_payments.asset_amount')"
             :sortable="true"
           >
             <template #body="slotProps">
@@ -618,19 +617,19 @@ const loadScript = async () => {
               </span>
             </template>
           </Column>
-          <Column :header="$t('scheduled_payments.actions')" :sortable="true">
+          <Column :header="t('scheduled_payments.actions')" :sortable="true">
             <template #body="slotProps">
               <Button @click="deposit(slotProps.data)">{{
-                $t("scheduled_payments.deposit")
+                t("scheduled_payments.deposit")
               }}</Button>
             </template>
           </Column>
         </DataTable>
-        <h2>{{ $t("scheduled_payments.optin_title") }}</h2>
+        <h2>{{ t("scheduled_payments.optin_title") }}</h2>
 
         <div class="field grid">
           <label for="optin" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.optin_to_asset") }}
+            {{ t("scheduled_payments.optin_to_asset") }}
           </label>
           <div class="col-12 md:col-10">
             <InputGroup>
@@ -646,15 +645,15 @@ const loadScript = async () => {
                 class="col-2"
                 @click="optinEscrowToAsset"
               >
-                {{ $t("scheduled_payments.optin_click") }}
+                {{ t("scheduled_payments.optin_click") }}
               </Button>
             </InputGroup>
           </div>
         </div>
-        <h2>{{ $t("scheduled_payments.withdraw_asset_title") }}</h2>
+        <h2>{{ t("scheduled_payments.withdraw_asset_title") }}</h2>
         <div class="field grid">
           <label for="withdrawAsset" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.withdraw_asset") }}
+            {{ t("scheduled_payments.withdraw_asset") }}
           </label>
           <div class="col-12 md:col-10">
             <DropDown
@@ -669,7 +668,7 @@ const loadScript = async () => {
         </div>
         <div class="field grid">
           <label for="withdrawAmount" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.withdraw_amount") }}
+            {{ t("scheduled_payments.withdraw_amount") }}
           </label>
           <div class="col-12 md:col-10">
             <InputGroup>
@@ -688,14 +687,14 @@ const loadScript = async () => {
           <label class="col-12 mb-2 md:col-2 md:mb-0"> </label>
           <div class="col-12 md:col-10">
             <Button severity="secondary" @click="withdrawFromEscrow">
-              {{ $t("scheduled_payments.withdraw_click") }}
+              {{ t("scheduled_payments.withdraw_click") }}
             </Button>
           </div>
         </div>
-        <h2>{{ $t("scheduled_payments.load_script_title") }}</h2>
+        <h2>{{ t("scheduled_payments.load_script_title") }}</h2>
         <div class="field grid">
           <Button severity="secondary" @click="loadScript">{{
-            $t("scheduled_payments.load_click")
+            t("scheduled_payments.load_click")
           }}</Button>
         </div>
         <div class="field grid" v-if="state.script">

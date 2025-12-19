@@ -22,6 +22,9 @@ import {
 import algosdk from "algosdk";
 import axios from "axios";
 import { RootState } from "@/store";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const route = useRoute();
 const store = useStore<RootState>();
@@ -346,17 +349,17 @@ watch(
 </script>
 <template>
   <MainLayout>
-    <h1>{{ $t("scheduled_payments.title") }}</h1>
+    <h1>{{ t("scheduled_payments.title") }}</h1>
 
     <Card>
       <template #content>
         <p>
-          {{ $t("scheduled_payments.description") }}
+          {{ t("scheduled_payments.description") }}
         </p>
-        <h2>{{ $t("scheduled_payments.new_scheduled_payment") }}</h2>
+        <h2>{{ t("scheduled_payments.new_scheduled_payment") }}</h2>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.period") }}
+            {{ t("scheduled_payments.period") }}
           </label>
           <div class="col-12 md:col-10">
             <DropDown
@@ -371,7 +374,7 @@ watch(
         </div>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.pay_to") }}
+            {{ t("scheduled_payments.pay_to") }}
           </label>
           <div class="col-12 md:col-10">
             <SelectAccount v-model="state.payTo" class="w-full"></SelectAccount>
@@ -379,7 +382,7 @@ watch(
         </div>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0" for="asset">
-            {{ $t("scheduled_payments.send_asset") }}
+            {{ t("scheduled_payments.send_asset") }}
           </label>
           <div class="col-12 md:col-10">
             <SelectAsset
@@ -392,7 +395,7 @@ watch(
         </div>
         <div class="field grid">
           <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("pay.amount") }}
+            {{ t("pay.amount") }}
           </label>
           <div class="col-12 md:col-10">
             <InputGroup>
@@ -410,7 +413,7 @@ watch(
                 {{ state.assetData["unit-name"] }}
               </InputGroupAddon>
               <Button severity="secondary" class="col-2" @click="setMaxAmount">
-                {{ $t("pay.set_max") }}
+                {{ t("pay.set_max") }}
               </Button>
             </InputGroup>
           </div>
@@ -419,7 +422,7 @@ watch(
           <label class="col-12 mb-2 md:col-2 md:mb-0"> </label>
           <div class="col-12 md:col-10">
             <Button @click="deployApp" :disabled="state.deploying">
-              {{ $t("scheduled_payments.create_escrow_account") }}
+              {{ t("scheduled_payments.create_escrow_account") }}
               <ProgressSpinner
                 v-if="state.deploying"
                 style="width: 1em; height: 1em"
@@ -429,7 +432,7 @@ watch(
             </Button>
           </div>
         </div>
-        <h2>{{ $t("scheduled_payments.list_of_payments") }}</h2>
+        <h2>{{ t("scheduled_payments.list_of_payments") }}</h2>
         <DataTable
           v-model:selection="state.selection"
           :value="state.apps"
@@ -455,23 +458,23 @@ watch(
                   <i class="pi pi-search" />
                   <InputText
                     v-model="state.filters['global'].value"
-                    :placeholder="$t('placeholders.keyword_search')"
+                    :placeholder="t('placeholders.keyword_search')"
                   />
                 </span>
               </div>
             </div>
           </template>
           <template #empty>
-            {{ $t("scheduled_payments.no_payment_found") }}</template
+            {{ t("scheduled_payments.no_payment_found") }}</template
           >
           <Column
             field="appId"
-            :header="$t('scheduled_payments.app_id')"
+            :header="t('scheduled_payments.app_id')"
             :sortable="true"
           />
           <Column
             field="appAddress"
-            :header="$t('scheduled_payments.app_address')"
+            :header="t('scheduled_payments.app_address')"
             :sortable="true"
           >
             <template #body="slotProps">
@@ -483,12 +486,12 @@ watch(
           </Column>
           <Column
             field="period"
-            :header="$t('scheduled_payments.period')"
+            :header="t('scheduled_payments.period')"
             :sortable="true"
           />
           <Column
             field="start"
-            :header="$t('scheduled_payments.start')"
+            :header="t('scheduled_payments.start')"
             :sortable="true"
           >
             <template #body="slotProps">
@@ -497,7 +500,7 @@ watch(
           </Column>
           <Column
             field="balanceFee"
-            :header="$t('scheduled_payments.fee_balance')"
+            :header="t('scheduled_payments.fee_balance')"
             :sortable="true"
           >
             <template #body="slotProps">
@@ -512,7 +515,7 @@ watch(
           </Column>
           <Column
             field="fee"
-            :header="$t('scheduled_payments.execution_fee')"
+            :header="t('scheduled_payments.execution_fee')"
             :sortable="true"
           >
             <template #body="slotProps">
@@ -527,7 +530,7 @@ watch(
           </Column>
         </DataTable>
         <p>
-          {{ $t("scheduled_payments.xgov_promo") }}
+          {{ t("scheduled_payments.xgov_promo") }}
           -
           <a
             href="https://github.com/algorandfoundation/xGov/blob/main/Proposals/xgov-90.md"
