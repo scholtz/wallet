@@ -175,6 +175,14 @@ const actions: ActionTree<IndexerState, RootState> = {
         }
       );
     } catch (error) {
+      const message = (error as Error)?.message ?? "";
+      if (message.includes("no accounts found")) {
+        console.warn(
+          `accountInformation: missing account ${addr}, returning fallback`,
+          error
+        );
+        return { ...DEFAULT_ACCOUNT, address: addr };
+      }
       console.error("accountInformation", error);
       throw error;
     }
