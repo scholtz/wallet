@@ -1,4 +1,5 @@
-import { createI18n } from "vue-i18n";
+import { createI18n, type VueMessageType } from "vue-i18n";
+import type { LocaleMessage } from "@intlify/core-base";
 
 /**
  * Load locale messages
@@ -6,29 +7,34 @@ import { createI18n } from "vue-i18n";
  * The loaded `JSON` locale messages is pre-compiled by `@intlify/vue-i18n-loader`, which is integrated into `vue-cli-plugin-i18n`.
  * See: https://github.com/intlify/vue-i18n-loader#rocket-i18n-resource-pre-compilation
  */
-function loadLocaleMessages() {
+type LocaleMessages = Record<string, LocaleMessage<VueMessageType>>;
+
+function loadLocaleMessages(): LocaleMessages {
   const locales = require.context(
     "./locales",
     true,
     /[A-Za-z0-9-_,\s]+\.json$/i
   );
-  const messages = {};
+  const messages: LocaleMessages = {};
   locales.keys().forEach((key) => {
     const matched = key.match(/([A-Za-z0-9-_]+)\./i);
     if (matched && matched.length > 1) {
       const locale = matched[1];
-      messages[locale] = locales(key).default;
+      messages[locale] = locales(key).default as LocaleMessage<VueMessageType>;
     }
   });
   return messages;
 }
 
-function defaultLanguage() {
+function defaultLanguage(): string {
   let lang = localStorage.getItem("lang");
   if (lang) {
     return lang;
   }
-  var userLang = navigator.language || navigator.userLanguage;
+  const navigatorWithLang = navigator as Navigator & {
+    userLanguage?: string;
+  };
+  const userLang = navigator.language || navigatorWithLang.userLanguage || "";
   if (userLang.length >= 2 && userLang.substring(0, 2) == "sk") {
     lang = "sk";
     localStorage.setItem("lang", lang);
