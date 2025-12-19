@@ -352,7 +352,11 @@ import { QrcodeStream } from "qrcode-reader-vue3";
 import aprotocol from "../shared/algorand-protocol-parse";
 import MainLayout from "../layouts/Main.vue";
 import algosdk from "algosdk";
-import type { Transaction, TransactionWithSigner, MultisigMetadata } from "algosdk";
+import type {
+  Transaction,
+  TransactionWithSigner,
+  MultisigMetadata,
+} from "algosdk";
 import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import SelectAccount from "../components/SelectAccount.vue";
 import TabView from "primevue/tabview";
@@ -1230,18 +1234,18 @@ const redirectToARC200Payment = async () => {
     const compose = (client as unknown as { compose: () => any })
       .compose()
       .arc200Transfer(
-      { to: state.payTo, value: BigInt(amountLong.value) },
-      {
-        boxes: [
-          boxFrom,
-          boxFromDirect,
-          boxFromPlainAddr,
-          boxToPlainAddr,
-          boxTo,
-          boxToDirect,
-        ],
-      }
-    );
+        { to: state.payTo, value: BigInt(amountLong.value) },
+        {
+          boxes: [
+            boxFrom,
+            boxFromDirect,
+            boxFromPlainAddr,
+            boxToPlainAddr,
+            boxTo,
+            boxToDirect,
+          ],
+        }
+      );
 
     const enc = new TextEncoder();
     const noteEnc = enc.encode("g");

@@ -74,7 +74,8 @@ onMounted(async () => {
 
   const data: TransactionTableEntry[] = [];
   let index = 0;
-  const toSignArray = (store.state.signer.toSignArray ?? []) as SignableTransaction[];
+  const toSignArray = (store.state.signer.toSignArray ??
+    []) as SignableTransaction[];
   for (const txn of toSignArray) {
     const fromAddress = txn.from
       ? encodeAddress(txn.from)
@@ -371,10 +372,14 @@ const getAssetDecimals = (id: number) => {
           </Button>
           <Button
             :disabled="
-              !state.allTxsAreSigned || state.processing || !!state.confirmedRound
+              !state.allTxsAreSigned ||
+              state.processing ||
+              !!state.confirmedRound
             "
             :severity="
-              !state.allTxsAreSigned || state.processing || !!state.confirmedRound
+              !state.allTxsAreSigned ||
+              state.processing ||
+              !!state.confirmedRound
                 ? 'secondary'
                 : 'primary'
             "
