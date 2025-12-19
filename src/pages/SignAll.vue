@@ -13,7 +13,7 @@ const store = useStore<RootState>();
 const router = useRouter();
 
 interface TransactionTableEntry {
-  txn: SignableTransaction;
+  txn: algosdk.Transaction;
   index: number;
   type: string;
   from: string;
@@ -30,30 +30,6 @@ interface SignAllState {
   error: string;
   confirmedRound: number;
 }
-
-type SignableTransaction = {
-  txID: () => string;
-  type: string;
-  from?: { publicKey: Uint8Array };
-  sender?: algosdk.Address;
-  to?: { publicKey: Uint8Array };
-  note?: Uint8Array;
-  firstRound?: number;
-  lastRound?: number;
-  fee?: number | bigint;
-  amount?: number | bigint;
-  assetIndex?: number | bigint;
-  group?: Uint8Array;
-  appIndex?: number | bigint;
-  appArgs?: Uint8Array[];
-  appAccounts?: Array<algosdk.Address | string>;
-  appForeignAssets?: Array<number | bigint>;
-  boxes?: Array<{ appIndex: number | bigint; name: Uint8Array }>;
-  genesisID?: string;
-  genesisHash?: Uint8Array;
-  rekeyTo?: algosdk.Address;
-  [key: string]: unknown;
-};
 
 const state = reactive<SignAllState>({
   expandedTransactions: [],
@@ -75,10 +51,10 @@ onMounted(async () => {
   const data: TransactionTableEntry[] = [];
   let index = 0;
   const toSignArray = (store.state.signer.toSignArray ??
-    []) as SignableTransaction[];
+    []) as algosdk.Transaction[];
   for (const txn of toSignArray) {
-    const fromAddress = txn.from
-      ? encodeAddress(txn.from)
+    const fromAddress = txn.sender
+      ? encodeAddress(txn.sender)
       : txn.sender
       ? encodeAddress(txn.sender)
       : "-";
@@ -87,7 +63,7 @@ onMounted(async () => {
       index,
       type: txn.type,
       from: fromAddress,
-      toBeSigned: await toBeSigned({ txn }),
+      toBeSigned: await toBeSigned(txn),
     });
     index++;
   }
@@ -115,18 +91,14 @@ const encodeAddress = (
   return "-";
 };
 
-type TxnToSignPayload = {
-  txn: SignableTransaction;
-};
-
-const toBeSigned = async (data: TxnToSignPayload): Promise<boolean> => {
-  const txId = data.txn.txID();
+const toBeSigned = async (txn: algosdk.Transaction): Promise<boolean> => {
+  const txId = txn.txID();
   const signed = txId in store.state.signer.signed;
   if (!signed) return true; // if not signed return true to show sign button
-  const from = data.txn.from
-    ? encodeAddress(data.txn.from)
-    : data.txn.sender
-    ? encodeAddress(data.txn.sender)
+  const from = txn.sender
+    ? encodeAddress(txn.sender)
+    : txn.sender
+    ? encodeAddress(txn.sender)
     : "-";
   const type = await store.dispatch("signer/getSignerType", {
     from: from,
@@ -167,9 +139,7 @@ const clickSign = async (data: TransactionTableEntry) => {
     for (const index in state.transactions) {
       const entry = state.transactions[index];
       if (entry?.txn.txID() == txId) {
-        entry.toBeSigned = await toBeSigned({
-          txn: entry.txn,
-        });
+        entry.toBeSigned = await toBeSigned(entry.txn as algosdk.Transaction);
       }
     }
     await checkAtLeastOneSigned();
@@ -197,9 +167,7 @@ const clickSign = async (data: TransactionTableEntry) => {
     for (const index in state.transactions) {
       const entry = state.transactions[index];
       if (entry?.txn.txID() == txId) {
-        entry.toBeSigned = await toBeSigned({
-          txn: entry.txn,
-        });
+        entry.toBeSigned = await toBeSigned(entry.txn as algosdk.Transaction);
       }
     }
   }
@@ -238,14 +206,16 @@ const formatData = (
 
 const formatGroup = (group?: Uint8Array | number[] | Buffer) => {
   try {
-    return group.toString("base64");
+    return group?.toString("base64") ?? "";
   } catch {
     return String(group ?? "");
   }
 };
 const clickSignAll = async () => {
-  for (const tx of state.transactions) {
-    await clickSign(tx);
+  for (const txTable of state.transactions) {
+    if (txTable) {
+      await clickSign(txTable as TransactionTableEntry);
+    }
   }
 };
 const checkAtLeastOneSigned = () => {
