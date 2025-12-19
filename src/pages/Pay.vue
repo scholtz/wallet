@@ -1,6 +1,6 @@
 <template>
   <main-layout>
-    <div v-if="!$route.params.account">
+    <div v-if="!route.params.account">
       <h1>{{ t("pay.select_account_for_payment") }}</h1>
 
       <Card>
@@ -64,11 +64,11 @@
             </div>
             <div v-if="showDesignScreen" class="grid">
               <div :class="scan ? 'col-8' : 'col-12'">
-                <div v-if="$route.params.toAccount">
+                <div v-if="route.params.toAccount">
                   <InputText
                     v-if="!payTo"
                     id="payTo1"
-                    v-model="$route.params.toAccount"
+                    :modelValue="toSingleParam(route.params.toAccount)"
                     disabled
                     class="w-full"
                   />
@@ -318,7 +318,7 @@
                       severity="secondary"
                       class="m-2"
                       value="Cancel"
-                      @click="$router.push('/accounts')"
+                      @click="router.push('/accounts')"
                     >
                       {{ t("global.cancel") }}
                     </Button>
@@ -386,7 +386,7 @@ interface Arc200AccountAsset {
 }
 
 interface AccountNetworkData {
-  amount: number;
+  amount?: number;
   addr?: string;
   assets?: AccountAsset[];
   arc200?: Record<string, Arc200AccountAsset>;
@@ -411,7 +411,7 @@ interface WalletAccount {
 type MultisigDecoded = ReturnType<
   typeof algosdk.decodeSignedTransaction
 > | null;
-type DecodedTxn = ReturnType<typeof algosdk.decodeUnsignedTransaction> | null;
+type DecodedTxn = any;
 type AlgoTransaction =
   | ReturnType<typeof algosdk.decodeUnsignedTransaction>
   | Transaction;
@@ -647,13 +647,13 @@ const accountData = computed<AccountNetworkData | null>(
 const rekeyedToInfo = computed(() => {
   if (!accountData.value) return undefined;
   return walletAccounts.value.find(
-    (a) => a.addr == accountData.value.rekeyedTo
+    (a) => a.addr == accountData.value?.rekeyedTo
   );
 });
 const rekeyedMultisigParams = computed(() => {
   if (!accountData.value?.rekeyedTo) return undefined;
   const rekeyedInfo = walletAccounts.value.find(
-    (a) => a.addr == accountData.value.rekeyedTo
+    (a) => a.addr == accountData.value?.rekeyedTo
   );
   return rekeyedInfo?.params;
 });
@@ -672,7 +672,7 @@ const accountsFromMultisig = computed(() => {
     return list;
   }
   return list.filter((s) =>
-    state.multisigDecoded.msig.subsig.find(
+    state.multisigDecoded?.msig?.subsig.find(
       (entry) => s.addr == algosdk.encodeAddress(entry.pk) && !entry.s
     )
   );
@@ -704,7 +704,7 @@ const showDesignScreen = computed(
   () => !isMultisig.value || (isMultisig.value && state.subpage == "proposal")
 );
 const isRekey = computed(() => {
-  if (state.multisigDecoded?.txn && state.multisigDecoded.txn.reKeyTo) {
+  if (state.multisigDecoded?.txn && state.multisigDecoded.txn.rekeyTo) {
     return true;
   }
   const typeParam = toSingleParam(
@@ -768,7 +768,7 @@ const malformedAddress = computed(() => {
 const showSignaturesCount = computed(() => {
   if (!state.multisigDecoded?.msig?.subsig) return "";
   const count = state.multisigDecoded.msig.subsig.filter((s) => !!s.s).length;
-  return `${count} / ${state.multisigDecoded.msig.thr}`;
+  return `${count} / ${state.multisigDecoded!.msig.thr}`;
 });
 const isSignedByAny = computed(() => {
   const subsig = state.multisigDecoded?.msig?.subsig;
@@ -778,7 +778,7 @@ const isSignedByAny = computed(() => {
 const thresholdMet = computed(() => {
   const subsig = state.multisigDecoded?.msig?.subsig;
   if (!subsig) return false;
-  return subsig.filter((s) => !!s.s).length >= state.multisigDecoded.msig.thr;
+  return subsig.filter((s) => !!s.s).length >= state.multisigDecoded!.msig!.thr;
 });
 const isNotValid = computed(() => {
   if (!state.payTo) return true;
@@ -819,7 +819,7 @@ watch(isAuth, (auth) => {
     store.state.wallet.privateAccounts &&
     store.state.wallet.privateAccounts.length === 1
   ) {
-    state.payFromDirect = store.state.wallet.privateAccounts[0].addr;
+    state.payFromDirect = store.state.wallet.privateAccounts[0].addr || '';
   }
 });
 
@@ -914,7 +914,7 @@ onMounted(async () => {
     store.state.wallet.privateAccounts &&
     store.state.wallet.privateAccounts.length === 1
   ) {
-    state.payFromDirect = store.state.wallet.privateAccounts[0].addr;
+    state.payFromDirect = store.state.wallet.privateAccounts[0].addr || '';
   }
 
   if (isRekey.value && accountData.value?.addr) {
@@ -1342,7 +1342,7 @@ const base64ToArrayBuffer = (base64: string) => {
   for (let i = 0; i < len; i++) {
     bytes[i] = binaryString.charCodeAt(i);
   }
-  return bytes.buffer;
+  return bytes;
 };
 
 const base64url2base64 = (input: string) => {
@@ -1376,7 +1376,7 @@ const payPaymentClick = async (e: Event | undefined) => {
     let noteEnc = enc.encode(state.paynote);
     if (state.paynoteB64) {
       try {
-        noteEnc = Uint8Array.from(base64ToArrayBuffer(state.paynote));
+        noteEnc = new Uint8Array(base64ToArrayBuffer(state.paynote));
         if (!noteEnc) {
           noteEnc = enc.encode(state.paynote);
         }
@@ -1419,7 +1419,7 @@ const payPaymentClick = async (e: Event | undefined) => {
       return;
     }
     const confirmationResult = await waitForConfirmation({
-      txId: state.tx,
+      txId: state.tx as string,
       timeout: 4,
     });
     if (!confirmationResult) {
@@ -1468,9 +1468,9 @@ const loadMultisig = (e: Event | undefined) => {
   state.page = "review";
   if (
     state.multisigDecoded?.msig &&
-    typeof state.multisigDecoded.msig.thr === "string"
+    typeof state.multisigDecoded!.msig.thr === "string"
   ) {
-    state.multisigDecoded.msig.thr = parseInt(state.multisigDecoded.msig.thr);
+    state.multisigDecoded!.msig.thr = parseInt(state.multisigDecoded!.msig.thr);
   }
 };
 
@@ -1514,7 +1514,7 @@ const sendMultisig = async (e: Event | undefined) => {
       return;
     }
     const confirmationResult = await waitForConfirmation({
-      txId: state.tx,
+      txId: state.tx as string,
       timeout: 4,
     });
     if (confirmationResult["confirmed-round"]) {

@@ -14,3 +14,5 @@ declare module "@vue/runtime-core" {
     $store: Store<RootState>;
   }
 }
+
+declare module "qrcode-reader-vue3";

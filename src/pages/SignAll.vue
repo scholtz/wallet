@@ -6,7 +6,9 @@ import MainLayout from "../layouts/Main.vue";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import { RootState } from "@/store";
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n();
 const store = useStore<RootState>();
 const router = useRouter();
 
@@ -202,7 +204,7 @@ const submitSignedClick = async () => {
 
     if (!tx) {
       console.error("submitSignedClick has failed");
-      state.error = $t("pay.state_error_not_sent");
+      state.error = t("pay.state_error_not_sent");
       store.dispatch("toast/openError", state.error);
       state.processing = false;
     }
@@ -214,7 +216,7 @@ const submitSignedClick = async () => {
     if (!confirmation) {
       console.error(`confirmation not received for tx`);
       state.processing = false;
-      state.error = $t("pay.state_error_not_sent");
+      state.error = t("pay.state_error_not_sent");
       store.dispatch("toast/openError", state.error);
       //            "Payment has probably not reached the network. Are you offline? Please check you account";
       return;
@@ -260,14 +262,12 @@ const getAssetDecimals = (id) => {
 </script>
 <template>
   <MainLayout>
-    <h1>{{ $t("sign_all.title") }}</h1>
+    <h1>{{ t("sign_all.title") }}</h1>
     <Card>
       <template #content>
         <Message severity="error" v-if="state.error">{{ state.error }}</Message>
         <Message severity="success" v-if="state.confirmedRound">
-          {{
-            `${$t("sign_all.transaction_confirmed")} ${state.confirmedRound}`
-          }}
+          {{ `${t("sign_all.transaction_confirmed")} ${state.confirmedRound}` }}
         </Message>
 
         <div>
@@ -281,7 +281,7 @@ const getAssetDecimals = (id) => {
             "
             @click="clickSignAll()"
           >
-            {{ $t("connect.sign_all") }}
+            {{ t("connect.sign_all") }}
           </Button>
           <Button
             :disabled="
@@ -326,33 +326,21 @@ const getAssetDecimals = (id) => {
                 class="m-1"
                 @click="clickSign(slotProps.data)"
               >
-                {{ $t("connect.sign") }}
+                {{ t("connect.sign") }}
               </Button>
               <Badge
                 severity="success"
                 v-else
                 class="badge bg-success"
-                :value="$t('connect.signed')"
+                :value="t('connect.signed')"
               />
             </template>
           </Column>
-          <Column
-            field="index"
-            :header="$t('connect.index')"
-            :sortable="true"
-          />
-          <Column field="type" :header="$t('connect.type')" :sortable="true" />
-          <Column field="from" :header="$t('connect.from')" :sortable="true" />
-          <Column
-            field="asset"
-            :header="$t('connect.asset')"
-            :sortable="true"
-          />
-          <Column
-            field="amount"
-            :header="$t('connect.amount')"
-            :sortable="true"
-          >
+          <Column field="index" :header="t('connect.index')" :sortable="true" />
+          <Column field="type" :header="t('connect.type')" :sortable="true" />
+          <Column field="from" :header="t('connect.from')" :sortable="true" />
+          <Column field="asset" :header="t('connect.asset')" :sortable="true" />
+          <Column field="amount" :header="t('connect.amount')" :sortable="true">
             <template #body="slotProps">
               <div v-if="slotProps.data.txn">
                 <div
@@ -376,14 +364,14 @@ const getAssetDecimals = (id) => {
               </div>
             </template>
           </Column>
-          <Column field="fee" :header="$t('connect.fee')" :sortable="true">
+          <Column field="fee" :header="t('connect.fee')" :sortable="true">
             <template #body="slotProps">
               {{ formatCurrency(slotProps.data.txn["fee"]) }}
             </template>
           </Column>
           <Column
             field="rekeyTo"
-            :header="$t('connect.rekeyto')"
+            :header="t('connect.rekeyto')"
             :sortable="true"
           />
           <template #expansion="txProps">
@@ -391,19 +379,19 @@ const getAssetDecimals = (id) => {
               <table>
                 <tbody>
                   <tr v-if="txProps.data.txn.from">
-                    <td>{{ $t("connect.from") }}:</td>
+                    <td>{{ t("connect.from") }}:</td>
                     <td>
                       {{ encodeAddress(txProps.data.txn.from) }}
                     </td>
                   </tr>
                   <tr v-if="txProps.data.txn.to">
-                    <td>{{ $t("connect.to") }}:</td>
+                    <td>{{ t("connect.to") }}:</td>
                     <td>
                       {{ encodeAddress(txProps.data.txn.to) }}
                     </td>
                   </tr>
                   <tr>
-                    <td>{{ $t("connect.validity") }}:</td>
+                    <td>{{ t("connect.validity") }}:</td>
                     <td>
                       {{ txProps.data.txn.firstRound }} -
                       {{ txProps.data.txn.lastRound }} ({{
@@ -411,15 +399,15 @@ const getAssetDecimals = (id) => {
                         txProps.data.txn.firstRound +
                         1
                       }}
-                      {{ $t("connect.rounds") }})
+                      {{ t("connect.rounds") }})
                     </td>
                   </tr>
                   <tr>
-                    <td>{{ $t("connect.type") }}:</td>
+                    <td>{{ t("connect.type") }}:</td>
                     <td>{{ txProps.data.type }}</td>
                   </tr>
                   <tr>
-                    <td>{{ $t("connect.note") }}:</td>
+                    <td>{{ t("connect.note") }}:</td>
                     <td>
                       <table>
                         <tbody>
@@ -443,12 +431,12 @@ const getAssetDecimals = (id) => {
                   </tr>
 
                   <tr v-if="txProps.data.txn.group">
-                    <td>{{ $t("connect.group") }}:</td>
+                    <td>{{ t("connect.group") }}:</td>
                     <td>{{ formatGroup(txProps.data.txn.group) }}</td>
                   </tr>
 
                   <tr v-if="txProps.data.type == 'appl'">
-                    <td>{{ $t("connect.app") }}:</td>
+                    <td>{{ t("connect.app") }}:</td>
                     <td>{{ txProps.data.txn.appIndex }}</td>
                   </tr>
 
@@ -457,7 +445,7 @@ const getAssetDecimals = (id) => {
                       txProps.data.type == 'appl' && txProps.data.txn.appArgs
                     "
                   >
-                    <td>{{ $t("connect.app_args") }}:</td>
+                    <td>{{ t("connect.app_args") }}:</td>
                     <td>
                       <table>
                         <tbody>
@@ -481,7 +469,7 @@ const getAssetDecimals = (id) => {
                       txProps.data.txn.appAccounts
                     "
                   >
-                    <td>{{ $t("connect.app_accounts") }}:</td>
+                    <td>{{ t("connect.app_accounts") }}:</td>
                     <td>
                       <ol>
                         <li
@@ -500,7 +488,7 @@ const getAssetDecimals = (id) => {
                       txProps.data.txn.appForeignAssets
                     "
                   >
-                    <td>{{ $t("connect.app_assets") }}:</td>
+                    <td>{{ t("connect.app_assets") }}:</td>
                     <td>
                       <ol>
                         <li
@@ -515,26 +503,26 @@ const getAssetDecimals = (id) => {
                   <tr
                     v-if="txProps.data.type == 'appl' && txProps.data.txn.boxes"
                   >
-                    <td>{{ $t("connect.boxes") }}:</td>
+                    <td>{{ t("connect.boxes") }}:</td>
                     <td>
                       <ol>
                         <li
                           v-for="box in txProps.data.txn.boxes"
                           :key="box.name"
                         >
-                          {{ $t("connect.app") }}: {{ box.appIndex }},
-                          {{ $t("connect.name") }}:
+                          {{ t("connect.app") }}: {{ box.appIndex }},
+                          {{ t("connect.name") }}:
                           {{ box.name }}
                         </li>
                       </ol>
                     </td>
                   </tr>
                   <tr>
-                    <td>{{ $t("connect.genesis") }}:</td>
+                    <td>{{ t("connect.genesis") }}:</td>
                     <td>{{ txProps.data.txn.genesisID }}</td>
                   </tr>
                   <tr>
-                    <td>{{ $t("connect.genesis_hash") }}:</td>
+                    <td>{{ t("connect.genesis_hash") }}:</td>
                     <td>
                       {{ formatGenesisHash(txProps.data.txn.genesisHash) }}
                     </td>

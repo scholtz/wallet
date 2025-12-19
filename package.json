@@ -6,6 +6,8 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build --mode production",
     "lint": "vue-cli-service lint",
+    "check-typescript-errors-tsc": "npx tsc --noEmit",
+    "check-typescript-errors-vue": "npx vue-tsc --noEmit",
     "cypress": "cypress run",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run --config-file cypress.config.ts",
