@@ -463,11 +463,11 @@ export function useSwap() {
 
     let ret = "Processed in txs: ";
     for (let app of appsToOptIn.value) {
-      const appOptInTxn = algosdk.makeApplicationOptInTxn(
-        account.value!.addr,
-        params,
-        app
-      );
+      const appOptInTxn = algosdk.makeApplicationOptInTxnFromObject({
+        sender: account.value!.addr,
+        suggestedParams: params,
+        appIndex: app,
+      });
 
       let signedTxn = await store.dispatch("signer/signTransaction", {
         from: account.value!.addr,

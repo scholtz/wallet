@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { onMounted, reactive } from "vue";
 import MainLayout from "../../layouts/Main.vue";
-import algosdk from "algosdk";
-import Contract from "arc200js";
+import algosdk, { TransactionSigner } from "algosdk";
 import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
 import { getArc200Client } from "arc200-client";
 import formatCurrencyBigInt from "../../scripts/numbers/formatCurrencyBigInt";
+import { AlgorandClient } from "@algorandfoundation/algokit-utils";
+import { BoxReference } from "@algorandfoundation/algokit-utils/types/app-manager";
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
@@ -35,15 +36,31 @@ onMounted(async () => {
 
 const fetchAsset = async () => {
   try {
-    const algodClient: algosdk.Algodv2 = await store.dispatch("algod/getAlgod");
+    const algod: algosdk.Algodv2 = await store.dispatch("algod/getAlgod");
     const indexerClient = await store.dispatch("indexer/getIndexer");
     state.arc200Info.arc200id = parseInt(state.arc200id);
-
-    const contract = new Contract(
-      state.arc200Info.arc200id,
-      algodClient,
-      indexerClient
-    );
+    var algoClient = AlgorandClient.fromClients({
+      algod,
+      indexer: indexerClient,
+    });
+    const dummyAddress =
+      "TESTNTTTJDHIF5PJZUBTTDYYSKLCLM6KXCTWIOOTZJX5HO7263DPPMM2SU";
+    const dummyTransactionSigner = async (
+      txnGroup: algosdk.Transaction[],
+      indexesToSign: number[]
+    ): Promise<Uint8Array[]> => {
+      console.log("transactionSigner", txnGroup, indexesToSign);
+      return [] as Uint8Array[];
+    };
+    const client = getArc200Client({
+      algorand: algoClient,
+      appId: BigInt(state.arc200Info.arc200id),
+      defaultSender: dummyAddress,
+      defaultSigner: dummyTransactionSigner,
+      appName: "arc200",
+      approvalSourceMap: undefined,
+      clearSourceMap: undefined,
+    });
     state.loading = true;
     state.arc200Info = {
       arc200id: 0,
@@ -53,52 +70,80 @@ const fetchAsset = async () => {
       totalSupply: BigInt(0),
       balance: BigInt(0),
     };
-    var name = await contract.arc200_name();
-    await delay(200);
-    if (!name.success) {
+    try {
+      const name = await client.arc200Name();
+      try {
+        state.arc200Info.name = Buffer.from(name).toString("utf-8");
+      } catch (e) {
+        state.arc200Info.name = name.toString();
+      }
+    } catch (e) {
+      console.error("error fetching arc200 name", e);
+      state.loading = false;
       store.dispatch(
         "toast/openError",
-        `Failed to fetch ARC200 name at network ${store.state.config.envName}. You have problem with internet, or asset does not exist, or you are using wrong network.`
+        `Failed to fetch ARC200 name at network ${store.state.config.envName}. Asset does not exist, or you have problem with internet, or you are using wrong network.`
       );
-      state.loading = false;
       return;
     }
-    state.arc200Info.name = name.returnValue;
-    var symbol = await contract.arc200_symbol();
     await delay(200);
-    if (!symbol.success) {
-      store.dispatch("toast/openError", "Failed to fetch ARC200 symbol");
+    try {
+      const symbol = await client.arc200Symbol();
+      state.arc200Info.symbol = Buffer.from(symbol).toString("utf-8");
+    } catch (e) {
+      console.error("error fetching arc200 symbol", e);
       state.loading = false;
+      store.dispatch(
+        "toast/openError",
+        `Failed to fetch ARC200 symbol at network ${store.state.config.envName}. You have problem with internet, or asset does not exist, or you are using wrong network.`
+      );
       return;
     }
-    state.arc200Info.symbol = symbol.returnValue;
-    var decimals = await contract.arc200_decimals();
     await delay(200);
-    if (!decimals.success) {
-      store.dispatch("toast/openError", "Failed to fetch ARC200 decimals");
+    try {
+      const decimals = await client.arc200Decimals();
+      state.arc200Info.decimals = BigInt(decimals);
+    } catch (e) {
+      console.error("error fetching arc200 decimals", e);
       state.loading = false;
+      store.dispatch(
+        "toast/openError",
+        `Failed to fetch ARC200 decimals at network ${store.state.config.envName}. You have problem with internet, or asset does not exist, or you are using wrong network.`
+      );
       return;
     }
-    state.arc200Info.decimals = decimals.returnValue;
+    await delay(200);
+    try {
+      const totalSupply = await client.arc200TotalSupply();
+      state.arc200Info.totalSupply = BigInt(totalSupply);
+    } catch (e) {
+      console.error("error fetching arc200 totalSupply", e);
+      state.loading = false;
+      store.dispatch(
+        "toast/openError",
+        `Failed to fetch ARC200 totalSupply at network ${store.state.config.envName}. You have problem with internet, or asset does not exist, or you are using wrong network.`
+      );
+      return;
+    }
+    await delay(200);
 
-    var totalSupply = await contract.arc200_totalSupply();
-    await delay(200);
-    if (!totalSupply.success) {
-      store.dispatch("toast/openError", "Failed to fetch ARC200 totalSupply");
+    try {
+      const balance = await client.arc200BalanceOf({
+        args: { owner: state.account.addr },
+      });
+      state.arc200Info.balance = balance;
+    } catch (e) {
+      console.error("error fetching arc200 balance", e);
       state.loading = false;
+      store.dispatch(
+        "toast/openError",
+        `Failed to fetch ARC200 balance at network ${store.state.config.envName}. You have problem with internet, or asset does not exist, or you are using wrong network.`
+      );
       return;
     }
-    state.arc200Info.totalSupply = totalSupply.returnValue;
 
-    var balance = await contract.arc200_balanceOf(state.account.addr);
     await delay(200);
-    if (!balance.success) {
-      console.error("balance request was not successful");
-      store.dispatch("toast/openError", "Failed to fetch ARC200 balance");
-      state.loading = false;
-      return;
-    }
-    state.arc200Info.balance = balance.returnValue;
+
     state.arc200Info.arc200id = Number(state.arc200id);
     state.boxNotFound = !(await accountIsOptedInToArc200Asset(
       state.account.addr
@@ -149,45 +194,54 @@ const save = async () => {
 };
 
 const makeOptInTxs = async () => {
-  const algod = await store.dispatch("algod/getAlgod");
+  const algod: algosdk.Algodv2 = await store.dispatch("algod/getAlgod");
+  const indexerClient = await store.dispatch("indexer/getIndexer");
   const appId = Number(state.arc200Info.arc200id);
-  const client = getArc200Client({
+  const dummyTransactionSigner = async (
+    txnGroup: algosdk.Transaction[],
+    indexesToSign: number[]
+  ): Promise<Uint8Array[]> => {
+    console.log("transactionSigner", txnGroup, indexesToSign);
+    return [] as Uint8Array[];
+  };
+  var algoClient = AlgorandClient.fromClients({
     algod,
-    appId: appId,
-    sender: {
-      addr: state.account.addr,
-      signer: async () => {
-        return [] as Uint8Array[];
-      },
-    },
+    indexer: indexerClient,
+  });
+  const client = getArc200Client({
+    algorand: algoClient,
+    appId: BigInt(state.arc200Info.arc200id),
+    defaultSender: state.account.addr,
+    defaultSigner: dummyTransactionSigner,
+    appName: "arc200",
+    approvalSourceMap: undefined,
+    clearSourceMap: undefined,
   });
   const fromDecoded = algosdk.decodeAddress(state.account.addr);
-  var boxFromDirect = {
+  var boxFromDirect: BoxReference = {
     // : algosdk.BoxReference
-    appIndex: appId,
+    appId: BigInt(appId),
     name: new Uint8Array(Buffer.from(fromDecoded.publicKey)),
   };
-  var boxFrom = {
+  var boxFrom: BoxReference = {
     // : algosdk.BoxReference
-    appIndex: appId,
+    appId: BigInt(appId),
     name: new Uint8Array(
       Buffer.concat([Buffer.from([0x00]), Buffer.from(fromDecoded.publicKey)])
     ), // data box
   };
-  var boxFromAddrText = {
+  var boxFromAddrText: BoxReference = {
     // : algosdk.BoxReference
-    appIndex: appId,
+    appId: BigInt(appId),
     name: new Uint8Array(Buffer.from(state.account.addr, "ascii")), // box as the address encoded as text
   };
   console.log("boxes: [boxFromDirect, boxFrom, boxFromAddrText]", {
     boxes: [boxFromDirect, boxFrom, boxFromAddrText],
   });
-  const compose = client.compose().arc200Transfer(
-    { to: state.account.addr, value: BigInt(0) },
-    {
-      boxes: [boxFromDirect, boxFrom, boxFromAddrText],
-    }
-  );
+  const txsToSignArc200 = await client.createTransaction.arc200Transfer({
+    args: { to: state.account.addr, value: BigInt(0) },
+    boxReferences: [boxFromDirect, boxFrom, boxFromAddrText],
+  });
   const enc = new TextEncoder();
   let noteEnc = enc.encode("o");
   const payTx = await store.dispatch("algod/preparePayment", {
@@ -199,12 +253,10 @@ const makeOptInTxs = async () => {
     asset: undefined,
     reKeyTo: undefined,
   });
-  const atc = await compose.atc();
 
-  const txsToSignArc200 = atc.buildGroup().map((tx) => tx.txn);
   const txsToSign = [];
   txsToSign.push(payTx);
-  txsToSignArc200.forEach((tx) => {
+  txsToSignArc200.transactions.forEach((tx) => {
     txsToSign.push(tx);
   });
   algosdk.assignGroupID(txsToSign);

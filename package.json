@@ -25,7 +25,7 @@
     "test:open": "run-p server cypress:open"
   },
   "dependencies": {
-    "@algorandfoundation/algokit-utils": "^6.2.1",
+    "@algorandfoundation/algokit-utils": "^9.2.0",
     "@folks-router/js-sdk": "^0.0.1",
     "@ledgerhq/hw-app-algorand": "^6.31.6",
     "@ledgerhq/hw-transport-webusb": "^6.29.10",
@@ -39,9 +39,9 @@
     "@walletconnect/sign-client": "^2.21.9",
     "@walletconnect/utils": "^2.14.0",
     "@walletconnect/web3wallet": "^1.16.0",
-    "algosdk": "^2.11.0",
+    "algosdk": "^3.5.2",
     "arc14": "^1.0.4",
-    "arc200-client": "^1.0.7",
+    "arc200-client": "^1.0.8",
     "arc200js": "^2.3.3",
     "arc76": "^1.0.2",
     "axios": "^1.12.2",

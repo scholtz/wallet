@@ -26,7 +26,8 @@
     "tests/**/*.ts",
     "tests/**/*.tsx",
     "src/store/fa2.js",
-    "src/shared/wc.js"
+    "src/shared/wc.js",
+    "src/store/index.js"
   ],
   "exclude": ["node_modules"]
 }
