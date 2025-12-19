@@ -59,7 +59,10 @@ const showToast = (
 ): void => {
   if (vm?.$toast) {
     vm.$toast.add(options);
-  } else if (typeof window !== "undefined" && typeof window.alert === "function") {
+  } else if (
+    typeof window !== "undefined" &&
+    typeof window.alert === "function"
+  ) {
     window.alert(options.detail);
   } else {
     console.log(options.severity.toUpperCase(), options.detail);
