@@ -481,6 +481,9 @@ const formatCurrency = (
   return amount.toString();
 };
 
+const toErrorMessage = (err: unknown): string =>
+  err instanceof Error ? err.message : String(err);
+
 const toSingleParam = (
   value: string | string[] | undefined
 ): string | undefined => {
@@ -666,7 +669,10 @@ const accountsFromMultisig = computed(() => {
   const params = multisigParams.value;
   if (!params?.addrs) return [];
   const list = walletAccounts.value.filter(
-    (a) => params.addrs.includes(a.addr) && (!!a.sk || a.type == "ledger")
+    (a): a is WalletAccount & { addr: string } =>
+      typeof a.addr === "string" &&
+      params.addrs.includes(a.addr) &&
+      (!!a.sk || a.type == "ledger")
   );
   if (!state.multisigDecoded?.msig?.subsig) {
     return list;
@@ -681,7 +687,10 @@ const accountFor2FA = computed(() => {
   const params = multisigParams.value;
   if (!params?.addrs) return undefined;
   return walletAccounts.value.find(
-    (a) => params.addrs.includes(a.addr) && a.type == "2faApi"
+    (a): a is WalletAccount & { addr: string } =>
+      typeof a.addr === "string" &&
+      params.addrs.includes(a.addr) &&
+      a.type == "2faApi"
   );
 });
 const accountFor2FAAddr = computed(() => accountFor2FA.value?.addr ?? "");
@@ -725,10 +734,12 @@ const maxAmount = computed(() => {
       Number(assetData.value.amount) / 10 ** Number(assetData.value.decimals)
     );
   }
-  let ret = accountData.value.amount / 1000000 - 0.1;
+  const accountAmount = accountData.value.amount ?? 0;
+  let ret = accountAmount / 1000000 - 0.1;
   ret -= state.fee;
-  if (accountData.value["assets"] && accountData.value["assets"].length > 0) {
-    ret -= accountData.value["assets"].length * 0.1;
+  const optedAssets = accountData.value["assets"] || [];
+  if (optedAssets.length > 0) {
+    ret -= optedAssets.length * 0.1;
   }
   return ret;
 });
@@ -931,7 +942,7 @@ onMounted(async () => {
       });
       loadAuthToken();
     } catch (err) {
-      const errMsg = err.message ?? err;
+      const errMsg = err instanceof Error ? err.message : String(err);
       console.error("failed to request realm", errMsg, err);
       await openError(errMsg);
     }
@@ -952,13 +963,13 @@ const makeAssets = async () => {
   state.assets = [];
   if (accountData.value) {
     const balance = formatCurrency(
-      accountData.value.amount,
+      accountData.value.amount ?? 0,
       tokenSymbol.value,
       6
     );
     state.assets.push({
       "asset-id": "0",
-      amount: accountData.value.amount,
+      amount: accountData.value.amount ?? 0,
       name: tokenSymbol.value,
       decimals: 6,
       "unit-name": tokenSymbol.value,
@@ -983,17 +994,17 @@ const makeAssets = async () => {
     for (const accountAsset of asaList) {
       try {
         const assetInfo = await getAsset({
-          assetIndex: accountAsset["asset-id"],
+          assetIndex: Number(accountAsset["asset-id"]),
         });
         if (assetInfo) {
           const balance = formatCurrency(
-            accountAsset["amount"],
+            Number(accountAsset["amount"] ?? 0),
             assetInfo["unit-name"] ? assetInfo["unit-name"] : assetInfo["name"],
             assetInfo["decimals"]
           );
           state.assets.push({
             "asset-id": accountAsset["asset-id"],
-            amount: accountAsset["amount"],
+            amount: Number(accountAsset["amount"] ?? 0),
             name: assetInfo["name"],
             decimals: assetInfo["decimals"],
             "unit-name": assetInfo["unit-name"],
@@ -1011,15 +1022,15 @@ const makeAssets = async () => {
     if (accountData.value.arc200) {
       for (const accountAsset of Object.values(accountData.value.arc200)) {
         const balance = formatCurrency(
-          accountAsset.balance,
+          Number(accountAsset.balance ?? 0),
           accountAsset.symbol ? accountAsset.symbol : accountAsset.name,
-          accountAsset.decimals
+          Number(accountAsset.decimals ?? 0)
         );
         state.assets.push({
           "asset-id": Number(accountAsset.arc200id),
-          amount: Number(accountAsset.balance),
+          amount: Number(accountAsset.balance ?? 0),
           name: accountAsset.name,
-          decimals: Number(accountAsset.decimals),
+          decimals: Number(accountAsset.decimals ?? 0),
           "unit-name": accountAsset.symbol,
           type: "ARC200",
           label: `${accountAsset.name} (ARC200 ${accountAsset.arc200id}) Balance: ${balance}`,
@@ -1098,7 +1109,7 @@ const previewPaymentClick = async (e: Event | undefined) => {
     e?.preventDefault();
   } catch (err) {
     console.error("previewPaymentClick.error", err);
-    await openError(err.message ?? err);
+    await openError(toErrorMessage(err));
   }
 };
 
@@ -1121,7 +1132,7 @@ const redirectToASAPayment = async () => {
     router.push(`/sign/${payFrom.value}/` + b64Url);
   } catch (err) {
     console.error("redirectToASAPayment.error", err);
-    await openError(err.message ?? err);
+    await openError(toErrorMessage(err));
   }
 };
 
@@ -1144,7 +1155,7 @@ const redirectToNativePayment = async () => {
     router.push(`/sign/${payFrom.value}/` + b64Url);
   } catch (err) {
     console.error("redirectToNativePayment.error", err);
-    await openError(err.message ?? err);
+    await openError(toErrorMessage(err));
   }
 };
 
@@ -1162,7 +1173,8 @@ const accountIsOptedInToArc200Asset = async (addr: string) => {
     await indexerClient.lookupApplicationBoxByIDandName(appId, boxName).do();
     return true;
   } catch (exc) {
-    if (exc.message?.indexOf("no application boxes found") >= 0) {
+    const excMsg = toErrorMessage(exc);
+    if (excMsg.includes("no application boxes found")) {
       return false;
     }
     console.error(exc);
@@ -1253,7 +1265,7 @@ const redirectToARC200Payment = async () => {
     }
   } catch (err) {
     console.error("redirectToARC200Payment.error", err);
-    await openError(err.message ?? err);
+    await openError(toErrorMessage(err));
   }
 };
 
@@ -1320,7 +1332,7 @@ const signMultisig = async (e: Event | undefined) => {
       });
       await addSignature(newTx);
     } catch (err) {
-      await openError(err.message ?? err);
+      await openError(toErrorMessage(err));
     }
   }
 };
@@ -1479,24 +1491,32 @@ const encodeAddress = (addr: Uint8Array) => algosdk.encodeAddress(addr);
 const sendMultisig = async (e: Event | undefined) => {
   prolong();
   state.error = "";
-
   state.processing = true;
   try {
     e?.preventDefault();
-    const signedTxn = base64ToArrayBuffer(state.rawSignedTxn);
+    if (!state.rawSignedTxn) {
+      state.error = t("pay.state_error_not_sent");
+      return;
+    }
+    const signedTxnBytes = base64ToArrayBuffer(state.rawSignedTxn);
+    const signedTxnBuffer = signedTxnBytes.buffer.slice(
+      signedTxnBytes.byteOffset,
+      signedTxnBytes.byteOffset + signedTxnBytes.byteLength
+    );
     let errorMessage = "";
     try {
-      const transaction = await sendRawTransaction({ signedTxn });
+      const transaction = await sendRawTransaction({
+        signedTxn: signedTxnBuffer,
+      });
       state.tx = transaction.txId;
     } catch (err) {
-      await openError(err.message);
+      const errMsg = toErrorMessage(err);
+      await openError(errMsg);
       console.error(err);
-      errorMessage = err.message;
+      errorMessage = errMsg;
     }
     if (!state.tx) {
-      state.processing = false;
       state.error = t("pay.state_error_not_sent");
-
       const search = "should have been authorized by ";
       if (errorMessage && errorMessage.indexOf(search) > 0) {
         const start = errorMessage.indexOf(search);
@@ -1517,17 +1537,28 @@ const sendMultisig = async (e: Event | undefined) => {
       txId: state.tx as string,
       timeout: 4,
     });
+    if (!confirmationResult) {
+      console.error("confirmation not received for tx");
+      state.error = t("pay.state_error_not_sent");
+      return;
+    }
     if (confirmationResult["confirmed-round"]) {
-      state.processing = false;
       state.confirmedRound = confirmationResult["confirmed-round"];
+      if (state.rekeyTo) {
+        const info = { address: payFrom.value, rekeyedTo: state.rekeyTo };
+        await updateAccount({ info });
+        await openSuccess(
+          `Information about rekeying to address ${state.rekeyTo} has been stored`
+        );
+      }
     }
     if (confirmationResult["pool-error"]) {
-      state.processing = false;
       state.error = confirmationResult["pool-error"];
     }
-  } catch (err) {
+  } catch (exc) {
+    state.error = toErrorMessage(exc);
+  } finally {
     state.processing = false;
-    state.error = err;
   }
 };
 

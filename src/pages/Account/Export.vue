@@ -15,14 +15,34 @@ import copy from "copy-to-clipboard";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 
+interface AccountWithSecret {
+  sk?: number[] | Uint8Array;
+  [key: string]: unknown;
+}
+
+type ExportStep = "step1" | "mn" | "shamir" | "shamir2";
+
+interface ExportState {
+  json: AccountWithSecret | null;
+  mn: string;
+  sh: Uint8Array[];
+  shIndex: number;
+  qr: boolean;
+  shamirMin: number;
+  shamirCount: number;
+  state: ExportStep;
+  pwd: string;
+  pwdChecked: boolean;
+}
+
 const { t } = useI18n();
 const store = useStore<RootState>();
 const route = useRoute();
 
-const state = reactive({
-  json: {},
+const state = reactive<ExportState>({
+  json: null,
   mn: "",
-  sh: {},
+  sh: [],
   shIndex: -1,
   qr: false,
   shamirMin: 3,
@@ -31,10 +51,13 @@ const state = reactive({
   pwd: "",
   pwdChecked: false,
 });
-function concatTypedArrays(a, b) {
+const toUint8Array = (input: number[] | Uint8Array): Uint8Array => {
+  return input instanceof Uint8Array ? input : new Uint8Array(input);
+};
+function concatTypedArrays(a: Uint8Array, b: Uint8Array): Uint8Array {
   // a, b TypedArray of same type
   //https://stackoverflow.com/questions/33702838/how-to-append-bytes-multi-bytes-and-buffer-to-arraybuffer-in-javascript
-  var c = new a.constructor(a.length + b.length);
+  const c = new Uint8Array(a.length + b.length);
   c.set(a, 0);
   c.set(b, a.length);
   return c;
@@ -42,33 +65,33 @@ function concatTypedArrays(a, b) {
 const shamirBackup = async () => {
   try {
     await store.dispatch("wallet/prolong");
-    state.json = await store.dispatch("wallet/getAccount", {
+    state.json = (await store.dispatch("wallet/getAccount", {
       addr: route.params.account,
-    });
-    if (!state.json || !state.json.sk) {
+    })) as AccountWithSecret;
+    if (!state.json?.sk) {
       throw new Error("Private key is not stored for this account");
     }
 
-    const secret = new Uint8Array(Buffer.from(Object.values(state.json.sk)));
+    const secret = toUint8Array(state.json.sk);
     const shares = Shamir.split(
       secret.subarray(0, 32), // in first 32 bytes is the secret
-      state.shamirCount,
-      state.shamirMin
+      state.shamirCount as unknown as number,
+      state.shamirMin as unknown as number
     );
     state.sh = shares;
     setShamirIndex(0);
   } catch (err) {
-    const error = err.message ?? err;
+    const error = err instanceof Error ? err.message : String(err);
     console.error("shamir err", error, err);
     await store.dispatch("toast/openError", error);
   }
 };
-function toUint11Array(buffer8) {
+function toUint11Array(buffer8: Uint8Array) {
   //https://github.com/algorand/js-algorand-sdk/blob/7965d1c194186e5c7b8a86756c546f2ec35291cd/src/mnemonic/mnemonic.ts#L12C1-L34C2
-  const buffer11 = [];
+  const buffer11: number[] = [];
   let acc = 0;
   let accBits = 0;
-  function add(octet) {
+  function add(octet: number) {
     acc |= octet << accBits;
     accBits += 8;
     if (accBits >= 11) {
@@ -87,10 +110,10 @@ function toUint11Array(buffer8) {
   flush();
   return buffer11;
 }
-function genericHash(arr) {
-  return sha512.sha512_256.array(arr);
+function genericHash(arr: Uint8Array) {
+  return Uint8Array.from(sha512.sha512_256.array(arr));
 }
-function computeChecksum(seed) {
+function computeChecksum(seed: Uint8Array) {
   const hashBuffer = genericHash(seed);
   const uint11Hash = toUint11Array(hashBuffer);
   const words = applyWords(uint11Hash);
@@ -98,7 +121,7 @@ function computeChecksum(seed) {
   return words[0];
 }
 
-function mnemonicFromSeed(seed) {
+function mnemonicFromSeed(seed: Uint8Array) {
   // https://github.com/algorand/js-algorand-sdk/blob/7965d1c194186e5c7b8a86756c546f2ec35291cd/src/mnemonic/mnemonic.ts#L54C17-L54C33
   const seedWithZero = concatTypedArrays(seed, new Uint8Array(1));
   const uint11Hash = toUint11Array(seedWithZero);
@@ -107,12 +130,16 @@ function mnemonicFromSeed(seed) {
 
   return `${words.join(" ")} ${checksumWord}`;
 }
-function applyWords(nums) {
+function applyWords(nums: number[]) {
   return nums.map((n) => wordlist[n]);
 }
 
-const setShamirIndex = (index) => {
-  state.mn = mnemonicFromSeed(state.sh[index]);
+const setShamirIndex = (index: number) => {
+  const shard = state.sh.at(index);
+  if (!shard) {
+    return;
+  }
+  state.mn = mnemonicFromSeed(shard);
   state.shIndex = index;
   state.state = "shamir2";
 
@@ -131,19 +158,18 @@ const setShamirIndex = (index) => {
 const algorandMnemonics = async () => {
   try {
     await store.dispatch("wallet/prolong");
-    state.json = await store.dispatch("wallet/getAccount", {
+    state.json = (await store.dispatch("wallet/getAccount", {
       addr: route.params.account,
-    });
-    if (!state.json.sk) {
+    })) as AccountWithSecret;
+    if (!state.json?.sk) {
       throw new Error("Private key is not stored for this account");
     }
-    state.mn = algosdk.secretKeyToMnemonic(
-      new Uint8Array(Buffer.from(Object.values(state.json.sk)))
-    );
+    const secret = toUint8Array(state.json.sk);
+    state.mn = algosdk.secretKeyToMnemonic(new Uint8Array(secret));
     state.shIndex = -1;
     state.state = "mn";
   } catch (err) {
-    const error = err.message ?? err;
+    const error = err instanceof Error ? err.message : String(err);
     console.error("shamir err", error, err);
     await store.dispatch("toast/openError", error);
   }
@@ -160,12 +186,12 @@ const checkPwd = async () => {
       await store.dispatch("toast/openError", "Wrong password");
     }
   } catch (err) {
-    const error = err.message ?? err;
+    const error = err instanceof Error ? err.message : String(err);
     await store.dispatch("toast/openError", error);
   }
 };
 
-async function copyToClipboard(text) {
+async function copyToClipboard(text: string) {
   if (copy(text)) {
     await store.dispatch("toast/openSuccess", "Mnemonics copied to clipboard");
   }

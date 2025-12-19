@@ -169,6 +169,7 @@ import { useI18n } from "vue-i18n";
 import formatCurrency from "@/scripts/numbers/formatCurrency";
 import { RootState } from "@/store";
 import algosdk from "algosdk";
+import { Buffer } from "buffer";
 type Arc200Holding = { balance: number };
 type AccountEnvData = {
   amount?: number;
@@ -185,9 +186,11 @@ type WalletAccount = {
   [key: string]: unknown;
 };
 type DisplayAccount = WalletAccount & { amount: number };
+type FilterMode = (typeof FilterMatchMode)[keyof typeof FilterMatchMode];
+
 type FilterEntry = {
   value: string | null;
-  matchMode: FilterMatchMode;
+  matchMode: FilterMode;
 };
 
 const store = useStore<RootState>();

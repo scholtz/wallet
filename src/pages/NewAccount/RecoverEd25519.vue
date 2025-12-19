@@ -7,13 +7,23 @@ import { QrcodeStream } from "qrcode-reader-vue3";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 
-const state = reactive({
+interface RecoverState {
+  addr: string;
+  name: string;
+  w: string;
+  scanMnemonic: boolean;
+}
+
+const store = useStore<RootState>();
+const router = useRouter();
+const { t } = useI18n();
+
+const state = reactive<RecoverState>({
   addr: "",
   name: "",
   w: "",
   scanMnemonic: false,
 });
-const { t } = useI18n();
 
 const reset = async () => {
   state.name = "";
@@ -23,17 +33,13 @@ const reset = async () => {
   router.push({ name: "Accounts" });
 };
 
-const store = useStore<RootState>();
-const router = useRouter();
-
 async function importAccountClick() {
   try {
-    if (
-      await store.dispatch("wallet/addPrivateAccount", {
-        mn: state.w,
-        name: state.name,
-      })
-    ) {
+    const added = (await store.dispatch("wallet/addPrivateAccount", {
+      mn: state.w,
+      name: state.name,
+    })) as boolean;
+    if (added) {
       router.push({ name: "Accounts" });
     }
   } catch (err: any) {
@@ -45,7 +51,7 @@ async function importAccountClick() {
 onMounted(async () => {
   await store.dispatch("wallet/prolong");
 });
-const onDecodeQRMnemonic = (result) => {
+const onDecodeQRMnemonic = (result: string) => {
   if (result) {
     state.w = result;
   }

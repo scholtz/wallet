@@ -24,13 +24,96 @@ import axios from "axios";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 
+type FilterMode = (typeof FilterMatchMode)[keyof typeof FilterMatchMode];
+
+type FilterEntry = {
+  value: string | null;
+  matchMode: FilterMode;
+};
+
+type WalletAccount = {
+  addr?: string;
+  data?: Record<string, AccountEnvData>;
+};
+
+type AccountAssetEntry = {
+  amount: number;
+  "asset-id": number;
+};
+
+type AccountEnvData = {
+  amount?: number;
+  assets?: AccountAssetEntry[];
+  arc200?: Record<string, unknown>;
+};
+
+interface ScheduledAppSummary {
+  appId: number;
+  appAddress: string;
+  start: number;
+  period: number;
+  balanceFee: number;
+  fee: number;
+}
+
+interface ScheduleOption {
+  value: string;
+  name: string;
+}
+
+type ScheduledAction = "" | "tx-deploy" | "tx-configure";
+
+type GlobalStateEntry = {
+  key: string;
+  value: {
+    uint?: number;
+    bytes?: string;
+  };
+};
+
+const readGlobalState = (
+  params?: Record<string, unknown>
+): GlobalStateEntry[] => {
+  if (!params) return [];
+  const raw =
+    (params["global-state"] as GlobalStateEntry[] | undefined) ??
+    (params["globalState" as keyof typeof params] as
+      | GlobalStateEntry[]
+      | undefined);
+  return Array.isArray(raw) ? raw : [];
+};
+
+interface ScheduledPaymentsState {
+  selection: ScheduledAppSummary | null;
+  payTo: string;
+  assetData: CAsset;
+  account: string;
+  amount: number;
+  maxAmount: number;
+  stepAmount: number;
+  apps: ScheduledAppSummary[];
+  filters: Record<string, FilterEntry>;
+  period: string;
+  optionsSchedule: ScheduleOption[];
+  start: number;
+  txID: string;
+  action: ScheduledAction;
+  hash: string;
+  client: string;
+  appId: string;
+  fee: number;
+  feeAssetId: number;
+  feeAssetData: CAsset;
+  deploying: boolean;
+}
+
 const { t } = useI18n();
 
 const route = useRoute();
 const store = useStore<RootState>();
 const router = useRouter();
-const state = reactive({
-  selection: {},
+const state = reactive<ScheduledPaymentsState>({
+  selection: null,
   payTo: "",
   assetData: new CAsset(),
   account: route.params.account as string,
@@ -68,29 +151,28 @@ const state = reactive({
   deploying: false,
 });
 
-const getAccountData = () => {
-  const account = store.state.wallet.privateAccounts.find(
-    (a: any) => a.addr == state.account
+const getAccountData = (): AccountEnvData | undefined => {
+  const account = (store.state.wallet.privateAccounts as WalletAccount[]).find(
+    (a) => a.addr === state.account
   );
-  if (!account) return false;
-  if (!account.data) return false;
-  return account.data[store.state.config.env];
+  return account?.data?.[store.state.config.env];
 };
 const maxAmount = () => {
-  const accountData = getAccountData();
   if (!state.assetData) return 0;
-  if (state.assetData.type == "ARC200") {
-    if (!state.assetData) return 0;
-    return state.assetData.amount / 10 ** state.assetData.decimals;
-  } else if (state.assetData.type == "ASA") {
-    if (!state.assetData) return 0;
-    return state.assetData.amount / 10 ** state.assetData.decimals;
-  } else {
-    let ret = accountData.amount / 1000000 - 0.1;
-    if (accountData["assets"] && accountData["assets"].length > 0)
-      ret = ret - accountData["assets"].length * 0.1;
-    return ret;
+  if (state.assetData.type == "ARC200" || state.assetData.type == "ASA") {
+    const decimals = state.assetData.decimals ?? 0;
+    return Number(state.assetData.amount || 0) / 10 ** decimals;
   }
+  const accountInfo = getAccountData();
+  if (!accountInfo?.amount) {
+    return 0;
+  }
+  let ret = accountInfo.amount / 1_000_000 - 0.1;
+  const optedAssets = accountInfo.assets?.length ?? 0;
+  if (optedAssets > 0) {
+    ret -= optedAssets * 0.1;
+  }
+  return Math.max(ret, 0);
 };
 const stepAmount = () => {
   if (!state.assetData.decimals) return 1;
@@ -122,12 +204,14 @@ const loadTableData = async () => {
     // );
     const poolAppId = getPoolManagerApp(store.state.config.env);
     const poolApp = await algod.getApplicationByID(poolAppId).do();
-    const fa = poolApp.params["global-state"].find((kv) => kv.key == "ZmE=")
-      .value.uint;
+    const poolState = readGlobalState(
+      poolApp.params as Record<string, unknown>
+    );
+    const fa = poolState.find((kv) => kv.key == "ZmE=")?.value.uint ?? 0;
     state.feeAssetId = fa;
-    state.feeAssetData = await store.dispatch("indexer/getAsset", {
+    state.feeAssetData = (await store.dispatch("indexer/getAsset", {
       assetIndex: fa,
-    });
+    })) as CAsset;
 
     const addr = route.params.account as string;
     const decodedAddr = algosdk.decodeAddress(addr);
@@ -137,7 +221,7 @@ const loadTableData = async () => {
         getBoxReferenceUser(poolAppId, decodedAddr).name
       )
       .do();
-    const apps = [];
+    const apps: ScheduledAppSummary[] = [];
     for (let pos = 2; pos < box.value.length; pos = pos + 8) {
       const appIdUint = box.value.subarray(pos, pos + 8);
       const appId = algosdk.decodeUint64(appIdUint, "safe");
@@ -150,13 +234,12 @@ const loadTableData = async () => {
       const data = parseBoxData(boxApp.value);
 
       const app = await algod.getApplicationByID(appId).do();
-      const s = app.params["global-state"].find((kv) => kv.key == "cw==").value
-        .uint;
-      const p = app.params["global-state"].find((kv) => kv.key == "cA==").value
-        .uint;
+      const appState = readGlobalState(app.params as Record<string, unknown>);
+      const s = appState.find((kv) => kv.key == "cw==")?.value.uint ?? 0;
+      const p = appState.find((kv) => kv.key == "cA==")?.value.uint ?? 0;
       apps.push({
         appId: appId,
-        appAddress: algosdk.getApplicationAddress(appId),
+        appAddress: String(algosdk.getApplicationAddress(appId)),
         start: s,
         period: p,
         balanceFee: data.funds,
@@ -192,7 +275,9 @@ const deployApp = async () => {
           displayName: `Pay to '${state.payTo}' ${state.amount} of token ${state.assetData["asset-id"]}`,
           inputs: {
             receiver: `'${state.payTo}'`,
-            amount: Math.round(state.amount * 10 ** state.assetData.decimals),
+            amount: Math.round(
+              state.amount * 10 ** (state.assetData.decimals ?? 0)
+            ),
             token: state.assetData["asset-id"],
           },
         },
@@ -246,7 +331,7 @@ const continueTxDeploy = async () => {
   try {
     const algod = (await store.dispatch("algod/getAlgod")) as algosdk.Algodv2;
     const info = await algosdk.waitForConfirmation(algod, state.txID, 1);
-    state.appId = info["application-index"];
+    state.appId = String(info?.applicationIndex ?? "");
 
     const txsRequest = await axios.post(
       `https://api-scheduler.biatec.io/v1/tx/${state.hash}/${store.state.config.env}/${route.params.account}/${state.appId}/bootstrap/${state.client}`,
@@ -283,7 +368,7 @@ onMounted(async () => {
       localStorage.getItem("currentAction") ?? ""
     );
     if (deserialized.selection) {
-      state.selection = deserialized.selection;
+      state.selection = deserialized.selection as ScheduledAppSummary;
     }
     if (deserialized.payTo) {
       state.payTo = deserialized.payTo;
@@ -337,6 +422,9 @@ onMounted(async () => {
 watch(
   () => state.selection,
   () => {
+    if (!state.selection?.appId) {
+      return;
+    }
     router.push({
       name: "scheduled-payment-with-appid",
       params: {
@@ -508,7 +596,7 @@ watch(
                 formatCurrency(
                   slotProps.data.balanceFee,
                   state.feeAssetData["unit-name"] ?? state.feeAssetData.name,
-                  state.feeAssetData.decimals
+                  state.feeAssetData.decimals ?? 0
                 )
               }}
             </template>
@@ -523,7 +611,7 @@ watch(
                 formatCurrency(
                   slotProps.data.fee,
                   state.feeAssetData["unit-name"] ?? state.feeAssetData.name,
-                  state.feeAssetData.decimals
+                  state.feeAssetData.decimals ?? 0
                 )
               }}
             </template>

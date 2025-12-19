@@ -11,7 +11,43 @@ import QRCodeVue3 from "qrcode-vue3";
 import Worker from "worker-loader!../../workers/vanity";
 import moment from "moment";
 
-const state = reactive({
+type VanityPage = "vanity" | "newaccount";
+
+interface VanityWorkerAccount {
+  addr?: string;
+  sk?: Uint8Array | number[];
+}
+
+type VanityWorkerMessage = VanityWorkerAccount | number;
+
+interface VanityState {
+  lastError: string;
+  addr: string;
+  name: string;
+  page: VanityPage;
+  w: string;
+  a: string;
+  showQR: boolean;
+  guess: string;
+  challenge: boolean;
+  r: number;
+  vanityStart: string;
+  vanityMid: string;
+  vanityEnd: string;
+  vanityRunning: boolean;
+  vanityCount: number;
+  vanityThreads: Worker[];
+  vanityWorkers: number;
+  vanityStarted: moment.Moment;
+  vanityTime: string;
+  vanityRPS: number;
+}
+
+const store = useStore<RootState>();
+const router = useRouter();
+const { t } = useI18n();
+
+const state = reactive<VanityState>({
   lastError: "",
   addr: "",
   name: "",
@@ -22,7 +58,6 @@ const state = reactive({
   guess: "",
   challenge: false,
   r: 1,
-  s: false,
   vanityStart: "",
   vanityMid: "",
   vanityEnd: "",
@@ -42,7 +77,6 @@ const reset = async () => {
   state.guess = "";
   state.r = 1;
   state.page = "vanity";
-  state.s = false;
   state.w = "";
   state.addr = "";
 
@@ -54,19 +88,14 @@ const reset = async () => {
   router.push({ name: "Accounts" });
 };
 
-const { t } = useI18n(); // use as global scope
-
-const store = useStore<RootState>();
-const router = useRouter();
-
 const createAccount = async () => {
   try {
     state.page = "newaccount";
     let account = algosdk.generateAccount();
     state.a = account.addr.toString();
     state.w = algosdk.secretKeyToMnemonic(account.sk);
-  } catch (err: any) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err.message : String(err);
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);
   }
@@ -96,8 +125,8 @@ async function confirmCreate() {
     }
 
     router.push({ name: "Accounts" });
-  } catch (err: any) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err.message : String(err);
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);
   }
@@ -108,8 +137,8 @@ onMounted(async () => {
 const createVanityStopClick = async () => {
   state.vanityRunning = false;
 
-  for (let index in state.vanityThreads) {
-    state.vanityThreads[index].terminate();
+  for (const worker of state.vanityThreads) {
+    worker.terminate();
   }
 };
 
@@ -118,43 +147,57 @@ const createVanityStartClick = async () => {
     state.vanityCount = 0;
     state.vanityRunning = true;
     state.vanityStarted = moment();
-    for (let index in state.vanityThreads) {
-      state.vanityThreads[index].terminate();
+    for (const worker of state.vanityThreads) {
+      worker.terminate();
     }
     state.vanityThreads = [];
     for (let i = 0; i < state.vanityWorkers; i++) {
       const worker = new Worker();
 
-      worker.addEventListener("message", async (e) => {
-        const account = e.data;
-        if (e.data && e.data.addr) {
-          state.vanityRunning = false;
-          state.a = account.addr;
-          state.w = algosdk.secretKeyToMnemonic(account.sk);
-        } else {
-          state.vanityCount += e.data;
-        }
-
-        if (state.vanityRunning) {
-          worker.postMessage({
-            vanityStart: state.vanityStart,
-            vanityMid: state.vanityMid,
-            vanityEnd: state.vanityEnd,
-          });
-          await store.dispatch("wallet/prolong");
-        } else {
-          for (let index in state.vanityThreads) {
-            state.vanityThreads[index].terminate();
+      worker.addEventListener(
+        "message",
+        async (e: MessageEvent<VanityWorkerMessage>) => {
+          const payload = e.data;
+          if (
+            payload &&
+            typeof payload === "object" &&
+            "addr" in payload &&
+            payload.addr
+          ) {
+            state.vanityRunning = false;
+            state.a = payload.addr;
+            const secretKey =
+              payload.sk instanceof Uint8Array
+                ? payload.sk
+                : new Uint8Array(payload.sk ?? []);
+            state.w = algosdk.secretKeyToMnemonic(secretKey);
+          } else {
+            state.vanityCount += typeof payload === "number" ? payload : 0;
           }
-        }
-        const duration = moment.duration(moment().diff(state.vanityStarted));
-        const miliseconds = parseInt(duration.valueOf().toString());
-        state.vanityTime = moment.utc(miliseconds).format("HH:mm:ss");
 
-        state.vanityRPS =
-          Math.round((state.vanityCount / miliseconds) * 1000000) / 1000;
-        //.subtract(moment(this.vanityStarted))
-      });
+          if (state.vanityRunning) {
+            worker.postMessage({
+              vanityStart: state.vanityStart,
+              vanityMid: state.vanityMid,
+              vanityEnd: state.vanityEnd,
+            });
+            await store.dispatch("wallet/prolong");
+          } else {
+            for (const workerInstance of state.vanityThreads) {
+              workerInstance.terminate();
+            }
+          }
+          const duration = moment.duration(moment().diff(state.vanityStarted));
+          const miliseconds = parseInt(duration.valueOf().toString());
+          state.vanityTime = moment.utc(miliseconds).format("HH:mm:ss");
+
+          state.vanityRPS =
+            miliseconds > 0
+              ? Math.round((state.vanityCount / miliseconds) * 1000000) / 1000
+              : 0;
+          //.subtract(moment(this.vanityStarted))
+        }
+      );
       worker.postMessage({
         vanityStart: state.vanityStart,
         vanityMid: state.vanityMid,
@@ -163,7 +206,7 @@ const createVanityStartClick = async () => {
       state.vanityThreads.push(worker);
     }
   } catch (err) {
-    const error = err.message ?? err;
+    const error = err instanceof Error ? err.message : String(err);
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);
   }

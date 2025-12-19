@@ -23,13 +23,109 @@ import algosdk, { AtomicTransactionComposer } from "algosdk";
 import axios from "axios";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
+import { Buffer } from "buffer";
+
+type FilterMode = (typeof FilterMatchMode)[keyof typeof FilterMatchMode];
+
+type FilterEntry = {
+  value: string | null;
+  matchMode: FilterMode;
+};
+
+type WalletAccount = {
+  addr?: string;
+  data?: Record<string, AccountEnvData>;
+};
+
+type AccountAssetEntry = {
+  amount: number;
+  "asset-id": number;
+};
+
+type AccountEnvData = {
+  amount?: number;
+  assets?: AccountAssetEntry[];
+  arc200?: Record<string, unknown>;
+};
+
+type AssetInfo = {
+  name?: string;
+  "unit-name"?: string;
+  decimals: number;
+};
+
+type GlobalStateEntry = {
+  key: string;
+  value: {
+    uint?: number;
+    bytes?: string;
+  };
+};
+
+const readGlobalState = (
+  params?: Record<string, unknown>
+): GlobalStateEntry[] => {
+  if (!params) return [];
+  const raw =
+    (params["global-state"] as GlobalStateEntry[] | undefined) ??
+    (params["globalState" as keyof typeof params] as
+      | GlobalStateEntry[]
+      | undefined);
+  return Array.isArray(raw) ? raw : [];
+};
+
+interface EscrowAssetRow {
+  "asset-id": number;
+  amount: number;
+  assetName?: string;
+  info: AssetInfo;
+}
+
+interface AppInfo {
+  appId: number;
+  appAddress: string;
+  start: number;
+  period: number;
+  balanceFee: number;
+  fee: number;
+}
+
+type ScheduledAction = "" | "tx-deploy" | "tx-configure";
+
+interface ScheduledPaymentDetailState {
+  selection: EscrowAssetRow | null;
+  payTo: string;
+  assetData: CAsset;
+  account: string;
+  withdrawAmount: number;
+  maxAmount: number;
+  stepAmount: number;
+  appInfo: AppInfo;
+  assets: EscrowAssetRow[];
+  filters: Record<string, FilterEntry>;
+  period: string;
+  optionsSchedule: Array<{ value: string; name: string }>;
+  start: number;
+  txID: string;
+  action: ScheduledAction;
+  hash: string;
+  client: string;
+  appId: string;
+  fee: number;
+  feeAssetId: number;
+  feeAssetData: CAsset;
+  optin: number;
+  withdrawAsset: number | string | null;
+  amountToDeposit: number;
+  script: string;
+}
 
 const { t } = useI18n();
 const route = useRoute();
 const store = useStore<RootState>();
 const router = useRouter();
-const state = reactive({
-  selection: "",
+const state = reactive<ScheduledPaymentDetailState>({
+  selection: null,
   payTo: "",
   assetData: new CAsset(),
   account: route.params.account as string,
@@ -73,34 +169,33 @@ const state = reactive({
   feeAssetId: 0,
   feeAssetData: new CAsset(),
   optin: 0,
-  withdrawAsset: "",
+  withdrawAsset: null,
   amountToDeposit: 0,
   script: "",
 });
 
-const getAccountData = () => {
-  const account = store.state.wallet.privateAccounts.find(
-    (a: any) => a.addr == state.account
+const getAccountData = (): AccountEnvData | undefined => {
+  const account = (store.state.wallet.privateAccounts as WalletAccount[]).find(
+    (a) => a.addr === state.account
   );
-  if (!account) return false;
-  if (!account.data) return false;
-  return account.data[store.state.config.env];
+  return account?.data?.[store.state.config.env];
 };
 const maxAmount = () => {
-  const accountData = getAccountData();
   if (!state.assetData) return 0;
-  if (state.assetData.type == "ARC200") {
-    if (!state.assetData) return 0;
-    return state.assetData.amount / 10 ** state.assetData.decimals;
-  } else if (state.assetData.type == "ASA") {
-    if (!state.assetData) return 0;
-    return state.assetData.amount / 10 ** state.assetData.decimals;
-  } else {
-    let ret = accountData.amount / 1000000 - 0.1;
-    if (accountData["assets"] && accountData["assets"].length > 0)
-      ret = ret - accountData["assets"].length * 0.1;
-    return ret;
+  if (state.assetData.type == "ARC200" || state.assetData.type == "ASA") {
+    const decimals = state.assetData.decimals ?? 0;
+    return Number(state.assetData.amount || 0) / 10 ** decimals;
   }
+  const accountInfo = getAccountData();
+  if (!accountInfo?.amount) {
+    return 0;
+  }
+  let ret = accountInfo.amount / 1_000_000 - 0.1;
+  const optedAssets = accountInfo.assets?.length ?? 0;
+  if (optedAssets > 0) {
+    ret -= optedAssets * 0.1;
+  }
+  return Math.max(ret, 0);
 };
 
 const stepAmount = () => {
@@ -133,12 +228,14 @@ const loadTableData = async () => {
     // );
     const poolAppId = getPoolManagerApp(store.state.config.env);
     const poolApp = await algod.getApplicationByID(poolAppId).do();
-    const fa = poolApp.params["global-state"].find((kv) => kv.key == "ZmE=")
-      .value.uint;
+    const poolState = readGlobalState(
+      poolApp.params as Record<string, unknown>
+    );
+    const fa = poolState.find((kv) => kv.key == "ZmE=")?.value.uint ?? 0;
     state.feeAssetId = fa;
-    state.feeAssetData = await store.dispatch("indexer/getAsset", {
+    state.feeAssetData = (await store.dispatch("indexer/getAsset", {
       assetIndex: fa,
-    });
+    })) as CAsset;
 
     const appId = Number(route.params.appId);
     state.appId = appId.toString();
@@ -151,13 +248,12 @@ const loadTableData = async () => {
     const data = parseBoxData(boxApp.value);
 
     const app = await algod.getApplicationByID(appId).do();
-    const s = app.params["global-state"].find((kv) => kv.key == "cw==").value
-      .uint;
-    const p = app.params["global-state"].find((kv) => kv.key == "cA==").value
-      .uint;
+    const appState = readGlobalState(app.params as Record<string, unknown>);
+    const s = appState.find((kv) => kv.key == "cw==")?.value.uint ?? 0;
+    const p = appState.find((kv) => kv.key == "cA==")?.value.uint ?? 0;
     state.appInfo = {
       appId: appId,
-      appAddress: algosdk.getApplicationAddress(appId),
+      appAddress: String(algosdk.getApplicationAddress(appId)),
       start: s,
       period: p,
       balanceFee: data.funds,
@@ -167,26 +263,29 @@ const loadTableData = async () => {
       .lookupAccountByID(algosdk.getApplicationAddress(appId))
       .do();
 
-    const assets = [];
-    let info = await store.dispatch("indexer/getAsset", { assetIndex: 0 });
+    const assets: EscrowAssetRow[] = [];
+    const info = (await store.dispatch("indexer/getAsset", {
+      assetIndex: 0,
+    })) as AssetInfo;
     assets.push({
       "asset-id": 0,
-      amount: account.account.amount,
+      amount: Number(account?.account?.amount ?? 0),
       assetName: info.name,
       info: info,
     });
-    if (account.account.assets) {
-      for (const asset of account.account.assets) {
-        const infoA = await store.dispatch("indexer/getAsset", {
-          assetIndex: asset["asset-id"],
-        });
-        assets.push({
-          "asset-id": asset["asset-id"],
-          amount: asset.amount,
-          assetName: infoA.name,
-          info: infoA,
-        });
-      }
+    const accountAssets =
+      (account?.account?.assets as AccountAssetEntry[]) ?? [];
+    for (const asset of accountAssets) {
+      const assetId = asset["asset-id"] ?? 0;
+      const infoA = (await store.dispatch("indexer/getAsset", {
+        assetIndex: assetId,
+      })) as AssetInfo;
+      assets.push({
+        "asset-id": assetId,
+        amount: Number(asset.amount ?? 0),
+        assetName: infoA.name,
+        info: infoA,
+      });
     }
     state.assets = assets;
   } catch (e) {
@@ -202,7 +301,7 @@ onMounted(async () => {
       localStorage.getItem("currentAction") ?? ""
     );
     if (deserialized.selection) {
-      state.selection = deserialized.selection;
+      state.selection = deserialized.selection as EscrowAssetRow;
     }
     if (deserialized.payTo) {
       state.payTo = deserialized.payTo;
@@ -229,7 +328,10 @@ const optinEscrowToAsset = async () => {
     const signer = {
       addr: route.params.account as string,
       // eslint-disable-next-line no-unused-vars
-      signer: async (txnGroup: Transaction[], indexesToSign: number[]) => {
+      signer: async (
+        txnGroup: algosdk.Transaction[],
+        indexesToSign: number[]
+      ) => {
         return [];
       },
     };
@@ -237,7 +339,7 @@ const optinEscrowToAsset = async () => {
       {
         resolveBy: "id",
         id: state.appInfo.appId,
-        sender: signer,
+        sender: signer as never,
       },
       algod
     );
@@ -263,7 +365,7 @@ const optinEscrowToAsset = async () => {
       from: signer.addr,
       suggestedParams: params,
       to: state.appInfo.appAddress,
-    });
+    } as any);
     const txs = atc.buildGroup().map((tx) => tx.txn);
     const txs2 = [payToEscrowMBR, txs[0]];
     const grouped = algosdk.assignGroupID(txs2);
@@ -280,7 +382,10 @@ const depositToFeePool = async () => {
     const signer = {
       addr: route.params.account as string,
       // eslint-disable-next-line no-unused-vars
-      signer: async (txnGroup: Transaction[], indexesToSign: number[]) => {
+      signer: async (
+        txnGroup: algosdk.Transaction[],
+        indexesToSign: number[]
+      ) => {
         return [];
       },
     };
@@ -289,20 +394,21 @@ const depositToFeePool = async () => {
       {
         resolveBy: "id",
         id: poolAppId,
-        sender: signer,
+        sender: signer as never,
       },
       algod
     );
 
     const params = await algod.getTransactionParams().do();
+    const feeDecimals = state.feeAssetData.decimals ?? 0;
     const depositTx = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
       {
-        amount: state.amountToDeposit * 10 ** state.feeAssetData.decimals,
+        amount: state.amountToDeposit * 10 ** feeDecimals,
         assetIndex: state.feeAssetId,
         from: signer.addr,
         suggestedParams: params,
         to: algosdk.getApplicationAddress(poolAppId),
-      }
+      } as any
     );
     const box = getBoxReferenceApp(poolAppId, state.appInfo.appId);
     const atc = new AtomicTransactionComposer();
@@ -334,7 +440,10 @@ const withdrawFromEscrow = async () => {
     const signer = {
       addr: route.params.account as string,
       // eslint-disable-next-line no-unused-vars
-      signer: async (txnGroup: Transaction[], indexesToSign: number[]) => {
+      signer: async (
+        txnGroup: algosdk.Transaction[],
+        indexesToSign: number[]
+      ) => {
         return [];
       },
     };
@@ -342,28 +451,29 @@ const withdrawFromEscrow = async () => {
       {
         resolveBy: "id",
         id: state.appInfo.appId,
-        sender: signer,
+        sender: signer as never,
       },
       algod
     );
     const atc = new AtomicTransactionComposer();
-    if (Number(state.withdrawAsset) > 0) {
+    const withdrawAssetId = Number(state.withdrawAsset);
+    if (withdrawAssetId > 0) {
       const asset = await store.dispatch("indexer/getAsset", {
-        assetIndex: state.withdrawAsset,
+        assetIndex: withdrawAssetId,
       });
       await client.assetTransfer(
         {
           assetAmount: Number(state.withdrawAmount) * 10 ** asset.decimals,
           assetReceiver: signer.addr,
           note: "",
-          xferAsset: Number(state.withdrawAsset),
+          xferAsset: withdrawAssetId,
         },
         {
           sendParams: {
             fee: algokit.microAlgos(2000),
             atc: atc,
           },
-          assets: [Number(state.withdrawAsset)],
+          assets: [withdrawAssetId],
         }
       );
     } else {
@@ -408,8 +518,8 @@ const deposit = (data: any) => {
   });
 };
 
-async function copyToClipboard(text) {
-  if (copy(text)) {
+async function copyToClipboard(text: string | number) {
+  if (copy(String(text))) {
     await store.dispatch("toast/openSuccess", `${text} copied to clipboard`);
   }
 }
@@ -428,12 +538,12 @@ const loadScript = async () => {
     const algod = (await store.dispatch("algod/getAlgod")) as algosdk.Algodv2;
     const app = await algod.getApplicationByID(state.appInfo.appId).do();
 
-    const id = Buffer.from(
-      app.params["global-state"].find((kv) => kv.key == "aWQ=").value.bytes,
-      "base64"
-    )
-      .subarray(2)
-      .toString("utf-8");
+    const globalState = readGlobalState(app.params as Record<string, unknown>);
+    const fileBytes = globalState.find((kv) => kv.key == "aWQ=")?.value.bytes;
+    if (!fileBytes) {
+      throw new Error("Script identifier not found in global state");
+    }
+    const id = Buffer.from(fileBytes, "base64").subarray(2).toString("utf-8");
     const inputRequest = await axios.get(
       `https://api-scheduler.biatec.io/v1/file/${id}/input.yaml`
     );
@@ -493,7 +603,7 @@ const loadScript = async () => {
               formatCurrency(
                 state.appInfo.balanceFee,
                 state.feeAssetData["unit-name"] ?? state.feeAssetData.name,
-                state.feeAssetData.decimals
+                state.feeAssetData.decimals ?? 0
               )
             }}
           </div>
@@ -507,7 +617,7 @@ const loadScript = async () => {
               formatCurrency(
                 state.appInfo.fee,
                 state.feeAssetData["unit-name"] ?? state.feeAssetData.name,
-                state.feeAssetData.decimals
+                state.feeAssetData.decimals ?? 0
               )
             }}
           </div>
