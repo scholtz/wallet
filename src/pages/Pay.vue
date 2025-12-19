@@ -704,7 +704,7 @@ const showDesignScreen = computed(
   () => !isMultisig.value || (isMultisig.value && state.subpage == "proposal")
 );
 const isRekey = computed(() => {
-  if (state.multisigDecoded?.txn && state.multisigDecoded.reKeyTo) {
+  if (state.multisigDecoded?.txn && state.multisigDecoded.txn.reKeyTo) {
     return true;
   }
   const typeParam = toSingleParam(
@@ -938,7 +938,7 @@ onMounted(async () => {
   }
 });
 
-const isBase64 = (str) => {
+const isBase64 = (str: string) => {
   try {
     const decoded1 = Buffer.from(str, "base64").toString("utf8");
     const encoded2 = Buffer.from(decoded1, "binary").toString("base64");
@@ -1039,7 +1039,7 @@ const makeAssets = async () => {
 const reset = () => {
   state.subpage = "";
   state.error = "";
-  state.confirmedRound = "";
+  state.confirmedRound = null;
   state.processing = true;
   state.page = "review";
   state.signMultisigWith = [];
@@ -1073,7 +1073,7 @@ const parseToAccount = (encodedValue?: string) => {
   }
 };
 
-const previewPaymentClick = async (e) => {
+const previewPaymentClick = async (e: Event | undefined) => {
   try {
     const assetMeta = state.assets.find((a) => a["asset-id"] == state.asset);
     if (!assetMeta) {
@@ -1090,7 +1090,7 @@ const previewPaymentClick = async (e) => {
       await redirectToARC200Payment();
     }
     state.error = "";
-    state.confirmedRound = "";
+    state.confirmedRound = null;
     state.tx = null;
 
     state.processing = false;
@@ -1148,7 +1148,7 @@ const redirectToNativePayment = async () => {
   }
 };
 
-const accountIsOptedInToArc200Asset = async (addr) => {
+const accountIsOptedInToArc200Asset = async (addr: string) => {
   const indexerClient = await getIndexer();
   const fromDecoded = algosdk.decodeAddress(addr);
   const boxName = new Uint8Array(
@@ -1287,7 +1287,7 @@ const payMultisig = async () => {
   );
 };
 
-const signMultisig = async (e) => {
+const signMultisig = async (e: Event | undefined) => {
   prolong();
   e?.preventDefault();
   let rawSigned = null;
@@ -1325,7 +1325,7 @@ const signMultisig = async (e) => {
   }
 };
 
-const arrayBufferToBase64 = (buffer) => {
+const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
   let binary = "";
   const bytes = new Uint8Array(buffer);
   const len = bytes.byteLength;
@@ -1335,7 +1335,7 @@ const arrayBufferToBase64 = (buffer) => {
   return btoa(binary);
 };
 
-const base64ToArrayBuffer = (base64) => {
+const base64ToArrayBuffer = (base64: string) => {
   const binaryString = window.atob(base64);
   const len = binaryString.length;
   const bytes = new Uint8Array(len);
@@ -1345,7 +1345,7 @@ const base64ToArrayBuffer = (base64) => {
   return bytes.buffer;
 };
 
-const base64url2base64 = (input) => {
+const base64url2base64 = (input: string) => {
   let output = input.replaceAll(/-/g, "+").replaceAll(/_/g, "/");
   const pad = output.length % 4;
   if (pad) {
@@ -1359,10 +1359,10 @@ const base64url2base64 = (input) => {
   return output;
 };
 
-const base642base64url = (input) =>
+const base642base64url = (input: string) =>
   input.replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 
-const payPaymentClick = async (e) => {
+const payPaymentClick = async (e: Event | undefined) => {
   prolong();
   e?.preventDefault();
   try {
@@ -1449,7 +1449,7 @@ const payPaymentClick = async (e) => {
   }
 };
 
-const loadMultisig = (e) => {
+const loadMultisig = (e: Event | undefined) => {
   prolong();
   if (e) {
     e.preventDefault();
@@ -1474,9 +1474,9 @@ const loadMultisig = (e) => {
   }
 };
 
-const encodeAddress = (addr) => algosdk.encodeAddress(addr);
+const encodeAddress = (addr: Uint8Array) => algosdk.encodeAddress(addr);
 
-const sendMultisig = async (e) => {
+const sendMultisig = async (e: Event | undefined) => {
   prolong();
   state.error = "";
 
@@ -1531,7 +1531,7 @@ const sendMultisig = async (e) => {
   }
 };
 
-const toggleCamera = (e) => {
+const toggleCamera = (e: Event | undefined) => {
   e?.preventDefault();
   state.scan = !state.scan;
   if (state.scan) {
@@ -1539,7 +1539,7 @@ const toggleCamera = (e) => {
   }
 };
 
-const test = (e) => {
+const test = (e: Event | undefined) => {
   e?.preventDefault();
   const tests = [
     "015LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U",
@@ -1553,7 +1553,7 @@ const test = (e) => {
 
 const isEncoded = (uri = "") => uri !== decodeURIComponent(uri);
 
-const onDecodeQR = (result) => {
+const onDecodeQR = (result: string) => {
   if (state.scan && result) {
     if (
       result.startsWith("algorand://") ||
@@ -1636,14 +1636,14 @@ const onDecodeQR = (result) => {
   }
 };
 
-const setMaxAmount = (e) => {
+const setMaxAmount = (e: Event | undefined) => {
   e?.preventDefault();
   state.payamount = maxAmount.value;
 };
 
-const addSignature = async (base64Tx) => {
+const addSignature = async (base64Tx: string) => {
   if (!base64Tx) return;
-  const tx1 = new Uint8Array(Buffer.from(state.rawSignedTxn, "base64"));
+  const tx1 = new Uint8Array(Buffer.from(state.rawSignedTxn!, "base64"));
   const tx2 = new Uint8Array(Buffer.from(base64Tx, "base64"));
   const merged = algosdk.mergeMultisigTransactions([tx1, tx2]);
   state.rawSignedTxn = Buffer.from(merged).toString("base64");
@@ -1653,13 +1653,13 @@ const addSignature = async (base64Tx) => {
   await signerSetSigned({ signed: merged });
 };
 
-const combineSignatures = async (e) => {
+const combineSignatures = async (e: Event | undefined) => {
   prolong();
   e?.preventDefault();
   try {
-    await addSignature(state.rawSignedTxnFriend);
+    await addSignature(state.rawSignedTxnFriend!);
     state.showFormCombine = false;
-  } catch (err) {
+  } catch (err: any) {
     await openError(err.message ?? err);
   }
 };
@@ -1668,7 +1668,7 @@ const retToWalletConnect = () => {
   router.push({ name: "Connect" });
 };
 
-const sign2FAClick = async (e) => {
+const sign2FAClick = async (e: Event | undefined) => {
   try {
     prolong();
     e?.preventDefault();
@@ -1702,7 +1702,7 @@ const loadAuthToken = () => {
   return true;
 };
 
-const authorizePrimaryAccountClick = async (e) => {
+const authorizePrimaryAccountClick = async (e: Event | undefined) => {
   prolong();
   e?.preventDefault();
   state.accountFor2FAAuthToken = await signAuthTx({
@@ -1711,13 +1711,13 @@ const authorizePrimaryAccountClick = async (e) => {
   });
 };
 
-const toggleShowFormSend = (e) => {
+const toggleShowFormSend = (e: Event | undefined) => {
   prolong();
   e?.preventDefault();
   state.showFormSend = !state.showFormSend;
 };
 
-const toggleShowFormCombine = (e) => {
+const toggleShowFormCombine = (e: Event | undefined) => {
   prolong();
   e?.preventDefault();
   state.showFormCombine = !state.showFormCombine;
