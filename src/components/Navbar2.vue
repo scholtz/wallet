@@ -14,7 +14,7 @@ watch(locale, () => {
 });
 
 watch(
-  store.state.wallet,
+  () => store.state.wallet,
   () => {
     makeMenu();
   },
@@ -398,6 +398,7 @@ makeMenu();
 
 <template>
   <div class="card">
+    {{ store.state.wallet.lastActiveAccount }}
     <Menubar :model="items" class="my-2">
       <template #start>
         <RouterLink to="/">

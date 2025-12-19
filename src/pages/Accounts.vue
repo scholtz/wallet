@@ -254,7 +254,6 @@ const fillAccounts = () => {
     let addr = account.addr;
     if (typeof account.addr !== "string") {
       // if addr is algorand address object, convert to string
-      console.log("Converting addr to string:", account.addr);
       const pk = (account.addr as any)?.publicKey;
       if (pk) {
         var buffer = Buffer.from(Object.values(pk));
@@ -319,12 +318,15 @@ const updateBalance = async () => {
   }
 };
 
-watch(selection, async (value) => {
-  if (value?.addr) {
-    await lastActiveAccount({ addr: value.addr });
-    router.push(`/account/${value.addr}`);
+watch(
+  () => selection.value?.addr,
+  async (value) => {
+    if (value) {
+      await lastActiveAccount({ addr: value });
+      router.push(`/account/${value}`);
+    }
   }
-});
+);
 
 watch(showNetworkAccounts, (value) => {
   localStorage.setItem("showNetworkAccounts", String(value));

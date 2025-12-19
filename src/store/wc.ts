@@ -336,8 +336,6 @@ const actions: ActionTree<WcState, RootState> = {
       throw new Error("WalletConnect session is not initialized");
     }
 
-    console.log("chains,accounts", chains, accounts);
-
     const requestId = ensureNumericId(payload.id);
 
     await web3wallet.approveSession({

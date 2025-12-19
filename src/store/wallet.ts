@@ -338,7 +338,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     await dispatch("saveWallet");
   },
   async lastActiveAccount({ commit, dispatch }, { addr }) {
-    commit("lastActiveAccount", addr);
+    await commit("lastActiveAccount", addr);
     await dispatch("saveWallet");
   },
   async getAccount({ dispatch }, { addr }) {
