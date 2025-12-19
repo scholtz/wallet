@@ -1,7 +1,7 @@
 <template>
   <main-layout>
     <div v-if="!$route.params.account">
-      <h1>{{ $t("pay.select_account_for_payment") }}</h1>
+      <h1>{{ t("pay.select_account_for_payment") }}</h1>
 
       <Card>
         <template #content>
@@ -12,26 +12,26 @@
     <div v-if="account">
       <form v-if="page == 'design'" @submit="previewPaymentClick">
         <h1 v-if="!isRekey">
-          {{ $t("pay.title") }} <span v-if="account">{{ account.name }}</span>
+          {{ t("pay.title") }} <span v-if="account">{{ account.name }}</span>
         </h1>
         <h1 v-if="isRekey">
-          {{ $t("pay.rekey_title") }}
+          {{ t("pay.rekey_title") }}
           <span v-if="account">{{ account.name }}</span>
         </h1>
 
         <Card>
           <template #content>
             <Message severity="error" v-if="isRekey" class="my-2">
-              {{ $t("pay.rekey_warning") }}
+              {{ t("pay.rekey_warning") }}
             </Message>
-            <p>{{ $t("pay.selected_account") }}: {{ account.addr }}</p>
+            <p>{{ t("pay.selected_account") }}: {{ account.addr }}</p>
             <div v-if="isMultisig && !subpage">
-              <h2>{{ $t("pay.multisig_account") }}</h2>
-              <Button class="my-2" @click="this.subpage = 'proposal'">
-                {{ $t("pay.create_proposal") }}
+              <h2>{{ t("pay.multisig_account") }}</h2>
+              <Button class="my-2" @click="subpage = 'proposal'">
+                {{ t("pay.create_proposal") }}
               </Button>
               <Button class="m-2" @click="subpage = 'sign'">
-                {{ $t("pay.sign_proposal") }}
+                {{ t("pay.sign_proposal") }}
               </Button>
             </div>
             <div v-if="subpage == 'sign'" class="grid">
@@ -41,7 +41,7 @@
                     for="rawSignedTxnInput"
                     class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
                   >
-                    {{ $t("pay.signature_from_friend") }}
+                    {{ t("pay.signature_from_friend") }}
                   </label>
                   <div class="col-12 md:col-10">
                     <Textarea
@@ -56,7 +56,7 @@
                   <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
                   <div class="col-12 md:col-10">
                     <Button class="my-2" @click="loadMultisig">
-                      {{ $t("pay.load_multisig_data") }}
+                      {{ t("pay.load_multisig_data") }}
                     </Button>
                   </div>
                 </div>
@@ -83,12 +83,12 @@
                 <div v-else>
                   <div v-if="!isRekey" class="field grid">
                     <label class="col-12 mb-2 md:col-2 md:mb-0">
-                      {{ $t("pay.pay_to") }}
+                      {{ t("pay.pay_to") }}
                     </label>
                     <div class="col-12 md:col-10">
                       <TabView class="w-full" header-class="mr-2">
                         <TabPanel
-                          :header="$t('pay.pay_to_wallet')"
+                          :header="t('pay.pay_to_wallet')"
                           headerClass="mr-2"
                         >
                           <SelectAccount
@@ -96,7 +96,7 @@
                             class="w-full"
                           ></SelectAccount>
                         </TabPanel>
-                        <TabPanel :header="$t('pay.pay_to_other')">
+                        <TabPanel :header="t('pay.pay_to_other')">
                           <InputText
                             id="payTo"
                             v-model="payTo"
@@ -108,10 +108,10 @@
                               class="m-2"
                               @click="toggleCamera"
                             >
-                              {{ $t("pay.toggle_camera") }}
+                              {{ t("pay.toggle_camera") }}
                             </Button>
                             <p>
-                              {{ $t("pay.store_other_help") }}
+                              {{ t("pay.store_other_help") }}
                             </p>
                           </div>
                         </TabPanel>
@@ -123,17 +123,17 @@
                     v-if="forcedAssetNotLoaded"
                     class="my-2"
                   >
-                    {{ $t("pay.asset_failed_to_load") }}
+                    {{ t("pay.asset_failed_to_load") }}
                   </Message>
                 </div>
                 <div class="field grid" v-if="isRekey">
                   <label class="col-12 mb-2 md:col-2 md:mb-0">
-                    {{ $t("pay.rekey_to") }}
+                    {{ t("pay.rekey_to") }}
                   </label>
                   <div class="col-12 md:col-10">
                     <TabView>
                       <TabPanel
-                        :header="$t('pay.rekey_to_wallet_account')"
+                        :header="t('pay.rekey_to_wallet_account')"
                         class="mr-2"
                       >
                         <SelectAccount
@@ -141,7 +141,7 @@
                           class="w-full"
                         ></SelectAccount>
                       </TabPanel>
-                      <TabPanel :header="$t('pay.rekey_to_external_account')">
+                      <TabPanel :header="t('pay.rekey_to_external_account')">
                         <InputText
                           id="rekeyTo"
                           v-model="rekeyTo"
@@ -153,10 +153,10 @@
                             class="m-2"
                             @click="toggleCamera"
                           >
-                            {{ $t("pay.toggle_camera") }}
+                            {{ t("pay.toggle_camera") }}
                           </Button>
                           <p>
-                            {{ $t("pay.store_other_help") }}
+                            {{ t("pay.store_other_help") }}
                           </p>
                         </div>
                       </TabPanel>
@@ -169,7 +169,7 @@
                     v-if="forceAsset && assetObj && assetObj.name"
                   >
                     <label for="asset" class="col-12 mb-2 md:col-2 md:mb-0">
-                      {{ $t("pay.asset") }}
+                      {{ t("pay.asset") }}
                     </label>
                     <div class="col-12 md:col-10">
                       <InputText
@@ -181,7 +181,7 @@
                   </div>
                   <div class="field grid" v-else>
                     <label for="asset" class="col-12 mb-2 md:col-2 md:mb-0">
-                      {{ $t("pay.asset") }}
+                      {{ t("pay.asset") }}
                     </label>
 
                     <div class="col-12 md:col-10">
@@ -192,7 +192,7 @@
                         :options="assets"
                         optionLabel="label"
                         optionValue="asset-id"
-                        :placeholder="$t('pay.asset')"
+                        :placeholder="t('pay.asset')"
                         class="w-full"
                         inputClass="w-full"
                       >
@@ -205,11 +205,11 @@
                   v-if="payamountGtMaxAmount"
                   class="my-2"
                 >
-                  {{ $t("pay.asset_too_small_balance") }}
+                  {{ t("pay.asset_too_small_balance") }}
                 </Message>
                 <div v-if="!isRekey" class="field grid">
                   <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">
-                    {{ $t("pay.amount") }}
+                    {{ t("pay.amount") }}
                   </label>
                   <div class="col-12 md:col-10">
                     <InputGroup>
@@ -231,14 +231,14 @@
                         class="col-2"
                         @click="setMaxAmount"
                       >
-                        {{ $t("pay.set_max") }}
+                        {{ t("pay.set_max") }}
                       </Button>
                     </InputGroup>
                   </div>
                 </div>
                 <div class="field grid">
                   <label for="fee" class="col-12 mb-2 md:col-2 md:mb-0">
-                    {{ $t("pay.fee") }}
+                    {{ t("pay.fee") }}
                   </label>
                   <div class="col-12 md:col-10">
                     <InputGroup>
@@ -253,14 +253,14 @@
                         showButtons
                       />
                       <InputGroupAddon>
-                        {{ this.$store.state.config.tokenSymbol }}
+                        {{ tokenSymbol }}
                       </InputGroupAddon>
                     </InputGroup>
                   </div>
                 </div>
                 <div class="field grid">
                   <label for="paynote" class="col-12 mb-2 md:col-2 md:mb-0">
-                    {{ $t("pay.note") }}
+                    {{ t("pay.note") }}
                   </label>
                   <div class="col-12 md:col-10">
                     <InputText id="paynote" v-model="paynote" class="w-full" />
@@ -276,19 +276,19 @@
                       class="mr-2"
                     />
                     <label class="form-check-label" for="paynoteB64">
-                      {{ $t("pay.note_is_b64") }}
+                      {{ t("pay.note_is_b64") }}
                     </label>
                   </div>
                 </div>
 
                 <div class="field grid">
                   <label for="env" class="col-12 mb-2 md:col-2 md:mb-0">
-                    {{ $t("pay.environment") }}
+                    {{ t("pay.environment") }}
                   </label>
                   <div class="col-12 md:col-10">
                     <InputText
                       id="env"
-                      :value="$store.state.config.env"
+                      :value="envName"
                       class="w-full"
                       disabled
                     />
@@ -302,7 +302,7 @@
                       class="my-2"
                       @click="previewPaymentClick"
                     >
-                      {{ $t("pay.review_payment") }}
+                      {{ t("pay.review_payment") }}
                     </Button>
                     <Button
                       v-if="isMultisig"
@@ -311,7 +311,7 @@
                       value="Cancel"
                       @click="subpage = ''"
                     >
-                      {{ $t("global.cancel") }}
+                      {{ t("global.cancel") }}
                     </Button>
                     <Button
                       v-if="!isMultisig"
@@ -320,7 +320,7 @@
                       value="Cancel"
                       @click="$router.push('/accounts')"
                     >
-                      {{ $t("global.cancel") }}
+                      {{ t("global.cancel") }}
                     </Button>
                   </div>
                 </div>
@@ -337,1285 +337,1389 @@
   </main-layout>
 </template>
 
-<script>
+<script setup lang="ts">
+import {
+  computed,
+  getCurrentInstance,
+  onMounted,
+  reactive,
+  toRefs,
+  watch,
+} from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { QrcodeStream } from "qrcode-reader-vue3";
 import aprotocol from "../shared/algorand-protocol-parse";
 import MainLayout from "../layouts/Main.vue";
-import InputMask from "primevue/inputmask";
-import { mapActions } from "vuex";
 import algosdk from "algosdk";
-//import base64url from "base64url";
+import type { Transaction } from "algosdk";
 import SelectAccount from "../components/SelectAccount.vue";
 import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
-import AlgorandAddress from "../components/AlgorandAddress.vue";
-import MultiSelect from "primevue/multiselect";
 import { getArc200Client } from "arc200-client";
+import { useStore } from "@/store";
+import { Buffer } from "buffer";
 
-export default {
-  components: {
-    QrcodeStream,
-    MainLayout,
-    InputMask,
-    SelectAccount,
-    TabView,
-    TabPanel,
-    AlgorandAddress,
-    MultiSelect,
-  },
-  data() {
-    return {
-      payFromDirect: "",
-      genericaccount: false,
-      genericaccountRekey: false,
-      payamount: 0,
-      fee: 0.001,
-      payTo: "",
-      rekeyTo: "",
-      paynote: "",
-      paynoteB64: false,
-      page: "design",
-      tx: "",
-      processing: false,
-      error: "",
-      confirmation: null,
-      confirmedRound: null,
-      subpage: "",
-      txn: null,
-      rawSignedTxn: null,
-      rawSignedTxnFriend: null,
-      rawSignedTxnInput: null,
-      signMultisigWith: [],
-      multisigDecoded: {},
-      assets: [],
-      asset: "",
-      assetObj: {},
-      scan: false,
-      forceAsset: false,
-      txtCode: "",
-      accountFor2FARealm: "",
-      accountFor2FAAuthToken: "",
-      showFormSend: false,
-      showFormCombine: false,
+type AssetType = "Native" | "ASA" | "ARC200";
+
+interface AssetOption {
+  "asset-id": string | number;
+  amount: number;
+  name: string;
+  decimals: number;
+  "unit-name"?: string;
+  type: AssetType;
+  label: string;
+}
+
+interface AccountAsset {
+  "asset-id": number | string;
+  amount: number;
+}
+
+interface Arc200AccountAsset {
+  arc200id: string | number;
+  balance: number | string | bigint;
+  name: string;
+  symbol?: string;
+  decimals: number | string;
+}
+
+interface AccountNetworkData {
+  amount: number;
+  addr?: string;
+  assets?: AccountAsset[];
+  arc200?: Record<string, Arc200AccountAsset>;
+  rekeyedTo?: string;
+}
+
+interface WalletAccount {
+  addr?: string;
+  name?: string;
+  data?: Record<string, AccountNetworkData>;
+  params?: {
+    addrs: string[];
+    threshold: number | string;
+  };
+  primaryAccount?: string;
+  recoveryAccount?: string;
+  twoFactorAuthProvider?: string;
+  type?: string;
+  sk?: unknown;
+}
+
+type MultisigDecoded = ReturnType<
+  typeof algosdk.decodeSignedTransaction
+> | null;
+type DecodedTxn = ReturnType<typeof algosdk.decodeUnsignedTransaction> | null;
+type AlgoTransaction =
+  | ReturnType<typeof algosdk.decodeUnsignedTransaction>
+  | Transaction;
+
+interface PayState {
+  payFromDirect: string;
+  genericaccount: boolean;
+  genericaccountRekey: boolean;
+  payamount: number;
+  fee: number;
+  payTo: string;
+  rekeyTo: string | undefined;
+  paynote: string;
+  paynoteB64: boolean;
+  page: string;
+  tx: string | AlgoTransaction | null;
+  processing: boolean;
+  error: string | unknown;
+  confirmation: Record<string, unknown> | null;
+  confirmedRound: number | null;
+  subpage: string;
+  txn: DecodedTxn;
+  rawSignedTxn: string | null;
+  rawSignedTxnFriend: string | null;
+  rawSignedTxnInput: string | null;
+  signMultisigWith: string[];
+  multisigDecoded: MultisigDecoded;
+  assets: AssetOption[];
+  asset: string | number;
+  assetObj: Partial<AssetOption> & Record<string, unknown>;
+  scan: boolean;
+  forceAsset: boolean;
+  txtCode: string;
+  accountFor2FARealm: string;
+  accountFor2FAAuthToken: string;
+  showFormSend: boolean;
+  showFormCombine: boolean;
+  note: Uint8Array | null;
+}
+
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
+const { t } = useI18n();
+const instance = getCurrentInstance();
+type CurrencyFormatter = (
+  amount: number,
+  symbol: string,
+  decimals: number
+) => string;
+
+type GlobalFilters = {
+  formatCurrency?: CurrencyFormatter;
+};
+
+const filters = instance?.appContext.config.globalProperties.$filters as
+  | GlobalFilters
+  | undefined;
+const formatCurrency = (
+  amount: number,
+  symbol: string,
+  decimalsCount: number
+): string => {
+  if (typeof filters?.formatCurrency === "function") {
+    return filters.formatCurrency(amount, symbol, decimalsCount);
+  }
+  return amount.toString();
+};
+
+const toSingleParam = (
+  value: string | string[] | undefined
+): string | undefined => {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+  return value;
+};
+
+const state = reactive<PayState>({
+  payFromDirect: "",
+  genericaccount: false,
+  genericaccountRekey: false,
+  payamount: 0,
+  fee: 0.001,
+  payTo: "",
+  rekeyTo: "",
+  paynote: "",
+  paynoteB64: false,
+  page: "design",
+  tx: null,
+  processing: false,
+  error: "",
+  confirmation: null,
+  confirmedRound: null,
+  subpage: "",
+  txn: null,
+  rawSignedTxn: null,
+  rawSignedTxnFriend: null,
+  rawSignedTxnInput: null,
+  signMultisigWith: [],
+  multisigDecoded: null,
+  assets: [],
+  asset: "",
+  assetObj: {},
+  scan: false,
+  forceAsset: false,
+  txtCode: "",
+  accountFor2FARealm: "",
+  accountFor2FAAuthToken: "",
+  showFormSend: false,
+  showFormCombine: false,
+  note: null,
+});
+
+const {
+  payFromDirect,
+  genericaccount,
+  genericaccountRekey,
+  payamount,
+  fee,
+  payTo,
+  rekeyTo,
+  paynote,
+  paynoteB64,
+  page,
+  tx,
+  processing,
+  error,
+  confirmation,
+  confirmedRound,
+  subpage,
+  txn,
+  rawSignedTxn,
+  rawSignedTxnFriend,
+  rawSignedTxnInput,
+  signMultisigWith,
+  multisigDecoded,
+  assets,
+  asset,
+  assetObj,
+  scan,
+  forceAsset,
+  txtCode,
+  accountFor2FARealm,
+  accountFor2FAAuthToken,
+  showFormSend,
+  showFormCombine,
+  note,
+} = toRefs(state);
+
+const setNoRedirect = () => store.dispatch("config/setNoRedirect");
+const prolong = () => store.dispatch("wallet/prolong");
+const makePayment = (payload: Record<string, unknown>) =>
+  store.dispatch("algod/makePayment", payload);
+const waitForConfirmation = (payload: { txId: string; timeout: number }) =>
+  store.dispatch("algod/waitForConfirmation", payload);
+const preparePayment = (payload: Record<string, unknown>) =>
+  store.dispatch("algod/preparePayment", payload);
+const lastActiveAccount = (payload: { addr: string }) =>
+  store.dispatch("wallet/lastActiveAccount", payload);
+const sendRawTransaction = (payload: { signedTxn: ArrayBuffer }) =>
+  store.dispatch("algod/sendRawTransaction", payload);
+const updateAccount = (payload: { info: Record<string, unknown> }) =>
+  store.dispatch("wallet/updateAccount", payload);
+const getAsset = (payload: { assetIndex: number }) =>
+  store.dispatch("indexer/getAsset", payload);
+const setEnv = (payload: { env: string }) =>
+  store.dispatch("config/setEnv", payload);
+const openSuccess = (payload: string) =>
+  store.dispatch("toast/openSuccess", payload);
+const openError = (payload: string) =>
+  store.dispatch("toast/openError", payload);
+const signerSignMultisig = (payload: Record<string, unknown>) =>
+  store.dispatch("signer/signMultisig", payload);
+const signerCreateMultisigTransaction = (payload: Record<string, unknown>) =>
+  store.dispatch("signer/createMultisigTransaction", payload);
+const signerSetSigned = (payload: { signed: Uint8Array }) =>
+  store.dispatch("signer/setSigned", payload);
+const signAuthTx = (payload: Record<string, unknown>) =>
+  store.dispatch("arc14/signAuthTx", payload);
+const getRealm = (payload: Record<string, unknown>) =>
+  store.dispatch("fa2/getRealm", payload);
+const signTwoFactor = (payload: Record<string, unknown>) =>
+  store.dispatch("fa2/signTwoFactor", payload);
+const resetError = () => store.dispatch("toast/resetError");
+const getAlgod = () => store.dispatch("algod/getAlgod");
+const getIndexer = () => store.dispatch("indexer/getIndexer");
+const signerToSignArray = (payload: Record<string, unknown>) =>
+  store.dispatch("signer/toSignArray", payload);
+
+const tokenSymbol = computed(() => store.state.config.tokenSymbol);
+const envName = computed(() => store.state.config.env);
+const walletAccounts = computed<WalletAccount[]>(
+  () => store.state.wallet.privateAccounts || []
+);
+const msigNote = computed(() => {
+  if (!state.multisigDecoded?.txn?.note) return "";
+  return Buffer.from(state.multisigDecoded.txn.note).toString("utf8");
+});
+const assetData = computed<AssetOption | undefined>(() => {
+  const assetId = state.asset;
+  return state.assets.find(
+    (entry) => String(entry["asset-id"]) === String(assetId)
+  );
+});
+const decimals = computed(() => {
+  if (assetData.value) {
+    return assetData.value.decimals;
+  }
+  const assetObjDecimals = (state.assetObj as { decimals?: number }).decimals;
+  if (typeof assetObjDecimals === "number") {
+    return assetObjDecimals;
+  }
+  return 6;
+});
+const decimalsPower = computed(() => Math.pow(10, decimals.value));
+const amountLong = computed(() =>
+  Math.round(state.payamount * decimalsPower.value)
+);
+const feeLong = computed(() => state.fee * Math.pow(10, 6));
+const payFrom = computed(() => {
+  const accountParam = toSingleParam(
+    route.params.account as string | string[] | undefined
+  );
+  return accountParam ?? state.payFromDirect;
+});
+const account = computed(() =>
+  walletAccounts.value.find((a) => a.addr == payFrom.value)
+);
+const accountData = computed<AccountNetworkData | null>(
+  () => account.value?.data?.[envName.value] ?? null
+);
+const rekeyedToInfo = computed(() => {
+  if (!accountData.value) return undefined;
+  return walletAccounts.value.find(
+    (a) => a.addr == accountData.value.rekeyedTo
+  );
+});
+const rekeyedMultisigParams = computed(() => {
+  if (!accountData.value?.rekeyedTo) return undefined;
+  const rekeyedInfo = walletAccounts.value.find(
+    (a) => a.addr == accountData.value.rekeyedTo
+  );
+  return rekeyedInfo?.params;
+});
+const multisigParams = computed(() => {
+  if (rekeyedToInfo.value) return rekeyedMultisigParams.value;
+  return account.value?.params;
+});
+const isMultisig = computed(() => !!multisigParams.value);
+const accountsFromMultisig = computed(() => {
+  const params = multisigParams.value;
+  if (!params?.addrs) return [];
+  const list = walletAccounts.value.filter(
+    (a) => params.addrs.includes(a.addr) && (!!a.sk || a.type == "ledger")
+  );
+  if (!state.multisigDecoded?.msig?.subsig) {
+    return list;
+  }
+  return list.filter((s) =>
+    state.multisigDecoded.msig.subsig.find(
+      (entry) => s.addr == algosdk.encodeAddress(entry.pk) && !entry.s
+    )
+  );
+});
+const accountFor2FA = computed(() => {
+  const params = multisigParams.value;
+  if (!params?.addrs) return undefined;
+  return walletAccounts.value.find(
+    (a) => params.addrs.includes(a.addr) && a.type == "2faApi"
+  );
+});
+const accountFor2FAAddr = computed(() => accountFor2FA.value?.addr ?? "");
+const accountFor2FAAddrPrimary = computed(
+  () => accountFor2FA.value?.primaryAccount ?? ""
+);
+const accountFor2FAProvider = computed(
+  () => accountFor2FA.value?.twoFactorAuthProvider ?? ""
+);
+const isSignedByAccountFor2FAAddr = computed(() => {
+  if (!accountFor2FAAddr.value) return false;
+  const subsig = state.multisigDecoded?.msig?.subsig;
+  if (!subsig) return false;
+  const sig = subsig.find(
+    (s) => algosdk.encodeAddress(s.pk) == accountFor2FAAddr.value
+  );
+  return !!sig?.s;
+});
+const showDesignScreen = computed(
+  () => !isMultisig.value || (isMultisig.value && state.subpage == "proposal")
+);
+const isRekey = computed(() => {
+  if (state.multisigDecoded?.txn && state.multisigDecoded.reKeyTo) {
+    return true;
+  }
+  const typeParam = toSingleParam(
+    route.params.type as string | string[] | undefined
+  );
+  return typeParam === "rekey";
+});
+const selectedAssetFromAccount = computed(() =>
+  accountData.value && accountData.value["assets"]
+    ? accountData.value["assets"].find((a) => a["asset-id"] == state.asset)
+    : undefined
+);
+const maxAmount = computed(() => {
+  if (!accountData.value) return 0;
+  if (!assetData.value) return 0;
+  if (assetData.value.type == "ARC200" || assetData.value.type == "ASA") {
+    return (
+      Number(assetData.value.amount) / 10 ** Number(assetData.value.decimals)
+    );
+  }
+  let ret = accountData.value.amount / 1000000 - 0.1;
+  ret -= state.fee;
+  if (accountData.value["assets"] && accountData.value["assets"].length > 0) {
+    ret -= accountData.value["assets"].length * 0.1;
+  }
+  return ret;
+});
+const payamountGtMaxAmount = computed(() => state.payamount > maxAmount.value);
+const forcedAssetNotLoaded = computed(
+  () => state.forceAsset && (!state.assetObj || !state.assetObj.name)
+);
+const stepAmount = computed(() => {
+  if (!decimals.value) return 1;
+  return Math.pow(10, -1 * decimals.value);
+});
+const noteIsB64 = computed(() => {
+  if (!state.paynote) return false;
+  return isBase64(state.paynote);
+});
+const assetUnit = computed(() => {
+  if (!state.assetObj) return "";
+  return state.assetObj["unit-name"] || state.assetObj.name || "";
+});
+const isAuth = computed(() => store.state.wallet.isOpen);
+const malformedAddress = computed(() => {
+  if (
+    state.multisigDecoded?.txn?.type &&
+    (state.multisigDecoded.txn.type == "appl" ||
+      state.multisigDecoded.txn.type == "acfg")
+  ) {
+    return false;
+  }
+  if (
+    state.txn?.type &&
+    (state.txn.type == "appl" || state.txn.type == "acfg")
+  ) {
+    return false;
+  }
+  return state.payTo ? !algosdk.isValidAddress(state.payTo) : false;
+});
+const showSignaturesCount = computed(() => {
+  if (!state.multisigDecoded?.msig?.subsig) return "";
+  const count = state.multisigDecoded.msig.subsig.filter((s) => !!s.s).length;
+  return `${count} / ${state.multisigDecoded.msig.thr}`;
+});
+const isSignedByAny = computed(() => {
+  const subsig = state.multisigDecoded?.msig?.subsig;
+  if (!subsig) return false;
+  return subsig.filter((s) => !!s.s).length > 0;
+});
+const thresholdMet = computed(() => {
+  const subsig = state.multisigDecoded?.msig?.subsig;
+  if (!subsig) return false;
+  return subsig.filter((s) => !!s.s).length >= state.multisigDecoded.msig.thr;
+});
+const isNotValid = computed(() => {
+  if (!state.payTo) return true;
+  if (isRekey.value && !state.rekeyTo) return true;
+  return false;
+});
+
+watch(payFromDirect, (value) => {
+  if (value) {
+    lastActiveAccount({ addr: value });
+  }
+});
+
+watch(account, () => {
+  void makeAssets();
+});
+
+watch(asset, async (assetValue) => {
+  const numericAssetId = Number(assetValue);
+  if (!Number.isNaN(numericAssetId) && numericAssetId > 0) {
+    const fetched = await getAsset({ assetIndex: numericAssetId });
+    state.assetObj = (fetched || {}) as PayState["assetObj"];
+  } else {
+    state.assetObj = {
+      "asset-id": 0,
+      name: tokenSymbol.value,
+      "unit-name": tokenSymbol.value,
+      decimals: 6,
     };
-  },
-  computed: {
-    msigNote() {
-      if (!this.multisigDecoded) return "";
-      if (!this.multisigDecoded.txn) return "";
-      if (!this.multisigDecoded.txn.note) return "";
-      return Buffer.from(this.multisigDecoded.txn.note).toString("utf8");
-    },
-    isNotValid() {
-      if (!this.payTo) return true;
-      if (this.isRekey && !this.rekeyTo) return true;
-      return false;
-    },
-    amountLong() {
-      return Math.round(this.payamount * this.decimalsPower);
-    },
-    decimals() {
-      if (this.assetData) {
-        return this.assetData.decimals;
-      }
-      let decimals = 6;
-      if (this.assetObj && this.assetObj.decimals !== undefined) {
-        decimals = this.assetObj.decimals;
-      }
-      return decimals;
-    },
-    decimalsPower() {
-      return Math.pow(10, this.decimals);
-    },
-    feeLong() {
-      return this.fee * Math.pow(10, 6); // algo
-    },
-    account() {
-      return this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.payFrom
-      );
-    },
-    accountData() {
-      if (!this.account) return false;
-      if (!this.account.data) return false;
-      return this.account.data[this.$store.state.config.env];
-    },
-    isMultisig() {
-      return !!this.multisigParams;
-    },
-    accountsFromMultisig() {
-      const list = this.$store.state.wallet.privateAccounts.filter(
-        (a) =>
-          this.multisigParams.addrs.includes(a.addr) &&
-          (!!a.sk || a.type == "ledger")
-      );
-      const nonSigned = list.filter(
-        (s) =>
-          !!this.multisigDecoded.msig.subsig.find(
-            (a) => s.addr == algosdk.encodeAddress(a.pk) && !a.s
-          )
-      );
+  }
+  state.payamount = 0;
+  parseToAccount();
+});
 
-      return nonSigned;
-    },
-    accountFor2FA() {
-      return this.$store.state.wallet.privateAccounts.find(
-        (a) =>
-          this.multisigParams &&
-          this.multisigParams.addrs &&
-          this.multisigParams.addrs.includes(a.addr) &&
-          a.type == "2faApi"
-      );
-    },
-    accountFor2FAAddr() {
-      if (!this.accountFor2FA) return "";
-      return this.accountFor2FA.addr;
-    },
-    isSignedByAccountFor2FAAddr() {
-      if (!this.accountFor2FA) return false;
-      if (!this.multisigDecoded) return false;
-      if (!this.multisigDecoded.msig) return false;
-      if (!this.multisigDecoded.msig.subsig) return false;
-      const sig = this.multisigDecoded.msig.subsig.find(
-        (s) => algosdk.encodeAddress(s.pk) == this.accountFor2FAAddr
-      );
-      if (!sig) return false;
+watch(isAuth, (auth) => {
+  if (
+    auth &&
+    store.state.wallet.privateAccounts &&
+    store.state.wallet.privateAccounts.length === 1
+  ) {
+    state.payFromDirect = store.state.wallet.privateAccounts[0].addr;
+  }
+});
 
-      return !!sig.s;
-    },
-    accountFor2FAAddrPrimary() {
-      if (!this.accountFor2FA) return "";
-      return this.accountFor2FA.primaryAccount;
-    },
-    accountFor2FAProvider() {
-      if (!this.accountFor2FA) return "";
-      return this.accountFor2FA.twoFactorAuthProvider;
-    },
-    showDesignScreen() {
-      return (
-        !this.isMultisig || (this.isMultisig && this.subpage == "proposal")
-      );
-    },
-    payFrom() {
-      if (this.$route.params.account) return this.$route.params.account;
-      return this.payFromDirect;
-    },
-    isRekey() {
-      if (
-        this.multisigDecoded &&
-        this.multisigDecoded.txn &&
-        this.multisigDecoded.reKeyTo
-      )
-        return true;
-      return this.$route.params.type == "rekey";
-    },
-    selectedAssetFromAccount() {
-      return this.accountData["assets"].find(
-        (a) => a["asset-id"] == this.asset
-      );
-    },
-    assetData() {
-      return this.assets.find((a) => a["asset-id"] == this.asset);
-    },
-    maxAmount() {
-      if (!this.accountData) return 0;
-      if (!this.assetData) return 0;
+onMounted(async () => {
+  if (!payFrom.value) {
+    await setNoRedirect();
+  }
+  await resetError();
+  state.payTo = store.state.wallet.lastPayTo || "";
 
-      if (this.assetData.type == "ARC200") {
-        if (!this.assetData) return 0;
-        return this.assetData.amount / 10 ** this.assetData.decimals;
-      } else if (this.assetData.type == "ASA") {
-        if (!this.assetData) return 0;
-        return this.assetData.amount / 10 ** this.assetData.decimals;
-      } else {
-        let ret = this.accountData.amount / 1000000 - 0.1;
-        ret = ret - this.fee;
-        if (this.accountData["assets"] && this.accountData["assets"].length > 0)
-          ret = ret - this.accountData["assets"].length * 0.1;
-        return ret;
+  const assetParam = toSingleParam(
+    route.params.asset as string | string[] | undefined
+  );
+  if (assetParam) {
+    state.asset = assetParam;
+  }
+
+  parseToAccount();
+  const toAccountDirect = toSingleParam(
+    route.params.toAccountDirect as string | string[] | undefined
+  );
+  if (toAccountDirect) {
+    state.payTo = toAccountDirect;
+  }
+  if (route.name === "PayFromWalletConnect" && store.state.signer?.toSign) {
+    try {
+      state.txn = store.state.signer.toSign as DecodedTxn;
+
+      if (state.txn?.to) {
+        state.payTo = algosdk.encodeAddress(state.txn.to.publicKey);
       }
-    },
-    payamountGtMaxAmount() {
-      return this.payamount > this.maxAmount;
-    },
-    forcedAssetNotLoaded() {
-      return this.forceAsset && (!this.assetObj || !this.assetObj.name);
-    },
-    stepAmount() {
-      if (!this.decimals) return 1;
-      return Math.pow(10, -1 * this.decimals);
-    },
-    noteIsB64() {
-      if (!this.paynote) return false;
-      return this.isBase64(this.paynote);
-    },
-    assetUnit() {
-      if (!this.assetObj) return "";
-      if (!this.assetObj["unit-name"]) return this.assetObj.name;
-      return this.assetObj["unit-name"];
-    },
-    isAuth() {
-      return this.$store.state.wallet.isOpen;
-    },
-    malformedAddress() {
-      if (
-        this.multisigDecoded &&
-        this.multisigDecoded.txn &&
-        this.multisigDecoded.txn.type &&
-        (this.multisigDecoded.txn.type == "appl" ||
-          this.multisigDecoded.txn.type == "acfg")
-      ) {
-        return false;
-      }
-      if (
-        this.txn &&
-        this.txn &&
-        this.txn.type &&
-        (this.txn.type == "appl" || this.txn.type == "acfg")
-      ) {
-        return false;
-      }
-      return !algosdk.isValidAddress(this.payTo);
-    },
-    rekeyedToInfo() {
-      if (!this.accountData) return;
-      return this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.accountData.rekeyedTo
-      );
-    },
-    multisigParams() {
-      if (this.rekeyedToInfo) return this.rekeyedMultisigParams;
-      return this.account.params;
-    },
-    rekeyedMultisigParams() {
-      if (!this.accountData) return;
-      const rekeyedInfo = this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.accountData.rekeyedTo
-      );
-      if (!rekeyedInfo) return;
-      return rekeyedInfo.params;
-    },
-    showSignaturesCount() {
-      return `${
-        this.multisigDecoded.msig.subsig.filter((s) => !!s.s).length
-      } / ${this.multisigDecoded.msig.thr}`;
-    },
-    isSignedByAny() {
-      if (!this.multisigDecoded) return false;
-      if (!this.multisigDecoded.msig) return false;
-      if (!this.multisigDecoded.msig.subsig) return false;
-      return this.multisigDecoded.msig.subsig.filter((s) => !!s.s).length > 0;
-    },
-    thresholdMet() {
-      if (!this.multisigDecoded) return false;
-      if (!this.multisigDecoded.msig) return false;
-      if (!this.multisigDecoded.msig.subsig) return false;
-      return (
-        this.multisigDecoded.msig.subsig.filter((s) => !!s.s).length >=
-        this.multisigDecoded.msig.thr
-      );
-    },
-  },
-  watch: {
-    payFromDirect() {
-      if (this.payFromDirect) {
-        this.lastActiveAccount({ addr: this.payFromDirect });
-      }
-    },
-    account() {
-      this.makeAssets();
-    },
-    async asset() {
-      if (this.asset > 0) {
-        this.assetObj = await this.getAsset({
-          assetIndex: this.asset,
-        });
-      } else {
-        this.assetObj = {
-          "asset-id": 0,
-          name: this.$store.state.config.tokenSymbol,
-          "unit-name": this.$store.state.config.tokenSymbol,
-          decimals: 6,
-        };
-      }
-      this.payamount = 0;
-      if (this.$route.params.toAccount) {
-        this.parseToAccount();
-      }
-    },
-    isAuth() {
-      if (this.isAuth) {
-        if (
-          this.$store.state.wallet.privateAccounts &&
-          this.$store.state.wallet.privateAccounts.length == 1
-        ) {
-          this.payFromDirect = this.$store.state.wallet.privateAccounts[0].addr;
-        }
-      }
-    },
-  },
-  async mounted() {
-    if (!this.payFrom) {
-      this.setNoRedirect();
-    }
-    this.resetError();
-    this.payTo = this.$store.state.wallet.lastpayTo;
-
-    if (this.$route.params.asset) {
-      this.asset = this.$route.params.asset;
-    }
-
-    if (this.$route.params.toAccount) {
-      this.parseToAccount();
-    }
-    if (this.$route.params.toAccountDirect) {
-      this.payTo = this.$route.params.toAccountDirect;
-    }
-    if (this.$route.name == "PayFromWalletConnect") {
-      try {
-        this.txn = this.$store.state.signer.toSign;
-
-        if (this.txn.to) {
-          this.payTo = algosdk.encodeAddress(this.txn.to.publicKey);
-        }
-        this.payFromDirect = algosdk.encodeAddress(this.txn.from.publicKey);
-
-        const rawSignedTxn = await this.signerCreateMultisigTransaction({
-          txn: this.txn,
-          from: this.payFrom,
-        });
-        this.rawSignedTxn = this._arrayBufferToBase64(rawSignedTxn);
-        this.rawSignedTxnInput = this.rawSignedTxn;
-
-        this.multisigDecoded = algosdk.decodeSignedTransaction(
-          this._base64ToArrayBuffer(this.rawSignedTxnInput)
-        );
-        this.note = this.txn.note;
-        this.asset = this.txn.assetIndex;
-        this.page = "review";
-
-        const b64Url = this.base642base64url(rawSignedTxn);
-        this.$router.push(`/sign/${this.payFrom}/` + b64Url);
-      } catch (e) {
-        console.error("Input is not valid base64-url format ", e);
-      }
-    }
-    if (this.$route.params.rawSignedTxnInput) {
-      try {
-        const encoded = this.$route.params.rawSignedTxnInput;
-        const b64 = this.base64url2base64(encoded);
-        const uint8buffer = this._base64ToArrayBuffer(b64);
-
-        this.txn = algosdk.decodeUnsignedTransaction(uint8buffer);
-        if (this.txn.to) {
-          this.payTo = algosdk.encodeAddress(this.txn.to.publicKey);
-        }
-        this.note = this.txn.note;
-        this.asset = this.txn.assetIndex;
-        this.page = "review";
-        this.$router.push(
-          `/sign/${this.payFrom}/` +
-            this.base642base64url(this.$route.params.rawSignedTxnInput)
-        );
-      } catch (e) {
-        console.error("Input is not valid base64-url format ", e);
-      }
-    }
-    if (this.$route.params.account) {
-      this.lastActiveAccount({ addr: this.$route.params.account });
-    }
-    await this.makeAssets();
-
-    if (
-      this.$store.state.wallet.privateAccounts &&
-      this.$store.state.wallet.privateAccounts.length == 1
-    ) {
-      this.payFromDirect = this.$store.state.wallet.privateAccounts[0].addr;
-    }
-
-    if (this.isRekey && this.accountData && this.accountData.addr) {
-      // if is rekey, make self tx
-      this.payTo = this.accountData.addr;
-    }
-    if (this.payTo && !this.payFromDirect) {
-      this.payFromDirect = this.payTo;
-    }
-
-    if (this.accountFor2FAProvider) {
-      try {
-        this.accountFor2FARealm = await this.getRealm({
-          twoFactorAuthProvider: this.accountFor2FAProvider,
-        });
-        this.loadAuthToken();
-      } catch (err) {
-        const error = err.message ?? err;
-        console.error("failed to request realm", error, err);
-        await this.openError(error);
-      }
-    }
-  },
-  methods: {
-    ...mapActions({
-      setNoRedirect: "config/setNoRedirect",
-      prolong: "wallet/prolong",
-      makePayment: "algod/makePayment",
-      waitForConfirmation: "algod/waitForConfirmation",
-      preparePayment: "algod/preparePayment",
-      lastActiveAccount: "wallet/lastActiveAccount",
-      getTransactionParams: "algod/getTransactionParams",
-      sendRawTransaction: "algod/sendRawTransaction",
-      updateAccount: "wallet/updateAccount",
-      getSK: "wallet/getSK",
-      getAsset: "indexer/getAsset",
-      setEnv: "config/setEnv",
-      openSuccess: "toast/openSuccess",
-      openError: "toast/openError",
-      signerSignMultisig: "signer/signMultisig",
-      signerCreateMultisigTransaction: "signer/createMultisigTransaction",
-      signerSetSigned: "signer/setSigned",
-      signAuthTx: "arc14/signAuthTx",
-      getRealm: "fa2/getRealm",
-      signTwoFactor: "fa2/signTwoFactor",
-      resetError: "toast/resetError",
-      getAlgod: "algod/getAlgod",
-      getIndexer: "indexer/getIndexer",
-      signerToSignArray: "signer/toSignArray",
-    }),
-    isBase64(str) {
-      try {
-        const decoded1 = Buffer.from(str, "base64").toString("utf8");
-        const encoded2 = Buffer.from(decoded1, "binary").toString("base64");
-        return str == encoded2;
-      } catch {
-        return false;
-      }
-    },
-    async makeAssets() {
-      this.assets = [];
-      if (this.accountData) {
-        const balance = this.$filters.formatCurrency(
-          this.accountData.amount,
-          this.$store.state.config.tokenSymbol,
-          6
-        );
-        this.assets.push({
-          "asset-id": "0",
-          amount: this.accountData.amount,
-          name: this.$store.state.config.tokenSymbol,
-          decimals: 6,
-          "unit-name": this.$store.state.config.tokenSymbol,
-          type: "Native",
-          label: `${this.$store.state.config.tokenSymbol} (Native token) Balance: ${balance}`,
-        });
-      } else {
-        const balance = this.$filters.formatCurrency(
-          0,
-          this.$store.state.config.tokenSymbol,
-          6
-        );
-        this.assets.push({
-          "asset-id": "0",
-          amount: 0,
-          name: this.$store.state.config.tokenSymbol,
-          decimals: 6,
-          "unit-name": this.$store.state.config.tokenSymbol,
-          type: "Native",
-          label: `${this.$store.state.config.tokenSymbol} (Native token) Balance: ${balance}`,
-        });
-      }
-      if (this.isRekey) return; // if we do rekey tx, it is fixed asset - native token
-      if (this.accountData) {
-        for (let index in this.accountData.assets) {
-          const asset = await this.getAsset({
-            assetIndex: this.accountData.assets[index]["asset-id"],
-          });
-          if (asset) {
-            const balance = this.$filters.formatCurrency(
-              this.accountData.assets[index]["amount"],
-              asset["unit-name"] ? asset["unit-name"] : asset["name"],
-              asset["decimals"]
-            );
-            this.assets.push({
-              "asset-id": this.accountData.assets[index]["asset-id"],
-              amount: this.accountData.assets[index]["amount"],
-              name: asset["name"],
-              decimals: asset["decimals"],
-              "unit-name": asset["unit-name"],
-              type: "ASA",
-              label: `${asset["name"]} (ASA ${this.accountData.assets[index]["asset-id"]}) Balance: ${balance}`,
-            });
-          } else {
-            console.error(
-              "Asset not loaded",
-              this.accountData.assets[index]["asset-id"]
-            );
-          }
-        }
-
-        if (this.accountData.arc200) {
-          for (const accountAsset of Object.values(this.accountData.arc200)) {
-            const balance = this.$filters.formatCurrency(
-              accountAsset.balance,
-              accountAsset.symbol ? accountAsset.symbol : accountAsset.name,
-              accountAsset.decimals
-            );
-            this.assets.push({
-              "asset-id": Number(accountAsset.arc200id),
-              amount: Number(accountAsset.balance),
-              name: accountAsset.name,
-              decimals: Number(accountAsset.decimals),
-              "unit-name": accountAsset.symbol,
-              type: "ARC200",
-              label: `${accountAsset.name} (ARC200 ${accountAsset.arc200id}) Balance: ${balance}`,
-            });
-          }
-        }
+      if (state.txn?.from) {
+        state.payFromDirect = algosdk.encodeAddress(state.txn.from.publicKey);
       }
 
-      if (this.$route.params.toAccount) {
-        this.parseToAccount();
-      }
-    },
-    reset() {
-      this.subpage = "";
-      this.error = "";
-      this.confirmedRound = "";
-      this.processing = true;
-      this.page = "review";
-      this.signMultisigWith = [];
-      this.rawSignedTxn = "";
-      this.rawSignedTxnInput = "";
-    },
-    parseToAccount() {
-      this.b64decode = aprotocol.parseAlgorandProtocolParameters(
-        this.$route.params.toAccount
-      );
-      this.payTo = this.b64decode.payTo;
-      this.payTo = this.payTo.replace(/[^\w\s]/gi, "");
-      this.payamount = this.b64decode.payamountbase / this.decimalsPower;
-      if (this.b64decode.asset) {
-        this.asset = this.b64decode.asset;
-        this.forceAsset = true;
-      }
-      if (this.b64decode.paynote) {
-        this.paynote = this.b64decode.paynote;
-      }
-      if (this.b64decode.fee) {
-        this.fee = this.b64decode.fee;
-      }
-      if (this.b64decode.network != this.$store.state.config.env) {
-        this.setEnv({ env: this.b64decode.network });
-      }
-    },
-    async previewPaymentClick(e) {
-      try {
-        const asset = this.assets.find((a) => a["asset-id"] == this.asset);
-        if (!asset) {
-          console.error("no asset selected");
-          return;
-        }
-        if (asset.type == "ASA") {
-          await this.redirectToASAPayment();
-        }
-        if (asset.type == "Native") {
-          await this.redirectToNativePayment();
-        }
-        if (asset.type == "ARC200") {
-          await this.redirectToARC200Payment();
-        }
-        //this.page = "review";
-        this.error = "";
-        this.confirmedRound = "";
-        this.tx = null;
-
-        this.processing = false;
-        this.prolong();
-        e.preventDefault();
-      } catch (e) {
-        console.error("previewPaymentClick.error", e);
-        this.openError(e.message ?? e);
-      }
-    },
-    async redirectToASAPayment() {
-      try {
-        const payTo = this.payTo;
-        const payFrom = this.payFrom;
-        const amount = this.amountLong;
-        const note = this.paynote;
-        let fee = this.feeLong;
-        const asset = this.asset;
-
-        const enc = new TextEncoder();
-        let noteEnc = enc.encode(note);
-        const tx = await this.preparePayment({
-          payTo,
-          payFrom,
-          amount,
-          noteEnc,
-          fee,
-          asset,
-          reKeyTo: this.rekeyTo ? this.rekeyTo : undefined,
-        });
-        const encodedTx = algosdk.encodeUnsignedTransaction(tx);
-        const b64 = Buffer.from(encodedTx).toString("base64");
-        const b64Url = this.base642base64url(b64);
-        this.$router.push(`/sign/${this.payFrom}/` + b64Url);
-      } catch (e) {
-        console.error("redirectToASAPayment.error", e);
-        this.openError(e.message ?? e);
-      }
-    },
-    async redirectToNativePayment() {
-      try {
-        const payTo = this.payTo;
-        const payFrom = this.payFrom;
-        const amount = this.amountLong;
-        const note = this.paynote;
-        let fee = this.feeLong;
-        const asset = this.asset;
-
-        const enc = new TextEncoder();
-        let noteEnc = enc.encode(note);
-        const tx = await this.preparePayment({
-          payTo,
-          payFrom,
-          amount,
-          noteEnc,
-          fee,
-          asset,
-          reKeyTo: this.rekeyTo ? this.rekeyTo : undefined,
-        });
-        const encodedTx = algosdk.encodeUnsignedTransaction(tx);
-        const b64 = Buffer.from(encodedTx).toString("base64");
-        const b64Url = this.base642base64url(b64);
-        this.$router.push(`/sign/${this.payFrom}/` + b64Url);
-      } catch (e) {
-        console.error("redirectToNativePayment.error", e);
-        this.openError(e.message ?? e);
-      }
-    },
-
-    async accountIsOptedInToArc200Asset(addr) {
-      const indexerClient = await this.getIndexer();
-      const fromDecoded = algosdk.decodeAddress(addr);
-      const boxName = new Uint8Array(
-        Buffer.concat([Buffer.from([0x00]), Buffer.from(fromDecoded.publicKey)])
-      );
-      try {
-        await indexerClient
-          .lookupApplicationBoxByIDandName(state.arc200Info.arc200id, boxName)
-          .do();
-        return true;
-      } catch (exc) {
-        if (exc.message?.indexOf("no application boxes found")) {
-          return false;
-        } else {
-          console.error(exc);
-          throw exc;
-        }
-      }
-    },
-    async redirectToARC200Payment() {
-      try {
-        const algod = await this.getAlgod();
-        const appId = Number(this.asset);
-        const client = getArc200Client({
-          algod,
-          appId: appId,
-          sender: { addr: this.payFrom },
-        });
-        const fromDecoded = algosdk.decodeAddress(this.payFrom);
-        const toDecoded = algosdk.decodeAddress(this.payTo);
-        var boxFromDirect = {
-          // : algosdk.BoxReference
-          appIndex: appId,
-          name: new Uint8Array(Buffer.from(fromDecoded.publicKey)),
-        };
-        var boxFromPlainAddr = {
-          // : algosdk.BoxReference
-          appIndex: appId,
-          name: new Uint8Array(Buffer.from(this.payFrom, "ascii")),
-        };
-        var boxFrom = {
-          // : algosdk.BoxReference
-          appIndex: appId,
-          name: new Uint8Array(
-            Buffer.concat([
-              Buffer.from([0x00]),
-              Buffer.from(fromDecoded.publicKey),
-            ])
-          ), // data box
-        };
-        var boxToDirect = {
-          // : algosdk.BoxReference
-          appIndex: appId,
-          name: new Uint8Array(Buffer.from(toDecoded.publicKey)),
-        };
-        var boxToPlainAddr = {
-          // : algosdk.BoxReference
-          appIndex: appId,
-          name: new Uint8Array(Buffer.from(this.payTo, "ascii")),
-        };
-        var boxTo = {
-          // : algosdk.BoxReference
-          appIndex: appId,
-          name: new Uint8Array(
-            Buffer.concat([
-              Buffer.from([0x00]),
-              Buffer.from(toDecoded.publicKey),
-            ])
-          ), // data box
-        };
-        const compose = client.compose().arc200Transfer(
-          { to: this.payTo, value: BigInt(this.amountLong) },
-          {
-            boxes: [
-              boxFrom,
-              boxFromDirect,
-              boxFromPlainAddr,
-              boxToPlainAddr,
-              boxTo,
-              boxToDirect,
-            ],
-          }
-        );
-
-        const enc = new TextEncoder();
-        let noteEnc = enc.encode("g");
-        const atc = await compose.atc();
-        const txsToSignArc200 = atc.buildGroup().map((tx) => tx.txn);
-        const isOptedIn = await this.accountIsOptedInToArc200Asset(this.payTo);
-        if (!isOptedIn) {
-          // we have to opt in for payTo account (pay for the box)
-          const payTx = await this.preparePayment({
-            payTo: algosdk.getApplicationAddress(appId),
-            payFrom: this.payFrom,
-            amount: 28500,
-            noteEnc: noteEnc,
-            fee: undefined,
-            asset: undefined,
-            reKeyTo: undefined,
-          });
-          const txsToSign = [];
-          txsToSign.push(payTx);
-          txsToSignArc200.forEach((tx) => {
-            txsToSign.push(tx);
-          });
-          algosdk.assignGroupID(txsToSign);
-          await this.signerToSignArray({
-            txs: txsToSign,
-          });
-          await this.$router.push("/signAll");
-        } else {
-          this.tx = txsToSignArc200[0];
-          const encoded = this.base642base64url(
-            Buffer.from(algosdk.encodeUnsignedTransaction(this.tx)).toString(
-              "base64"
-            )
-          );
-          this.$router.push(`/sign/${this.payFrom}/${encoded}`);
-        }
-      } catch (e) {
-        console.error("redirectToARC200Payment.error", e);
-        this.openError(e.message ?? e);
-      }
-    },
-    async payMultisig() {
-      this.prolong();
-      const enc = new TextEncoder();
-      const note = enc.encode(this.paynote);
-      if (!this.txn) {
-        const data = {
-          payTo: this.payTo,
-          payFrom: this.payFrom,
-          amount: this.amountLong,
-          noteEnc: note,
-          fee: 1000,
-          asset: this.assetObj["asset-id"],
-        };
-        if (this.rekeyTo) {
-          data.reKeyTo = this.rekeyTo;
-        }
-        this.txn = await this.preparePayment(data);
-      }
-      const rawSignedTxn = algosdk.createMultisigTransaction(
-        this.txn,
-        this.multisigParams
-      );
-      this.rawSignedTxn = this._arrayBufferToBase64(rawSignedTxn);
-      this.rawSignedTxnInput = this.rawSignedTxn;
-
-      this.multisigDecoded = algosdk.decodeSignedTransaction(
-        this._base64ToArrayBuffer(this.rawSignedTxnInput)
-      );
-      //let txId = txn.txID().toString();
-    },
-    async signMultisig(e) {
-      this.prolong();
-      e.preventDefault();
-      let rawSignedTxn = null;
-      if (this.rawSignedTxnInput) {
-        rawSignedTxn = this._base64ToArrayBuffer(this.rawSignedTxnInput);
-      }
-      const selected = Object.values(this.signMultisigWith);
-      if (
-        this.multisigParams &&
-        typeof this.multisigParams.threshold === "string"
-      ) {
-        this.multisigParams.threshold = parseInt(this.multisigParams.threshold);
-      }
-      if (rawSignedTxn == null) {
-        rawSignedTxn = await this.signerCreateMultisigTransaction({
-          txn: this.txn,
-          from: this.payFrom,
-        });
-      }
-      for (const acc of this.accountsFromMultisig) {
-        try {
-          if (!acc.addr) continue;
-          if (!selected.includes(acc.addr)) {
-            continue;
-          }
-          const newTx = await this.signerSignMultisig({
-            msigTx: rawSignedTxn,
-            signator: acc.addr,
-            txn: this.txn,
-          });
-          await this.addSignature(newTx);
-        } catch (e) {
-          this.openError(e.message ?? e);
-        }
-      }
-    },
-    _arrayBufferToBase64(buffer) {
-      var binary = "";
-      var bytes = new Uint8Array(buffer);
-      var len = bytes.byteLength;
-      for (var i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return btoa(binary);
-    },
-    _base64ToArrayBuffer(base64) {
-      var binary_string = window.atob(base64);
-      var len = binary_string.length;
-      var bytes = new Uint8Array(len);
-      for (var i = 0; i < len; i++) {
-        bytes[i] = binary_string.charCodeAt(i);
-      }
-      return bytes.buffer;
-    },
-    base64url2base64(input) {
-      // Replace non-url compatible chars with base64 standard chars
-      input = input.replaceAll(/-/g, "+").replaceAll(/_/g, "/");
-
-      // Pad out with standard base64 required padding characters
-      var pad = input.length % 4;
-      if (pad) {
-        if (pad === 1) {
-          throw new Error(
-            "InvalidLengthError: Input base64url string is the wrong length to determine padding"
-          );
-        }
-        input += new Array(5 - pad).join("=");
-      }
-
-      return input;
-    },
-    base642base64url(input) {
-      return input
-        .replaceAll("+", "-")
-        .replaceAll("/", "_")
-        .replaceAll("=", "");
-    },
-
-    async payPaymentClick(e) {
-      this.prolong();
-      e.preventDefault();
-      try {
-        if (this.isMultisig) return this.payMultisig();
-        this.reset();
-        this.prolong();
-        const payTo = this.payTo;
-        const payFrom = this.payFrom;
-        const amount = this.amountLong;
-        const note = this.paynote;
-        let fee = this.feeLong;
-        const asset = this.asset;
-
-        const enc = new TextEncoder();
-        let noteEnc = enc.encode(note);
-        if (this.paynoteB64) {
-          try {
-            noteEnc = Uint8Array.from(this._base64ToArrayBuffer(this.paynote));
-            if (!noteEnc) {
-              noteEnc = enc.encode(note);
-            }
-          } catch (e) {
-            console.error("Error converting b64 to array");
-          }
-        }
-        if (!this.isRekey) this.rekeyTo = undefined;
-        this.tx = await this.makePayment({
-          payTo,
-          payFrom,
-          amount,
-          noteEnc,
-          fee,
-          asset,
-          reKeyTo: this.rekeyTo,
-        });
-        if (!this.tx) {
-          console.error("this.makePayment has failed");
-          this.processing = false;
-          this.error = this.$t("pay.state_error_not_sent");
-          //            "Payment has probably not reached the network. Are you offline? Please check you account";
-
-          const search = "should have been authorized by ";
-          if (
-            this.$store.state.toast.lastError &&
-            this.$store.state.toast.lastError.indexOf(search) > 0
-          ) {
-            let rekeyIndex = this.$store.state.toast.lastError.indexOf(search);
-            const msg = this.$store.state.toast.lastError.substring(
-              rekeyIndex + search.length
-            );
-            let rekeyIndexAddress = msg.indexOf(" ");
-            if (rekeyIndexAddress > 0) {
-              const rekeyedTo = msg.substring(0, rekeyIndexAddress);
-              const info = {};
-              info.address = this.payFrom;
-              info.rekeyedTo = rekeyedTo;
-              await this.updateAccount({ info });
-              await this.openSuccess(
-                `Information about rekeying to address ${rekeyedTo} has been stored`
-              );
-            }
-          }
-          return;
-        }
-        const confirmation = await this.waitForConfirmation({
-          txId: this.tx,
-          timeout: 4,
-        });
-        if (!confirmation) {
-          console.error(`confirmation not received for this.tx`);
-          this.processing = false;
-          this.error = this.$t("pay.state_error_not_sent");
-          //            "Payment has probably not reached the network. Are you offline? Please check you account";
-          return;
-        }
-        if (confirmation["confirmed-round"]) {
-          this.processing = false;
-          this.confirmedRound = confirmation["confirmed-round"];
-
-          if (this.rekeyTo) {
-            const info = {};
-            info.address = this.payFrom;
-            info.rekeyedTo = this.rekeyTo;
-            await this.updateAccount({ info });
-            await this.openSuccess(
-              `Information about rekeying to address ${this.rekeyTo} has been stored`
-            );
-          }
-        }
-        if (confirmation["pool-error"]) {
-          this.processing = false;
-          this.error = confirmation["pool-error"];
-        }
-      } catch (exc) {
-        this.error = exc;
-      }
-    },
-    loadMultisig(e) {
-      this.prolong();
-      if (e) {
-        e.preventDefault();
-      }
-      this.multisigDecoded = algosdk.decodeSignedTransaction(
-        this._base64ToArrayBuffer(this.rawSignedTxnInput)
-      );
-      this.txn = this.multisigDecoded.txn;
-      this.rawSignedTxn = this.rawSignedTxnInput;
-
-      this.$router.push(
-        `/sign/${this.payFrom}/` + this.base642base64url(this.rawSignedTxnInput)
-      );
-
-      this.page = "review";
-      if (
-        this.multisigDecoded &&
-        this.multisigDecoded.msig &&
-        typeof this.multisigDecoded.msig.thr === "string"
-      ) {
-        this.multisigDecoded.msig.thr = parseInt(this.multisigDecoded.msig.thr);
-      }
-    },
-    encodeAddress(a) {
-      return algosdk.encodeAddress(a);
-    },
-    async sendMultisig(e) {
-      this.prolong();
-      this.error = "";
-
-      this.processing = true;
-      try {
-        e.preventDefault();
-        const signedTxn = this._base64ToArrayBuffer(this.rawSignedTxn);
-        let error = "";
-        try {
-          const transaction = await this.sendRawTransaction({ signedTxn });
-          this.tx = transaction.txId;
-        } catch (e) {
-          await this.openError(e.message);
-          console.error(e);
-          error = e.message;
-        }
-        if (!this.tx) {
-          this.processing = false;
-          this.error = this.$t("pay.state_error_not_sent");
-          // "Payment has probably not reached the network. Are you offline? Please check you account";
-
-          const search = "should have been authorized by ";
-          if (error && error.indexOf(search) > 0) {
-            let rekeyIndex = error.indexOf(search);
-            const msg = error.substring(rekeyIndex + search.length);
-            let rekeyIndexAddress = msg.indexOf(" ");
-            if (rekeyIndexAddress > 0) {
-              const rekeyedTo = msg.substring(0, rekeyIndexAddress);
-              const info = {};
-              info.address = this.payFrom;
-              info.rekeyedTo = rekeyedTo;
-              await this.updateAccount({ info });
-              await this.openSuccess(
-                `Information about rekeying to address ${rekeyedTo} has been stored`
-              );
-            }
-          }
-          return;
-        }
-        const confirmation = await this.waitForConfirmation({
-          txId: this.tx,
-          timeout: 4,
-        });
-        if (confirmation["confirmed-round"]) {
-          this.processing = false;
-          this.confirmedRound = confirmation["confirmed-round"];
-        }
-        if (confirmation["pool-error"]) {
-          this.processing = false;
-          this.error = confirmation["pool-error"];
-        }
-      } catch (e) {
-        this.processing = false;
-        this.error = e;
-      }
-    },
-    toggleCamera(e) {
-      e.preventDefault();
-      this.scan = !this.scan;
-      if (this.scan) {
-        this.payTo = "";
-      }
-    },
-    test(e) {
-      e.preventDefault();
-      const tests = [
-        "015LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U",
-        "algorand://025LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?&note=123",
-        "algorand://035LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?&note=234&&",
-        "algorand://045LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?xnote=345&fee=3&amount=1000&asset=456",
-        "algorand://046LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?note=SGVsbG8=&noteB64=1&fee=0.001&amount=1",
-      ];
-      for (let index in tests) {
-        this.onDecodeQR(tests[index]);
-      }
-    },
-    isEncoded(uri) {
-      uri = uri || "";
-      return uri !== decodeURIComponent(uri);
-    },
-    onDecodeQR(result) {
-      if (this.scan && result) {
-        if (
-          result.startsWith("algorand://") ||
-          result.startsWith("web+algorand://")
-        ) {
-          // parse according to https://github.com/emg110/algorand-qrcode
-          result = result.replace("web+algorand://", "");
-          result = result.replace("algorand://", "");
-          const qIndex = result.indexOf("?");
-          if (qIndex < 0) {
-            this.payTo = result;
-            this.payTo = this.payTo.replace(/[^\w\s]/gi, "");
-          } else {
-            this.payTo = result.substring(0, qIndex);
-            this.payTo = this.payTo.replace(/[^\w\s]/gi, "");
-
-            const params = result.substring(qIndex + 1);
-            const paramsArr = params.split("&");
-
-            let note = undefined;
-            let noteB64 = undefined;
-            let amount = undefined;
-            let decimals = undefined;
-            let asset = undefined;
-            let fee = undefined;
-
-            for (const index in paramsArr) {
-              const eqIndex = paramsArr[index].indexOf("=");
-              if (eqIndex > 0) {
-                // valid parameter names starts with letters
-                const paramName = paramsArr[index].substring(0, eqIndex);
-                const paramValue = paramsArr[index].substring(eqIndex + 1);
-                switch (paramName) {
-                  case "note":
-                  case "xnote":
-                  case "label":
-                    note = paramValue;
-                    break;
-                  case "noteB64":
-                    noteB64 = paramValue;
-                    break;
-                  case "amount":
-                    amount = paramValue;
-                    break;
-                  case "asset":
-                    asset = paramValue;
-                    break;
-                  case "fee":
-                    fee = paramValue;
-                    break;
-                }
-              }
-            }
-
-            this.paynote = note;
-            if (this.isEncoded(this.paynote)) {
-              this.paynote = decodeURIComponent(this.paynote);
-            }
-
-            this.paynoteB64 = !!noteB64;
-            if (decimals !== undefined) {
-              if (amount) {
-                this.payamount = amount / Math.pow(10, decimals);
-              }
-              if (fee) {
-                this.fee = fee / Math.pow(10, decimals);
-              }
-            } else {
-              if (amount) {
-                this.payamount = amount;
-              }
-              if (fee) {
-                this.fee = fee;
-              }
-            }
-            if (asset) {
-              this.asset = asset;
-            }
-          }
-        } else {
-          this.payTo = result;
-          this.payTo = this.payTo.replace(/[^\w\s]/gi, "");
-        }
-      }
-      if (this.payTo) {
-        this.scan = false;
-      }
-    },
-    setMaxAmount(e) {
-      e.preventDefault();
-      this.payamount = this.maxAmount;
-    },
-    async addSignature(base64Tx) {
-      if (!base64Tx) return;
-      const tx1 = new Uint8Array(Buffer.from(this.rawSignedTxn, "base64"));
-      const tx2 = new Uint8Array(Buffer.from(base64Tx, "base64"));
-      const merged = algosdk.mergeMultisigTransactions([tx1, tx2]);
-      this.rawSignedTxn = Buffer.from(merged).toString("base64");
-      this.multisigDecoded = algosdk.decodeSignedTransaction(
-        this._base64ToArrayBuffer(this.rawSignedTxn)
-      );
-      await this.signerSetSigned({ signed: merged });
-    },
-    async combineSignatures(e) {
-      this.prolong();
-      e.preventDefault();
-      try {
-        await this.addSignature(this.rawSignedTxnFriend);
-        this.showFormCombine = false;
-      } catch (e) {
-        this.openError(e.message);
-      }
-    },
-    retToWalletConnect() {
-      this.$router.push({ name: "Connect" });
-    },
-    async sign2FAClick(e) {
-      try {
-        this.prolong();
-        e.preventDefault();
-        const newTx = await this.signTwoFactor({
-          rawSignedTxnInput: this.rawSignedTxnInput,
-          secondaryAccount: this.accountFor2FA.recoveryAccount,
-          txtCode: this.txtCode,
-          authToken: this.accountFor2FAAuthToken,
-          twoFactorAuthProvider: this.accountFor2FAProvider,
-        });
-        await this.addSignature(newTx);
-      } catch (err) {
-        const error = err.message ?? err;
-        console.error("failed to sign 2fa tx", error, err);
-        await this.openError(error);
-      }
-    },
-    loadAuthToken() {
-      if (!this.accountFor2FARealm) return false;
-      if (!this.$store.state.arc14.address2chain2realm2token) return false;
-      if (
-        !this.$store.state.arc14.address2chain2realm2token[
-          this.$store.state.config.env
-        ]
-      )
-        return false;
-      if (
-        !this.$store.state.arc14.address2chain2realm2token[
-          this.$store.state.config.env
-        ][this.accountFor2FAAddr]
-      )
-        return false;
-      if (
-        !this.$store.state.arc14.address2chain2realm2token[
-          this.$store.state.config.env
-        ][this.accountFor2FAAddr][this.accountFor2FARealm]
-      )
-        return false;
-      var token =
-        this.$store.state.arc14.address2chain2realm2token[
-          this.$store.state.config.env
-        ][this.accountFor2FAAddr][this.accountFor2FARealm];
-      this.accountFor2FAAuthToken = token;
-    },
-
-    async authorizePrimaryAccountClick(e) {
-      this.prolong();
-      e.preventDefault();
-      this.accountFor2FAAuthToken = await this.signAuthTx({
-        account: this.accountFor2FAAddrPrimary,
-        realm: this.accountFor2FARealm,
+      const rawSignedTxnData = await signerCreateMultisigTransaction({
+        txn: state.txn,
+        from: payFrom.value,
       });
-    },
-    toggleShowFormSend(e) {
-      this.prolong();
-      e.preventDefault();
-      this.showFormSend = !this.showFormSend;
-    },
-    toggleShowFormCombine(e) {
-      this.prolong();
-      e.preventDefault();
-      this.showFormCombine = !this.showFormCombine;
-    },
-  },
+      const encodedTxn = arrayBufferToBase64(rawSignedTxnData);
+      state.rawSignedTxn = encodedTxn;
+      state.rawSignedTxnInput = encodedTxn;
+
+      state.multisigDecoded = algosdk.decodeSignedTransaction(
+        base64ToArrayBuffer(state.rawSignedTxnInput)
+      );
+      state.note = state.txn?.note ?? null;
+      if (state.txn?.assetIndex !== undefined) {
+        state.asset = state.txn.assetIndex;
+      }
+      state.page = "review";
+
+      const b64Url = base642base64url(encodedTxn);
+      router.push(`/sign/${payFrom.value}/` + b64Url);
+    } catch (err) {
+      console.error("Input is not valid base64-url format ", err);
+    }
+  }
+  const rawSignedTxnParam = toSingleParam(
+    route.params.rawSignedTxnInput as string | string[] | undefined
+  );
+  if (rawSignedTxnParam) {
+    try {
+      const b64 = base64url2base64(rawSignedTxnParam);
+      const uint8buffer = base64ToArrayBuffer(b64);
+
+      state.txn = algosdk.decodeUnsignedTransaction(uint8buffer);
+      if (state.txn?.to) {
+        state.payTo = algosdk.encodeAddress(state.txn.to.publicKey);
+      }
+      state.note = state.txn?.note ?? null;
+      if (state.txn?.assetIndex !== undefined) {
+        state.asset = state.txn.assetIndex;
+      }
+      state.page = "review";
+      router.push(
+        `/sign/${payFrom.value}/` + base642base64url(rawSignedTxnParam)
+      );
+    } catch (err) {
+      console.error("Input is not valid base64-url format ", err);
+    }
+  }
+  const accountParam = toSingleParam(
+    route.params.account as string | string[] | undefined
+  );
+  if (accountParam) {
+    await lastActiveAccount({ addr: accountParam });
+  }
+  await makeAssets();
+
+  if (
+    store.state.wallet.privateAccounts &&
+    store.state.wallet.privateAccounts.length === 1
+  ) {
+    state.payFromDirect = store.state.wallet.privateAccounts[0].addr;
+  }
+
+  if (isRekey.value && accountData.value?.addr) {
+    state.payTo = accountData.value.addr;
+  }
+  if (state.payTo && !state.payFromDirect) {
+    state.payFromDirect = state.payTo;
+  }
+
+  if (accountFor2FAProvider.value) {
+    try {
+      state.accountFor2FARealm = await getRealm({
+        twoFactorAuthProvider: accountFor2FAProvider.value,
+      });
+      loadAuthToken();
+    } catch (err) {
+      const errMsg = err.message ?? err;
+      console.error("failed to request realm", errMsg, err);
+      await openError(errMsg);
+    }
+  }
+});
+
+const isBase64 = (str) => {
+  try {
+    const decoded1 = Buffer.from(str, "base64").toString("utf8");
+    const encoded2 = Buffer.from(decoded1, "binary").toString("base64");
+    return str == encoded2;
+  } catch {
+    return false;
+  }
+};
+
+const makeAssets = async () => {
+  state.assets = [];
+  if (accountData.value) {
+    const balance = formatCurrency(
+      accountData.value.amount,
+      tokenSymbol.value,
+      6
+    );
+    state.assets.push({
+      "asset-id": "0",
+      amount: accountData.value.amount,
+      name: tokenSymbol.value,
+      decimals: 6,
+      "unit-name": tokenSymbol.value,
+      type: "Native",
+      label: `${tokenSymbol.value} (Native token) Balance: ${balance}`,
+    });
+  } else {
+    const balance = formatCurrency(0, tokenSymbol.value, 6);
+    state.assets.push({
+      "asset-id": "0",
+      amount: 0,
+      name: tokenSymbol.value,
+      decimals: 6,
+      "unit-name": tokenSymbol.value,
+      type: "Native",
+      label: `${tokenSymbol.value} (Native token) Balance: ${balance}`,
+    });
+  }
+  if (isRekey.value) return;
+  if (accountData.value) {
+    const asaList = accountData.value.assets || [];
+    for (const accountAsset of asaList) {
+      try {
+        const assetInfo = await getAsset({
+          assetIndex: accountAsset["asset-id"],
+        });
+        if (assetInfo) {
+          const balance = formatCurrency(
+            accountAsset["amount"],
+            assetInfo["unit-name"] ? assetInfo["unit-name"] : assetInfo["name"],
+            assetInfo["decimals"]
+          );
+          state.assets.push({
+            "asset-id": accountAsset["asset-id"],
+            amount: accountAsset["amount"],
+            name: assetInfo["name"],
+            decimals: assetInfo["decimals"],
+            "unit-name": assetInfo["unit-name"],
+            type: "ASA",
+            label: `${assetInfo["name"]} (ASA ${accountAsset["asset-id"]}) Balance: ${balance}`,
+          });
+        } else {
+          console.error("Asset not loaded", accountAsset["asset-id"]);
+        }
+      } catch (err) {
+        console.error("Asset load failed", accountAsset["asset-id"], err);
+      }
+    }
+
+    if (accountData.value.arc200) {
+      for (const accountAsset of Object.values(accountData.value.arc200)) {
+        const balance = formatCurrency(
+          accountAsset.balance,
+          accountAsset.symbol ? accountAsset.symbol : accountAsset.name,
+          accountAsset.decimals
+        );
+        state.assets.push({
+          "asset-id": Number(accountAsset.arc200id),
+          amount: Number(accountAsset.balance),
+          name: accountAsset.name,
+          decimals: Number(accountAsset.decimals),
+          "unit-name": accountAsset.symbol,
+          type: "ARC200",
+          label: `${accountAsset.name} (ARC200 ${accountAsset.arc200id}) Balance: ${balance}`,
+        });
+      }
+    }
+  }
+
+  const toAccountParam = toSingleParam(
+    route.params.toAccount as string | string[] | undefined
+  );
+  if (toAccountParam) {
+    parseToAccount(toAccountParam);
+  }
+};
+
+const reset = () => {
+  state.subpage = "";
+  state.error = "";
+  state.confirmedRound = "";
+  state.processing = true;
+  state.page = "review";
+  state.signMultisigWith = [];
+  state.rawSignedTxn = "";
+  state.rawSignedTxnInput = "";
+};
+
+const parseToAccount = (encodedValue?: string) => {
+  const encoded =
+    encodedValue ??
+    toSingleParam(route.params.toAccount as string | string[] | undefined);
+  if (!encoded) return;
+  const parsed = aprotocol.parseAlgorandProtocolParameters(encoded);
+  if (!parsed) return;
+  state.payTo = (parsed.payTo || "").replace(/[^\w\s]/gi, "");
+  if (parsed.payamountbase !== undefined) {
+    state.payamount = Number(parsed.payamountbase) / decimalsPower.value;
+  }
+  if (parsed.asset) {
+    state.asset = parsed.asset;
+    state.forceAsset = true;
+  }
+  if (parsed.paynote) {
+    state.paynote = parsed.paynote;
+  }
+  if (parsed.fee) {
+    state.fee = Number(parsed.fee);
+  }
+  if (parsed.network && parsed.network != envName.value) {
+    setEnv({ env: parsed.network });
+  }
+};
+
+const previewPaymentClick = async (e) => {
+  try {
+    const assetMeta = state.assets.find((a) => a["asset-id"] == state.asset);
+    if (!assetMeta) {
+      console.error("no asset selected");
+      return;
+    }
+    if (assetMeta.type == "ASA") {
+      await redirectToASAPayment();
+    }
+    if (assetMeta.type == "Native") {
+      await redirectToNativePayment();
+    }
+    if (assetMeta.type == "ARC200") {
+      await redirectToARC200Payment();
+    }
+    state.error = "";
+    state.confirmedRound = "";
+    state.tx = null;
+
+    state.processing = false;
+    prolong();
+    e?.preventDefault();
+  } catch (err) {
+    console.error("previewPaymentClick.error", err);
+    await openError(err.message ?? err);
+  }
+};
+
+const redirectToASAPayment = async () => {
+  try {
+    const enc = new TextEncoder();
+    let noteEnc = enc.encode(state.paynote);
+    const txData = await preparePayment({
+      payTo: state.payTo,
+      payFrom: payFrom.value,
+      amount: amountLong.value,
+      noteEnc,
+      fee: feeLong.value,
+      asset: state.asset,
+      reKeyTo: state.rekeyTo ? state.rekeyTo : undefined,
+    });
+    const encodedTx = algosdk.encodeUnsignedTransaction(txData);
+    const b64 = Buffer.from(encodedTx).toString("base64");
+    const b64Url = base642base64url(b64);
+    router.push(`/sign/${payFrom.value}/` + b64Url);
+  } catch (err) {
+    console.error("redirectToASAPayment.error", err);
+    await openError(err.message ?? err);
+  }
+};
+
+const redirectToNativePayment = async () => {
+  try {
+    const enc = new TextEncoder();
+    let noteEnc = enc.encode(state.paynote);
+    const txData = await preparePayment({
+      payTo: state.payTo,
+      payFrom: payFrom.value,
+      amount: amountLong.value,
+      noteEnc,
+      fee: feeLong.value,
+      asset: state.asset,
+      reKeyTo: state.rekeyTo ? state.rekeyTo : undefined,
+    });
+    const encodedTx = algosdk.encodeUnsignedTransaction(txData);
+    const b64 = Buffer.from(encodedTx).toString("base64");
+    const b64Url = base642base64url(b64);
+    router.push(`/sign/${payFrom.value}/` + b64Url);
+  } catch (err) {
+    console.error("redirectToNativePayment.error", err);
+    await openError(err.message ?? err);
+  }
+};
+
+const accountIsOptedInToArc200Asset = async (addr) => {
+  const indexerClient = await getIndexer();
+  const fromDecoded = algosdk.decodeAddress(addr);
+  const boxName = new Uint8Array(
+    Buffer.concat([Buffer.from([0x00]), Buffer.from(fromDecoded.publicKey)])
+  );
+  const appId = Number(state.asset);
+  if (!appId) {
+    return false;
+  }
+  try {
+    await indexerClient.lookupApplicationBoxByIDandName(appId, boxName).do();
+    return true;
+  } catch (exc) {
+    if (exc.message?.indexOf("no application boxes found") >= 0) {
+      return false;
+    }
+    console.error(exc);
+    throw exc;
+  }
+};
+
+const redirectToARC200Payment = async () => {
+  try {
+    const algod = await getAlgod();
+    const appId = Number(state.asset);
+    const client = getArc200Client({
+      algod,
+      appId,
+      sender: { addr: payFrom.value },
+    });
+    const fromDecoded = algosdk.decodeAddress(payFrom.value);
+    const toDecoded = algosdk.decodeAddress(state.payTo);
+    const boxFromDirect = {
+      appIndex: appId,
+      name: new Uint8Array(Buffer.from(fromDecoded.publicKey)),
+    };
+    const boxFromPlainAddr = {
+      appIndex: appId,
+      name: new Uint8Array(Buffer.from(payFrom.value, "ascii")),
+    };
+    const boxFrom = {
+      appIndex: appId,
+      name: new Uint8Array(
+        Buffer.concat([Buffer.from([0x00]), Buffer.from(fromDecoded.publicKey)])
+      ),
+    };
+    const boxToDirect = {
+      appIndex: appId,
+      name: new Uint8Array(Buffer.from(toDecoded.publicKey)),
+    };
+    const boxToPlainAddr = {
+      appIndex: appId,
+      name: new Uint8Array(Buffer.from(state.payTo, "ascii")),
+    };
+    const boxTo = {
+      appIndex: appId,
+      name: new Uint8Array(
+        Buffer.concat([Buffer.from([0x00]), Buffer.from(toDecoded.publicKey)])
+      ),
+    };
+    const compose = client.compose().arc200Transfer(
+      { to: state.payTo, value: BigInt(amountLong.value) },
+      {
+        boxes: [
+          boxFrom,
+          boxFromDirect,
+          boxFromPlainAddr,
+          boxToPlainAddr,
+          boxTo,
+          boxToDirect,
+        ],
+      }
+    );
+
+    const enc = new TextEncoder();
+    const noteEnc = enc.encode("g");
+    const atc = await compose.atc();
+    const txsToSignArc200 = atc.buildGroup().map((tx) => tx.txn);
+    const optedIn = await accountIsOptedInToArc200Asset(state.payTo);
+    if (!optedIn) {
+      const payTx = await preparePayment({
+        payTo: algosdk.getApplicationAddress(appId),
+        payFrom: payFrom.value,
+        amount: 28500,
+        noteEnc,
+        fee: undefined,
+        asset: undefined,
+        reKeyTo: undefined,
+      });
+      const txsToSign = [payTx, ...txsToSignArc200];
+      algosdk.assignGroupID(txsToSign);
+      await signerToSignArray({ txs: txsToSign });
+      await router.push("/signAll");
+    } else {
+      state.tx = txsToSignArc200[0];
+      const encoded = base642base64url(
+        Buffer.from(algosdk.encodeUnsignedTransaction(state.tx)).toString(
+          "base64"
+        )
+      );
+      router.push(`/sign/${payFrom.value}/${encoded}`);
+    }
+  } catch (err) {
+    console.error("redirectToARC200Payment.error", err);
+    await openError(err.message ?? err);
+  }
+};
+
+const payMultisig = async () => {
+  prolong();
+  const enc = new TextEncoder();
+  const noteEnc = enc.encode(state.paynote);
+  if (!state.txn) {
+    const data = {
+      payTo: state.payTo,
+      payFrom: payFrom.value,
+      amount: amountLong.value,
+      noteEnc,
+      fee: 1000,
+      asset: state.assetObj["asset-id"],
+    };
+    if (state.rekeyTo) {
+      data.reKeyTo = state.rekeyTo;
+    }
+    state.txn = await preparePayment(data);
+  }
+  const rawSignedTxnData = algosdk.createMultisigTransaction(
+    state.txn,
+    multisigParams.value
+  );
+  state.rawSignedTxn = arrayBufferToBase64(rawSignedTxnData);
+  state.rawSignedTxnInput = state.rawSignedTxn;
+
+  state.multisigDecoded = algosdk.decodeSignedTransaction(
+    base64ToArrayBuffer(state.rawSignedTxnInput)
+  );
+};
+
+const signMultisig = async (e) => {
+  prolong();
+  e?.preventDefault();
+  let rawSigned = null;
+  if (state.rawSignedTxnInput) {
+    rawSigned = base64ToArrayBuffer(state.rawSignedTxnInput);
+  }
+  const selected = Object.values(state.signMultisigWith);
+  if (
+    multisigParams.value &&
+    typeof multisigParams.value.threshold === "string"
+  ) {
+    multisigParams.value.threshold = parseInt(multisigParams.value.threshold);
+  }
+  if (!rawSigned) {
+    rawSigned = await signerCreateMultisigTransaction({
+      txn: state.txn,
+      from: payFrom.value,
+    });
+  }
+  for (const acc of accountsFromMultisig.value) {
+    if (!acc?.addr) continue;
+    if (!selected.includes(acc.addr)) {
+      continue;
+    }
+    try {
+      const newTx = await signerSignMultisig({
+        msigTx: rawSigned,
+        signator: acc.addr,
+        txn: state.txn,
+      });
+      await addSignature(newTx);
+    } catch (err) {
+      await openError(err.message ?? err);
+    }
+  }
+};
+
+const arrayBufferToBase64 = (buffer) => {
+  let binary = "";
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+};
+
+const base64ToArrayBuffer = (base64) => {
+  const binaryString = window.atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+};
+
+const base64url2base64 = (input) => {
+  let output = input.replaceAll(/-/g, "+").replaceAll(/_/g, "/");
+  const pad = output.length % 4;
+  if (pad) {
+    if (pad === 1) {
+      throw new Error(
+        "InvalidLengthError: Input base64url string is the wrong length to determine padding"
+      );
+    }
+    output += new Array(5 - pad).join("=");
+  }
+  return output;
+};
+
+const base642base64url = (input) =>
+  input.replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+
+const payPaymentClick = async (e) => {
+  prolong();
+  e?.preventDefault();
+  try {
+    if (isMultisig.value) {
+      await payMultisig();
+      return;
+    }
+    reset();
+    prolong();
+    const enc = new TextEncoder();
+    let noteEnc = enc.encode(state.paynote);
+    if (state.paynoteB64) {
+      try {
+        noteEnc = Uint8Array.from(base64ToArrayBuffer(state.paynote));
+        if (!noteEnc) {
+          noteEnc = enc.encode(state.paynote);
+        }
+      } catch (err) {
+        console.error("Error converting b64 to array", err);
+      }
+    }
+    if (!isRekey.value) {
+      state.rekeyTo = undefined;
+    }
+    state.tx = await makePayment({
+      payTo: state.payTo,
+      payFrom: payFrom.value,
+      amount: amountLong.value,
+      noteEnc,
+      fee: feeLong.value,
+      asset: state.asset,
+      reKeyTo: state.rekeyTo,
+    });
+    if (!state.tx) {
+      console.error("makePayment has failed");
+      state.processing = false;
+      state.error = t("pay.state_error_not_sent");
+
+      const search = "should have been authorized by ";
+      const lastError = store.state.toast.lastError;
+      if (lastError && lastError.indexOf(search) > 0) {
+        const start = lastError.indexOf(search);
+        const msg = lastError.substring(start + search.length);
+        const spaceIndex = msg.indexOf(" ");
+        if (spaceIndex > 0) {
+          const rekeyedTo = msg.substring(0, spaceIndex);
+          const info = { address: payFrom.value, rekeyedTo };
+          await updateAccount({ info });
+          await openSuccess(
+            `Information about rekeying to address ${rekeyedTo} has been stored`
+          );
+        }
+      }
+      return;
+    }
+    const confirmationResult = await waitForConfirmation({
+      txId: state.tx,
+      timeout: 4,
+    });
+    if (!confirmationResult) {
+      console.error("confirmation not received for tx");
+      state.processing = false;
+      state.error = t("pay.state_error_not_sent");
+      return;
+    }
+    if (confirmationResult["confirmed-round"]) {
+      state.processing = false;
+      state.confirmedRound = confirmationResult["confirmed-round"];
+
+      if (state.rekeyTo) {
+        const info = { address: payFrom.value, rekeyedTo: state.rekeyTo };
+        await updateAccount({ info });
+        await openSuccess(
+          `Information about rekeying to address ${state.rekeyTo} has been stored`
+        );
+      }
+    }
+    if (confirmationResult["pool-error"]) {
+      state.processing = false;
+      state.error = confirmationResult["pool-error"];
+    }
+  } catch (exc) {
+    state.error = exc;
+  }
+};
+
+const loadMultisig = (e) => {
+  prolong();
+  if (e) {
+    e.preventDefault();
+  }
+  if (!state.rawSignedTxnInput) return;
+  state.multisigDecoded = algosdk.decodeSignedTransaction(
+    base64ToArrayBuffer(state.rawSignedTxnInput)
+  );
+  state.txn = state.multisigDecoded.txn;
+  state.rawSignedTxn = state.rawSignedTxnInput;
+
+  router.push(
+    `/sign/${payFrom.value}/` + base642base64url(state.rawSignedTxnInput)
+  );
+
+  state.page = "review";
+  if (
+    state.multisigDecoded?.msig &&
+    typeof state.multisigDecoded.msig.thr === "string"
+  ) {
+    state.multisigDecoded.msig.thr = parseInt(state.multisigDecoded.msig.thr);
+  }
+};
+
+const encodeAddress = (addr) => algosdk.encodeAddress(addr);
+
+const sendMultisig = async (e) => {
+  prolong();
+  state.error = "";
+
+  state.processing = true;
+  try {
+    e?.preventDefault();
+    const signedTxn = base64ToArrayBuffer(state.rawSignedTxn);
+    let errorMessage = "";
+    try {
+      const transaction = await sendRawTransaction({ signedTxn });
+      state.tx = transaction.txId;
+    } catch (err) {
+      await openError(err.message);
+      console.error(err);
+      errorMessage = err.message;
+    }
+    if (!state.tx) {
+      state.processing = false;
+      state.error = t("pay.state_error_not_sent");
+
+      const search = "should have been authorized by ";
+      if (errorMessage && errorMessage.indexOf(search) > 0) {
+        const start = errorMessage.indexOf(search);
+        const msg = errorMessage.substring(start + search.length);
+        const spaceIndex = msg.indexOf(" ");
+        if (spaceIndex > 0) {
+          const rekeyedTo = msg.substring(0, spaceIndex);
+          const info = { address: payFrom.value, rekeyedTo };
+          await updateAccount({ info });
+          await openSuccess(
+            `Information about rekeying to address ${rekeyedTo} has been stored`
+          );
+        }
+      }
+      return;
+    }
+    const confirmationResult = await waitForConfirmation({
+      txId: state.tx,
+      timeout: 4,
+    });
+    if (confirmationResult["confirmed-round"]) {
+      state.processing = false;
+      state.confirmedRound = confirmationResult["confirmed-round"];
+    }
+    if (confirmationResult["pool-error"]) {
+      state.processing = false;
+      state.error = confirmationResult["pool-error"];
+    }
+  } catch (err) {
+    state.processing = false;
+    state.error = err;
+  }
+};
+
+const toggleCamera = (e) => {
+  e?.preventDefault();
+  state.scan = !state.scan;
+  if (state.scan) {
+    state.payTo = "";
+  }
+};
+
+const test = (e) => {
+  e?.preventDefault();
+  const tests = [
+    "015LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U",
+    "algorand://025LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?&note=123",
+    "algorand://035LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?&note=234&&",
+    "algorand://045LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?xnote=345&fee=3&amount=1000&asset=456",
+    "algorand://046LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?note=SGVsbG8=&noteB64=1&fee=0.001&amount=1",
+  ];
+  tests.forEach((sample) => onDecodeQR(sample));
+};
+
+const isEncoded = (uri = "") => uri !== decodeURIComponent(uri);
+
+const onDecodeQR = (result) => {
+  if (state.scan && result) {
+    if (
+      result.startsWith("algorand://") ||
+      result.startsWith("web+algorand://")
+    ) {
+      let parsed = result.replace("web+algorand://", "");
+      parsed = parsed.replace("algorand://", "");
+      const qIndex = parsed.indexOf("?");
+      if (qIndex < 0) {
+        state.payTo = parsed.replace(/[^\w\s]/gi, "");
+      } else {
+        state.payTo = parsed.substring(0, qIndex).replace(/[^\w\s]/gi, "");
+        const params = parsed.substring(qIndex + 1).split("&");
+
+        let noteValue;
+        let noteB64;
+        let amount;
+        let decimalsValue;
+        let assetValue;
+        let feeValue;
+
+        for (const param of params) {
+          const eqIndex = param.indexOf("=");
+          if (eqIndex > 0) {
+            const paramName = param.substring(0, eqIndex);
+            const paramValue = param.substring(eqIndex + 1);
+            switch (paramName) {
+              case "note":
+              case "xnote":
+              case "label":
+                noteValue = paramValue;
+                break;
+              case "noteB64":
+                noteB64 = paramValue;
+                break;
+              case "amount":
+                amount = paramValue;
+                break;
+              case "asset":
+                assetValue = paramValue;
+                break;
+              case "fee":
+                feeValue = paramValue;
+                break;
+            }
+          }
+        }
+
+        state.paynote = noteValue;
+        if (isEncoded(state.paynote)) {
+          state.paynote = decodeURIComponent(state.paynote);
+        }
+
+        state.paynoteB64 = !!noteB64;
+        if (decimalsValue !== undefined) {
+          if (amount) {
+            state.payamount = amount / Math.pow(10, decimalsValue);
+          }
+          if (feeValue) {
+            state.fee = feeValue / Math.pow(10, decimalsValue);
+          }
+        } else {
+          if (amount) {
+            state.payamount = amount;
+          }
+          if (feeValue) {
+            state.fee = feeValue;
+          }
+        }
+        if (assetValue) {
+          state.asset = assetValue;
+        }
+      }
+    } else {
+      state.payTo = result.replace(/[^\w\s]/gi, "");
+    }
+  }
+  if (state.payTo) {
+    state.scan = false;
+  }
+};
+
+const setMaxAmount = (e) => {
+  e?.preventDefault();
+  state.payamount = maxAmount.value;
+};
+
+const addSignature = async (base64Tx) => {
+  if (!base64Tx) return;
+  const tx1 = new Uint8Array(Buffer.from(state.rawSignedTxn, "base64"));
+  const tx2 = new Uint8Array(Buffer.from(base64Tx, "base64"));
+  const merged = algosdk.mergeMultisigTransactions([tx1, tx2]);
+  state.rawSignedTxn = Buffer.from(merged).toString("base64");
+  state.multisigDecoded = algosdk.decodeSignedTransaction(
+    base64ToArrayBuffer(state.rawSignedTxn)
+  );
+  await signerSetSigned({ signed: merged });
+};
+
+const combineSignatures = async (e) => {
+  prolong();
+  e?.preventDefault();
+  try {
+    await addSignature(state.rawSignedTxnFriend);
+    state.showFormCombine = false;
+  } catch (err) {
+    await openError(err.message ?? err);
+  }
+};
+
+const retToWalletConnect = () => {
+  router.push({ name: "Connect" });
+};
+
+const sign2FAClick = async (e) => {
+  try {
+    prolong();
+    e?.preventDefault();
+    if (!accountFor2FA.value) return;
+    const newTx = await signTwoFactor({
+      rawSignedTxnInput: state.rawSignedTxnInput,
+      secondaryAccount: accountFor2FA.value.recoveryAccount,
+      txtCode: state.txtCode,
+      authToken: state.accountFor2FAAuthToken,
+      twoFactorAuthProvider: accountFor2FAProvider.value,
+    });
+    await addSignature(newTx);
+  } catch (err) {
+    const errorMsg = err.message ?? err;
+    console.error("failed to sign 2fa tx", errorMsg, err);
+    await openError(errorMsg);
+  }
+};
+
+const loadAuthToken = () => {
+  if (!state.accountFor2FARealm) return false;
+  const arc14State = store.state.arc14.address2chain2realm2token;
+  if (!arc14State) return false;
+  const envTokens = arc14State[envName.value];
+  if (!envTokens) return false;
+  const addrTokens = envTokens[accountFor2FAAddr.value];
+  if (!addrTokens) return false;
+  const token = addrTokens[state.accountFor2FARealm];
+  if (!token) return false;
+  state.accountFor2FAAuthToken = token;
+  return true;
+};
+
+const authorizePrimaryAccountClick = async (e) => {
+  prolong();
+  e?.preventDefault();
+  state.accountFor2FAAuthToken = await signAuthTx({
+    account: accountFor2FAAddrPrimary.value,
+    realm: state.accountFor2FARealm,
+  });
+};
+
+const toggleShowFormSend = (e) => {
+  prolong();
+  e?.preventDefault();
+  state.showFormSend = !state.showFormSend;
+};
+
+const toggleShowFormCombine = (e) => {
+  prolong();
+  e?.preventDefault();
+  state.showFormCombine = !state.showFormCombine;
 };
 </script>
