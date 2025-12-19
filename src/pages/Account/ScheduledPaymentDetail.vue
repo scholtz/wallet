@@ -42,6 +42,8 @@ type AccountAssetEntry = {
   "asset-id": number;
 };
 
+type AssetHolding = algosdk.modelsv2.AssetHolding;
+
 type AccountEnvData = {
   amount?: number;
   assets?: AccountAssetEntry[];
@@ -63,15 +65,28 @@ type GlobalStateEntry = {
 };
 
 const readGlobalState = (
-  params?: Record<string, unknown>
+  params?: algosdk.modelsv2.ApplicationParams | Record<string, unknown>
 ): GlobalStateEntry[] => {
   if (!params) return [];
+  const paramRecord = params as Record<string, unknown>;
   const raw =
-    (params["global-state"] as GlobalStateEntry[] | undefined) ??
-    (params["globalState" as keyof typeof params] as
+    (paramRecord["global-state"] as GlobalStateEntry[] | undefined) ??
+    (paramRecord["globalState" as keyof typeof paramRecord] as
       | GlobalStateEntry[]
       | undefined);
   return Array.isArray(raw) ? raw : [];
+};
+
+const normalizeAccountAssets = (
+  assets?: AssetHolding[]
+): AccountAssetEntry[] => {
+  if (!assets) return [];
+  return assets.map((asset) => ({
+    "asset-id": Number(
+      (asset as unknown as AccountAssetEntry)["asset-id"] ?? asset.assetId ?? 0
+    ),
+    amount: Number(asset.amount ?? 0),
+  }));
 };
 
 interface EscrowAssetRow {
@@ -228,9 +243,7 @@ const loadTableData = async () => {
     // );
     const poolAppId = getPoolManagerApp(store.state.config.env);
     const poolApp = await algod.getApplicationByID(poolAppId).do();
-    const poolState = readGlobalState(
-      poolApp.params as Record<string, unknown>
-    );
+    const poolState = readGlobalState(poolApp.params);
     const fa = poolState.find((kv) => kv.key == "ZmE=")?.value.uint ?? 0;
     state.feeAssetId = fa;
     state.feeAssetData = (await store.dispatch("indexer/getAsset", {
@@ -248,7 +261,7 @@ const loadTableData = async () => {
     const data = parseBoxData(boxApp.value);
 
     const app = await algod.getApplicationByID(appId).do();
-    const appState = readGlobalState(app.params as Record<string, unknown>);
+    const appState = readGlobalState(app.params);
     const s = appState.find((kv) => kv.key == "cw==")?.value.uint ?? 0;
     const p = appState.find((kv) => kv.key == "cA==")?.value.uint ?? 0;
     state.appInfo = {
@@ -273,8 +286,9 @@ const loadTableData = async () => {
       assetName: info.name,
       info: info,
     });
-    const accountAssets =
-      (account?.account?.assets as AccountAssetEntry[]) ?? [];
+    const accountAssets = normalizeAccountAssets(
+      account?.account?.assets as AssetHolding[] | undefined
+    );
     for (const asset of accountAssets) {
       const assetId = asset["asset-id"] ?? 0;
       const infoA = (await store.dispatch("indexer/getAsset", {
@@ -538,7 +552,7 @@ const loadScript = async () => {
     const algod = (await store.dispatch("algod/getAlgod")) as algosdk.Algodv2;
     const app = await algod.getApplicationByID(state.appInfo.appId).do();
 
-    const globalState = readGlobalState(app.params as Record<string, unknown>);
+    const globalState = readGlobalState(app.params);
     const fileBytes = globalState.find((kv) => kv.key == "aWQ=")?.value.bytes;
     if (!fileBytes) {
       throw new Error("Script identifier not found in global state");

@@ -352,7 +352,8 @@ import { QrcodeStream } from "qrcode-reader-vue3";
 import aprotocol from "../shared/algorand-protocol-parse";
 import MainLayout from "../layouts/Main.vue";
 import algosdk from "algosdk";
-import type { Transaction } from "algosdk";
+import type { Transaction, TransactionWithSigner, MultisigMetadata } from "algosdk";
+import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import SelectAccount from "../components/SelectAccount.vue";
 import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
@@ -397,10 +398,7 @@ interface WalletAccount {
   addr?: string;
   name?: string;
   data?: Record<string, AccountNetworkData>;
-  params?: {
-    addrs: string[];
-    threshold: number | string;
-  };
+  params?: MultisigMetadata;
   primaryAccount?: string;
   recoveryAccount?: string;
   twoFactorAuthProvider?: string;
@@ -1186,10 +1184,18 @@ const redirectToARC200Payment = async () => {
   try {
     const algod = await getAlgod();
     const appId = Number(state.asset);
+    if (!Number.isFinite(appId) || appId <= 0) {
+      throw new Error("Invalid ARC200 application id");
+    }
+    const algorandClient = AlgorandClient.fromClients({ algod });
     const client = getArc200Client({
-      algod,
-      appId,
-      sender: { addr: payFrom.value },
+      algorand: algorandClient,
+      appId: BigInt(appId),
+      appName: undefined,
+      approvalSourceMap: undefined,
+      clearSourceMap: undefined,
+      defaultSender: payFrom.value,
+      defaultSigner: undefined,
     });
     const fromDecoded = algosdk.decodeAddress(payFrom.value);
     const toDecoded = algosdk.decodeAddress(state.payTo);
@@ -1221,7 +1227,9 @@ const redirectToARC200Payment = async () => {
         Buffer.concat([Buffer.from([0x00]), Buffer.from(toDecoded.publicKey)])
       ),
     };
-    const compose = client.compose().arc200Transfer(
+    const compose = (client as unknown as { compose: () => any })
+      .compose()
+      .arc200Transfer(
       { to: state.payTo, value: BigInt(amountLong.value) },
       {
         boxes: [
@@ -1238,7 +1246,9 @@ const redirectToARC200Payment = async () => {
     const enc = new TextEncoder();
     const noteEnc = enc.encode("g");
     const atc = await compose.atc();
-    const txsToSignArc200 = atc.buildGroup().map((tx) => tx.txn);
+    const txsToSignArc200 = atc
+      .buildGroup()
+      .map((tx: TransactionWithSigner) => tx.txn);
     const optedIn = await accountIsOptedInToArc200Asset(state.payTo);
     if (!optedIn) {
       const payTx = await preparePayment({
@@ -1255,9 +1265,13 @@ const redirectToARC200Payment = async () => {
       await signerToSignArray({ txs: txsToSign });
       await router.push("/signAll");
     } else {
-      state.tx = txsToSignArc200[0];
+      const firstTxn = txsToSignArc200[0];
+      if (!firstTxn) {
+        throw new Error("No ARC200 transaction available to sign");
+      }
+      state.tx = firstTxn;
       const encoded = base642base64url(
-        Buffer.from(algosdk.encodeUnsignedTransaction(state.tx)).toString(
+        Buffer.from(algosdk.encodeUnsignedTransaction(firstTxn)).toString(
           "base64"
         )
       );
@@ -1274,7 +1288,7 @@ const payMultisig = async () => {
   const enc = new TextEncoder();
   const noteEnc = enc.encode(state.paynote);
   if (!state.txn) {
-    const data = {
+    const data: Record<string, unknown> = {
       payTo: state.payTo,
       payFrom: payFrom.value,
       amount: amountLong.value,
@@ -1287,11 +1301,18 @@ const payMultisig = async () => {
     }
     state.txn = await preparePayment(data);
   }
+  if (!state.txn) {
+    throw new Error("Unable to prepare multisig transaction");
+  }
+  if (!multisigParams.value) {
+    throw new Error("Missing multisig metadata");
+  }
   const rawSignedTxnData = algosdk.createMultisigTransaction(
     state.txn,
     multisigParams.value
   );
-  state.rawSignedTxn = arrayBufferToBase64(rawSignedTxnData);
+  const rawSignedTxnBytes = new Uint8Array(rawSignedTxnData);
+  state.rawSignedTxn = arrayBufferToBase64(rawSignedTxnBytes.buffer);
   state.rawSignedTxnInput = state.rawSignedTxn;
 
   state.multisigDecoded = algosdk.decodeSignedTransaction(
@@ -1599,12 +1620,12 @@ const onDecodeQR = (result: string) => {
         state.payTo = parsed.substring(0, qIndex).replace(/[^\w\s]/gi, "");
         const params = parsed.substring(qIndex + 1).split("&");
 
-        let noteValue;
-        let noteB64;
-        let amount;
-        let decimalsValue;
-        let assetValue;
-        let feeValue;
+        let noteValue: string | undefined;
+        let noteB64: string | undefined;
+        let amountValue: string | undefined;
+        let decimalsValue: number | undefined;
+        let assetValue: string | undefined;
+        let feeValue: string | undefined;
 
         for (const param of params) {
           const eqIndex = param.indexOf("=");
@@ -1621,7 +1642,7 @@ const onDecodeQR = (result: string) => {
                 noteB64 = paramValue;
                 break;
               case "amount":
-                amount = paramValue;
+                amountValue = paramValue;
                 break;
               case "asset":
                 assetValue = paramValue;
@@ -1629,33 +1650,53 @@ const onDecodeQR = (result: string) => {
               case "fee":
                 feeValue = paramValue;
                 break;
+              case "decimals":
+                decimalsValue = Number(paramValue);
+                break;
             }
           }
         }
 
-        state.paynote = noteValue;
-        if (isEncoded(state.paynote)) {
+        state.paynote = noteValue ?? "";
+        if (state.paynote && isEncoded(state.paynote)) {
           state.paynote = decodeURIComponent(state.paynote);
         }
 
         state.paynoteB64 = !!noteB64;
-        if (decimalsValue !== undefined) {
-          if (amount) {
-            state.payamount = amount / Math.pow(10, decimalsValue);
+        if (
+          decimalsValue !== undefined &&
+          Number.isFinite(decimalsValue) &&
+          decimalsValue >= 0
+        ) {
+          if (amountValue) {
+            const parsedAmount = Number(amountValue);
+            if (!Number.isNaN(parsedAmount)) {
+              state.payamount = parsedAmount / Math.pow(10, decimalsValue);
+            }
           }
           if (feeValue) {
-            state.fee = feeValue / Math.pow(10, decimalsValue);
+            const parsedFee = Number(feeValue);
+            if (!Number.isNaN(parsedFee)) {
+              state.fee = parsedFee / Math.pow(10, decimalsValue);
+            }
           }
         } else {
-          if (amount) {
-            state.payamount = amount;
+          if (amountValue) {
+            const parsedAmount = Number(amountValue);
+            if (!Number.isNaN(parsedAmount)) {
+              state.payamount = parsedAmount;
+            }
           }
           if (feeValue) {
-            state.fee = feeValue;
+            const parsedFee = Number(feeValue);
+            if (!Number.isNaN(parsedFee)) {
+              state.fee = parsedFee;
+            }
           }
         }
         if (assetValue) {
-          state.asset = assetValue;
+          const parsedAsset = Number(assetValue);
+          state.asset = Number.isNaN(parsedAsset) ? assetValue : parsedAsset;
         }
       }
     } else {
@@ -1713,7 +1754,7 @@ const sign2FAClick = async (e: Event | undefined) => {
     });
     await addSignature(newTx);
   } catch (err) {
-    const errorMsg = err.message ?? err;
+    const errorMsg = toErrorMessage(err);
     console.error("failed to sign 2fa tx", errorMsg, err);
     await openError(errorMsg);
   }

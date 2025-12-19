@@ -72,12 +72,13 @@ type GlobalStateEntry = {
 };
 
 const readGlobalState = (
-  params?: Record<string, unknown>
+  params?: algosdk.modelsv2.ApplicationParams | Record<string, unknown>
 ): GlobalStateEntry[] => {
   if (!params) return [];
+  const paramRecord = params as Record<string, unknown>;
   const raw =
-    (params["global-state"] as GlobalStateEntry[] | undefined) ??
-    (params["globalState" as keyof typeof params] as
+    (paramRecord["global-state"] as GlobalStateEntry[] | undefined) ??
+    (paramRecord["globalState" as keyof typeof paramRecord] as
       | GlobalStateEntry[]
       | undefined);
   return Array.isArray(raw) ? raw : [];
@@ -204,9 +205,7 @@ const loadTableData = async () => {
     // );
     const poolAppId = getPoolManagerApp(store.state.config.env);
     const poolApp = await algod.getApplicationByID(poolAppId).do();
-    const poolState = readGlobalState(
-      poolApp.params as Record<string, unknown>
-    );
+    const poolState = readGlobalState(poolApp.params);
     const fa = poolState.find((kv) => kv.key == "ZmE=")?.value.uint ?? 0;
     state.feeAssetId = fa;
     state.feeAssetData = (await store.dispatch("indexer/getAsset", {
@@ -234,7 +233,7 @@ const loadTableData = async () => {
       const data = parseBoxData(boxApp.value);
 
       const app = await algod.getApplicationByID(appId).do();
-      const appState = readGlobalState(app.params as Record<string, unknown>);
+      const appState = readGlobalState(app.params);
       const s = appState.find((kv) => kv.key == "cw==")?.value.uint ?? 0;
       const p = appState.find((kv) => kv.key == "cA==")?.value.uint ?? 0;
       apps.push({

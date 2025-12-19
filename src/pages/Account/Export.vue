@@ -6,6 +6,7 @@ import { useStore } from "vuex";
 import { reactive } from "vue";
 import { JsonViewer } from "vue3-json-viewer";
 import { Shamir } from "@spliterati/shamir";
+import type { uint8 } from "@spliterati/uint8";
 import { Buffer } from "buffer";
 import algosdk from "algosdk";
 import { wordlist } from "@scure/bip39/wordlists/english";
@@ -54,6 +55,7 @@ const state = reactive<ExportState>({
 const toUint8Array = (input: number[] | Uint8Array): Uint8Array => {
   return input instanceof Uint8Array ? input : new Uint8Array(input);
 };
+const toUint8 = (value: number): uint8 => value as unknown as uint8;
 function concatTypedArrays(a: Uint8Array, b: Uint8Array): Uint8Array {
   // a, b TypedArray of same type
   //https://stackoverflow.com/questions/33702838/how-to-append-bytes-multi-bytes-and-buffer-to-arraybuffer-in-javascript
@@ -75,8 +77,8 @@ const shamirBackup = async () => {
     const secret = toUint8Array(state.json.sk);
     const shares = Shamir.split(
       secret.subarray(0, 32), // in first 32 bytes is the secret
-      state.shamirCount as unknown as number,
-      state.shamirMin as unknown as number
+      toUint8(state.shamirCount),
+      toUint8(state.shamirMin)
     );
     state.sh = shares;
     setShamirIndex(0);

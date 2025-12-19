@@ -12,9 +12,52 @@ const { t } = useI18n();
 const store = useStore<RootState>();
 const router = useRouter();
 
-const state = reactive({
+interface TransactionTableEntry {
+  txn: SignableTransaction;
+  index: number;
+  type: string;
+  from: string;
+  toBeSigned: boolean;
+}
+
+interface SignAllState {
+  expandedTransactions: TransactionTableEntry[];
+  selectedTransaction: TransactionTableEntry | null;
+  transactions: TransactionTableEntry[];
+  atLeastOneSigned: boolean;
+  allTxsAreSigned: boolean;
+  processing: boolean;
+  error: string;
+  confirmedRound: number;
+}
+
+type SignableTransaction = {
+  txID: () => string;
+  type: string;
+  from?: { publicKey: Uint8Array };
+  sender?: algosdk.Address;
+  to?: { publicKey: Uint8Array };
+  note?: Uint8Array;
+  firstRound?: number;
+  lastRound?: number;
+  fee?: number | bigint;
+  amount?: number | bigint;
+  assetIndex?: number | bigint;
+  group?: Uint8Array;
+  appIndex?: number | bigint;
+  appArgs?: Uint8Array[];
+  appAccounts?: Array<algosdk.Address | string>;
+  appForeignAssets?: Array<number | bigint>;
+  boxes?: Array<{ appIndex: number | bigint; name: Uint8Array }>;
+  genesisID?: string;
+  genesisHash?: Uint8Array;
+  rekeyTo?: algosdk.Address;
+  [key: string]: unknown;
+};
+
+const state = reactive<SignAllState>({
   expandedTransactions: [],
-  selectedTransaction: {},
+  selectedTransaction: null,
   transactions: [],
   atLeastOneSigned: false,
   allTxsAreSigned: false,
@@ -23,17 +66,26 @@ const state = reactive({
   confirmedRound: 0,
 });
 
+const toErrorMessage = (err: unknown): string =>
+  err instanceof Error ? err.message : String(err);
+
 onMounted(async () => {
   await store.dispatch("wallet/prolong");
 
-  const data = [];
+  const data: TransactionTableEntry[] = [];
   let index = 0;
-  for (const txn of store.state.signer.toSignArray) {
+  const toSignArray = (store.state.signer.toSignArray ?? []) as SignableTransaction[];
+  for (const txn of toSignArray) {
+    const fromAddress = txn.from
+      ? encodeAddress(txn.from)
+      : txn.sender
+      ? encodeAddress(txn.sender)
+      : "-";
     data.push({
       txn,
       index,
       type: txn.type,
-      from: algosdk.encodeAddress(txn.from.publicKey),
+      from: fromAddress,
       toBeSigned: await toBeSigned({ txn }),
     });
     index++;
@@ -43,27 +95,51 @@ onMounted(async () => {
   await checkAllTxsAreSigned();
 });
 
-const formatGenesisHash = (genesisHash) => {
+const formatGenesisHash = (genesisHash?: Uint8Array | number[]) => {
+  if (!genesisHash) return "";
   return Buffer.from(genesisHash).toString("base64");
 };
 
-const encodeAddress = (addr) => {
-  if (!addr || !addr.publicKey) return "-";
-  return algosdk.encodeAddress(addr.publicKey);
+const encodeAddress = (
+  addr?: algosdk.Address | { publicKey: Uint8Array } | string
+) => {
+  if (!addr) return "-";
+  if (typeof addr === "string") return addr;
+  if (addr instanceof Uint8Array) {
+    return algosdk.encodeAddress(addr);
+  }
+  if ("publicKey" in addr && addr.publicKey) {
+    return algosdk.encodeAddress(addr.publicKey);
+  }
+  return "-";
 };
-const toBeSigned = async (data) => {
+
+type TxnToSignPayload = {
+  txn: SignableTransaction;
+};
+
+const toBeSigned = async (data: TxnToSignPayload): Promise<boolean> => {
   const txId = data.txn.txID();
   const signed = txId in store.state.signer.signed;
   if (!signed) return true; // if not signed return true to show sign button
-  const from = encodeAddress(data.txn.from);
+  const from = data.txn.from
+    ? encodeAddress(data.txn.from)
+    : data.txn.sender
+    ? encodeAddress(data.txn.sender)
+    : "-";
   const type = await store.dispatch("signer/getSignerType", {
     from: from,
   });
   if (type == "msig") {
     // check sign threshold
-    const signedTx = algosdk.decodeSignedTransaction(
-      store.state.signer.signed[txId]
-    );
+    const signedPayload = store.state.signer.signed[txId];
+    if (!signedPayload) {
+      return true;
+    }
+    const signedTx = algosdk.decodeSignedTransaction(signedPayload);
+    if (!signedTx.msig) {
+      return false;
+    }
 
     const ret =
       signedTx.msig.subsig.filter((s) => !!s.s).length < signedTx.msig.thr;
@@ -72,22 +148,26 @@ const toBeSigned = async (data) => {
     return !signed;
   }
 };
-const formatAppAccount = (acc) => {
+const formatAppAccount = (acc: algosdk.Address | string) => {
   try {
+    if (typeof acc === "string") {
+      return acc;
+    }
     return algosdk.encodeAddress(acc.publicKey);
   } catch {
-    return acc;
+    return String(acc);
   }
 };
 
-const clickSign = async (data) => {
+const clickSign = async (data: TransactionTableEntry) => {
   const txId = data.txn.txID();
   const isSigned = txId in store.state.signer.signed;
   if (isSigned) {
     for (const index in state.transactions) {
-      if (state.transactions[index].txn.txID() == txId) {
-        state.transactions[index].toBeSigned = await toBeSigned({
-          txn: state.transactions[index].txn,
+      const entry = state.transactions[index];
+      if (entry?.txn.txID() == txId) {
+        entry.toBeSigned = await toBeSigned({
+          txn: entry.txn,
         });
       }
     }
@@ -114,9 +194,10 @@ const clickSign = async (data) => {
       tx: data.txn,
     });
     for (const index in state.transactions) {
-      if (state.transactions[index].txn.txID() == txId) {
-        state.transactions[index].toBeSigned = await toBeSigned({
-          txn: state.transactions[index].txn,
+      const entry = state.transactions[index];
+      if (entry?.txn.txID() == txId) {
+        entry.toBeSigned = await toBeSigned({
+          txn: entry.txn,
         });
       }
     }
@@ -124,14 +205,18 @@ const clickSign = async (data) => {
   await checkAtLeastOneSigned();
   await checkAllTxsAreSigned();
 };
-const base642base64url = (input) => {
+const base642base64url = (input: string) => {
   return input.replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 };
-const isASCIIText = (str) => {
+const isASCIIText = (str: string) => {
   return /^[\x20-\x7E]*$/.test(str);
 };
-const formatData = (arg, type) => {
+const formatData = (
+  arg: Uint8Array | number[] | undefined,
+  type: "Text" | "UInt" | "Hex" | "B64"
+) => {
   try {
+    if (!arg) return "";
     if (Buffer.from(arg).length == 0) return "";
     if (type == "Text") {
       if (!isASCIIText(Buffer.from(arg).toString("utf-8")))
@@ -144,17 +229,17 @@ const formatData = (arg, type) => {
     }
     if (type == "Hex") return `Hex: 0x${Buffer.from(arg).toString("hex")}`;
     if (type == "B64") return `B64: ${Buffer.from(arg).toString("base64")}`;
-    return arg;
+    return String(arg ?? "");
   } catch {
-    return arg;
+    return String(arg ?? "");
   }
 };
 
-const formatGroup = (group) => {
+const formatGroup = (group?: Uint8Array | number[] | Buffer) => {
   try {
     return group.toString("base64");
   } catch {
-    return group;
+    return String(group ?? "");
   }
 };
 const clickSignAll = async () => {
@@ -188,7 +273,7 @@ const submitSignedClick = async () => {
   try {
     state.processing = true;
     await store.dispatch("wallet/prolong");
-    const signed = [];
+    const signed: Array<Uint8Array | string> = [];
     for (const txTableObject of state.transactions) {
       const id = txTableObject.txn.txID();
       if (!(id in store.state.signer.signed)) {
@@ -236,7 +321,7 @@ const submitSignedClick = async () => {
     state.processing = false;
   } catch (exc) {
     console.error("submitSignedClick.error", exc);
-    state.error = exc.message ?? exc;
+    state.error = toErrorMessage(exc);
     store.dispatch("toast/openError", state.error);
   }
 };
@@ -247,17 +332,18 @@ const retToScheduledPayments = () => {
   });
 };
 
-const getAssetSync = (id) => {
-  const ret = store.state.indexer.assets.find((a) => a["asset-id"] == id);
-  return ret;
+const getAssetSync = (id: number) => {
+  const assets = store.state.indexer.assets as Array<Record<string, unknown>>;
+  const normalizedId = Number(id);
+  return assets.find((a) => Number(a["asset-id"]) === normalizedId);
 };
-const getAssetName = (id) => {
-  const asset = getAssetSync(id);
-  return asset.name;
+const getAssetName = (id: number) => {
+  const asset = getAssetSync(id) as { name?: string } | undefined;
+  return asset?.name ?? "";
 };
-const getAssetDecimals = (id) => {
-  const asset = getAssetSync(id);
-  return asset["decimals"];
+const getAssetDecimals = (id: number) => {
+  const asset = getAssetSync(id) as { decimals?: number } | undefined;
+  return Number(asset?.decimals ?? 0);
 };
 </script>
 <template>
@@ -273,9 +359,9 @@ const getAssetDecimals = (id) => {
         <div>
           <Button
             class="mr-1"
-            :disabled="state.allTxsAreSigned || state.confirmedRound"
+            :disabled="state.allTxsAreSigned || !!state.confirmedRound"
             :severity="
-              state.allTxsAreSigned || state.confirmedRound
+              state.allTxsAreSigned || !!state.confirmedRound
                 ? 'secondary'
                 : 'primary'
             "
@@ -285,10 +371,10 @@ const getAssetDecimals = (id) => {
           </Button>
           <Button
             :disabled="
-              !state.allTxsAreSigned || state.processing || state.confirmedRound
+              !state.allTxsAreSigned || state.processing || !!state.confirmedRound
             "
             :severity="
-              !state.allTxsAreSigned || state.processing || state.confirmedRound
+              !state.allTxsAreSigned || state.processing || !!state.confirmedRound
                 ? 'secondary'
                 : 'primary'
             "
