@@ -63,9 +63,9 @@ const createAccount = async () => {
   try {
     state.page = "newaccount";
     let account = algosdk.generateAccount();
-    state.a = account.addr;
+    state.a = account.addr.toString();
     state.w = algosdk.secretKeyToMnemonic(account.sk);
-  } catch (err) {
+  } catch (err: any) {
     const error = err.message ?? err;
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);
@@ -96,7 +96,7 @@ async function confirmCreate() {
     }
 
     router.push({ name: "Accounts" });
-  } catch (err) {
+  } catch (err: any) {
     const error = err.message ?? err;
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);

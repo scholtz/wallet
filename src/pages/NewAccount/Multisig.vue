@@ -91,16 +91,16 @@ const onAccountsChanged = () => {
 </script>
 <template>
   <MainLayout>
-    <h1>{{ $t("newacc.create_multisign_account") }}</h1>
+    <h1>{{ t("newacc.create_multisign_account") }}</h1>
 
     <Card>
       <template #content>
         <p>
-          {{ $t("newacc.multisig_help") }}
+          {{ t("newacc.multisig_help") }}
         </p>
         <div class="field grid">
           <label for="accounts" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("newacc.select_account_from_list") }}
+            {{ t("newacc.select_account_from_list") }}
           </label>
           <div class="col-12 md:col-10">
             <MultiSelect
@@ -119,7 +119,7 @@ const onAccountsChanged = () => {
             for="accountslist"
             class="col-12 mb-2 md:col-2 md:mb-0 vertical-align-top h-full"
           >
-            {{ $t("newacc.add_other_accounts") }}
+            {{ t("newacc.add_other_accounts") }}
           </label>
           <div class="col-12 md:col-10">
             <Textarea
@@ -133,7 +133,7 @@ const onAccountsChanged = () => {
         </div>
         <div class="field grid">
           <label for="threshold" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("newacc.trashold_help") }}
+            {{ t("newacc.trashold_help") }}
           </label>
           <div class="col-12 md:col-10">
             <p class="my-2">({{ state.multisignum }}/{{ countAccounts() }}):</p>
@@ -159,7 +159,7 @@ const onAccountsChanged = () => {
 
         <div class="field grid">
           <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("newacc.name") }}
+            {{ t("newacc.name") }}
           </label>
           <div class="col-12 md:col-10">
             <InputText id="name" v-model="state.name" class="form-control" />
@@ -170,10 +170,10 @@ const onAccountsChanged = () => {
           <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
           <div class="col-12 md:col-10">
             <Button class="m-1" @click="createMultisignClick">
-              {{ $t("newacc.create_account") }}
+              {{ t("newacc.create_account") }}
             </Button>
             <Button severity="secondary" class="m-1" @click="reset">
-              {{ $t("global.go_back") }}
+              {{ t("global.go_back") }}
             </Button>
           </div>
         </div>
