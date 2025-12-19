@@ -1,4 +1,5 @@
 import { createStore, Store, useStore as baseUseStore } from "vuex";
+import type { AlgodState } from "./algod";
 import type { WalletState } from "./wallet";
 import algod from "./algod";
 import axios from "./axios";
@@ -16,7 +17,7 @@ import wcClient from "./wcClient";
 import fa2 from "./fa2";
 
 export interface RootState {
-  algod: Record<string, unknown>;
+  algod: AlgodState;
   axios: Record<string, unknown>;
   config: Record<string, unknown>;
   wallet: WalletState;
