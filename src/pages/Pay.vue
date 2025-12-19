@@ -908,9 +908,7 @@ onMounted(async () => {
         state.asset = state.txn.assetIndex;
       }
       state.page = "review";
-      router.push(
-          `/sign/${senderAddr}/` + base642base64url(rawSignedTxnParam)
-      );
+      router.push(`/sign/${senderAddr}/` + base642base64url(rawSignedTxnParam));
     } catch (err) {
       console.error("Input is not valid base64-url format ", err);
     }
