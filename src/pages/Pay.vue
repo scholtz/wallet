@@ -1236,28 +1236,15 @@ const redirectToARC200Payment = async () => {
         Buffer.concat([Buffer.from([0x00]), Buffer.from(toDecoded.publicKey)])
       ),
     };
-    const compose = (client as unknown as { compose: () => any })
-      .compose()
-      .arc200Transfer(
-        { to: state.payTo, value: BigInt(amountLong.value) },
-        {
-          boxes: [
-            boxFrom,
-            boxFromDirect,
-            boxFromPlainAddr,
-            boxToPlainAddr,
-            boxTo,
-            boxToDirect,
-          ],
-        }
-      );
+    const compose = await client.createTransaction.arc200Transfer({
+      args: {
+        to: state.payTo,
+        value: BigInt(amountLong.value),
+      },
+    });
 
     const enc = new TextEncoder();
     const noteEnc = enc.encode("g");
-    const atc = await compose.atc();
-    const txsToSignArc200 = atc
-      .buildGroup()
-      .map((tx: TransactionWithSigner) => tx.txn);
     const optedIn = await accountIsOptedInToArc200Asset(state.payTo);
     if (!optedIn) {
       const payTx = await preparePayment({
@@ -1269,12 +1256,12 @@ const redirectToARC200Payment = async () => {
         asset: undefined,
         reKeyTo: undefined,
       });
-      const txsToSign = [payTx, ...txsToSignArc200];
+      const txsToSign = [payTx, ...compose.transactions];
       algosdk.assignGroupID(txsToSign);
       await signerToSignArray({ txs: txsToSign });
       await router.push("/signAll");
     } else {
-      const firstTxn = txsToSignArc200[0];
+      const firstTxn = compose.transactions[0];
       if (!firstTxn) {
         throw new Error("No ARC200 transaction available to sign");
       }
