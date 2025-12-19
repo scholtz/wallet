@@ -7,6 +7,7 @@ import formatCurrency from "../scripts/numbers/formatCurrency";
 import CAsset from "../scripts/interface/CAsset";
 import IAsset from "../scripts/interface/IAsset";
 import IARC200 from "../scripts/interface/IARC200";
+import { RootState } from "@/store";
 
 const props = defineProps({
   modelValue: CAsset,
@@ -27,7 +28,7 @@ const model = computed({
   },
 });
 
-const store = useStore();
+const store = useStore<RootState>();
 const { t } = useI18n();
 
 function getAccountName() {

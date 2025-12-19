@@ -1,9 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import MainLayout from "../../layouts/Main.vue";
 import { onMounted, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
+import { RootState } from "@/store";
 import algosdk from "algosdk";
 import QRCodeVue3 from "qrcode-vue3";
 
@@ -55,7 +56,7 @@ const reset = async () => {
 
 const { t } = useI18n(); // use as global scope
 
-const store = useStore();
+const store = useStore<RootState>();
 const router = useRouter();
 
 const createAccount = async () => {
@@ -174,14 +175,14 @@ const useVanityStartClick = () => {
 </script>
 <template>
   <MainLayout>
-    <h1>{{ $t("newacc.create_vanity") }}</h1>
+    <h1>{{ t("newacc.create_vanity") }}</h1>
 
     <Card>
       <template #content>
         <div v-if="state.page == 'vanity'">
           <div class="field grid">
             <label for="startsWith" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.vanity_start") }}
+              {{ t("newacc.vanity_start") }}
             </label>
             <div class="col-12 md:col-10">
               <InputText
@@ -193,7 +194,7 @@ const useVanityStartClick = () => {
           </div>
           <div class="field grid">
             <label for="contains" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.vanity_mid") }}
+              {{ t("newacc.vanity_mid") }}
             </label>
             <div class="col-12 md:col-10">
               <InputText
@@ -205,7 +206,7 @@ const useVanityStartClick = () => {
           </div>
           <div class="field grid">
             <label for="endsWith" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.vanity_end") }}
+              {{ t("newacc.vanity_end") }}
             </label>
             <div class="col-12 md:col-10">
               <InputText
@@ -217,7 +218,7 @@ const useVanityStartClick = () => {
           </div>
           <div class="field grid">
             <label for="workersCount" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.vanity_workers") }}
+              {{ t("newacc.vanity_workers") }}
             </label>
             <div class="col-12 md:col-10">
               <InputNumber
@@ -235,7 +236,7 @@ const useVanityStartClick = () => {
           <div class="field grid" v-if="state.vanityCount">
             <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
             <div class="col-12 md:col-10">
-              {{ $t("newacc.vanity_count") }} {{ state.vanityCount }}
+              {{ t("newacc.vanity_count") }} {{ state.vanityCount }}
               {{ state.vanityTime }} ({{ state.vanityRPS }}/s)
             </div>
           </div>
@@ -255,7 +256,7 @@ const useVanityStartClick = () => {
                 class="my-1"
                 @click="useVanityStartClick"
               >
-                {{ $t("newacc.vanity_use") }}
+                {{ t("newacc.vanity_use") }}
               </Button>
               <Button
                 v-if="!state.vanityRunning"
@@ -263,17 +264,17 @@ const useVanityStartClick = () => {
                 :severity="state.a ? 'secondary' : 'primary'"
                 @click="createVanityStartClick"
               >
-                {{ $t("newacc.vanity_button_start") }}
+                {{ t("newacc.vanity_button_start") }}
               </Button>
               <Button
                 v-if="state.vanityRunning"
                 class="my-1 ml-1"
                 @click="createVanityStopClick"
               >
-                {{ $t("newacc.vanity_button_stop") }}
+                {{ t("newacc.vanity_button_stop") }}
               </Button>
               <Button severity="secondary" class="m-1" @click="reset">
-                {{ $t("global.go_back") }}
+                {{ t("global.go_back") }}
               </Button>
             </div>
           </div>
@@ -301,7 +302,7 @@ const useVanityStartClick = () => {
           </div>
           <div class="field grid">
             <label for="guess" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.position_question") }} {{ state.r }}?
+              {{ t("newacc.position_question") }} {{ state.r }}?
             </label>
             <div class="col-12 md:col-10">
               <InputText id="guess" v-model="state.guess" class="w-full" />
@@ -309,7 +310,7 @@ const useVanityStartClick = () => {
           </div>
           <div class="field grid">
             <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.name") }}
+              {{ t("newacc.name") }}
             </label>
             <div class="col-12 md:col-10">
               <InputText id="name" v-model="state.name" class="w-full" />
@@ -319,20 +320,20 @@ const useVanityStartClick = () => {
             <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
             <div class="col-12 md:col-10">
               <Button class="m-1" @click="confirmCreate">
-                {{ $t("newacc.create_account") }}
+                {{ t("newacc.create_account") }}
               </Button>
               <Button class="m-1" @click="state.challenge = false">
-                {{ $t("global.go_back") }}
+                {{ t("global.go_back") }}
               </Button>
             </div>
           </div>
         </div>
         <div v-if="!state.challenge && state.page == 'newaccount'">
           <p>
-            {{ $t("newacc.create_account_help") }}
+            {{ t("newacc.create_account_help") }}
           </p>
           <p>
-            {{ $t("newacc.mnemonic_help") }}
+            {{ t("newacc.mnemonic_help") }}
           </p>
           <Password
             v-model="state.w"
@@ -348,7 +349,7 @@ const useVanityStartClick = () => {
             @click="state.showQR = true"
             class="m-1"
           >
-            {{ $t("newacc.show_qr_code") }}
+            {{ t("newacc.show_qr_code") }}
           </Button>
           <QRCodeVue3
             v-if="state.showQR"
@@ -383,13 +384,13 @@ const useVanityStartClick = () => {
           />
 
           <Button class="m-1" @click="makeRandom">
-            {{ $t("newacc.start_challenge") }}
+            {{ t("newacc.start_challenge") }}
           </Button>
           <Button severity="secondary" class="m-1" @click="createAccount">
-            {{ $t("newacc.create_new") }}
+            {{ t("newacc.create_new") }}
           </Button>
           <Button severity="secondary" class="m-1" @click="reset">
-            {{ $t("newacc.drop_phrase") }}
+            {{ t("newacc.drop_phrase") }}
           </Button>
         </div>
       </template>

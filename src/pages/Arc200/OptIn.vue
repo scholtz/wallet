@@ -8,7 +8,8 @@ import { getArc200Client } from "arc200-client";
 import formatCurrencyBigInt from "../../scripts/numbers/formatCurrencyBigInt";
 import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import { BoxReference } from "@algorandfoundation/algokit-utils/types/app-manager";
-const store = useStore();
+import { RootState } from "@/store";
+const store = useStore<RootState>();
 const route = useRoute();
 const router = useRouter();
 

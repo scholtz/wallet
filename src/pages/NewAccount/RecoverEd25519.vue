@@ -1,9 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import MainLayout from "../../layouts/Main.vue";
 import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { QrcodeStream } from "qrcode-reader-vue3";
+import { RootState } from "@/store";
 
 const state = reactive({
   addr: "",
@@ -20,7 +21,7 @@ const reset = async () => {
   router.push({ name: "Accounts" });
 };
 
-const store = useStore();
+const store = useStore<RootState>();
 const router = useRouter();
 
 async function importAccountClick() {

@@ -6,6 +6,7 @@ import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import algosdk from "algosdk";
 import QRCodeVue3 from "qrcode-vue3";
+import { RootState } from "@/store";
 
 const state = reactive({
   lastError: "",
@@ -49,7 +50,7 @@ const reset = async () => {
 
 const { t } = useI18n(); // use as global scope
 
-const store = useStore();
+const store = useStore<RootState>();
 const router = useRouter();
 
 const createAccount = async () => {

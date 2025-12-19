@@ -8,6 +8,7 @@ import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import InputSwitch from "primevue/inputswitch";
 import { passwordStrength } from "check-password-strength";
+import { RootState } from "@/store";
 
 const state = reactive({
   lastError: "",
@@ -23,7 +24,7 @@ const canCreatePassword = computed(() => {
 });
 const { t } = useI18n(); // use as global scope
 
-const store = useStore();
+const store = useStore<RootState>();
 const router = useRouter();
 
 function checkEmailValidity() {

@@ -5,8 +5,9 @@ import { onMounted, reactive } from "vue";
 import MainLayout from "../layouts/Main.vue";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
+import { RootState } from "@/store";
 
-const store = useStore();
+const store = useStore<RootState>();
 const router = useRouter();
 
 const state = reactive({

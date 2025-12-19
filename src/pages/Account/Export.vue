@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import Button from "primevue/button";
 import MainLayout from "../../layouts/Main.vue";
 import { useRoute } from "vue-router";
@@ -14,8 +14,9 @@ import QRCodeVue3 from "qrcode-vue3";
 import sha512 from "js-sha512";
 import copy from "copy-to-clipboard";
 import { useI18n } from "vue-i18n";
+import { RootState } from "@/store";
 
-const store = useStore();
+const store = useStore<RootState>();
 const route = useRoute();
 const { t } = useI18n(); // use as global scope
 

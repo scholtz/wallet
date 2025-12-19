@@ -9,6 +9,7 @@ import Select2FAServer from "@/components/Select2FAServer.vue";
 
 import algosdk from "algosdk";
 import { useRouter } from "vue-router";
+import { RootState } from "@/store";
 const state = reactive({
   lastError: "",
   account1: "",
@@ -26,7 +27,7 @@ const state = reactive({
 
 const { t } = useI18n(); // use as global scope
 
-const store = useStore();
+const store = useStore<RootState>();
 const router = useRouter();
 
 async function arc14Request() {

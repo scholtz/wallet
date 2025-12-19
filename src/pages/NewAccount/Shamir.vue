@@ -11,7 +11,8 @@ import { Shamir } from "@spliterati/shamir";
 import algosdk from "algosdk";
 
 import { useRouter } from "vue-router";
-const store = useStore();
+import { RootState } from "@/store";
+const store = useStore<RootState>();
 const router = useRouter();
 const { t } = useI18n(); // use as global scope
 const state = reactive({

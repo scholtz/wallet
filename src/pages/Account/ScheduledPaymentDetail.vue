@@ -26,9 +26,10 @@ import {
 } from "biatec-scheduler";
 import algosdk, { AtomicTransactionComposer } from "algosdk";
 import axios from "axios";
+import { RootState } from "@/store";
 
 const route = useRoute();
-const store = useStore();
+const store = useStore<RootState>();
 const router = useRouter();
 const state = reactive({
   selection: "",

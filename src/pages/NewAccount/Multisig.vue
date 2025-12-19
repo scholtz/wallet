@@ -7,6 +7,7 @@ import { useStore } from "vuex";
 import algosdk from "algosdk";
 import MultiSelect from "primevue/multiselect";
 import Slider from "primevue/slider";
+import { RootState } from "@/store";
 
 const multisigaccts: string[] = [];
 const state = reactive({
@@ -30,7 +31,7 @@ const reset = async () => {
 
 const { t } = useI18n(); // use as global scope
 
-const store = useStore();
+const store = useStore<RootState>();
 const router = useRouter();
 const makeAccounts = () => {
   const accounts = state.friendaccounts.split("\n");

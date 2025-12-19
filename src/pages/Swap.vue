@@ -1,17 +1,17 @@
 <template>
   <MainLayout>
-    <h1>{{ $t("swap.title") }}</h1>
+    <h1>{{ t("swap.title") }}</h1>
 
     <Card>
       <template #content>
         <div v-if="checkNetwork()">
-          {{ $t("swap.network") }}: {{ checkNetwork() }}
+          {{ t("swap.network") }}: {{ checkNetwork() }}
         </div>
         <Message severity="error" v-else>
-          {{ $t("swap.network_not_supported") }}
+          {{ t("swap.network_not_supported") }}
         </Message>
         <Message severity="error" v-if="hasSK === false">
-          {{ $t("swap.has_sk") }}
+          {{ t("swap.has_sk") }}
         </Message>
         <div>
           <SwapAssetSelector
@@ -101,9 +101,10 @@ import SwapTransactionDetails from "../components/SwapTransactionDetails.vue";
 import SwapExecuteButtons from "../components/SwapExecuteButtons.vue";
 import { dexAggregators } from "../scripts/dexAggregators";
 import { useSwap } from "../composables/useSwap";
+import { RootState } from "@/store";
 
 const { t } = useI18n();
-const store = useStore();
+const store = useStore<RootState>();
 const route = useRoute();
 
 // Use the swap composable

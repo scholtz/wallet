@@ -1,11 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
 import TabMenu from "primevue/tabmenu";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useStore } from "vuex";
+import { RootState } from "@/store";
 
-const store = useStore();
+const store = useStore<RootState>();
 const route = useRoute();
 const { t } = useI18n();
 

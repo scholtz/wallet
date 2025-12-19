@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { RootState } from "@/store";
 import MainLayout from "../../layouts/Main.vue";
 import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
@@ -17,7 +18,7 @@ const reset = async () => {
   router.push({ name: "Accounts" });
 };
 
-const store = useStore();
+const store = useStore<RootState>();
 const router = useRouter();
 
 async function watchAccountClick() {
