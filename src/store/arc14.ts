@@ -4,7 +4,10 @@ import algosdk from "algosdk";
 import type { RootState } from "./index";
 
 export interface Arc14State {
-  address2chain2realm2token: Record<string, Record<string, Record<string, string>>>;
+  address2chain2realm2token: Record<
+    string,
+    Record<string, Record<string, string>>
+  >;
 }
 
 interface Arc14AuthPayload {
@@ -99,7 +102,10 @@ const actions: ActionTree<Arc14State, RootState> = {
       return undefined;
     }
   },
-  async signAuthTx({ dispatch, commit, rootState }, { account, realm }: AuthTxPayload) {
+  async signAuthTx(
+    { dispatch, commit, rootState },
+    { account, realm }: AuthTxPayload
+  ) {
     try {
       if (!account) throw new Error("Address not found.");
       const authTxn = await dispatch("getAuthTx", { account, realm });
