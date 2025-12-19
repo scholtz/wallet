@@ -495,6 +495,11 @@ const toSingleParam = (
   return value;
 };
 
+const requirePayFrom = (): string => {
+  if (payFrom.value) return payFrom.value;
+  throw new Error(t("pay.select_account_for_payment"));
+};
+
 const state = reactive<PayState>({
   payFromDirect: "",
   genericaccount: false,
@@ -861,9 +866,10 @@ onMounted(async () => {
         state.payFromDirect = algosdk.encodeAddress(state.txn.from.publicKey);
       }
 
+      const senderAddr = requirePayFrom();
       const rawSignedTxnData = await signerCreateMultisigTransaction({
         txn: state.txn,
-        from: payFrom.value,
+        from: senderAddr,
       });
       const encodedTxn = arrayBufferToBase64(rawSignedTxnData);
       state.rawSignedTxn = encodedTxn;
@@ -879,7 +885,7 @@ onMounted(async () => {
       state.page = "review";
 
       const b64Url = base642base64url(encodedTxn);
-      router.push(`/sign/${payFrom.value}/` + b64Url);
+      router.push(`/sign/${senderAddr}/` + b64Url);
     } catch (err) {
       console.error("Input is not valid base64-url format ", err);
     }
@@ -889,6 +895,7 @@ onMounted(async () => {
   );
   if (rawSignedTxnParam) {
     try {
+      const senderAddr = requirePayFrom();
       const b64 = base64url2base64(rawSignedTxnParam);
       const uint8buffer = base64ToArrayBuffer(b64);
 
@@ -902,7 +909,7 @@ onMounted(async () => {
       }
       state.page = "review";
       router.push(
-        `/sign/${payFrom.value}/` + base642base64url(rawSignedTxnParam)
+          `/sign/${senderAddr}/` + base642base64url(rawSignedTxnParam)
       );
     } catch (err) {
       console.error("Input is not valid base64-url format ", err);
@@ -1116,9 +1123,10 @@ const redirectToASAPayment = async () => {
     if (assetId === undefined) {
       throw new Error("Asset id is required for ASA payments");
     }
+    const senderAddr = requirePayFrom();
     const txData = await preparePayment({
       payTo: state.payTo,
-      payFrom: payFrom.value,
+      payFrom: senderAddr,
       amount: amountLong.value,
       noteEnc,
       fee: feeLong.value,
@@ -1128,7 +1136,7 @@ const redirectToASAPayment = async () => {
     const encodedTx = algosdk.encodeUnsignedTransaction(txData);
     const b64 = Buffer.from(encodedTx).toString("base64");
     const b64Url = base642base64url(b64);
-    router.push(`/sign/${payFrom.value}/` + b64Url);
+    router.push(`/sign/${senderAddr}/` + b64Url);
   } catch (err) {
     console.error("redirectToASAPayment.error", err);
     await openError(toErrorMessage(err));
@@ -1139,9 +1147,10 @@ const redirectToNativePayment = async () => {
   try {
     const enc = new TextEncoder();
     let noteEnc = enc.encode(state.paynote);
+    const senderAddr = requirePayFrom();
     const txData = await preparePayment({
       payTo: state.payTo,
-      payFrom: payFrom.value,
+      payFrom: senderAddr,
       amount: amountLong.value,
       noteEnc,
       fee: feeLong.value,
@@ -1151,7 +1160,7 @@ const redirectToNativePayment = async () => {
     const encodedTx = algosdk.encodeUnsignedTransaction(txData);
     const b64 = Buffer.from(encodedTx).toString("base64");
     const b64Url = base642base64url(b64);
-    router.push(`/sign/${payFrom.value}/` + b64Url);
+    router.push(`/sign/${senderAddr}/` + b64Url);
   } catch (err) {
     console.error("redirectToNativePayment.error", err);
     await openError(toErrorMessage(err));
@@ -1188,6 +1197,7 @@ const redirectToARC200Payment = async () => {
     if (appId === undefined || !Number.isFinite(appId) || appId <= 0) {
       throw new Error("Invalid ARC200 application id");
     }
+    const senderAddr = requirePayFrom();
     const algorandClient = AlgorandClient.fromClients({ algod });
     const client = getArc200Client({
       algorand: algorandClient,
@@ -1195,10 +1205,10 @@ const redirectToARC200Payment = async () => {
       appName: undefined,
       approvalSourceMap: undefined,
       clearSourceMap: undefined,
-      defaultSender: payFrom.value,
+      defaultSender: senderAddr,
       defaultSigner: undefined,
     });
-    const fromDecoded = algosdk.decodeAddress(payFrom.value);
+    const fromDecoded = algosdk.decodeAddress(senderAddr);
     const toDecoded = algosdk.decodeAddress(state.payTo);
     const boxFromDirect = {
       appIndex: appId,
@@ -1206,7 +1216,7 @@ const redirectToARC200Payment = async () => {
     };
     const boxFromPlainAddr = {
       appIndex: appId,
-      name: new Uint8Array(Buffer.from(payFrom.value, "ascii")),
+      name: new Uint8Array(Buffer.from(senderAddr, "ascii")),
     };
     const boxFrom = {
       appIndex: appId,
@@ -1254,7 +1264,7 @@ const redirectToARC200Payment = async () => {
     if (!optedIn) {
       const payTx = await preparePayment({
         payTo: algosdk.getApplicationAddress(appId),
-        payFrom: payFrom.value,
+        payFrom: senderAddr,
         amount: 28500,
         noteEnc,
         fee: undefined,
@@ -1276,7 +1286,7 @@ const redirectToARC200Payment = async () => {
           "base64"
         )
       );
-      router.push(`/sign/${payFrom.value}/${encoded}`);
+      router.push(`/sign/${senderAddr}/${encoded}`);
     }
   } catch (err) {
     console.error("redirectToARC200Payment.error", err);
@@ -1288,6 +1298,7 @@ const payMultisig = async () => {
   prolong();
   const enc = new TextEncoder();
   const noteEnc = enc.encode(state.paynote);
+  const senderAddr = requirePayFrom();
   if (!state.txn) {
     const assetId = nonNativeAssetId.value;
     if (
@@ -1299,7 +1310,7 @@ const payMultisig = async () => {
     }
     const data: Record<string, unknown> = {
       payTo: state.payTo,
-      payFrom: payFrom.value,
+      payFrom: senderAddr,
       amount: amountLong.value,
       noteEnc,
       fee: 1000,
@@ -1332,6 +1343,7 @@ const payMultisig = async () => {
 const signMultisig = async (e: Event | undefined) => {
   prolong();
   e?.preventDefault();
+  const senderAddr = requirePayFrom();
   let rawSigned = null;
   if (state.rawSignedTxnInput) {
     rawSigned = base64ToArrayBuffer(state.rawSignedTxnInput);
@@ -1346,7 +1358,7 @@ const signMultisig = async (e: Event | undefined) => {
   if (!rawSigned) {
     rawSigned = await signerCreateMultisigTransaction({
       txn: state.txn,
-      from: payFrom.value,
+      from: senderAddr,
     });
   }
   for (const acc of accountsFromMultisig.value) {
@@ -1412,6 +1424,7 @@ const payPaymentClick = async (e: Event | undefined) => {
       await payMultisig();
       return;
     }
+    const senderAddr = requirePayFrom();
     reset();
     prolong();
     const enc = new TextEncoder();
@@ -1431,7 +1444,7 @@ const payPaymentClick = async (e: Event | undefined) => {
     }
     state.tx = await makePayment({
       payTo: state.payTo,
-      payFrom: payFrom.value,
+      payFrom: senderAddr,
       amount: amountLong.value,
       noteEnc,
       fee: feeLong.value,
@@ -1451,7 +1464,7 @@ const payPaymentClick = async (e: Event | undefined) => {
         const spaceIndex = msg.indexOf(" ");
         if (spaceIndex > 0) {
           const rekeyedTo = msg.substring(0, spaceIndex);
-          const info = { address: payFrom.value, rekeyedTo };
+          const info = { address: senderAddr, rekeyedTo };
           await updateAccount({ info });
           await openSuccess(
             `Information about rekeying to address ${rekeyedTo} has been stored`
@@ -1475,7 +1488,7 @@ const payPaymentClick = async (e: Event | undefined) => {
       state.confirmedRound = confirmationResult["confirmed-round"];
 
       if (state.rekeyTo) {
-        const info = { address: payFrom.value, rekeyedTo: state.rekeyTo };
+        const info = { address: senderAddr, rekeyedTo: state.rekeyTo };
         await updateAccount({ info });
         await openSuccess(
           `Information about rekeying to address ${state.rekeyTo} has been stored`
@@ -1487,7 +1500,7 @@ const payPaymentClick = async (e: Event | undefined) => {
       state.error = confirmationResult["pool-error"];
     }
   } catch (exc) {
-    state.error = exc;
+    state.error = toErrorMessage(exc);
   }
 };
 
@@ -1497,6 +1510,7 @@ const loadMultisig = (e: Event | undefined) => {
     e.preventDefault();
   }
   if (!state.rawSignedTxnInput) return;
+  const senderAddr = requirePayFrom();
   state.multisigDecoded = algosdk.decodeSignedTransaction(
     base64ToArrayBuffer(state.rawSignedTxnInput)
   );
@@ -1504,7 +1518,7 @@ const loadMultisig = (e: Event | undefined) => {
   state.rawSignedTxn = state.rawSignedTxnInput;
 
   router.push(
-    `/sign/${payFrom.value}/` + base642base64url(state.rawSignedTxnInput)
+    `/sign/${senderAddr}/` + base642base64url(state.rawSignedTxnInput)
   );
 
   state.page = "review";
@@ -1522,6 +1536,7 @@ const sendMultisig = async (e: Event | undefined) => {
   prolong();
   state.error = "";
   state.processing = true;
+  const senderAddr = requirePayFrom();
   try {
     e?.preventDefault();
     if (!state.rawSignedTxn) {
@@ -1554,7 +1569,7 @@ const sendMultisig = async (e: Event | undefined) => {
         const spaceIndex = msg.indexOf(" ");
         if (spaceIndex > 0) {
           const rekeyedTo = msg.substring(0, spaceIndex);
-          const info = { address: payFrom.value, rekeyedTo };
+          const info = { address: senderAddr, rekeyedTo };
           await updateAccount({ info });
           await openSuccess(
             `Information about rekeying to address ${rekeyedTo} has been stored`
@@ -1575,7 +1590,7 @@ const sendMultisig = async (e: Event | undefined) => {
     if (confirmationResult["confirmed-round"]) {
       state.confirmedRound = confirmationResult["confirmed-round"];
       if (state.rekeyTo) {
-        const info = { address: payFrom.value, rekeyedTo: state.rekeyTo };
+        const info = { address: senderAddr, rekeyedTo: state.rekeyTo };
         await updateAccount({ info });
         await openSuccess(
           `Information about rekeying to address ${state.rekeyTo} has been stored`
