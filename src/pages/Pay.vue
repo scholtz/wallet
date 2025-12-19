@@ -1290,7 +1290,11 @@ const payMultisig = async () => {
   const noteEnc = enc.encode(state.paynote);
   if (!state.txn) {
     const assetId = nonNativeAssetId.value;
-    if (assetData.value && assetData.value.type !== "Native" && assetId === undefined) {
+    if (
+      assetData.value &&
+      assetData.value.type !== "Native" &&
+      assetId === undefined
+    ) {
       throw new Error("Asset id is required for non-native multisig payments");
     }
     const data: Record<string, unknown> = {
