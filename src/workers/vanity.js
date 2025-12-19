@@ -2,35 +2,56 @@ import algosdk from "algosdk";
 
 self.addEventListener("message", (e) => {
   const max = 50;
+  let matchedAccount = null;
+
   for (let i = 0; i < max; i++) {
-    let account = algosdk.generateAccount();
-    let found = false;
+    const account = algosdk.generateAccount();
+    const rawAddress = account.addr;
+    const address =
+      typeof rawAddress === "string"
+        ? rawAddress
+        : rawAddress?.toString?.() ?? "";
+
+    if (!address) {
+      continue;
+    }
+
+    let matches = true;
+
     if (e.data.vanityStart) {
-      if (account.addr.startsWith(e.data.vanityStart)) {
-        found = true;
-      } else {
-        continue;
-      }
+      matches = matches && address.startsWith(e.data.vanityStart);
     }
+
+    if (!matches) {
+      continue;
+    }
+
     if (e.data.vanityMid) {
-      if (account.addr.indexOf(e.data.vanityMid) >= 0) {
-        found = true;
-      } else {
-        found = false;
-        continue;
-      }
+      matches = matches && address.indexOf(e.data.vanityMid) >= 0;
     }
+
+    if (!matches) {
+      continue;
+    }
+
     if (e.data.vanityEnd) {
-      if (account.addr.endsWith(e.data.vanityEnd)) {
-        found = true;
-      } else {
-        found = false;
-      }
+      matches = matches && address.endsWith(e.data.vanityEnd);
     }
-    if (found) {
-      self.postMessage(account);
-      i = 1000;
+
+    if (!matches) {
+      continue;
     }
+
+    matchedAccount = {
+      ...account,
+      addr: address,
+    };
+    break;
   }
+
+  if (matchedAccount) {
+    self.postMessage(matchedAccount);
+  }
+
   self.postMessage(max);
 });
