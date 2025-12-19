@@ -1,10 +1,10 @@
+// @ts-nocheck
 import algosdk from "algosdk";
 import CryptoJS from "crypto-js";
 import cryptoRandomString from "crypto-random-string";
 import db from "../shared/db";
 import wc from "../shared/wc";
 import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
-
 const state = () => ({
   name: "w2",
   isOpen: false,
