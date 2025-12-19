@@ -99,7 +99,9 @@ const mutations: MutationTree<WalletState> = {
   updateArc200Balance(state, { addr, network, arc200Id, balance }) {
     const acc = state.privateAccounts.find((x) => x.addr == addr);
     if (!acc) {
-      console.error(`Account ${addr} not found while updating ARC-200 balance.`);
+      console.error(
+        `Account ${addr} not found while updating ARC-200 balance.`
+      );
       return;
     }
     if (!acc.data) acc.data = {};
@@ -457,9 +459,13 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return true;
     } catch (error) {
       console.error("error", error);
-      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
-        root: true,
-      });
+      dispatch(
+        "toast/openError",
+        "Account has not been created: " + toErrorMessage(error),
+        {
+          root: true,
+        }
+      );
     }
   },
   async deleteAccount({ dispatch, commit }, { name, addr }) {
@@ -485,9 +491,13 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return true;
     } catch (error) {
       console.error("error", error);
-      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
-        root: true,
-      });
+      dispatch(
+        "toast/openError",
+        "Account has not been created: " + toErrorMessage(error),
+        {
+          root: true,
+        }
+      );
     }
   },
   async addEmailPasswordAccount(
@@ -535,9 +545,13 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return true;
     } catch (error) {
       console.error("error", error);
-      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
-        root: true,
-      });
+      dispatch(
+        "toast/openError",
+        "Account has not been created: " + toErrorMessage(error),
+        {
+          root: true,
+        }
+      );
       throw error;
     }
   },
@@ -562,9 +576,13 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     } catch (error) {
       console.error("error", error);
 
-      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
-        root: true,
-      });
+      dispatch(
+        "toast/openError",
+        "Account has not been created: " + toErrorMessage(error),
+        {
+          root: true,
+        }
+      );
     }
   },
   async add2FAAccount(
@@ -615,9 +633,13 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return true;
     } catch (error) {
       console.error("error", error);
-      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
-        root: true,
-      });
+      dispatch(
+        "toast/openError",
+        "Account has not been created: " + toErrorMessage(error),
+        {
+          root: true,
+        }
+      );
     }
   },
   async addLedgerAccount({ dispatch, commit }, { name, addr, addr0, slot }) {
@@ -639,9 +661,13 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return true;
     } catch (error) {
       console.error("error", error);
-      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
-        root: true,
-      });
+      dispatch(
+        "toast/openError",
+        "Account has not been created: " + toErrorMessage(error),
+        {
+          root: true,
+        }
+      );
     }
   },
   async addWalletConnectAccount({ dispatch, commit }, { name, addr, session }) {
@@ -662,9 +688,13 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return true;
     } catch (error) {
       console.error("error", error);
-      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
-        root: true,
-      });
+      dispatch(
+        "toast/openError",
+        "Account has not been created: " + toErrorMessage(error),
+        {
+          root: true,
+        }
+      );
     }
   },
   async addWalletConnect2Account(
@@ -700,9 +730,13 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return true;
     } catch (error) {
       console.error("error", error);
-      dispatch("toast/openError", "Account has not been created: " + toErrorMessage(error), {
-        root: true,
-      });
+      dispatch(
+        "toast/openError",
+        "Account has not been created: " + toErrorMessage(error),
+        {
+          root: true,
+        }
+      );
     }
   },
   async updateAccount({ dispatch, commit }, { info }) {
@@ -735,7 +769,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return;
     }
 
-    const walletRecord = await dbAny.wallets.get({ name: this.state.wallet.name });
+    const walletRecord = await dbAny.wallets.get({
+      name: this.state.wallet.name,
+    });
 
     const data = JSON.stringify(
       this.state.wallet,
@@ -770,7 +806,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     ) {
       return false; // check not to empty the wallet
     }
-    const walletRecord = await dbAny.wallets.get({ name: this.state.wallet.name });
+    const walletRecord = await dbAny.wallets.get({
+      name: this.state.wallet.name,
+    });
     if (!walletRecord) return;
     if (!walletRecord || !walletRecord.id) {
       dispatch("toast/openError", "Error in wallet record update", {
@@ -853,9 +891,13 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       })
       .catch((error: unknown) => {
         const stack = (error as Error).stack;
-        dispatch("toast/openError", "Error: " + (stack || toErrorMessage(error)), {
-          root: true,
-        });
+        dispatch(
+          "toast/openError",
+          "Error: " + (stack || toErrorMessage(error)),
+          {
+            root: true,
+          }
+        );
       });
     await dispatch("saveWallet");
     await commit("setIsOpen", { name, pass });
