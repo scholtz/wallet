@@ -400,6 +400,17 @@ const mutations: MutationTree<WalletState> = {
   },
   setPrivateAccounts(state, accts?: WalletAccount[]) {
     if (accts) {
+      for (let acct of accts) {
+        if (typeof acct.addr !== "string") {
+          // if addr is algorand address object, convert to string
+          const pk = (acct.addr as any)?.publicKey;
+          if (pk) {
+            var buffer = Buffer.from(Object.values(pk));
+            const obj = new algosdk.Address(buffer);
+            acct.addr = obj.toString();
+          }
+        }
+      }
       state.privateAccounts = accts;
     } else {
       state.privateAccounts = [];

@@ -25,8 +25,8 @@
     "src/**/*.vue",
     "tests/**/*.ts",
     "tests/**/*.tsx",
-    "src/store/fa2.js",
-    "src/shared/wc.js",
+    "src/store/fa2.ts",
+    "src/shared/wc.ts",
     "src/store/index.ts"
   ],
   "exclude": ["node_modules"]
