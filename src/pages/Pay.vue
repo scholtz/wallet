@@ -714,7 +714,7 @@ const maxAmount = computed(() => {
       Number(assetData.value.amount) / 10 ** Number(assetData.value.decimals)
     );
   }
-  const accountAmount = accountData.value.amount ?? 0;
+  const accountAmount = Number(accountData.value.amount ?? 0);
   let ret = accountAmount / 1000000 - 0.1;
   ret -= state.fee;
   const optedAssets = accountData.value["assets"] || [];
