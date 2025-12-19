@@ -112,6 +112,9 @@ const fetchAsset = async () => {
   }
 };
 const accountIsOptedInToArc200Asset = async (addr: string) => {
+  if (state.arc200Info.balance > BigInt(0)) {
+    return true; // if balance > 0, then account is opted in
+  }
   const indexerClient = await store.dispatch("indexer/getIndexer");
   const fromDecoded = algosdk.decodeAddress(addr);
   const boxName = new Uint8Array(
