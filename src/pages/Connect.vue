@@ -172,175 +172,191 @@
                       <template #expansion="txProps">
                         <div class="p-3">
                           <table>
-                            <tr v-if="txProps.data.txn.from">
-                              <td>{{ $t("connect.from") }}:</td>
-                              <td>
-                                {{ encodeAddress(txProps.data.txn.from) }}
-                              </td>
-                            </tr>
-                            <tr v-if="txProps.data.txn.to">
-                              <td>{{ $t("connect.to") }}:</td>
-                              <td>
-                                {{ encodeAddress(txProps.data.txn.to) }}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>{{ $t("connect.validity") }}:</td>
-                              <td>
-                                {{ txProps.data.txn.firstRound }} -
-                                {{ txProps.data.txn.lastRound }} ({{
-                                  txProps.data.txn.lastRound -
-                                  txProps.data.txn.firstRound +
-                                  1
-                                }}
-                                {{ $t("connect.rounds") }})
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>{{ $t("connect.type") }}:</td>
-                              <td>{{ txProps.data.type }}</td>
-                            </tr>
-                            <tr>
-                              <td>{{ $t("connect.note") }}:</td>
-                              <td>
-                                <table>
-                                  <tr>
-                                    <td>
-                                      {{
-                                        formatData(
-                                          txProps.data.txn.note,
-                                          "Text"
-                                        )
-                                      }}
-                                    </td>
-                                    <td>
-                                      {{
-                                        formatData(
-                                          txProps.data.txn.note,
-                                          "UInt"
-                                        )
-                                      }}
-                                    </td>
-                                    <td>
-                                      {{
-                                        formatData(txProps.data.txn.note, "Hex")
-                                      }}
-                                    </td>
-                                    <td>
-                                      {{
-                                        formatData(txProps.data.txn.note, "B64")
-                                      }}
-                                    </td>
-                                  </tr>
-                                </table>
-                              </td>
-                            </tr>
+                            <tbody>
+                              <tr v-if="txProps.data.txn.from">
+                                <td>{{ $t("connect.from") }}:</td>
+                                <td>
+                                  {{ encodeAddress(txProps.data.txn.from) }}
+                                </td>
+                              </tr>
+                              <tr v-if="txProps.data.txn.to">
+                                <td>{{ $t("connect.to") }}:</td>
+                                <td>
+                                  {{ encodeAddress(txProps.data.txn.to) }}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>{{ $t("connect.validity") }}:</td>
+                                <td>
+                                  {{ txProps.data.txn.firstRound }} -
+                                  {{ txProps.data.txn.lastRound }} ({{
+                                    txProps.data.txn.lastRound -
+                                    txProps.data.txn.firstRound +
+                                    1
+                                  }}
+                                  {{ $t("connect.rounds") }})
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>{{ $t("connect.type") }}:</td>
+                                <td>{{ txProps.data.type }}</td>
+                              </tr>
+                              <tr>
+                                <td>{{ $t("connect.note") }}:</td>
+                                <td>
+                                  <table>
+                                    <tbody>
+                                      <tr>
+                                        <td>
+                                          {{
+                                            formatData(
+                                              txProps.data.txn.note,
+                                              "Text"
+                                            )
+                                          }}
+                                        </td>
+                                        <td>
+                                          {{
+                                            formatData(
+                                              txProps.data.txn.note,
+                                              "UInt"
+                                            )
+                                          }}
+                                        </td>
+                                        <td>
+                                          {{
+                                            formatData(
+                                              txProps.data.txn.note,
+                                              "Hex"
+                                            )
+                                          }}
+                                        </td>
+                                        <td>
+                                          {{
+                                            formatData(
+                                              txProps.data.txn.note,
+                                              "B64"
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
 
-                            <tr v-if="txProps.data.txn.group">
-                              <td>{{ $t("connect.group") }}:</td>
-                              <td>{{ formatGroup(txProps.data.txn.group) }}</td>
-                            </tr>
+                              <tr v-if="txProps.data.txn.group">
+                                <td>{{ $t("connect.group") }}:</td>
+                                <td>
+                                  {{ formatGroup(txProps.data.txn.group) }}
+                                </td>
+                              </tr>
 
-                            <tr v-if="txProps.data.type == 'appl'">
-                              <td>{{ $t("connect.app") }}:</td>
-                              <td>{{ txProps.data.txn.appIndex }}</td>
-                            </tr>
+                              <tr v-if="txProps.data.type == 'appl'">
+                                <td>{{ $t("connect.app") }}:</td>
+                                <td>{{ txProps.data.txn.appIndex }}</td>
+                              </tr>
 
-                            <tr
-                              v-if="
-                                txProps.data.type == 'appl' &&
-                                txProps.data.txn.appArgs
-                              "
-                            >
-                              <td>{{ $t("connect.app_args") }}:</td>
-                              <td>
-                                <table>
-                                  <tr
-                                    v-for="(arg, index) in txProps.data.txn
-                                      .appArgs"
-                                    :key="arg"
-                                  >
-                                    <td>{{ index + 1 }}.</td>
-                                    <td>{{ formatData(arg, "Text") }}</td>
-                                    <td>{{ formatData(arg, "UInt") }}</td>
-                                    <td>{{ formatData(arg, "Hex") }}</td>
-                                    <td>{{ formatData(arg, "B64") }}</td>
-                                  </tr>
-                                </table>
-                              </td>
-                            </tr>
-                            <tr
-                              v-if="
-                                txProps.data.type == 'appl' &&
-                                txProps.data.txn.appAccounts
-                              "
-                            >
-                              <td>{{ $t("connect.app_accounts") }}:</td>
-                              <td>
-                                <ol>
-                                  <li
-                                    v-for="acc in txProps.data.txn.appAccounts"
-                                    :key="acc"
-                                  >
-                                    {{ formatAppAccount(acc) }}
-                                  </li>
-                                </ol>
-                              </td>
-                            </tr>
+                              <tr
+                                v-if="
+                                  txProps.data.type == 'appl' &&
+                                  txProps.data.txn.appArgs
+                                "
+                              >
+                                <td>{{ $t("connect.app_args") }}:</td>
+                                <td>
+                                  <table>
+                                    <tbody>
+                                      <tr
+                                        v-for="(arg, index) in txProps.data.txn
+                                          .appArgs"
+                                        :key="arg"
+                                      >
+                                        <td>{{ index + 1 }}.</td>
+                                        <td>{{ formatData(arg, "Text") }}</td>
+                                        <td>{{ formatData(arg, "UInt") }}</td>
+                                        <td>{{ formatData(arg, "Hex") }}</td>
+                                        <td>{{ formatData(arg, "B64") }}</td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
+                              <tr
+                                v-if="
+                                  txProps.data.type == 'appl' &&
+                                  txProps.data.txn.appAccounts
+                                "
+                              >
+                                <td>{{ $t("connect.app_accounts") }}:</td>
+                                <td>
+                                  <ol>
+                                    <li
+                                      v-for="acc in txProps.data.txn
+                                        .appAccounts"
+                                      :key="acc"
+                                    >
+                                      {{ formatAppAccount(acc) }}
+                                    </li>
+                                  </ol>
+                                </td>
+                              </tr>
 
-                            <tr
-                              v-if="
-                                txProps.data.type == 'appl' &&
-                                txProps.data.txn.appForeignAssets
-                              "
-                            >
-                              <td>{{ $t("connect.app_assets") }}:</td>
-                              <td>
-                                <ol>
-                                  <li
-                                    v-for="asset in txProps.data.txn
-                                      .appForeignAssets"
-                                    :key="asset"
-                                  >
-                                    {{ asset }}
-                                  </li>
-                                </ol>
-                              </td>
-                            </tr>
-                            <tr
-                              v-if="
-                                txProps.data.type == 'appl' &&
-                                txProps.data.txn.boxes
-                              "
-                            >
-                              <td>{{ $t("connect.boxes") }}:</td>
-                              <td>
-                                <ol>
-                                  <li
-                                    v-for="box in txProps.data.txn.boxes"
-                                    :key="box.name"
-                                  >
-                                    {{ $t("connect.app") }}: {{ box.appIndex }},
-                                    {{ $t("connect.name") }}:
-                                    {{ box.name }}
-                                  </li>
-                                </ol>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>{{ $t("connect.genesis") }}:</td>
-                              <td>{{ txProps.data.txn.genesisID }}</td>
-                            </tr>
-                            <tr>
-                              <td>{{ $t("connect.genesis_hash") }}:</td>
-                              <td>
-                                {{
-                                  formatGenesisHash(
-                                    txProps.data.txn.genesisHash
-                                  )
-                                }}
-                              </td>
-                            </tr>
+                              <tr
+                                v-if="
+                                  txProps.data.type == 'appl' &&
+                                  txProps.data.txn.appForeignAssets
+                                "
+                              >
+                                <td>{{ $t("connect.app_assets") }}:</td>
+                                <td>
+                                  <ol>
+                                    <li
+                                      v-for="asset in txProps.data.txn
+                                        .appForeignAssets"
+                                      :key="asset"
+                                    >
+                                      {{ asset }}
+                                    </li>
+                                  </ol>
+                                </td>
+                              </tr>
+                              <tr
+                                v-if="
+                                  txProps.data.type == 'appl' &&
+                                  txProps.data.txn.boxes
+                                "
+                              >
+                                <td>{{ $t("connect.boxes") }}:</td>
+                                <td>
+                                  <ol>
+                                    <li
+                                      v-for="box in txProps.data.txn.boxes"
+                                      :key="box.name"
+                                    >
+                                      {{ $t("connect.app") }}:
+                                      {{ box.appIndex }},
+                                      {{ $t("connect.name") }}:
+                                      {{ box.name }}
+                                    </li>
+                                  </ol>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>{{ $t("connect.genesis") }}:</td>
+                                <td>{{ txProps.data.txn.genesisID }}</td>
+                              </tr>
+                              <tr>
+                                <td>{{ $t("connect.genesis_hash") }}:</td>
+                                <td>
+                                  {{
+                                    formatGenesisHash(
+                                      txProps.data.txn.genesisHash
+                                    )
+                                  }}
+                                </td>
+                              </tr>
+                            </tbody>
                           </table>
                         </div>
                       </template>

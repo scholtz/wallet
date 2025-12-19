@@ -20,24 +20,26 @@
           {{ $t("merchant.to_address") }} {{ b64decode.payTo }}
           {{ $t("merchant.please") }}
           <table class="w-100">
-            <tr v-if="b64decode.network">
-              <td>{{ $t("merchant.network") }}:</td>
-              <td>
-                <code>{{ b64decode.network }}</code>
-              </td>
-            </tr>
-            <tr v-if="b64decode.paynote">
-              <td>{{ $t("merchant.matching_symbol") }}:</td>
-              <td>
-                <code>{{ b64decode.paynote }}</code>
-              </td>
-            </tr>
-            <tr v-if="b64decode.fee">
-              <td>{{ $t("merchant.network_fee") }}:</td>
-              <td>
-                <code>{{ b64decode.fee }} ALGO</code>
-              </td>
-            </tr>
+            <tbody>
+              <tr v-if="b64decode.network">
+                <td>{{ $t("merchant.network") }}:</td>
+                <td>
+                  <code>{{ b64decode.network }}</code>
+                </td>
+              </tr>
+              <tr v-if="b64decode.paynote">
+                <td>{{ $t("merchant.matching_symbol") }}:</td>
+                <td>
+                  <code>{{ b64decode.paynote }}</code>
+                </td>
+              </tr>
+              <tr v-if="b64decode.fee">
+                <td>{{ $t("merchant.network_fee") }}:</td>
+                <td>
+                  <code>{{ b64decode.fee }} ALGO</code>
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
         <div v-else-if="b64decode.error" class="my-3">

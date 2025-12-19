@@ -40,7 +40,7 @@ function getAccountName() {
     :options="store.state.wallet.privateAccounts"
     optionLabel="name"
     optionValue="addr"
-    :placeholder="$t('account.select_account')"
+    :placeholder="t('account.select_account')"
     :class="props.class"
     :inputClass="props.class"
     :itemid="props.itemId"

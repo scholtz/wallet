@@ -422,18 +422,20 @@
                 <div v-if="rekeyedToInfo">
                   <AccountType :account="rekeyedToInfo"></AccountType>
                   <table v-if="rekeyedToInfo.params" class="w-full">
-                    <tr v-if="rekeyedToInfo.params">
-                      <th>
-                        {{ $t("acc_overview.multisignature_threshold") }}:
-                      </th>
-                      <td>{{ rekeyedToInfo.params.threshold }}</td>
-                    </tr>
-                    <tr v-if="rekeyedToInfo.params">
-                      <th>
-                        {{ $t("acc_overview.multisignature_addresses") }}:
-                      </th>
-                      <td>{{ rekeyedToInfo.params.addrs }}</td>
-                    </tr>
+                    <tbody>
+                      <tr v-if="rekeyedToInfo.params">
+                        <th>
+                          {{ $t("acc_overview.multisignature_threshold") }}:
+                        </th>
+                        <td>{{ rekeyedToInfo.params.threshold }}</td>
+                      </tr>
+                      <tr v-if="rekeyedToInfo.params">
+                        <th>
+                          {{ $t("acc_overview.multisignature_addresses") }}:
+                        </th>
+                        <td>{{ rekeyedToInfo.params.addrs }}</td>
+                      </tr>
+                    </tbody>
                   </table>
                 </div>
               </div>
