@@ -600,6 +600,21 @@ const assetData = computed<AssetOption | undefined>(() => {
     (entry) => String(entry["asset-id"]) === String(assetId)
   );
 });
+
+const numericSelectedAssetId = computed(() => {
+  const rawId = assetData.value?.["asset-id"] ?? state.asset;
+  if (rawId === undefined || rawId === null || rawId === "") {
+    return undefined;
+  }
+  const numericId = Number(rawId);
+  return Number.isNaN(numericId) ? undefined : numericId;
+});
+
+const nonNativeAssetId = computed(() => {
+  if (!assetData.value) return undefined;
+  if (assetData.value.type === "Native") return undefined;
+  return numericSelectedAssetId.value;
+});
 const decimals = computed(() => {
   if (assetData.value) {
     return assetData.value.decimals;
@@ -1097,13 +1112,17 @@ const redirectToASAPayment = async () => {
   try {
     const enc = new TextEncoder();
     let noteEnc = enc.encode(state.paynote);
+    const assetId = nonNativeAssetId.value;
+    if (assetId === undefined) {
+      throw new Error("Asset id is required for ASA payments");
+    }
     const txData = await preparePayment({
       payTo: state.payTo,
       payFrom: payFrom.value,
       amount: amountLong.value,
       noteEnc,
       fee: feeLong.value,
-      asset: state.asset,
+      asset: assetId,
       reKeyTo: state.rekeyTo ? state.rekeyTo : undefined,
     });
     const encodedTx = algosdk.encodeUnsignedTransaction(txData);
@@ -1126,7 +1145,7 @@ const redirectToNativePayment = async () => {
       amount: amountLong.value,
       noteEnc,
       fee: feeLong.value,
-      asset: state.asset,
+      asset: undefined,
       reKeyTo: state.rekeyTo ? state.rekeyTo : undefined,
     });
     const encodedTx = algosdk.encodeUnsignedTransaction(txData);
@@ -1145,7 +1164,7 @@ const accountIsOptedInToArc200Asset = async (addr: string) => {
   const boxName = new Uint8Array(
     Buffer.concat([Buffer.from([0x00]), Buffer.from(fromDecoded.publicKey)])
   );
-  const appId = Number(state.asset);
+  const appId = numericSelectedAssetId.value;
   if (!appId) {
     return false;
   }
@@ -1165,8 +1184,8 @@ const accountIsOptedInToArc200Asset = async (addr: string) => {
 const redirectToARC200Payment = async () => {
   try {
     const algod = await getAlgod();
-    const appId = Number(state.asset);
-    if (!Number.isFinite(appId) || appId <= 0) {
+    const appId = numericSelectedAssetId.value;
+    if (appId === undefined || !Number.isFinite(appId) || appId <= 0) {
       throw new Error("Invalid ARC200 application id");
     }
     const algorandClient = AlgorandClient.fromClients({ algod });
@@ -1270,13 +1289,17 @@ const payMultisig = async () => {
   const enc = new TextEncoder();
   const noteEnc = enc.encode(state.paynote);
   if (!state.txn) {
+    const assetId = nonNativeAssetId.value;
+    if (assetData.value && assetData.value.type !== "Native" && assetId === undefined) {
+      throw new Error("Asset id is required for non-native multisig payments");
+    }
     const data: Record<string, unknown> = {
       payTo: state.payTo,
       payFrom: payFrom.value,
       amount: amountLong.value,
       noteEnc,
       fee: 1000,
-      asset: state.assetObj["asset-id"],
+      asset: assetId,
     };
     if (state.rekeyTo) {
       data.reKeyTo = state.rekeyTo;
@@ -1408,7 +1431,7 @@ const payPaymentClick = async (e: Event | undefined) => {
       amount: amountLong.value,
       noteEnc,
       fee: feeLong.value,
-      asset: state.asset,
+      asset: nonNativeAssetId.value,
       reKeyTo: state.rekeyTo,
     });
     if (!state.tx) {

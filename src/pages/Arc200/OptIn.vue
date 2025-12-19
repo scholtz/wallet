@@ -76,7 +76,9 @@ const fetchAsset = async () => {
     try {
       const name = await client.arc200Name();
       try {
-        state.arc200Info.name = Buffer.from(name).toString("utf-8");
+        state.arc200Info.name = Buffer.from(name)
+          .toString("utf-8")
+          .replace(/\0/g, "");
       } catch (e) {
         state.arc200Info.name = name.toString();
       }
@@ -92,7 +94,9 @@ const fetchAsset = async () => {
     await delay(200);
     try {
       const symbol = await client.arc200Symbol();
-      state.arc200Info.symbol = Buffer.from(symbol).toString("utf-8");
+      state.arc200Info.symbol = Buffer.from(symbol)
+        .toString("utf-8")
+        .replace(/\0/g, "");
     } catch (e) {
       console.error("error fetching arc200 symbol", e);
       state.loading = false;
