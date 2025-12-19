@@ -533,8 +533,6 @@ const state = reactive<PayState>({
 
 const {
   payFromDirect,
-  genericaccount,
-  genericaccountRekey,
   payamount,
   fee,
   payTo,
@@ -542,29 +540,13 @@ const {
   paynote,
   paynoteB64,
   page,
-  tx,
-  processing,
-  error,
-  confirmation,
-  confirmedRound,
   subpage,
-  txn,
-  rawSignedTxn,
-  rawSignedTxnFriend,
   rawSignedTxnInput,
-  signMultisigWith,
-  multisigDecoded,
   assets,
   asset,
   assetObj,
   scan,
   forceAsset,
-  txtCode,
-  accountFor2FARealm,
-  accountFor2FAAuthToken,
-  showFormSend,
-  showFormCombine,
-  note,
 } = toRefs(state);
 
 const setNoRedirect = () => store.dispatch("config/setNoRedirect");
@@ -612,10 +594,6 @@ const envName = computed(() => store.state.config.env);
 const walletAccounts = computed<WalletAccount[]>(
   () => store.state.wallet.privateAccounts || []
 );
-const msigNote = computed(() => {
-  if (!state.multisigDecoded?.txn?.note) return "";
-  return Buffer.from(state.multisigDecoded.txn.note).toString("utf8");
-});
 const assetData = computed<AssetOption | undefined>(() => {
   const assetId = state.asset;
   return state.assets.find(

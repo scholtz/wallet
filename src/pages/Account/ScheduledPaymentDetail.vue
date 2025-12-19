@@ -343,7 +343,9 @@ const optinEscrowToAsset = async () => {
       addr: route.params.account as string,
       // eslint-disable-next-line no-unused-vars
       signer: async (
+        // eslint-disable-next-line no-unused-vars
         txnGroup: algosdk.Transaction[],
+        // eslint-disable-next-line no-unused-vars
         indexesToSign: number[]
       ) => {
         return [];
@@ -397,7 +399,9 @@ const depositToFeePool = async () => {
       addr: route.params.account as string,
       // eslint-disable-next-line no-unused-vars
       signer: async (
+        // eslint-disable-next-line no-unused-vars
         txnGroup: algosdk.Transaction[],
+        // eslint-disable-next-line no-unused-vars
         indexesToSign: number[]
       ) => {
         return [];
@@ -455,7 +459,9 @@ const withdrawFromEscrow = async () => {
       addr: route.params.account as string,
       // eslint-disable-next-line no-unused-vars
       signer: async (
+        // eslint-disable-next-line no-unused-vars
         txnGroup: algosdk.Transaction[],
+        // eslint-disable-next-line no-unused-vars
         indexesToSign: number[]
       ) => {
         return [];

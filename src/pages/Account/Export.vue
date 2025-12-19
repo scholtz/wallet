@@ -7,7 +7,6 @@ import { reactive } from "vue";
 import { JsonViewer } from "vue3-json-viewer";
 import { Shamir } from "@spliterati/shamir";
 import type { uint8 } from "@spliterati/uint8";
-import { Buffer } from "buffer";
 import algosdk from "algosdk";
 import { wordlist } from "@scure/bip39/wordlists/english";
 import QRCodeVue3 from "qrcode-vue3";
