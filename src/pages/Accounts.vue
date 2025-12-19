@@ -168,6 +168,7 @@ import InputGroupAddon from "primevue/inputgroupaddon";
 import { useI18n } from "vue-i18n";
 import formatCurrency from "@/scripts/numbers/formatCurrency";
 import { RootState } from "@/store";
+import algosdk from "algosdk";
 type Arc200Holding = { balance: number };
 type AccountEnvData = {
   amount?: number;
@@ -250,11 +251,23 @@ const fillAccounts = () => {
     filteredAccounts = privateAccounts;
   }
   filteredAccounts = filteredAccounts.map((account) => {
-    var addr = account.addr;
+    let addr = account.addr;
+    if (typeof account.addr !== "string") {
+      // if addr is algorand address object, convert to string
+      console.log("Converting addr to string:", account.addr);
+      const pk = (account.addr as any)?.publicKey;
+      if (pk) {
+        var buffer = Buffer.from(Object.values(pk));
+        const obj = new algosdk.Address(buffer);
+        addr = obj.toString();
+      }
+    }
     return {
       ...account,
+      addr,
     };
   });
+
   accounts.value = filteredAccounts.map((account) => {
     const envData = accountData(account);
     const amount =
