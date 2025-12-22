@@ -1071,7 +1071,17 @@ export default {
       await this.prolong();
       if (this.isMultisig) {
         const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
-          this.participationData
+          {
+            stateProofKey: this.participationData.stateProofKey,
+            voteKey: this.participationData.voteKey,
+            selectionKey: this.participationData.selectionKey,
+            voteFirst: this.participationData.voteFirst,
+            voteLast: this.participationData.voteLast,
+            voteKeyDilution: this.participationData.voteKeyDilution,
+            stakingRegistration: this.participationData.stakingRegistration,
+            suggestedParams: this.participationData.suggestedParams,
+            from: this.$route.params.account,
+          }
         );
         if (this.participationData.stakingRegistration) {
           txn.fee = 2000000;
@@ -1084,7 +1094,9 @@ export default {
         this.$router.push(pushTo);
       } else {
         const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
-          this.participationData
+          {
+            ...this.participationData,
+          }
         );
         if (this.participationData.stakingRegistration) {
           txn.fee = 2000000;
@@ -1105,7 +1117,9 @@ export default {
 
       if (this.isMultisig) {
         const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
-          this.participationData
+          {
+            ...this.participationData,
+          }
         );
         if (this.participationData.stakingRegistration) {
           txn.fee = 2000000;
@@ -1118,7 +1132,9 @@ export default {
         this.$router.push(pushTo);
       } else {
         const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
-          this.participationData
+          {
+            ...this.participationData,
+          }
         );
         if (this.participationData.stakingRegistration) {
           txn.fee = 2000000;

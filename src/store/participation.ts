@@ -199,16 +199,16 @@ const actions: ActionTree<ParticipationState, RootState> = {
       }
       suggestedParams.fee = BigInt(1000);
       suggestedParams.flatFee = true;
-      const toSignData = createKeyRegistrationPayload(
-        account,
+      const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
+        sender: account,
         suggestedParams,
-        data,
+        selectionKey: data.selectionKey,
+        stateProofKey: data.stateProofKey,
         voteFirst,
-        voteLast
-      );
-      const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
-        toSignData as any
-      );
+        voteLast,
+        voteKey: data.voteKey,
+        voteKeyDilution: data.voteKeyDilution,
+      });
       if (stakingRegistration) {
         txn.fee = BigInt(2_000_000);
       }
@@ -239,9 +239,9 @@ const actions: ActionTree<ParticipationState, RootState> = {
       suggestedParams.fee = BigInt(1000);
       suggestedParams.flatFee = true;
       const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
-        from: account,
+        sender: account,
         suggestedParams,
-      } as any);
+      });
       const signedTxn = (await dispatch(
         "signer/signTransaction",
         { from: account, tx: txn },
@@ -266,9 +266,9 @@ const actions: ActionTree<ParticipationState, RootState> = {
       suggestedParams.fee = BigInt(1000);
       suggestedParams.flatFee = true;
       return algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
-        from: account,
+        sender: account,
         suggestedParams,
-      } as any);
+      });
     } catch (error) {
       console.error("getAccountOfflineTx", error);
       return undefined;

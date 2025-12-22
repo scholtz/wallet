@@ -355,7 +355,6 @@ const optinEscrowToAsset = async () => {
       {
         resolveBy: "id",
         id: state.appInfo.appId,
-        sender: signer as never,
       },
       algod
     );
@@ -376,12 +375,13 @@ const optinEscrowToAsset = async () => {
       }
     );
     const params = await algod.getTransactionParams().do();
+    const receiver = state.appInfo.appAddress;
     const payToEscrowMBR = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       amount: 100_000,
-      from: signer.addr,
       suggestedParams: params,
-      to: state.appInfo.appAddress,
-    } as any);
+      receiver: receiver,
+      sender: signer.addr.toString(),
+    });
     const txs = atc.buildGroup().map((tx) => tx.txn);
     const txs2 = [payToEscrowMBR, txs[0]];
     const grouped = algosdk.assignGroupID(txs2);
@@ -423,10 +423,10 @@ const depositToFeePool = async () => {
       {
         amount: state.amountToDeposit * 10 ** feeDecimals,
         assetIndex: state.feeAssetId,
-        from: signer.addr,
+        sender: signer.addr.toString(),
         suggestedParams: params,
-        to: algosdk.getApplicationAddress(poolAppId),
-      } as any
+        receiver: algosdk.getApplicationAddress(poolAppId),
+      }
     );
     const box = getBoxReferenceApp(poolAppId, state.appInfo.appId);
     const atc = new AtomicTransactionComposer();

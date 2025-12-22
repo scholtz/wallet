@@ -103,7 +103,7 @@ const buildAssetCreateTransaction = (
   );
 
   return algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
-    from: asset.addr,
+    sender: asset.addr,
     note: noteEnc,
     total: issueBigInt,
     decimals: Number(asset.decimals),
@@ -117,7 +117,7 @@ const buildAssetCreateTransaction = (
     assetURL: asset.assetURL,
     assetMetadataHash: metadataHash,
     suggestedParams: params,
-  } as any);
+  });
 };
 
 const actions: ActionTree<AlgodState, RootState> = {
@@ -147,24 +147,24 @@ const actions: ActionTree<AlgodState, RootState> = {
       const assetId = normalizeAssetId(payload.asset);
       if (assetId !== undefined) {
         return algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-          from: fromAcct,
-          to: payload.payTo,
+          sender: fromAcct,
+          receiver: payload.payTo,
           assetIndex: assetId,
           amount: payload.amount,
           note: payload.noteEnc,
           suggestedParams: params,
           rekeyTo: payload.reKeyTo,
-        } as any);
+        });
       }
 
       return algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from: fromAcct,
-        to: payload.payTo,
+        sender: fromAcct,
+        receiver: payload.payTo,
         amount: payload.amount,
         note: payload.noteEnc,
         suggestedParams: params,
         rekeyTo: payload.reKeyTo,
-      } as any);
+      });
     } catch (error) {
       console.error("Failed to prepare payment", error);
       return undefined;

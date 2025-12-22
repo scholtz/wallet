@@ -514,7 +514,7 @@ const getAssetDecimals = (id: number) => {
                             v-for="(arg, index) in txProps.data.txn.appArgs"
                             :key="arg"
                           >
-                            <td>{{ index + 1 }}.</td>
+                            <td>{{ Number(index) + 1 }}.</td>
                             <td>{{ formatData(arg, "Text") }}</td>
                             <td>{{ formatData(arg, "UInt") }}</td>
                             <td>{{ formatData(arg, "Hex") }}</td>
