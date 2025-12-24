@@ -404,8 +404,8 @@ const accountData = computed<AccountNetworkData | null>(() => {
 });
 
 const devMode = computed(() => Boolean(store.state?.config?.dev));
-const hasParticipationHost = computed(
-  () => Boolean(store.state?.config?.participation)
+const hasParticipationHost = computed(() =>
+  Boolean(store.state?.config?.participation)
 );
 
 const rekeyedToInfo = computed<PrivateAccount | undefined>(() => {

@@ -1,9 +1,7 @@
 <template>
   <div class="grid">
     <div class="col-6">
-      <h1>
-        {{ t("acc_overview.title") }} - {{ accountName ?? "" }}
-      </h1>
+      <h1>{{ t("acc_overview.title") }} - {{ accountName ?? "" }}</h1>
     </div>
     <div class="col-6">
       <div class="text-right">
