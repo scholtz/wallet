@@ -130,7 +130,7 @@ const actions: ActionTree<SignerState, RootState> = {
   async signTransaction(
     { dispatch, rootState },
     payload: SignTransactionPayload
-  ) {
+  ): Promise<undefined | Uint8Array<ArrayBufferLike>> {
     try {
       const env = ensureEnv(rootState);
       const baseAccount = ensureAccount(rootState, payload.from);
@@ -203,7 +203,10 @@ const actions: ActionTree<SignerState, RootState> = {
   async setSigned({ commit }, payload: SetSignedPayload) {
     commit("setSigned", payload.signed);
   },
-  getSignerType({ dispatch, rootState }, { from }: { from: string }) {
+  getSignerType(
+    { dispatch, rootState },
+    { from }: { from: string }
+  ): "ledger" | "msig" | "sk" | "?" {
     try {
       const env = ensureEnv(rootState);
       const baseAccount = ensureAccount(rootState, from);
@@ -234,7 +237,10 @@ const actions: ActionTree<SignerState, RootState> = {
       return "?";
     }
   },
-  async signByLedger({ commit, rootState }, payload: SignByPayload) {
+  async signByLedger(
+    { commit, rootState },
+    payload: SignByPayload
+  ): Promise<Uint8Array<ArrayBufferLike>> {
     const fromAccount = ensureAccount(rootState, payload.from);
     const transport = await TransportWebUSB.request();
     const algo = new Algorand(transport);
@@ -254,7 +260,10 @@ const actions: ActionTree<SignerState, RootState> = {
     commit("setSigned", signedBytes);
     return signedBytes;
   },
-  async signByWC1({ commit, rootState }, payload: SignByPayload) {
+  async signByWC1(
+    { commit, rootState },
+    payload: SignByPayload
+  ): Promise<Uint8Array<ArrayBufferLike>> {
     const fromAccount = ensureAccount(rootState, payload.from);
     const connector = new WalletConnect({
       session: fromAccount.session,
@@ -280,7 +289,10 @@ const actions: ActionTree<SignerState, RootState> = {
     commit("setSigned", signedBytes);
     return signedBytes;
   },
-  async signByWC2({ dispatch, commit }, payload: SignByPayload) {
+  async signByWC2(
+    { dispatch, commit },
+    payload: SignByPayload
+  ): Promise<Uint8Array<ArrayBufferLike>> {
     const provider = (await dispatch("wcClient/init", null, {
       root: true,
     })) as any;
@@ -311,7 +323,10 @@ const actions: ActionTree<SignerState, RootState> = {
     commit("setSigned", signedBytes);
     return signedBytes;
   },
-  async signBySk({ dispatch, commit }, payload: SignByPayload) {
+  async signBySk(
+    { dispatch, commit },
+    payload: SignByPayload
+  ): Promise<Uint8Array<ArrayBufferLike>> {
     const sk: Uint8Array | null = await dispatch(
       "wallet/getSK",
       { addr: payload.from },
@@ -326,24 +341,24 @@ const actions: ActionTree<SignerState, RootState> = {
   },
   async createMultisigTransaction(
     { rootState },
-    { txn }: { txn: Record<string, any> }
+    { txn }: { txn: algosdk.Transaction }
   ) {
-    if (!txn || !txn.from?.publicKey) {
+    if (!txn || !txn.sender?.publicKey) {
       throw new Error("Transaction object is not correct");
     }
     const env = ensureEnv(rootState);
-    const from = algosdk.encodeAddress(txn.from.publicKey);
+    const from = algosdk.encodeAddress(txn.sender.publicKey);
     const baseAccount = ensureAccount(rootState, from);
     const signerAccount = resolveEnvRekey(rootState, baseAccount, env, from);
     if (!signerAccount.params) {
       throw new Error(`Address is not multisig: ${signerAccount.addr}`);
     }
-    return algosdk.createMultisigTransaction(
-      txn as unknown as Transaction,
-      signerAccount.params
-    );
+    return algosdk.createMultisigTransaction(txn, signerAccount.params);
   },
-  async signMultisig({ dispatch, rootState }, payload: MultisigPayload) {
+  async signMultisig(
+    { dispatch, rootState },
+    payload: MultisigPayload
+  ): Promise<Uint8Array<ArrayBufferLike>> {
     const signatorAccount = ensureAccount(rootState, payload.signator);
     if (signatorAccount.type === "ledger") {
       return await dispatch("signMultisigByLedger", payload);
@@ -356,7 +371,10 @@ const actions: ActionTree<SignerState, RootState> = {
     }
     throw new Error(`Signator account ${payload.signator} not supported`);
   },
-  async signMultisigBySk({ commit, rootState }, payload: MultisigPayload) {
+  async signMultisigBySk(
+    { commit, rootState },
+    payload: MultisigPayload
+  ): Promise<Uint8Array<ArrayBufferLike>> {
     if (!payload.txn) {
       throw new Error("Txn cannot be empty");
     }
@@ -400,7 +418,10 @@ const actions: ActionTree<SignerState, RootState> = {
     commit("setSigned", ret);
     return ret;
   },
-  async signMultisigByLedger({ dispatch, commit }, payload: MultisigPayload) {
+  async signMultisigByLedger(
+    { dispatch, commit },
+    payload: MultisigPayload
+  ): Promise<Uint8Array<ArrayBufferLike>> {
     const signedTxn = decodeMultisigTxn(payload.msigTx);
     const txn = algosdk.decodeUnsignedTransaction(
       algosdk.encodeObj(signedTxn.txn)
@@ -430,7 +451,7 @@ const actions: ActionTree<SignerState, RootState> = {
   async signMultisigByWC(
     { dispatch, commit, rootState },
     payload: MultisigPayload
-  ) {
+  ): Promise<Uint8Array<ArrayBufferLike>> {
     const signedTxn = decodeMultisigTxn(payload.msigTx);
     const txn = algosdk.decodeUnsignedTransaction(
       algosdk.encodeObj(signedTxn.txn)

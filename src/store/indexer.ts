@@ -60,7 +60,7 @@ interface TokenNoteAmountAccountPayload extends TokenNoteAmountPayload {
   account: string;
 }
 
-interface AssetPayload {
+export interface AssetPayload {
   assetIndex?: number;
 }
 

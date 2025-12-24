@@ -9,13 +9,24 @@ import db from "../shared/db";
 import wc from "../shared/wc";
 import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
 import type { RootState } from "./index";
+import { StoredAsset } from "./indexer";
 
-type WalletAccountData = Record<string, Record<string, any>>;
+type WalletAccountData = Record<string, IAccountData>;
 
-interface WalletAccount {
-  addr?: string;
+export interface IAccountData {
+  assets?: Record<string, StoredAsset>;
+  rekeyedTo?: string;
+  amount: bigint;
+  arc200?: Record<string, Arc200Info>;
+}
+
+export interface WalletAccount {
+  addr: string;
   name?: string;
+  params?: algosdk.MultisigMetadata;
   data?: WalletAccountData;
+  type: "2faApi" | "2fa" | "msig" | "ledger" | "wc" | "emailPwd";
+  recoveryAccount?: string;
   [key: string]: any;
 }
 
@@ -41,7 +52,10 @@ export interface WalletState {
 
 type Arc200Info = {
   arc200id: string;
-  [key: string]: unknown;
+  balance: bigint;
+  name: string;
+  decimals: number;
+  symbol: string;
 };
 
 type AddPrivateAccountPayload = {
@@ -199,8 +213,8 @@ const mutations: MutationTree<WalletState> = {
     }
     if (!acc.data) acc.data = {};
     if (!acc.data[network]) acc.data[network] = {};
-    if (!acc.data[network]["arc200"]) acc.data[network]["arc200"] = {};
-    acc.data[network]["arc200"][arc200Info.arc200id] = arc200Info;
+    if (!acc.data[network].arc200) acc.data[network].arc200 = {};
+    acc.data[network].arc200[arc200Info.arc200id] = arc200Info;
   },
   updateArc200Balance(
     state,

@@ -15,7 +15,7 @@ type PaymentAmount = number | bigint;
 
 type OptionalNote = Uint8Array | undefined;
 
-interface PreparePaymentPayload {
+export interface PreparePaymentPayload {
   payTo: string;
   payFrom: PaymentAccount;
   amount: PaymentAmount;
@@ -25,7 +25,7 @@ interface PreparePaymentPayload {
   reKeyTo?: string;
 }
 
-interface PaymentPayload extends PreparePaymentPayload {}
+export interface PaymentPayload extends PreparePaymentPayload {}
 
 interface AssetDefinition {
   addr: string;
