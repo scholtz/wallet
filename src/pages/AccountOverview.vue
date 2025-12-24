@@ -512,10 +512,11 @@ const makeAssets = async () => {
   if (!data) {
     return;
   }
-  if (data.amount > 0) {
+  const baseAmount = Number(data.amount ?? 0);
+  if (baseAmount > 0) {
     assets.value.push({
       "asset-id": "",
-      amount: data.amount,
+      amount: baseAmount,
       name: "ALG",
       decimals: 6,
       "unit-name": "",
@@ -574,10 +575,11 @@ const copyToClipboard = (text: string) => {
 };
 
 const deleteAccountClick = async () => {
-  if (!account.value) return;
+  const currentAccount = account.value;
+  if (!currentAccount?.name) return;
   await deleteAccountAction({
-    name: account.value.name,
-    addr: account.value.addr,
+    name: currentAccount.name,
+    addr: currentAccount.addr,
   });
   await router.push("/accounts");
 };

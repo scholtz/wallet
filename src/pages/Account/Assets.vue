@@ -89,21 +89,8 @@
         :sortable="true"
       >
         <template #body="slotProps">
-          <div v-if="slotProps.data['asset-id'] > 0" class="text-right">
-            {{
-              $filters.formatCurrency(
-                slotProps.data[slotProps.column.props.field],
-                getAssetName(slotProps.data["asset-id"]),
-                getAssetDecimals(slotProps.data["asset-id"])
-              )
-            }}
-          </div>
-          <div v-else class="text-right">
-            {{
-              $filters.formatCurrency(
-                slotProps.data[slotProps.column.props.field]
-              )
-            }}
+          <div class="text-right">
+            {{ formatAssetAmount(slotProps.data) }}
           </div>
         </template>
         <template #filter="{ filterModel, filterCallback }">
@@ -122,12 +109,7 @@
             <i class="pi pi-refresh"></i>
           </Button>
           <RouterLink
-            :to="
-              '/accounts/pay/' +
-              $store.state.wallet.lastActiveAccount +
-              '/' +
-              slotProps.data['asset-id']
-            "
+            :to="`/accounts/pay/${lastActiveAccountAddr}/${slotProps.data['asset-id']}`"
           >
             <Button
               class="m-1"
@@ -144,260 +126,260 @@
   </MainLayout>
 </template>
 
-<script>
-import MainLayout from "../../layouts/Main.vue";
-import { mapActions } from "vuex";
-import { PrimeIcons } from "primevue/api";
-import copy from "copy-to-clipboard";
-import AccountTopMenu from "../../components/AccountTopMenu.vue";
+<script setup lang="ts">
+import { computed, getCurrentInstance, onMounted, reactive, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import Contract from "arc200js";
 import { FilterMatchMode } from "primevue/api";
 import Badge from "primevue/badge";
-import Contract from "arc200js";
-export default {
-  components: {
-    MainLayout,
-    AccountTopMenu,
-    Badge,
-  },
-  data() {
-    return {
-      displayDeleteDialog: false,
-      displayOnlineOfflineDialog: false,
-      transactions: [],
-      selection: null,
-      assets: [],
-      asset: "",
-      icons: [PrimeIcons.COPY],
-      changeOnline: false,
-      changeOffline: false,
-      onlineRounds: 500000,
-      loading: true,
+import MainLayout from "../../layouts/Main.vue";
+import AccountTopMenu from "../../components/AccountTopMenu.vue";
+import { useStore } from "@/store";
+import type { AccountNetworkData, PrivateAccount } from "@/types/account";
 
-      filters: {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-        "asset-id": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-        amount: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-        type: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-      },
-    };
-  },
-  computed: {
-    canSign() {
-      if (!this.account) return false;
-      if (!this.accountData) return false;
+type AssetType = "Native" | "ASA" | "ARC200";
 
-      if (this.accountData.rekeyedTo) {
-        if (!this.rekeyedToInfo) return false;
-
-        return (
-          this.rekeyedToInfo.sk ||
-          this.rekeyedToInfo.params ||
-          this.rekeyedToInfo.type == "ledger" ||
-          this.rekeyedToInfo.type == "wc"
-        );
-      }
-
-      return (
-        this.account.sk ||
-        this.account.params ||
-        this.account.type == "ledger" ||
-        this.account.type == "wc"
-      );
-    },
-    account() {
-      return this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.$route.params.account
-      );
-    },
-    accountData() {
-      if (!this.account) return false;
-      if (!this.account.data) return false;
-      return this.account.data[this.$store.state.config.env];
-    },
-    lastActiveAccountAddr() {
-      return this.$store.state.wallet.lastActiveAccount;
-    },
-    rekeyedToInfo() {
-      return this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.accountData.rekeyedTo
-      );
-    },
-    rekeyedMultisigParams() {
-      const rekeyedInfo = this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.accountData.rekeyedTo
-      );
-      if (!rekeyedInfo) return null;
-      return rekeyedInfo.params;
-    },
-  },
-  watch: {
-    async selection() {
-      await this.setTransaction({ transaction: this.selection });
-      if (this.selection.id) {
-        this.$router.push("/transaction/" + this.selection.id);
-      }
-    },
-    account() {
-      this.makeAssets();
-    },
-  },
-  async mounted() {
-    await this.reloadAccount();
-    await this.makeAssets();
-    this.prolong();
-  },
-  methods: {
-    ...mapActions({
-      accountInformation: "indexer/accountInformation",
-      updateAccount: "wallet/updateAccount",
-      lastActiveAccount: "wallet/lastActiveAccount",
-      deleteAccount: "wallet/deleteAccount",
-      searchForTransactions: "indexer/searchForTransactions",
-      setTransaction: "wallet/setTransaction",
-      getAsset: "indexer/getAsset",
-      prolong: "wallet/prolong",
-      openSuccess: "toast/openSuccess",
-      getAlgod: "algod/getAlgod",
-      getIndexer: "indexer/getIndexer",
-      updateArc200Balance: "wallet/updateArc200Balance",
-    }),
-    async makeAssets() {
-      this.loading = true;
-      this.assets = [];
-      if (this.accountData && this.accountData.amount > 0) {
-        this.assets.push({
-          "asset-id": "",
-          amount: this.accountData.amount,
-          name: this.$store.state.config.tokenSymbol,
-          decimals: 6,
-          "unit-name": "",
-          type: "Native",
-        });
-      }
-      if (this.accountData && this.accountData.assets) {
-        for (const accountAsset of this.accountData.assets) {
-          if (!accountAsset["asset-id"]) continue;
-          const asset = await this.getAsset({
-            assetIndex: accountAsset["asset-id"],
-          });
-          if (asset) {
-            this.assets.push({
-              "asset-id": accountAsset["asset-id"],
-              amount: accountAsset["amount"],
-              name: asset["name"],
-              decimals: asset["decimals"],
-              "unit-name": asset["unit-name"],
-              type: "ASA",
-            });
-          }
-        }
-      }
-      if (this.accountData && this.accountData.arc200) {
-        for (const accountAsset of Object.values(this.accountData.arc200)) {
-          this.assets.push({
-            "asset-id": Number(accountAsset.arc200id),
-            amount: Number(accountAsset.balance),
-            name: accountAsset.name,
-            decimals: Number(accountAsset.decimals),
-            "unit-name": accountAsset.symbol,
-            type: "ARC200",
-          });
-        }
-      }
-      this.loading = false;
-    },
-    getAssetSync(id) {
-      const ret = this.$store.state.indexer.assets.find(
-        (a) => a["asset-id"] == id
-      );
-      return ret;
-    },
-    getAssetName(id) {
-      const asset = this.getAssetSync(id);
-      if (asset) return asset["name"];
-    },
-    getAssetDecimals(id) {
-      const asset = this.getAssetSync(id);
-      if (asset) return asset["decimals"];
-    },
-    async refresh(data) {
-      if (data.type == "ARC200") {
-        this.reloadArc200AccountBalance(data);
-      } else {
-        return await this.reloadAccount();
-      }
-    },
-    async reloadArc200AccountBalance(data) {
-      if (data.type != "ARC200") {
-        console.error("Not arc200 asset", data);
-      }
-      const algodClient = await this.getAlgod();
-      const indexerClient = await this.getIndexer();
-      const contract = new Contract(
-        data["asset-id"],
-        algodClient,
-        indexerClient
-      );
-      var balance = await contract.arc200_balanceOf(this.account.addr);
-      if (!balance.success) {
-        this.openError("Failed to fetch ARC200 balance");
-        return;
-      }
-      await this.updateArc200Balance({
-        addr: this.account.addr,
-        arc200Id: data["asset-id"],
-        balance: balance.returnValue,
-      });
-    },
-    async reloadAccount() {
-      await this.accountInformation({
-        addr: this.$route.params.account,
-      }).then(async (info) => {
-        if (info) {
-          this.updateAccount({ info });
-          if (
-            this.accountData &&
-            this.accountData.rekeyedTo != this.accountData["auth-addr"]
-          ) {
-            const rekeyedTo = this.accountData["auth-addr"];
-            console.error(
-              `New rekey information detected: ${this.accountData.rekeyedTo} -> ${rekeyedTo}`
-            );
-            const info2 = {};
-            info2.address = this.accountData.addr;
-            info2.rekeyedTo = rekeyedTo;
-            await this.updateAccount({ info: info2 });
-            await this.openSuccess(
-              `Information about rekeying to address ${rekeyedTo} has been stored`
-            );
-          }
-        }
-      });
-    },
-    copyToClipboard(text) {
-      if (copy(text)) {
-        this.openSuccess(this.$t("global.copied_to_clipboard"));
-      }
-    },
-    async deleteAccountClick() {
-      await this.deleteAccount({
-        name: this.account.name,
-        addr: this.account.addr,
-      });
-      this.$router.push("/accounts");
-    },
-    async hideAccountClick() {
-      if (this.account) {
-        // add to current network automatically
-        const info = { ...this.account };
-        info.isHidden = !this.account.isHidden;
-        await this.updateAccount({ info });
-      }
-    },
-    sleep(ms) {
-      return new Promise((resolve) => setTimeout(resolve, ms));
-    },
-  },
+type AssetListItem = {
+  "asset-id": number | "";
+  amount: number;
+  name: string;
+  decimals: number;
+  "unit-name": string;
+  type: AssetType;
 };
+
+type FilterConfig = {
+  value: string | null;
+  matchMode: string;
+};
+
+const store = useStore();
+const route = useRoute();
+
+const loading = ref(true);
+const assets = ref<AssetListItem[]>([]);
+
+const filters = reactive<Record<string, FilterConfig>>({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  "asset-id": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  amount: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  type: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+});
+
+const accountAddressParam = computed(() => String(route.params.account ?? ""));
+
+const instance = getCurrentInstance();
+const filtersUtil = instance?.appContext.config.globalProperties.$filters;
+
+const account = computed<PrivateAccount | undefined>(() =>
+  store.state.wallet.privateAccounts.find(
+    (a) => a.addr === accountAddressParam.value
+  )
+);
+
+const accountData = computed<AccountNetworkData | null>(() => {
+  const acc = account.value;
+  const env = store.state.config.env;
+  if (!acc?.data || !env) {
+    return null;
+  }
+  return acc.data[env] ?? null;
+});
+
+const lastActiveAccountAddr = computed(
+  () => store.state.wallet.lastActiveAccount
+);
+
+const accountInformationAction = (payload: { addr: string }) =>
+  store.dispatch("indexer/accountInformation", payload);
+const updateAccountAction = (payload: { info: Record<string, unknown> }) =>
+  store.dispatch("wallet/updateAccount", payload);
+const getAssetAction = (payload: { assetIndex: number }) =>
+  store.dispatch("indexer/getAsset", payload);
+const prolongAction = () => store.dispatch("wallet/prolong");
+const openSuccessAction = (message: string) =>
+  store.dispatch("toast/openSuccess", message);
+const openErrorAction = (message: string) =>
+  store.dispatch("toast/openError", message);
+const getAlgodAction = () => store.dispatch("algod/getAlgod");
+const getIndexerAction = () => store.dispatch("indexer/getIndexer");
+const updateArc200BalanceAction = (payload: {
+  addr: string;
+  arc200Id: string;
+  balance: unknown;
+}) => store.dispatch("wallet/updateArc200Balance", payload);
+
+const makeAssets = async () => {
+  loading.value = true;
+  assets.value = [];
+  const data = accountData.value;
+  if (!data) {
+    loading.value = false;
+    return;
+  }
+  const nativeAmount = Number(data.amount ?? 0);
+  if (nativeAmount > 0) {
+    assets.value.push({
+      "asset-id": "",
+      amount: nativeAmount,
+      name: store.state.config.tokenSymbol ?? "ALG",
+      decimals: 6,
+      "unit-name": "",
+      type: "Native",
+    });
+  }
+  const asaAssets = Array.isArray(data.assets) ? data.assets : [];
+  for (const accountAsset of asaAssets as Array<Record<string, any>>) {
+    const assetId = Number(accountAsset["asset-id"] ?? 0);
+    if (!assetId) continue;
+    const asset = await getAssetAction({ assetIndex: assetId });
+    if (asset) {
+      assets.value.push({
+        "asset-id": assetId,
+        amount: Number(accountAsset["amount"] ?? 0),
+        name: asset["name"] ?? "",
+        decimals: Number(asset["decimals"] ?? 0),
+        "unit-name": asset["unit-name"] ?? "",
+        type: "ASA",
+      });
+    }
+  }
+  const arc200Assets = data.arc200 as
+    | Record<
+        string,
+        {
+          arc200id: number | string;
+          balance: number | string;
+          name: string;
+          decimals: number | string;
+          symbol: string;
+        }
+      >
+    | undefined;
+  if (arc200Assets) {
+    for (const accountAsset of Object.values(arc200Assets)) {
+      assets.value.push({
+        "asset-id": Number(accountAsset.arc200id),
+        amount: Number(accountAsset.balance),
+        name: accountAsset.name,
+        decimals: Number(accountAsset.decimals),
+        "unit-name": accountAsset.symbol,
+        type: "ARC200",
+      });
+    }
+  }
+  loading.value = false;
+};
+
+const getAssetSync = (id: number) => {
+  return store.state.indexer.assets.find(
+    (asset: Record<string, any>) => Number(asset["asset-id"]) === id
+  ) as Record<string, any> | undefined;
+};
+
+const getAssetName = (id: AssetListItem["asset-id"]) => {
+  if (typeof id !== "number") return undefined;
+  const asset = getAssetSync(id);
+  return asset ? asset["name"] : undefined;
+};
+
+const getAssetDecimals = (id: AssetListItem["asset-id"]) => {
+  if (typeof id !== "number") return undefined;
+  const asset = getAssetSync(id);
+  return asset ? Number(asset["decimals"]) : undefined;
+};
+
+const isNumericAssetId = (
+  asset: AssetListItem
+): asset is AssetListItem & { "asset-id": number } =>
+  typeof asset["asset-id"] === "number";
+
+const formatCurrencyValue = (
+  amount: number,
+  name?: string,
+  decimals?: number
+) => {
+  if (filtersUtil?.formatCurrency) {
+    return filtersUtil.formatCurrency(amount, name, decimals);
+  }
+  return name ? `${amount} ${name}` : `${amount}`;
+};
+
+const formatAssetAmount = (asset: AssetListItem) => {
+  if (isNumericAssetId(asset)) {
+    return formatCurrencyValue(
+      asset.amount,
+      getAssetName(asset["asset-id"]),
+      getAssetDecimals(asset["asset-id"])
+    );
+  }
+  return formatCurrencyValue(asset.amount);
+};
+
+const reloadArc200AccountBalance = async (data: AssetListItem) => {
+  if (data.type !== "ARC200" || !isNumericAssetId(data)) {
+    console.error("Not arc200 asset", data);
+    return;
+  }
+  const accountAddr = account.value?.addr;
+  if (!accountAddr) return;
+  const algodClient = await getAlgodAction();
+  const indexerClient = await getIndexerAction();
+  const contract = new Contract(
+    data["asset-id"],
+    algodClient,
+    indexerClient
+  );
+  const balance = await contract.arc200_balanceOf(accountAddr);
+  if (!balance?.success) {
+    await openErrorAction("Failed to fetch ARC200 balance");
+    return;
+  }
+  await updateArc200BalanceAction({
+    addr: accountAddr,
+    arc200Id: String(data["asset-id"]),
+    balance: balance.returnValue,
+  });
+  await makeAssets();
+};
+
+const reloadAccount = async () => {
+  if (!accountAddressParam.value) return;
+  const info = await accountInformationAction({
+    addr: accountAddressParam.value,
+  });
+  if (!info) return;
+  await updateAccountAction({ info });
+  const data = accountData.value;
+  if (data && data.rekeyedTo !== data["auth-addr"]) {
+    const rekeyedTo = data["auth-addr"];
+    const info2: Record<string, unknown> = {};
+    info2.address = data.addr;
+    info2.rekeyedTo = rekeyedTo;
+    await updateAccountAction({ info: info2 });
+    await openSuccessAction(
+      `Information about rekeying to address ${rekeyedTo} has been stored`
+    );
+  }
+};
+
+const refresh = async (data: AssetListItem) => {
+  if (data.type === "ARC200") {
+    await reloadArc200AccountBalance(data);
+  } else {
+    await reloadAccount();
+    await makeAssets();
+  }
+};
+
+watch(account, async () => {
+  await makeAssets();
+});
+
+onMounted(async () => {
+  await reloadAccount();
+  await makeAssets();
+  await prolongAction();
+});
 </script>

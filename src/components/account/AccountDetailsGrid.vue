@@ -303,11 +303,12 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const instance = getCurrentInstance();
-const $filters = instance?.appContext.config.globalProperties.$filters;
+const $filters = instance?.appContext.config.globalProperties
+  .$filters as { formatCurrency?: (...args: any[]) => unknown } | undefined;
 
 const rekeyedParams = computed(() => props.rekeyedToInfo?.params ?? null);
 
-const formatCurrency = (value?: number) => {
+const formatCurrency = (value?: number | bigint) => {
   if ($filters?.formatCurrency) {
     return $filters.formatCurrency(value);
   }

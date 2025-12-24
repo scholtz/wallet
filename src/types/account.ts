@@ -1,23 +1,11 @@
 import type { SuggestedParams } from "algosdk";
+import type { IAccountData, WalletAccount } from "@/store/wallet";
 
-export type MultisigParams = {
-  threshold?: number;
-  addrs?: string[];
-};
+export type MultisigParams = WalletAccount["params"];
 
-export type AccountNetworkData = Record<string, any>;
+export type AccountNetworkData = IAccountData;
 
-export type PrivateAccount = {
-  addr: string;
-  name: string;
-  addr0?: string;
-  slot?: number;
-  type?: string;
-  sk?: unknown;
-  params?: MultisigParams | null;
-  data?: Record<string, AccountNetworkData>;
-  isHidden?: boolean;
-};
+export type PrivateAccount = WalletAccount;
 
 export type ParticipationData = {
   stakingRegistration: boolean;
