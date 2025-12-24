@@ -22,7 +22,7 @@
             <p>{{ $t("pay.review_payment_help") }}</p>
             <div class="grid">
               <div class="col">
-                <div v-if="!multisigDecoded.txn" class="w-100">
+                <div v-if="!multisigTxn" class="w-100">
                   <div class="field grid">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.from_account") }}
@@ -174,14 +174,14 @@
                   </div>
                 </div>
 
-                <div v-if="multisigDecoded.txn">
+                <div v-if="multisigTxn">
                   <h2>{{ $t("pay.transaction_details") }}</h2>
                   <div class="field grid">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.type") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ multisigDecoded.txn.type }}
+                      {{ multisigTxn?.type }}
                     </div>
                   </div>
                   <div class="field grid">
@@ -189,24 +189,28 @@
                       {{ $t("pay.name") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ multisigDecoded.txn.name }}
+                      {{ multisigTxn?.name }}
                     </div>
                   </div>
-                  <div class="field grid" v-if="multisigDecoded.txn.amount">
+                  <div class="field grid" v-if="multisigTxn?.amount">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.amount") }}
                     </label>
                     <div class="col-12 md:col-10" v-if="assetObj">
                       {{
                         $filters.formatCurrency(
-                          multisigDecoded.txn.amount,
+                          normalizeNumeric(multisigTxn?.amount),
                           assetObj.name,
                           assetObj.decimals
                         )
                       }}
                     </div>
                     <div class="col-12 md:col-10" v-else>
-                      {{ $filters.formatCurrency(multisigDecoded.txn.amount) }}
+                      {{
+                        $filters.formatCurrency(
+                          normalizeNumeric(multisigTxn?.amount)
+                        )
+                      }}
                     </div>
                   </div>
                   <div class="field grid">
@@ -214,7 +218,11 @@
                       {{ $t("pay.fee") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ $filters.formatCurrency(multisigDecoded.txn.fee) }}
+                      {{
+                        $filters.formatCurrency(
+                          normalizeNumeric(multisigTxn?.fee)
+                        )
+                      }}
                     </div>
                   </div>
                   <div class="field grid">
@@ -222,7 +230,9 @@
                       {{ $t("pay.first_round") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ multisigDecoded.txn.firstRound }}
+                      {{
+                        multisigTxn?.firstRound ?? multisigTxn?.firstValid ?? ""
+                      }}
                     </div>
                   </div>
                   <div class="field grid">
@@ -230,7 +240,9 @@
                       {{ $t("pay.last_round") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ multisigDecoded.txn.lastRound }}
+                      {{
+                        multisigTxn?.lastRound ?? multisigTxn?.lastValid ?? ""
+                      }}
                     </div>
                   </div>
                   <div class="field grid">
@@ -238,17 +250,14 @@
                       {{ $t("pay.genesis") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ multisigDecoded.txn.genesisID }}
+                      {{ multisigTxn?.genesisID }}
                     </div>
                   </div>
                   <div class="field grid">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.note") }}
                     </label>
-                    <div
-                      class="col-12 md:col-10"
-                      v-if="multisigDecoded.txn.note"
-                    >
+                    <div class="col-12 md:col-10" v-if="multisigTxn?.note">
                       {{ msigNote }}
                     </div>
                   </div>
@@ -257,62 +266,46 @@
                       {{ $t("pay.tag") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ multisigDecoded.txn.tag }}
+                      {{ multisigTxn?.tag }}
                     </div>
                   </div>
-                  <div
-                    class="field grid"
-                    v-if="
-                      multisigDecoded.txn.from &&
-                      multisigDecoded.txn.from.publicKey
-                    "
-                  >
+                  <div class="field grid" v-if="multisigTxn?.from?.publicKey">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.from_account") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ encodeAddress(multisigDecoded.txn.from.publicKey) }}
+                      {{ encodeAddress(multisigTxn?.from?.publicKey) }}
                     </div>
                   </div>
                   <div
                     class="field grid"
-                    v-if="
-                      multisigDecoded.txn.reKeyTo &&
-                      multisigDecoded.txn.reKeyTo.publicKey
-                    "
+                    v-if="multisigTxn?.reKeyTo?.publicKey"
                   >
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.rekey_to") }}
                     </label>
                     <div class="col-12 md:col-10">
                       <Message severity="error">
-                        {{
-                          encodeAddress(multisigDecoded.txn.reKeyTo.publicKey)
-                        }}
+                        {{ encodeAddress(multisigTxn?.reKeyTo?.publicKey) }}
                       </Message>
                     </div>
                   </div>
-                  <div
-                    class="field grid"
-                    v-if="
-                      multisigDecoded.txn.to && multisigDecoded.txn.to.publicKey
-                    "
-                  >
+                  <div class="field grid" v-if="multisigTxn?.to?.publicKey">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.to_account") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ encodeAddress(multisigDecoded.txn.to.publicKey) }}
+                      {{ encodeAddress(multisigTxn?.to?.publicKey) }}
                     </div>
                   </div>
                 </div>
               </div>
-              <div class="col" v-if="multisigDecoded && multisigDecoded.msig">
+              <div class="col" v-if="multisigDecoded?.msig">
                 <h2>{{ $t("pay.signatures") }} {{ showSignaturesCount }}</h2>
                 <div
                   class="field grid"
-                  v-for="sig in multisigDecoded.msig.subsig"
-                  :key="sig"
+                  v-for="sig in multisigSubsig"
+                  :key="encodeAddress(sig.pk)"
                 >
                   <label class="col-12 mb-2 md:col-2 md:mb-0">
                     <AlgorandAddress :address="encodeAddress(sig.pk)" />
@@ -338,7 +331,7 @@
                 <Button
                   v-if="!isMultisig"
                   :disabled="
-                    processing || isRawSignedTxnSigned || confirmedRound
+                    processing || isRawSignedTxnSigned || !!confirmedRound
                   "
                   :severity="isRawSignedTxnSigned ? 'secondary' : 'primary'"
                   @click="signTxClick"
@@ -350,7 +343,7 @@
                   v-if="!isMultisig"
                   @click="submitSignedClick"
                   :disabled="
-                    processing || !isRawSignedTxnSigned || confirmedRound
+                    processing || !isRawSignedTxnSigned || !!confirmedRound
                   "
                   :severity="
                     isRawSignedTxnSigned && !confirmedRound
@@ -444,7 +437,7 @@
               </div>
             </div>
 
-            <div v-if="isMultisig && multisigDecoded.txn">
+            <div v-if="isMultisig && multisigTxn">
               <div
                 v-if="accountsFromMultisig && accountsFromMultisig.length > 0"
               >
@@ -611,7 +604,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, getCurrentInstance } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
@@ -636,13 +629,23 @@ const { t } = useI18n();
 const $t = t;
 const $store = store;
 const $route = route;
+const instance = getCurrentInstance();
+if (!instance) {
+  throw new Error("Failed to resolve current Vue instance in Sign.vue");
+}
+const $filters = instance.appContext.config.globalProperties
+  .$filters as GlobalFilters;
 
 type ExtendedStoredAsset = StoredAsset & {
-  amount?: number | string;
+  amount?: number;
   type?: string;
   name?: string;
   "unit-name"?: string;
   decimals?: number;
+};
+
+type TransactionPublicKey = {
+  publicKey?: Uint8Array;
 };
 
 type TwoFactorWalletAccount = WalletAccount & {
@@ -650,6 +653,32 @@ type TwoFactorWalletAccount = WalletAccount & {
   twoFactorAuthProvider?: string;
   recoveryAccount?: string;
 };
+
+type GlobalFilters = {
+  formatCurrency: (
+    value: number | string,
+    symbol?: string,
+    decimals?: number
+  ) => string;
+  [key: string]: (...args: any[]) => unknown;
+};
+
+type LooseTransaction = algosdk.Transaction & {
+  amount?: number | string | bigint;
+  name?: string;
+  tag?: string;
+  firstRound?: number | string | bigint;
+  lastRound?: number | string | bigint;
+  voteFirst?: number | string | bigint;
+  voteLast?: number | string | bigint;
+  from?: TransactionPublicKey;
+  to?: TransactionPublicKey;
+  reKeyTo?: TransactionPublicKey;
+};
+
+type DecodedSignedTransaction = ReturnType<
+  typeof algosdk.decodeSignedTransaction
+>;
 
 const toSingleParam = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] : value;
@@ -666,12 +695,12 @@ const tx = ref<string | null>(null);
 const processing = ref(false);
 const error = ref<string | undefined>("");
 const confirmedRound = ref<number | null>(null);
-const txn = ref<algosdk.Transaction | null>(null);
+const txn = ref<LooseTransaction | null>(null);
 const rawSignedTxn = ref<string | null>(null);
 const rawSignedTxnFriend = ref<string | null>(null);
 const rawSignedTxnInput = ref<string | null>(null);
 const signMultisigWith = ref<string[]>([]);
-const multisigDecoded = ref<algosdk.SignedTransaction | null>(null);
+const multisigDecoded = ref<DecodedSignedTransaction | null>(null);
 const assets = ref<ExtendedStoredAsset[]>([]);
 const asset = ref("");
 const assetObj = ref<ExtendedStoredAsset>({
@@ -691,7 +720,9 @@ const fatal = ref("");
 const b64decode = ref<AlgorandProtocolParameters | null>(null);
 const note = ref("");
 
-const walletAccounts = computed(() => store.state.wallet.privateAccounts);
+const walletAccounts = computed<WalletAccount[]>(
+  () => store.state.wallet.privateAccounts
+);
 const envName = computed(() => store.state.config.env);
 const tokenSymbol = computed(() => store.state.config.tokenSymbol);
 
@@ -726,6 +757,13 @@ const multisigParams = computed<algosdk.MultisigMetadata | undefined>(() => {
   }
   return account.value?.params;
 });
+const multisigTxn = computed<LooseTransaction | null>(() => {
+  const txValue = multisigDecoded.value?.txn;
+  return txValue ? (txValue as LooseTransaction) : null;
+});
+const multisigSubsig = computed(
+  () => multisigDecoded.value?.msig?.subsig ?? []
+);
 const isMultisig = computed(() => !!multisigParams.value);
 const accountsFromMultisig = computed(() => {
   const params = multisigParams.value;
@@ -900,10 +938,10 @@ const openErrorAction = (message: string) =>
 const signerSignMultisigAction = (payload: {
   msigTx: Uint8Array;
   signator: string;
-  txn: algosdk.Transaction | null;
+  txn: LooseTransaction | null;
 }) => store.dispatch("signer/signMultisig", payload);
 const signerCreateMultisigTransactionAction = (payload: {
-  txn: algosdk.Transaction | null;
+  txn: LooseTransaction | null;
   from: string;
 }) => store.dispatch("signer/createMultisigTransaction", payload);
 const signerSetSignedAction = (payload: { signed: Uint8Array }) =>
@@ -911,7 +949,7 @@ const signerSetSignedAction = (payload: { signed: Uint8Array }) =>
 const signTransactionAction = (payload: {
   from: string;
   signator: string;
-  tx: algosdk.Transaction | null;
+  tx: LooseTransaction | null;
 }) => store.dispatch("signer/signTransaction", payload);
 const signAuthTxAction = (payload: { account: string; realm: string }) =>
   store.dispatch("arc14/signAuthTx", payload);
@@ -944,7 +982,7 @@ const arrayBufferToBase64 = (buffer: Uint8Array | ArrayBufferLike) => {
   return btoa(binary);
 };
 
-const base64ToArrayBuffer = (base64: string) => {
+const base64ToArrayBuffer = (base64: string): Uint8Array => {
   const binaryString = window.atob(base64);
   const len = binaryString.length;
   const bytes = new Uint8Array(len);
@@ -971,11 +1009,35 @@ const base64url2base64 = (input: string) => {
 const base642base64url = (input: string) =>
   input.replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 
-const encodeAddress = (value: Uint8Array) => algosdk.encodeAddress(value);
+const encodeAddress = (value?: Uint8Array) =>
+  value ? algosdk.encodeAddress(value) : "";
+const encodePublicKeyAddress = (entry?: TransactionPublicKey) => {
+  if (!entry?.publicKey) {
+    return "";
+  }
+  return encodeAddress(entry.publicKey);
+};
+
+const normalizeNumeric = (
+  value?: number | string | bigint | null,
+  fallback = 0
+) => {
+  if (value === undefined || value === null) {
+    return fallback;
+  }
+  if (typeof value === "number") {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? fallback : parsed;
+  }
+  return Number(value);
+};
 
 const makeAssets = async () => {
   assets.value = [];
-  const pushNativeAsset = (amount: number | string) => {
+  const pushNativeAsset = (amount: number) => {
     assets.value.push({
       "asset-id": "0",
       amount,
@@ -986,7 +1048,8 @@ const makeAssets = async () => {
     });
   };
   if (accountData.value) {
-    pushNativeAsset(accountData.value.amount ?? 0);
+    const nativeAmount = Number(accountData.value.amount ?? 0);
+    pushNativeAsset(nativeAmount);
   } else {
     pushNativeAsset(0);
   }
@@ -1003,9 +1066,10 @@ const makeAssets = async () => {
             assetIndex,
           })) as ExtendedStoredAsset | undefined;
           if (fetchedAsset) {
+            const normalizedAmount = Number(accountDataAsset["amount"] ?? 0);
             assets.value.push({
               "asset-id": accountDataAsset["asset-id"],
-              amount: accountDataAsset["amount"],
+              amount: normalizedAmount,
               name: fetchedAsset.name,
               decimals: fetchedAsset.decimals,
               "unit-name": fetchedAsset["unit-name"],
@@ -1101,11 +1165,11 @@ const payMultisig = async () => {
     if (rekeyTo.value) {
       data.reKeyTo = rekeyTo.value;
     }
-    txn.value = (await preparePaymentAction(data)) as algosdk.Transaction;
+    txn.value = (await preparePaymentAction(data)) as LooseTransaction;
   }
   if (!multisigParams.value || !txn.value) return;
   const rawSignedTxnBytes = algosdk.createMultisigTransaction(
-    txn.value,
+    txn.value as algosdk.Transaction,
     multisigParams.value
   );
   rawSignedTxn.value = arrayBufferToBase64(rawSignedTxnBytes);
@@ -1118,7 +1182,7 @@ const payMultisig = async () => {
 const signMultisig = async (e?: Event) => {
   prolongAction();
   e?.preventDefault();
-  let rawSignedTxnBytes = rawSignedTxnInput.value
+  let rawSignedTxnBytes: Uint8Array | null = rawSignedTxnInput.value
     ? base64ToArrayBuffer(rawSignedTxnInput.value)
     : null;
   const selected = [...signMultisigWith.value];
@@ -1128,9 +1192,12 @@ const signMultisig = async (e?: Event) => {
   }
   if (!rawSignedTxnBytes) {
     rawSignedTxnBytes = (await signerCreateMultisigTransactionAction({
-      txn: txn.value,
+      txn: txn.value as LooseTransaction | null,
       from: payFrom.value,
     })) as Uint8Array;
+  }
+  if (!rawSignedTxnBytes) {
+    throw new Error("Unable to load multisig transaction bytes");
   }
   for (const acc of accountsFromMultisig.value) {
     try {
@@ -1141,7 +1208,7 @@ const signMultisig = async (e?: Event) => {
       const newTx = await signerSignMultisigAction({
         msigTx: rawSignedTxnBytes,
         signator: acc.addr,
-        txn: txn.value,
+        txn: txn.value as LooseTransaction | null,
       });
       await addSignature(newTx as string);
     } catch (err: any) {
@@ -1157,7 +1224,7 @@ const signTxClick = async (e?: Event) => {
   const signed = (await signTransactionAction({
     from: payFrom.value,
     signator: payFrom.value,
-    tx: txn.value,
+    tx: txn.value as LooseTransaction | null,
   })) as Uint8Array | undefined;
   if (signed) {
     rawSignedTxn.value = arrayBufferToBase64(signed);
@@ -1200,6 +1267,7 @@ const submitSignedClick = async () => {
       processing.value = false;
       if (rekeyTo.value) {
         const info = {
+          addr: payFrom.value,
           address: payFrom.value,
           rekeyedTo: rekeyTo.value,
         } as WalletAccount;
@@ -1269,7 +1337,11 @@ const payPaymentClick = async (e?: Event) => {
         );
         const rekeyedTo = info.substring(0, info.indexOf(" "));
         if (rekeyedTo) {
-          const update = { address: payFrom.value, rekeyedTo } as WalletAccount;
+          const update = {
+            addr: payFrom.value,
+            address: payFrom.value,
+            rekeyedTo,
+          } as WalletAccount;
           await updateAccountAction({ info: update });
           await openSuccessAction(
             `Information about rekeying to address ${rekeyedTo} has been stored`
@@ -1293,6 +1365,7 @@ const payPaymentClick = async (e?: Event) => {
       processing.value = false;
       if (rekeyTo.value) {
         const update = {
+          addr: payFrom.value,
           address: payFrom.value,
           rekeyedTo: rekeyTo.value,
         } as WalletAccount;
@@ -1317,7 +1390,7 @@ const loadMultisig = (e?: Event) => {
   multisigDecoded.value = algosdk.decodeSignedTransaction(
     base64ToArrayBuffer(rawSignedTxnInput.value ?? "")
   );
-  txn.value = multisigDecoded.value.txn;
+  txn.value = multisigDecoded.value.txn as LooseTransaction;
   rawSignedTxn.value = rawSignedTxnInput.value;
   page.value = "review";
   if (
@@ -1358,7 +1431,11 @@ const sendMultisig = async (e?: Event) => {
         const info = message.substring(message.indexOf(search) + search.length);
         const rekeyedTo = info.substring(0, info.indexOf(" "));
         if (rekeyedTo) {
-          const update = { address: payFrom.value, rekeyedTo } as WalletAccount;
+          const update = {
+            addr: payFrom.value,
+            address: payFrom.value,
+            rekeyedTo,
+          } as WalletAccount;
           await updateAccountAction({ info: update });
           await openSuccessAction(
             `Information about rekeying to address ${rekeyedTo} has been stored`
@@ -1674,13 +1751,15 @@ onMounted(async () => {
       rawSignedTxnInput.value = b64;
       const uint8buffer = base64ToArrayBuffer(b64);
       try {
-        txn.value = algosdk.decodeUnsignedTransaction(uint8buffer);
+        txn.value = algosdk.decodeUnsignedTransaction(
+          uint8buffer
+        ) as LooseTransaction;
       } catch (err) {
         try {
           const signed = algosdk.decodeSignedTransaction(uint8buffer);
           rawSignedTxn.value = b64;
           multisigDecoded.value = signed;
-          txn.value = signed.txn;
+          txn.value = signed.txn as LooseTransaction;
         } catch (innerErr) {
           console.error("failed to parse tx", err, innerErr);
         }

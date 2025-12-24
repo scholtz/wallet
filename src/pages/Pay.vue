@@ -364,6 +364,11 @@ import TabPanel from "primevue/tabpanel";
 import { getArc200Client } from "arc200-client";
 import { useStore } from "@/store";
 import { Buffer } from "buffer";
+import type {
+  WalletAccount,
+  IAccountData,
+  AccountAssetHolding,
+} from "@/store/wallet";
 
 type AssetType = "Native" | "ASA" | "ARC200";
 
@@ -377,38 +382,8 @@ interface AssetOption {
   label: string;
 }
 
-interface AccountAsset {
-  "asset-id": number | string;
-  amount: number;
-}
-
-interface Arc200AccountAsset {
-  arc200id: string | number;
-  balance: number | string | bigint;
-  name: string;
-  symbol?: string;
-  decimals: number | string;
-}
-
-interface AccountNetworkData {
-  amount?: number;
-  addr?: string;
-  assets?: AccountAsset[];
-  arc200?: Record<string, Arc200AccountAsset>;
-  rekeyedTo?: string;
-}
-
-interface WalletAccount {
-  addr?: string;
-  name?: string;
-  data?: Record<string, AccountNetworkData>;
-  params?: MultisigMetadata;
-  primaryAccount?: string;
-  recoveryAccount?: string;
-  twoFactorAuthProvider?: string;
-  type?: string;
-  sk?: unknown;
-}
+type AccountAsset = AccountAssetHolding;
+type AccountNetworkData = IAccountData;
 
 type MultisigDecoded = ReturnType<
   typeof algosdk.decodeSignedTransaction
@@ -962,14 +937,11 @@ const isBase64 = (str: string) => {
 const makeAssets = async () => {
   state.assets = [];
   if (accountData.value) {
-    const balance = formatCurrency(
-      accountData.value.amount ?? 0,
-      tokenSymbol.value,
-      6
-    );
+    const nativeAmount = Number(accountData.value.amount ?? 0);
+    const balance = formatCurrency(nativeAmount, tokenSymbol.value, 6);
     state.assets.push({
       "asset-id": "0",
-      amount: accountData.value.amount ?? 0,
+      amount: nativeAmount,
       name: tokenSymbol.value,
       decimals: 6,
       "unit-name": tokenSymbol.value,

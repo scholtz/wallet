@@ -9,20 +9,54 @@ import db from "../shared/db";
 import wc from "../shared/wc";
 import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
 import type { RootState } from "./index";
-import { StoredAsset } from "./indexer";
 
 type WalletAccountData = Record<string, IAccountData>;
 
+type AmountLike = number | bigint;
+
+export interface AccountAssetHolding {
+  "asset-id": number | string;
+  amount: AmountLike;
+  creator?: string;
+  deleted?: boolean;
+  "is-frozen"?: boolean;
+  "opted-in-at-round"?: number;
+  "frozen-at-round"?: number;
+}
+
 export interface IAccountData {
-  assets?: Record<string, StoredAsset>;
-  rekeyedTo?: string;
-  amount?: bigint;
+  address?: string;
+  addr?: string;
+  amount?: AmountLike;
+  "amount-without-pending-rewards"?: AmountLike;
+  "apps-local-state"?: unknown[];
+  "apps-total-schema"?: Record<string, unknown>;
+  assets?: AccountAssetHolding[];
   arc200?: Record<string, Arc200Info>;
-  [key: string]: unknown;
+  "auth-addr"?: string;
+  "created-apps"?: unknown[];
+  "created-assets"?: unknown[];
+  "created-at-round"?: number;
+  deleted?: boolean;
+  participation?: Record<string, unknown>;
+  "pending-rewards"?: AmountLike;
+  "reward-base"?: AmountLike;
+  rekeyedTo?: string;
+  rewards?: AmountLike;
+  round?: number;
+  "sig-type"?: string;
+  status?: string;
+  "total-apps-opted-in"?: number;
+  "total-assets-opted-in"?: number;
+  "total-box-bytes"?: number;
+  "total-boxes"?: number;
+  "total-created-apps"?: number;
+  "total-created-assets"?: number;
 }
 
 export interface WalletAccount {
   addr: string;
+  address?: string;
   name?: string;
   params?: algosdk.MultisigMetadata;
   data?: WalletAccountData;
@@ -85,8 +119,10 @@ type PublicAccountPayload = {
 
 type DeleteAccountPayload = PublicAccountPayload;
 
+type AccountInfoUpdate = Partial<WalletAccount> & Partial<IAccountData>;
+
 type SetPrivateAccountPayload = {
-  info: WalletAccount & { address?: string };
+  info: AccountInfoUpdate;
   network: string;
 };
 
@@ -162,6 +198,43 @@ const state = (): WalletState => ({
   transaction: {},
   wc: {},
 });
+
+const ACCOUNT_DATA_KEYS = [
+  "address",
+  "addr",
+  "amount",
+  "amount-without-pending-rewards",
+  "apps-local-state",
+  "apps-total-schema",
+  "arc200",
+  "assets",
+  "auth-addr",
+  "created-apps",
+  "created-assets",
+  "created-at-round",
+  "deleted",
+  "participation",
+  "pending-rewards",
+  "reward-base",
+  "rekeyedTo",
+  "rewards",
+  "round",
+  "sig-type",
+  "status",
+  "total-apps-opted-in",
+  "total-assets-opted-in",
+  "total-box-bytes",
+  "total-boxes",
+  "total-created-apps",
+  "total-created-assets",
+] as const;
+
+type AccountDataKey = (typeof ACCOUNT_DATA_KEYS)[number];
+
+const ACCOUNT_DATA_KEY_SET = new Set<AccountDataKey>(ACCOUNT_DATA_KEYS);
+
+const isAccountDataKey = (value: PropertyKey): value is AccountDataKey =>
+  ACCOUNT_DATA_KEY_SET.has(value as AccountDataKey);
 const ensureAccountNetworkData = (
   account: WalletAccount,
   network: string
@@ -262,41 +335,45 @@ const mutations: MutationTree<WalletState> = {
     state.privateAccounts.splice(index, 1);
   },
   setPrivateAccount(state, { info, network }: SetPrivateAccountPayload) {
-    if (!info.address) {
-      if (!info.addr) return;
-      info.address = info.addr;
+    const normalizedAddress = info.address ?? info.addr;
+    if (!normalizedAddress) {
+      console.error("Error storing account. Address is missing");
+      return;
     }
-    if (!info.addr) {
-      if (!info.address) return;
-      info.addr = info.address;
-    }
-    let acc = state.privateAccounts.find((x) => x.addr == info.address);
+    info.address = normalizedAddress;
+    info.addr = normalizedAddress;
+
+    let acc = state.privateAccounts.find((x) => x.addr == normalizedAddress);
     if (!acc) {
-      // to change the network we match the account by address and name
       acc = state.privateAccounts.find(
-        (x) => x.addr == info.address && x.name == info.name
+        (x) => x.addr == normalizedAddress && x.name == info.name
       );
     }
     if (!acc) {
-      // fallback
-      acc = state.privateAccounts.find((x) => x.addr == info.address);
+      acc = state.privateAccounts.find((x) => x.addr == normalizedAddress);
     }
     if (!acc || !acc.addr) {
-      console.error(`Error storing account. Address ${info.address} not found`);
+      console.error(
+        `Error storing account. Address ${normalizedAddress} not found`
+      );
       return;
     }
-    if (acc) {
-      const networkData = ensureAccountNetworkData(acc, network);
-      for (let index in info) {
-        const value = info[index];
-        (networkData as Record<string, unknown>)[index] = value;
-        if (index == "rekeyedTo" && acc[index] == info.address) {
-          // rekeying set to original address
-          delete acc[index];
-        }
-        if (index == "rekeyedTo" && value == info.address) {
-          // rekeying set to original address
-          delete acc[index];
+
+    const networkData = ensureAccountNetworkData(acc, network);
+    const accountInfo = info as Partial<IAccountData>;
+    const writableData = networkData as Record<AccountDataKey, unknown>;
+    for (const rawKey of Object.keys(accountInfo)) {
+      if (!isAccountDataKey(rawKey)) continue;
+      const key = rawKey as AccountDataKey;
+      const value = accountInfo[key as keyof IAccountData];
+      if (value === undefined) continue;
+      writableData[key] = value;
+      if (key === "rekeyedTo" && typeof value === "string") {
+        if (
+          acc.rekeyedTo === normalizedAddress ||
+          value === normalizedAddress
+        ) {
+          delete acc.rekeyedTo;
         }
       }
     }
