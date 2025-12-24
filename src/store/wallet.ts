@@ -16,8 +16,9 @@ type WalletAccountData = Record<string, IAccountData>;
 export interface IAccountData {
   assets?: Record<string, StoredAsset>;
   rekeyedTo?: string;
-  amount: bigint;
+  amount?: bigint;
   arc200?: Record<string, Arc200Info>;
+  [key: string]: unknown;
 }
 
 export interface WalletAccount {
@@ -25,7 +26,7 @@ export interface WalletAccount {
   name?: string;
   params?: algosdk.MultisigMetadata;
   data?: WalletAccountData;
-  type: "2faApi" | "2fa" | "msig" | "ledger" | "wc" | "emailPwd";
+  type?: "2faApi" | "2fa" | "msig" | "ledger" | "wc" | "emailPwd";
   recoveryAccount?: string;
   [key: string]: any;
 }
@@ -74,7 +75,7 @@ type UpdateArc200BalancePayload = {
   addr: string;
   network: string;
   arc200Id: string;
-  balance: number;
+  balance: bigint | number | string;
 };
 
 type PublicAccountPayload = {
@@ -161,6 +162,18 @@ const state = (): WalletState => ({
   transaction: {},
   wc: {},
 });
+const ensureAccountNetworkData = (
+  account: WalletAccount,
+  network: string
+): IAccountData => {
+  if (!account.data) {
+    account.data = {};
+  }
+  if (!account.data[network]) {
+    account.data[network] = { amount: BigInt(0) };
+  }
+  return account.data[network];
+};
 const parseEntry = (entry: [string, unknown]) => {
   const serialized = typeof entry[1] === "string" ? entry[1] : "";
   return [entry[0], safeJsonParse(serialized)];
@@ -211,10 +224,9 @@ const mutations: MutationTree<WalletState> = {
       console.error(`Account ${addr} not found while adding ARC-200 asset.`);
       return;
     }
-    if (!acc.data) acc.data = {};
-    if (!acc.data[network]) acc.data[network] = {};
-    if (!acc.data[network].arc200) acc.data[network].arc200 = {};
-    acc.data[network].arc200[arc200Info.arc200id] = arc200Info;
+    const networkData = ensureAccountNetworkData(acc, network);
+    if (!networkData.arc200) networkData.arc200 = {};
+    networkData.arc200[arc200Info.arc200id] = arc200Info;
   },
   updateArc200Balance(
     state,
@@ -227,16 +239,18 @@ const mutations: MutationTree<WalletState> = {
       );
       return;
     }
-    if (!acc.data) acc.data = {};
-    if (!acc.data[network]) acc.data[network] = {};
-    if (!acc.data[network]["arc200"]) acc.data[network]["arc200"] = {};
-    if (!acc.data[network]["arc200"][arc200Id]) {
+    const networkData = ensureAccountNetworkData(acc, network);
+    if (!networkData.arc200) networkData.arc200 = {};
+    const existingAsset = networkData.arc200[arc200Id];
+    if (!existingAsset) {
       throw Error(`Asset with id ${arc200Id} is not present to the wallet.`);
     }
-    acc.data[network]["arc200"][arc200Id].balance = balance;
+    const normalizedBalance =
+      typeof balance === "bigint" ? balance : BigInt(balance);
+    existingAsset.balance = normalizedBalance;
   },
   addPublicAccount(state, { name, addr }: PublicAccountPayload) {
-    const acc = { name, addr, address: addr };
+    const acc: WalletAccount = { name, addr, address: addr };
     state.privateAccounts.push(acc);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
@@ -272,15 +286,15 @@ const mutations: MutationTree<WalletState> = {
       return;
     }
     if (acc) {
+      const networkData = ensureAccountNetworkData(acc, network);
       for (let index in info) {
-        if (!acc.data) acc.data = {};
-        if (!acc.data[network]) acc.data[network] = {};
-        acc.data[network][index] = info[index];
+        const value = info[index];
+        (networkData as Record<string, unknown>)[index] = value;
         if (index == "rekeyedTo" && acc[index] == info.address) {
           // rekeying set to original address
           delete acc[index];
         }
-        if (index == "rekeyedTo" && acc.data[network][index] == info.address) {
+        if (index == "rekeyedTo" && value == info.address) {
           // rekeying set to original address
           delete acc[index];
         }
@@ -318,7 +332,7 @@ const mutations: MutationTree<WalletState> = {
     state,
     { addr, params, name, network }: AddMultiAccountPayload
   ) {
-    const multsigaddr = {
+    const multsigaddr: WalletAccount = {
       addr,
       address: addr,
       name,
@@ -342,7 +356,7 @@ const mutations: MutationTree<WalletState> = {
       network,
     }: Add2FAAccountPayload
   ) {
-    const multsigaddr = {
+    const multsigaddr: WalletAccount = {
       addr,
       address: addr,
       name,
@@ -369,7 +383,7 @@ const mutations: MutationTree<WalletState> = {
       twoFactorAuthProvider,
     }: Add2FAApiAccountPayload
   ) {
-    const multsigaddr = {
+    const multsigaddr: WalletAccount = {
       addr,
       address: addr,
       name: `2FA ${name}`,
@@ -389,7 +403,15 @@ const mutations: MutationTree<WalletState> = {
     state,
     { name, addr, addr0, slot, network }: AddLedgerAccountPayload
   ) {
-    const account = { name, addr, addr0, slot, network, type: "ledger" };
+    const account: WalletAccount = {
+      name,
+      addr,
+      address: addr,
+      addr0,
+      slot,
+      network,
+      type: "ledger",
+    };
     state.privateAccounts.push(account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
@@ -398,7 +420,15 @@ const mutations: MutationTree<WalletState> = {
     state,
     { name, addr, session, network }: AddWalletConnectAccountPayload
   ) {
-    const account = { name, addr, session, network, ver: "1", type: "wc" };
+    const account: WalletAccount = {
+      name,
+      addr,
+      address: addr,
+      session,
+      network,
+      ver: "1",
+      type: "wc",
+    };
     state.privateAccounts.push(account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
@@ -407,7 +437,15 @@ const mutations: MutationTree<WalletState> = {
     state,
     { name, addr, session, network }: AddWalletConnectAccountPayload
   ) {
-    const account = { name, addr, session, network, ver: "2", type: "wc" };
+    const account: WalletAccount = {
+      name,
+      addr,
+      address: addr,
+      session,
+      network,
+      ver: "2",
+      type: "wc",
+    };
     state.privateAccounts.push(account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
