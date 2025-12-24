@@ -498,10 +498,10 @@ export function useSwap() {
         await reloadAccount();
         return;
       }
-      const confirmation = await store.dispatch("algod/waitForConfirmation", {
+      const confirmation = (await store.dispatch("algod/waitForConfirmation", {
         txId: tx.txId,
         timeout: 4,
-      });
+      })) as algosdk.modelsv2.PendingTransactionResponse | undefined;
       if (confirmation) {
         ret += tx.txId + ", ";
       } else {

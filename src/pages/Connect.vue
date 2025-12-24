@@ -625,7 +625,6 @@ export default {
       axiosGet: "axios/get",
       getTransactionParams: "algod/getTransactionParams",
       sendRawTransaction: "algod/sendRawTransaction",
-      waitForConfirmation: "algod/waitForConfirmation",
       getSignerType: "signer/getSignerType",
       signerSignTransaction: "signer/signTransaction",
       signerToSign: "signer/toSign",

@@ -214,7 +214,7 @@ const actions: ActionTree<AlgodState, RootState> = {
   async sendRawTransaction(
     { rootState },
     { signedTxn }: SendRawTransactionPayload
-  ) {
+  ): Promise<algosdk.modelsv2.PostTransactionsResponse> {
     const algodClient = createAlgodClient(rootState);
     return algodClient.sendRawTransaction(signedTxn).do();
   },
@@ -246,43 +246,13 @@ const actions: ActionTree<AlgodState, RootState> = {
   async waitForConfirmation(
     { rootState },
     { txId, timeout }: WaitForConfirmationPayload
-  ) {
+  ): Promise<algosdk.modelsv2.PendingTransactionResponse | undefined> {
     try {
       if (!txId || timeout < 0) {
         throw new Error("Bad arguments.");
       }
-
       const algodClient = createAlgodClient(rootState);
-      const status = (await algodClient.status().do()) as Record<string, any>;
-      if (!status) {
-        throw new Error("Unable to get node status");
-      }
-      const startRound = Number(status["last-round"]) + 1;
-      let currentRound = startRound;
-
-      while (currentRound < startRound + timeout) {
-        const pendingInfo = (await algodClient
-          .pendingTransactionInformation(txId)
-          .do()) as Record<string, any>;
-        if (pendingInfo) {
-          const confirmedRound = pendingInfo["confirmed-round"];
-          if (confirmedRound !== null && confirmedRound > 0) {
-            return pendingInfo;
-          }
-          const poolError = pendingInfo["pool-error"];
-          if (poolError) {
-            throw new Error(
-              `Transaction Rejected pool error ${pendingInfo["pool-error"]}`
-            );
-          }
-        }
-        await algodClient.statusAfterBlock(currentRound).do();
-        currentRound++;
-      }
-
-      throw new Error(
-        `Pending tx not found in timeout rounds, timeout value = ${timeout}`
-      );
+      return await algosdk.waitForConfirmation(algodClient, txId, timeout);
     } catch (error) {
       console.error("Failed waiting for confirmation", error);
       return undefined;

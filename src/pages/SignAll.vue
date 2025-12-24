@@ -28,7 +28,7 @@ interface SignAllState {
   allTxsAreSigned: boolean;
   processing: boolean;
   error: string;
-  confirmedRound: number;
+  confirmedRound: bigint;
 }
 
 const state = reactive<SignAllState>({
@@ -39,7 +39,7 @@ const state = reactive<SignAllState>({
   allTxsAreSigned: false,
   processing: false,
   error: "",
-  confirmedRound: 0,
+  confirmedRound: 0n,
 });
 
 const toErrorMessage = (err: unknown): string =>
@@ -265,10 +265,10 @@ const submitSignedClick = async () => {
       state.processing = false;
     }
 
-    const confirmation = await store.dispatch("algod/waitForConfirmation", {
+    const confirmation = (await store.dispatch("algod/waitForConfirmation", {
       txId: tx,
       timeout: 4,
-    });
+    })) as algosdk.modelsv2.PendingTransactionResponse | undefined;
     if (!confirmation) {
       console.error(`confirmation not received for tx`);
       state.processing = false;
@@ -277,17 +277,17 @@ const submitSignedClick = async () => {
       //            "Payment has probably not reached the network. Are you offline? Please check you account";
       return;
     }
-    if (confirmation["confirmed-round"]) {
+    if (confirmation.confirmedRound) {
       state.processing = false;
-      state.confirmedRound = confirmation["confirmed-round"];
+      state.confirmedRound = confirmation.confirmedRound;
       store.dispatch(
         "toast/openSuccess",
         `${t("sign_all.transaction_confirmed")} ${state.confirmedRound}`
       );
     }
-    if (confirmation["pool-error"]) {
+    if (confirmation.poolError) {
       state.processing = false;
-      state.error = confirmation["pool-error"];
+      state.error = confirmation.poolError;
     }
     state.processing = false;
   } catch (exc) {

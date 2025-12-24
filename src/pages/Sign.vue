@@ -565,7 +565,7 @@
                 strokeWidth="5"
               />
 
-              {{ $t("pay.state_sent") }}: {{ tx }}.
+              {{ $t("pay.state_sent") }} {{ tx }}.
               {{ $t("pay.state_waiting_confirm") }}
             </Message>
             <Message severity="success" v-if="confirmedRound" class="my-2">
@@ -694,7 +694,7 @@ const page = ref("review");
 const tx = ref<string | null>(null);
 const processing = ref(false);
 const error = ref<string | undefined>("");
-const confirmedRound = ref<number | null>(null);
+const confirmedRound = ref<bigint | null>(null);
 const txn = ref<LooseTransaction | null>(null);
 const rawSignedTxn = ref<string | null>(null);
 const rawSignedTxnFriend = ref<string | null>(null);
@@ -918,12 +918,15 @@ const makePaymentAction = (payload: Record<string, unknown>) =>
 const waitForConfirmationAction = (payload: {
   txId: string;
   timeout: number;
-}) => store.dispatch("algod/waitForConfirmation", payload);
+}): Promise<algosdk.modelsv2.PendingTransactionResponse | undefined> =>
+  store.dispatch("algod/waitForConfirmation", payload);
 const preparePaymentAction = (payload: PreparePaymentPayload) =>
   store.dispatch("algod/preparePayment", payload);
 const lastActiveAccountAction = (payload: { addr: string }) =>
   store.dispatch("wallet/lastActiveAccount", payload);
-const sendRawTransactionAction = (payload: { signedTxn: Uint8Array }) =>
+const sendRawTransactionAction = (payload: {
+  signedTxn: Uint8Array;
+}): Promise<algosdk.modelsv2.PostTransactionsResponse> =>
   store.dispatch("algod/sendRawTransaction", payload);
 const updateAccountAction = (payload: { info: WalletAccount }) =>
   store.dispatch("wallet/updateAccount", payload);
@@ -1238,10 +1241,10 @@ const submitSignedClick = async () => {
     const signedBytes = new Uint8Array(
       Buffer.from(rawSignedTxn.value ?? "", "base64")
     );
-    const result = (await sendRawTransactionAction({
+    const result = await sendRawTransactionAction({
       signedTxn: signedBytes,
-    })) as { txId?: string };
-    tx.value = result?.txId ?? null;
+    });
+    tx.value = result?.txid ?? null;
     if (!tx.value) {
       console.error("submitSignedClick failed");
       const message = t("pay.state_error_not_sent") as string;
@@ -1250,10 +1253,11 @@ const submitSignedClick = async () => {
       processing.value = false;
       return;
     }
-    const confirmation = (await waitForConfirmationAction({
+    const confirmation = await waitForConfirmationAction({
       txId: tx.value,
       timeout: 4,
-    })) as Record<string, any> | undefined;
+    });
+    console.log("confirmation", confirmation);
     if (!confirmation) {
       const message = t("pay.state_error_not_sent") as string;
       console.error("confirmation not received");
@@ -1262,8 +1266,8 @@ const submitSignedClick = async () => {
       processing.value = false;
       return;
     }
-    if (confirmation["confirmed-round"]) {
-      confirmedRound.value = confirmation["confirmed-round"];
+    if (confirmation.confirmedRound) {
+      confirmedRound.value = confirmation.confirmedRound;
       processing.value = false;
       if (rekeyTo.value) {
         const info = {
@@ -1277,8 +1281,8 @@ const submitSignedClick = async () => {
         );
       }
     }
-    if (confirmation["pool-error"]) {
-      error.value = confirmation["pool-error"];
+    if (confirmation.poolError) {
+      error.value = confirmation.poolError;
       processing.value = false;
     }
   } catch (err: any) {
@@ -1350,18 +1354,18 @@ const payPaymentClick = async (e?: Event) => {
       }
       return;
     }
-    const confirmation = (await waitForConfirmationAction({
+    const confirmation = await waitForConfirmationAction({
       txId: tx.value,
       timeout: 4,
-    })) as Record<string, any> | undefined;
+    });
     if (!confirmation) {
       const message = t("pay.state_error_not_sent") as string;
       error.value = message;
       processing.value = false;
       return;
     }
-    if (confirmation["confirmed-round"]) {
-      confirmedRound.value = confirmation["confirmed-round"];
+    if (confirmation.confirmedRound) {
+      confirmedRound.value = confirmation.confirmedRound;
       processing.value = false;
       if (rekeyTo.value) {
         const update = {
@@ -1375,8 +1379,8 @@ const payPaymentClick = async (e?: Event) => {
         );
       }
     }
-    if (confirmation["pool-error"]) {
-      error.value = confirmation["pool-error"];
+    if (confirmation.poolError) {
+      error.value = confirmation.poolError;
       processing.value = false;
     }
   } catch (err: any) {
@@ -1413,10 +1417,10 @@ const sendMultisig = async (e?: Event) => {
     const signedTxn = base64ToArrayBuffer(rawSignedTxn.value ?? "");
     let message = "";
     try {
-      const response = (await sendRawTransactionAction({
+      const response = await sendRawTransactionAction({
         signedTxn,
-      })) as { txId?: string };
-      tx.value = response?.txId ?? null;
+      });
+      tx.value = response?.txid ?? null;
     } catch (err: any) {
       message = err?.message ?? String(err);
       await openErrorAction(message);
@@ -1444,16 +1448,16 @@ const sendMultisig = async (e?: Event) => {
       }
       return;
     }
-    const confirmation = (await waitForConfirmationAction({
+    const confirmation = await waitForConfirmationAction({
       txId: tx.value,
       timeout: 4,
-    })) as Record<string, any> | undefined;
-    if (confirmation?.["confirmed-round"]) {
-      confirmedRound.value = confirmation["confirmed-round"];
+    });
+    if (confirmation?.confirmedRound) {
+      confirmedRound.value = confirmation.confirmedRound;
       processing.value = false;
     }
-    if (confirmation?.["pool-error"]) {
-      error.value = confirmation["pool-error"];
+    if (confirmation?.poolError) {
+      error.value = confirmation.poolError;
       processing.value = false;
     }
   } catch (err: any) {

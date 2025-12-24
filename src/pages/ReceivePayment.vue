@@ -284,7 +284,7 @@ export default {
     reset() {
       this.subpage = "";
       this.error = "";
-      this.confirmedRound = "";
+      this.confirmedRound = 0n;
       this.processing = true;
       this.page = "review";
       this.signMultisigWith = [];
@@ -411,13 +411,13 @@ export default {
           // "Payment has probably not reached the network. Are you offline? Please check you account";
           return;
         }
-        if (confirmation["confirmed-round"]) {
+        if (confirmation?.confirmedRound) {
           this.processing = false;
-          this.confirmedRound = confirmation["confirmed-round"];
+          this.confirmedRound = confirmation.confirmedRound;
         }
-        if (confirmation["pool-error"]) {
+        if (confirmation?.poolError) {
           this.processing = false;
-          this.error = confirmation["pool-error"];
+          this.error = confirmation.poolError;
         }
       } catch (e) {
         this.processing = false;

@@ -408,7 +408,7 @@ interface PayState {
   processing: boolean;
   error: string | unknown;
   confirmation: Record<string, unknown> | null;
-  confirmedRound: number | null;
+  confirmedRound: bigint | null;
   subpage: string;
   txn: DecodedTxn;
   rawSignedTxn: string | null;
@@ -533,7 +533,10 @@ const setNoRedirect = () => store.dispatch("config/setNoRedirect");
 const prolong = () => store.dispatch("wallet/prolong");
 const makePayment = (payload: Record<string, unknown>) =>
   store.dispatch("algod/makePayment", payload);
-const waitForConfirmation = (payload: { txId: string; timeout: number }) =>
+const waitForConfirmation = (payload: {
+  txId: string;
+  timeout: number;
+}): Promise<algosdk.modelsv2.PendingTransactionResponse | undefined> =>
   store.dispatch("algod/waitForConfirmation", payload);
 const preparePayment = (payload: Record<string, unknown>) =>
   store.dispatch("algod/preparePayment", payload);
@@ -1440,9 +1443,9 @@ const payPaymentClick = async (e: Event | undefined) => {
       state.error = t("pay.state_error_not_sent");
       return;
     }
-    if (confirmationResult["confirmed-round"]) {
+    if (confirmationResult.confirmedRound) {
       state.processing = false;
-      state.confirmedRound = confirmationResult["confirmed-round"];
+      state.confirmedRound = confirmationResult.confirmedRound;
 
       if (state.rekeyTo) {
         const info = { address: senderAddr, rekeyedTo: state.rekeyTo };
@@ -1452,9 +1455,9 @@ const payPaymentClick = async (e: Event | undefined) => {
         );
       }
     }
-    if (confirmationResult["pool-error"]) {
+    if (confirmationResult.poolError) {
       state.processing = false;
-      state.error = confirmationResult["pool-error"];
+      state.error = confirmationResult.poolError;
     }
   } catch (exc) {
     state.error = toErrorMessage(exc);
@@ -1544,8 +1547,8 @@ const sendMultisig = async (e: Event | undefined) => {
       state.error = t("pay.state_error_not_sent");
       return;
     }
-    if (confirmationResult["confirmed-round"]) {
-      state.confirmedRound = confirmationResult["confirmed-round"];
+    if (confirmationResult.confirmedRound) {
+      state.confirmedRound = confirmationResult.confirmedRound;
       if (state.rekeyTo) {
         const info = { address: senderAddr, rekeyedTo: state.rekeyTo };
         await updateAccount({ info });
@@ -1554,8 +1557,8 @@ const sendMultisig = async (e: Event | undefined) => {
         );
       }
     }
-    if (confirmationResult["pool-error"]) {
-      state.error = confirmationResult["pool-error"];
+    if (confirmationResult.poolError) {
+      state.error = confirmationResult.poolError;
     }
   } catch (exc) {
     state.error = toErrorMessage(exc);
