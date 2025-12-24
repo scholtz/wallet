@@ -202,11 +202,13 @@ const actions: ActionTree<ParticipationState, RootState> = {
       const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
         sender: account,
         suggestedParams,
-        selectionKey: data.selectionKey,
-        stateProofKey: data.stateProofKey,
+        selectionKey: new Uint8Array(Buffer.from(data.selectionKey, "base64")),
+        stateProofKey: new Uint8Array(
+          Buffer.from(data.stateProofKey, "base64")
+        ),
         voteFirst,
         voteLast,
-        voteKey: data.voteKey,
+        voteKey: new Uint8Array(Buffer.from(data.voteKey, "base64")),
         voteKeyDilution: data.voteKeyDilution,
       });
       if (stakingRegistration) {

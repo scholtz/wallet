@@ -87,12 +87,12 @@ const actions: ActionTree<Arc14State, RootState> = {
       suggestedParams.flatFee = true;
       const note = Buffer.from(realm, "utf-8");
       return algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from: account,
-        to: account,
+        sender: account,
+        receiver: account,
         amount: 0,
         note: new Uint8Array(note),
         suggestedParams,
-      } as any);
+      });
     } catch (error) {
       console.error("Failed to build auth transaction", error);
       const message =
