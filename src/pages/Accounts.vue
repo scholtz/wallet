@@ -170,21 +170,8 @@ import formatCurrency from "@/scripts/numbers/formatCurrency";
 import { RootState } from "@/store";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
+import { IAccountData, WalletAccount } from "@/store/wallet";
 type Arc200Holding = { balance: number };
-type AccountEnvData = {
-  amount?: number;
-  arc200?: Record<string, Arc200Holding>;
-  [key: string]: unknown;
-};
-type WalletAccount = {
-  addr?: string;
-  name?: string;
-  sk?: unknown;
-  params?: unknown;
-  isHidden?: boolean;
-  data?: Record<string, AccountEnvData>;
-  [key: string]: unknown;
-};
 type DisplayAccount = WalletAccount & { amount: number };
 type FilterMode = (typeof FilterMatchMode)[keyof typeof FilterMatchMode];
 
@@ -210,7 +197,7 @@ const filters = ref<Record<string, FilterEntry>>({
 
 const isAuth = computed(() => store.state.wallet.isOpen);
 
-const accountData = (account?: WalletAccount): AccountEnvData | undefined => {
+const accountData = (account?: WalletAccount): IAccountData | undefined => {
   return account?.data?.[store.state.config.env];
 };
 
@@ -236,8 +223,7 @@ const fillAccounts = () => {
       if (!envData) {
         return false;
       }
-      const hasPositiveBalance =
-        typeof envData.amount === "number" && envData.amount > 0;
+      const hasPositiveBalance = BigInt(envData?.amount ?? 0) > 0;
       const hasArc200Balance = envData.arc200
         ? Object.values(envData.arc200).some(
             (holding) => holding && holding.balance > 0
@@ -272,15 +258,18 @@ const fillAccounts = () => {
 
   accounts.value = filteredAccounts.map((account) => {
     const envData = accountData(account);
-    const amount =
-      envData && typeof envData.amount === "number" ? envData.amount : 0;
+    if (envData) {
+      const amount = envData?.amount ?? 0;
+      return {
+        ...account,
+        amount,
+      } as DisplayAccount;
+    }
     return {
       ...account,
-      amount,
-    };
+      amount: 0,
+    } as DisplayAccount;
   });
-
-  console.error("Filled accounts:", accounts.value);
 };
 
 const accountInformation = (payload: { addr: string }) =>
