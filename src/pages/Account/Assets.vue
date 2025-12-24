@@ -127,7 +127,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, onMounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  getCurrentInstance,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import { useRoute } from "vue-router";
 import Contract from "arc200js";
 import { FilterMatchMode } from "primevue/api";
@@ -326,11 +333,7 @@ const reloadArc200AccountBalance = async (data: AssetListItem) => {
   if (!accountAddr) return;
   const algodClient = await getAlgodAction();
   const indexerClient = await getIndexerAction();
-  const contract = new Contract(
-    data["asset-id"],
-    algodClient,
-    indexerClient
-  );
+  const contract = new Contract(data["asset-id"], algodClient, indexerClient);
   const balance = await contract.arc200_balanceOf(accountAddr);
   if (!balance?.success) {
     await openErrorAction("Failed to fetch ARC200 balance");
