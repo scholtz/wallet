@@ -3,7 +3,8 @@ import { ref, computed, Ref } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { dexAggregators } from "../scripts/dexAggregators";
-import type { Asset } from "../types/swap";
+import { SwapContext } from "../scripts/aggregators/types";
+import type { Asset, Account, SwapStore } from "../types/swap";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import { RootState } from "@/store";
@@ -50,7 +51,7 @@ export function useSwap() {
     );
   });
 
-  // Computed properties
+  // Computed properties (Independent of context)
   const formInvalid = computed<boolean>(
     () =>
       !(
@@ -127,21 +128,6 @@ export function useSwap() {
     Math.pow(10, -1 * fromAssetDecimals.value)
   );
 
-  const allowExecuteDeflex = computed<boolean>(() => {
-    const agg = dexAggregators.find((a) => a.name === "deflex");
-    return agg ? agg.allowExecute(getComponentContext()) : false;
-  });
-
-  const allowExecuteFolks = computed<boolean>(() => {
-    const agg = dexAggregators.find((a) => a.name === "folks");
-    return agg ? agg.allowExecute(getComponentContext()) : false;
-  });
-
-  const allowExecuteBiatec = computed<boolean>(() => {
-    const agg = dexAggregators.find((a) => a.name === "biatec");
-    return agg ? agg.allowExecute(getComponentContext()) : false;
-  });
-
   const appsToOptIn = computed<number[]>(() => {
     const requiredAppOptIns =
       aggregatorData.deflexQuotes?.value?.requiredAppOptIns ?? [];
@@ -191,51 +177,63 @@ export function useSwap() {
     () => `${toAssetUnit.value}/${fromAssetUnit.value}`
   );
 
-  const isFolksQuoteBetter = computed<boolean>(() => {
-    const agg = dexAggregators.find((a) => a.name === "folks");
-    return agg ? agg.isQuoteBetter(getComponentContext()) : false;
-  });
+  // Helper functions (Moved up)
+  const checkNetwork = (): string | false => {
+    const env = store.state.config.env;
+    if (env == "mainnet-v1.0" || env == "mainnet") {
+      return "mainnet";
+    }
+    if (env == "testnet-v1.0" || env == "testnet") {
+      return "testnet";
+    }
+    return false;
+  };
 
-  const isBiatecQuoteBetter = computed<boolean>(() => {
-    const agg = dexAggregators.find((a) => a.name === "biatec");
-    return agg ? agg.isQuoteBetter(getComponentContext()) : false;
-  });
+  const reloadAccount = async (): Promise<void> => {
+    await store
+      .dispatch("indexer/accountInformation", {
+        addr: route.params.account,
+      })
+      .then((info: any) => {
+        if (info) {
+          store.dispatch("wallet/updateAccount", { info });
+        }
+      });
+    const senderSK = await store.dispatch("wallet/getSK", {
+      addr: route.params.account,
+    });
+    hasSK.value = senderSK && senderSK.length > 0;
+  };
 
-  const isDeflexQuoteBetter = computed<boolean>(() => {
-    const agg = dexAggregators.find((a) => a.name === "deflex");
-    return agg ? agg.isQuoteBetter(getComponentContext()) : false;
-  });
-
-  // Helper function to get component context for aggregator methods
-  function getComponentContext() {
-    const context = {
+  // Context definition
+  const context: SwapContext = {
       // Basic properties from SwapComponentData
-      assets: assets.value,
-      asset: asset.value,
-      toAsset: toAsset.value,
-      payamount: payamount.value,
-      account: account.value,
-      fromAssetObj: fromAssetObj.value,
-      toAssetObj: toAssetObj.value,
-      txsDetails: txsDetails.value,
-      hasSK: hasSK.value,
-      processingQuote: processingQuote.value,
-      processingOptin: processingOptin.value,
-      note: note.value,
-      error: error.value,
-      slippage: slippage.value,
-      fee: fee.value,
+      assets,
+      asset,
+      toAsset,
+      payamount,
+      account: account as unknown as Ref<Account | undefined>,
+      fromAssetObj,
+      toAssetObj,
+      txsDetails,
+      hasSK,
+      processingQuote,
+      processingOptin,
+      note,
+      error,
+      slippage,
+      fee,
 
       // Computed properties
-      fromAssetDecimals: fromAssetDecimals.value,
-      toAssetDecimals: toAssetDecimals.value,
-      requiresOptIn: requiresOptIn.value,
+      fromAssetDecimals,
+      toAssetDecimals,
+      requiresOptIn,
 
       // Store and route access (for SwapComponent interface)
-      $store: store,
+      $store: store as unknown as SwapStore,
       $route: route as any,
       dexAggregators,
-      algosdk,
+      aggregatorData,
 
       // Methods
       openSuccess: (message: string) =>
@@ -255,94 +253,44 @@ export function useSwap() {
       waitForConfirmation: (config: { txId: string; timeout: number }) =>
         store.dispatch("algod/waitForConfirmation", config),
       prolong: () => store.dispatch("wallet/prolong"),
-      reloadAccount: () => store.dispatch("wallet/reloadAccount"),
+      reloadAccount,
       checkNetwork,
       signAuthTx: (config: { account: string; realm: string }) =>
         store.dispatch("arc14/signAuthTx", config),
     };
 
-    // Create a proxy that updates reactive refs when aggregator properties are set
-    return new Proxy(context, {
-      get(target, prop) {
-        // Map key reactive fields back to refs so changes are visible in the UI
-        if (prop === "txsDetails") {
-          return txsDetails.value;
-        }
-        if (prop === "note") {
-          return note.value;
-        }
-        if (prop === "error") {
-          return error.value;
-        }
-        if (prop === "processingQuote") {
-          return processingQuote.value;
-        }
-        if (prop === "processingOptin") {
-          return processingOptin.value;
-        }
+  // Computed properties dependent on context
+  const allowExecuteDeflex = computed<boolean>(() => {
+    const agg = dexAggregators.find((a) => a.name === "deflex");
+    return agg ? agg.allowExecute(context) : false;
+  });
 
-        // First check if it's a direct property
-        if (prop in target) {
-          return target[prop as keyof typeof target];
-        }
-        // Then check if it's an aggregator data property
-        if (prop in aggregatorData) {
-          return aggregatorData[prop as keyof typeof aggregatorData].value;
-        }
-        return undefined;
-      },
-      set(target, prop, value) {
-        // Keep key fields in sync with refs when aggregators write to them
-        if (prop === "txsDetails") {
-          txsDetails.value = value as string;
-          return true;
-        }
-        if (prop === "note") {
-          note.value = value as string;
-          return true;
-        }
-        if (prop === "error") {
-          error.value = value as string;
-          return true;
-        }
-        if (prop === "processingQuote") {
-          processingQuote.value = Boolean(value);
-          return true;
-        }
-        if (prop === "processingOptin") {
-          processingOptin.value = Boolean(value);
-          return true;
-        }
+  const allowExecuteFolks = computed<boolean>(() => {
+    const agg = dexAggregators.find((a) => a.name === "folks");
+    return agg ? agg.allowExecute(context) : false;
+  });
 
-        // If it's an aggregator data property, update the reactive ref
-        if (prop in aggregatorData) {
-          aggregatorData[prop as keyof typeof aggregatorData].value = value;
-          return true;
-        }
-        // Otherwise, set it on the target
-        (target as any)[prop] = value;
-        return true;
-      },
-    });
-  }
+  const allowExecuteBiatec = computed<boolean>(() => {
+    const agg = dexAggregators.find((a) => a.name === "biatec");
+    return agg ? agg.allowExecute(context) : false;
+  });
 
-  // Methods
-  const reloadAccount = async (): Promise<void> => {
-    await store
-      .dispatch("indexer/accountInformation", {
-        addr: route.params.account,
-      })
-      .then((info: any) => {
-        if (info) {
-          store.dispatch("wallet/updateAccount", { info });
-        }
-      });
-    const senderSK = await store.dispatch("wallet/getSK", {
-      addr: route.params.account,
-    });
-    hasSK.value = senderSK && senderSK.length > 0;
-  };
+  const isFolksQuoteBetter = computed<boolean>(() => {
+    const agg = dexAggregators.find((a) => a.name === "folks");
+    return agg ? agg.isQuoteBetter(context) : false;
+  });
 
+  const isBiatecQuoteBetter = computed<boolean>(() => {
+    const agg = dexAggregators.find((a) => a.name === "biatec");
+    return agg ? agg.isQuoteBetter(context) : false;
+  });
+
+  const isDeflexQuoteBetter = computed<boolean>(() => {
+    const agg = dexAggregators.find((a) => a.name === "deflex");
+    return agg ? agg.isQuoteBetter(context) : false;
+  });
+
+  // Methods dependent on context or other methods
   const makeAssets = async (): Promise<void> => {
     assets.value = [];
     if (accountData.value) {
@@ -429,41 +377,30 @@ export function useSwap() {
 
     const promises = dexAggregators
       .filter((agg) => aggregatorData[agg.enabledKey].value)
-      .map((agg) => agg.getQuote(getComponentContext()));
+      .map((agg) => agg.getQuote(context));
 
     await Promise.all(promises);
     processingQuote.value = false;
   };
 
-  const checkNetwork = (): string | false => {
-    const env = store.state.config.env;
-    if (env == "mainnet-v1.0" || env == "mainnet") {
-      return "mainnet";
-    }
-    if (env == "testnet-v1.0" || env == "testnet") {
-      return "testnet";
-    }
-    return false;
-  };
-
   const clickExecuteFolks = async (): Promise<void> => {
     const agg = dexAggregators.find((a) => a.name === "folks");
     if (agg) {
-      await agg.execute(getComponentContext());
+      await agg.execute(context);
     }
   };
 
   const clickExecuteBiatec = async (): Promise<void> => {
     const agg = dexAggregators.find((a) => a.name === "biatec");
     if (agg) {
-      await agg.execute(getComponentContext());
+      await agg.execute(context);
     }
   };
 
   const clickExecuteDeflex = async (): Promise<void> => {
     const agg = dexAggregators.find((a) => a.name === "deflex");
     if (agg) {
-      await agg.execute(getComponentContext());
+      await agg.execute(context);
     }
   };
 
@@ -563,6 +500,5 @@ export function useSwap() {
     clickExecuteDeflex,
     swapTokens,
     clickOptInToApps,
-    getComponentContext,
   };
 }
