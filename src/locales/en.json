@@ -570,7 +570,6 @@
     "a8_3": "Select all accounts that can sign the transactions and select how many signatures that adhere to the minimum for the network to accept the multisig payment.",
     "a8_4": "After you create the multisignature account, you can access it from the accounts list page."
   },
-
   "connect": {
     "title": "Connect to DApps using WalletConnect",
     "uri": "WalletConnect URI",
