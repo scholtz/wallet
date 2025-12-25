@@ -169,7 +169,7 @@ const route = useRoute();
 const loading = ref(true);
 const assets = ref<AssetListItem[]>([]);
 
-const filters = reactive<Record<string, FilterConfig>>({
+const filters = ref<Record<string, FilterConfig>>({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   assetId: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
