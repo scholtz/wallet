@@ -81,7 +81,7 @@ export interface WalletState {
   lastPayTo: string;
   lastActiveAccount: string;
   lastActiveAccountName: string;
-  transaction: Record<string, any>;
+  transaction: algosdk.indexerModels.Transaction | undefined;
   wc: Record<string, string>;
 }
 
@@ -195,7 +195,7 @@ const state = (): WalletState => ({
   lastPayTo: "",
   lastActiveAccount: "",
   lastActiveAccountName: "",
-  transaction: {},
+  transaction: undefined,
   wc: {},
 });
 
@@ -265,7 +265,7 @@ const getRequiredLocalStorage = (key: string): string => {
   return value;
 };
 const mutations: MutationTree<WalletState> = {
-  setTransaction(state, transaction: Record<string, unknown>) {
+  setTransaction(state, transaction: algosdk.indexerModels.Transaction) {
     state.transaction = transaction;
   },
   lastPayTo(state, addr: string) {
@@ -602,7 +602,7 @@ type WalletActionHandler = (
 const actionHandlers: Record<string, WalletActionHandler> = {
   async setTransaction(
     { commit },
-    { transaction }: { transaction: Record<string, unknown> }
+    { transaction }: { transaction: algosdk.indexerModels.Transaction }
   ) {
     commit("setTransaction", transaction);
   },
