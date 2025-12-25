@@ -238,8 +238,7 @@ const qrcode = computed(() => {
   if (payamount.value > 0) {
     if (decimals.value > 0) {
       ret +=
-        "&amount=" +
-        Math.round(payamount.value * Math.pow(10, decimals.value));
+        "&amount=" + Math.round(payamount.value * Math.pow(10, decimals.value));
     } else {
       ret += "&amount=" + payamount.value;
     }
