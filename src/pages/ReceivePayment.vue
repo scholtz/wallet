@@ -42,7 +42,7 @@
             <Dropdown
               id="asset"
               :options="assets"
-              option-value="asset-id"
+              option-value="assetId"
               option-label="name"
               v-model="asset"
               class="w-full"
@@ -50,9 +50,7 @@
               <template #option="slotProps">
                 <div v-if="slotProps.option" class="flex align-items-center">
                   <div>
-                    {{ slotProps.option.name }} ({{
-                      slotProps.option["asset-id"]
-                    }})
+                    {{ slotProps.option.name }} ({{ slotProps.option.assetId }})
                   </div>
                 </div>
               </template>
@@ -215,7 +213,7 @@ export default {
       return this.account.data[this.$store.state.config.env];
     },
     assetName() {
-      const asset = this.assets.find((a) => a["asset-id"] == this.asset);
+      const asset = this.assets.find((a) => a.assetId == this.asset);
       if (!asset) return "Algo";
       return asset.name;
     },
@@ -227,7 +225,7 @@ export default {
     async asset() {
       if (!this.asset) {
         this.assetObj = {
-          "asset-id": 0,
+          assetId: 0n,
           name: this.$store.state.config.tokenSymbol,
           decimals: 6,
         };
@@ -257,25 +255,25 @@ export default {
       this.assets = [];
       if (this.accountData && this.accountData.amount > 0) {
         this.assets.push({
-          "asset-id": 0,
+          assetId: 0n,
           amount: this.accountData.amount,
           name: this.$store.state.config.tokenSymbol,
           decimals: 6,
-          "unit-name": "",
+          unitName: "",
         });
       }
       if (this.accountData) {
-        for (let index in this.accountData.assets) {
+        for (const accountDataAsset of this.accountData.assets) {
           const asset = await this.getAsset({
-            assetIndex: this.accountData.assets[index]["asset-id"],
+            assetIndex: accountDataAsset.assetId,
           });
           if (asset) {
             this.assets.push({
-              "asset-id": this.accountData.assets[index]["asset-id"],
-              amount: this.accountData.assets[index]["amount"],
-              name: asset["name"],
-              decimals: asset["decimals"],
-              "unit-name": asset["unit-name"],
+              assetId: accountDataAsset.assetId,
+              amount: accountDataAsset.amount,
+              name: asset.name,
+              decimals: asset.decimals,
+              unitName: asset.unitName.unitName,
             });
           }
         }

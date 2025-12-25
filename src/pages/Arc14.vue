@@ -66,7 +66,6 @@ export default {
       lastActiveAccount: "wallet/lastActiveAccount",
       deleteAccount: "wallet/deleteAccount",
       setTransaction: "wallet/setTransaction",
-      getAsset: "indexer/getAsset",
       prolong: "wallet/prolong",
       openSuccess: "toast/openSuccess",
       axiosGet: "axios/get",

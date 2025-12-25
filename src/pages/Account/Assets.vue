@@ -11,7 +11,7 @@
       :loading="loading"
       v-model:filters="filters"
       filterDisplay="menu"
-      :globalFilterFields="['name', 'asset-id', 'amount', 'type']"
+      :globalFilterFields="['name', 'assetId', 'amount', 'type']"
     >
       <template #header>
         <div class="flex justify-content-end" v-if="filters['global']">
@@ -69,7 +69,7 @@
         </template>
       </Column>
       <Column
-        field="asset-id"
+        field="assetId"
         :header="$t('acc_overview_assets.id')"
         :sortable="true"
       >
@@ -109,7 +109,7 @@
             <i class="pi pi-refresh"></i>
           </Button>
           <RouterLink
-            :to="`/accounts/pay/${lastActiveAccountAddr}/${slotProps.data['asset-id']}`"
+            :to="`/accounts/pay/${lastActiveAccountAddr}/${slotProps.data['assetId']}`"
           >
             <Button
               class="m-1"
@@ -136,22 +136,25 @@ import {
   watch,
 } from "vue";
 import { useRoute } from "vue-router";
-import Contract from "arc200js";
 import { FilterMatchMode } from "primevue/api";
 import Badge from "primevue/badge";
 import MainLayout from "../../layouts/Main.vue";
 import AccountTopMenu from "../../components/AccountTopMenu.vue";
 import { useStore } from "@/store";
 import type { AccountNetworkData, PrivateAccount } from "@/types/account";
+import { StoredAsset } from "@/store/indexer";
+import { getArc200Client } from "arc200-client";
+import { AlgorandClient } from "@algorandfoundation/algokit-utils";
+import algosdk from "algosdk";
 
 type AssetType = "Native" | "ASA" | "ARC200";
 
 type AssetListItem = {
-  "asset-id": number | "";
-  amount: number;
+  assetId: bigint;
+  amount: bigint;
   name: string;
   decimals: number;
-  "unit-name": string;
+  unitName: string;
   type: AssetType;
 };
 
@@ -169,7 +172,7 @@ const assets = ref<AssetListItem[]>([]);
 const filters = reactive<Record<string, FilterConfig>>({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  "asset-id": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  assetId: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   amount: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   type: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 });
@@ -202,7 +205,9 @@ const accountInformationAction = (payload: { addr: string }) =>
   store.dispatch("indexer/accountInformation", payload);
 const updateAccountAction = (payload: { info: Record<string, unknown> }) =>
   store.dispatch("wallet/updateAccount", payload);
-const getAssetAction = (payload: { assetIndex: number }) =>
+const getAssetAction = (payload: {
+  assetIndex: bigint;
+}): Promise<StoredAsset | undefined> =>
   store.dispatch("indexer/getAsset", payload);
 const prolongAction = () => store.dispatch("wallet/prolong");
 const openSuccessAction = (message: string) =>
@@ -225,29 +230,29 @@ const makeAssets = async () => {
     loading.value = false;
     return;
   }
-  const nativeAmount = Number(data.amount ?? 0);
+  const nativeAmount = BigInt(data.amount ?? 0);
   if (nativeAmount > 0) {
     assets.value.push({
-      "asset-id": "",
+      assetId: BigInt(0),
       amount: nativeAmount,
       name: store.state.config.tokenSymbol ?? "ALG",
       decimals: 6,
-      "unit-name": "",
+      unitName: "",
       type: "Native",
     });
   }
   const asaAssets = Array.isArray(data.assets) ? data.assets : [];
-  for (const accountAsset of asaAssets as Array<Record<string, any>>) {
-    const assetId = Number(accountAsset["asset-id"] ?? 0);
+  for (const accountAsset of asaAssets) {
+    const assetId = BigInt(accountAsset.assetId ?? 0n);
     if (!assetId) continue;
     const asset = await getAssetAction({ assetIndex: assetId });
     if (asset) {
       assets.value.push({
-        "asset-id": assetId,
-        amount: Number(accountAsset["amount"] ?? 0),
-        name: asset["name"] ?? "",
-        decimals: Number(asset["decimals"] ?? 0),
-        "unit-name": asset["unit-name"] ?? "",
+        assetId: assetId,
+        amount: BigInt(accountAsset.amount ?? 0n),
+        name: asset.name ?? "",
+        decimals: Number(asset.decimals ?? 0),
+        unitName: asset.unitName ?? "",
         type: "ASA",
       });
     }
@@ -267,11 +272,11 @@ const makeAssets = async () => {
   if (arc200Assets) {
     for (const accountAsset of Object.values(arc200Assets)) {
       assets.value.push({
-        "asset-id": Number(accountAsset.arc200id),
-        amount: Number(accountAsset.balance),
+        assetId: BigInt(accountAsset.arc200id),
+        amount: BigInt(accountAsset.balance),
         name: accountAsset.name,
         decimals: Number(accountAsset.decimals),
-        "unit-name": accountAsset.symbol,
+        unitName: accountAsset.symbol,
         type: "ARC200",
       });
     }
@@ -279,19 +284,19 @@ const makeAssets = async () => {
   loading.value = false;
 };
 
-const getAssetSync = (id: number) => {
+const getAssetSync = (id: number): StoredAsset | undefined => {
   return store.state.indexer.assets.find(
-    (asset: Record<string, any>) => Number(asset["asset-id"]) === id
-  ) as Record<string, any> | undefined;
+    (asset: StoredAsset) => BigInt(asset.assetId) === BigInt(id)
+  );
 };
 
-const getAssetName = (id: AssetListItem["asset-id"]) => {
+const getAssetName = (id: bigint) => {
   if (typeof id !== "number") return undefined;
   const asset = getAssetSync(id);
   return asset ? asset["name"] : undefined;
 };
 
-const getAssetDecimals = (id: AssetListItem["asset-id"]) => {
+const getAssetDecimals = (id: bigint) => {
   if (typeof id !== "number") return undefined;
   const asset = getAssetSync(id);
   return asset ? Number(asset["decimals"]) : undefined;
@@ -299,11 +304,11 @@ const getAssetDecimals = (id: AssetListItem["asset-id"]) => {
 
 const isNumericAssetId = (
   asset: AssetListItem
-): asset is AssetListItem & { "asset-id": number } =>
-  typeof asset["asset-id"] === "number";
+): asset is AssetListItem & { assetId: bigint } =>
+  typeof asset.assetId === "bigint";
 
 const formatCurrencyValue = (
-  amount: number,
+  amount: bigint,
   name?: string,
   decimals?: number
 ) => {
@@ -314,37 +319,61 @@ const formatCurrencyValue = (
 };
 
 const formatAssetAmount = (asset: AssetListItem) => {
-  if (isNumericAssetId(asset)) {
-    return formatCurrencyValue(
-      asset.amount,
-      getAssetName(asset["asset-id"]),
-      getAssetDecimals(asset["asset-id"])
-    );
-  }
-  return formatCurrencyValue(asset.amount);
+  return formatCurrencyValue(
+    asset.amount,
+    getAssetName(asset.assetId),
+    getAssetDecimals(asset.assetId)
+  );
 };
 
 const reloadArc200AccountBalance = async (data: AssetListItem) => {
-  if (data.type !== "ARC200" || !isNumericAssetId(data)) {
-    console.error("Not arc200 asset", data);
-    return;
+  try {
+    if (data.type !== "ARC200" || !isNumericAssetId(data)) {
+      console.error("Not arc200 asset", data);
+      return;
+    }
+    const accountAddr = account.value?.addr;
+    if (!accountAddr) return;
+    const algodClient = await getAlgodAction();
+    const indexerClient = await getIndexerAction();
+
+    var algoClient = AlgorandClient.fromClients({
+      algod: algodClient,
+      indexer: indexerClient,
+    });
+
+    const dummyAddress =
+      "TESTNTTTJDHIF5PJZUBTTDYYSKLCLM6KXCTWIOOTZJX5HO7263DPPMM2SU";
+    const dummyTransactionSigner = async (
+      txnGroup: algosdk.Transaction[],
+      indexesToSign: number[]
+    ): Promise<Uint8Array[]> => {
+      console.log("transactionSigner", txnGroup, indexesToSign);
+      return [] as Uint8Array[];
+    };
+    const client = getArc200Client({
+      algorand: algoClient,
+      appId: BigInt(data.assetId),
+      defaultSender: dummyAddress,
+      defaultSigner: dummyTransactionSigner,
+      appName: "arc200",
+      approvalSourceMap: undefined,
+      clearSourceMap: undefined,
+    });
+
+    const balance = await client.arc200BalanceOf({
+      args: { owner: accountAddr },
+    });
+
+    await updateArc200BalanceAction({
+      addr: accountAddr,
+      arc200Id: String(data.assetId),
+      balance: balance,
+    });
+    await makeAssets();
+  } catch (e: any) {
+    console.error("Failed to reload ARC200 balance", e);
   }
-  const accountAddr = account.value?.addr;
-  if (!accountAddr) return;
-  const algodClient = await getAlgodAction();
-  const indexerClient = await getIndexerAction();
-  const contract = new Contract(data["asset-id"], algodClient, indexerClient);
-  const balance = await contract.arc200_balanceOf(accountAddr);
-  if (!balance?.success) {
-    await openErrorAction("Failed to fetch ARC200 balance");
-    return;
-  }
-  await updateArc200BalanceAction({
-    addr: accountAddr,
-    arc200Id: String(data["asset-id"]),
-    balance: balance.returnValue,
-  });
-  await makeAssets();
 };
 
 const reloadAccount = async () => {

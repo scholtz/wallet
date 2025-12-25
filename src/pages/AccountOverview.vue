@@ -356,6 +356,7 @@ import type {
   ParticipationData,
   PrivateAccount,
 } from "@/types/account";
+import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
 
 const store = useStore();
 const route = useRoute();
@@ -367,7 +368,7 @@ const $filters = instance?.appContext.config.globalProperties.$filters;
 const displayOnlineOfflineDialog = ref(false);
 const transactions = ref<any[]>([]);
 const selection = ref<any | null>(null);
-const assets = ref<any[]>([]);
+const assets = ref<ExtendedStoredAsset[]>([]);
 const changeOnline = ref(false);
 const changeOffline = ref(false);
 const onlineRounds = ref(500000);
@@ -473,7 +474,9 @@ const searchForTransactionsAction = (payload: { addr: string }) =>
   store.dispatch("indexer/searchForTransactions", payload);
 const setTransactionAction = (payload: { transaction: unknown }) =>
   store.dispatch("wallet/setTransaction", payload);
-const getAssetAction = (payload: { assetIndex: number }) =>
+const getAssetAction = (payload: {
+  assetIndex: bigint;
+}): Promise<StoredAsset | undefined> =>
   store.dispatch("indexer/getAsset", payload);
 const prolongSession = () => store.dispatch("wallet/prolong");
 const setAccountOnlineAction = (payload: {
@@ -512,29 +515,43 @@ const makeAssets = async () => {
   if (!data) {
     return;
   }
-  const baseAmount = Number(data.amount ?? 0);
+  const baseAmount = BigInt(data.amount ?? 0);
   if (baseAmount > 0) {
     assets.value.push({
-      "asset-id": "",
+      assetId: 0n,
       amount: baseAmount,
       name: "ALG",
       decimals: 6,
-      "unit-name": "",
+      unitName: "",
+      type: "Native",
+      label: `ALG (Native token) Balance: ${$filters.formatCurrency(
+        baseAmount,
+        "ALG",
+        6
+      )}`,
     });
   }
   if (Array.isArray(data.assets)) {
-    for (const accountAsset of data.assets as Array<Record<string, any>>) {
-      if (!accountAsset["asset-id"]) continue;
+    for (const accountAsset of data.assets) {
+      if (!accountAsset.assetId) continue;
       const assetInfo = await getAssetAction({
-        assetIndex: accountAsset["asset-id"],
+        assetIndex: accountAsset.assetId,
       });
       if (assetInfo) {
         assets.value.push({
-          "asset-id": accountAsset["asset-id"],
-          amount: accountAsset["amount"],
-          name: assetInfo["name"],
-          decimals: assetInfo["decimals"],
-          "unit-name": assetInfo["unit-name"],
+          assetId: accountAsset.assetId,
+          amount: BigInt(accountAsset.amount),
+          name: assetInfo.name,
+          decimals: assetInfo.decimals,
+          unitName: assetInfo.unitName,
+          type: "ASA",
+          label: `${assetInfo.name} (ASA ${
+            accountAsset.assetId
+          }) Balance: ${$filters.formatCurrency(
+            BigInt(accountAsset.amount),
+            assetInfo.unitName ?? assetInfo.name,
+            assetInfo.decimals ?? 6
+          )}`,
         });
       }
     }

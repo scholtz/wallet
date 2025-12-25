@@ -118,7 +118,7 @@
                       {{ $t("optin.assetId") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ assetObj["asset-id"] ? assetObj["asset-id"] : "Algo" }}
+                      {{ assetObj.assetId ? assetObj.assetId : "Algo" }}
                     </div>
                   </div>
                   <div
@@ -618,8 +618,12 @@ import SelectAccount from "../components/SelectAccount.vue";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
 import MultiSelect from "primevue/multiselect";
 import algosdk from "algosdk";
-import type { StoredAsset } from "@/store/indexer";
-import type { IAccountData, WalletAccount } from "@/store/wallet";
+import type { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
+import type {
+  AccountAssetHolding,
+  IAccountData,
+  WalletAccount,
+} from "@/store/wallet";
 import type { PreparePaymentPayload } from "@/store/algod";
 
 const store = useStore();
@@ -635,14 +639,6 @@ if (!instance) {
 }
 const $filters = instance.appContext.config.globalProperties
   .$filters as GlobalFilters;
-
-type ExtendedStoredAsset = StoredAsset & {
-  amount?: number;
-  type?: string;
-  name?: string;
-  "unit-name"?: string;
-  decimals?: number;
-};
 
 type TransactionPublicKey = {
   publicKey?: Uint8Array;
@@ -702,12 +698,15 @@ const rawSignedTxnInput = ref<string | null>(null);
 const signMultisigWith = ref<string[]>([]);
 const multisigDecoded = ref<DecodedSignedTransaction | null>(null);
 const assets = ref<ExtendedStoredAsset[]>([]);
-const asset = ref("");
+const asset = ref<bigint | undefined>(undefined);
 const assetObj = ref<ExtendedStoredAsset>({
-  "asset-id": 0,
+  assetId: 0n,
   name: store.state.config.tokenSymbol,
-  "unit-name": store.state.config.tokenSymbol,
+  unitName: store.state.config.tokenSymbol,
   decimals: 6,
+  type: "Native",
+  amount: 0n,
+  label: store.state.config.tokenSymbol,
 });
 const scan = ref(false);
 const forceAsset = ref(false);
@@ -823,7 +822,7 @@ const selectedAssetFromAccount = computed(() => {
   const data = accountData.value;
   if (!data?.assets) return undefined;
   return Object.values(data.assets).find(
-    (entry: any) => entry["asset-id"] == asset.value
+    (entry: AccountAssetHolding) => entry.assetId == BigInt(asset.value ?? 0n)
   );
 });
 const maxAmount = computed(() => {
@@ -863,7 +862,7 @@ const noteIsB64 = computed(() => {
   }
 });
 const assetUnit = computed(
-  () => assetObj.value?.["unit-name"] ?? assetObj.value?.name ?? ""
+  () => assetObj.value?.unitName ?? assetObj.value?.name ?? ""
 );
 const isAuth = computed(() => store.state.wallet.isOpen);
 const malformedAddress = computed(() => {
@@ -930,7 +929,9 @@ const sendRawTransactionAction = (payload: {
   store.dispatch("algod/sendRawTransaction", payload);
 const updateAccountAction = (payload: { info: WalletAccount }) =>
   store.dispatch("wallet/updateAccount", payload);
-const getAssetAction = (payload: { assetIndex: number | string }) =>
+const getAssetAction = (payload: {
+  assetIndex: bigint;
+}): Promise<StoredAsset | undefined> =>
   store.dispatch("indexer/getAsset", payload);
 const setEnvAction = (payload: { env: string }) =>
   store.dispatch("config/setEnv", payload);
@@ -1040,21 +1041,21 @@ const normalizeNumeric = (
 
 const makeAssets = async () => {
   assets.value = [];
-  const pushNativeAsset = (amount: number) => {
+  const pushNativeAsset = (amount: bigint) => {
     assets.value.push({
-      "asset-id": "0",
+      assetId: BigInt(0),
       amount,
       name: tokenSymbol.value,
       decimals: 6,
-      "unit-name": tokenSymbol.value,
+      unitName: tokenSymbol.value,
       type: "Native",
     });
   };
   if (accountData.value) {
-    const nativeAmount = Number(accountData.value.amount ?? 0);
+    const nativeAmount = BigInt(accountData.value.amount ?? 0);
     pushNativeAsset(nativeAmount);
   } else {
-    pushNativeAsset(0);
+    pushNativeAsset(0n);
   }
   if (isRekey.value) {
     return;
@@ -1063,37 +1064,37 @@ const makeAssets = async () => {
   if (data) {
     if (data.assets) {
       for (const accountDataAsset of Object.values(data.assets)) {
-        const assetIndex = accountDataAsset["asset-id"];
+        const assetIndex = accountDataAsset.assetId;
         try {
           const fetchedAsset = (await getAssetAction({
-            assetIndex,
+            assetIndex: BigInt(assetIndex),
           })) as ExtendedStoredAsset | undefined;
           if (fetchedAsset) {
-            const normalizedAmount = Number(accountDataAsset["amount"] ?? 0);
+            const normalizedAmount = BigInt(accountDataAsset["amount"] ?? 0);
             assets.value.push({
-              "asset-id": accountDataAsset["asset-id"],
+              assetId: BigInt(accountDataAsset.assetId),
               amount: normalizedAmount,
               name: fetchedAsset.name,
               decimals: fetchedAsset.decimals,
-              "unit-name": fetchedAsset["unit-name"],
+              unitName: fetchedAsset.unitName,
               type: "ASA",
             });
           } else {
-            console.error("Asset not loaded", accountDataAsset["asset-id"]);
+            console.error("Asset not loaded", accountDataAsset.assetId);
           }
         } catch (err) {
-          console.error("Asset load failed", accountDataAsset["asset-id"], err);
+          console.error("Asset load failed", accountDataAsset.assetId, err);
         }
       }
     }
     if (data.arc200) {
       for (const accountAsset of Object.values(data.arc200)) {
         assets.value.push({
-          "asset-id": Number(accountAsset.arc200id),
-          amount: Number(accountAsset.balance),
+          assetId: BigInt(accountAsset.arc200id),
+          amount: BigInt(accountAsset.balance),
           name: accountAsset.name,
           decimals: Number(accountAsset.decimals),
-          "unit-name": accountAsset.symbol,
+          unitName: accountAsset.symbol,
           type: "ARC200",
         });
       }
@@ -1129,7 +1130,7 @@ const parseToAccount = () => {
       Number(b64decode.value.payamountbase) / decimalsPower.value;
   }
   if (b64decode.value.asset) {
-    asset.value = b64decode.value.asset;
+    asset.value = BigInt(b64decode.value.asset);
     forceAsset.value = true;
   }
   if (b64decode.value.paynote) {
@@ -1163,7 +1164,7 @@ const payMultisig = async () => {
       amount: amountLong.value,
       noteEnc,
       fee: 1000,
-      asset: assetObj.value["asset-id"],
+      asset: assetObj.value.assetId,
     } as PreparePaymentPayload;
     if (rekeyTo.value) {
       data.reKeyTo = rekeyTo.value;
@@ -1563,7 +1564,7 @@ const onDecodeQR = (result: string) => {
           }
         }
         if (assetValue) {
-          asset.value = assetValue;
+          asset.value = BigInt(assetValue);
         }
       }
     } else {
@@ -1698,24 +1699,14 @@ watch(account, () => {
 });
 
 watch(asset, async (assetValue) => {
-  const numericAssetId = Number(assetValue);
-  if (!Number.isNaN(numericAssetId) && numericAssetId > 0) {
+  const numericAssetId = BigInt(assetValue ?? 0n);
+  if (!Number.isNaN(numericAssetId) && numericAssetId > 0n) {
     const fetched = (await getAssetAction({
       assetIndex: numericAssetId,
-    })) as ExtendedStoredAsset | undefined;
-    assetObj.value = fetched ?? {
-      "asset-id": numericAssetId,
-      name: tokenSymbol.value,
-      "unit-name": tokenSymbol.value,
-      decimals: 6,
-    };
-  } else {
-    assetObj.value = {
-      "asset-id": 0,
-      name: tokenSymbol.value,
-      "unit-name": tokenSymbol.value,
-      decimals: 6,
-    };
+    })) as StoredAsset | undefined;
+    if (fetched) {
+      assetObj.value = { ...fetched, amount: undefined };
+    }
   }
   payamount.value = 0;
   if (route.params.toAccount) {
@@ -1775,11 +1766,11 @@ onMounted(async () => {
       }
       if (txn.value?.assetTransfer?.receiver) {
         payTo.value = txn.value.assetTransfer.receiver.toString();
-        asset.value = String(txn.value.assetTransfer.assetIndex ?? "");
+        asset.value = BigInt(txn.value.assetTransfer.assetIndex ?? 0);
         payamount.value =
           Number(txn.value.assetTransfer.amount ?? 0) / decimalsPower.value;
       } else {
-        asset.value = "";
+        asset.value = undefined;
       }
       if (txn.value?.note) {
         note.value = Buffer.from(txn.value.note).toString("utf8");

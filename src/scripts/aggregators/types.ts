@@ -1,15 +1,16 @@
 import { Ref } from "vue";
-import { Asset, SwapStore, SwapRoute, Account } from "../../types/swap";
+import { SwapStore, SwapRoute, Account } from "../../types/swap";
 import { FolksRouterClient } from "@folks-router/js-sdk";
+import { StoredAsset } from "@/store/indexer";
 
 export interface SwapContext {
   // State (Refs)
-  assets: Ref<Asset[]>;
+  assets: Ref<StoredAsset[]>;
   asset: Ref<number | null>;
   toAsset: Ref<number | null>;
   payamount: Ref<number>;
-  fromAssetObj: Ref<Partial<Asset>>;
-  toAssetObj: Ref<Partial<Asset>>;
+  fromAssetObj: Ref<StoredAsset | undefined>;
+  toAssetObj: Ref<StoredAsset | undefined>;
   txsDetails: Ref<string>;
   hasSK: Ref<boolean | null>;
   processingQuote: Ref<boolean>;
@@ -39,7 +40,7 @@ export interface SwapContext {
     config?: any;
   }) => Promise<any>;
   getSK: (config: { addr: string }) => Promise<Uint8Array>;
-  getAsset: (config: { assetIndex: number }) => Promise<Asset>;
+  getAsset: (config: { assetIndex: number }) => Promise<StoredAsset>;
   sendRawTransaction: (config: {
     signedTxn: Uint8Array | Uint8Array[];
   }) => Promise<{ txId: string }>;

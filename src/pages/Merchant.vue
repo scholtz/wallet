@@ -162,7 +162,7 @@ export default {
       if (this.b64decode.asset == 312769) {
         return "/img/tether-usdt-logo-96.png";
       }
-      if (this.asset["asset-id"] === "") {
+      if (this.asset["assetId"] === "") {
         return "/img/algorand-algo-logo-96.png";
       }
       return "";
@@ -263,11 +263,11 @@ export default {
         }
       } else {
         this.asset = {
-          "asset-id": "",
+          assetId: "",
           amount: 0,
           name: "ALG",
           decimals: 6,
-          "unit-name": "Algo",
+          unitName: "Algo",
         };
       }
       // transfer to asset decimals

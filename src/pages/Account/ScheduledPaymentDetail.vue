@@ -24,6 +24,7 @@ import axios from "axios";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 import { Buffer } from "buffer";
+import { StoredAsset } from "@/store/indexer";
 
 type FilterMode = (typeof FilterMatchMode)[keyof typeof FilterMatchMode];
 
@@ -39,7 +40,7 @@ type WalletAccount = {
 
 type AccountAssetEntry = {
   amount: number;
-  "asset-id": number;
+  assetId: bigint;
 };
 
 type AssetHolding = algosdk.modelsv2.AssetHolding;
@@ -82,18 +83,18 @@ const normalizeAccountAssets = (
 ): AccountAssetEntry[] => {
   if (!assets) return [];
   return assets.map((asset) => ({
-    "asset-id": Number(
-      (asset as unknown as AccountAssetEntry)["asset-id"] ?? asset.assetId ?? 0
+    assetId: BigInt(
+      (asset as unknown as AccountAssetEntry).assetId ?? asset.assetId ?? 0n
     ),
     amount: Number(asset.amount ?? 0),
   }));
 };
 
 interface EscrowAssetRow {
-  "asset-id": number;
+  assetId: bigint;
   amount: number;
   assetName?: string;
-  info: AssetInfo;
+  info: StoredAsset | undefined;
 }
 
 interface AppInfo {
@@ -128,7 +129,7 @@ interface ScheduledPaymentDetailState {
   appId: string;
   fee: number;
   feeAssetId: number;
-  feeAssetData: CAsset;
+  feeAssetData: StoredAsset;
   optin: number;
   withdrawAsset: number | string | null;
   amountToDeposit: number;
@@ -182,7 +183,7 @@ const state = reactive<ScheduledPaymentDetailState>({
   appId: "",
   fee: 1000,
   feeAssetId: 0,
-  feeAssetData: new CAsset(),
+  feeAssetData: {} as StoredAsset,
   optin: 0,
   withdrawAsset: null,
   amountToDeposit: 0,
@@ -246,9 +247,12 @@ const loadTableData = async () => {
     const poolState = readGlobalState(poolApp.params);
     const fa = poolState.find((kv) => kv.key == "ZmE=")?.value.uint ?? 0;
     state.feeAssetId = fa;
-    state.feeAssetData = (await store.dispatch("indexer/getAsset", {
+    const feeAsset = (await store.dispatch("indexer/getAsset", {
       assetIndex: fa,
-    })) as CAsset;
+    })) as StoredAsset | undefined;
+    if (feeAsset) {
+      state.feeAssetData = feeAsset;
+    }
 
     const appId = Number(route.params.appId);
     state.appId = appId.toString();
@@ -279,25 +283,25 @@ const loadTableData = async () => {
     const assets: EscrowAssetRow[] = [];
     const info = (await store.dispatch("indexer/getAsset", {
       assetIndex: 0,
-    })) as AssetInfo;
+    })) as StoredAsset | undefined;
     assets.push({
-      "asset-id": 0,
+      assetId: 0n,
       amount: Number(account?.account?.amount ?? 0),
-      assetName: info.name,
+      assetName: info?.name ?? "",
       info: info,
     });
     const accountAssets = normalizeAccountAssets(
       account?.account?.assets as AssetHolding[] | undefined
     );
     for (const asset of accountAssets) {
-      const assetId = asset["asset-id"] ?? 0;
+      const assetId = asset.assetId ?? 0n;
       const infoA = (await store.dispatch("indexer/getAsset", {
         assetIndex: assetId,
-      })) as AssetInfo;
+      })) as StoredAsset | undefined;
       assets.push({
-        "asset-id": assetId,
+        assetId: assetId,
         amount: Number(asset.amount ?? 0),
-        assetName: infoA.name,
+        assetName: infoA?.name ?? "",
         info: infoA,
       });
     }
@@ -323,12 +327,12 @@ onMounted(async () => {
     if (deserialized.assetData) {
       var newAssetData = new CAsset();
       newAssetData.amount = deserialized.assetData.amount;
-      newAssetData["asset-id"] = deserialized.assetData["asset-id"];
+      newAssetData.assetId = deserialized.assetData.assetId;
       newAssetData.decimals = deserialized.assetData.decimals;
       newAssetData.label = deserialized.assetData.label;
       newAssetData.name = deserialized.assetData.name;
       newAssetData.type = deserialized.assetData.type;
-      newAssetData["unit-name"] = deserialized.assetData["unit-name"];
+      newAssetData.unitName = deserialized.assetData.unitName;
       state.assetData = newAssetData;
     }
   } catch (exc: any) {
@@ -478,12 +482,13 @@ const withdrawFromEscrow = async () => {
     const atc = new AtomicTransactionComposer();
     const withdrawAssetId = Number(state.withdrawAsset);
     if (withdrawAssetId > 0) {
-      const asset = await store.dispatch("indexer/getAsset", {
+      const asset = (await store.dispatch("indexer/getAsset", {
         assetIndex: withdrawAssetId,
-      });
+      })) as StoredAsset | undefined;
       await client.assetTransfer(
         {
-          assetAmount: Number(state.withdrawAmount) * 10 ** asset.decimals,
+          assetAmount:
+            Number(state.withdrawAmount) * 10 ** (asset?.decimals ?? 6),
           assetReceiver: signer.addr,
           note: "",
           xferAsset: withdrawAssetId,
@@ -533,7 +538,7 @@ const deposit = (data: any) => {
     params: {
       account: route.params.account,
       toAccountDirect: state.appInfo.appAddress,
-      asset: data["asset-id"],
+      asset: data.assetId,
     },
   });
 };
@@ -622,7 +627,7 @@ const loadScript = async () => {
             {{
               formatCurrency(
                 state.appInfo.balanceFee,
-                state.feeAssetData["unit-name"] ?? state.feeAssetData.name,
+                state.feeAssetData.unitName ?? state.feeAssetData.name,
                 state.feeAssetData.decimals ?? 0
               )
             }}
@@ -636,7 +641,7 @@ const loadScript = async () => {
             {{
               formatCurrency(
                 state.appInfo.fee,
-                state.feeAssetData["unit-name"] ?? state.feeAssetData.name,
+                state.feeAssetData.unitName ?? state.feeAssetData.name,
                 state.feeAssetData.decimals ?? 0
               )
             }}
@@ -696,7 +701,7 @@ const loadScript = async () => {
           :rows="20"
           v-model:filters="state.filters"
           filterDisplay="menu"
-          :globalFilterFields="['asset-id', 'assetName']"
+          :globalFilterFields="['assetId', 'assetName']"
         >
           <template #header>
             <div class="grid" v-if="state.filters['global']">
@@ -721,7 +726,7 @@ const loadScript = async () => {
           />
           <Column :header="t('scheduled_payments.asset_id')" :sortable="true">
             <template #body="slotProps">
-              {{ slotProps.data["asset-id"] }}
+              {{ slotProps.data["assetId"] }}
             </template>
           </Column>
           <Column :header="t('scheduled_payments.asset_name')" :sortable="true">
@@ -791,7 +796,7 @@ const loadScript = async () => {
               :options="state.assets"
               v-model="state.withdrawAsset"
               optionLabel="assetName"
-              optionValue="asset-id"
+              optionValue="assetId"
               class="w-full"
             ></DropDown>
           </div>

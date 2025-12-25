@@ -4,10 +4,12 @@ import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { dexAggregators } from "../scripts/dexAggregators";
 import { SwapContext } from "../scripts/aggregators/types";
-import type { Asset, Account, SwapStore } from "../types/swap";
+import type { Account, SwapStore } from "../types/swap";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import { RootState } from "@/store";
+import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
+import { AccountAssetHolding } from "@/store/wallet";
 
 const normalizeAmount = (value: number | bigint | undefined | null): number => {
   if (typeof value === "bigint") return Number(value);
@@ -21,12 +23,12 @@ export function useSwap() {
   const route = useRoute();
 
   // Reactive state
-  const assets: Ref<Asset[]> = ref([]);
+  const assets: Ref<ExtendedStoredAsset[]> = ref([]);
   const asset: Ref<number | null> = ref(null);
   const toAsset: Ref<number | null> = ref(null);
   const payamount: Ref<number> = ref(0);
-  const fromAssetObj: Ref<Partial<Asset>> = ref({});
-  const toAssetObj: Ref<Partial<Asset>> = ref({});
+  const fromAssetObj: Ref<StoredAsset | undefined> = ref(undefined);
+  const toAssetObj: Ref<StoredAsset | undefined> = ref(undefined);
   const txsDetails: Ref<string> = ref(
     "Select assets, quantity and request quote"
   );
@@ -76,7 +78,10 @@ export function useSwap() {
 
   const selectedAssetFromAccount = computed(() =>
     accountData.value
-      ? accountData.value.assets?.find((a: any) => a["asset-id"] == asset.value)
+      ? accountData.value.assets?.find(
+          (a: AccountAssetHolding) =>
+            BigInt(a.assetId) == BigInt(asset.value ?? 0n)
+        )
       : undefined
   );
 
@@ -153,20 +158,20 @@ export function useSwap() {
 
   const unit = computed<string>(() => {
     if (!fromAssetObj.value) return "";
-    if (fromAssetObj.value["unit-name"]) return fromAssetObj.value["unit-name"];
-    return fromAssetObj.value["name"] || "";
+    if (fromAssetObj.value.unitName) return fromAssetObj.value.unitName;
+    return fromAssetObj.value.name || "";
   });
 
   const fromAssetUnit = computed<string>(() => {
     if (!fromAssetObj.value) return "";
-    if (fromAssetObj.value["unit-name"]) return fromAssetObj.value["unit-name"];
-    return fromAssetObj.value["name"] || "";
+    if (fromAssetObj.value.unitName) return fromAssetObj.value.unitName;
+    return fromAssetObj.value.name || "";
   });
 
   const toAssetUnit = computed<string>(() => {
     if (!toAssetObj.value) return "";
-    if (toAssetObj.value["unit-name"]) return toAssetObj.value["unit-name"];
-    return toAssetObj.value["name"] || "";
+    if (toAssetObj.value.unitName) return toAssetObj.value.unitName;
+    return toAssetObj.value.name || "";
   });
 
   const pair = computed<string>(
@@ -297,22 +302,22 @@ export function useSwap() {
         6
       );
       assets.value.push({
-        "asset-id": 0,
-        amount: Number(accountData.value.amount),
+        assetId: BigInt(0),
+        amount: BigInt(accountData.value.amount ?? 0n),
         name: store.state.config.tokenSymbol,
         decimals: 6,
-        "unit-name": store.state.config.tokenSymbol,
+        unitName: store.state.config.tokenSymbol,
         type: "Native",
         label: `${store.state.config.tokenSymbol} (Native token) Balance: ${balance}`,
       });
     } else {
       const balance = formatCurrency(0, store.state.config.tokenSymbol, 6);
       assets.value.push({
-        "asset-id": 0,
-        amount: 0,
+        assetId: BigInt(0),
+        amount: 0n,
         name: store.state.config.tokenSymbol,
         decimals: 6,
-        "unit-name": store.state.config.tokenSymbol,
+        unitName: store.state.config.tokenSymbol,
         type: "Native",
         label: `${store.state.config.tokenSymbol} (Native token) Balance: ${balance}`,
       });
@@ -320,42 +325,44 @@ export function useSwap() {
 
     if (accountData.value && accountData.value.assets) {
       // Parallel fetch all asset infos
+      console.log("Fetching asset infos for assets", accountData.value.assets);
       const assetPromises = accountData.value.assets.map(
-        (asset: any) =>
+        (asset: AccountAssetHolding) =>
           store
             .dispatch("indexer/getAsset", {
-              assetIndex: asset["asset-id"],
+              assetIndex: BigInt(asset.assetId ?? (asset as any)["asset-id"]),
             })
             .catch(() => null) // Ignore errors for individual assets
       );
-      const assetInfos = await Promise.all(assetPromises);
-
+      const assetInfos = (await Promise.all(assetPromises)) as StoredAsset[];
+      console.log("Fetched asset infos", assetInfos);
       for (let index = 0; index < accountData.value.assets.length; index++) {
         const assetInfo = assetInfos[index];
         if (assetInfo) {
           const balance = formatCurrency(
             accountData.value.assets[index]["amount"],
-            assetInfo["unit-name"] ? assetInfo["unit-name"] : assetInfo["name"],
-            assetInfo["decimals"]
+            assetInfo.unitName ? assetInfo.unitName : assetInfo.name ?? "",
+            assetInfo.decimals ?? 6
           );
 
           assets.value.push({
-            "asset-id": Number(accountData.value.assets[index]["asset-id"]),
-            amount: Number(accountData.value.assets[index]["amount"]),
-            name: assetInfo["name"],
-            decimals: assetInfo["decimals"],
-            "unit-name": assetInfo["unit-name"],
+            assetId: BigInt(accountData.value.assets[index].assetId),
+            amount: BigInt(accountData.value.assets[index]["amount"]),
+            name: assetInfo.name ?? "",
+            decimals: assetInfo.decimals ?? 6,
+            unitName: assetInfo.unitName ?? "",
             type: "ASA",
-            label: `${assetInfo["name"]} (ASA ${accountData.value.assets[index]["asset-id"]}) Balance: ${balance}`,
+            label: `${assetInfo["name"]} (ASA ${accountData.value.assets[index].assetId}) Balance: ${balance}`,
           });
         } else {
           console.error(
             "Asset not loaded",
-            accountData.value.assets[index]["asset-id"]
+            accountData.value.assets[index].assetId
           );
         }
       }
     }
+    console.log("makeAssets", assets.value);
   };
 
   const clickGetQuote = async (): Promise<void> => {

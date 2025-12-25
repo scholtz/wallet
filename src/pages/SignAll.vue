@@ -304,9 +304,9 @@ const retToScheduledPayments = () => {
 };
 
 const getAssetSync = (id: number) => {
-  const assets = store.state.indexer.assets as Array<Record<string, unknown>>;
+  const assets = store.state.indexer.assets;
   const normalizedId = Number(id);
-  return assets.find((a) => Number(a["asset-id"]) === normalizedId);
+  return assets.find((a) => Number(a.assetId) === normalizedId);
 };
 const getAssetName = (id: number) => {
   const asset = getAssetSync(id) as { name?: string } | undefined;

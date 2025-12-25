@@ -191,7 +191,7 @@
                         filter
                         :options="assets"
                         optionLabel="label"
-                        optionValue="asset-id"
+                        optionValue="assetId"
                         :placeholder="t('pay.asset')"
                         class="w-full"
                         inputClass="w-full"
@@ -352,11 +352,7 @@ import { QrcodeStream } from "qrcode-reader-vue3";
 import aprotocol from "../shared/algorand-protocol-parse";
 import MainLayout from "../layouts/Main.vue";
 import algosdk from "algosdk";
-import type {
-  Transaction,
-  TransactionWithSigner,
-  MultisigMetadata,
-} from "algosdk";
+import type { Transaction } from "algosdk";
 import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import SelectAccount from "../components/SelectAccount.vue";
 import TabView from "primevue/tabview";
@@ -364,25 +360,9 @@ import TabPanel from "primevue/tabpanel";
 import { getArc200Client } from "arc200-client";
 import { useStore } from "@/store";
 import { Buffer } from "buffer";
-import type {
-  WalletAccount,
-  IAccountData,
-  AccountAssetHolding,
-} from "@/store/wallet";
+import type { WalletAccount, IAccountData } from "@/store/wallet";
+import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
 
-type AssetType = "Native" | "ASA" | "ARC200";
-
-interface AssetOption {
-  "asset-id": string | number;
-  amount: number;
-  name: string;
-  decimals: number;
-  "unit-name"?: string;
-  type: AssetType;
-  label: string;
-}
-
-type AccountAsset = AccountAssetHolding;
 type AccountNetworkData = IAccountData;
 
 type MultisigDecoded = ReturnType<
@@ -416,9 +396,9 @@ interface PayState {
   rawSignedTxnInput: string | null;
   signMultisigWith: string[];
   multisigDecoded: MultisigDecoded;
-  assets: AssetOption[];
+  assets: ExtendedStoredAsset[];
   asset: string | number;
-  assetObj: Partial<AssetOption> & Record<string, unknown>;
+  assetObj: ExtendedStoredAsset | undefined;
   scan: boolean;
   forceAsset: boolean;
   txtCode: string;
@@ -435,7 +415,7 @@ const router = useRouter();
 const { t } = useI18n();
 const instance = getCurrentInstance();
 type CurrencyFormatter = (
-  amount: number,
+  amount: number | bigint,
   symbol: string,
   decimals: number
 ) => string;
@@ -448,7 +428,7 @@ const filters = instance?.appContext.config.globalProperties.$filters as
   | GlobalFilters
   | undefined;
 const formatCurrency = (
-  amount: number,
+  amount: number | bigint,
   symbol: string,
   decimalsCount: number
 ): string => {
@@ -500,7 +480,7 @@ const state = reactive<PayState>({
   multisigDecoded: null,
   assets: [],
   asset: "",
-  assetObj: {},
+  assetObj: undefined,
   scan: false,
   forceAsset: false,
   txtCode: "",
@@ -546,7 +526,9 @@ const sendRawTransaction = (payload: { signedTxn: ArrayBuffer }) =>
   store.dispatch("algod/sendRawTransaction", payload);
 const updateAccount = (payload: { info: Record<string, unknown> }) =>
   store.dispatch("wallet/updateAccount", payload);
-const getAsset = (payload: { assetIndex: number }) =>
+const getAsset = (payload: {
+  assetIndex: bigint;
+}): Promise<StoredAsset | undefined> =>
   store.dispatch("indexer/getAsset", payload);
 const setEnv = (payload: { env: string }) =>
   store.dispatch("config/setEnv", payload);
@@ -577,15 +559,15 @@ const envName = computed(() => store.state.config.env);
 const walletAccounts = computed<WalletAccount[]>(
   () => store.state.wallet.privateAccounts || []
 );
-const assetData = computed<AssetOption | undefined>(() => {
+const assetData = computed<ExtendedStoredAsset | undefined>(() => {
   const assetId = state.asset;
   return state.assets.find(
-    (entry) => String(entry["asset-id"]) === String(assetId)
+    (entry) => String(entry.assetId) === String(assetId)
   );
 });
 
 const numericSelectedAssetId = computed(() => {
-  const rawId = assetData.value?.["asset-id"] ?? state.asset;
+  const rawId = assetData.value?.assetId ?? state.asset;
   if (rawId === undefined || rawId === null || rawId === "") {
     return undefined;
   }
@@ -608,7 +590,7 @@ const decimals = computed(() => {
   }
   return 6;
 });
-const decimalsPower = computed(() => Math.pow(10, decimals.value));
+const decimalsPower = computed(() => Math.pow(10, decimals.value ?? 6));
 const amountLong = computed(() =>
   Math.round(state.payamount * decimalsPower.value)
 );
@@ -701,7 +683,9 @@ const isRekey = computed(() => {
 });
 const selectedAssetFromAccount = computed(() =>
   accountData.value && accountData.value["assets"]
-    ? accountData.value["assets"].find((a) => a["asset-id"] == state.asset)
+    ? accountData.value["assets"].find(
+        (a) => BigInt(a.assetId) == BigInt(state.asset)
+      )
     : undefined
 );
 const maxAmount = computed(() => {
@@ -735,7 +719,7 @@ const noteIsB64 = computed(() => {
 });
 const assetUnit = computed(() => {
   if (!state.assetObj) return "";
-  return state.assetObj["unit-name"] || state.assetObj.name || "";
+  return state.assetObj.unitName || state.assetObj.name || "";
 });
 const isAuth = computed(() => store.state.wallet.isOpen);
 const malformedAddress = computed(() => {
@@ -786,16 +770,19 @@ watch(account, () => {
 });
 
 watch(asset, async (assetValue) => {
-  const numericAssetId = Number(assetValue);
+  const numericAssetId = BigInt(assetValue);
   if (!Number.isNaN(numericAssetId) && numericAssetId > 0) {
     const fetched = await getAsset({ assetIndex: numericAssetId });
     state.assetObj = (fetched || {}) as PayState["assetObj"];
   } else {
     state.assetObj = {
-      "asset-id": 0,
+      assetId: 0n,
       name: tokenSymbol.value,
-      "unit-name": tokenSymbol.value,
+      unitName: tokenSymbol.value,
       decimals: 6,
+      type: "Native",
+      amount: undefined,
+      label: tokenSymbol.value,
     };
   }
   state.payamount = 0;
@@ -940,25 +927,25 @@ const isBase64 = (str: string) => {
 const makeAssets = async () => {
   state.assets = [];
   if (accountData.value) {
-    const nativeAmount = Number(accountData.value.amount ?? 0);
+    const nativeAmount = BigInt(accountData.value.amount ?? 0);
     const balance = formatCurrency(nativeAmount, tokenSymbol.value, 6);
     state.assets.push({
-      "asset-id": "0",
+      assetId: 0n,
       amount: nativeAmount,
       name: tokenSymbol.value,
       decimals: 6,
-      "unit-name": tokenSymbol.value,
+      unitName: tokenSymbol.value,
       type: "Native",
       label: `${tokenSymbol.value} (Native token) Balance: ${balance}`,
     });
   } else {
     const balance = formatCurrency(0, tokenSymbol.value, 6);
     state.assets.push({
-      "asset-id": "0",
-      amount: 0,
+      assetId: 0n,
+      amount: 0n,
       name: tokenSymbol.value,
       decimals: 6,
-      "unit-name": tokenSymbol.value,
+      unitName: tokenSymbol.value,
       type: "Native",
       label: `${tokenSymbol.value} (Native token) Balance: ${balance}`,
     });
@@ -969,28 +956,28 @@ const makeAssets = async () => {
     for (const accountAsset of asaList) {
       try {
         const assetInfo = await getAsset({
-          assetIndex: Number(accountAsset["asset-id"]),
+          assetIndex: BigInt(accountAsset.assetId),
         });
         if (assetInfo) {
           const balance = formatCurrency(
             Number(accountAsset["amount"] ?? 0),
-            assetInfo["unit-name"] ? assetInfo["unit-name"] : assetInfo["name"],
-            assetInfo["decimals"]
+            assetInfo.unitName ? assetInfo.unitName : assetInfo.name ?? "",
+            assetInfo.decimals ?? 6
           );
           state.assets.push({
-            "asset-id": accountAsset["asset-id"],
-            amount: Number(accountAsset["amount"] ?? 0),
-            name: assetInfo["name"],
-            decimals: assetInfo["decimals"],
-            "unit-name": assetInfo["unit-name"],
+            assetId: BigInt(accountAsset.assetId),
+            amount: BigInt(accountAsset["amount"] ?? 0),
+            name: assetInfo.name ?? "",
+            decimals: assetInfo.decimals ?? 6,
+            unitName: assetInfo.unitName ?? "",
             type: "ASA",
-            label: `${assetInfo["name"]} (ASA ${accountAsset["asset-id"]}) Balance: ${balance}`,
+            label: `${assetInfo.name} (ASA ${accountAsset.assetId}) Balance: ${balance}`,
           });
         } else {
-          console.error("Asset not loaded", accountAsset["asset-id"]);
+          console.error("Asset not loaded", accountAsset.assetId);
         }
       } catch (err) {
-        console.error("Asset load failed", accountAsset["asset-id"], err);
+        console.error("Asset load failed", accountAsset.assetId, err);
       }
     }
 
@@ -1002,11 +989,11 @@ const makeAssets = async () => {
           Number(accountAsset.decimals ?? 0)
         );
         state.assets.push({
-          "asset-id": Number(accountAsset.arc200id),
-          amount: Number(accountAsset.balance ?? 0),
+          assetId: BigInt(accountAsset.arc200id),
+          amount: BigInt(accountAsset.balance ?? 0),
           name: accountAsset.name,
           decimals: Number(accountAsset.decimals ?? 0),
-          "unit-name": accountAsset.symbol,
+          unitName: accountAsset.symbol,
           type: "ARC200",
           label: `${accountAsset.name} (ARC200 ${accountAsset.arc200id}) Balance: ${balance}`,
         });
@@ -1061,7 +1048,9 @@ const parseToAccount = (encodedValue?: string) => {
 
 const previewPaymentClick = async (e: Event | undefined) => {
   try {
-    const assetMeta = state.assets.find((a) => a["asset-id"] == state.asset);
+    const assetMeta = state.assets.find(
+      (a) => BigInt(a.assetId) == BigInt(state.asset)
+    );
     if (!assetMeta) {
       console.error("no asset selected");
       return;

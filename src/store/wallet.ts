@@ -15,13 +15,13 @@ type WalletAccountData = Record<string, IAccountData>;
 type AmountLike = number | bigint;
 
 export interface AccountAssetHolding {
-  "asset-id": number | string;
+  assetId: bigint;
   amount: AmountLike;
   creator?: string;
   deleted?: boolean;
-  "is-frozen"?: boolean;
-  "opted-in-at-round"?: number;
-  "frozen-at-round"?: number;
+  isFrozen?: boolean;
+  optedInAtRound?: bigint;
+  optedOutAtRound?: bigint;
 }
 
 export interface IAccountData {

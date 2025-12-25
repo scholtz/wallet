@@ -895,7 +895,7 @@ export default {
     },
     getAssetSync(id) {
       const ret = this.$store.state.indexer.assets.find(
-        (a) => a["asset-id"] == id
+        (a) => a.assetId == BigInt(id)
       );
       return ret;
     },

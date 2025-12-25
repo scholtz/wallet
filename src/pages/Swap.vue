@@ -102,6 +102,7 @@ import SwapExecuteButtons from "../components/SwapExecuteButtons.vue";
 import { dexAggregators } from "../scripts/dexAggregators";
 import { useSwap } from "../composables/useSwap";
 import { RootState } from "@/store";
+import { StoredAsset } from "@/store/indexer";
 
 const { t } = useI18n();
 const store = useStore<RootState>();
@@ -183,15 +184,20 @@ watch(asset, async (newAsset) => {
   });
 
   if (newAsset && newAsset > 0) {
-    fromAssetObj.value = await store.dispatch("indexer/getAsset", {
+    const asset = (await store.dispatch("indexer/getAsset", {
       assetIndex: newAsset,
-    });
+    })) as StoredAsset | undefined;
+    if (asset) {
+      fromAssetObj.value = asset;
+    }
   } else {
     fromAssetObj.value = {
-      "asset-id": 0,
+      assetId: 0n,
       name: "ALGO",
-      "unit-name": "Algo",
+      unitName: "Algo",
       decimals: 6,
+      type: "Native",
+      label: "ALGO (Native token)",
     };
   }
   payamount.value = 0;
@@ -207,15 +213,20 @@ watch(toAsset, async (newToAsset) => {
   });
 
   if (newToAsset && newToAsset > 0) {
-    toAssetObj.value = await store.dispatch("indexer/getAsset", {
+    const asset = (await store.dispatch("indexer/getAsset", {
       assetIndex: newToAsset,
-    });
+    })) as StoredAsset | undefined;
+    if (asset) {
+      toAssetObj.value = asset;
+    }
   } else {
     toAssetObj.value = {
-      "asset-id": 0,
+      assetId: 0n,
       name: "ALGO",
-      "unit-name": "Algo",
+      unitName: "Algo",
       decimals: 6,
+      type: "Native",
+      label: "ALGO (Native token)",
     };
   }
   localStorage.setItem("last-swap-to-asset", newToAsset?.toString() || "");
@@ -247,7 +258,7 @@ onMounted(async () => {
   await makeAssets();
 
   asset.value = 0;
-  const vote = assets.value.find((a) => a["asset-id"] == 452399768);
+  const vote = assets.value.find((a) => a.assetId == 452399768n);
   if (vote) {
     toAsset.value = 452399768;
   } else {

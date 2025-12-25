@@ -109,10 +109,10 @@
               $filters.formatCurrency(
                 slotProps.data["asset-transfer-transaction"]["amount"],
                 getAssetName(
-                  slotProps.data["asset-transfer-transaction"]["asset-id"]
+                  slotProps.data["asset-transfer-transaction"]["assetId"]
                 ),
 
-                getAssetDecimals(asset["asset-id"])
+                getAssetDecimals(asset["assetId"])
               )
             }}
           </div>
@@ -322,35 +322,33 @@ export default {
       this.assets = [];
       if (this.accountData && this.accountData.amount > 0) {
         this.assets.push({
-          "asset-id": "",
+          assetId: 0n,
           amount: this.accountData.amount,
           name: "ALG",
           decimals: 6,
-          "unit-name": "",
+          unitName: "",
         });
       }
       if (this.accountData && this.accountData.assets) {
         for (const accountAsset of this.accountData.assets) {
-          if (!accountAsset["asset-id"]) continue;
+          if (!accountAsset.assetId) continue;
           const asset = await this.getAsset({
-            assetIndex: accountAsset["asset-id"],
+            assetIndex: accountAsset.assetId,
           });
           if (asset) {
             this.assets.push({
-              "asset-id": accountAsset["asset-id"],
-              amount: accountAsset["amount"],
+              assetId: accountAsset.assetId,
+              amount: accountAsset.amount,
               name: asset["name"],
               decimals: asset["decimals"],
-              "unit-name": asset["unit-name"],
+              unitName: asset["unitName"],
             });
           }
         }
       }
     },
     getAssetSync(id) {
-      const ret = this.$store.state.indexer.assets.find(
-        (a) => a["asset-id"] == id
-      );
+      const ret = this.$store.state.indexer.assets.find((a) => a.assetId == id);
       return ret;
     },
     getAssetName(id) {

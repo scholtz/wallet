@@ -270,7 +270,7 @@
                     assetObj.decimals
                   )
                 }}
-                ({{ transaction["asset-transfer-transaction"]["asset-id"] }})
+                ({{ transaction["asset-transfer-transaction"].assetId }})
               </td>
             </tr>
             <tr v-if="transaction['asset-transfer-transaction']">
@@ -376,7 +376,7 @@ export default {
   data() {
     return {
       assetObj: {
-        "asset-id": undefined,
+        assetId: 0n,
         name: "ALGO",
         decimals: 6,
       },
@@ -388,7 +388,7 @@ export default {
     },
     asset() {
       if (!this.transaction["asset-config-transaction"]) return false;
-      return this.transaction["asset-config-transaction"]["asset-id"];
+      return this.transaction["asset-config-transaction"].assetId;
     },
   },
   watch: {
@@ -420,17 +420,16 @@ export default {
     async loadAsset() {
       if (
         !this.transaction["asset-transfer-transaction"] ||
-        !this.transaction["asset-transfer-transaction"]["asset-id"]
+        !this.transaction["asset-transfer-transaction"]["assetId"]
       ) {
         this.assetObj = {
-          "asset-id": undefined,
+          assetId: 0n,
           name: "ALGO",
           decimals: 6,
         };
       } else {
         this.assetObj = await this.getAsset({
-          assetIndex:
-            this.transaction["asset-transfer-transaction"]["asset-id"],
+          assetIndex: this.transaction["asset-transfer-transaction"]["assetId"],
         });
       }
     },

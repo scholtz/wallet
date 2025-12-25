@@ -1,20 +1,13 @@
 // types/swap.ts - Type definitions for the Swap component
 /* eslint-disable no-unused-vars */
-export interface Asset {
-  "asset-id": number;
-  amount: number;
-  name: string;
-  decimals: number;
-  "unit-name": string;
-  type: "Native" | "ASA";
-  label: string;
-}
+
+import { StoredAsset } from "@/store/indexer";
 
 export interface AccountData {
   amount: number;
   assets: Array<{
-    "asset-id": number;
-    amount: number;
+    assetId: bigint;
+    amount: bigint;
   }>;
 }
 
@@ -62,12 +55,12 @@ export interface SwapRoute {
 }
 
 export interface SwapComponentData {
-  assets: Asset[];
+  assets: StoredAsset[];
   asset: number | null;
   toAsset: number | null;
   payamount: number;
-  fromAssetObj: Partial<Asset>;
-  toAssetObj: Partial<Asset>;
+  fromAssetObj: StoredAsset | undefined;
+  toAssetObj: StoredAsset | undefined;
   txsDetails: string;
   hasSK: boolean | null;
   processingQuote: boolean;
@@ -90,7 +83,7 @@ export interface SwapMethods {
     config?: any;
   }) => Promise<any>;
   getSK: (_config: { addr: string }) => Promise<Uint8Array>;
-  getAsset: (_config: { assetIndex: number }) => Promise<Asset>;
+  getAsset: (_config: { assetIndex: number }) => Promise<StoredAsset>;
   sendRawTransaction: (_config: {
     signedTxn: Uint8Array | Uint8Array[];
   }) => Promise<{ txId: string }>;

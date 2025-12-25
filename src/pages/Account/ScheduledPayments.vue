@@ -23,6 +23,7 @@ import algosdk from "algosdk";
 import axios from "axios";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
+import { StoredAsset } from "@/store/indexer";
 
 type FilterMode = (typeof FilterMatchMode)[keyof typeof FilterMatchMode];
 
@@ -38,7 +39,7 @@ type WalletAccount = {
 
 type AccountAssetEntry = {
   amount: number;
-  "asset-id": number;
+  assetId: bigint;
 };
 
 type AccountEnvData = {
@@ -104,7 +105,7 @@ interface ScheduledPaymentsState {
   appId: string;
   fee: number;
   feeAssetId: number;
-  feeAssetData: CAsset;
+  feeAssetData: StoredAsset | undefined;
   deploying: boolean;
 }
 
@@ -148,7 +149,7 @@ const state = reactive<ScheduledPaymentsState>({
   appId: "",
   fee: 1000,
   feeAssetId: 0,
-  feeAssetData: new CAsset(),
+  feeAssetData: undefined,
   deploying: false,
 });
 
@@ -210,7 +211,7 @@ const loadTableData = async () => {
     state.feeAssetId = fa;
     state.feeAssetData = (await store.dispatch("indexer/getAsset", {
       assetIndex: fa,
-    })) as CAsset;
+    })) as StoredAsset | undefined;
 
     const addr = route.params.account as string;
     const decodedAddr = algosdk.decodeAddress(addr);
@@ -271,13 +272,13 @@ const deployApp = async () => {
       tasks: [
         {
           task: "pay@v1",
-          displayName: `Pay to '${state.payTo}' ${state.amount} of token ${state.assetData["asset-id"]}`,
+          displayName: `Pay to '${state.payTo}' ${state.amount} of token ${state.assetData.assetId}`,
           inputs: {
             receiver: `'${state.payTo}'`,
             amount: Math.round(
               state.amount * 10 ** (state.assetData.decimals ?? 0)
             ),
-            token: state.assetData["asset-id"],
+            token: state.assetData.assetId,
           },
         },
       ],
@@ -375,12 +376,12 @@ onMounted(async () => {
     if (deserialized.assetData) {
       var newAssetData = new CAsset();
       newAssetData.amount = deserialized.assetData.amount;
-      newAssetData["asset-id"] = deserialized.assetData["asset-id"];
+      newAssetData.assetId = deserialized.assetData.assetId;
       newAssetData.decimals = deserialized.assetData.decimals;
       newAssetData.label = deserialized.assetData.label;
       newAssetData.name = deserialized.assetData.name;
       newAssetData.type = deserialized.assetData.type;
-      newAssetData["unit-name"] = deserialized.assetData["unit-name"];
+      newAssetData.unitName = deserialized.assetData.unitName;
       state.assetData = newAssetData;
     }
     if (deserialized.account) {
@@ -497,7 +498,7 @@ watch(
                 class="w-full"
               />
               <InputGroupAddon v-if="state.assetData">
-                {{ state.assetData["unit-name"] }}
+                {{ state.assetData.unitName }}
               </InputGroupAddon>
               <Button severity="secondary" class="col-2" @click="setMaxAmount">
                 {{ t("pay.set_max") }}
@@ -592,9 +593,10 @@ watch(
           >
             <template #body="slotProps">
               {{
+                state.feeAssetData &&
                 formatCurrency(
                   slotProps.data.balanceFee,
-                  state.feeAssetData["unit-name"] ?? state.feeAssetData.name,
+                  state.feeAssetData.unitName ?? state.feeAssetData.name,
                   state.feeAssetData.decimals ?? 0
                 )
               }}
@@ -607,9 +609,10 @@ watch(
           >
             <template #body="slotProps">
               {{
+                state.feeAssetData &&
                 formatCurrency(
                   slotProps.data.fee,
-                  state.feeAssetData["unit-name"] ?? state.feeAssetData.name,
+                  state.feeAssetData.unitName ?? state.feeAssetData.name,
                   state.feeAssetData.decimals ?? 0
                 )
               }}

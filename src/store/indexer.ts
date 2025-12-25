@@ -3,13 +3,17 @@ import type { ActionTree, MutationTree } from "vuex";
 import type { RootState } from "./index";
 import type { ConfigState } from "./config";
 
-export interface StoredAsset extends Record<string, unknown> {
-  "asset-id"?: number | string;
+export type ExtendedStoredAsset = StoredAsset & {
+  amount?: bigint;
+};
+
+export interface StoredAsset {
+  assetId: bigint;
   name?: string;
-  "unit-name"?: string;
+  unitName?: string;
   decimals?: number;
-  amount?: number | bigint;
   label?: string;
+  type: "Native" | "ASA" | "ARC200";
 }
 
 export type BalanceCache = Record<
@@ -61,7 +65,7 @@ interface TokenNoteAmountAccountPayload extends TokenNoteAmountPayload {
 }
 
 export interface AssetPayload {
-  assetIndex?: number;
+  assetIndex: bigint;
 }
 
 interface BalanceAtRoundPayload {
@@ -305,27 +309,38 @@ const actions: ActionTree<IndexerState, RootState> = {
       return undefined;
     }
   },
-  async getAsset({ commit, state, rootState }, { assetIndex }: AssetPayload) {
+  async getAsset(
+    { commit, state, rootState },
+    { assetIndex }: AssetPayload
+  ): Promise<StoredAsset | undefined> {
     try {
+      console.log("getAsset called with assetIndex:", assetIndex, rootState);
       if (!assetIndex) {
         const native: StoredAsset = {
-          "asset-id": -1,
-          amount: 0,
+          assetId: -1n,
           name: "ALG",
           decimals: 6,
-          "unit-name": "",
+          unitName: "",
           label: "Algorand native token",
+          type: "Native",
         };
         return native;
       }
       const env = rootState.config.env;
       const envPrefix =
         env === "mainnet" || env === "mainnet-v1.0" ? "" : `${env}-`;
+      const cacheKey = `Asset-${envPrefix}${assetIndex}`;
       try {
-        const cache = localStorage.getItem(`Asset-${envPrefix}${assetIndex}`);
+        const cache = localStorage.getItem(cacheKey);
+        console.log("getAsset cache:", cache);
         if (cache) {
           const cacheObj = JSON.parse(cache) as StoredAsset;
-          if (cacheObj && cacheObj["asset-id"] === assetIndex) {
+          console.log("getAsset cacheObj:", cacheObj);
+          if (
+            cacheObj &&
+            cacheObj.assetId &&
+            BigInt(cacheObj.assetId) === BigInt(assetIndex)
+          ) {
             commit("setAsset", cacheObj);
             return cacheObj;
           }
@@ -334,8 +349,11 @@ const actions: ActionTree<IndexerState, RootState> = {
         console.error("getAsset cache parse", error);
       }
 
+      console.log("loading from indexer", cacheKey);
       const indexerClient = getIndexerClient(rootState.config);
-      const existing = state.assets.find((a) => a["asset-id"] === assetIndex);
+      const existing = state.assets.find(
+        (a) => a.assetId && BigInt(a.assetId) === BigInt(assetIndex)
+      );
       if (existing) {
         return existing;
       }
@@ -348,19 +366,20 @@ const actions: ActionTree<IndexerState, RootState> = {
         assetInfo.assets.length > 0 &&
         assetInfo.assets[0].params
       ) {
-        const assetParams = assetInfo.assets[0].params as unknown as Record<
-          string,
-          unknown
-        >;
+        const assetParams = assetInfo.assets[0].params;
         const assetInfoData: StoredAsset = {
-          ...assetParams,
-          "asset-id": assetIndex,
+          label: assetParams.name,
+          decimals: assetParams.decimals,
+          name: assetParams.name,
+          unitName: assetParams.unitName,
+          assetId: BigInt(assetIndex),
+          type: "ASA",
         };
         commit("setAsset", assetInfoData);
-        localStorage.setItem(
-          `Asset-${envPrefix}${assetIndex}`,
-          JSON.stringify(assetInfoData)
+        const data = JSON.stringify(assetInfoData, (key, value) =>
+          typeof value === "bigint" ? value.toString() : value
         );
+        localStorage.setItem(cacheKey, data);
         return assetInfoData;
       }
     } catch (error) {
@@ -402,7 +421,7 @@ const actions: ActionTree<IndexerState, RootState> = {
           | undefined;
         const item = accountAssets?.find(
           (a) =>
-            a["asset-id"] === assetId &&
+            a["assetId"] === assetId &&
             a["deleted"] === false &&
             a["is-frozen"] === false
         );

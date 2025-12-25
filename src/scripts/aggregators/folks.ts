@@ -72,7 +72,7 @@ export const folksAggregator: DexAggregator = {
       });
       context.txsDetails.value += `\nFOLKS ROUTER: Quote Amount: ${
         Number(context.aggregatorData.folksQuote.value.quoteAmount) /
-        10 ** token.decimals
+        10 ** (token?.decimals ?? 6)
       }, Price Impact: ${
         Math.round(
           Number(context.aggregatorData.folksQuote.value.priceImpact) * 10000
