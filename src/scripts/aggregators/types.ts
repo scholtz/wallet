@@ -18,7 +18,7 @@ export interface SwapContext {
   error: Ref<string>;
   slippage: Ref<number>;
   fee: Ref<number>;
-  
+
   // Computed (Refs)
   account: Ref<Account | undefined>;
   fromAssetDecimals: Ref<number>;
@@ -28,16 +28,25 @@ export interface SwapContext {
   // Store and Route
   $store: SwapStore;
   $route: SwapRoute;
-  
+
   // Methods
   openSuccess: (message: string) => void;
   openError: (message: string) => void;
   axiosGet: (config: { url: string }) => Promise<any>;
-  axiosPost: (config: { url: string; body?: any; config?: any }) => Promise<any>;
+  axiosPost: (config: {
+    url: string;
+    body?: any;
+    config?: any;
+  }) => Promise<any>;
   getSK: (config: { addr: string }) => Promise<Uint8Array>;
   getAsset: (config: { assetIndex: number }) => Promise<Asset>;
-  sendRawTransaction: (config: { signedTxn: Uint8Array | Uint8Array[] }) => Promise<{ txId: string }>;
-  waitForConfirmation: (config: { txId: string; timeout: number }) => Promise<any>;
+  sendRawTransaction: (config: {
+    signedTxn: Uint8Array | Uint8Array[];
+  }) => Promise<{ txId: string }>;
+  waitForConfirmation: (config: {
+    txId: string;
+    timeout: number;
+  }) => Promise<any>;
   prolong: () => void;
   reloadAccount: () => Promise<void>;
   checkNetwork: () => string | false;

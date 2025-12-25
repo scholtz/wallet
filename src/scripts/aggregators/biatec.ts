@@ -25,9 +25,13 @@ export const biatecAggregator: DexAggregator = {
       const requestBody = {
         sender: context.account.value?.addr || "",
         fromAsset:
-          context.asset.value && context.asset.value > 0 ? context.asset.value : 0,
+          context.asset.value && context.asset.value > 0
+            ? context.asset.value
+            : 0,
         toAsset:
-          context.toAsset.value && context.toAsset.value > 0 ? context.toAsset.value : 0,
+          context.toAsset.value && context.toAsset.value > 0
+            ? context.toAsset.value
+            : 0,
         swapAmount: Math.round(
           context.payamount.value * 10 ** context.fromAssetDecimals.value
         ),
@@ -36,8 +40,9 @@ export const biatecAggregator: DexAggregator = {
         maxHops: 3,
       };
 
-      const response =
-        await biatecRouter.RouterService.postApiV1RouterRouteTxs(requestBody);
+      const response = await biatecRouter.RouterService.postApiV1RouterRouteTxs(
+        requestBody
+      );
 
       if (!response.routes || response.routes.length === 0) {
         context.error.value = "No Biatec Router routes available";
@@ -78,8 +83,13 @@ export const biatecAggregator: DexAggregator = {
         context.aggregatorData.processingTradeBiatec.value = false;
         return;
       }
-      console.log("component.biatecQuotes", context.aggregatorData.biatecQuotes.value);
-      if (!context.aggregatorData.biatecQuotes.value?.route?.route?.outputAmount) {
+      console.log(
+        "component.biatecQuotes",
+        context.aggregatorData.biatecQuotes.value
+      );
+      if (
+        !context.aggregatorData.biatecQuotes.value?.route?.route?.outputAmount
+      ) {
         throw new Error("Cannot calculate the minimum amount to receive.");
       }
       const authHeader = await context.signAuthTx({
@@ -98,9 +108,13 @@ export const biatecAggregator: DexAggregator = {
       const requestBody = {
         sender: context.account.value?.addr || "",
         fromAsset:
-          context.asset.value && context.asset.value > 0 ? context.asset.value : 0,
+          context.asset.value && context.asset.value > 0
+            ? context.asset.value
+            : 0,
         toAsset:
-          context.toAsset.value && context.toAsset.value > 0 ? context.toAsset.value : 0,
+          context.toAsset.value && context.toAsset.value > 0
+            ? context.toAsset.value
+            : 0,
         swapAmount: Math.round(
           context.payamount.value * 10 ** context.fromAssetDecimals.value
         ),
@@ -109,8 +123,9 @@ export const biatecAggregator: DexAggregator = {
         maxHops: 3,
       };
 
-      const response =
-        await biatecRouter.RouterService.postApiV1RouterRouteTxs(requestBody);
+      const response = await biatecRouter.RouterService.postApiV1RouterRouteTxs(
+        requestBody
+      );
       if (!response.routes || response.routes.length === 0) {
         context.error.value = "No Biatec Router routes available";
         return;
@@ -136,7 +151,8 @@ export const biatecAggregator: DexAggregator = {
         "component.biatecQuotes.route",
         context.aggregatorData.biatecQuotes.value.route
       );
-      for (const txBase64 of context.aggregatorData.biatecQuotes.value.route.txsToSign) {
+      for (const txBase64 of context.aggregatorData.biatecQuotes.value.route
+        .txsToSign) {
         console.log("txBase64", txBase64);
         let txBytes = new Uint8Array(Buffer.from(txBase64, "base64"));
         // Check for "TX" prefix (0x54, 0x58)
@@ -204,8 +220,8 @@ export const biatecAggregator: DexAggregator = {
   get allowExecute() {
     return function (context: SwapContext) {
       return (
-        context.aggregatorData.biatecQuotes.value?.route?.txsToSign?.length > 0 &&
-        !context.requiresOptIn.value
+        context.aggregatorData.biatecQuotes.value?.route?.txsToSign?.length >
+          0 && !context.requiresOptIn.value
       );
     };
   },
@@ -217,7 +233,8 @@ export const biatecAggregator: DexAggregator = {
       }
       // Compare with other aggregators
       const others = context.dexAggregators.filter(
-        (a: any) => a.name !== "biatec" && context.aggregatorData[a.enabledKey].value
+        (a: any) =>
+          a.name !== "biatec" && context.aggregatorData[a.enabledKey].value
       );
       for (let other of others) {
         const otherQuote =

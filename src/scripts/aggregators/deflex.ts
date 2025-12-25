@@ -14,12 +14,18 @@ export const deflexAggregator: DexAggregator = {
     try {
       context.aggregatorData.deflexQuotes.value = {};
       const amount = BigInt(
-        Math.round(context.payamount.value * 10 ** context.fromAssetDecimals.value)
+        Math.round(
+          context.payamount.value * 10 ** context.fromAssetDecimals.value
+        )
       );
       const fromAsset =
-        context.asset.value && context.asset.value > 0 ? context.asset.value : 0;
+        context.asset.value && context.asset.value > 0
+          ? context.asset.value
+          : 0;
       const toAsset =
-        context.toAsset.value && context.toAsset.value > 0 ? context.toAsset.value : 0;
+        context.toAsset.value && context.toAsset.value > 0
+          ? context.toAsset.value
+          : 0;
       const chain = context.checkNetwork();
       if (!chain) {
         context.txsDetails.value += "\nDEFLEX: Wrong network selected";
@@ -69,7 +75,8 @@ export const deflexAggregator: DexAggregator = {
           config,
         })
         .catch((e: any) => {
-          context.error.value += "No deflex quotes available " + e.message + "\n";
+          context.error.value +=
+            "No deflex quotes available " + e.message + "\n";
           return;
         });
       if (!txs) {
@@ -158,7 +165,8 @@ export const deflexAggregator: DexAggregator = {
       if (
         !context.aggregatorData.deflexTxs.value ||
         !context.aggregatorData.deflexTxs.value.txns ||
-        Object.values(context.aggregatorData.deflexTxs.value.groupMetadata).length <= 0
+        Object.values(context.aggregatorData.deflexTxs.value.groupMetadata)
+          .length <= 0
       ) {
         return false;
       }
@@ -176,14 +184,17 @@ export const deflexAggregator: DexAggregator = {
       }
       // Compare with other aggregators
       const others = context.dexAggregators.filter(
-        (a: any) => a.name !== "deflex" && context.aggregatorData[a.enabledKey].value
+        (a: any) =>
+          a.name !== "deflex" && context.aggregatorData[a.enabledKey].value
       );
       for (let other of others) {
         const otherQuote =
           context.aggregatorData[other.quotesKey].value?.quoteAmount ||
           context.aggregatorData[other.quotesKey].value?.quote;
         if (otherQuote) {
-          const deflex = BigInt(context.aggregatorData.deflexQuotes.value.quote).toString();
+          const deflex = BigInt(
+            context.aggregatorData.deflexQuotes.value.quote
+          ).toString();
           const otherVal = BigInt(otherQuote).toString();
           if (otherVal.length > deflex.length) return false;
           if (deflex.length > otherVal.length) return true;

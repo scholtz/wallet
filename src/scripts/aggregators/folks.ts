@@ -32,7 +32,8 @@ export const folksAggregator: DexAggregator = {
       context.aggregatorData.folksQuote.value = {};
       const amount = BigInt(
         Math.round(
-          context.payamount.value * 10 ** (context.fromAssetObj.value?.decimals ?? 6)
+          context.payamount.value *
+            10 ** (context.fromAssetObj.value?.decimals ?? 6)
         )
       );
       const folksRouterClient = (this as any).getFolksClient(context);
@@ -41,34 +42,44 @@ export const folksAggregator: DexAggregator = {
           "Unable to create folks router client for specified network"
         );
       const fromAsset =
-        context.asset.value && context.asset.value > 0 ? context.asset.value : 0;
+        context.asset.value && context.asset.value > 0
+          ? context.asset.value
+          : 0;
       const toAsset =
-        context.toAsset.value && context.toAsset.value > 0 ? context.toAsset.value : 0;
+        context.toAsset.value && context.toAsset.value > 0
+          ? context.toAsset.value
+          : 0;
 
-      context.aggregatorData.folksQuote.value = await folksRouterClient.fetchSwapQuote(
-        fromAsset,
-        toAsset,
-        amount,
-        SwapMode.FIXED_INPUT,
-        15,
-        10,
-        "AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
-      );
+      context.aggregatorData.folksQuote.value =
+        await folksRouterClient.fetchSwapQuote(
+          fromAsset,
+          toAsset,
+          amount,
+          SwapMode.FIXED_INPUT,
+          15,
+          10,
+          "AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
+        );
       const slippage = Math.round(context.slippage.value * 100);
-      context.aggregatorData.folksTxns.value = await folksRouterClient.prepareSwapTransactions(
-        context.$route.params.account,
-        slippage,
-        context.aggregatorData.folksQuote.value
-      );
+      context.aggregatorData.folksTxns.value =
+        await folksRouterClient.prepareSwapTransactions(
+          context.$route.params.account,
+          slippage,
+          context.aggregatorData.folksQuote.value
+        );
       const token = await context.getAsset({
         assetIndex: toAsset,
       });
       context.txsDetails.value += `\nFOLKS ROUTER: Quote Amount: ${
-        Number(context.aggregatorData.folksQuote.value.quoteAmount) / 10 ** token.decimals
+        Number(context.aggregatorData.folksQuote.value.quoteAmount) /
+        10 ** token.decimals
       }, Price Impact: ${
-        Math.round(Number(context.aggregatorData.folksQuote.value.priceImpact) * 10000) / 100
+        Math.round(
+          Number(context.aggregatorData.folksQuote.value.priceImpact) * 10000
+        ) / 100
       }%, Txs fees: ${
-        Number(context.aggregatorData.folksQuote.value.microalgoTxnsFee) / 10 ** 6
+        Number(context.aggregatorData.folksQuote.value.microalgoTxnsFee) /
+        10 ** 6
       } Algo`;
       context.txsDetails.value = context.txsDetails.value.trim();
     } catch (e) {
@@ -91,10 +102,11 @@ export const folksAggregator: DexAggregator = {
       return;
     }
 
-    const unsignedTxns = context.aggregatorData.folksTxns.value.map((txn: any) =>
-      algosdk.decodeUnsignedTransaction(
-        new Uint8Array(Buffer.from(txn, "base64"))
-      )
+    const unsignedTxns = context.aggregatorData.folksTxns.value.map(
+      (txn: any) =>
+        algosdk.decodeUnsignedTransaction(
+          new Uint8Array(Buffer.from(txn, "base64"))
+        )
     );
     const signedTxns = unsignedTxns.map((txn: any) => txn.signTxn(senderSK));
     if (!signedTxns) {
@@ -154,14 +166,17 @@ export const folksAggregator: DexAggregator = {
       }
       // Compare with other aggregators
       const others = context.dexAggregators.filter(
-        (a: any) => a.name !== "folks" && context.aggregatorData[a.enabledKey].value
+        (a: any) =>
+          a.name !== "folks" && context.aggregatorData[a.enabledKey].value
       );
       for (let other of others) {
         const otherQuote =
           context.aggregatorData[other.quotesKey].value?.quoteAmount ||
           context.aggregatorData[other.quotesKey].value?.quote;
         if (otherQuote) {
-          const folks = BigInt(context.aggregatorData.folksQuote.value.quoteAmount).toString();
+          const folks = BigInt(
+            context.aggregatorData.folksQuote.value.quoteAmount
+          ).toString();
           const otherVal = BigInt(otherQuote).toString();
           if (otherVal.length > folks.length) return false;
           if (folks.length > otherVal.length) return true;

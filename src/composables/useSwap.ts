@@ -207,57 +207,54 @@ export function useSwap() {
 
   // Context definition
   const context: SwapContext = {
-      // Basic properties from SwapComponentData
-      assets,
-      asset,
-      toAsset,
-      payamount,
-      account: account as unknown as Ref<Account | undefined>,
-      fromAssetObj,
-      toAssetObj,
-      txsDetails,
-      hasSK,
-      processingQuote,
-      processingOptin,
-      note,
-      error,
-      slippage,
-      fee,
+    // Basic properties from SwapComponentData
+    assets,
+    asset,
+    toAsset,
+    payamount,
+    account: account as unknown as Ref<Account | undefined>,
+    fromAssetObj,
+    toAssetObj,
+    txsDetails,
+    hasSK,
+    processingQuote,
+    processingOptin,
+    note,
+    error,
+    slippage,
+    fee,
 
-      // Computed properties
-      fromAssetDecimals,
-      toAssetDecimals,
-      requiresOptIn,
+    // Computed properties
+    fromAssetDecimals,
+    toAssetDecimals,
+    requiresOptIn,
 
-      // Store and route access (for SwapComponent interface)
-      $store: store as unknown as SwapStore,
-      $route: route as any,
-      dexAggregators,
-      aggregatorData,
+    // Store and route access (for SwapComponent interface)
+    $store: store as unknown as SwapStore,
+    $route: route as any,
+    dexAggregators,
+    aggregatorData,
 
-      // Methods
-      openSuccess: (message: string) =>
-        store.dispatch("toast/openSuccess", message),
-      openError: (message: string) =>
-        store.dispatch("toast/openError", message),
-      axiosGet: (config: { url: string }) =>
-        store.dispatch("axios/get", config),
-      axiosPost: (config: { url: string; body?: any; config?: any }) =>
-        store.dispatch("axios/post", config),
-      getSK: (config: { addr: string }) =>
-        store.dispatch("wallet/getSK", config),
-      getAsset: (config: { assetIndex: number }) =>
-        store.dispatch("indexer/getAsset", config),
-      sendRawTransaction: (config: { signedTxn: Uint8Array | Uint8Array[] }) =>
-        store.dispatch("algod/sendRawTransaction", config),
-      waitForConfirmation: (config: { txId: string; timeout: number }) =>
-        store.dispatch("algod/waitForConfirmation", config),
-      prolong: () => store.dispatch("wallet/prolong"),
-      reloadAccount,
-      checkNetwork,
-      signAuthTx: (config: { account: string; realm: string }) =>
-        store.dispatch("arc14/signAuthTx", config),
-    };
+    // Methods
+    openSuccess: (message: string) =>
+      store.dispatch("toast/openSuccess", message),
+    openError: (message: string) => store.dispatch("toast/openError", message),
+    axiosGet: (config: { url: string }) => store.dispatch("axios/get", config),
+    axiosPost: (config: { url: string; body?: any; config?: any }) =>
+      store.dispatch("axios/post", config),
+    getSK: (config: { addr: string }) => store.dispatch("wallet/getSK", config),
+    getAsset: (config: { assetIndex: number }) =>
+      store.dispatch("indexer/getAsset", config),
+    sendRawTransaction: (config: { signedTxn: Uint8Array | Uint8Array[] }) =>
+      store.dispatch("algod/sendRawTransaction", config),
+    waitForConfirmation: (config: { txId: string; timeout: number }) =>
+      store.dispatch("algod/waitForConfirmation", config),
+    prolong: () => store.dispatch("wallet/prolong"),
+    reloadAccount,
+    checkNetwork,
+    signAuthTx: (config: { account: string; realm: string }) =>
+      store.dispatch("arc14/signAuthTx", config),
+  };
 
   // Computed properties dependent on context
   const allowExecuteDeflex = computed<boolean>(() => {
