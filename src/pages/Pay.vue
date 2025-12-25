@@ -584,7 +584,7 @@ const decimals = computed(() => {
   if (assetData.value) {
     return assetData.value.decimals;
   }
-  const assetObjDecimals = (state.assetObj as { decimals?: number }).decimals;
+  const assetObjDecimals = state.assetObj?.decimals ?? 6;
   if (typeof assetObjDecimals === "number") {
     return assetObjDecimals;
   }
@@ -773,7 +773,7 @@ watch(asset, async (assetValue) => {
   const numericAssetId = BigInt(assetValue);
   if (!Number.isNaN(numericAssetId) && numericAssetId > 0) {
     const fetched = await getAsset({ assetIndex: numericAssetId });
-    state.assetObj = (fetched || {}) as PayState["assetObj"];
+    state.assetObj = fetched;
   } else {
     state.assetObj = {
       assetId: 0n,
