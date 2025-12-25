@@ -41,51 +41,36 @@
   </MainLayout>
 </template>
 
-<script>
+<script lang="ts" setup>
+import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import MainLayout from "../layouts/Main.vue";
-import { mapActions } from "vuex";
+import { useStore } from "../store";
 
-export default {
-  components: {
-    MainLayout,
-  },
-  data() {
-    return {
-      processingSigning: false,
-      output: "",
-      realm: "",
-    };
-  },
-  async mounted() {
-    this.prolong();
-  },
-  methods: {
-    ...mapActions({
-      accountInformation: "indexer/accountInformation",
-      updateAccount: "wallet/updateAccount",
-      lastActiveAccount: "wallet/lastActiveAccount",
-      deleteAccount: "wallet/deleteAccount",
-      setTransaction: "wallet/setTransaction",
-      prolong: "wallet/prolong",
-      openSuccess: "toast/openSuccess",
-      axiosGet: "axios/get",
-      getSK: "wallet/getSK",
-      getTransactionParams: "algod/getTransactionParams",
-      sendRawTransaction: "algod/sendRawTransaction",
-      signAuthTx: "arc14/signAuthTx",
-    }),
-    async clickSign() {
-      try {
-        this.processingSigning = true;
-        this.output = await this.signAuthTx({
-          account: this.$route.params.account,
-          realm: this.realm,
-        });
-      } catch (e) {
-        console.error(e);
-      }
-      this.processingSigning = false;
-    },
-  },
+const store = useStore();
+const route = useRoute();
+
+const processingSigning = ref(false);
+const output = ref("");
+const realm = ref("");
+
+const prolong = () => store.dispatch("wallet/prolong");
+
+const clickSign = async () => {
+  try {
+    processingSigning.value = true;
+    output.value = await store.dispatch("arc14/signAuthTx", {
+      account: route.params.account,
+      realm: realm.value,
+    });
+  } catch (error) {
+    console.error(error);
+  } finally {
+    processingSigning.value = false;
+  }
 };
+
+onMounted(() => {
+  void prolong();
+});
 </script>
