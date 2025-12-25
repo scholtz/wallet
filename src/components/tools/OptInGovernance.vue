@@ -140,7 +140,7 @@ export default {
           let secret = null;
           try {
             secret = algosdk.mnemonicToSecretKey(mn.trim());
-          } catch (e) {
+          } catch {
             this.results += "Mnemonic is invalid: " + line + "\n";
             continue;
           }
@@ -184,8 +184,8 @@ export default {
                 this.sending = false;
               }
             });
-          } catch (e) {
-            console.error("error", e);
+          } catch (error) {
+            console.error("error", error);
           }
         }
       }

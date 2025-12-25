@@ -51,12 +51,6 @@ type AccountEnvData = {
   arc200?: Record<string, unknown>;
 };
 
-type AssetInfo = {
-  name?: string;
-  "unit-name"?: string;
-  decimals: number;
-};
-
 type GlobalStateEntry = {
   key: string;
   value: {
@@ -345,12 +339,9 @@ const optinEscrowToAsset = async () => {
     const algod = (await store.dispatch("algod/getAlgod")) as algosdk.Algodv2;
     const signer = {
       addr: route.params.account as string,
-      // eslint-disable-next-line no-unused-vars
       signer: async (
-        // eslint-disable-next-line no-unused-vars
-        txnGroup: algosdk.Transaction[],
-        // eslint-disable-next-line no-unused-vars
-        indexesToSign: number[]
+        _txnGroup: algosdk.Transaction[],
+        _indexesToSign: number[]
       ) => {
         return [];
       },
@@ -401,12 +392,9 @@ const depositToFeePool = async () => {
     const algod = (await store.dispatch("algod/getAlgod")) as algosdk.Algodv2;
     const signer = {
       addr: route.params.account as string,
-      // eslint-disable-next-line no-unused-vars
       signer: async (
-        // eslint-disable-next-line no-unused-vars
-        txnGroup: algosdk.Transaction[],
-        // eslint-disable-next-line no-unused-vars
-        indexesToSign: number[]
+        _txnGroup: algosdk.Transaction[],
+        _indexesToSign: number[]
       ) => {
         return [];
       },
@@ -461,12 +449,9 @@ const withdrawFromEscrow = async () => {
     const algod = (await store.dispatch("algod/getAlgod")) as algosdk.Algodv2;
     const signer = {
       addr: route.params.account as string,
-      // eslint-disable-next-line no-unused-vars
       signer: async (
-        // eslint-disable-next-line no-unused-vars
-        txnGroup: algosdk.Transaction[],
-        // eslint-disable-next-line no-unused-vars
-        indexesToSign: number[]
+        _txnGroup: algosdk.Transaction[],
+        _indexesToSign: number[]
       ) => {
         return [];
       },

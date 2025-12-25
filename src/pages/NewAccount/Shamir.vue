@@ -146,7 +146,7 @@ onMounted(async () => {
         <p>
           {{ t("new_account_shamir.help") }}
         </p>
-        <div class="field grid" v-for="(mn, index) in state.mn">
+        <div class="field grid" v-for="(mn, index) in state.mn" :key="index">
           <label :for="`mn${index}`" class="col-12 mb-2 md:col-2 md:mb-0">
             {{ t("new_account_shamir.mnemonic") }} #{{ index + 1 }}
           </label>

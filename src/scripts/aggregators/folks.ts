@@ -113,7 +113,7 @@ export const folksAggregator: DexAggregator = {
       context.aggregatorData.processingTradeFolks.value = false;
       return;
     }
-    let tx = await context
+    const tx = await context
       .sendRawTransaction({
         signedTxn: signedTxns,
       })
@@ -169,7 +169,7 @@ export const folksAggregator: DexAggregator = {
         (a: any) =>
           a.name !== "folks" && context.aggregatorData[a.enabledKey].value
       );
-      for (let other of others) {
+      for (const other of others) {
         const otherQuote =
           context.aggregatorData[other.quotesKey].value?.quoteAmount ||
           context.aggregatorData[other.quotesKey].value?.quote;

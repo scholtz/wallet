@@ -842,28 +842,6 @@ const maxAmount = computed(() => {
   }
   return ret;
 });
-const payamountGtMaxAmount = computed(() => payamount.value > maxAmount.value);
-const forcedAssetNotLoaded = computed(
-  () => forceAsset.value && (!assetObj.value || !assetObj.value.name)
-);
-const stepAmount = computed(() => {
-  if (!asset.value || !account.value || !accountData.value) return 0.000001;
-  if (assetObj.value?.decimals === undefined) return 0.000001;
-  return Math.pow(10, -1 * assetObj.value.decimals);
-});
-const noteIsB64 = computed(() => {
-  if (!paynote.value) return false;
-  try {
-    const decoded1 = Buffer.from(paynote.value, "base64").toString("utf8");
-    const encoded2 = Buffer.from(decoded1, "binary").toString("base64");
-    return paynote.value === encoded2;
-  } catch {
-    return false;
-  }
-});
-const assetUnit = computed(
-  () => assetObj.value?.unitName ?? assetObj.value?.name ?? ""
-);
 const isAuth = computed(() => store.state.wallet.isOpen);
 const malformedAddress = computed(() => {
   const exemptTypes = ["appl", "keyreg", "acfg"];
@@ -902,11 +880,6 @@ const msigNote = computed(() => {
   const txValue = multisigDecoded.value?.txn;
   if (!txValue?.note) return "";
   return Buffer.from(txValue.note).toString("utf8");
-});
-const isNotValid = computed(() => {
-  if (!payTo.value) return true;
-  if (isRekey.value && !rekeyTo.value) return true;
-  return false;
 });
 
 const setNoRedirectAction = (payload?: unknown) =>
@@ -1015,12 +988,6 @@ const base642base64url = (input: string) =>
 
 const encodeAddress = (value?: Uint8Array) =>
   value ? algosdk.encodeAddress(value) : "";
-const encodePublicKeyAddress = (entry?: TransactionPublicKey) => {
-  if (!entry?.publicKey) {
-    return "";
-  }
-  return encodeAddress(entry.publicKey);
-};
 
 const normalizeNumeric = (
   value?: number | string | bigint | null,

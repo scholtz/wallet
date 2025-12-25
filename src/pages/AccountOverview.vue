@@ -442,28 +442,6 @@ const hasAnyParticipationData = computed(
     !!participationData.stateProofKey
 );
 
-const canSign = computed(() => {
-  const acc = account.value;
-  const accData = accountData.value;
-  if (!acc || !accData) return false;
-
-  if (accData.rekeyedTo) {
-    const rekeyInfo = rekeyedToInfo.value;
-    if (!rekeyInfo) return false;
-
-    return Boolean(
-      rekeyInfo.sk ||
-        rekeyInfo.params ||
-        rekeyInfo.type === "ledger" ||
-        rekeyInfo.type === "wc"
-    );
-  }
-
-  return Boolean(
-    acc.sk || acc.params || acc.type === "ledger" || acc.type === "wc"
-  );
-});
-
 const accountInformationAction = (payload: { addr: string }) =>
   store.dispatch("indexer/accountInformation", payload);
 const updateAccountAction = (payload: { info: Record<string, unknown> }) =>

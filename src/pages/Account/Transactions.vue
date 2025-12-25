@@ -201,9 +201,7 @@ import {
   watch,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useI18n } from "vue-i18n";
-import copy from "copy-to-clipboard";
-import { FilterMatchMode, PrimeIcons } from "primevue/api";
+import { FilterMatchMode } from "primevue/api";
 import MainLayout from "../../layouts/Main.vue";
 import AccountTopMenu from "../../components/AccountTopMenu.vue";
 import { useStore } from "../../store";
@@ -298,18 +296,11 @@ const uiFilters = proxy.$filters;
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
-const { t } = useI18n();
 
-const displayDeleteDialog = ref(false);
-const displayOnlineOfflineDialog = ref(false);
 const transactions = ref<TransactionRow[]>([]);
 const selection = ref<TransactionRow | null>(null);
 const assets = ref<AssetSummary[]>([]);
 const asset = ref<Record<string, any>>({});
-const icons = ref([PrimeIcons.COPY]);
-const changeOnline = ref(false);
-const changeOffline = ref(false);
-const onlineRounds = ref(500000);
 const loading = ref(true);
 const tableFilters = ref<TableFilters>({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -337,46 +328,6 @@ const accountData = computed<IAccountData | undefined>(() => {
     return undefined;
   }
   return currentAccount.data[store.state.config.env];
-});
-
-const rekeyedToInfo = computed<WalletAccount | undefined>(() => {
-  const rekeyedTo = accountData.value?.rekeyedTo;
-  if (!rekeyedTo) {
-    return undefined;
-  }
-  return store.state.wallet.privateAccounts.find(
-    (walletAccount) => walletAccount.addr === rekeyedTo
-  );
-});
-
-const rekeyedMultisigParams = computed(() => rekeyedToInfo.value?.params);
-
-const canSign = computed(() => {
-  const currentAccount = account.value;
-  const data = accountData.value;
-  if (!currentAccount || !data) {
-    return false;
-  }
-
-  if (data.rekeyedTo) {
-    const rekeyInfo = rekeyedToInfo.value;
-    if (!rekeyInfo) {
-      return false;
-    }
-    return Boolean(
-      rekeyInfo.sk ||
-        rekeyInfo.params ||
-        rekeyInfo.type === "ledger" ||
-        rekeyInfo.type === "wc"
-    );
-  }
-
-  return Boolean(
-    currentAccount.sk ||
-      currentAccount.params ||
-      currentAccount.type === "ledger" ||
-      currentAccount.type === "wc"
-  );
 });
 
 const hasPositiveAmount = (value?: number | bigint): boolean => {
@@ -523,38 +474,6 @@ const reloadAccount = async () => {
     loading.value = false;
   }
 };
-
-const copyToClipboard = (text: string) => {
-  if (copy(text)) {
-    void store.dispatch("toast/openSuccess", t("global.copied_to_clipboard"));
-  }
-};
-
-const deleteAccountClick = async () => {
-  const currentAccount = account.value;
-  if (!currentAccount) {
-    return;
-  }
-  await store.dispatch("wallet/deleteAccount", {
-    name: currentAccount.name,
-    addr: currentAccount.addr,
-  });
-  await router.push("/accounts");
-};
-
-const hideAccountClick = async () => {
-  const currentAccount = account.value;
-  if (!currentAccount) {
-    return;
-  }
-  const info = {
-    ...currentAccount,
-    isHidden: !currentAccount.isHidden,
-  };
-  await store.dispatch("wallet/updateAccount", { info });
-};
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 watch(selection, async (value) => {
   if (!value) {

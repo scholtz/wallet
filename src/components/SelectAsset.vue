@@ -5,7 +5,6 @@ import Dropdown from "primevue/dropdown";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import CAsset from "../scripts/interface/CAsset";
 import IAsset from "../scripts/interface/IAsset";
-import IARC200 from "../scripts/interface/IARC200";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";

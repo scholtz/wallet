@@ -420,7 +420,7 @@
                   </template>
                 </Column>
                 <Column :header="$t('connect.all_accounts')">
-                  <template #body="slotProps">
+                  <template #body>
                     <Checkbox v-model="allAccounts" :binary="true"></Checkbox>
                   </template>
                 </Column>
@@ -640,12 +640,6 @@ const connectors = computed<ConnectorItem[]>(
   () => (store.state.wc.connectors as ConnectorItem[] | undefined) ?? []
 );
 const connectable = computed(() => Boolean(uri.value && uri.value.trim()));
-const account = computed(() =>
-  store.state.wallet.privateAccounts.find(
-    (a) => a.addr === (route.params.account as string | undefined)
-  )
-);
-
 const accountAddress = computed(() =>
   typeof route.params.account === "string" ? route.params.account : ""
 );

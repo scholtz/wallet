@@ -154,7 +154,7 @@ export const biatecAggregator: DexAggregator = {
       for (const txBase64 of context.aggregatorData.biatecQuotes.value.route
         .txsToSign) {
         console.log("txBase64", txBase64);
-        let txBytes = new Uint8Array(Buffer.from(txBase64, "base64"));
+        const txBytes = new Uint8Array(Buffer.from(txBase64, "base64"));
         // Check for "TX" prefix (0x54, 0x58)
         const tx = algosdk.decodeUnsignedTransaction(
           txBytes
@@ -236,7 +236,7 @@ export const biatecAggregator: DexAggregator = {
         (a: any) =>
           a.name !== "biatec" && context.aggregatorData[a.enabledKey].value
       );
-      for (let other of others) {
+      for (const other of others) {
         const otherQuote =
           context.aggregatorData[other.quotesKey].value?.quoteAmount ||
           context.aggregatorData[other.quotesKey].value?.quote;

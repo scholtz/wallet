@@ -143,9 +143,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useI18n } from "vue-i18n";
 import QRCodeVue3 from "qrcode-vue3";
-import algosdk from "algosdk";
 import MainLayout from "../layouts/Main.vue";
 import { useStore } from "../store";
 import type { StoredAsset } from "../store/indexer";
@@ -167,7 +165,6 @@ type AssetDetails = {
 
 const store = useStore();
 const route = useRoute();
-const { t } = useI18n();
 
 const payamount = ref(0);
 const paynote = ref("");
@@ -183,20 +180,6 @@ const assetObj = ref<AssetDetails>({
 });
 const asset = ref<bigint | number>(0);
 
-const subpage = ref("");
-const error = ref<unknown>("");
-const confirmedRound = ref<bigint>(0n);
-const processing = ref(false);
-const page = ref("review");
-const signMultisigWith = ref<Record<string, string>>({});
-const rawSignedTxn = ref("");
-const rawSignedTxnInput = ref("");
-const payto = ref("");
-const amountLong = ref(0);
-const txn = ref<algosdk.Transaction | null>(null);
-const accountsFromMultisig = ref<Record<string, { addr: string }>>({});
-const multisigDecoded = ref<unknown>(null);
-const tx = ref("");
 
 const account = computed<WalletAccount | undefined>(() =>
   store.state.wallet.privateAccounts.find(
@@ -336,47 +319,6 @@ const loadSelectedAsset = async () => {
   }
 };
 
-const reset = () => {
-  subpage.value = "";
-  error.value = "";
-  confirmedRound.value = 0n;
-  processing.value = true;
-  page.value = "review";
-  signMultisigWith.value = {};
-  rawSignedTxn.value = "";
-  rawSignedTxnInput.value = "";
-};
-
-const prolong = () => store.dispatch("wallet/prolong");
-
-const previewPaymentClick = (event: Event) => {
-  page.value = "review";
-  void prolong();
-  event.preventDefault();
-};
-
-const payMultisig = async () => {
-  await prolong();
-  const multsigaddr = route.params.account as string;
-  const payTo = payto.value;
-  const amount = amountLong.value;
-  const enc = new TextEncoder();
-  const note = enc.encode(paynote.value);
-
-  const params = (await store.dispatch(
-    "algod/getTransactionParams"
-  )) as algosdk.SuggestedParams;
-  params.fee = 1000;
-  params.flatFee = true;
-  txn.value = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    sender: multsigaddr,
-    receiver: payTo,
-    amount,
-    suggestedParams: params,
-    note,
-  });
-};
-
 const _arrayBufferToBase64 = (buffer: Uint8Array) => {
   let binary = "";
   const bytes = buffer;
@@ -396,88 +338,6 @@ const _base64ToArrayBuffer = (base64: string) => {
   return bytes;
 };
 
-const signMultisig = async (event: Event) => {
-  await prolong();
-  event.preventDefault();
-  let signedBuffer: Uint8Array | null = null;
-  if (rawSignedTxnInput.value) {
-    signedBuffer = _base64ToArrayBuffer(rawSignedTxnInput.value);
-  }
-  const selected = Object.values(signMultisigWith.value);
-  for (const key of Object.keys(accountsFromMultisig.value)) {
-    const accountEntry = accountsFromMultisig.value[key];
-    if (!selected.includes(accountEntry.addr)) continue;
-    const currentTxn = txn.value;
-    const sk = await store.dispatch("wallet/getSK", {
-      addr: accountEntry.addr,
-    });
-    if (!sk) continue;
-    if (!currentTxn || !account.value?.params) continue;
-    const txnWithMethods = currentTxn as unknown as algosdk.Transaction;
-    if (signedBuffer === null) {
-      signedBuffer = algosdk.signMultisigTransaction(
-        txnWithMethods,
-        account.value.params,
-        sk
-      ).blob;
-    } else {
-      signedBuffer = algosdk.appendSignMultisigTransaction(
-        signedBuffer,
-        account.value.params,
-        sk
-      ).blob;
-    }
-  }
-  if (signedBuffer) {
-    rawSignedTxn.value = _arrayBufferToBase64(signedBuffer);
-    rawSignedTxnInput.value = rawSignedTxn.value;
-  }
-};
-
-const loadMultisig = (event: Event) => {
-  void prolong();
-  event.preventDefault();
-  multisigDecoded.value = algosdk.decodeSignedTransaction(
-    _base64ToArrayBuffer(rawSignedTxnInput.value)
-  );
-  page.value = "review";
-};
-
-const encodeAddress = (address: Uint8Array) => algosdk.encodeAddress(address);
-
-const sendMultisig = async (event: Event) => {
-  await prolong();
-  error.value = "";
-  processing.value = true;
-  try {
-    event.preventDefault();
-    const signedTxn = _base64ToArrayBuffer(rawSignedTxn.value);
-    const transaction = (await store.dispatch("algod/sendRawTransaction", {
-      signedTxn,
-    })) as { txId: string };
-    tx.value = transaction.txId;
-    const confirmation = (await store.dispatch("algod/waitForConfirmation", {
-      txId: tx.value,
-      timeout: 4,
-    })) as { confirmedRound?: bigint; poolError?: string } | undefined;
-    if (!confirmation) {
-      processing.value = false;
-      error.value = t("pay.state_error_not_sent");
-      return;
-    }
-    if (confirmation.confirmedRound) {
-      processing.value = false;
-      confirmedRound.value = BigInt(confirmation.confirmedRound);
-    }
-    if (confirmation.poolError) {
-      processing.value = false;
-      error.value = confirmation.poolError;
-    }
-  } catch (err) {
-    processing.value = false;
-    error.value = err;
-  }
-};
 
 watch(account, () => {
   void makeAssets();

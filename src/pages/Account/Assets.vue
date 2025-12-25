@@ -212,8 +212,6 @@ const getAssetAction = (payload: {
 const prolongAction = () => store.dispatch("wallet/prolong");
 const openSuccessAction = (message: string) =>
   store.dispatch("toast/openSuccess", message);
-const openErrorAction = (message: string) =>
-  store.dispatch("toast/openError", message);
 const getAlgodAction = () => store.dispatch("algod/getAlgod");
 const getIndexerAction = () => store.dispatch("indexer/getIndexer");
 const updateArc200BalanceAction = (payload: {

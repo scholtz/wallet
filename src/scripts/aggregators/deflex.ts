@@ -33,9 +33,9 @@ export const deflexAggregator: DexAggregator = {
         context.processingQuote.value = false;
         return;
       }
-      var algodUri = encodeURIComponent("https://mainnet-api.algonode.cloud");
-      var algodToken = "";
-      var algodPort = 443;
+      let algodUri = encodeURIComponent("https://mainnet-api.algonode.cloud");
+      let algodToken = "";
+      let algodPort = 443;
       if (chain == "testnet") {
         algodUri = encodeURIComponent("https://testnet-api.algonode.cloud");
         algodToken = "";
@@ -118,12 +118,12 @@ export const deflexAggregator: DexAggregator = {
     const byGroupMap = [...byGroup].map((m) => m[1]);
 
     let ret = "Processed in txs: ";
-    for (let group of byGroupMap) {
+    for (const group of byGroupMap) {
       const signedTxns = group.map((txn: any) => {
         if (txn.logicSigBlob !== false) {
           return Uint8Array.from(Object.values(txn.logicSigBlob));
         } else {
-          let bytes = new Uint8Array(Buffer.from(txn.data, "base64"));
+          const bytes = new Uint8Array(Buffer.from(txn.data, "base64"));
           const decoded = algosdk.decodeUnsignedTransaction(bytes);
           return algosdk.signTransaction(decoded, senderSK).blob;
         }
@@ -187,7 +187,7 @@ export const deflexAggregator: DexAggregator = {
         (a: any) =>
           a.name !== "deflex" && context.aggregatorData[a.enabledKey].value
       );
-      for (let other of others) {
+      for (const other of others) {
         const otherQuote =
           context.aggregatorData[other.quotesKey].value?.quoteAmount ||
           context.aggregatorData[other.quotesKey].value?.quote;

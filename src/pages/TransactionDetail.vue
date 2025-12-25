@@ -472,7 +472,7 @@ const isBase64 = (raw?: string | null): boolean => {
   if (!value) return false;
   try {
     return btoa(atob(value)) === value;
-  } catch (err) {
+  } catch {
     return false;
   }
 };

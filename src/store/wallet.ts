@@ -529,12 +529,12 @@ const mutations: MutationTree<WalletState> = {
   },
   setPrivateAccounts(state, accts?: WalletAccount[]) {
     if (accts) {
-      for (let acct of accts) {
+      for (const acct of accts) {
         if (typeof acct.addr !== "string") {
           // if addr is algorand address object, convert to string
           const pk = (acct.addr as any)?.publicKey;
           if (pk) {
-            var buffer = Buffer.from(Object.values(pk));
+            const buffer = Buffer.from(Object.values(pk));
             const obj = new algosdk.Address(buffer);
             acct.addr = obj.toString();
           }
@@ -1194,7 +1194,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       const decryptedData = CryptoJS.AES.decrypt(encryptedData, pass);
       const json = JSON.parse(decryptedData.toString(CryptoJS.enc.Utf8));
       return !!json;
-    } catch (error) {
+    } catch {
       return false;
     }
   },

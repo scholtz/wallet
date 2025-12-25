@@ -511,43 +511,22 @@ const {
 
 const setNoRedirect = () => store.dispatch("config/setNoRedirect");
 const prolong = () => store.dispatch("wallet/prolong");
-const makePayment = (payload: Record<string, unknown>) =>
-  store.dispatch("algod/makePayment", payload);
-const waitForConfirmation = (payload: {
-  txId: string;
-  timeout: number;
-}): Promise<algosdk.modelsv2.PendingTransactionResponse | undefined> =>
-  store.dispatch("algod/waitForConfirmation", payload);
 const preparePayment = (payload: Record<string, unknown>) =>
   store.dispatch("algod/preparePayment", payload);
 const lastActiveAccount = (payload: { addr: string }) =>
   store.dispatch("wallet/lastActiveAccount", payload);
-const sendRawTransaction = (payload: { signedTxn: ArrayBuffer }) =>
-  store.dispatch("algod/sendRawTransaction", payload);
-const updateAccount = (payload: { info: Record<string, unknown> }) =>
-  store.dispatch("wallet/updateAccount", payload);
 const getAsset = (payload: {
   assetIndex: bigint;
 }): Promise<StoredAsset | undefined> =>
   store.dispatch("indexer/getAsset", payload);
 const setEnv = (payload: { env: string }) =>
   store.dispatch("config/setEnv", payload);
-const openSuccess = (payload: string) =>
-  store.dispatch("toast/openSuccess", payload);
 const openError = (payload: string) =>
   store.dispatch("toast/openError", payload);
-const signerSignMultisig = (payload: Record<string, unknown>) =>
-  store.dispatch("signer/signMultisig", payload);
 const signerCreateMultisigTransaction = (payload: Record<string, unknown>) =>
   store.dispatch("signer/createMultisigTransaction", payload);
-const signerSetSigned = (payload: { signed: Uint8Array }) =>
-  store.dispatch("signer/setSigned", payload);
-const signAuthTx = (payload: Record<string, unknown>) =>
-  store.dispatch("arc14/signAuthTx", payload);
 const getRealm = (payload: Record<string, unknown>) =>
   store.dispatch("fa2/getRealm", payload);
-const signTwoFactor = (payload: Record<string, unknown>) =>
-  store.dispatch("fa2/signTwoFactor", payload);
 const resetError = () => store.dispatch("toast/resetError");
 const getAlgod = () => store.dispatch("algod/getAlgod");
 const getIndexer = () => store.dispatch("indexer/getIndexer");
@@ -625,24 +604,6 @@ const multisigParams = computed(() => {
   return account.value?.params;
 });
 const isMultisig = computed(() => !!multisigParams.value);
-const accountsFromMultisig = computed(() => {
-  const params = multisigParams.value;
-  if (!params?.addrs) return [];
-  const list = walletAccounts.value.filter(
-    (a): a is WalletAccount & { addr: string } =>
-      typeof a.addr === "string" &&
-      params.addrs.includes(a.addr) &&
-      (!!a.sk || a.type == "ledger")
-  );
-  if (!state.multisigDecoded?.msig?.subsig) {
-    return list;
-  }
-  return list.filter((s) =>
-    state.multisigDecoded?.msig?.subsig.find(
-      (entry) => s.addr == algosdk.encodeAddress(entry.pk) && !entry.s
-    )
-  );
-});
 const accountFor2FA = computed(() => {
   const params = multisigParams.value;
   if (!params?.addrs) return undefined;
@@ -654,21 +615,9 @@ const accountFor2FA = computed(() => {
   );
 });
 const accountFor2FAAddr = computed(() => accountFor2FA.value?.addr ?? "");
-const accountFor2FAAddrPrimary = computed(
-  () => accountFor2FA.value?.primaryAccount ?? ""
-);
 const accountFor2FAProvider = computed(
   () => accountFor2FA.value?.twoFactorAuthProvider ?? ""
 );
-const isSignedByAccountFor2FAAddr = computed(() => {
-  if (!accountFor2FAAddr.value) return false;
-  const subsig = state.multisigDecoded?.msig?.subsig;
-  if (!subsig) return false;
-  const sig = subsig.find(
-    (s) => algosdk.encodeAddress(s.pk) == accountFor2FAAddr.value
-  );
-  return !!sig?.s;
-});
 const showDesignScreen = computed(
   () => !isMultisig.value || (isMultisig.value && state.subpage == "proposal")
 );
@@ -681,13 +630,6 @@ const isRekey = computed(() => {
   );
   return typeParam === "rekey";
 });
-const selectedAssetFromAccount = computed(() =>
-  accountData.value && accountData.value["assets"]
-    ? accountData.value["assets"].find(
-        (a) => BigInt(a.assetId) == BigInt(state.asset)
-      )
-    : undefined
-);
 const maxAmount = computed(() => {
   if (!accountData.value) return 0;
   if (!assetData.value) return 0;
@@ -722,37 +664,6 @@ const assetUnit = computed(() => {
   return state.assetObj.unitName || state.assetObj.name || "";
 });
 const isAuth = computed(() => store.state.wallet.isOpen);
-const malformedAddress = computed(() => {
-  if (
-    state.multisigDecoded?.txn?.type &&
-    (state.multisigDecoded.txn.type == "appl" ||
-      state.multisigDecoded.txn.type == "acfg")
-  ) {
-    return false;
-  }
-  if (
-    state.txn?.type &&
-    (state.txn.type == "appl" || state.txn.type == "acfg")
-  ) {
-    return false;
-  }
-  return state.payTo ? !algosdk.isValidAddress(state.payTo) : false;
-});
-const showSignaturesCount = computed(() => {
-  if (!state.multisigDecoded?.msig?.subsig) return "";
-  const count = state.multisigDecoded.msig.subsig.filter((s) => !!s.s).length;
-  return `${count} / ${state.multisigDecoded!.msig.thr}`;
-});
-const isSignedByAny = computed(() => {
-  const subsig = state.multisigDecoded?.msig?.subsig;
-  if (!subsig) return false;
-  return subsig.filter((s) => !!s.s).length > 0;
-});
-const thresholdMet = computed(() => {
-  const subsig = state.multisigDecoded?.msig?.subsig;
-  if (!subsig) return false;
-  return subsig.filter((s) => !!s.s).length >= state.multisigDecoded!.msig!.thr;
-});
 const isNotValid = computed(() => {
   if (!state.payTo) return true;
   if (isRekey.value && !state.rekeyTo) return true;
@@ -1009,17 +920,6 @@ const makeAssets = async () => {
   }
 };
 
-const reset = () => {
-  state.subpage = "";
-  state.error = "";
-  state.confirmedRound = null;
-  state.processing = true;
-  state.page = "review";
-  state.signMultisigWith = [];
-  state.rawSignedTxn = "";
-  state.rawSignedTxnInput = "";
-};
-
 const parseToAccount = (encodedValue?: string) => {
   const encoded =
     encodedValue ??
@@ -1170,36 +1070,6 @@ const redirectToARC200Payment = async () => {
       defaultSender: senderAddr,
       defaultSigner: undefined,
     });
-    const fromDecoded = algosdk.decodeAddress(senderAddr);
-    const toDecoded = algosdk.decodeAddress(state.payTo);
-    const boxFromDirect = {
-      appIndex: appId,
-      name: new Uint8Array(Buffer.from(fromDecoded.publicKey)),
-    };
-    const boxFromPlainAddr = {
-      appIndex: appId,
-      name: new Uint8Array(Buffer.from(senderAddr, "ascii")),
-    };
-    const boxFrom = {
-      appIndex: appId,
-      name: new Uint8Array(
-        Buffer.concat([Buffer.from([0x00]), Buffer.from(fromDecoded.publicKey)])
-      ),
-    };
-    const boxToDirect = {
-      appIndex: appId,
-      name: new Uint8Array(Buffer.from(toDecoded.publicKey)),
-    };
-    const boxToPlainAddr = {
-      appIndex: appId,
-      name: new Uint8Array(Buffer.from(state.payTo, "ascii")),
-    };
-    const boxTo = {
-      appIndex: appId,
-      name: new Uint8Array(
-        Buffer.concat([Buffer.from([0x00]), Buffer.from(toDecoded.publicKey)])
-      ),
-    };
     const compose = await client.createTransaction.arc200Transfer({
       args: {
         to: state.payTo,
@@ -1243,91 +1113,6 @@ const redirectToARC200Payment = async () => {
   }
 };
 
-const payMultisig = async () => {
-  prolong();
-  const enc = new TextEncoder();
-  const noteEnc = enc.encode(state.paynote);
-  const senderAddr = requirePayFrom();
-  if (!state.txn) {
-    const assetId = nonNativeAssetId.value;
-    if (
-      assetData.value &&
-      assetData.value.type !== "Native" &&
-      assetId === undefined
-    ) {
-      throw new Error("Asset id is required for non-native multisig payments");
-    }
-    const data: Record<string, unknown> = {
-      payTo: state.payTo,
-      payFrom: senderAddr,
-      amount: amountLong.value,
-      noteEnc,
-      fee: 1000,
-      asset: assetId,
-    };
-    if (state.rekeyTo) {
-      data.reKeyTo = state.rekeyTo;
-    }
-    state.txn = await preparePayment(data);
-  }
-  if (!state.txn) {
-    throw new Error("Unable to prepare multisig transaction");
-  }
-  if (!multisigParams.value) {
-    throw new Error("Missing multisig metadata");
-  }
-  const rawSignedTxnData = algosdk.createMultisigTransaction(
-    state.txn,
-    multisigParams.value
-  );
-  const rawSignedTxnBytes = new Uint8Array(rawSignedTxnData);
-  state.rawSignedTxn = arrayBufferToBase64(rawSignedTxnBytes.buffer);
-  state.rawSignedTxnInput = state.rawSignedTxn;
-
-  state.multisigDecoded = algosdk.decodeSignedTransaction(
-    base64ToArrayBuffer(state.rawSignedTxnInput)
-  );
-};
-
-const signMultisig = async (e: Event | undefined) => {
-  prolong();
-  e?.preventDefault();
-  const senderAddr = requirePayFrom();
-  let rawSigned = null;
-  if (state.rawSignedTxnInput) {
-    rawSigned = base64ToArrayBuffer(state.rawSignedTxnInput);
-  }
-  const selected = Object.values(state.signMultisigWith);
-  if (
-    multisigParams.value &&
-    typeof multisigParams.value.threshold === "string"
-  ) {
-    multisigParams.value.threshold = parseInt(multisigParams.value.threshold);
-  }
-  if (!rawSigned) {
-    rawSigned = await signerCreateMultisigTransaction({
-      txn: state.txn,
-      from: senderAddr,
-    });
-  }
-  for (const acc of accountsFromMultisig.value) {
-    if (!acc?.addr) continue;
-    if (!selected.includes(acc.addr)) {
-      continue;
-    }
-    try {
-      const newTx = await signerSignMultisig({
-        msigTx: rawSigned,
-        signator: acc.addr,
-        txn: state.txn,
-      });
-      await addSignature(newTx);
-    } catch (err) {
-      await openError(toErrorMessage(err));
-    }
-  }
-};
-
 const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
   let binary = "";
   const bytes = new Uint8Array(buffer);
@@ -1357,101 +1142,13 @@ const base64url2base64 = (input: string) => {
         "InvalidLengthError: Input base64url string is the wrong length to determine padding"
       );
     }
-    output += new Array(5 - pad).join("=");
+    output += "=".repeat(4 - pad);
   }
   return output;
 };
 
 const base642base64url = (input: string) =>
   input.replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
-
-const payPaymentClick = async (e: Event | undefined) => {
-  prolong();
-  e?.preventDefault();
-  try {
-    if (isMultisig.value) {
-      await payMultisig();
-      return;
-    }
-    const senderAddr = requirePayFrom();
-    reset();
-    prolong();
-    const enc = new TextEncoder();
-    let noteEnc = enc.encode(state.paynote);
-    if (state.paynoteB64) {
-      try {
-        noteEnc = new Uint8Array(base64ToArrayBuffer(state.paynote));
-        if (!noteEnc) {
-          noteEnc = enc.encode(state.paynote);
-        }
-      } catch (err) {
-        console.error("Error converting b64 to array", err);
-      }
-    }
-    if (!isRekey.value) {
-      state.rekeyTo = undefined;
-    }
-    state.tx = await makePayment({
-      payTo: state.payTo,
-      payFrom: senderAddr,
-      amount: amountLong.value,
-      noteEnc,
-      fee: feeLong.value,
-      asset: nonNativeAssetId.value,
-      reKeyTo: state.rekeyTo,
-    });
-    if (!state.tx) {
-      console.error("makePayment has failed");
-      state.processing = false;
-      state.error = t("pay.state_error_not_sent");
-
-      const search = "should have been authorized by ";
-      const lastError = store.state.toast.lastError;
-      if (lastError && lastError.indexOf(search) > 0) {
-        const start = lastError.indexOf(search);
-        const msg = lastError.substring(start + search.length);
-        const spaceIndex = msg.indexOf(" ");
-        if (spaceIndex > 0) {
-          const rekeyedTo = msg.substring(0, spaceIndex);
-          const info = { address: senderAddr, rekeyedTo };
-          await updateAccount({ info });
-          await openSuccess(
-            `Information about rekeying to address ${rekeyedTo} has been stored`
-          );
-        }
-      }
-      return;
-    }
-    const confirmationResult = await waitForConfirmation({
-      txId: state.tx as string,
-      timeout: 4,
-    });
-    if (!confirmationResult) {
-      console.error("confirmation not received for tx");
-      state.processing = false;
-      state.error = t("pay.state_error_not_sent");
-      return;
-    }
-    if (confirmationResult.confirmedRound) {
-      state.processing = false;
-      state.confirmedRound = confirmationResult.confirmedRound;
-
-      if (state.rekeyTo) {
-        const info = { address: senderAddr, rekeyedTo: state.rekeyTo };
-        await updateAccount({ info });
-        await openSuccess(
-          `Information about rekeying to address ${state.rekeyTo} has been stored`
-        );
-      }
-    }
-    if (confirmationResult.poolError) {
-      state.processing = false;
-      state.error = confirmationResult.poolError;
-    }
-  } catch (exc) {
-    state.error = toErrorMessage(exc);
-  }
-};
 
 const loadMultisig = (e: Event | undefined) => {
   prolong();
@@ -1478,102 +1175,12 @@ const loadMultisig = (e: Event | undefined) => {
     state.multisigDecoded!.msig.thr = parseInt(state.multisigDecoded!.msig.thr);
   }
 };
-
-const encodeAddress = (addr: Uint8Array) => algosdk.encodeAddress(addr);
-
-const sendMultisig = async (e: Event | undefined) => {
-  prolong();
-  state.error = "";
-  state.processing = true;
-  const senderAddr = requirePayFrom();
-  try {
-    e?.preventDefault();
-    if (!state.rawSignedTxn) {
-      state.error = t("pay.state_error_not_sent");
-      return;
-    }
-    const signedTxnBytes = base64ToArrayBuffer(state.rawSignedTxn);
-    const signedTxnBuffer = signedTxnBytes.buffer.slice(
-      signedTxnBytes.byteOffset,
-      signedTxnBytes.byteOffset + signedTxnBytes.byteLength
-    );
-    let errorMessage = "";
-    try {
-      const transaction = await sendRawTransaction({
-        signedTxn: signedTxnBuffer,
-      });
-      state.tx = transaction.txId;
-    } catch (err) {
-      const errMsg = toErrorMessage(err);
-      await openError(errMsg);
-      console.error(err);
-      errorMessage = errMsg;
-    }
-    if (!state.tx) {
-      state.error = t("pay.state_error_not_sent");
-      const search = "should have been authorized by ";
-      if (errorMessage && errorMessage.indexOf(search) > 0) {
-        const start = errorMessage.indexOf(search);
-        const msg = errorMessage.substring(start + search.length);
-        const spaceIndex = msg.indexOf(" ");
-        if (spaceIndex > 0) {
-          const rekeyedTo = msg.substring(0, spaceIndex);
-          const info = { address: senderAddr, rekeyedTo };
-          await updateAccount({ info });
-          await openSuccess(
-            `Information about rekeying to address ${rekeyedTo} has been stored`
-          );
-        }
-      }
-      return;
-    }
-    const confirmationResult = await waitForConfirmation({
-      txId: state.tx as string,
-      timeout: 4,
-    });
-    if (!confirmationResult) {
-      console.error("confirmation not received for tx");
-      state.error = t("pay.state_error_not_sent");
-      return;
-    }
-    if (confirmationResult.confirmedRound) {
-      state.confirmedRound = confirmationResult.confirmedRound;
-      if (state.rekeyTo) {
-        const info = { address: senderAddr, rekeyedTo: state.rekeyTo };
-        await updateAccount({ info });
-        await openSuccess(
-          `Information about rekeying to address ${state.rekeyTo} has been stored`
-        );
-      }
-    }
-    if (confirmationResult.poolError) {
-      state.error = confirmationResult.poolError;
-    }
-  } catch (exc) {
-    state.error = toErrorMessage(exc);
-  } finally {
-    state.processing = false;
-  }
-};
-
 const toggleCamera = (e: Event | undefined) => {
   e?.preventDefault();
   state.scan = !state.scan;
   if (state.scan) {
     state.payTo = "";
   }
-};
-
-const test = (e: Event | undefined) => {
-  e?.preventDefault();
-  const tests = [
-    "015LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U",
-    "algorand://025LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?&note=123",
-    "algorand://035LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?&note=234&&",
-    "algorand://045LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?xnote=345&fee=3&amount=1000&asset=456",
-    "algorand://046LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?note=SGVsbG8=&noteB64=1&fee=0.001&amount=1",
-  ];
-  tests.forEach((sample) => onDecodeQR(sample));
 };
 
 const isEncoded = (uri = "") => uri !== decodeURIComponent(uri);
@@ -1686,53 +1293,6 @@ const setMaxAmount = (e: Event | undefined) => {
   state.payamount = maxAmount.value;
 };
 
-const addSignature = async (base64Tx: string) => {
-  if (!base64Tx) return;
-  const tx1 = new Uint8Array(Buffer.from(state.rawSignedTxn!, "base64"));
-  const tx2 = new Uint8Array(Buffer.from(base64Tx, "base64"));
-  const merged = algosdk.mergeMultisigTransactions([tx1, tx2]);
-  state.rawSignedTxn = Buffer.from(merged).toString("base64");
-  state.multisigDecoded = algosdk.decodeSignedTransaction(
-    base64ToArrayBuffer(state.rawSignedTxn)
-  );
-  await signerSetSigned({ signed: merged });
-};
-
-const combineSignatures = async (e: Event | undefined) => {
-  prolong();
-  e?.preventDefault();
-  try {
-    await addSignature(state.rawSignedTxnFriend!);
-    state.showFormCombine = false;
-  } catch (err: any) {
-    await openError(err.message ?? err);
-  }
-};
-
-const retToWalletConnect = () => {
-  router.push({ name: "Connect" });
-};
-
-const sign2FAClick = async (e: Event | undefined) => {
-  try {
-    prolong();
-    e?.preventDefault();
-    if (!accountFor2FA.value) return;
-    const newTx = await signTwoFactor({
-      rawSignedTxnInput: state.rawSignedTxnInput,
-      secondaryAccount: accountFor2FA.value.recoveryAccount,
-      txtCode: state.txtCode,
-      authToken: state.accountFor2FAAuthToken,
-      twoFactorAuthProvider: accountFor2FAProvider.value,
-    });
-    await addSignature(newTx);
-  } catch (err) {
-    const errorMsg = toErrorMessage(err);
-    console.error("failed to sign 2fa tx", errorMsg, err);
-    await openError(errorMsg);
-  }
-};
-
 const loadAuthToken = () => {
   if (!state.accountFor2FARealm) return false;
   const arc14State = store.state.arc14.address2chain2realm2token;
@@ -1745,26 +1305,5 @@ const loadAuthToken = () => {
   if (!token) return false;
   state.accountFor2FAAuthToken = token;
   return true;
-};
-
-const authorizePrimaryAccountClick = async (e: Event | undefined) => {
-  prolong();
-  e?.preventDefault();
-  state.accountFor2FAAuthToken = await signAuthTx({
-    account: accountFor2FAAddrPrimary.value,
-    realm: state.accountFor2FARealm,
-  });
-};
-
-const toggleShowFormSend = (e: Event | undefined) => {
-  prolong();
-  e?.preventDefault();
-  state.showFormSend = !state.showFormSend;
-};
-
-const toggleShowFormCombine = (e: Event | undefined) => {
-  prolong();
-  e?.preventDefault();
-  state.showFormCombine = !state.showFormCombine;
 };
 </script>

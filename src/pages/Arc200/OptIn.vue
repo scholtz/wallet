@@ -79,11 +79,11 @@ const fetchAsset = async () => {
         state.arc200Info.name = Buffer.from(name)
           .toString("utf-8")
           .replace(/\0/g, "");
-      } catch (e) {
+      } catch {
         state.arc200Info.name = name.toString();
       }
-    } catch (e) {
-      console.error("error fetching arc200 name", e);
+    } catch (error) {
+      console.error("error fetching arc200 name", error);
       state.loading = false;
       store.dispatch(
         "toast/openError",
@@ -97,8 +97,8 @@ const fetchAsset = async () => {
       state.arc200Info.symbol = Buffer.from(symbol)
         .toString("utf-8")
         .replace(/\0/g, "");
-    } catch (e) {
-      console.error("error fetching arc200 symbol", e);
+    } catch (error) {
+      console.error("error fetching arc200 symbol", error);
       state.loading = false;
       store.dispatch(
         "toast/openError",
@@ -110,8 +110,8 @@ const fetchAsset = async () => {
     try {
       const decimals = await client.arc200Decimals();
       state.arc200Info.decimals = BigInt(decimals);
-    } catch (e) {
-      console.error("error fetching arc200 decimals", e);
+    } catch (error) {
+      console.error("error fetching arc200 decimals", error);
       state.loading = false;
       store.dispatch(
         "toast/openError",
@@ -123,8 +123,8 @@ const fetchAsset = async () => {
     try {
       const totalSupply = await client.arc200TotalSupply();
       state.arc200Info.totalSupply = BigInt(totalSupply);
-    } catch (e) {
-      console.error("error fetching arc200 totalSupply", e);
+    } catch (error) {
+      console.error("error fetching arc200 totalSupply", error);
       state.loading = false;
       store.dispatch(
         "toast/openError",
@@ -139,8 +139,8 @@ const fetchAsset = async () => {
         args: { owner: state.account.addr },
       });
       state.arc200Info.balance = balance;
-    } catch (e) {
-      console.error("error fetching arc200 balance", e);
+    } catch (error) {
+      console.error("error fetching arc200 balance", error);
       state.loading = false;
       store.dispatch(
         "toast/openError",

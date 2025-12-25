@@ -171,7 +171,6 @@ import { RootState } from "@/store";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
 import { IAccountData, WalletAccount } from "@/store/wallet";
-type Arc200Holding = { balance: number };
 type DisplayAccount = WalletAccount & { amount: number };
 type FilterMode = (typeof FilterMatchMode)[keyof typeof FilterMatchMode];
 

@@ -8,6 +8,7 @@ import WCKeyValueStore from "../shared/WCKeyValueStore";
 import type { RootState } from "./index";
 
 type Web3WalletInstance = Awaited<ReturnType<typeof Web3Wallet.init>>;
+type Web3WalletInitOptions = Parameters<typeof Web3Wallet.init>[0];
 type DecodedAlgorandTransaction = ReturnType<
   typeof algosdk.decodeUnsignedTransaction
 > &
@@ -169,7 +170,7 @@ const actions: ActionTree<WcState, RootState> = {
     });
 
     const web3wallet = await Web3Wallet.init({
-      core,
+      core: core as unknown as Web3WalletInitOptions["core"],
       metadata: walletConnectMetadata,
     });
 
