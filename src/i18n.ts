@@ -3,31 +3,24 @@ import type { LocaleMessage } from "@intlify/core-base";
 
 /**
  * Load locale messages
- *
- * The loaded `JSON` locale messages is pre-compiled by `@intlify/vue-i18n-loader`, which is integrated into `vue-cli-plugin-i18n`.
- * See: https://github.com/intlify/vue-i18n-loader#rocket-i18n-resource-pre-compilation
  */
 type LocaleMessages = Record<string, LocaleMessage<VueMessageType>>;
 
 function loadLocaleMessages(): LocaleMessages {
-  const locales = require.context(
-    "./locales",
-    true,
-    /[A-Za-z0-9-_,\s]+\.json$/i
-  );
+  const locales = import.meta.glob("./locales/**/*.json", { eager: true });
   const messages: LocaleMessages = {};
-  locales.keys().forEach((key) => {
-    const matched = key.match(/([A-Za-z0-9-_]+)\./i);
+  for (const path in locales) {
+    const matched = path.match(/([A-Za-z0-9-_]+)\.json$/i);
     if (matched && matched.length > 1) {
       const locale = matched[1];
-      messages[locale] = locales(key).default as LocaleMessage<VueMessageType>;
+      messages[locale] = (locales[path] as any).default;
     }
-  });
+  }
   return messages;
 }
 
 function defaultLanguage(): string {
-  let lang = localStorage.getItem("lang");
+  let lang: string | null = localStorage.getItem("lang");
   if (lang) {
     return lang;
   }
@@ -51,14 +44,14 @@ function defaultLanguage(): string {
     return lang;
   }
 
-  lang = process.env.VUE_APP_I18N_LOCALE || "sk";
-  localStorage.setItem("lang", lang);
-  return lang;
+  const defaultLang = import.meta.env.VUE_APP_I18N_LOCALE || "sk";
+  localStorage.setItem("lang", defaultLang);
+  return defaultLang;
 }
 export default createI18n({
   legacy: false,
   locale: defaultLanguage(),
-  fallbackLocale: process.env.VUE_APP_I18N_FALLBACK_LOCALE || "en",
+  fallbackLocale: import.meta.env.VUE_APP_I18N_FALLBACK_LOCALE || "en",
   globalInjection: true,
   messages: loadLocaleMessages(),
 });

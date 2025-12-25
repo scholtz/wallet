@@ -45,7 +45,7 @@ export interface RootState {
   fa2: Fa2State;
 }
 
-const debugStrict = process.env.NODE_ENV !== "production";
+const debugStrict = import.meta.env.PROD !== true;
 
 export const store = createStore<RootState>({
   modules: {

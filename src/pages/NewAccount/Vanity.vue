@@ -8,7 +8,7 @@ import { RootState } from "@/store";
 import algosdk from "algosdk";
 import QRCodeVue3 from "qrcode-vue3";
 
-import Worker from "worker-loader!../../workers/vanity";
+import Worker from "../../workers/vanity.ts?worker";
 import moment from "moment";
 
 type VanityPage = "vanity" | "newaccount";
