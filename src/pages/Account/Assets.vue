@@ -163,13 +163,21 @@ type FilterConfig = {
   matchMode: string;
 };
 
+type AssetsFilters = {
+  global: FilterConfig;
+  name: FilterConfig;
+  assetId: FilterConfig;
+  amount: FilterConfig;
+  type: FilterConfig;
+};
+
 const store = useStore();
 const route = useRoute();
 
 const loading = ref(true);
 const assets = ref<AssetListItem[]>([]);
 
-const filters = ref<Record<string, FilterConfig>>({
+const filters = ref<AssetsFilters>({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   assetId: { value: null, matchMode: FilterMatchMode.STARTS_WITH },

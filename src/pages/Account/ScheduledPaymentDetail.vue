@@ -102,6 +102,12 @@ interface AppInfo {
 
 type ScheduledAction = "" | "tx-deploy" | "tx-configure";
 
+type ScheduledPaymentDetailFilters = {
+  global: FilterEntry;
+  assetName: FilterEntry;
+  amount: FilterEntry;
+};
+
 interface ScheduledPaymentDetailState {
   selection: EscrowAssetRow | null;
   payTo: string;
@@ -112,7 +118,7 @@ interface ScheduledPaymentDetailState {
   stepAmount: number;
   appInfo: AppInfo;
   assets: EscrowAssetRow[];
-  filters: Record<string, FilterEntry>;
+  filters: ScheduledPaymentDetailFilters;
   period: string;
   optionsSchedule: Array<{ value: string; name: string }>;
   start: number;
@@ -153,6 +159,8 @@ const state = reactive<ScheduledPaymentDetailState>({
   assets: [],
   filters: {
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    assetName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    amount: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   },
   period: "86400",
   optionsSchedule: [

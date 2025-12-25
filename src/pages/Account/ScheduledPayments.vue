@@ -85,6 +85,16 @@ const readGlobalState = (
   return Array.isArray(raw) ? raw : [];
 };
 
+type ScheduledPaymentsFilters = {
+  global: FilterEntry;
+  appId: FilterEntry;
+  appAddress: FilterEntry;
+  period: FilterEntry;
+  start: FilterEntry;
+  balanceFee: FilterEntry;
+  fee: FilterEntry;
+};
+
 interface ScheduledPaymentsState {
   selection: ScheduledAppSummary | null;
   payTo: string;
@@ -94,7 +104,7 @@ interface ScheduledPaymentsState {
   maxAmount: number;
   stepAmount: number;
   apps: ScheduledAppSummary[];
-  filters: Record<string, FilterEntry>;
+  filters: ScheduledPaymentsFilters;
   period: string;
   optionsSchedule: ScheduleOption[];
   start: number;
@@ -125,6 +135,12 @@ const state = reactive<ScheduledPaymentsState>({
   apps: [],
   filters: {
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    appId: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    appAddress: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    period: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    start: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    balanceFee: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    fee: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   },
   period: "86400",
   optionsSchedule: [

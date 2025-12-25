@@ -246,7 +246,9 @@ type TableFilters = {
   "representative.name": FilterModel<string | null>;
   sender: FilterModel<string | null>;
   status: FilterModel<string | null>;
-  [key: string]: FilterModel;
+  receiver: FilterModel<string | null>;
+  fee: FilterModel<string | null>;
+  confirmedRound: FilterModel<string | null>;
 };
 
 type IndexerTransaction = algosdk.indexerModels.Transaction;
@@ -309,6 +311,9 @@ const tableFilters = ref<TableFilters>({
   },
   sender: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   status: { value: null, matchMode: FilterMatchMode.EQUALS },
+  receiver: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  fee: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  confirmedRound: { value: null, matchMode: FilterMatchMode.EQUALS },
 });
 
 const accountAddress = computed(() => route.params.account as string);

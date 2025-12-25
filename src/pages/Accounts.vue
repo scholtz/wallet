@@ -179,6 +179,13 @@ type FilterEntry = {
   matchMode: FilterMode;
 };
 
+type AccountsFilters = {
+  global: FilterEntry;
+  name: FilterEntry;
+  addr: FilterEntry;
+  amount: FilterEntry;
+};
+
 const store = useStore<RootState>();
 const router = useRouter();
 const { t } = useI18n();
@@ -187,7 +194,7 @@ const selection = ref<WalletAccount | null>(null);
 const showNetworkAccounts = ref(false);
 const accounts = ref<DisplayAccount[]>([]);
 const showNoAccountsForNetworkWarning = ref(false);
-const filters = ref<Record<string, FilterEntry>>({
+const filters = ref<AccountsFilters>({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   addr: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
