@@ -6,6 +6,7 @@ import { dexAggregators } from "../scripts/dexAggregators";
 import type { Asset } from "../types/swap";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
+import { RootState } from "@/store";
 
 const normalizeAmount = (value: number | bigint | undefined | null): number => {
   if (typeof value === "bigint") return Number(value);
@@ -15,7 +16,7 @@ const normalizeAmount = (value: number | bigint | undefined | null): number => {
 };
 
 export function useSwap() {
-  const store = useStore();
+  const store = useStore<RootState>();
   const route = useRoute();
 
   // Reactive state
@@ -74,9 +75,7 @@ export function useSwap() {
 
   const selectedAssetFromAccount = computed(() =>
     accountData.value
-      ? accountData.value["assets"].find(
-          (a: any) => a["asset-id"] == asset.value
-        )
+      ? accountData.value.assets?.find((a: any) => a["asset-id"] == asset.value)
       : undefined
   );
 
@@ -354,7 +353,7 @@ export function useSwap() {
       );
       assets.value.push({
         "asset-id": 0,
-        amount: accountData.value.amount,
+        amount: Number(accountData.value.amount),
         name: store.state.config.tokenSymbol,
         decimals: 6,
         "unit-name": store.state.config.tokenSymbol,
@@ -396,8 +395,8 @@ export function useSwap() {
           );
 
           assets.value.push({
-            "asset-id": accountData.value.assets[index]["asset-id"],
-            amount: accountData.value.assets[index]["amount"],
+            "asset-id": Number(accountData.value.assets[index]["asset-id"]),
+            amount: Number(accountData.value.assets[index]["amount"]),
             name: assetInfo["name"],
             decimals: assetInfo["decimals"],
             "unit-name": assetInfo["unit-name"],
