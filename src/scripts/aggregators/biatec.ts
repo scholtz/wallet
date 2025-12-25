@@ -26,11 +26,11 @@ export const biatecAggregator: DexAggregator = {
         sender: context.account.value?.addr || "",
         fromAsset:
           context.asset.value && context.asset.value > 0
-            ? context.asset.value
+            ? Number(context.asset.value)
             : 0,
         toAsset:
           context.toAsset.value && context.toAsset.value > 0
-            ? context.toAsset.value
+            ? Number(context.toAsset.value)
             : 0,
         swapAmount: Math.round(
           context.payamount.value * 10 ** context.fromAssetDecimals.value
@@ -109,11 +109,11 @@ export const biatecAggregator: DexAggregator = {
         sender: context.account.value?.addr || "",
         fromAsset:
           context.asset.value && context.asset.value > 0
-            ? context.asset.value
+            ? Number(context.asset.value)
             : 0,
         toAsset:
           context.toAsset.value && context.toAsset.value > 0
-            ? context.toAsset.value
+            ? Number(context.toAsset.value)
             : 0,
         swapAmount: Math.round(
           context.payamount.value * 10 ** context.fromAssetDecimals.value
