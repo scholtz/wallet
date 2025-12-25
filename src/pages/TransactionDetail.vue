@@ -12,7 +12,7 @@
             </tr>
             <tr>
               <th>{{ $t("transaction.time") }}:</th>
-              <td>{{ $filters.formatDateTime(transaction["round-time"]) }}</td>
+              <td>{{ filters.formatDateTime(transaction["round-time"]) }}</td>
             </tr>
             <tr>
               <th>{{ $t("transaction.tr_type") }}:</th>
@@ -219,13 +219,13 @@
             <tr>
               <th>{{ $t("transaction.tr_close_rewards") }}:</th>
               <td>
-                {{ $filters.formatCurrency(transaction["close-rewards"]) }}
+                {{ filters.formatCurrency(transaction["close-rewards"]) }}
               </td>
             </tr>
             <tr>
               <th>{{ $t("transaction.closing_amount") }}:</th>
               <td>
-                {{ $filters.formatCurrency(transaction["closing-amount"]) }}
+                {{ filters.formatCurrency(transaction["closing-amount"]) }}
               </td>
             </tr>
             <tr>
@@ -234,7 +234,7 @@
             </tr>
             <tr>
               <th>{{ $t("transaction.fee") }}:</th>
-              <td>{{ $filters.formatCurrency(transaction["fee"]) }}</td>
+              <td>{{ filters.formatCurrency(transaction["fee"]) }}</td>
             </tr>
             <tr>
               <th>{{ $t("transaction.first_valid") }}:</th>
@@ -264,7 +264,7 @@
               <th>{{ $t("transaction.amount") }}:</th>
               <td>
                 {{
-                  $filters.formatCurrency(
+                  filters.formatCurrency(
                     transaction["asset-transfer-transaction"]["amount"],
                     assetObj.name,
                     assetObj.decimals
@@ -292,7 +292,7 @@
               <th>{{ $t("transaction.close_amount") }}:</th>
               <td>
                 {{
-                  $filters.formatCurrency(
+                  filters.formatCurrency(
                     transaction["payment-transaction"]["close-amount"]
                   )
                 }}
@@ -302,7 +302,7 @@
               <th>{{ $t("transaction.amount") }}:</th>
               <td>
                 {{
-                  $filters.formatCurrency(
+                  filters.formatCurrency(
                     transaction["payment-transaction"]["amount"]
                   )
                 }}
@@ -312,7 +312,7 @@
               <th>{{ $t("transaction.close_amount") }}:</th>
               <td>
                 {{
-                  $filters.formatCurrency(
+                  filters.formatCurrency(
                     transaction["payment-transaction"]["close-amount"]
                   )
                 }}
@@ -335,7 +335,7 @@
             <tr>
               <th>{{ $t("transaction.receiver_rewards") }}:</th>
               <td>
-                {{ $filters.formatCurrency(transaction["receiver-rewards"]) }}
+                {{ filters.formatCurrency(transaction["receiver-rewards"]) }}
               </td>
             </tr>
             <tr>
@@ -351,7 +351,7 @@
             <tr>
               <th>{{ $t("transaction.sender_rewards") }}:</th>
               <td>
-                {{ $filters.formatCurrency(transaction["sender-rewards"]) }}
+                {{ filters.formatCurrency(transaction["sender-rewards"]) }}
               </td>
             </tr>
             <tr>
@@ -365,74 +365,125 @@
   </MainLayout>
 </template>
 
-<script>
+<script lang="ts" setup>
+import {
+  type ComponentPublicInstance,
+  computed,
+  getCurrentInstance,
+  ref,
+  watch,
+} from "vue";
+import { useStore } from "../store";
 import MainLayout from "../layouts/Main.vue";
-import { mapActions } from "vuex";
+import type { StoredAsset } from "../store/indexer";
 
-export default {
-  components: {
-    MainLayout,
-  },
-  data() {
-    return {
-      assetObj: {
-        assetId: 0n,
-        name: "ALGO",
-        decimals: 6,
-      },
-    };
-  },
-  computed: {
-    transaction() {
-      return this.$store.state.wallet.transaction;
-    },
-    asset() {
-      if (!this.transaction["asset-config-transaction"]) return false;
-      return this.transaction["asset-config-transaction"].assetId;
-    },
-  },
-  watch: {
-    async transaction() {
-      await this.loadAsset();
-    },
-  },
-  mounted() {
-    this.loadAsset();
-  },
-  methods: {
-    ...mapActions({
-      getAsset: "indexer/getAsset",
-    }),
-    isBase64(str) {
-      if (!str) return false;
-      if (str.trim() === "") {
-        return false;
-      }
-      try {
-        return btoa(atob(str)) == str;
-      } catch (err) {
-        return false;
-      }
-    },
-    fromB64(str) {
-      return atob(str);
-    },
-    async loadAsset() {
-      if (
-        !this.transaction["asset-transfer-transaction"] ||
-        !this.transaction["asset-transfer-transaction"]["assetId"]
-      ) {
-        this.assetObj = {
-          assetId: 0n,
-          name: "ALGO",
-          decimals: 6,
-        };
-      } else {
-        this.assetObj = await this.getAsset({
-          assetIndex: this.transaction["asset-transfer-transaction"]["assetId"],
-        });
-      }
-    },
-  },
+type AssetViewModel = {
+  assetId: bigint;
+  name: string;
+  decimals: number;
 };
+
+type Filters = {
+  formatCurrencyBigInt: (
+    value?: number | bigint,
+    currency?: string,
+    minimumFractionDigits?: number,
+    multiply?: boolean,
+    language?: string | string[]
+  ) => string;
+  formatCurrency: (
+    value?: number | bigint,
+    currency?: string,
+    minimumFractionDigits?: number,
+    multiply?: boolean,
+    language?: string | string[]
+  ) => string;
+  formatDateTime: (
+    value?: number,
+    separator?: string,
+    showSeconds?: boolean,
+    locale?: string,
+    alwaysShowDate?: boolean
+  ) => string;
+  formatPercent: (value?: number) => string;
+};
+
+const instance = getCurrentInstance();
+const proxy = instance?.proxy as
+  | (ComponentPublicInstance & { $filters?: Filters })
+  | undefined;
+if (!proxy?.$filters) {
+  throw new Error("Global filters are not available");
+}
+const filters = proxy.$filters;
+
+const DEFAULT_ASSET: AssetViewModel = {
+  assetId: 0n,
+  name: "ALGO",
+  decimals: 6,
+};
+
+const assetObj = ref<AssetViewModel>({ ...DEFAULT_ASSET });
+const store = useStore();
+
+const transaction = computed<Record<string, any>>(
+  () => store.state.wallet.transaction ?? {}
+);
+
+const resetAsset = () => {
+  assetObj.value = { ...DEFAULT_ASSET };
+};
+
+const applyAssetResult = (asset?: StoredAsset) => {
+  if (!asset) {
+    resetAsset();
+    return;
+  }
+  assetObj.value = {
+    assetId: asset.assetId,
+    name: asset.name ?? DEFAULT_ASSET.name,
+    decimals: asset.decimals ?? DEFAULT_ASSET.decimals,
+  };
+};
+
+const loadAsset = async () => {
+  const assetTransfer = transaction.value["asset-transfer-transaction"];
+  const assetId = assetTransfer?.assetId;
+
+  if (!assetId) {
+    resetAsset();
+    return;
+  }
+
+  try {
+    const asset = (await store.dispatch("indexer/getAsset", {
+      assetIndex: assetId,
+    })) as StoredAsset | undefined;
+    applyAssetResult(asset);
+  } catch (error) {
+    console.error("loadAsset", error);
+    resetAsset();
+  }
+};
+
+const isBase64 = (raw?: string | null): boolean => {
+  if (!raw) return false;
+  const value = raw.trim();
+  if (!value) return false;
+  try {
+    return btoa(atob(value)) === value;
+  } catch (err) {
+    return false;
+  }
+};
+
+const fromB64 = (value: string): string => atob(value);
+
+watch(
+  transaction,
+  () => {
+    void loadAsset();
+  },
+  { immediate: true }
+);
 </script>
