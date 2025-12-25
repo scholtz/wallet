@@ -1,7 +1,6 @@
 <template>
   <MainLayout>
     <h1>{{ t("swap.title") }}</h1>
-    {{ asset }} -> {{ toAsset }}
     <Card>
       <template #content>
         <div v-if="checkNetwork()">
