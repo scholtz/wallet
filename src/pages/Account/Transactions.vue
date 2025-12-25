@@ -3,7 +3,7 @@
     <AccountTopMenu />
 
     <DataTable
-      v-if="filters"
+      v-if="tableFilters"
       v-model:selection="selection"
       :value="transactions"
       responsive-layout="scroll"
@@ -11,7 +11,7 @@
       :paginator="true"
       :rows="20"
       filterDisplay="menu"
-      v-model:filters="filters"
+      v-model:filters="tableFilters"
       :loading="loading"
       :globalFilterFields="[
         'tx-type',
@@ -25,11 +25,11 @@
       ]"
     >
       <template #header>
-        <div class="flex justify-content-end" v-if="filters['global']">
+        <div class="flex justify-content-end" v-if="tableFilters['global']">
           <span class="p-input-icon-left">
             <i class="pi pi-search" />
             <InputText
-              v-model="filters['global'].value"
+              v-model="tableFilters['global'].value"
               :placeholder="$t('placeholders.keyword_search')"
             />
           </span>
@@ -59,12 +59,8 @@
         :sortable="true"
       >
         <template #body="slotProps">
-          <div v-if="slotProps.column.props.field in slotProps.data">
-            {{
-              $filters.formatDateTime(
-                slotProps.data[slotProps.column.props.field]
-              )
-            }}
+          <div v-if="hasSlotField(slotProps)">
+            {{ uiFilters.formatDateTime(getSlotFieldValue(slotProps)) }}
           </div>
         </template>
         <template #filter="{ filterModel, filterCallback }">
@@ -92,7 +88,7 @@
             class="text-right"
           >
             {{
-              $filters.formatCurrency(
+              uiFilters.formatCurrency(
                 slotProps.data["payment-transaction"]["amount"]
               )
             }}
@@ -106,7 +102,7 @@
             class="text-right"
           >
             {{
-              $filters.formatCurrency(
+              uiFilters.formatCurrency(
                 slotProps.data["asset-transfer-transaction"]["amount"],
                 getAssetName(
                   slotProps.data["asset-transfer-transaction"]["assetId"]
@@ -161,15 +157,8 @@
       </Column>
       <Column field="fee" :header="$t('acc_overview.fee')" :sortable="true">
         <template #body="slotProps">
-          <div
-            v-if="slotProps.column.props.field in slotProps.data"
-            class="text-right"
-          >
-            {{
-              $filters.formatCurrency(
-                slotProps.data[slotProps.column.props.field]
-              )
-            }}
+          <div v-if="hasSlotField(slotProps)" class="text-right">
+            {{ uiFilters.formatCurrency(getSlotFieldValue(slotProps)) }}
           </div>
         </template>
 
@@ -202,193 +191,318 @@
   </MainLayout>
 </template>
 
-<script>
-import MainLayout from "../../layouts/Main.vue";
-import { mapActions } from "vuex";
-import { PrimeIcons } from "primevue/api";
+<script lang="ts" setup>
+import {
+  type ComponentPublicInstance,
+  computed,
+  getCurrentInstance,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import copy from "copy-to-clipboard";
+import { FilterMatchMode, PrimeIcons } from "primevue/api";
+import MainLayout from "../../layouts/Main.vue";
 import AccountTopMenu from "../../components/AccountTopMenu.vue";
-import { FilterMatchMode } from "primevue/api";
+import { useStore } from "../../store";
+import type { StoredAsset } from "../../store/indexer";
+import type { WalletAccount, IAccountData } from "../../store/wallet";
 
-export default {
-  components: {
-    MainLayout,
-    AccountTopMenu,
-  },
-  data() {
-    return {
-      displayDeleteDialog: false,
-      displayOnlineOfflineDialog: false,
-      transactions: [],
-      selection: null,
-      assets: [],
-      asset: "",
-      icons: [PrimeIcons.COPY],
-      changeOnline: false,
-      changeOffline: false,
-      onlineRounds: 500000,
-      loading: true,
-      filters: {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        "tx-type": { value: null, matchMode: FilterMatchMode.CONTAINS },
-        "round-time": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-        "representative.name": {
-          value: null,
-          matchMode: FilterMatchMode.STARTS_WITH,
-        },
-        sender: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-        status: { value: null, matchMode: FilterMatchMode.EQUALS },
-      },
+type GlobalFilters = {
+  formatCurrencyBigInt: (
+    value?: number | bigint,
+    currency?: string,
+    minimumFractionDigits?: number,
+    multiply?: boolean,
+    language?: string | string[]
+  ) => string;
+  formatCurrency: (
+    value?: number | bigint,
+    currency?: string,
+    minimumFractionDigits?: number,
+    multiply?: boolean,
+    language?: string | string[]
+  ) => string;
+  formatDateTime: (
+    value?: number,
+    separator?: string,
+    showSeconds?: boolean,
+    locale?: string,
+    alwaysShowDate?: boolean
+  ) => string;
+  formatPercent: (value?: number) => string;
+};
+
+type FilterMatch = (typeof FilterMatchMode)[keyof typeof FilterMatchMode];
+
+type FilterValue = string | number | null;
+
+type FilterModel<T extends FilterValue = FilterValue> = {
+  value: T;
+  matchMode: FilterMatch;
+};
+
+type TableFilters = {
+  global: FilterModel<string | null>;
+  "tx-type": FilterModel<string | null>;
+  "round-time": FilterModel<string | null>;
+  "representative.name": FilterModel<string | null>;
+  sender: FilterModel<string | null>;
+  status: FilterModel<string | null>;
+  [key: string]: FilterModel;
+};
+
+type IndexerTransaction = Record<string, any>;
+
+interface TransactionRow {
+  id: string;
+  sender: string;
+  receiver: string;
+  "round-time": number;
+  "tx-type": string;
+  "asset-transfer-transaction"?: Record<string, any>;
+  "payment-transaction"?: Record<string, any>;
+  fee: number;
+  "confirmed-round": number;
+  tx: IndexerTransaction;
+}
+
+interface AssetSummary {
+  assetId: bigint;
+  amount?: number | bigint;
+  name?: string;
+  decimals?: number;
+  unitName?: string;
+}
+
+type DataTableSlotProps = {
+  data?: Record<string, any>;
+  column?: {
+    props?: {
+      field?: string | ((item: any) => string);
     };
+  };
+};
+
+const instance = getCurrentInstance();
+const proxy = instance?.proxy as
+  | (ComponentPublicInstance & { $filters?: GlobalFilters })
+  | undefined;
+if (!proxy?.$filters) {
+  throw new Error("Global filters are not available");
+}
+const uiFilters = proxy.$filters;
+
+const store = useStore();
+const router = useRouter();
+const route = useRoute();
+const { t } = useI18n();
+
+const displayDeleteDialog = ref(false);
+const displayOnlineOfflineDialog = ref(false);
+const transactions = ref<TransactionRow[]>([]);
+const selection = ref<TransactionRow | null>(null);
+const assets = ref<AssetSummary[]>([]);
+const asset = ref<Record<string, any>>({});
+const icons = ref([PrimeIcons.COPY]);
+const changeOnline = ref(false);
+const changeOffline = ref(false);
+const onlineRounds = ref(500000);
+const loading = ref(true);
+const tableFilters = ref<TableFilters>({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  "tx-type": { value: null, matchMode: FilterMatchMode.CONTAINS },
+  "round-time": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  "representative.name": {
+    value: null,
+    matchMode: FilterMatchMode.STARTS_WITH,
   },
-  computed: {
-    canSign() {
-      if (!this.account) return false;
-      if (!this.accountData) return false;
+  sender: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  status: { value: null, matchMode: FilterMatchMode.EQUALS },
+});
 
-      if (this.accountData.rekeyedTo) {
-        if (!this.rekeyedToInfo) return false;
+const accountAddress = computed(() => route.params.account as string);
 
-        return (
-          this.rekeyedToInfo.sk ||
-          this.rekeyedToInfo.params ||
-          this.rekeyedToInfo.type == "ledger" ||
-          this.rekeyedToInfo.type == "wc"
-        );
+const account = computed<WalletAccount | undefined>(() =>
+  store.state.wallet.privateAccounts.find(
+    (walletAccount) => walletAccount.addr === accountAddress.value
+  )
+);
+
+const accountData = computed<IAccountData | undefined>(() => {
+  const currentAccount = account.value;
+  if (!currentAccount?.data) {
+    return undefined;
+  }
+  return currentAccount.data[store.state.config.env];
+});
+
+const rekeyedToInfo = computed<WalletAccount | undefined>(() => {
+  const rekeyedTo = accountData.value?.rekeyedTo;
+  if (!rekeyedTo) {
+    return undefined;
+  }
+  return store.state.wallet.privateAccounts.find(
+    (walletAccount) => walletAccount.addr === rekeyedTo
+  );
+});
+
+const rekeyedMultisigParams = computed(() => rekeyedToInfo.value?.params);
+
+const canSign = computed(() => {
+  const currentAccount = account.value;
+  const data = accountData.value;
+  if (!currentAccount || !data) {
+    return false;
+  }
+
+  if (data.rekeyedTo) {
+    const rekeyInfo = rekeyedToInfo.value;
+    if (!rekeyInfo) {
+      return false;
+    }
+    return Boolean(
+      rekeyInfo.sk ||
+        rekeyInfo.params ||
+        rekeyInfo.type === "ledger" ||
+        rekeyInfo.type === "wc"
+    );
+  }
+
+  return Boolean(
+    currentAccount.sk ||
+      currentAccount.params ||
+      currentAccount.type === "ledger" ||
+      currentAccount.type === "wc"
+  );
+});
+
+const hasPositiveAmount = (value?: number | bigint): boolean => {
+  if (typeof value === "bigint") {
+    return value > 0n;
+  }
+  if (typeof value === "number") {
+    return value > 0;
+  }
+  return false;
+};
+
+const getAssetSync = (id?: bigint | number | string) => {
+  if (id === undefined || id === null) {
+    return undefined;
+  }
+  try {
+    const normalizedId = BigInt(id);
+    return store.state.indexer.assets.find(
+      (storedAsset) => BigInt(storedAsset.assetId) === normalizedId
+    );
+  } catch (error) {
+    console.error("getAssetSync", error);
+    return undefined;
+  }
+};
+
+const getAssetName = (id?: bigint | number | string) => getAssetSync(id)?.name;
+
+const getAssetDecimals = (id?: bigint | number | string) =>
+  getAssetSync(id)?.decimals ?? 0;
+
+const getSlotFieldValue = (slotProps: DataTableSlotProps) => {
+  const field = slotProps?.column?.props?.field;
+  if (typeof field !== "string") {
+    return undefined;
+  }
+  return slotProps.data?.[field];
+};
+
+const hasSlotField = (slotProps: DataTableSlotProps): boolean => {
+  const field = slotProps?.column?.props?.field;
+  if (typeof field !== "string") {
+    return false;
+  }
+  const data = slotProps.data ?? {};
+  return field in data;
+};
+
+const makeAssets = async () => {
+  assets.value = [];
+  const data = accountData.value;
+  if (!data) {
+    return;
+  }
+
+  if (hasPositiveAmount(data.amount)) {
+    assets.value.push({
+      assetId: 0n,
+      amount: data.amount,
+      name: "ALG",
+      decimals: 6,
+      unitName: "",
+    });
+  }
+
+  if (data.assets) {
+    for (const accountAsset of data.assets) {
+      if (!accountAsset?.assetId) {
+        continue;
       }
-
-      return (
-        this.account.sk ||
-        this.account.params ||
-        this.account.type == "ledger" ||
-        this.account.type == "wc"
-      );
-    },
-    account() {
-      return this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.$route.params.account
-      );
-    },
-    accountData() {
-      if (!this.account) return false;
-      if (!this.account.data) return false;
-      return this.account.data[this.$store.state.config.env];
-    },
-    lastActiveAccountAddr() {
-      return this.$store.state.wallet.lastActiveAccount;
-    },
-    rekeyedToInfo() {
-      return this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.accountData.rekeyedTo
-      );
-    },
-    rekeyedMultisigParams() {
-      const rekeyedInfo = this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.accountData.rekeyedTo
-      );
-      if (!rekeyedInfo) return null;
-      return rekeyedInfo.params;
-    },
-  },
-  watch: {
-    async selection() {
-      await this.setTransaction({ transaction: this.selection.tx });
-      if (this.selection.id) {
-        this.$router.push("/transaction/" + this.selection.id);
-      }
-    },
-    account() {
-      this.makeAssets();
-    },
-  },
-  async mounted() {
-    await this.reloadAccount();
-    await this.makeAssets();
-    this.prolong();
-  },
-  methods: {
-    ...mapActions({
-      accountInformation: "indexer/accountInformation",
-      updateAccount: "wallet/updateAccount",
-      lastActiveAccount: "wallet/lastActiveAccount",
-      deleteAccount: "wallet/deleteAccount",
-      searchForTransactions: "indexer/searchForTransactions",
-      setTransaction: "wallet/setTransaction",
-      getAsset: "indexer/getAsset",
-      prolong: "wallet/prolong",
-      openSuccess: "toast/openSuccess",
-    }),
-    async makeAssets() {
-      this.assets = [];
-      if (this.accountData && this.accountData.amount > 0) {
-        this.assets.push({
-          assetId: 0n,
-          amount: this.accountData.amount,
-          name: "ALG",
-          decimals: 6,
-          unitName: "",
+      const assetInfo = (await store.dispatch("indexer/getAsset", {
+        assetIndex: accountAsset.assetId,
+      })) as StoredAsset | undefined;
+      if (assetInfo) {
+        assets.value.push({
+          assetId: accountAsset.assetId,
+          amount: accountAsset.amount,
+          name: assetInfo.name,
+          decimals: assetInfo.decimals,
+          unitName: assetInfo.unitName,
         });
       }
-      if (this.accountData && this.accountData.assets) {
-        for (const accountAsset of this.accountData.assets) {
-          if (!accountAsset.assetId) continue;
-          const asset = await this.getAsset({
-            assetIndex: accountAsset.assetId,
-          });
-          if (asset) {
-            this.assets.push({
-              assetId: accountAsset.assetId,
-              amount: accountAsset.amount,
-              name: asset["name"],
-              decimals: asset["decimals"],
-              unitName: asset["unitName"],
-            });
-          }
+    }
+  }
+};
+
+const reloadAccount = async () => {
+  loading.value = true;
+  const addr = accountAddress.value;
+  if (!addr) {
+    loading.value = false;
+    return;
+  }
+
+  try {
+    const info = await store.dispatch("indexer/accountInformation", {
+      addr,
+    });
+    if (info) {
+      await store.dispatch("wallet/updateAccount", { info });
+      const data = accountData.value;
+      if (data && data.rekeyedTo !== data["auth-addr"]) {
+        const rekeyedTo = data["auth-addr"] as string | undefined;
+        console.error(
+          `New rekey information detected: ${data.rekeyedTo} -> ${rekeyedTo}`
+        );
+        if (rekeyedTo) {
+          const info2: Partial<IAccountData> = {};
+          info2.address = data.addr;
+          info2.rekeyedTo = rekeyedTo;
+          await store.dispatch("wallet/updateAccount", { info: info2 });
+          await store.dispatch(
+            "toast/openSuccess",
+            `Information about rekeying to address ${rekeyedTo} has been stored`
+          );
         }
       }
-    },
-    getAssetSync(id) {
-      const ret = this.$store.state.indexer.assets.find((a) => a.assetId == id);
-      return ret;
-    },
-    getAssetName(id) {
-      const asset = this.getAssetSync(id);
-      if (asset) return asset["name"];
-    },
-    getAssetDecimals(id) {
-      const asset = this.getAssetSync(id);
-      if (asset) return asset["decimals"];
-    },
-    async reloadAccount() {
-      this.loading = true;
-      await this.accountInformation({
-        addr: this.$route.params.account,
-      }).then(async (info) => {
-        if (info) {
-          this.updateAccount({ info });
-          if (
-            this.accountData &&
-            this.accountData.rekeyedTo != this.accountData["auth-addr"]
-          ) {
-            const rekeyedTo = this.accountData["auth-addr"];
-            console.error(
-              `New rekey information detected: ${this.accountData.rekeyedTo} -> ${rekeyedTo}`
-            );
-            const info2 = {};
-            info2.address = this.accountData.addr;
-            info2.rekeyedTo = rekeyedTo;
-            await this.updateAccount({ info: info2 });
-            await this.openSuccess(
-              `Information about rekeying to address ${rekeyedTo} has been stored`
-            );
-          }
-        }
-      });
-      const searchData = await this.searchForTransactions({
-        addr: this.$route.params.account,
-      });
-      if (searchData) {
-        this.transactions = searchData.transactions.map((tx) => ({
+    }
+
+    const searchData = await store.dispatch("indexer/searchForTransactions", {
+      addr,
+    });
+    if (searchData?.transactions) {
+      transactions.value = searchData.transactions.map(
+        (tx: IndexerTransaction) => ({
           id: tx.id,
           sender: tx.sender,
           receiver:
@@ -401,34 +515,64 @@ export default {
           "payment-transaction": tx["payment-transaction"],
           fee: tx["fee"],
           "confirmed-round": tx["confirmed-round"],
-          tx: tx,
-        }));
-      }
-      this.loading = false;
-    },
-    copyToClipboard(text) {
-      if (copy(text)) {
-        this.openSuccess(this.$t("global.copied_to_clipboard"));
-      }
-    },
-    async deleteAccountClick() {
-      await this.deleteAccount({
-        name: this.account.name,
-        addr: this.account.addr,
-      });
-      this.$router.push("/accounts");
-    },
-    async hideAccountClick() {
-      if (this.account) {
-        // add to current network automatically
-        const info = { ...this.account };
-        info.isHidden = !this.account.isHidden;
-        await this.updateAccount({ info });
-      }
-    },
-    sleep(ms) {
-      return new Promise((resolve) => setTimeout(resolve, ms));
-    },
-  },
+          tx,
+        })
+      );
+    }
+  } finally {
+    loading.value = false;
+  }
 };
+
+const copyToClipboard = (text: string) => {
+  if (copy(text)) {
+    void store.dispatch("toast/openSuccess", t("global.copied_to_clipboard"));
+  }
+};
+
+const deleteAccountClick = async () => {
+  const currentAccount = account.value;
+  if (!currentAccount) {
+    return;
+  }
+  await store.dispatch("wallet/deleteAccount", {
+    name: currentAccount.name,
+    addr: currentAccount.addr,
+  });
+  await router.push("/accounts");
+};
+
+const hideAccountClick = async () => {
+  const currentAccount = account.value;
+  if (!currentAccount) {
+    return;
+  }
+  const info = {
+    ...currentAccount,
+    isHidden: !currentAccount.isHidden,
+  };
+  await store.dispatch("wallet/updateAccount", { info });
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+watch(selection, async (value) => {
+  if (!value) {
+    return;
+  }
+  await store.dispatch("wallet/setTransaction", { transaction: value.tx });
+  if (value.id) {
+    await router.push(`/transaction/${value.id}`);
+  }
+});
+
+watch(account, () => {
+  void makeAssets();
+});
+
+onMounted(async () => {
+  await reloadAccount();
+  await makeAssets();
+  await store.dispatch("wallet/prolong");
+});
 </script>
