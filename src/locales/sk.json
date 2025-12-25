@@ -36,6 +36,7 @@
     "yes": "Áno",
     "no": "Nie",
     "loading": "Šťahujem údaje..",
+    "last_error": "Posledná chyba",
     "keyword_search": "Fultextové vyhľádávanie"
   },
   "navbar": {
@@ -66,6 +67,7 @@
     "apps_optin_button": "Zaregistrujte sa k aplikáciám (optin)",
     "execute_button_deflex": "Vykonať swap cez Deflex",
     "execute_button_folks": "Vykonať swap cez Folks router",
+    "execute_button_biatec": "Vykonať pomocou Biatec routera",
     "slippage": "Slippage percentage"
   },
   "govtoolsmenu": {
@@ -576,6 +578,7 @@
     "sendBack": "Odoslať spať do aplikácie",
     "reject": "Zamietnuť",
     "address": "Adresa",
+    "or": "alebo",
     "authaddr": "Autorizačná adresa",
     "index": "Index",
     "type": "Typ",
@@ -595,7 +598,6 @@
     "total_fee": "Celkový poplatok",
     "sign": "Podpísať",
     "clipboard": "Pripojiť zo schárnky",
-    "or": "alebo",
     "sign_txs": "Podpíšte každú transakciu",
     "signed": "Podpísané",
     "to": "Príjemca",

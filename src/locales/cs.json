@@ -36,6 +36,7 @@
     "yes": "Ano",
     "no": "Ne",
     "loading": "Načítá se...",
+    "last_error": "Poslední chyba",
     "keyword_search": "Vyhledávání podle klíčových slov"
   },
   "navbar": {
@@ -66,6 +67,7 @@
     "apps_optin_button": "Opt in to the apps",
     "execute_button_deflex": "Execute using Deflex",
     "execute_button_folks": "Execute using Folks router",
+    "execute_button_biatec": "Provést pomocí Biatec routeru",
     "slippage": "Slippage percentage"
   },
   "govtoolsmenu": {

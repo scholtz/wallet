@@ -67,17 +67,8 @@
     "apps_optin_button": "Uygulamalara kaydolun",
     "execute_button_deflex": "Defex'i kullanarak uygulayın",
     "execute_button_folks": "Folks yönlendiricisini kullanarak uygulayın",
+    "execute_button_biatec": "Biatec yönlendiricisini kullanarak yürüt",
     "slippage": "Kayma(fiyat) farkı yüzdesi"
-  },
-  "votemenu": {
-    "overview": "Genel Bakış",
-    "my_questions": "Sorularım",
-    "ask_question": "Bir soru sor",
-    "delegation": "Delegasyon",
-    "answers": "Yanıtlar",
-    "trusted_list": "Güvenilir liste",
-    "governance": "Yönetim",
-    "ams01": "Oy coini"
   },
   "govtoolsmenu": {
     "gen": "Hesap oluştur",
@@ -85,89 +76,6 @@
     "optin": "Yönetişimi etkinleştirin",
     "pay": "Toplu ödeme N->1",
     "merge": "Hesapları birleştir N->1"
-  },
-  "voteask": {
-    "title": "Blockchain aracılığıyla soru sorun",
-    "question_title": "Soru başlığı",
-    "title_placeholder": "Bu, tablodaki soru listesinde görünecektir",
-    "question_text": "Sorunun metni",
-    "url": "Daha fazla soru ayrıntısı içeren URL adresi (https:// ile başlayın)",
-    "url_placeholder": "Kişilerin soru hakkında daha fazla bilgi bulabileceği bir url adresi ekleyin",
-    "max_round": "Şu andan itibaren sorunun kapatılacağı ana kadarki blok sayısı",
-    "calculated_block": "Maksimum blok",
-    "calculated_time": "Tahmini süre",
-    "code": "kod",
-    "response_text": "Yanıt seçeneğinin metni",
-    "remove_response": "Kaldır seçeneği",
-    "responses_help": "İnsanlar sorunuza belirli yanıtlara oy vererek yanıt verecektir. Lütfen 2-N yanıtın kodlarını ve metinlerini sağlayın.",
-    "add_response": "Yeni yanıt ekle",
-    "category": "Soru kategorisi",
-    "category_placeholder": "Bilgiye dayalı kategori oy delegasyonu yürürlükte",
-    "submit_question": "{accountName} hesabını kullanarak bir soru sorun"
-  },
-  "votedelegate": {
-    "title": "Oylama yetkisi delegasyonu",
-    "intro1": "Oy verme hakkınızı güvendiğiniz birine devredebilirsiniz. Bu arkadaşınız ya da tanınmış bir kişi olabilir.",
-    "intro2": "Finans alanında iyi bir arkadaşınız varsa, finans kategorisinde oy hakkınızı ona devredebilirsiniz. Eğer doğrudan sorulara oy vermiyorsa, sizin oy hakkınızı ve oy hakkını istediği başka birine devredebilir. bilir. Karşı taraf oy verdiğinde sizin oy gücünüzü kullanır ve fikrinizi temsil eder. Her zaman vekaleten kullanmış olsanız bile her konuda doğrudan oy kullanabilirsiniz. Doğrudan oy verirseniz oy hakkınız yalnızca sizin takdirinizde kalır.",
-    "intro3": "Oylama gücünüzü birkaç arkadaşınıza bölebilirsiniz. Oylama gücü dağıtımınızın ağırlığını puan olarak belirlersiniz. 1 numaralı arkadaşınız için 50 puan ve 2 numaralı arkadaşınız için 100 puan belirlerseniz, 1 numaralı arkadaşınızın 50 puanı olur /150 = Oylama gücünüzün %33'ü. Geri kalan 2. Arkadaşınız 100/150 = Oylama gücünüzün %67'sine sahip olacak.",
-    "intro4": "Herhangi bir kategori, geri dönüş kategorisidir. Belirli bir sorunun kategorisi tanımlanmamışsa, tanımlanmışsa herhangi bir kategori kullanılacaktır.",
-    "category_any": "Herhangi bir kategori",
-    "add_account": "Hesap ekle",
-    "wallet_address": "Cüzdan adresi",
-    "delegate": "Hesabı heyete ekle",
-    "category": "Belirli bir kategoriyi devret",
-    "category_placeholder": "Yetkilendirmenizi bilgi tabanlı bir kategoride belirtebilirsiniz. ör. BT, finans, yönetişim",
-    "add_category": "Belirli bir kategori ekleyin",
-    "submit_help": "Aşağıdaki butona tıklayarak, delegasyon tercihlerinizi blockchain'e depolayacaksınız.",
-    "submit_text": "{accountName} için yetki tercihlerini blok zincirine saklayın"
-  },
-  "voteoverview": {
-    "title": "Genel Bakış"
-  },
-  "votequestions": {
-    "title": "Sorular"
-  },
-  "votequestionlist": {
-    "question_title": "Soru başlığı",
-    "no_questions": "İlk soru soran siz olun",
-    "question_text": "Soru metni",
-    "round": "Yuvarlak olarak yerleştirildi",
-    "maxround": "Tura kadar açık",
-    "time": "Zaman",
-    "category": "Kategori",
-    "sender": "Soru soran",
-    "list": "Tüm soruları listele",
-    "id": "Soru kimliği",
-    "current_round": "Geçerli tur",
-    "round_time": "Turun zamanı",
-    "url": "URL",
-    "options": "Seçenekler",
-    "voting_closed": "Oylama kapatıldı",
-    "latest_response": "{accountName} hesabı için en son oy seçildi",
-    "vote_button": "{accountName} hesabıyla oy verin",
-    "sum_trusted": "Hesaplanan oy sayısı",
-    "sum_coins": "Hesaplanan coinlerin toplamı",
-    "trusted_list_results": "Güvenilen liste sonucu",
-    "hypercapitalism_results": "1 jeton 1 oy sonucu",
-    "vote_help": "Oy vermek istiyorsanız lütfen tercihlerinizi seçin. Her yanıt için tercihlerinizi 0'dan 100 puana kadar derecelendirebilirsiniz. Yalnızca bir yanıt seçmek istiyorsanız lütfen ona 100 puan verin, diğer tüm yanıtlara cevaplar 0 puan. Bilmiyorsanız oy vermenize gerek yoktur veya tüm cevaplara eşit puan verebilirsiniz. Bir cevaba 100 puan, diğer cevaba 20 puanla oy verirseniz, oy verme gücünüz ilk cevap 100/120 = %83, ikinci cevap ise %17 olacaktır. Tüm seçeneklere 100 puan verirseniz, oy gücü dağılımınız tüm seçeneklere 1 puan vermişsiniz gibi aynı olacaktır.",
-    "check_results": "Sonuçları kontrol et"
-  },
-  "votetl": {
-    "title": "Güvenilen liste yönetimi",
-    "help1": "Soru soran, bu sayfada güvenilir hesapların listesini yönetebilir. Her kişinin yalnızca bir güvenilir hesabı olabilir. Bunun yönetimi soruyu soran tarafından sağlanmalıdır. Oylama bittikten sonra iki oy hesaplaması vardır - biri kişi bir oy ve bir jeton bir oy.Oylama sistemi oylama sonucunun ne anlama geldiğini yorumlamaz.Oylama sistemi sadece oylama sistemi kurallarına göre oylama sonuçlarını hesaplar, örneğin oyların delegasyonu, oyların oranı, oyların geçerliliği oy vb.",
-    "add": "Hesapları güvenilenler listesine ekleyin - her satıra bir hesap",
-    "remove": "Hesapları güvenilir listeden kaldır - her satıra bir hesap",
-    "submit_text": "{accountName} için güvenilir listeyi blockchain'de depola",
-    "round": "n. turda eklendi.",
-    "account": "Güvenilen hesap",
-    "no_tl": "{accountName} hesabı için listelenen güvenilir hesap yok."
-  },
-  "voteanswerslist": {
-    "no_answers": "Sorunun yanıtı henüz yok.",
-    "round": "Tepki turu",
-    "time": "Tepki süresi",
-    "sender": "Yanıtlayan",
-    "response": "Yanıt json'u"
   },
   "merchant": {
     "make_payment": "Ödeme ağ geçidi",
@@ -550,7 +458,7 @@
     "title": "İşlem detayı",
     "tr_id": "İşlem Kimliği",
     "tr_type": "İşlem türü",
-    "not": "Not",
+    "note": "Not",
     "note_raw": "Ham veriler",
     "note_decoded": "Şifresi çözülmüş veriler",
     "tr_close_rewards": "Ödülleri kapat",
@@ -662,7 +570,6 @@
     "a8_3": "İşlemleri imzalayabilen tüm hesapları seçin ve ağın çoklu imza ödemesini kabul etmesi için minimum sayıya uyan imza sayısını seçin.",
     "a8_4": "Çoklu imza hesabını oluşturduktan sonra bu hesaba hesap listesi sayfasından erişebilirsiniz."
   },
-
   "connect": {
     "title": "WalletConnect'i kullanarak DApp'lere bağlanın",
     "uri": "Cüzdanbağlantısı URI'si",
