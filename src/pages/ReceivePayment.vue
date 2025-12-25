@@ -180,7 +180,6 @@ const assetObj = ref<AssetDetails>({
 });
 const asset = ref<bigint | number>(0);
 
-
 const account = computed<WalletAccount | undefined>(() =>
   store.state.wallet.privateAccounts.find(
     (walletAccount) => walletAccount.addr === (route.params.account as string)
@@ -337,7 +336,6 @@ const _base64ToArrayBuffer = (base64: string) => {
   }
   return bytes;
 };
-
 
 watch(account, () => {
   void makeAssets();
