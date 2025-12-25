@@ -255,20 +255,8 @@ const makeAssets = async () => {
       });
     }
   }
-  const arc200Assets = data.arc200 as
-    | Record<
-        string,
-        {
-          arc200id: number | string;
-          balance: number | string;
-          name: string;
-          decimals: number | string;
-          symbol: string;
-        }
-      >
-    | undefined;
-  if (arc200Assets) {
-    for (const accountAsset of Object.values(arc200Assets)) {
+  if (data.arc200) {
+    for (const accountAsset of Object.values(data.arc200)) {
       assets.value.push({
         assetId: BigInt(accountAsset.arc200id),
         amount: BigInt(accountAsset.balance),
@@ -317,11 +305,7 @@ const formatCurrencyValue = (
 };
 
 const formatAssetAmount = (asset: AssetListItem) => {
-  return formatCurrencyValue(
-    asset.amount,
-    getAssetName(asset.assetId),
-    getAssetDecimals(asset.assetId)
-  );
+  return formatCurrencyValue(asset.amount, asset.name, asset.decimals);
 };
 
 const reloadArc200AccountBalance = async (data: AssetListItem) => {
