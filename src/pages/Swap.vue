@@ -1,7 +1,7 @@
 <template>
   <MainLayout>
     <h1>{{ t("swap.title") }}</h1>
-
+    {{ asset }} -> {{ toAsset }}
     <Card>
       <template #content>
         <div v-if="checkNetwork()">
@@ -13,7 +13,13 @@
         <Message severity="error" v-if="hasSK === false">
           {{ t("swap.has_sk") }}
         </Message>
-        <div>
+        <div
+          v-if="loadingAssets"
+          class="flex justify-content-center align-items-center p-5"
+        >
+          <ProgressSpinner />
+        </div>
+        <div v-else>
           <SwapAssetSelector
             :assets="assets"
             :asset="asset ?? undefined"
@@ -125,6 +131,7 @@ const {
   error,
   slippage,
   aggregatorData,
+  loadingAssets,
 
   // Computed
   formInvalid,
@@ -175,62 +182,68 @@ const folksQuote = computed(() => aggregatorData.folksQuote.value);
 const biatecQuotes = computed(() => aggregatorData.biatecQuotes.value);
 
 // Watchers
-watch(asset, async (newAsset) => {
-  // Reset all aggregator data
-  dexAggregators.forEach((agg) => {
-    aggregatorData[agg.quotesKey].value = {};
-    aggregatorData[agg.txnsKey].value =
-      agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
-  });
+watch(
+  () => asset,
+  async (newAsset) => {
+    // Reset all aggregator data
+    dexAggregators.forEach((agg) => {
+      aggregatorData[agg.quotesKey].value = {};
+      aggregatorData[agg.txnsKey].value =
+        agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
+    });
 
-  if (newAsset && newAsset > 0) {
-    const asset = (await store.dispatch("indexer/getAsset", {
-      assetIndex: newAsset,
-    })) as StoredAsset | undefined;
-    if (asset) {
-      fromAssetObj.value = asset;
+    if (newAsset.value && newAsset.value > 0) {
+      const asset = (await store.dispatch("indexer/getAsset", {
+        assetIndex: BigInt(newAsset.value),
+      })) as StoredAsset | undefined;
+      if (asset) {
+        fromAssetObj.value = asset;
+      }
+    } else {
+      fromAssetObj.value = {
+        assetId: 0n,
+        name: "ALGO",
+        unitName: "Algo",
+        decimals: 6,
+        type: "Native",
+        label: "ALGO (Native token)",
+      };
     }
-  } else {
-    fromAssetObj.value = {
-      assetId: 0n,
-      name: "ALGO",
-      unitName: "Algo",
-      decimals: 6,
-      type: "Native",
-      label: "ALGO (Native token)",
-    };
+    payamount.value = 0;
+    localStorage.setItem("last-swap-from-asset", newAsset?.toString() || "");
   }
-  payamount.value = 0;
-  localStorage.setItem("last-swap-from-asset", newAsset?.toString() || "");
-});
+);
 
-watch(toAsset, async (newToAsset) => {
-  // Reset all aggregator data
-  dexAggregators.forEach((agg) => {
-    aggregatorData[agg.quotesKey].value = {};
-    aggregatorData[agg.txnsKey].value =
-      agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
-  });
+watch(
+  () => toAsset,
+  async (newToAsset) => {
+    // Reset all aggregator data
+    dexAggregators.forEach((agg) => {
+      aggregatorData[agg.quotesKey].value = {};
+      aggregatorData[agg.txnsKey].value =
+        agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
+    });
 
-  if (newToAsset && newToAsset > 0) {
-    const asset = (await store.dispatch("indexer/getAsset", {
-      assetIndex: newToAsset,
-    })) as StoredAsset | undefined;
-    if (asset) {
-      toAssetObj.value = asset;
+    if (newToAsset.value && newToAsset.value > 0) {
+      const asset = (await store.dispatch("indexer/getAsset", {
+        assetIndex: BigInt(newToAsset.value),
+      })) as StoredAsset | undefined;
+      if (asset) {
+        toAssetObj.value = asset;
+      }
+    } else {
+      toAssetObj.value = {
+        assetId: 0n,
+        name: "ALGO",
+        unitName: "Algo",
+        decimals: 6,
+        type: "Native",
+        label: "ALGO (Native token)",
+      };
     }
-  } else {
-    toAssetObj.value = {
-      assetId: 0n,
-      name: "ALGO",
-      unitName: "Algo",
-      decimals: 6,
-      type: "Native",
-      label: "ALGO (Native token)",
-    };
+    localStorage.setItem("last-swap-to-asset", newToAsset?.toString() || "");
   }
-  localStorage.setItem("last-swap-to-asset", newToAsset?.toString() || "");
-});
+);
 
 watch(account, () => {
   // Reset all aggregator data
@@ -257,31 +270,33 @@ onMounted(async () => {
   await reloadAccount();
   await makeAssets();
 
-  asset.value = 0;
-  const vote = assets.value.find((a) => a.assetId == 452399768n);
-  if (vote) {
-    toAsset.value = 452399768;
-  } else {
-    toAsset.value = 0;
-  }
-  payamount.value = 1;
-
+  let initialAsset = 0;
   if (route.params.fromAsset) {
-    asset.value = Number(route.params.fromAsset);
+    initialAsset = Number(route.params.fromAsset);
   } else {
     const savedAsset = localStorage.getItem("last-swap-from-asset");
-    if (savedAsset) {
-      asset.value = Number(savedAsset);
+    if (savedAsset !== null && savedAsset !== "") {
+      initialAsset = Number(savedAsset);
     }
+  }
+  asset.value = initialAsset;
+
+  let initialToAsset = 0;
+  const vote = assets.value.find((a) => a.assetId == 452399768n);
+  if (vote) {
+    initialToAsset = 452399768;
   }
 
   if (route.params.toAsset) {
-    toAsset.value = Number(route.params.toAsset);
+    initialToAsset = Number(route.params.toAsset);
   } else {
     const savedAsset = localStorage.getItem("last-swap-to-asset");
-    if (savedAsset) {
-      toAsset.value = Number(savedAsset);
+    if (savedAsset !== null && savedAsset !== "") {
+      initialToAsset = Number(savedAsset);
     }
   }
+  toAsset.value = initialToAsset;
+
+  payamount.value = 1;
 });
 </script>

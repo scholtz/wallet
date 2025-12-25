@@ -39,6 +39,7 @@ export function useSwap() {
   const error: Ref<string> = ref("");
   const slippage: Ref<number> = ref(0.1);
   const fee: Ref<number> = ref(0);
+  const loadingAssets: Ref<boolean> = ref(true);
 
   // Initialize aggregator data dynamically with proper typing
   const aggregatorData: Record<string, Ref<any>> = {};
@@ -296,6 +297,7 @@ export function useSwap() {
 
   // Methods dependent on context or other methods
   const makeAssets = async (): Promise<void> => {
+    loadingAssets.value = true;
     assets.value = [];
     if (accountData.value) {
       const balance = formatCurrency(
@@ -304,7 +306,7 @@ export function useSwap() {
         6
       );
       assets.value.push({
-        assetId: BigInt(0),
+        assetId: 0 as any,
         amount: BigInt(accountData.value.amount ?? 0n),
         name: store.state.config.tokenSymbol,
         decimals: 6,
@@ -315,7 +317,7 @@ export function useSwap() {
     } else {
       const balance = formatCurrency(0, store.state.config.tokenSymbol, 6);
       assets.value.push({
-        assetId: BigInt(0),
+        assetId: 0 as any,
         amount: 0n,
         name: store.state.config.tokenSymbol,
         decimals: 6,
@@ -348,7 +350,7 @@ export function useSwap() {
           );
 
           assets.value.push({
-            assetId: BigInt(accountData.value.assets[index].assetId),
+            assetId: Number(accountData.value.assets[index].assetId) as any,
             amount: BigInt(accountData.value.assets[index]["amount"]),
             name: assetInfo.name ?? "",
             decimals: assetInfo.decimals ?? 6,
@@ -364,6 +366,7 @@ export function useSwap() {
         }
       }
     }
+    loadingAssets.value = false;
     console.log("makeAssets", assets.value);
   };
 
@@ -393,6 +396,7 @@ export function useSwap() {
     const agg = dexAggregators.find((a) => a.name === "folks");
     if (agg) {
       await agg.execute(context);
+      await reloadAccount();
     }
   };
 
@@ -400,6 +404,7 @@ export function useSwap() {
     const agg = dexAggregators.find((a) => a.name === "biatec");
     if (agg) {
       await agg.execute(context);
+      await reloadAccount();
     }
   };
 
@@ -407,6 +412,7 @@ export function useSwap() {
     const agg = dexAggregators.find((a) => a.name === "deflex");
     if (agg) {
       await agg.execute(context);
+      await reloadAccount();
     }
   };
 
@@ -475,6 +481,7 @@ export function useSwap() {
     slippage,
     fee,
     aggregatorData,
+    loadingAssets,
 
     // Computed
     formInvalid,
