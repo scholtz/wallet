@@ -14,14 +14,14 @@
       v-model:filters="tableFilters"
       :loading="loading"
       :globalFilterFields="[
-        'tx-type',
-        'round-time',
+        'txType',
+        'roundTime',
         'representative.name',
         'status',
         'sender',
-        'payment-transaction.receiver',
-        'asset-transfer-transaction.receiver',
-        'confirmed-round',
+        'paymentTransaction.receiver',
+        'assetTransferTransaction.receiver',
+        'confirmedRound',
       ]"
     >
       <template #header>
@@ -38,11 +38,7 @@
       <template #empty>
         {{ $t("acc_overview.no_transactions") }}
       </template>
-      <Column
-        field="tx-type"
-        :header="$t('acc_overview.type')"
-        :sortable="true"
-      >
+      <Column field="txType" :header="$t('acc_overview.type')" :sortable="true">
         <template #filter="{ filterModel, filterCallback }">
           <InputText
             v-model="filterModel.value"
@@ -54,7 +50,7 @@
         </template>
       </Column>
       <Column
-        field="round-time"
+        field="roundTime"
         :header="$t('acc_overview.time')"
         :sortable="true"
       >
@@ -73,39 +69,35 @@
           />
         </template>
       </Column>
-      <Column
-        field="payment-transaction.amount"
-        :header="$t('acc_overview.tr_amount')"
-        :sortable="true"
-      >
+      <Column :header="$t('acc_overview.tr_amount')" :sortable="true">
         <template #body="slotProps">
           <div
             v-if="
-              slotProps.data['tx-type'] == 'pay' &&
-              'payment-transaction' in slotProps.data &&
-              'amount' in slotProps.data['payment-transaction']
+              slotProps.data['txType'] == 'pay' &&
+              'paymentTransaction' in slotProps.data &&
+              'amount' in slotProps.data['paymentTransaction']
             "
             class="text-right"
           >
             {{
               uiFilters.formatCurrency(
-                slotProps.data["payment-transaction"]["amount"]
+                slotProps.data["paymentTransaction"]["amount"]
               )
             }}
           </div>
           <div
             v-if="
-              slotProps.data['tx-type'] == 'axfer' &&
-              'asset-transfer-transaction' in slotProps.data &&
-              'amount' in slotProps.data['asset-transfer-transaction']
+              slotProps.data['txType'] == 'axfer' &&
+              'assetTransferTransaction' in slotProps.data &&
+              'amount' in slotProps.data['assetTransferTransaction']
             "
             class="text-right"
           >
             {{
               uiFilters.formatCurrency(
-                slotProps.data["asset-transfer-transaction"]["amount"],
+                slotProps.data["assetTransferTransaction"]["amount"],
                 getAssetName(
-                  slotProps.data["asset-transfer-transaction"]["assetId"]
+                  slotProps.data["assetTransferTransaction"]["assetId"]
                 ),
 
                 getAssetDecimals(asset["assetId"])
@@ -173,7 +165,7 @@
         </template>
       </Column>
       <Column
-        field="confirmed-round"
+        field="confirmedRound"
         :header="$t('acc_overview.confirmed_round')"
         :sortable="true"
       >
@@ -207,6 +199,11 @@ import AccountTopMenu from "../../components/AccountTopMenu.vue";
 import { useStore } from "../../store";
 import type { StoredAsset } from "../../store/indexer";
 import type { WalletAccount, IAccountData } from "../../store/wallet";
+import algosdk from "algosdk";
+import {
+  TransactionAssetTransfer,
+  TransactionPayment,
+} from "algosdk/dist/types/client/v2/indexer/models/types";
 
 type GlobalFilters = {
   formatCurrencyBigInt: (
@@ -244,26 +241,26 @@ type FilterModel<T extends FilterValue = FilterValue> = {
 
 type TableFilters = {
   global: FilterModel<string | null>;
-  "tx-type": FilterModel<string | null>;
-  "round-time": FilterModel<string | null>;
+  txType: FilterModel<string | null>;
+  roundTime: FilterModel<string | null>;
   "representative.name": FilterModel<string | null>;
   sender: FilterModel<string | null>;
   status: FilterModel<string | null>;
   [key: string]: FilterModel;
 };
 
-type IndexerTransaction = Record<string, any>;
+type IndexerTransaction = algosdk.indexerModels.Transaction;
 
 interface TransactionRow {
   id: string;
   sender: string;
   receiver: string;
-  "round-time": number;
-  "tx-type": string;
-  "asset-transfer-transaction"?: Record<string, any>;
-  "payment-transaction"?: Record<string, any>;
-  fee: number;
-  "confirmed-round": number;
+  roundTime: number;
+  txType: string;
+  assetTransferTransaction?: TransactionAssetTransfer;
+  paymentTransaction?: TransactionPayment;
+  fee: bigint;
+  confirmedRound: bigint;
   tx: IndexerTransaction;
 }
 
@@ -304,8 +301,8 @@ const asset = ref<Record<string, any>>({});
 const loading = ref(true);
 const tableFilters = ref<TableFilters>({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  "tx-type": { value: null, matchMode: FilterMatchMode.CONTAINS },
-  "round-time": { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  txType: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  roundTime: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   "representative.name": {
     value: null,
     matchMode: FilterMatchMode.STARTS_WITH,
@@ -448,26 +445,27 @@ const reloadAccount = async () => {
       }
     }
 
-    const searchData = await store.dispatch("indexer/searchForTransactions", {
+    const searchData = (await store.dispatch("indexer/searchForTransactions", {
       addr,
-    });
+    })) as algosdk.indexerModels.TransactionsResponse | undefined;
     if (searchData?.transactions) {
       transactions.value = searchData.transactions.map(
-        (tx: IndexerTransaction) => ({
-          id: tx.id,
-          sender: tx.sender,
-          receiver:
-            tx["payment-transaction"]?.receiver ??
-            tx["asset-transfer-transaction"]?.receiver ??
-            "",
-          "round-time": tx["round-time"],
-          "tx-type": tx["tx-type"],
-          "asset-transfer-transaction": tx["asset-transfer-transaction"],
-          "payment-transaction": tx["payment-transaction"],
-          fee: tx["fee"],
-          "confirmed-round": tx["confirmed-round"],
-          tx,
-        })
+        (tx: algosdk.indexerModels.Transaction) =>
+          ({
+            id: tx.id,
+            sender: tx.sender,
+            receiver:
+              tx.paymentTransaction?.receiver ??
+              tx.assetTransferTransaction?.receiver ??
+              "",
+            roundTime: Number(tx?.roundTime ?? 0),
+            txType: tx.txType,
+            assetTransferTransaction: tx.assetTransferTransaction,
+            paymentTransaction: tx.paymentTransaction,
+            fee: BigInt(tx.fee),
+            confirmedRound: BigInt(tx?.confirmedRound ?? 0n),
+            tx,
+          } as TransactionRow)
       );
     }
   } finally {

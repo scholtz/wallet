@@ -194,7 +194,7 @@ const actions: ActionTree<IndexerState, RootState> = {
   async searchForTransactions(
     { rootState },
     { addr, note }: AccountInformationPayload & Partial<NotePayload>
-  ) {
+  ): Promise<algosdk.indexerModels.TransactionsResponse | undefined> {
     try {
       const indexerClient = getIndexerClient(rootState.config);
       const search = indexerClient.searchForTransactions().address(addr);
