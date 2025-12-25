@@ -353,7 +353,7 @@ import aprotocol from "../shared/algorand-protocol-parse";
 import MainLayout from "../layouts/Main.vue";
 import algosdk from "algosdk";
 import type { Transaction } from "algosdk";
-import { AlgorandClient } from "@algorandfoundation/algokit-utils";
+import { algo, AlgorandClient } from "@algorandfoundation/algokit-utils";
 import SelectAccount from "../components/SelectAccount.vue";
 import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
@@ -362,6 +362,7 @@ import { useStore } from "@/store";
 import { Buffer } from "buffer";
 import type { WalletAccount, IAccountData } from "@/store/wallet";
 import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
+import { BoxReference } from "@algorandfoundation/algokit-utils/types/app-manager";
 
 type AccountNetworkData = IAccountData;
 
@@ -1070,11 +1071,71 @@ const redirectToARC200Payment = async () => {
       defaultSender: senderAddr,
       defaultSigner: undefined,
     });
+    var boxFromDirect: BoxReference = {
+      // : algosdk.BoxReference
+      appId: BigInt(appId),
+      name: new Uint8Array(
+        Buffer.from(algosdk.decodeAddress(senderAddr).publicKey)
+      ),
+    };
+    var boxFrom: BoxReference = {
+      // : algosdk.BoxReference
+      appId: BigInt(appId),
+      name: new Uint8Array(
+        Buffer.concat([
+          Buffer.from([0x00]),
+          Buffer.from(algosdk.decodeAddress(senderAddr).publicKey),
+        ])
+      ), // data box
+    };
+    var boxTo: BoxReference = {
+      // : algosdk.BoxReference
+      appId: BigInt(appId),
+      name: new Uint8Array(
+        Buffer.concat([
+          Buffer.from([0x00]),
+          Buffer.from(algosdk.decodeAddress(state.payTo).publicKey),
+        ])
+      ), // data box
+    };
+    var boxFromBalance: BoxReference = {
+      // : algosdk.BoxReference
+      appId: BigInt(appId),
+      name: new Uint8Array(
+        Buffer.concat([
+          Buffer.from("balances", "ascii"),
+          Buffer.from(algosdk.decodeAddress(senderAddr).publicKey),
+        ])
+      ), // data box
+    };
+    var boxToBalance: BoxReference = {
+      // : algosdk.BoxReference
+      appId: BigInt(appId),
+      name: new Uint8Array(
+        Buffer.concat([
+          Buffer.from("balances", "ascii"),
+          Buffer.from(algosdk.decodeAddress(state.payTo).publicKey),
+        ])
+      ), // data box
+    };
+    var boxFromAddrText: BoxReference = {
+      // : algosdk.BoxReference
+      appId: BigInt(appId),
+      name: new Uint8Array(Buffer.from(state.payTo, "ascii")), // box as the address encoded as text
+    };
     const compose = await client.createTransaction.arc200Transfer({
       args: {
         to: state.payTo,
         value: BigInt(amountLong.value),
       },
+      boxReferences: [
+        boxFromDirect,
+        boxFromBalance,
+        boxFrom,
+        boxTo,
+        boxToBalance,
+        boxFromAddrText,
+      ],
     });
 
     const enc = new TextEncoder();

@@ -2,6 +2,7 @@ import { Ref } from "vue";
 import { SwapStore, SwapRoute, Account } from "../../types/swap";
 import { FolksRouterClient } from "@folks-router/js-sdk";
 import { StoredAsset } from "@/store/indexer";
+import algosdk from "algosdk";
 
 export interface SwapContext {
   // State (Refs)
@@ -43,7 +44,7 @@ export interface SwapContext {
   getAsset: (config: { assetIndex: number }) => Promise<StoredAsset>;
   sendRawTransaction: (config: {
     signedTxn: Uint8Array | Uint8Array[];
-  }) => Promise<{ txId: string }>;
+  }) => Promise<algosdk.modelsv2.PostTransactionsResponse>;
   waitForConfirmation: (config: {
     txId: string;
     timeout: number;

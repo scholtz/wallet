@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-vars */
 
 import { StoredAsset } from "@/store/indexer";
+import algosdk from "algosdk";
 
 export interface AccountData {
   amount: number;
@@ -86,7 +87,7 @@ export interface SwapMethods {
   getAsset: (_config: { assetIndex: number }) => Promise<StoredAsset>;
   sendRawTransaction: (_config: {
     signedTxn: Uint8Array | Uint8Array[];
-  }) => Promise<{ txId: string }>;
+  }) => Promise<algosdk.modelsv2.PostTransactionsResponse>;
   waitForConfirmation: (_config: {
     txId: string;
     timeout: number;

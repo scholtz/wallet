@@ -253,10 +253,10 @@ const submitSignedClick = async () => {
       signed.push(store.state.signer.signed[id]);
     }
     const tx = (
-      await store.dispatch("algod/sendRawTransaction", {
+      (await store.dispatch("algod/sendRawTransaction", {
         signedTxn: signed,
-      })
-    )?.txId;
+      })) as algosdk.modelsv2.PostTransactionsResponse
+    )?.txid;
 
     if (!tx) {
       console.error("submitSignedClick has failed");
@@ -294,6 +294,7 @@ const submitSignedClick = async () => {
     console.error("submitSignedClick.error", exc);
     state.error = toErrorMessage(exc);
     store.dispatch("toast/openError", state.error);
+    state.processing = false;
   }
 };
 const retToScheduledPayments = () => {

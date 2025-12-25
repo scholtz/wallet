@@ -250,7 +250,9 @@ export function useSwap() {
     getSK: (config: { addr: string }) => store.dispatch("wallet/getSK", config),
     getAsset: (config: { assetIndex: number }) =>
       store.dispatch("indexer/getAsset", config),
-    sendRawTransaction: (config: { signedTxn: Uint8Array | Uint8Array[] }) =>
+    sendRawTransaction: (config: {
+      signedTxn: Uint8Array | Uint8Array[];
+    }): Promise<algosdk.modelsv2.PostTransactionsResponse> =>
       store.dispatch("algod/sendRawTransaction", config),
     waitForConfirmation: (config: { txId: string; timeout: number }) =>
       store.dispatch("algod/waitForConfirmation", config),
@@ -430,20 +432,20 @@ export function useSwap() {
         from: account.value!.addr,
         tx: appOptInTxn,
       });
-      const tx = await store.dispatch("algod/sendRawTransaction", {
+      const tx = (await store.dispatch("algod/sendRawTransaction", {
         signedTxn,
-      });
-      if (!tx || !tx.txId) {
+      })) as algosdk.modelsv2.PostTransactionsResponse;
+      if (!tx || !tx.txid) {
         processingOptin.value = false;
         await reloadAccount();
         return;
       }
       const confirmation = (await store.dispatch("algod/waitForConfirmation", {
-        txId: tx.txId,
+        txId: tx.txid,
         timeout: 4,
       })) as algosdk.modelsv2.PendingTransactionResponse | undefined;
       if (confirmation) {
-        ret += tx.txId + ", ";
+        ret += tx.txid + ", ";
       } else {
         processingOptin.value = false;
         await reloadAccount();

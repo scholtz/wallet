@@ -142,13 +142,13 @@ export const deflexAggregator: DexAggregator = {
           context.openError(e.message);
           return;
         });
-      if (!tx || !tx.txId) return;
+      if (!tx || !tx.txid) return;
       const confirmation = await context.waitForConfirmation({
-        txId: tx.txId,
+        txId: tx.txid,
         timeout: 4,
       });
       if (confirmation) {
-        ret += tx.txId + ", ";
+        ret += tx.txid + ", ";
       } else {
         context.aggregatorData.processingTradeDeflex.value = false;
         await context.reloadAccount();
