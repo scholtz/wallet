@@ -625,7 +625,6 @@ type SignerType = "ledger" | "msig" | "sk" | "?";
 interface TransactionWrapper {
   index: number;
   type: string;
-  from?: string;
   fee?: number;
   asset: string | number;
   amount?: number | string;
@@ -848,27 +847,45 @@ const clickSignAll = async (data: RequestItem) => {
 };
 
 const clickSign = async (data: TransactionWrapper) => {
-  const txn = data?.txn;
-  if (!txn?.txID) return;
-  if (!data.from) return;
-  const txId = txn.txID();
-  if (txId in (store.state.signer.signed ?? {})) {
-    return;
-  }
-  const signerType = (await store.dispatch("signer/getSignerType", {
-    from: data.from,
-  })) as SignerType;
-  if (signerType === "msig") {
-    await store.dispatch("signer/toSign", { tx: txn });
-    const encoded = algosdk.encodeUnsignedTransaction(txn);
-    const urldataB64 = _arrayBufferToBase64(encoded);
-    const urldataB64url = base642base64url(urldataB64);
-    await router.push(`/payWC/${accountAddress.value}/${urldataB64url}`);
-  } else {
-    await store.dispatch("signer/signTransaction", {
-      from: data.from,
-      signator: data.from,
-      tx: txn,
+  try {
+    console.log("Signing transaction:", data);
+    const txn = data?.txn;
+    if (!txn?.txID) {
+      console.error("Invalid transaction, missing txID");
+      return;
+    }
+    if (!data.txn.sender.toString()) {
+      console.error("Invalid transaction, missing from address");
+      return;
+    }
+    const txId = txn.txID();
+    if (txId in (store.state.signer.signed ?? {})) {
+      console.log("Transaction already signed:", txId);
+      return;
+    }
+    const signerType = (await store.dispatch("signer/getSignerType", {
+      from: data.txn.sender.toString(),
+    })) as SignerType;
+    console.log("Signer type:", signerType);
+    if (signerType === "msig") {
+      await store.dispatch("signer/toSign", { tx: txn });
+      const encoded = algosdk.encodeUnsignedTransaction(txn);
+      const urldataB64 = _arrayBufferToBase64(encoded);
+      const urldataB64url = base642base64url(urldataB64);
+      await router.push(`/payWC/${accountAddress.value}/${urldataB64url}`);
+    } else {
+      await store.dispatch("signer/signTransaction", {
+        from: data.txn.sender.toString(),
+        signator: data.txn.sender.toString(),
+        tx: txn,
+      });
+    }
+  } catch (ex) {
+    await store.dispatch("toast/openError", {
+      severity: "error",
+      summary: "Sign transaction failed",
+      detail: ex,
+      life: 5000,
     });
   }
 };
