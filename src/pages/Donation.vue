@@ -11,23 +11,31 @@
             </p>
             <p>
               {{ $t("donation.funding_received") }}
-              <a href="https://github.com/algorandfoundation/xGov/pull/9/files"
+              <a
+                href="https://github.com/algorandfoundation/xGov/pull/9/files"
                 >{{ $t("donation.twofa_accounts") }}</a
               >
               {{ $t("donation.and") }}
-              <a href="https://github.com/algorandfoundation/xGov/pull/90/files"
+              <a
+                href="https://github.com/algorandfoundation/xGov/pull/90/files"
                 >{{ $t("donation.payment_scheduler") }}</a
               >.
             </p>
             <p>
               {{ $t("donation.community_active") }}
-              <a href="https://www.a-dir.net/">{{ $t("donation.algorand_directory") }}</a>{{ $t("donation.wallet_support") }}
+              <a href="https://www.a-dir.net/">{{
+                $t("donation.algorand_directory")
+              }}</a
+              >{{ $t("donation.wallet_support") }}
               <a
                 href="https://www.a-wallet.net/payment-gateway/AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
                 >{{ $t("donation.payment_gateway") }}</a
               >
               {{ $t("donation.no_middleman") }}
-              <a href="https://algo-donate.vercel.app/">{{ $t("donation.donation_web") }}</a>.
+              <a href="https://algo-donate.vercel.app/">{{
+                $t("donation.donation_web")
+              }}</a
+              >.
             </p>
             <p>
               {{ $t("donation.future_vision") }}
@@ -78,9 +86,9 @@
             <p>
               <a
                 href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9MTAwMDAwMDA/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0L3N1Y2Nlc3MiLCJjYW5jZWwiOiJodHRwczovL3d3dy5hLXdhbGxldC5uZXQvZG9uYXRlIn0"
+                class="d-md-none d-lg-block"
               >
                 <QRCodeVue3
-                  class="d-md-none d-lg-block"
                   :width="400"
                   :height="400"
                   value="AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"

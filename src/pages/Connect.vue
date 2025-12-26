@@ -831,9 +831,19 @@ const base642base64url = (input: string) =>
   input.replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 
 const clickSignAll = async (data: RequestItem) => {
-  const list: TransactionWrapper[] = data?.transactions ?? [];
-  for (const tx of list) {
-    await clickSign(tx);
+  try {
+    await prolong();
+    const list: TransactionWrapper[] = data?.transactions ?? [];
+    for (const tx of list) {
+      await clickSign(tx);
+    }
+  } catch (ex) {
+    await store.dispatch("toast/openError", {
+      severity: "error",
+      summary: "Sign all failed",
+      detail: ex,
+      life: 5000,
+    });
   }
 };
 

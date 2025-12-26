@@ -31,7 +31,7 @@
               type="password"
               class="w-full"
               inputClass="w-full"
-              autocomplete="off"
+              autocomplete="new-password"
             />
           </div>
         </div>

@@ -314,7 +314,6 @@ const actions: ActionTree<IndexerState, RootState> = {
     { assetIndex }: AssetPayload
   ): Promise<StoredAsset | undefined> {
     try {
-      console.log("getAsset called with assetIndex:", assetIndex, rootState);
       if (!assetIndex) {
         const native: StoredAsset = {
           assetId: -1n,
@@ -332,10 +331,8 @@ const actions: ActionTree<IndexerState, RootState> = {
       const cacheKey = `Asset-${envPrefix}${assetIndex}`;
       try {
         const cache = localStorage.getItem(cacheKey);
-        console.log("getAsset cache:", cache);
         if (cache) {
           const cacheObj = JSON.parse(cache) as StoredAsset;
-          console.log("getAsset cacheObj:", cacheObj);
           if (
             cacheObj &&
             cacheObj.assetId &&
@@ -349,7 +346,6 @@ const actions: ActionTree<IndexerState, RootState> = {
         console.error("getAsset cache parse", error);
       }
 
-      console.log("loading from indexer", cacheKey);
       const indexerClient = getIndexerClient(rootState.config);
       const existing = state.assets.find(
         (a) => a.assetId && BigInt(a.assetId) === BigInt(assetIndex)

@@ -1,8 +1,7 @@
 <template>
-  <div class="col-12 lg:col-3 lg:text-right">
+  <div class="col-12 lg:col-3 lg:text-right d-md-none d-lg-block account-qr">
     <QRCodeVue3
       myclass="account-qr"
-      class="d-md-none d-lg-block account-qr"
       :width="400"
       :height="400"
       :value="address"
