@@ -14,7 +14,6 @@ import formatCurrency from "@/scripts/numbers/formatCurrency";
 
 import YAML from "yaml";
 import {
-  BiatecTaskManagerClient,
   getPoolManagerApp,
   getBoxReferenceUser,
   getBoxReferenceApp,
@@ -22,12 +21,111 @@ import {
 } from "biatec-scheduler";
 import algosdk from "algosdk";
 import axios from "axios";
+import { RootState } from "@/store";
+import { useI18n } from "vue-i18n";
+import { StoredAsset } from "@/store/indexer";
+
+type FilterMode = (typeof FilterMatchMode)[keyof typeof FilterMatchMode];
+
+type FilterEntry = {
+  value: string | null;
+  matchMode: FilterMode;
+};
+
+type WalletAccount = {
+  addr?: string;
+  data?: Record<string, AccountEnvData>;
+};
+
+type AccountAssetEntry = {
+  amount: number;
+  assetId: bigint;
+};
+
+type AccountEnvData = {
+  amount?: number;
+  assets?: AccountAssetEntry[];
+  arc200?: Record<string, unknown>;
+};
+
+interface ScheduledAppSummary {
+  appId: number;
+  appAddress: string;
+  start: number;
+  period: number;
+  balanceFee: number;
+  fee: number;
+}
+
+interface ScheduleOption {
+  value: string;
+  name: string;
+}
+
+type ScheduledAction = "" | "tx-deploy" | "tx-configure";
+
+type GlobalStateEntry = {
+  key: string;
+  value: {
+    uint?: number;
+    bytes?: string;
+  };
+};
+
+const readGlobalState = (
+  params?: algosdk.modelsv2.ApplicationParams | Record<string, unknown>
+): GlobalStateEntry[] => {
+  if (!params) return [];
+  const paramRecord = params as Record<string, unknown>;
+  const raw =
+    (paramRecord["global-state"] as GlobalStateEntry[] | undefined) ??
+    (paramRecord["globalState" as keyof typeof paramRecord] as
+      | GlobalStateEntry[]
+      | undefined);
+  return Array.isArray(raw) ? raw : [];
+};
+
+type ScheduledPaymentsFilters = {
+  global: FilterEntry;
+  appId: FilterEntry;
+  appAddress: FilterEntry;
+  period: FilterEntry;
+  start: FilterEntry;
+  balanceFee: FilterEntry;
+  fee: FilterEntry;
+};
+
+interface ScheduledPaymentsState {
+  selection: ScheduledAppSummary | null;
+  payTo: string;
+  assetData: CAsset;
+  account: string;
+  amount: number;
+  maxAmount: number;
+  stepAmount: number;
+  apps: ScheduledAppSummary[];
+  filters: ScheduledPaymentsFilters;
+  period: string;
+  optionsSchedule: ScheduleOption[];
+  start: number;
+  txID: string;
+  action: ScheduledAction;
+  hash: string;
+  client: string;
+  appId: string;
+  fee: number;
+  feeAssetId: number;
+  feeAssetData: StoredAsset | undefined;
+  deploying: boolean;
+}
+
+const { t } = useI18n();
 
 const route = useRoute();
-const store = useStore();
+const store = useStore<RootState>();
 const router = useRouter();
-const state = reactive({
-  selection: {},
+const state = reactive<ScheduledPaymentsState>({
+  selection: null,
   payTo: "",
   assetData: new CAsset(),
   account: route.params.account as string,
@@ -37,6 +135,12 @@ const state = reactive({
   apps: [],
   filters: {
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    appId: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    appAddress: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    period: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    start: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    balanceFee: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    fee: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   },
   period: "86400",
   optionsSchedule: [
@@ -61,33 +165,32 @@ const state = reactive({
   appId: "",
   fee: 1000,
   feeAssetId: 0,
-  feeAssetData: new CAsset(),
+  feeAssetData: undefined,
   deploying: false,
 });
 
-const getAccountData = () => {
-  const account = store.state.wallet.privateAccounts.find(
-    (a: any) => a.addr == state.account
+const getAccountData = (): AccountEnvData | undefined => {
+  const account = (store.state.wallet.privateAccounts as WalletAccount[]).find(
+    (a) => a.addr === state.account
   );
-  if (!account) return false;
-  if (!account.data) return false;
-  return account.data[store.state.config.env];
+  return account?.data?.[store.state.config.env];
 };
 const maxAmount = () => {
-  const accountData = getAccountData();
   if (!state.assetData) return 0;
-  if (state.assetData.type == "ARC200") {
-    if (!state.assetData) return 0;
-    return state.assetData.amount / 10 ** state.assetData.decimals;
-  } else if (state.assetData.type == "ASA") {
-    if (!state.assetData) return 0;
-    return state.assetData.amount / 10 ** state.assetData.decimals;
-  } else {
-    let ret = accountData.amount / 1000000 - 0.1;
-    if (accountData["assets"] && accountData["assets"].length > 0)
-      ret = ret - accountData["assets"].length * 0.1;
-    return ret;
+  if (state.assetData.type == "ARC200" || state.assetData.type == "ASA") {
+    const decimals = state.assetData.decimals ?? 0;
+    return Number(state.assetData.amount || 0) / 10 ** decimals;
   }
+  const accountInfo = getAccountData();
+  if (!accountInfo?.amount) {
+    return 0;
+  }
+  let ret = accountInfo.amount / 1_000_000 - 0.1;
+  const optedAssets = accountInfo.assets?.length ?? 0;
+  if (optedAssets > 0) {
+    ret -= optedAssets * 0.1;
+  }
+  return Math.max(ret, 0);
 };
 const stepAmount = () => {
   if (!state.assetData.decimals) return 1;
@@ -110,9 +213,6 @@ watch(
 const loadTableData = async () => {
   try {
     const algod = (await store.dispatch("algod/getAlgod")) as algosdk.Algodv2;
-    const indexer = (await store.dispatch(
-      "indexer/getIndexer"
-    )) as algosdk.Indexer;
     // var client = new BiatecTaskManagerClient(
     //   {
     //     resolveBy: "id",
@@ -122,12 +222,12 @@ const loadTableData = async () => {
     // );
     const poolAppId = getPoolManagerApp(store.state.config.env);
     const poolApp = await algod.getApplicationByID(poolAppId).do();
-    const fa = poolApp.params["global-state"].find((kv) => kv.key == "ZmE=")
-      .value.uint;
+    const poolState = readGlobalState(poolApp.params);
+    const fa = poolState.find((kv) => kv.key == "ZmE=")?.value.uint ?? 0;
     state.feeAssetId = fa;
-    state.feeAssetData = await store.dispatch("indexer/getAsset", {
+    state.feeAssetData = (await store.dispatch("indexer/getAsset", {
       assetIndex: fa,
-    });
+    })) as StoredAsset | undefined;
 
     const addr = route.params.account as string;
     const decodedAddr = algosdk.decodeAddress(addr);
@@ -137,7 +237,7 @@ const loadTableData = async () => {
         getBoxReferenceUser(poolAppId, decodedAddr).name
       )
       .do();
-    const apps = [];
+    const apps: ScheduledAppSummary[] = [];
     for (let pos = 2; pos < box.value.length; pos = pos + 8) {
       const appIdUint = box.value.subarray(pos, pos + 8);
       const appId = algosdk.decodeUint64(appIdUint, "safe");
@@ -150,13 +250,12 @@ const loadTableData = async () => {
       const data = parseBoxData(boxApp.value);
 
       const app = await algod.getApplicationByID(appId).do();
-      const s = app.params["global-state"].find((kv) => kv.key == "cw==").value
-        .uint;
-      const p = app.params["global-state"].find((kv) => kv.key == "cA==").value
-        .uint;
+      const appState = readGlobalState(app.params);
+      const s = appState.find((kv) => kv.key == "cw==")?.value.uint ?? 0;
+      const p = appState.find((kv) => kv.key == "cA==")?.value.uint ?? 0;
       apps.push({
         appId: appId,
-        appAddress: algosdk.getApplicationAddress(appId),
+        appAddress: String(algosdk.getApplicationAddress(appId)),
         start: s,
         period: p,
         balanceFee: data.funds,
@@ -189,11 +288,13 @@ const deployApp = async () => {
       tasks: [
         {
           task: "pay@v1",
-          displayName: `Pay to '${state.payTo}' ${state.amount} of token ${state.assetData["asset-id"]}`,
+          displayName: `Pay to '${state.payTo}' ${state.amount} of token ${state.assetData.assetId}`,
           inputs: {
             receiver: `'${state.payTo}'`,
-            amount: Math.round(state.amount * 10 ** state.assetData.decimals),
-            token: state.assetData["asset-id"],
+            amount: Math.round(
+              state.amount * 10 ** (state.assetData.decimals ?? 0)
+            ),
+            token: state.assetData.assetId,
           },
         },
       ],
@@ -246,7 +347,7 @@ const continueTxDeploy = async () => {
   try {
     const algod = (await store.dispatch("algod/getAlgod")) as algosdk.Algodv2;
     const info = await algosdk.waitForConfirmation(algod, state.txID, 1);
-    state.appId = info["application-index"];
+    state.appId = String(info?.applicationIndex ?? "");
 
     const txsRequest = await axios.post(
       `https://api-scheduler.biatec.io/v1/tx/${state.hash}/${store.state.config.env}/${route.params.account}/${state.appId}/bootstrap/${state.client}`,
@@ -283,7 +384,7 @@ onMounted(async () => {
       localStorage.getItem("currentAction") ?? ""
     );
     if (deserialized.selection) {
-      state.selection = deserialized.selection;
+      state.selection = deserialized.selection as ScheduledAppSummary;
     }
     if (deserialized.payTo) {
       state.payTo = deserialized.payTo;
@@ -291,12 +392,12 @@ onMounted(async () => {
     if (deserialized.assetData) {
       var newAssetData = new CAsset();
       newAssetData.amount = deserialized.assetData.amount;
-      newAssetData["asset-id"] = deserialized.assetData["asset-id"];
+      newAssetData.assetId = deserialized.assetData.assetId;
       newAssetData.decimals = deserialized.assetData.decimals;
       newAssetData.label = deserialized.assetData.label;
       newAssetData.name = deserialized.assetData.name;
       newAssetData.type = deserialized.assetData.type;
-      newAssetData["unit-name"] = deserialized.assetData["unit-name"];
+      newAssetData.unitName = deserialized.assetData.unitName;
       state.assetData = newAssetData;
     }
     if (deserialized.account) {
@@ -337,6 +438,9 @@ onMounted(async () => {
 watch(
   () => state.selection,
   () => {
+    if (!state.selection?.appId) {
+      return;
+    }
     router.push({
       name: "scheduled-payment-with-appid",
       params: {
@@ -349,17 +453,17 @@ watch(
 </script>
 <template>
   <MainLayout>
-    <h1>{{ $t("scheduled_payments.title") }}</h1>
+    <h1>{{ t("scheduled_payments.title") }}</h1>
 
     <Card>
       <template #content>
         <p>
-          {{ $t("scheduled_payments.description") }}
+          {{ t("scheduled_payments.description") }}
         </p>
-        <h2>{{ $t("scheduled_payments.new_scheduled_payment") }}</h2>
+        <h2>{{ t("scheduled_payments.new_scheduled_payment") }}</h2>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.period") }}
+            {{ t("scheduled_payments.period") }}
           </label>
           <div class="col-12 md:col-10">
             <DropDown
@@ -374,7 +478,7 @@ watch(
         </div>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.pay_to") }}
+            {{ t("scheduled_payments.pay_to") }}
           </label>
           <div class="col-12 md:col-10">
             <SelectAccount v-model="state.payTo" class="w-full"></SelectAccount>
@@ -382,7 +486,7 @@ watch(
         </div>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0" for="asset">
-            {{ $t("scheduled_payments.send_asset") }}
+            {{ t("scheduled_payments.send_asset") }}
           </label>
           <div class="col-12 md:col-10">
             <SelectAsset
@@ -395,7 +499,7 @@ watch(
         </div>
         <div class="field grid">
           <label for="payamount" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("pay.amount") }}
+            {{ t("pay.amount") }}
           </label>
           <div class="col-12 md:col-10">
             <InputGroup>
@@ -410,10 +514,10 @@ watch(
                 class="w-full"
               />
               <InputGroupAddon v-if="state.assetData">
-                {{ state.assetData["unit-name"] }}
+                {{ state.assetData.unitName }}
               </InputGroupAddon>
               <Button severity="secondary" class="col-2" @click="setMaxAmount">
-                {{ $t("pay.set_max") }}
+                {{ t("pay.set_max") }}
               </Button>
             </InputGroup>
           </div>
@@ -422,7 +526,7 @@ watch(
           <label class="col-12 mb-2 md:col-2 md:mb-0"> </label>
           <div class="col-12 md:col-10">
             <Button @click="deployApp" :disabled="state.deploying">
-              {{ $t("scheduled_payments.create_escrow_account") }}
+              {{ t("scheduled_payments.create_escrow_account") }}
               <ProgressSpinner
                 v-if="state.deploying"
                 style="width: 1em; height: 1em"
@@ -432,7 +536,7 @@ watch(
             </Button>
           </div>
         </div>
-        <h2>{{ $t("scheduled_payments.list_of_payments") }}</h2>
+        <h2>{{ t("scheduled_payments.list_of_payments") }}</h2>
         <DataTable
           v-model:selection="state.selection"
           :value="state.apps"
@@ -458,23 +562,23 @@ watch(
                   <i class="pi pi-search" />
                   <InputText
                     v-model="state.filters['global'].value"
-                    :placeholder="$t('placeholders.keyword_search')"
+                    :placeholder="t('placeholders.keyword_search')"
                   />
                 </span>
               </div>
             </div>
           </template>
           <template #empty>
-            {{ $t("scheduled_payments.no_payment_found") }}</template
+            {{ t("scheduled_payments.no_payment_found") }}</template
           >
           <Column
             field="appId"
-            :header="$t('scheduled_payments.app_id')"
+            :header="t('scheduled_payments.app_id')"
             :sortable="true"
           />
           <Column
             field="appAddress"
-            :header="$t('scheduled_payments.app_address')"
+            :header="t('scheduled_payments.app_address')"
             :sortable="true"
           >
             <template #body="slotProps">
@@ -486,12 +590,12 @@ watch(
           </Column>
           <Column
             field="period"
-            :header="$t('scheduled_payments.period')"
+            :header="t('scheduled_payments.period')"
             :sortable="true"
           />
           <Column
             field="start"
-            :header="$t('scheduled_payments.start')"
+            :header="t('scheduled_payments.start')"
             :sortable="true"
           >
             <template #body="slotProps">
@@ -500,37 +604,39 @@ watch(
           </Column>
           <Column
             field="balanceFee"
-            :header="$t('scheduled_payments.fee_balance')"
+            :header="t('scheduled_payments.fee_balance')"
             :sortable="true"
           >
             <template #body="slotProps">
               {{
+                state.feeAssetData &&
                 formatCurrency(
                   slotProps.data.balanceFee,
-                  state.feeAssetData["unit-name"] ?? state.feeAssetData.name,
-                  state.feeAssetData.decimals
+                  state.feeAssetData.unitName ?? state.feeAssetData.name,
+                  state.feeAssetData.decimals ?? 0
                 )
               }}
             </template>
           </Column>
           <Column
             field="fee"
-            :header="$t('scheduled_payments.execution_fee')"
+            :header="t('scheduled_payments.execution_fee')"
             :sortable="true"
           >
             <template #body="slotProps">
               {{
+                state.feeAssetData &&
                 formatCurrency(
                   slotProps.data.fee,
-                  state.feeAssetData["unit-name"] ?? state.feeAssetData.name,
-                  state.feeAssetData.decimals
+                  state.feeAssetData.unitName ?? state.feeAssetData.name,
+                  state.feeAssetData.decimals ?? 0
                 )
               }}
             </template>
           </Column>
         </DataTable>
         <p>
-          {{ $t("scheduled_payments.xgov_promo") }}
+          {{ t("scheduled_payments.xgov_promo") }}
           -
           <a
             href="https://github.com/algorandfoundation/xGov/blob/main/Proposals/xgov-90.md"

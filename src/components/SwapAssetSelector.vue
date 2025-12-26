@@ -10,7 +10,7 @@
         filter
         :options="assets"
         option-label="label"
-        option-value="asset-id"
+        option-value="assetId"
         :placeholder="$t('placeholders.source_asset')"
         class="w-full"
       >
@@ -26,7 +26,7 @@
         :options="assets"
         filter
         option-label="label"
-        option-value="asset-id"
+        option-value="assetId"
         :placeholder="$t('placeholders.destination_asset')"
         class="w-full"
       >

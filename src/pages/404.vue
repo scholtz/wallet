@@ -12,11 +12,6 @@
   </PublicLayout>
 </template>
 
-<script>
+<script lang="ts" setup>
 import PublicLayout from "../layouts/Public.vue";
-export default {
-  components: {
-    PublicLayout,
-  },
-};
 </script>

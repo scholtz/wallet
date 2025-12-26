@@ -36,6 +36,7 @@
     "yes": "Igen",
     "no": "Nem",
     "loading": "Betöltés alatt...",
+    "last_error": "Utolsó hiba",
     "keyword_search": "Kulcsszó keresés"
   },
   "navbar": {
@@ -66,6 +67,7 @@
     "apps_optin_button": "Benevezés az alkalmazásokba",
     "execute_button_deflex": "Végrehajtás a Deflex használatával",
     "execute_button_folks": "Végrehajtás a Folks router használatával",
+    "execute_button_biatec": "Végrehajtás Biatec routerrel",
     "slippage": "Százalékos különbözet"
   },
   "govtoolsmenu": {

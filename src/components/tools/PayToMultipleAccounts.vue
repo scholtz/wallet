@@ -132,7 +132,7 @@ export default {
             try {
               const secret = algosdk.mnemonicToSecretKey(mn.trim());
               account = secret.addr;
-            } catch (e) {
+            } catch {
               this.results += "Mnemonic is invalid: " + line + "\n";
               continue;
             }
@@ -170,8 +170,8 @@ export default {
                 this.sending = false;
               }
             });
-          } catch (e) {
-            console.error("error", e);
+          } catch (error) {
+            console.error("error", error);
           }
         }
       }

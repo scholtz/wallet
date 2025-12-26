@@ -2,7 +2,6 @@
 import { useStore } from "vuex";
 import MainLayout from "../../layouts/Main.vue";
 import { reactive, onMounted } from "vue";
-import { useI18n } from "vue-i18n";
 import Password from "primevue/password";
 import Button from "primevue/button";
 import { wordlist } from "@scure/bip39/wordlists/english";
@@ -11,9 +10,11 @@ import { Shamir } from "@spliterati/shamir";
 import algosdk from "algosdk";
 
 import { useRouter } from "vue-router";
-const store = useStore();
+import { RootState } from "@/store";
+import { useI18n } from "vue-i18n";
+const { t } = useI18n();
+const store = useStore<RootState>();
 const router = useRouter();
-const { t } = useI18n(); // use as global scope
 const state = reactive({
   mn: [""],
   name: "",
@@ -138,16 +139,16 @@ onMounted(async () => {
 </script>
 <template>
   <MainLayout>
-    <h1>{{ $t("new_account_shamir.header") }}</h1>
+    <h1>{{ t("new_account_shamir.header") }}</h1>
 
     <Card>
       <template #content>
         <p>
-          {{ $t("new_account_shamir.help") }}
+          {{ t("new_account_shamir.help") }}
         </p>
-        <div class="field grid" v-for="(mn, index) in state.mn">
+        <div class="field grid" v-for="(mn, index) in state.mn" :key="index">
           <label :for="`mn${index}`" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("new_account_shamir.mnemonic") }} #{{ index + 1 }}
+            {{ t("new_account_shamir.mnemonic") }} #{{ index + 1 }}
           </label>
           <div class="col-12 md:col-10">
             <Password
@@ -165,13 +166,13 @@ onMounted(async () => {
           <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
           <div class="col-12 md:col-10">
             <Button @click="state.mn.push('')" severity="secondary">
-              {{ $t("new_account_shamir.add_mnemnic") }}
+              {{ t("new_account_shamir.add_mnemnic") }}
             </Button>
           </div>
         </div>
         <div class="field grid">
           <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">{{
-            $t("new_account_shamir.account_name")
+            t("new_account_shamir.account_name")
           }}</label>
           <div class="col-12 md:col-10">
             <InputText
@@ -186,7 +187,7 @@ onMounted(async () => {
           <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
           <div class="col-12 md:col-10">
             <Button @click="recover" severity="primary">
-              {{ $t("new_account_shamir.recover") }}
+              {{ t("new_account_shamir.recover") }}
             </Button>
           </div>
         </div>

@@ -45,6 +45,13 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
   - ESLint errors in `vue.config.js` due to obfuscated code are expected
   - Exit code 1 is normal due to ESLint errors
 
+### Localization
+
+- **Master File**: `src/locales/en.json` is the source of truth for all localization keys.
+- **Synchronization**: All other locale files (`af.json`, `cs.json`, `es.json`, `hu.json`, `it.json`, `nl.json`, `ru.json`, `sk.json`, `tr.json`) MUST have the exact same keys in the exact same order as `en.json`.
+- **Missing Translations**: If a key is missing in a target locale, it should be added. If a translation is not available, use the English value as a placeholder or attempt a translation.
+- **Formatting**: Ensure all JSON files use 2-space indentation and have a newline at the end.
+
 ## Testing
 
 ### Cypress E2E Tests

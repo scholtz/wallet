@@ -1,16 +1,53 @@
-<script setup>
+<script setup lang="ts">
 import MainLayout from "../../layouts/Main.vue";
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
+import { RootState } from "@/store";
 import algosdk from "algosdk";
 import QRCodeVue3 from "qrcode-vue3";
 
-import Worker from "worker-loader!../../workers/vanity";
+import Worker from "../../workers/vanity.ts?worker";
 import moment from "moment";
 
-const state = reactive({
+type VanityPage = "vanity" | "newaccount";
+
+interface VanityWorkerAccount {
+  addr?: string;
+  sk?: Uint8Array | number[];
+}
+
+type VanityWorkerMessage = VanityWorkerAccount | number;
+
+interface VanityState {
+  lastError: string;
+  addr: string;
+  name: string;
+  page: VanityPage;
+  w: string;
+  a: string;
+  showQR: boolean;
+  guess: string;
+  challenge: boolean;
+  r: number;
+  vanityStart: string;
+  vanityMid: string;
+  vanityEnd: string;
+  vanityRunning: boolean;
+  vanityCount: number;
+  vanityThreads: Worker[];
+  vanityWorkers: number;
+  vanityStarted: moment.Moment;
+  vanityTime: string;
+  vanityRPS: number;
+}
+
+const store = useStore<RootState>();
+const router = useRouter();
+const { t } = useI18n();
+
+const state = reactive<VanityState>({
   lastError: "",
   addr: "",
   name: "",
@@ -21,7 +58,6 @@ const state = reactive({
   guess: "",
   challenge: false,
   r: 1,
-  s: false,
   vanityStart: "",
   vanityMid: "",
   vanityEnd: "",
@@ -41,7 +77,6 @@ const reset = async () => {
   state.guess = "";
   state.r = 1;
   state.page = "vanity";
-  state.s = false;
   state.w = "";
   state.addr = "";
 
@@ -53,19 +88,14 @@ const reset = async () => {
   router.push({ name: "Accounts" });
 };
 
-const { t } = useI18n(); // use as global scope
-
-const store = useStore();
-const router = useRouter();
-
 const createAccount = async () => {
   try {
     state.page = "newaccount";
     let account = algosdk.generateAccount();
-    state.a = account.addr;
+    state.a = account.addr.toString();
     state.w = algosdk.secretKeyToMnemonic(account.sk);
-  } catch (err) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err.message : String(err);
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);
   }
@@ -95,8 +125,8 @@ async function confirmCreate() {
     }
 
     router.push({ name: "Accounts" });
-  } catch (err) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err.message : String(err);
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);
   }
@@ -107,8 +137,8 @@ onMounted(async () => {
 const createVanityStopClick = async () => {
   state.vanityRunning = false;
 
-  for (let index in state.vanityThreads) {
-    state.vanityThreads[index].terminate();
+  for (const worker of state.vanityThreads) {
+    worker.terminate();
   }
 };
 
@@ -117,43 +147,57 @@ const createVanityStartClick = async () => {
     state.vanityCount = 0;
     state.vanityRunning = true;
     state.vanityStarted = moment();
-    for (let index in state.vanityThreads) {
-      state.vanityThreads[index].terminate();
+    for (const worker of state.vanityThreads) {
+      worker.terminate();
     }
     state.vanityThreads = [];
     for (let i = 0; i < state.vanityWorkers; i++) {
       const worker = new Worker();
 
-      worker.addEventListener("message", async (e) => {
-        const account = e.data;
-        if (e.data && e.data.addr) {
-          state.vanityRunning = false;
-          state.a = account.addr;
-          state.w = algosdk.secretKeyToMnemonic(account.sk);
-        } else {
-          state.vanityCount += e.data;
-        }
-
-        if (state.vanityRunning) {
-          worker.postMessage({
-            vanityStart: state.vanityStart,
-            vanityMid: state.vanityMid,
-            vanityEnd: state.vanityEnd,
-          });
-          await store.dispatch("wallet/prolong");
-        } else {
-          for (let index in state.vanityThreads) {
-            state.vanityThreads[index].terminate();
+      worker.addEventListener(
+        "message",
+        async (e: MessageEvent<VanityWorkerMessage>) => {
+          const payload = e.data;
+          if (
+            payload &&
+            typeof payload === "object" &&
+            "addr" in payload &&
+            payload.addr
+          ) {
+            state.vanityRunning = false;
+            state.a = payload.addr;
+            const secretKey =
+              payload.sk instanceof Uint8Array
+                ? payload.sk
+                : new Uint8Array(payload.sk ?? []);
+            state.w = algosdk.secretKeyToMnemonic(secretKey);
+          } else {
+            state.vanityCount += typeof payload === "number" ? payload : 0;
           }
-        }
-        const duration = moment.duration(moment().diff(state.vanityStarted));
-        const miliseconds = parseInt(duration.valueOf().toString());
-        state.vanityTime = moment.utc(miliseconds).format("HH:mm:ss");
 
-        state.vanityRPS =
-          Math.round((state.vanityCount / miliseconds) * 1000000) / 1000;
-        //.subtract(moment(this.vanityStarted))
-      });
+          if (state.vanityRunning) {
+            worker.postMessage({
+              vanityStart: state.vanityStart,
+              vanityMid: state.vanityMid,
+              vanityEnd: state.vanityEnd,
+            });
+            await store.dispatch("wallet/prolong");
+          } else {
+            for (const workerInstance of state.vanityThreads) {
+              workerInstance.terminate();
+            }
+          }
+          const duration = moment.duration(moment().diff(state.vanityStarted));
+          const miliseconds = parseInt(duration.valueOf().toString());
+          state.vanityTime = moment.utc(miliseconds).format("HH:mm:ss");
+
+          state.vanityRPS =
+            miliseconds > 0
+              ? Math.round((state.vanityCount / miliseconds) * 1000000) / 1000
+              : 0;
+          //.subtract(moment(this.vanityStarted))
+        }
+      );
       worker.postMessage({
         vanityStart: state.vanityStart,
         vanityMid: state.vanityMid,
@@ -162,7 +206,7 @@ const createVanityStartClick = async () => {
       state.vanityThreads.push(worker);
     }
   } catch (err) {
-    const error = err.message ?? err;
+    const error = err instanceof Error ? err.message : String(err);
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);
   }
@@ -174,14 +218,14 @@ const useVanityStartClick = () => {
 </script>
 <template>
   <MainLayout>
-    <h1>{{ $t("newacc.create_vanity") }}</h1>
+    <h1>{{ t("newacc.create_vanity") }}</h1>
 
     <Card>
       <template #content>
         <div v-if="state.page == 'vanity'">
           <div class="field grid">
             <label for="startsWith" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.vanity_start") }}
+              {{ t("newacc.vanity_start") }}
             </label>
             <div class="col-12 md:col-10">
               <InputText
@@ -193,7 +237,7 @@ const useVanityStartClick = () => {
           </div>
           <div class="field grid">
             <label for="contains" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.vanity_mid") }}
+              {{ t("newacc.vanity_mid") }}
             </label>
             <div class="col-12 md:col-10">
               <InputText
@@ -205,7 +249,7 @@ const useVanityStartClick = () => {
           </div>
           <div class="field grid">
             <label for="endsWith" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.vanity_end") }}
+              {{ t("newacc.vanity_end") }}
             </label>
             <div class="col-12 md:col-10">
               <InputText
@@ -217,7 +261,7 @@ const useVanityStartClick = () => {
           </div>
           <div class="field grid">
             <label for="workersCount" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.vanity_workers") }}
+              {{ t("newacc.vanity_workers") }}
             </label>
             <div class="col-12 md:col-10">
               <InputNumber
@@ -235,7 +279,7 @@ const useVanityStartClick = () => {
           <div class="field grid" v-if="state.vanityCount">
             <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
             <div class="col-12 md:col-10">
-              {{ $t("newacc.vanity_count") }} {{ state.vanityCount }}
+              {{ t("newacc.vanity_count") }} {{ state.vanityCount }}
               {{ state.vanityTime }} ({{ state.vanityRPS }}/s)
             </div>
           </div>
@@ -255,7 +299,7 @@ const useVanityStartClick = () => {
                 class="my-1"
                 @click="useVanityStartClick"
               >
-                {{ $t("newacc.vanity_use") }}
+                {{ t("newacc.vanity_use") }}
               </Button>
               <Button
                 v-if="!state.vanityRunning"
@@ -263,17 +307,17 @@ const useVanityStartClick = () => {
                 :severity="state.a ? 'secondary' : 'primary'"
                 @click="createVanityStartClick"
               >
-                {{ $t("newacc.vanity_button_start") }}
+                {{ t("newacc.vanity_button_start") }}
               </Button>
               <Button
                 v-if="state.vanityRunning"
                 class="my-1 ml-1"
                 @click="createVanityStopClick"
               >
-                {{ $t("newacc.vanity_button_stop") }}
+                {{ t("newacc.vanity_button_stop") }}
               </Button>
               <Button severity="secondary" class="m-1" @click="reset">
-                {{ $t("global.go_back") }}
+                {{ t("global.go_back") }}
               </Button>
             </div>
           </div>
@@ -301,7 +345,7 @@ const useVanityStartClick = () => {
           </div>
           <div class="field grid">
             <label for="guess" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.position_question") }} {{ state.r }}?
+              {{ t("newacc.position_question") }} {{ state.r }}?
             </label>
             <div class="col-12 md:col-10">
               <InputText id="guess" v-model="state.guess" class="w-full" />
@@ -309,7 +353,7 @@ const useVanityStartClick = () => {
           </div>
           <div class="field grid">
             <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.name") }}
+              {{ t("newacc.name") }}
             </label>
             <div class="col-12 md:col-10">
               <InputText id="name" v-model="state.name" class="w-full" />
@@ -319,20 +363,20 @@ const useVanityStartClick = () => {
             <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
             <div class="col-12 md:col-10">
               <Button class="m-1" @click="confirmCreate">
-                {{ $t("newacc.create_account") }}
+                {{ t("newacc.create_account") }}
               </Button>
               <Button class="m-1" @click="state.challenge = false">
-                {{ $t("global.go_back") }}
+                {{ t("global.go_back") }}
               </Button>
             </div>
           </div>
         </div>
         <div v-if="!state.challenge && state.page == 'newaccount'">
           <p>
-            {{ $t("newacc.create_account_help") }}
+            {{ t("newacc.create_account_help") }}
           </p>
           <p>
-            {{ $t("newacc.mnemonic_help") }}
+            {{ t("newacc.mnemonic_help") }}
           </p>
           <Password
             v-model="state.w"
@@ -348,7 +392,7 @@ const useVanityStartClick = () => {
             @click="state.showQR = true"
             class="m-1"
           >
-            {{ $t("newacc.show_qr_code") }}
+            {{ t("newacc.show_qr_code") }}
           </Button>
           <QRCodeVue3
             v-if="state.showQR"
@@ -383,13 +427,13 @@ const useVanityStartClick = () => {
           />
 
           <Button class="m-1" @click="makeRandom">
-            {{ $t("newacc.start_challenge") }}
+            {{ t("newacc.start_challenge") }}
           </Button>
           <Button severity="secondary" class="m-1" @click="createAccount">
-            {{ $t("newacc.create_new") }}
+            {{ t("newacc.create_new") }}
           </Button>
           <Button severity="secondary" class="m-1" @click="reset">
-            {{ $t("newacc.drop_phrase") }}
+            {{ t("newacc.drop_phrase") }}
           </Button>
         </div>
       </template>

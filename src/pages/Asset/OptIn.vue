@@ -40,7 +40,7 @@
               <Button
                 type="submit"
                 class="my-2"
-                :severity="asset && asset['asset-id'] ? 'secondary' : 'primary'"
+                :severity="asset && asset['assetId'] ? 'secondary' : 'primary'"
               >
                 {{ $t("optin.searchButton") }}
               </Button>
@@ -106,7 +106,7 @@
             </Button>
           </template>
         </Dialog>
-        <Panel v-if="asset && asset['asset-id']" class="card">
+        <Panel v-if="asset && asset['assetId']" class="card">
           <template #header>
             {{ $t("optin.assetInfo") }}
           </template>
@@ -122,7 +122,7 @@
               </tr>
               <tr>
                 <th>{{ $t("optin.assetId") }}</th>
-                <td>{{ asset["asset-id"] }}</td>
+                <td>{{ asset["assetId"] }}</td>
               </tr>
               <tr>
                 <th>{{ $t("optin.assetName") }}</th>
@@ -321,7 +321,7 @@ export default {
       this.optInProcessing = false;
       if (this.searchById) {
         this.asset = await this.getAsset({ assetIndex: this.assetId });
-        if (!this.asset || !this.asset["asset-id"]) {
+        if (!this.asset || !this.asset["assetId"]) {
           this.openError(this.$t("optin.asset_not_found"));
         }
       } else {
@@ -346,7 +346,7 @@ export default {
         amount: 0,
         noteEnc: new Uint8Array([]),
         fee: 1000,
-        asset: this.asset["asset-id"],
+        asset: this.asset["assetId"],
       };
       const result = await this.makePayment(data);
       if (result) {
@@ -366,7 +366,7 @@ export default {
         amount: 0,
         noteEnc: new Uint8Array([]),
         fee: 1000,
-        asset: this.asset["asset-id"],
+        asset: this.asset["assetId"],
       };
       const txn = await this.preparePayment(data);
       const encodedtxn = algosdk.encodeUnsignedTransaction(txn);

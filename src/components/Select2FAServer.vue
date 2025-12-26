@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed } from "vue";
 import { useStore } from "vuex";
 import Dropdown from "primevue/dropdown";
 import { useI18n } from "vue-i18n";
+import { RootState } from "@/store";
 
 const props = defineProps({
   modelValue: String,
@@ -21,7 +22,7 @@ const model = computed({
   },
 });
 
-const store = useStore();
+const store = useStore<RootState>();
 const { t } = useI18n();
 
 const options = await store.dispatch("publicData/getTwoFactorAuthList", {
@@ -39,7 +40,7 @@ if (options && options.length == 1) {
     :options="options"
     optionLabel="providerName"
     optionValue="id"
-    :placeholder="$t('account.select_account')"
+    :placeholder="t('account.select_account')"
     class="w-full"
     inputClass="w-full"
     :itemid="props.itemId"

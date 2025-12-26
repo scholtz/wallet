@@ -1,12 +1,12 @@
 import IAsset from "./IAsset";
 
 class CAsset implements IAsset {
-  "asset-id": number = 0;
-  amount: number = 0;
+  assetId: bigint = 0n;
+  amount: bigint = 0n;
   name: string = "";
   decimals: number = 0;
-  "unit-name": string = "";
-  type: string = "";
+  unitName: string = "";
+  type: "Native" | "ASA" | "ARC200" = "Native";
   label: string = "";
 }
 

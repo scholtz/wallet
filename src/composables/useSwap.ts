@@ -3,21 +3,32 @@ import { ref, computed, Ref } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { dexAggregators } from "../scripts/dexAggregators";
-import type { Asset } from "../types/swap";
+import { SwapContext } from "../scripts/aggregators/types";
+import type { Account, SwapStore } from "../types/swap";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
+import { RootState } from "@/store";
+import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
+import { AccountAssetHolding } from "@/store/wallet";
+
+const normalizeAmount = (value: number | bigint | undefined | null): number => {
+  if (typeof value === "bigint") return Number(value);
+  if (typeof value === "number") return value;
+  if (value === null || value === undefined) return 0;
+  return Number(value);
+};
 
 export function useSwap() {
-  const store = useStore();
+  const store = useStore<RootState>();
   const route = useRoute();
 
   // Reactive state
-  const assets: Ref<Asset[]> = ref([]);
+  const assets: Ref<ExtendedStoredAsset[]> = ref([]);
   const asset: Ref<number | null> = ref(null);
   const toAsset: Ref<number | null> = ref(null);
   const payamount: Ref<number> = ref(0);
-  const fromAssetObj: Ref<Partial<Asset>> = ref({});
-  const toAssetObj: Ref<Partial<Asset>> = ref({});
+  const fromAssetObj: Ref<StoredAsset | undefined> = ref(undefined);
+  const toAssetObj: Ref<StoredAsset | undefined> = ref(undefined);
   const txsDetails: Ref<string> = ref(
     "Select assets, quantity and request quote"
   );
@@ -28,6 +39,7 @@ export function useSwap() {
   const error: Ref<string> = ref("");
   const slippage: Ref<number> = ref(0.1);
   const fee: Ref<number> = ref(0);
+  const loadingAssets: Ref<boolean> = ref(true);
 
   // Initialize aggregator data dynamically with proper typing
   const aggregatorData: Record<string, Ref<any>> = {};
@@ -42,7 +54,7 @@ export function useSwap() {
     );
   });
 
-  // Computed properties
+  // Computed properties (Independent of context)
   const formInvalid = computed<boolean>(
     () =>
       !(
@@ -67,8 +79,9 @@ export function useSwap() {
 
   const selectedAssetFromAccount = computed(() =>
     accountData.value
-      ? accountData.value["assets"].find(
-          (a: any) => a["asset-id"] == asset.value
+      ? accountData.value.assets?.find(
+          (a: AccountAssetHolding) =>
+            BigInt(a.assetId) == BigInt(asset.value ?? 0n)
         )
       : undefined
   );
@@ -95,36 +108,31 @@ export function useSwap() {
 
   const maxAmount = computed<number>(() => {
     if (!account.value) return 0;
+    const accountInfo =
+      accountData.value && typeof accountData.value === "object"
+        ? accountData.value
+        : null;
+    if (!accountInfo) return 0;
+
     if (asset.value && asset.value > 0) {
-      if (!selectedAssetFromAccount.value) return 0;
-      return selectedAssetFromAccount.value.amount / decimalsPower.value;
-    } else {
-      let ret = accountData.value.amount / 1000000 - 0.1;
-      ret = ret - fee.value;
-      if (accountData.value["assets"] && accountData.value["assets"].length > 0)
-        ret = ret - accountData.value["assets"].length * 0.1;
-      return ret;
+      const selectedAmount = normalizeAmount(
+        selectedAssetFromAccount.value?.amount
+      );
+      return selectedAmount / decimalsPower.value;
     }
+
+    let ret = normalizeAmount(accountInfo.amount) / 1_000_000 - 0.1;
+    ret -= fee.value;
+    const assetsLength = accountInfo["assets"]?.length ?? 0;
+    if (assetsLength > 0) {
+      ret -= assetsLength * 0.1;
+    }
+    return ret;
   });
 
   const stepAmount = computed<number>(() =>
     Math.pow(10, -1 * fromAssetDecimals.value)
   );
-
-  const allowExecuteDeflex = computed<boolean>(() => {
-    const agg = dexAggregators.find((a) => a.name === "deflex");
-    return agg ? agg.allowExecute(getComponentContext()) : false;
-  });
-
-  const allowExecuteFolks = computed<boolean>(() => {
-    const agg = dexAggregators.find((a) => a.name === "folks");
-    return agg ? agg.allowExecute(getComponentContext()) : false;
-  });
-
-  const allowExecuteBiatec = computed<boolean>(() => {
-    const agg = dexAggregators.find((a) => a.name === "biatec");
-    return agg ? agg.allowExecute(getComponentContext()) : false;
-  });
 
   const appsToOptIn = computed<number[]>(() => {
     const requiredAppOptIns =
@@ -151,20 +159,20 @@ export function useSwap() {
 
   const unit = computed<string>(() => {
     if (!fromAssetObj.value) return "";
-    if (fromAssetObj.value["unit-name"]) return fromAssetObj.value["unit-name"];
-    return fromAssetObj.value["name"] || "";
+    if (fromAssetObj.value.unitName) return fromAssetObj.value.unitName;
+    return fromAssetObj.value.name || "";
   });
 
   const fromAssetUnit = computed<string>(() => {
     if (!fromAssetObj.value) return "";
-    if (fromAssetObj.value["unit-name"]) return fromAssetObj.value["unit-name"];
-    return fromAssetObj.value["name"] || "";
+    if (fromAssetObj.value.unitName) return fromAssetObj.value.unitName;
+    return fromAssetObj.value.name || "";
   });
 
   const toAssetUnit = computed<string>(() => {
     if (!toAssetObj.value) return "";
-    if (toAssetObj.value["unit-name"]) return toAssetObj.value["unit-name"];
-    return toAssetObj.value["name"] || "";
+    if (toAssetObj.value.unitName) return toAssetObj.value.unitName;
+    return toAssetObj.value.name || "";
   });
 
   const pair = computed<string>(
@@ -175,142 +183,18 @@ export function useSwap() {
     () => `${toAssetUnit.value}/${fromAssetUnit.value}`
   );
 
-  const isFolksQuoteBetter = computed<boolean>(() => {
-    const agg = dexAggregators.find((a) => a.name === "folks");
-    return agg ? agg.isQuoteBetter(getComponentContext()) : false;
-  });
+  // Helper functions (Moved up)
+  const checkNetwork = (): string | false => {
+    const env = store.state.config.env;
+    if (env == "mainnet-v1.0" || env == "mainnet") {
+      return "mainnet";
+    }
+    if (env == "testnet-v1.0" || env == "testnet") {
+      return "testnet";
+    }
+    return false;
+  };
 
-  const isBiatecQuoteBetter = computed<boolean>(() => {
-    const agg = dexAggregators.find((a) => a.name === "biatec");
-    return agg ? agg.isQuoteBetter(getComponentContext()) : false;
-  });
-
-  const isDeflexQuoteBetter = computed<boolean>(() => {
-    const agg = dexAggregators.find((a) => a.name === "deflex");
-    return agg ? agg.isQuoteBetter(getComponentContext()) : false;
-  });
-
-  // Helper function to get component context for aggregator methods
-  function getComponentContext() {
-    const context = {
-      // Basic properties from SwapComponentData
-      assets: assets.value,
-      asset: asset.value,
-      toAsset: toAsset.value,
-      payamount: payamount.value,
-      account: account.value,
-      fromAssetObj: fromAssetObj.value,
-      toAssetObj: toAssetObj.value,
-      txsDetails: txsDetails.value,
-      hasSK: hasSK.value,
-      processingQuote: processingQuote.value,
-      processingOptin: processingOptin.value,
-      note: note.value,
-      error: error.value,
-      slippage: slippage.value,
-      fee: fee.value,
-
-      // Computed properties
-      fromAssetDecimals: fromAssetDecimals.value,
-      toAssetDecimals: toAssetDecimals.value,
-      requiresOptIn: requiresOptIn.value,
-
-      // Store and route access (for SwapComponent interface)
-      $store: store,
-      $route: route as any,
-      dexAggregators,
-      algosdk,
-
-      // Methods
-      openSuccess: (message: string) =>
-        store.dispatch("toast/openSuccess", message),
-      openError: (message: string) =>
-        store.dispatch("toast/openError", message),
-      axiosGet: (config: { url: string }) =>
-        store.dispatch("axios/get", config),
-      axiosPost: (config: { url: string; body?: any; config?: any }) =>
-        store.dispatch("axios/post", config),
-      getSK: (config: { addr: string }) =>
-        store.dispatch("wallet/getSK", config),
-      getAsset: (config: { assetIndex: number }) =>
-        store.dispatch("indexer/getAsset", config),
-      sendRawTransaction: (config: { signedTxn: Uint8Array | Uint8Array[] }) =>
-        store.dispatch("algod/sendRawTransaction", config),
-      waitForConfirmation: (config: { txId: string; timeout: number }) =>
-        store.dispatch("algod/waitForConfirmation", config),
-      prolong: () => store.dispatch("wallet/prolong"),
-      reloadAccount: () => store.dispatch("wallet/reloadAccount"),
-      checkNetwork,
-      signAuthTx: (config: { account: string; realm: string }) =>
-        store.dispatch("arc14/signAuthTx", config),
-    };
-
-    // Create a proxy that updates reactive refs when aggregator properties are set
-    return new Proxy(context, {
-      get(target, prop) {
-        // Map key reactive fields back to refs so changes are visible in the UI
-        if (prop === "txsDetails") {
-          return txsDetails.value;
-        }
-        if (prop === "note") {
-          return note.value;
-        }
-        if (prop === "error") {
-          return error.value;
-        }
-        if (prop === "processingQuote") {
-          return processingQuote.value;
-        }
-        if (prop === "processingOptin") {
-          return processingOptin.value;
-        }
-
-        // First check if it's a direct property
-        if (prop in target) {
-          return target[prop as keyof typeof target];
-        }
-        // Then check if it's an aggregator data property
-        if (prop in aggregatorData) {
-          return aggregatorData[prop as keyof typeof aggregatorData].value;
-        }
-        return undefined;
-      },
-      set(target, prop, value) {
-        // Keep key fields in sync with refs when aggregators write to them
-        if (prop === "txsDetails") {
-          txsDetails.value = value as string;
-          return true;
-        }
-        if (prop === "note") {
-          note.value = value as string;
-          return true;
-        }
-        if (prop === "error") {
-          error.value = value as string;
-          return true;
-        }
-        if (prop === "processingQuote") {
-          processingQuote.value = Boolean(value);
-          return true;
-        }
-        if (prop === "processingOptin") {
-          processingOptin.value = Boolean(value);
-          return true;
-        }
-
-        // If it's an aggregator data property, update the reactive ref
-        if (prop in aggregatorData) {
-          aggregatorData[prop as keyof typeof aggregatorData].value = value;
-          return true;
-        }
-        // Otherwise, set it on the target
-        (target as any)[prop] = value;
-        return true;
-      },
-    });
-  }
-
-  // Methods
   const reloadAccount = async (): Promise<void> => {
     await store
       .dispatch("indexer/accountInformation", {
@@ -327,7 +211,93 @@ export function useSwap() {
     hasSK.value = senderSK && senderSK.length > 0;
   };
 
+  // Context definition
+  const context: SwapContext = {
+    // Basic properties from SwapComponentData
+    assets,
+    asset,
+    toAsset,
+    payamount,
+    account: account as unknown as Ref<Account | undefined>,
+    fromAssetObj,
+    toAssetObj,
+    txsDetails,
+    hasSK,
+    processingQuote,
+    processingOptin,
+    note,
+    error,
+    slippage,
+    fee,
+
+    // Computed properties
+    fromAssetDecimals,
+    toAssetDecimals,
+    requiresOptIn,
+
+    // Store and route access (for SwapComponent interface)
+    $store: store as unknown as SwapStore,
+    $route: route as any,
+    dexAggregators,
+    aggregatorData,
+
+    // Methods
+    openSuccess: (message: string) =>
+      store.dispatch("toast/openSuccess", message),
+    openError: (message: string) => store.dispatch("toast/openError", message),
+    axiosGet: (config: { url: string }) => store.dispatch("axios/get", config),
+    axiosPost: (config: { url: string; body?: any; config?: any }) =>
+      store.dispatch("axios/post", config),
+    getSK: (config: { addr: string }) => store.dispatch("wallet/getSK", config),
+    getAsset: (config: { assetIndex: number }) =>
+      store.dispatch("indexer/getAsset", config),
+    sendRawTransaction: (config: {
+      signedTxn: Uint8Array | Uint8Array[];
+    }): Promise<algosdk.modelsv2.PostTransactionsResponse> =>
+      store.dispatch("algod/sendRawTransaction", config),
+    waitForConfirmation: (config: { txId: string; timeout: number }) =>
+      store.dispatch("algod/waitForConfirmation", config),
+    prolong: () => store.dispatch("wallet/prolong"),
+    reloadAccount,
+    checkNetwork,
+    signAuthTx: (config: { account: string; realm: string }) =>
+      store.dispatch("arc14/signAuthTx", config),
+  };
+
+  // Computed properties dependent on context
+  const allowExecuteDeflex = computed<boolean>(() => {
+    const agg = dexAggregators.find((a) => a.name === "deflex");
+    return agg ? agg.allowExecute(context) : false;
+  });
+
+  const allowExecuteFolks = computed<boolean>(() => {
+    const agg = dexAggregators.find((a) => a.name === "folks");
+    return agg ? agg.allowExecute(context) : false;
+  });
+
+  const allowExecuteBiatec = computed<boolean>(() => {
+    const agg = dexAggregators.find((a) => a.name === "biatec");
+    return agg ? agg.allowExecute(context) : false;
+  });
+
+  const isFolksQuoteBetter = computed<boolean>(() => {
+    const agg = dexAggregators.find((a) => a.name === "folks");
+    return agg ? agg.isQuoteBetter(context) : false;
+  });
+
+  const isBiatecQuoteBetter = computed<boolean>(() => {
+    const agg = dexAggregators.find((a) => a.name === "biatec");
+    return agg ? agg.isQuoteBetter(context) : false;
+  });
+
+  const isDeflexQuoteBetter = computed<boolean>(() => {
+    const agg = dexAggregators.find((a) => a.name === "deflex");
+    return agg ? agg.isQuoteBetter(context) : false;
+  });
+
+  // Methods dependent on context or other methods
   const makeAssets = async (): Promise<void> => {
+    loadingAssets.value = true;
     assets.value = [];
     if (accountData.value) {
       const balance = formatCurrency(
@@ -336,22 +306,22 @@ export function useSwap() {
         6
       );
       assets.value.push({
-        "asset-id": 0,
-        amount: accountData.value.amount,
+        assetId: 0n,
+        amount: BigInt(accountData.value.amount ?? 0n),
         name: store.state.config.tokenSymbol,
         decimals: 6,
-        "unit-name": store.state.config.tokenSymbol,
+        unitName: store.state.config.tokenSymbol,
         type: "Native",
         label: `${store.state.config.tokenSymbol} (Native token) Balance: ${balance}`,
       });
     } else {
       const balance = formatCurrency(0, store.state.config.tokenSymbol, 6);
       assets.value.push({
-        "asset-id": 0,
-        amount: 0,
+        assetId: 0n,
+        amount: 0n,
         name: store.state.config.tokenSymbol,
         decimals: 6,
-        "unit-name": store.state.config.tokenSymbol,
+        unitName: store.state.config.tokenSymbol,
         type: "Native",
         label: `${store.state.config.tokenSymbol} (Native token) Balance: ${balance}`,
       });
@@ -359,42 +329,45 @@ export function useSwap() {
 
     if (accountData.value && accountData.value.assets) {
       // Parallel fetch all asset infos
+      console.log("Fetching asset infos for assets", accountData.value.assets);
       const assetPromises = accountData.value.assets.map(
-        (asset: any) =>
+        (asset: AccountAssetHolding) =>
           store
             .dispatch("indexer/getAsset", {
-              assetIndex: asset["asset-id"],
+              assetIndex: BigInt(asset.assetId ?? (asset as any)["asset-id"]),
             })
             .catch(() => null) // Ignore errors for individual assets
       );
-      const assetInfos = await Promise.all(assetPromises);
-
+      const assetInfos = (await Promise.all(assetPromises)) as StoredAsset[];
+      console.log("Fetched asset infos", assetInfos);
       for (let index = 0; index < accountData.value.assets.length; index++) {
         const assetInfo = assetInfos[index];
         if (assetInfo) {
           const balance = formatCurrency(
             accountData.value.assets[index]["amount"],
-            assetInfo["unit-name"] ? assetInfo["unit-name"] : assetInfo["name"],
-            assetInfo["decimals"]
+            assetInfo.unitName ? assetInfo.unitName : assetInfo.name ?? "",
+            assetInfo.decimals ?? 6
           );
 
           assets.value.push({
-            "asset-id": accountData.value.assets[index]["asset-id"],
-            amount: accountData.value.assets[index]["amount"],
-            name: assetInfo["name"],
-            decimals: assetInfo["decimals"],
-            "unit-name": assetInfo["unit-name"],
+            assetId: BigInt(accountData.value.assets[index].assetId),
+            amount: BigInt(accountData.value.assets[index]["amount"]),
+            name: assetInfo.name ?? "",
+            decimals: assetInfo.decimals ?? 6,
+            unitName: assetInfo.unitName ?? "",
             type: "ASA",
-            label: `${assetInfo["name"]} (ASA ${accountData.value.assets[index]["asset-id"]}) Balance: ${balance}`,
+            label: `${assetInfo["name"]} (ASA ${accountData.value.assets[index].assetId}) Balance: ${balance}`,
           });
         } else {
           console.error(
             "Asset not loaded",
-            accountData.value.assets[index]["asset-id"]
+            accountData.value.assets[index].assetId
           );
         }
       }
     }
+    loadingAssets.value = false;
+    console.log("makeAssets", assets.value);
   };
 
   const clickGetQuote = async (): Promise<void> => {
@@ -413,41 +386,33 @@ export function useSwap() {
 
     const promises = dexAggregators
       .filter((agg) => aggregatorData[agg.enabledKey].value)
-      .map((agg) => agg.getQuote(getComponentContext()));
+      .map((agg) => agg.getQuote(context));
 
     await Promise.all(promises);
     processingQuote.value = false;
   };
 
-  const checkNetwork = (): string | false => {
-    const env = store.state.config.env;
-    if (env == "mainnet-v1.0" || env == "mainnet") {
-      return "mainnet";
-    }
-    if (env == "testnet-v1.0" || env == "testnet") {
-      return "testnet";
-    }
-    return false;
-  };
-
   const clickExecuteFolks = async (): Promise<void> => {
     const agg = dexAggregators.find((a) => a.name === "folks");
     if (agg) {
-      await agg.execute(getComponentContext());
+      await agg.execute(context);
+      await reloadAccount();
     }
   };
 
   const clickExecuteBiatec = async (): Promise<void> => {
     const agg = dexAggregators.find((a) => a.name === "biatec");
     if (agg) {
-      await agg.execute(getComponentContext());
+      await agg.execute(context);
+      await reloadAccount();
     }
   };
 
   const clickExecuteDeflex = async (): Promise<void> => {
     const agg = dexAggregators.find((a) => a.name === "deflex");
     if (agg) {
-      await agg.execute(getComponentContext());
+      await agg.execute(context);
+      await reloadAccount();
     }
   };
 
@@ -462,31 +427,31 @@ export function useSwap() {
     const params = await store.dispatch("algod/getTransactionParams");
 
     let ret = "Processed in txs: ";
-    for (let app of appsToOptIn.value) {
-      const appOptInTxn = algosdk.makeApplicationOptInTxn(
-        account.value!.addr,
-        params,
-        app
-      );
+    for (const app of appsToOptIn.value) {
+      const appOptInTxn = algosdk.makeApplicationOptInTxnFromObject({
+        sender: account.value!.addr,
+        suggestedParams: params,
+        appIndex: app,
+      });
 
-      let signedTxn = await store.dispatch("signer/signTransaction", {
+      const signedTxn = await store.dispatch("signer/signTransaction", {
         from: account.value!.addr,
         tx: appOptInTxn,
       });
-      const tx = await store.dispatch("algod/sendRawTransaction", {
+      const tx = (await store.dispatch("algod/sendRawTransaction", {
         signedTxn,
-      });
-      if (!tx || !tx.txId) {
+      })) as algosdk.modelsv2.PostTransactionsResponse;
+      if (!tx || !tx.txid) {
         processingOptin.value = false;
         await reloadAccount();
         return;
       }
-      const confirmation = await store.dispatch("algod/waitForConfirmation", {
-        txId: tx.txId,
+      const confirmation = (await store.dispatch("algod/waitForConfirmation", {
+        txId: tx.txid,
         timeout: 4,
-      });
+      })) as algosdk.modelsv2.PendingTransactionResponse | undefined;
       if (confirmation) {
-        ret += tx.txId + ", ";
+        ret += tx.txid + ", ";
       } else {
         processingOptin.value = false;
         await reloadAccount();
@@ -516,6 +481,7 @@ export function useSwap() {
     slippage,
     fee,
     aggregatorData,
+    loadingAssets,
 
     // Computed
     formInvalid,
@@ -547,6 +513,5 @@ export function useSwap() {
     clickExecuteDeflex,
     swapTokens,
     clickOptInToApps,
-    getComponentContext,
   };
 }

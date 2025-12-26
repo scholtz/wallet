@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import MainLayout from "../../layouts/Main.vue";
 import { useStore } from "vuex";
-const store = useStore();
-import { PrimeIcons } from "primevue/api";
+const store = useStore<RootState>();
 import AccountTopMenu from "../../components/AccountTopMenu.vue";
-import ScrollPanel from "primevue/scrollpanel";
-import Fieldset from "primevue/fieldset";
+import { RootState } from "@/store";
+import { useI18n } from "vue-i18n";
+const { t } = useI18n(); // use as global scope
 </script>
 
 <template>
@@ -20,11 +20,11 @@ import Fieldset from "primevue/fieldset";
           >
             <Button class="w-full">
               <i class="pi pi-send mr-2"></i>
-              {{ $t("acc_overview.pay") }}
+              {{ t("acc_overview.pay") }}
             </Button>
           </RouterLink>
           <div class="col-12 md:col-10 h-full vertical-align-middle">
-            {{ $t("acc_overview.pay_help") }}
+            {{ t("acc_overview.pay_help") }}
           </div>
         </div>
 
@@ -38,11 +38,11 @@ import Fieldset from "primevue/fieldset";
           >
             <Button class="w-full">
               <i class="pi pi-replay mr-2"></i>
-              {{ $t("acc_overview.scheduled_payment") }}
+              {{ t("acc_overview.scheduled_payment") }}
             </Button>
           </RouterLink>
           <div class="col-12 md:col-10 h-full vertical-align-middle">
-            {{ $t("acc_overview.scheduled_payment_help") }}
+            {{ t("acc_overview.scheduled_payment_help") }}
           </div>
         </div>
 
@@ -53,11 +53,11 @@ import Fieldset from "primevue/fieldset";
           >
             <Button class="w-full">
               <i class="pi pi-money-bill mr-2"></i>
-              {{ $t("navbar.swap") }}
+              {{ t("navbar.swap") }}
             </Button>
           </RouterLink>
           <div class="col-12 md:col-10 h-full vertical-align-middle">
-            {{ $t("acc_overview.swap_help") }}
+            {{ t("acc_overview.swap_help") }}
           </div>
         </div>
         <div class="field grid">
@@ -67,11 +67,11 @@ import Fieldset from "primevue/fieldset";
           >
             <Button class="w-full">
               <i class="pi pi-shield mr-2"></i>
-              {{ $t("acc_overview.rekey") }}
+              {{ t("acc_overview.rekey") }}
             </Button>
           </RouterLink>
           <div class="col-12 md:col-10 h-full vertical-align-middle">
-            {{ $t("acc_overview.rekey_help") }}
+            {{ t("acc_overview.rekey_help") }}
           </div>
         </div>
         <div class="field grid">
@@ -81,11 +81,11 @@ import Fieldset from "primevue/fieldset";
           >
             <Button class="w-full">
               <i class="pi pi-plus mr-2"></i>
-              {{ $t("acc_overview.asset_optin") }}
+              {{ t("acc_overview.asset_optin") }}
             </Button>
           </RouterLink>
           <div class="col-12 md:col-10 h-full vertical-align-middle">
-            {{ $t("acc_overview.asset_optin_help") }}
+            {{ t("acc_overview.asset_optin_help") }}
           </div>
         </div>
         <div class="field grid">
@@ -95,11 +95,11 @@ import Fieldset from "primevue/fieldset";
           >
             <Button class="w-full">
               <i class="pi pi-plus mr-2"></i>
-              {{ $t("acc_overview.asset_optinArc200") }}
+              {{ t("acc_overview.asset_optinArc200") }}
             </Button>
           </RouterLink>
           <div class="col-12 md:col-10 h-full vertical-align-middle">
-            {{ $t("acc_overview.asset_optinArc200_help") }}
+            {{ t("acc_overview.asset_optinArc200_help") }}
           </div>
         </div>
         <div class="field grid">
@@ -109,11 +109,11 @@ import Fieldset from "primevue/fieldset";
           >
             <Button class="w-full">
               <i class="pi pi-clone mr-2"></i>
-              {{ $t("acc_overview.receive_payment") }}
+              {{ t("acc_overview.receive_payment") }}
             </Button>
           </RouterLink>
           <div class="col-12 md:col-10 h-full vertical-align-middle">
-            {{ $t("acc_overview.receive_payment_help") }}
+            {{ t("acc_overview.receive_payment_help") }}
           </div>
         </div>
         <div class="field grid">
@@ -123,11 +123,11 @@ import Fieldset from "primevue/fieldset";
           >
             <Button class="w-full">
               <i class="pi pi-upload mr-2"></i>
-              {{ $t("acc_overview.export") }}
+              {{ t("acc_overview.export") }}
             </Button>
           </RouterLink>
           <div class="col-12 md:col-10 h-full vertical-align-middle">
-            {{ $t("acc_overview.export_help") }}
+            {{ t("acc_overview.export_help") }}
           </div>
         </div>
         <div class="field grid">
@@ -137,11 +137,11 @@ import Fieldset from "primevue/fieldset";
           >
             <Button class="w-full">
               <i class="pi pi-unlock mr-2"></i>
-              {{ $t("acc_overview.arc14") }}
+              {{ t("acc_overview.arc14") }}
             </Button>
           </RouterLink>
           <div class="col-12 md:col-10 h-full vertical-align-middle">
-            {{ $t("acc_overview.arc14_help") }}
+            {{ t("acc_overview.arc14_help") }}
           </div>
         </div></template
       >

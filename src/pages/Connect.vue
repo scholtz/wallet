@@ -110,10 +110,14 @@
                         :sortable="true"
                       />
                       <Column
-                        field="from"
+                        field="sender"
                         :header="$t('connect.from')"
                         :sortable="true"
-                      />
+                      >
+                        <template #body="slotProps">
+                          {{ encodeAddress(slotProps.data.txn.sender) }}
+                        </template>
+                      </Column>
                       <Column
                         field="asset"
                         :header="$t('connect.asset')"
@@ -127,27 +131,27 @@
                         <template #body="slotProps">
                           <div v-if="slotProps.data.txn">
                             <div
-                              v-if="slotProps.data.txn['type'] == 'pay'"
+                              v-if="slotProps.data.txn.type == 'pay'"
                               class="text-end"
                             >
                               {{
                                 $filters.formatCurrency(
-                                  slotProps.data.txn["amount"]
+                                  slotProps.data.txn.payment?.amount
                                 )
                               }}
                             </div>
                             <div
-                              v-else-if="slotProps.data.txn['type'] == 'axfer'"
+                              v-else-if="slotProps.data.txn.type == 'axfer'"
                               class="text-end"
                             >
                               {{
                                 $filters.formatCurrency(
-                                  slotProps.data.txn["amount"],
+                                  slotProps.data.txn.assetTransfer?.amount,
                                   getAssetName(
-                                    slotProps.data.txn["assetIndex"]
+                                    slotProps.data.txn.assetTransfer?.assetIndex
                                   ),
                                   getAssetDecimals(
-                                    slotProps.data.txn["assetIndex"]
+                                    slotProps.data.txn.assetTransfer?.assetIndex
                                   )
                                 )
                               }}
@@ -164,183 +168,215 @@
                           {{ $filters.formatCurrency(slotProps.data["fee"]) }}
                         </template>
                       </Column>
-                      <Column
-                        field="rekeyTo"
-                        :header="$t('connect.rekeyto')"
-                        :sortable="true"
-                      />
+                      <Column :header="$t('connect.rekeyto')" :sortable="true">
+                        <template #body="slotProps">
+                          {{ encodeAddress(slotProps.data.txn.rekeyTo) }}
+                        </template>
+                      </Column>
                       <template #expansion="txProps">
                         <div class="p-3">
                           <table>
-                            <tr v-if="txProps.data.txn.from">
-                              <td>{{ $t("connect.from") }}:</td>
-                              <td>
-                                {{ encodeAddress(txProps.data.txn.from) }}
-                              </td>
-                            </tr>
-                            <tr v-if="txProps.data.txn.to">
-                              <td>{{ $t("connect.to") }}:</td>
-                              <td>
-                                {{ encodeAddress(txProps.data.txn.to) }}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>{{ $t("connect.validity") }}:</td>
-                              <td>
-                                {{ txProps.data.txn.firstRound }} -
-                                {{ txProps.data.txn.lastRound }} ({{
-                                  txProps.data.txn.lastRound -
-                                  txProps.data.txn.firstRound +
-                                  1
-                                }}
-                                {{ $t("connect.rounds") }})
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>{{ $t("connect.type") }}:</td>
-                              <td>{{ txProps.data.type }}</td>
-                            </tr>
-                            <tr>
-                              <td>{{ $t("connect.note") }}:</td>
-                              <td>
-                                <table>
-                                  <tr>
-                                    <td>
-                                      {{
-                                        formatData(
-                                          txProps.data.txn.note,
-                                          "Text"
-                                        )
-                                      }}
-                                    </td>
-                                    <td>
-                                      {{
-                                        formatData(
-                                          txProps.data.txn.note,
-                                          "UInt"
-                                        )
-                                      }}
-                                    </td>
-                                    <td>
-                                      {{
-                                        formatData(txProps.data.txn.note, "Hex")
-                                      }}
-                                    </td>
-                                    <td>
-                                      {{
-                                        formatData(txProps.data.txn.note, "B64")
-                                      }}
-                                    </td>
-                                  </tr>
-                                </table>
-                              </td>
-                            </tr>
+                            <tbody>
+                              <tr v-if="txProps.data.txn.sender">
+                                <td>{{ $t("connect.from") }}:</td>
+                                <td>
+                                  {{ encodeAddress(txProps.data.txn.sender) }}
+                                </td>
+                              </tr>
+                              <tr
+                                v-if="
+                                  txProps.data.txn.payment?.receiver ||
+                                  txProps.data.txn.assetTransfer?.receiver
+                                "
+                              >
+                                <td>{{ $t("connect.to") }}:</td>
+                                <td>
+                                  {{
+                                    encodeAddress(
+                                      txProps.data.txn.payment?.receiver ||
+                                        txProps.data.txn.assetTransfer?.receiver
+                                    )
+                                  }}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>{{ $t("connect.validity") }}:</td>
+                                <td>
+                                  {{ txProps.data.txn.firstValid }} -
+                                  {{ txProps.data.txn.lastValid }} ({{
+                                    BigInt(txProps.data.txn.lastValid) -
+                                    BigInt(txProps.data.txn.firstValid) +
+                                    BigInt(1)
+                                  }}
+                                  {{ $t("connect.rounds") }})
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>{{ $t("connect.type") }}:</td>
+                                <td>{{ txProps.data.type }}</td>
+                              </tr>
+                              <tr>
+                                <td>{{ $t("connect.note") }}:</td>
+                                <td>
+                                  <table>
+                                    <tbody>
+                                      <tr>
+                                        <td>
+                                          {{
+                                            formatData(
+                                              txProps.data.txn.note,
+                                              "Text"
+                                            )
+                                          }}
+                                        </td>
+                                        <td>
+                                          {{
+                                            formatData(
+                                              txProps.data.txn.note,
+                                              "UInt"
+                                            )
+                                          }}
+                                        </td>
+                                        <td>
+                                          {{
+                                            formatData(
+                                              txProps.data.txn.note,
+                                              "Hex"
+                                            )
+                                          }}
+                                        </td>
+                                        <td>
+                                          {{
+                                            formatData(
+                                              txProps.data.txn.note,
+                                              "B64"
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
 
-                            <tr v-if="txProps.data.txn.group">
-                              <td>{{ $t("connect.group") }}:</td>
-                              <td>{{ formatGroup(txProps.data.txn.group) }}</td>
-                            </tr>
+                              <tr v-if="txProps.data.txn.group">
+                                <td>{{ $t("connect.group") }}:</td>
+                                <td>
+                                  {{ formatGroup(txProps.data.txn.group) }}
+                                </td>
+                              </tr>
 
-                            <tr v-if="txProps.data.type == 'appl'">
-                              <td>{{ $t("connect.app") }}:</td>
-                              <td>{{ txProps.data.txn.appIndex }}</td>
-                            </tr>
+                              <tr v-if="txProps.data.type == 'appl'">
+                                <td>{{ $t("connect.app") }}:</td>
+                                <td>
+                                  {{
+                                    txProps.data.txn.applicationCall?.appIndex
+                                  }}
+                                </td>
+                              </tr>
 
-                            <tr
-                              v-if="
-                                txProps.data.type == 'appl' &&
-                                txProps.data.txn.appArgs
-                              "
-                            >
-                              <td>{{ $t("connect.app_args") }}:</td>
-                              <td>
-                                <table>
-                                  <tr
-                                    v-for="(arg, index) in txProps.data.txn
-                                      .appArgs"
-                                    :key="arg"
-                                  >
-                                    <td>{{ index + 1 }}.</td>
-                                    <td>{{ formatData(arg, "Text") }}</td>
-                                    <td>{{ formatData(arg, "UInt") }}</td>
-                                    <td>{{ formatData(arg, "Hex") }}</td>
-                                    <td>{{ formatData(arg, "B64") }}</td>
-                                  </tr>
-                                </table>
-                              </td>
-                            </tr>
-                            <tr
-                              v-if="
-                                txProps.data.type == 'appl' &&
-                                txProps.data.txn.appAccounts
-                              "
-                            >
-                              <td>{{ $t("connect.app_accounts") }}:</td>
-                              <td>
-                                <ol>
-                                  <li
-                                    v-for="acc in txProps.data.txn.appAccounts"
-                                    :key="acc"
-                                  >
-                                    {{ formatAppAccount(acc) }}
-                                  </li>
-                                </ol>
-                              </td>
-                            </tr>
+                              <tr
+                                v-if="
+                                  txProps.data.type == 'appl' &&
+                                  txProps.data.txn.applicationCall?.appArgs
+                                "
+                              >
+                                <td>{{ $t("connect.app_args") }}:</td>
+                                <td>
+                                  <table>
+                                    <tbody>
+                                      <tr
+                                        v-for="(arg, index) in txProps.data.txn
+                                          .applicationCall.appArgs"
+                                        :key="arg"
+                                      >
+                                        <td>{{ Number(index) + 1 }}.</td>
+                                        <td>{{ formatData(arg, "Text") }}</td>
+                                        <td>{{ formatData(arg, "UInt") }}</td>
+                                        <td>{{ formatData(arg, "Hex") }}</td>
+                                        <td>{{ formatData(arg, "B64") }}</td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
+                              <tr
+                                v-if="
+                                  txProps.data.type == 'appl' &&
+                                  txProps.data.txn.applicationCall?.accounts
+                                "
+                              >
+                                <td>{{ $t("connect.app_accounts") }}:</td>
+                                <td>
+                                  <ol>
+                                    <li
+                                      v-for="acc in txProps.data.txn
+                                        .applicationCall.accounts"
+                                      :key="acc"
+                                    >
+                                      {{ formatAppAccount(acc) }}
+                                    </li>
+                                  </ol>
+                                </td>
+                              </tr>
 
-                            <tr
-                              v-if="
-                                txProps.data.type == 'appl' &&
-                                txProps.data.txn.appForeignAssets
-                              "
-                            >
-                              <td>{{ $t("connect.app_assets") }}:</td>
-                              <td>
-                                <ol>
-                                  <li
-                                    v-for="asset in txProps.data.txn
-                                      .appForeignAssets"
-                                    :key="asset"
-                                  >
-                                    {{ asset }}
-                                  </li>
-                                </ol>
-                              </td>
-                            </tr>
-                            <tr
-                              v-if="
-                                txProps.data.type == 'appl' &&
-                                txProps.data.txn.boxes
-                              "
-                            >
-                              <td>{{ $t("connect.boxes") }}:</td>
-                              <td>
-                                <ol>
-                                  <li
-                                    v-for="box in txProps.data.txn.boxes"
-                                    :key="box.name"
-                                  >
-                                    {{ $t("connect.app") }}: {{ box.appIndex }},
-                                    {{ $t("connect.name") }}:
-                                    {{ box.name }}
-                                  </li>
-                                </ol>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>{{ $t("connect.genesis") }}:</td>
-                              <td>{{ txProps.data.txn.genesisID }}</td>
-                            </tr>
-                            <tr>
-                              <td>{{ $t("connect.genesis_hash") }}:</td>
-                              <td>
-                                {{
-                                  formatGenesisHash(
-                                    txProps.data.txn.genesisHash
-                                  )
-                                }}
-                              </td>
-                            </tr>
+                              <tr
+                                v-if="
+                                  txProps.data.type == 'appl' &&
+                                  txProps.data.txn.applicationCall
+                                    ?.foreignAssets
+                                "
+                              >
+                                <td>{{ $t("connect.app_assets") }}:</td>
+                                <td>
+                                  <ol>
+                                    <li
+                                      v-for="asset in txProps.data.txn
+                                        .applicationCall.foreignAssets"
+                                      :key="asset"
+                                    >
+                                      {{ asset }}
+                                    </li>
+                                  </ol>
+                                </td>
+                              </tr>
+                              <tr
+                                v-if="
+                                  txProps.data.type == 'appl' &&
+                                  txProps.data.txn.applicationCall?.boxes
+                                "
+                              >
+                                <td>{{ $t("connect.boxes") }}:</td>
+                                <td>
+                                  <ol>
+                                    <li
+                                      v-for="(box, index) in txProps.data.txn
+                                        .applicationCall.boxes"
+                                      :key="index"
+                                    >
+                                      {{ $t("connect.app") }}:
+                                      {{ box.appIndex }},
+                                      {{ $t("connect.name") }}:
+                                      {{ formatData(box.name, "B64") }}
+                                    </li>
+                                  </ol>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>{{ $t("connect.genesis") }}:</td>
+                                <td>{{ txProps.data.txn.genesisID }}</td>
+                              </tr>
+                              <tr>
+                                <td>{{ $t("connect.genesis_hash") }}:</td>
+                                <td>
+                                  {{
+                                    formatGenesisHash(
+                                      txProps.data.txn.genesisHash
+                                    )
+                                  }}
+                                </td>
+                              </tr>
+                            </tbody>
                           </table>
                         </div>
                       </template>
@@ -404,7 +440,7 @@
                   </template>
                 </Column>
                 <Column :header="$t('connect.all_accounts')">
-                  <template #body="slotProps">
+                  <template #body>
                     <Checkbox v-model="allAccounts" :binary="true"></Checkbox>
                   </template>
                 </Column>
@@ -442,7 +478,7 @@
               <div>
                 <Button
                   class="m-1"
-                  :disabled="uri && !connectable"
+                  :disabled="!!uri && !connectable"
                   @click="clickConnect(uri)"
                 >
                   {{ $t("connect.connect") }}
@@ -542,365 +578,499 @@
   </MainLayout>
 </template>
 
-<script>
-import MainLayout from "../layouts/Main.vue";
-import { mapActions } from "vuex";
+<script lang="ts" setup>
+import { Buffer } from "buffer";
 import algosdk from "algosdk";
-import wc from "../shared/wc";
 import { QrcodeStream } from "qrcode-reader-vue3";
+import {
+  computed,
+  getCurrentInstance,
+  onMounted,
+  ref,
+  type ComponentPublicInstance,
+  watch,
+} from "vue";
+import { useRoute, useRouter } from "vue-router";
+import MainLayout from "../layouts/Main.vue";
+import wc from "../shared/wc";
+import { useStore } from "../store";
 
-export default {
-  components: {
-    MainLayout,
-    QrcodeStream,
-  },
-  data() {
-    return {
-      uri: "",
-      addr: "",
-      note: "",
-      error: "",
-      selectedRequest: null,
-      selectedTransaction: null,
-      expandedRequests: [],
-      expandedTransactions: [],
-      scan: false,
-      allAccounts: true,
-    };
-  },
-  computed: {
-    account() {
-      return this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.$route.params.account
-      );
-    },
-    requests() {
-      return this.$store.state.wc.requests;
-    },
-    connectable() {
-      return this.uri;
-    },
-    sessionProposals() {
-      return this.$store.state.wc.sessionProposals;
-    },
-    connectors() {
-      return this.$store.state.wc.connectors;
-    },
-    theme() {
-      return this.$store.state.config.theme;
-    },
-  },
-  async mounted() {
-    this.addr = this.$route.params.account;
-    await this.reloadAccount();
-    this.prolong();
-  },
-  methods: {
-    ...mapActions({
-      accountInformation: "indexer/accountInformation",
-      updateAccount: "wallet/updateAccount",
-      lastActiveAccount: "wallet/lastActiveAccount",
-      deleteAccount: "wallet/deleteAccount",
-      setTransaction: "wallet/setTransaction",
-      getAsset: "indexer/getAsset",
-      prolong: "wallet/prolong",
-      openSuccess: "toast/openSuccess",
-      openError: "toast/openError",
-      axiosGet: "axios/get",
-      getTransactionParams: "algod/getTransactionParams",
-      sendRawTransaction: "algod/sendRawTransaction",
-      waitForConfirmation: "algod/waitForConfirmation",
-      getSignerType: "signer/getSignerType",
-      signerSignTransaction: "signer/signTransaction",
-      signerToSign: "signer/toSign",
-      wcInit: "wc/init",
-      connectUri: "wc/connectUri",
-      approveSession: "wc/approveSession",
-      rejectSession: "wc/rejectSession",
-      sendResult: "wc/sendResult",
-      cancelRequest: "wc/cancelRequest",
-    }),
-    normalizeUrl(url) {
-      if (url.indexOf("http") === 0) return url;
-      if (url.indexOf("//") == 0) return url;
-      return "https://" + url;
-    },
-    initConnection() {
-      this.wcInit();
-    },
-    formatNote(note) {
-      try {
-        return Buffer.from(note).toString();
-      } catch {
-        return note;
-      }
-    },
-    isASCIIText(str) {
-      return /^[\x20-\x7E]*$/.test(str);
-    },
-
-    formatData(arg, type) {
-      try {
-        if (Buffer.from(arg).length == 0) return "";
-        if (type == "Text") {
-          if (!this.isASCIIText(Buffer.from(arg).toString("utf-8")))
-            return "-- Non ASCII --";
-          return `${Buffer.from(arg).toString("utf-8")}`;
-        }
-        if (type == "UInt") {
-          if (Buffer.from(arg).length != 8) return "";
-          return `Num: ${algosdk.decodeUint64(
-            new Uint8Array(Buffer.from(arg))
-          )}`;
-        }
-        if (type == "Hex") return `Hex: 0x${Buffer.from(arg).toString("hex")}`;
-        if (type == "B64") return `B64: ${Buffer.from(arg).toString("base64")}`;
-        return arg;
-      } catch {
-        return arg;
-      }
-    },
-    formatAppAccount(acc) {
-      try {
-        return algosdk.encodeAddress(acc.publicKey);
-      } catch {
-        return acc;
-      }
-    },
-    formatGroup(group) {
-      try {
-        return group.toString("base64");
-      } catch {
-        return group;
-      }
-    },
-    formatGenesisHash(genesisHash) {
-      return Buffer.from(genesisHash).toString("base64");
-    },
-    async reloadAccount() {
-      if (this.$route.params.account) {
-        await this.accountInformation({
-          addr: this.$route.params.account,
-        }).then(async (info) => {
-          if (info) {
-            await this.updateAccount({ info });
-          }
-        });
-      }
-    },
-    async clickSignAll(data) {
-      if (!data.transactions) {
-        console.error("No transactions to sign");
-        return;
-      }
-      for (const tx of data.transactions) {
-        await this.clickSign(tx);
-      }
-    },
-    _arrayBufferToBase64(buffer) {
-      var binary = "";
-      var bytes = new Uint8Array(buffer);
-      var len = bytes.byteLength;
-      for (var i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return btoa(binary);
-    },
-    base642base64url(input) {
-      return input
-        .replaceAll("+", "-")
-        .replaceAll("/", "_")
-        .replaceAll("=", "");
-    },
-    async clickSign(data) {
-      const txId = data.txn.txID();
-      const isSigned = txId in this.$store.state.signer.signed;
-      if (isSigned) {
-        return;
-      }
-      const type = await this.getSignerType({
-        from: data.from,
-      });
-      console.log("signerType", type);
-      if (type == "msig") {
-        this.signerToSign({ tx: data.txn });
-        const encodedtxn = algosdk.encodeUnsignedTransaction(data.txn);
-        const urldataB64 = this._arrayBufferToBase64(encodedtxn);
-        const urldataB64url = this.base642base64url(urldataB64);
-        this.$router.push(
-          `/payWC/${this.$route.params.account}/${urldataB64url}`
-        );
-      } else {
-        const signed = await this.signerSignTransaction({
-          from: data.from,
-          signator: data.from,
-          tx: data.txn,
-        });
-      }
-    },
-    async clickAccept(data) {
-      this.prolong();
-      console.log("sendResult", data);
-      try {
-        await this.sendResult({ data });
-        // if (data.ver == 2) {
-        // } else {
-
-        //   await wc.acceptRequest(id);
-        // }
-        this.openSuccess({
-          severity: "info",
-          summary: "Request accepted",
-          life: 3000,
-        });
-      } catch (ex) {
-        this.openError({
-          severity: "error",
-          summary: "Accept request failed",
-          detail: ex,
-          life: 5000,
-        });
-      }
-    },
-    async clickReject(data) {
-      this.prolong();
-
-      this.cancelRequest({ data });
-      //wc.rejectRequest(data.id);
-
-      this.openSuccess({
-        severity: "info",
-        summary: "Request rejected",
-        life: 3000,
-      });
-    },
-    async clickCopyPayload(data) {
-      this.prolong();
-      try {
-        const encoded = data.transactions.map((tx) => {
-          const encodedtxn = algosdk.encodeUnsignedTransaction(tx.txn);
-          return this._arrayBufferToBase64(encodedtxn);
-        });
-        const payload = JSON.stringify(encoded);
-        await navigator.clipboard.writeText(payload);
-        this.openSuccess({
-          severity: "info",
-          summary: "Payload copied to clipboard",
-          life: 3000,
-        });
-      } catch (ex) {
-        this.openError({
-          severity: "error",
-          summary: "Copy payload failed",
-          detail: ex,
-          life: 5000,
-        });
-      }
-    },
-    async clickDisconnect(id) {
-      this.prolong();
-      await wc.removeConnector(id);
-      this.openSuccess({
-        severity: "info",
-        summary: "Session removed",
-        life: 3000,
-      });
-    },
-    async clickPaste() {
-      this.prolong();
-      const uri = await navigator.clipboard.readText();
-      try {
-        await this.clickConnect(uri);
-      } catch (ex) {
-        this.openError({
-          severity: "error",
-          summary: "Connect from Clipboard",
-          life: 5000,
-          detail: ex,
-        });
-        throw ex;
-      }
-    },
-    async clickConnect(uri) {
-      this.prolong();
-      this.connectUri({ uri });
-
-      this.openSuccess({
-        severity: "info",
-        summary: "Session added",
-        life: 3000,
-      });
-    },
-    async clickApproveSession(id) {
-      try {
-        await this.approveSession({ id, allAccounts: this.allAccounts });
-      } catch (err) {
-        const error = err.message ?? err;
-        this.openError(error);
-      }
-    },
-    async clickRejectSession(id) {
-      try {
-        await this.rejectSession({ id });
-      } catch (err) {
-        const error = err.message ?? err;
-        this.openError(error);
-      }
-    },
-    toBeSigned(data) {
-      const txId = data.txn.txID();
-      const signed = txId in this.$store.state.signer.signed;
-      if (!signed) return true; // if not signed return true to show sign button
-      const from = this.encodeAddress(data.txn.from);
-      const type = this.getSignerType({
-        from: from,
-      });
-      if (type == "msig") {
-        // check sign threshold
-        const signedTx = algosdk.decodeSignedTransaction(
-          this.$store.state.signer.signed[txId]
-        );
-
-        const ret =
-          signedTx.msig.subsig.filter((s) => !!s.s).length < signedTx.msig.thr;
-        return ret;
-      } else {
-        return !signed;
-      }
-    },
-    atLeastOneSigned(data) {
-      for (let tx of data.transactions) {
-        if (tx.txn.txID() in this.$store.state.signer.signed) return true;
-      }
-      return false;
-    },
-    encodeAddress(addr) {
-      if (!addr || !addr.publicKey) return "-";
-      return algosdk.encodeAddress(addr.publicKey);
-    },
-    getAssetSync(id) {
-      const ret = this.$store.state.indexer.assets.find(
-        (a) => a["asset-id"] == id
-      );
-      return ret;
-    },
-    getAssetName(id) {
-      const asset = this.getAssetSync(id);
-      if (asset) return asset["name"];
-    },
-    getAssetDecimals(id) {
-      const asset = this.getAssetSync(id);
-      if (asset) return asset["decimals"];
-    },
-    onDecodeQR(result) {
-      if (result) {
-        this.uri = result;
-        this.scan = false;
-      }
-    },
-    sleep(ms) {
-      return new Promise((resolve) => setTimeout(resolve, ms));
-    },
-  },
+type GlobalFilters = {
+  formatCurrencyBigInt: (
+    value?: number | bigint,
+    currency?: string,
+    minimumFractionDigits?: number,
+    multiply?: boolean,
+    language?: string | string[]
+  ) => string;
+  formatCurrency: (
+    value?: number | bigint,
+    currency?: string,
+    minimumFractionDigits?: number,
+    multiply?: boolean,
+    language?: string | string[]
+  ) => string;
+  formatDateTime: (
+    value?: number,
+    separator?: string,
+    showSeconds?: boolean,
+    locale?: string,
+    alwaysShowDate?: boolean
+  ) => string;
+  formatPercent: (value?: number) => string;
 };
+
+type SignerType = "ledger" | "msig" | "sk" | "?";
+
+interface TransactionWrapper {
+  index: number;
+  type: string;
+  fee?: number;
+  asset: string | number;
+  amount?: number | string;
+  rekeyTo?: string;
+  txn: algosdk.Transaction;
+  txnB64: string;
+}
+
+interface RequestItem {
+  id: number | string;
+  method: string;
+  transactions: TransactionWrapper[];
+  fee: number;
+  ver: string;
+  topic: string;
+}
+
+interface SessionProposal {
+  id: number | string;
+  params: {
+    proposer: {
+      metadata: {
+        icons: string[];
+        url: string;
+        description: string;
+        name: string;
+      };
+    };
+  };
+}
+
+interface ConnectorItem {
+  id: string;
+  address: string;
+  peer?: {
+    icons: string[];
+    url: string;
+    description: string;
+    name: string;
+  };
+  connected: boolean;
+}
+
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
+const $store = store;
+
+const instance = getCurrentInstance();
+const proxy = instance?.proxy as
+  | (ComponentPublicInstance & { $filters?: GlobalFilters })
+  | undefined;
+if (!proxy?.$filters) {
+  throw new Error("Global filters are not available");
+}
+const $filters = proxy.$filters;
+
+const uri = ref("");
+const addr = ref("");
+const error = ref<unknown>("");
+const selectedRequest = ref<RequestItem | null>(null);
+const selectedTransaction = ref<TransactionWrapper | null>(null);
+const expandedRequests = ref<RequestItem[]>([]);
+const expandedTransactions = ref<TransactionWrapper[]>([]);
+const scan = ref(false);
+const allAccounts = ref(true);
+
+const requests = computed<RequestItem[]>(
+  () => (store.state.wc.requests as RequestItem[] | undefined) ?? []
+);
+const sessionProposals = computed<SessionProposal[]>(
+  () => (store.state.wc.sessionProposals as SessionProposal[] | undefined) ?? []
+);
+const connectors = computed<ConnectorItem[]>(
+  () =>
+    (store.state.wc.connectors as unknown as ConnectorItem[] | undefined) ?? []
+);
+const connectable = computed(() => Boolean(uri.value && uri.value.trim()));
+const accountAddress = computed(() =>
+  typeof route.params.account === "string" ? route.params.account : ""
+);
+
+const prolong = async () => {
+  await store.dispatch("wallet/prolong");
+};
+
+const normalizeUrl = (url: string): string => {
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("//")) return url;
+  return `https://${url}`;
+};
+
+const initConnection = () => {
+  void store.dispatch("wc/init");
+};
+
+const isASCIIText = (value: string) => /^[\x20-\x7E]*$/.test(value);
+
+const formatData = (
+  arg: Uint8Array | string,
+  type: "Text" | "UInt" | "Hex" | "B64"
+): string => {
+  try {
+    const buffer = Buffer.from(arg ?? []);
+    if (buffer.length === 0) return "";
+    if (type === "Text") {
+      const text = buffer.toString("utf-8");
+      if (!isASCIIText(text)) return "-- Non ASCII --";
+      return text;
+    }
+    if (type === "UInt") {
+      if (buffer.length !== 8) return "";
+      return `Num: ${algosdk.decodeUint64(new Uint8Array(buffer))}`;
+    }
+    if (type === "Hex") return `Hex: 0x${buffer.toString("hex")}`;
+    if (type === "B64") return `B64: ${buffer.toString("base64")}`;
+    return buffer.toString();
+  } catch {
+    return String(arg ?? "");
+  }
+};
+
+const formatAppAccount = (acc: { publicKey?: Uint8Array }) => {
+  try {
+    if (!acc.publicKey) return String(acc);
+    return algosdk.encodeAddress(acc.publicKey);
+  } catch {
+    return String(acc);
+  }
+};
+
+const formatGroup = (group: unknown) => {
+  try {
+    if (group instanceof Uint8Array) {
+      return Buffer.from(group).toString("base64");
+    }
+    if (typeof (group as any)?.toString === "function") {
+      return (group as any).toString("base64");
+    }
+  } catch {
+    /* noop */
+  }
+  return String(group ?? "");
+};
+
+const formatGenesisHash = (genesisHash: Uint8Array | string) => {
+  try {
+    return Buffer.from(genesisHash).toString("base64");
+  } catch {
+    return String(genesisHash ?? "");
+  }
+};
+
+const getSignerTypeLocal = (from: string): SignerType => {
+  const env = store.state.config.env;
+  if (!env) return "?";
+  const baseAccount = store.state.wallet.privateAccounts.find(
+    (item) => item.addr === from
+  );
+  if (!baseAccount) return "?";
+  const envRekey = baseAccount.data?.[env]?.rekeyedTo;
+  let resolvedAccount = baseAccount;
+  if (typeof envRekey === "string" && envRekey !== from) {
+    const rekeyAccount = store.state.wallet.privateAccounts.find(
+      (item) => item.addr === envRekey
+    );
+    if (rekeyAccount) {
+      resolvedAccount = rekeyAccount;
+    }
+  }
+  if (resolvedAccount.type === "ledger") {
+    return "ledger";
+  }
+  if (resolvedAccount.params) {
+    return "msig";
+  }
+  if (resolvedAccount.sk) {
+    return "sk";
+  }
+  return "?";
+};
+
+const reloadAccount = async () => {
+  const currentAddr = accountAddress.value;
+  if (!currentAddr) return;
+  const info = await store.dispatch("indexer/accountInformation", {
+    addr: currentAddr,
+  });
+  if (info) {
+    await store.dispatch("wallet/updateAccount", { info });
+  }
+};
+
+const _arrayBufferToBase64 = (buffer: Uint8Array) => {
+  let binary = "";
+  buffer.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary);
+};
+
+const base642base64url = (input: string) =>
+  input.replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+
+const clickSignAll = async (data: RequestItem) => {
+  try {
+    await prolong();
+    const list: TransactionWrapper[] = data?.transactions ?? [];
+    for (const tx of list) {
+      await clickSign(tx);
+    }
+  } catch (ex) {
+    await store.dispatch("toast/openError", {
+      severity: "error",
+      summary: "Sign all failed",
+      detail: ex,
+      life: 5000,
+    });
+  }
+};
+
+const clickSign = async (data: TransactionWrapper) => {
+  try {
+    console.log("Signing transaction:", data);
+    const txn = data?.txn;
+    if (!txn?.txID) {
+      console.error("Invalid transaction, missing txID");
+      return;
+    }
+    if (!data.txn.sender.toString()) {
+      console.error("Invalid transaction, missing from address");
+      return;
+    }
+    const txId = txn.txID();
+    if (txId in (store.state.signer.signed ?? {})) {
+      console.log("Transaction already signed:", txId);
+      return;
+    }
+    const signerType = (await store.dispatch("signer/getSignerType", {
+      from: data.txn.sender.toString(),
+    })) as SignerType;
+    console.log("Signer type:", signerType);
+    if (signerType === "msig") {
+      await store.dispatch("signer/toSign", { tx: txn });
+      const encoded = algosdk.encodeUnsignedTransaction(txn);
+      const urldataB64 = _arrayBufferToBase64(encoded);
+      const urldataB64url = base642base64url(urldataB64);
+      await router.push(`/payWC/${accountAddress.value}/${urldataB64url}`);
+    } else {
+      await store.dispatch("signer/signTransaction", {
+        from: data.txn.sender.toString(),
+        signator: data.txn.sender.toString(),
+        tx: txn,
+      });
+    }
+  } catch (ex) {
+    await store.dispatch("toast/openError", {
+      severity: "error",
+      summary: "Sign transaction failed",
+      detail: ex,
+      life: 5000,
+    });
+  }
+};
+
+const clickAccept = async (data: RequestItem) => {
+  await prolong();
+  try {
+    await store.dispatch("wc/sendResult", { data });
+    await store.dispatch("toast/openSuccess", {
+      severity: "info",
+      summary: "Request accepted",
+      life: 3000,
+    });
+  } catch (ex) {
+    await store.dispatch("toast/openError", {
+      severity: "error",
+      summary: "Accept request failed",
+      detail: ex,
+      life: 5000,
+    });
+  }
+};
+
+const clickReject = async (data: RequestItem) => {
+  await prolong();
+  await store.dispatch("wc/cancelRequest", { data });
+  await store.dispatch("toast/openSuccess", {
+    severity: "info",
+    summary: "Request rejected",
+    life: 3000,
+  });
+};
+
+const clickCopyPayload = async (data: RequestItem) => {
+  await prolong();
+  try {
+    const encoded = (data.transactions ?? []).map((tx: TransactionWrapper) => {
+      const raw = algosdk.encodeUnsignedTransaction(tx.txn);
+      return _arrayBufferToBase64(raw);
+    });
+    await navigator.clipboard.writeText(JSON.stringify(encoded));
+    await store.dispatch("toast/openSuccess", {
+      severity: "info",
+      summary: "Payload copied to clipboard",
+      life: 3000,
+    });
+  } catch (ex) {
+    await store.dispatch("toast/openError", {
+      severity: "error",
+      summary: "Copy payload failed",
+      detail: ex,
+      life: 5000,
+    });
+  }
+};
+
+const clickDisconnect = async (id: string) => {
+  await prolong();
+  await wc.removeConnector(id);
+  await store.dispatch("toast/openSuccess", {
+    severity: "info",
+    summary: "Session removed",
+    life: 3000,
+  });
+};
+
+const clickPaste = async () => {
+  await prolong();
+  const clipboardUri = await navigator.clipboard.readText();
+  try {
+    await clickConnect(clipboardUri);
+  } catch (ex) {
+    await store.dispatch("toast/openError", {
+      severity: "error",
+      summary: "Connect from Clipboard",
+      detail: ex,
+      life: 5000,
+    });
+    throw ex;
+  }
+};
+
+const clickConnect = async (value: string) => {
+  await prolong();
+  await store.dispatch("wc/connectUri", { uri: value });
+  await store.dispatch("toast/openSuccess", {
+    severity: "info",
+    summary: "Session added",
+    life: 3000,
+  });
+};
+
+const clickApproveSession = async (id: string) => {
+  try {
+    await store.dispatch("wc/approveSession", {
+      id,
+      allAccounts: allAccounts.value,
+    });
+  } catch (err: any) {
+    const message = err?.message ?? err;
+    await store.dispatch("toast/openError", message);
+  }
+};
+
+const clickRejectSession = async (id: string) => {
+  try {
+    await store.dispatch("wc/rejectSession", { id });
+  } catch (err: any) {
+    const message = err?.message ?? err;
+    await store.dispatch("toast/openError", message);
+  }
+};
+
+const toBeSigned = (data: TransactionWrapper) => {
+  const txn = data?.txn;
+  if (!txn?.txID) return false;
+  const txId = txn.txID();
+  const signedMap = store.state.signer.signed ?? {};
+  if (!(txId in signedMap)) {
+    return true;
+  }
+  const fromAddress = encodeAddress(txn.sender);
+  const signerType = getSignerTypeLocal(fromAddress);
+  if (signerType === "msig") {
+    const signedTx = algosdk.decodeSignedTransaction(signedMap[txId]);
+    const subsig = signedTx.msig?.subsig ?? [];
+    const threshold = signedTx.msig?.thr ?? 0;
+    const signedCount = subsig.filter((s) => Boolean(s?.s)).length;
+    return signedCount < threshold;
+  }
+  return false;
+};
+
+const atLeastOneSigned = (data: RequestItem) => {
+  const signedMap = store.state.signer.signed ?? {};
+  return (data.transactions ?? []).some((tx: TransactionWrapper) => {
+    const txn = tx?.txn;
+    if (!txn?.txID) return false;
+    return txn.txID() in signedMap;
+  });
+};
+
+const encodeAddress = (addrValue: { publicKey?: Uint8Array }) => {
+  try {
+    if (!addrValue?.publicKey) return "-";
+    return algosdk.encodeAddress(addrValue.publicKey);
+  } catch {
+    return "-";
+  }
+};
+
+const getAssetSync = (id: bigint | number | string) => {
+  try {
+    const normalized = BigInt(id);
+    return store.state.indexer.assets.find(
+      (asset) => BigInt(asset.assetId) === normalized
+    );
+  } catch {
+    return undefined;
+  }
+};
+
+const getAssetName = (id: bigint | number | string) => getAssetSync(id)?.name;
+
+const getAssetDecimals = (id: bigint | number | string) =>
+  getAssetSync(id)?.decimals ?? 0;
+
+const onDecodeQR = (result: string) => {
+  if (result) {
+    uri.value = result;
+    scan.value = false;
+  }
+};
+
+watch(
+  () => route.params.account,
+  async (value) => {
+    addr.value = typeof value === "string" ? value : "";
+    await reloadAccount();
+  }
+);
+
+onMounted(async () => {
+  addr.value = accountAddress.value;
+  await reloadAccount();
+  await prolong();
+});
 </script>

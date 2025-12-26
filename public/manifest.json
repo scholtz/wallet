@@ -1,6 +1,6 @@
 {
-  "name": "Algo Wallet",
-  "short_name": "AWallet",
+  "name": "Biatec Wallet",
+  "short_name": "BiatecWallet",
   "theme_color": "#4DBA87",
   "protocol_handlers": [
     {

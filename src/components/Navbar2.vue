@@ -6,14 +6,15 @@ const { t, locale } = useI18n();
 import { usePrimeVue } from "primevue/config";
 const PrimeVue = usePrimeVue();
 import { PrimeIcons } from "primevue/api";
-const store = useStore();
+import { RootState } from "@/store";
+const store = useStore<RootState>();
 
 watch(locale, () => {
   makeMenu();
 });
 
 watch(
-  store.state.wallet,
+  () => store.state.wallet,
   () => {
     makeMenu();
   },

@@ -1,5 +1,4 @@
-import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
-import { IKeyValueStorage, parseEntry } from "@walletconnect/keyvaluestorage";
+import type { IKeyValueStorage } from "@walletconnect/keyvaluestorage";
 
 export class WCKeyValueStore implements IKeyValueStorage {
   private readonly dispatch: any;
