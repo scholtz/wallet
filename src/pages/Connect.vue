@@ -110,10 +110,14 @@
                         :sortable="true"
                       />
                       <Column
-                        field="from"
+                        field="sender"
                         :header="$t('connect.from')"
                         :sortable="true"
-                      />
+                      >
+                        <template #body="slotProps">
+                          {{ encodeAddress(slotProps.data.txn.sender) }}
+                        </template>
+                      </Column>
                       <Column
                         field="asset"
                         :header="$t('connect.asset')"
@@ -127,27 +131,27 @@
                         <template #body="slotProps">
                           <div v-if="slotProps.data.txn">
                             <div
-                              v-if="slotProps.data.txn['type'] == 'pay'"
+                              v-if="slotProps.data.txn.type == 'pay'"
                               class="text-end"
                             >
                               {{
                                 $filters.formatCurrency(
-                                  slotProps.data.txn["amount"]
+                                  slotProps.data.txn.payment?.amount
                                 )
                               }}
                             </div>
                             <div
-                              v-else-if="slotProps.data.txn['type'] == 'axfer'"
+                              v-else-if="slotProps.data.txn.type == 'axfer'"
                               class="text-end"
                             >
                               {{
                                 $filters.formatCurrency(
-                                  slotProps.data.txn["amount"],
+                                  slotProps.data.txn.assetTransfer?.amount,
                                   getAssetName(
-                                    slotProps.data.txn["assetIndex"]
+                                    slotProps.data.txn.assetTransfer?.assetIndex
                                   ),
                                   getAssetDecimals(
-                                    slotProps.data.txn["assetIndex"]
+                                    slotProps.data.txn.assetTransfer?.assetIndex
                                   )
                                 )
                               }}
@@ -164,35 +168,45 @@
                           {{ $filters.formatCurrency(slotProps.data["fee"]) }}
                         </template>
                       </Column>
-                      <Column
-                        field="rekeyTo"
-                        :header="$t('connect.rekeyto')"
-                        :sortable="true"
-                      />
+                      <Column :header="$t('connect.rekeyto')" :sortable="true">
+                        <template #body="slotProps">
+                          {{ encodeAddress(slotProps.data.txn.rekeyTo) }}
+                        </template>
+                      </Column>
                       <template #expansion="txProps">
                         <div class="p-3">
                           <table>
                             <tbody>
-                              <tr v-if="txProps.data.txn.from">
+                              <tr v-if="txProps.data.txn.sender">
                                 <td>{{ $t("connect.from") }}:</td>
                                 <td>
-                                  {{ encodeAddress(txProps.data.txn.from) }}
+                                  {{ encodeAddress(txProps.data.txn.sender) }}
                                 </td>
                               </tr>
-                              <tr v-if="txProps.data.txn.to">
+                              <tr
+                                v-if="
+                                  txProps.data.txn.payment?.receiver ||
+                                  txProps.data.txn.assetTransfer?.receiver
+                                "
+                              >
                                 <td>{{ $t("connect.to") }}:</td>
                                 <td>
-                                  {{ encodeAddress(txProps.data.txn.to) }}
+                                  {{
+                                    encodeAddress(
+                                      txProps.data.txn.payment?.receiver ||
+                                        txProps.data.txn.assetTransfer?.receiver
+                                    )
+                                  }}
                                 </td>
                               </tr>
                               <tr>
                                 <td>{{ $t("connect.validity") }}:</td>
                                 <td>
-                                  {{ txProps.data.txn.firstRound }} -
-                                  {{ txProps.data.txn.lastRound }} ({{
-                                    txProps.data.txn.lastRound -
-                                    txProps.data.txn.firstRound +
-                                    1
+                                  {{ txProps.data.txn.firstValid }} -
+                                  {{ txProps.data.txn.lastValid }} ({{
+                                    BigInt(txProps.data.txn.lastValid) -
+                                    BigInt(txProps.data.txn.firstValid) +
+                                    BigInt(1)
                                   }}
                                   {{ $t("connect.rounds") }})
                                 </td>
@@ -254,13 +268,17 @@
 
                               <tr v-if="txProps.data.type == 'appl'">
                                 <td>{{ $t("connect.app") }}:</td>
-                                <td>{{ txProps.data.txn.appIndex }}</td>
+                                <td>
+                                  {{
+                                    txProps.data.txn.applicationCall?.appIndex
+                                  }}
+                                </td>
                               </tr>
 
                               <tr
                                 v-if="
                                   txProps.data.type == 'appl' &&
-                                  txProps.data.txn.appArgs
+                                  txProps.data.txn.applicationCall?.appArgs
                                 "
                               >
                                 <td>{{ $t("connect.app_args") }}:</td>
@@ -269,7 +287,7 @@
                                     <tbody>
                                       <tr
                                         v-for="(arg, index) in txProps.data.txn
-                                          .appArgs"
+                                          .applicationCall.appArgs"
                                         :key="arg"
                                       >
                                         <td>{{ Number(index) + 1 }}.</td>
@@ -285,7 +303,7 @@
                               <tr
                                 v-if="
                                   txProps.data.type == 'appl' &&
-                                  txProps.data.txn.appAccounts
+                                  txProps.data.txn.applicationCall?.accounts
                                 "
                               >
                                 <td>{{ $t("connect.app_accounts") }}:</td>
@@ -293,7 +311,7 @@
                                   <ol>
                                     <li
                                       v-for="acc in txProps.data.txn
-                                        .appAccounts"
+                                        .applicationCall.accounts"
                                       :key="acc"
                                     >
                                       {{ formatAppAccount(acc) }}
@@ -305,7 +323,8 @@
                               <tr
                                 v-if="
                                   txProps.data.type == 'appl' &&
-                                  txProps.data.txn.appForeignAssets
+                                  txProps.data.txn.applicationCall
+                                    ?.foreignAssets
                                 "
                               >
                                 <td>{{ $t("connect.app_assets") }}:</td>
@@ -313,7 +332,7 @@
                                   <ol>
                                     <li
                                       v-for="asset in txProps.data.txn
-                                        .appForeignAssets"
+                                        .applicationCall.foreignAssets"
                                       :key="asset"
                                     >
                                       {{ asset }}
@@ -324,20 +343,21 @@
                               <tr
                                 v-if="
                                   txProps.data.type == 'appl' &&
-                                  txProps.data.txn.boxes
+                                  txProps.data.txn.applicationCall?.boxes
                                 "
                               >
                                 <td>{{ $t("connect.boxes") }}:</td>
                                 <td>
                                   <ol>
                                     <li
-                                      v-for="box in txProps.data.txn.boxes"
-                                      :key="box.name"
+                                      v-for="(box, index) in txProps.data.txn
+                                        .applicationCall.boxes"
+                                      :key="index"
                                     >
                                       {{ $t("connect.app") }}:
                                       {{ box.appIndex }},
                                       {{ $t("connect.name") }}:
-                                      {{ box.name }}
+                                      {{ formatData(box.name, "B64") }}
                                     </li>
                                   </ol>
                                 </td>
@@ -600,11 +620,54 @@ type GlobalFilters = {
   formatPercent: (value?: number) => string;
 };
 
-type RequestItem = Record<string, any>;
-type SessionProposal = Record<string, any>;
-type ConnectorItem = Record<string, any>;
-type TransactionWrapper = Record<string, any>;
 type SignerType = "ledger" | "msig" | "sk" | "?";
+
+interface TransactionWrapper {
+  index: number;
+  type: string;
+  from?: string;
+  fee?: number;
+  asset: string | number;
+  amount?: number | string;
+  rekeyTo?: string;
+  txn: algosdk.Transaction;
+  txnB64: string;
+}
+
+interface RequestItem {
+  id: number | string;
+  method: string;
+  transactions: TransactionWrapper[];
+  fee: number;
+  ver: string;
+  topic: string;
+}
+
+interface SessionProposal {
+  id: number | string;
+  params: {
+    proposer: {
+      metadata: {
+        icons: string[];
+        url: string;
+        description: string;
+        name: string;
+      };
+    };
+  };
+}
+
+interface ConnectorItem {
+  id: string;
+  address: string;
+  peer?: {
+    icons: string[];
+    url: string;
+    description: string;
+    name: string;
+  };
+  connected: boolean;
+}
 
 const store = useStore();
 const route = useRoute();
@@ -637,7 +700,8 @@ const sessionProposals = computed<SessionProposal[]>(
   () => (store.state.wc.sessionProposals as SessionProposal[] | undefined) ?? []
 );
 const connectors = computed<ConnectorItem[]>(
-  () => (store.state.wc.connectors as ConnectorItem[] | undefined) ?? []
+  () =>
+    (store.state.wc.connectors as unknown as ConnectorItem[] | undefined) ?? []
 );
 const connectable = computed(() => Boolean(uri.value && uri.value.trim()));
 const accountAddress = computed(() =>
@@ -684,8 +748,9 @@ const formatData = (
   }
 };
 
-const formatAppAccount = (acc: Record<string, any>) => {
+const formatAppAccount = (acc: { publicKey?: Uint8Array }) => {
   try {
+    if (!acc.publicKey) return String(acc);
     return algosdk.encodeAddress(acc.publicKey);
   } catch {
     return String(acc);
@@ -775,6 +840,7 @@ const clickSignAll = async (data: RequestItem) => {
 const clickSign = async (data: TransactionWrapper) => {
   const txn = data?.txn;
   if (!txn?.txID) return;
+  if (!data.from) return;
   const txId = txn.txID();
   if (txId in (store.state.signer.signed ?? {})) {
     return;
@@ -914,7 +980,7 @@ const toBeSigned = (data: TransactionWrapper) => {
   if (!(txId in signedMap)) {
     return true;
   }
-  const fromAddress = encodeAddress(txn.from);
+  const fromAddress = encodeAddress(txn.sender);
   const signerType = getSignerTypeLocal(fromAddress);
   if (signerType === "msig") {
     const signedTx = algosdk.decodeSignedTransaction(signedMap[txId]);
@@ -935,7 +1001,7 @@ const atLeastOneSigned = (data: RequestItem) => {
   });
 };
 
-const encodeAddress = (addrValue: Record<string, any>) => {
+const encodeAddress = (addrValue: { publicKey?: Uint8Array }) => {
   try {
     if (!addrValue?.publicKey) return "-";
     return algosdk.encodeAddress(addrValue.publicKey);

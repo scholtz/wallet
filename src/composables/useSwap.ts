@@ -306,7 +306,7 @@ export function useSwap() {
         6
       );
       assets.value.push({
-        assetId: 0 as any,
+        assetId: 0n,
         amount: BigInt(accountData.value.amount ?? 0n),
         name: store.state.config.tokenSymbol,
         decimals: 6,
@@ -317,7 +317,7 @@ export function useSwap() {
     } else {
       const balance = formatCurrency(0, store.state.config.tokenSymbol, 6);
       assets.value.push({
-        assetId: 0 as any,
+        assetId: 0n,
         amount: 0n,
         name: store.state.config.tokenSymbol,
         decimals: 6,
@@ -350,7 +350,7 @@ export function useSwap() {
           );
 
           assets.value.push({
-            assetId: Number(accountData.value.assets[index].assetId) as any,
+            assetId: BigInt(accountData.value.assets[index].assetId),
             amount: BigInt(accountData.value.assets[index]["amount"]),
             name: assetInfo.name ?? "",
             decimals: assetInfo.decimals ?? 6,
