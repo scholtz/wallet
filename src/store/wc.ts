@@ -118,7 +118,9 @@ const mutations: MutationTree<WcState> = {
     currentState.requests.push(request);
   },
   removeRequest(currentState, id: number | string) {
-    const index = currentState.requests.findIndex((r) => r.id === id);
+    const index = currentState.requests.findIndex(
+      (r) => String(r.id) === String(id)
+    );
     if (index !== -1) {
       currentState.requests.splice(index, 1);
     }
@@ -131,7 +133,7 @@ const mutations: MutationTree<WcState> = {
   },
   removeSessionProposal(currentState, id: number | string) {
     const index = currentState.sessionProposals.findIndex(
-      (proposal: any) => proposal?.id === id
+      (proposal: any) => String(proposal?.id) === String(id)
     );
     if (index !== -1) {
       currentState.sessionProposals.splice(index, 1);
