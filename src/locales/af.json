@@ -65,7 +65,7 @@
     "get_quote": "Kry kwotasie",
     "apps_optin": "SWAP vereis dat jou rekening inskakel by die programme",
     "apps_optin_button": "Skakel in by die programme",
-    "execute_button_deflex": "Uitvoer met Deflex",
+    "execute_button_deflex": "Uitvoer met Haystack",
     "execute_button_folks": "Uitvoer met Folks router",
     "execute_button_biatec": "Voer uit met Biatec router",
     "slippage": "Slippage persentasie"
@@ -782,7 +782,7 @@
   },
   "labels": {
     "use_folks": "Gebruik Folks router",
-    "use_deflex": "Gebruik Deflex",
+    "use_deflex": "Gebruik Haystack",
     "use_biatec": "Gebruik Biatec router",
     "quote": "Kwotasie:",
     "price": "Prys:"

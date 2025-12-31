@@ -65,7 +65,7 @@
     "get_quote": "Získať kotáciu",
     "apps_optin": "SWAP vyžaduje aby ste za zaregistrovali k aplikáciám",
     "apps_optin_button": "Zaregistrujte sa k aplikáciám (optin)",
-    "execute_button_deflex": "Vykonať swap cez Deflex",
+    "execute_button_deflex": "Vykonať swap cez Haystack router",
     "execute_button_folks": "Vykonať swap cez Folks router",
     "execute_button_biatec": "Vykonať pomocou Biatec routera",
     "slippage": "Slippage percentage"
@@ -782,7 +782,7 @@
   },
   "labels": {
     "use_folks": "Používať Folks router",
-    "use_deflex": "Používať Deflex",
+    "use_deflex": "Používať Haystack router",
     "use_biatec": "Používať Biatec router",
     "quote": "Kotácia:",
     "price": "Cena:"

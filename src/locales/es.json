@@ -65,7 +65,7 @@
     "get_quote": "Cotizar (previsualizar el intercambio)",
     "apps_optin": "INTERCAMBIO require que su cuenta haga el Opt-in a la aplicación",
     "apps_optin_button": "Hacer Opt-in a la aplicación",
-    "execute_button_deflex": "Ejecutar usando Deflex",
+    "execute_button_deflex": "Ejecutar usando Haystack router",
     "execute_button_folks": "Ejecutar usando Folks router",
     "execute_button_biatec": "Ejecutar usando Biatec router",
     "slippage": "Porcentaje de desviación"
@@ -782,7 +782,7 @@
   },
   "labels": {
     "use_folks": "Usar Folks router",
-    "use_deflex": "Usar Deflex",
+    "use_deflex": "Usar Haystack router",
     "use_biatec": "Usar Biatec router",
     "quote": "Cotización:",
     "price": "Precio:"

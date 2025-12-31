@@ -65,7 +65,7 @@
     "get_quote": "Get quote",
     "apps_optin": "SWAP requires your account to opt in to the applications",
     "apps_optin_button": "Opt in to the apps",
-    "execute_button_deflex": "Execute using Deflex",
+    "execute_button_deflex": "Execute using Haystack",
     "execute_button_folks": "Execute using Folks router",
     "execute_button_biatec": "Provést pomocí Biatec routeru",
     "slippage": "Slippage percentage"
@@ -782,7 +782,7 @@
   },
   "labels": {
     "use_folks": "Používat Folks router",
-    "use_deflex": "Používat Deflex",
+    "use_deflex": "Používat Haystack",
     "use_biatec": "Používat Biatec router",
     "quote": "Kotace:",
     "price": "Cena:"
