@@ -127,14 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  getCurrentInstance,
-  onMounted,
-  reactive,
-  ref,
-  watch,
-} from "vue";
+import { computed, getCurrentInstance, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { FilterMatchMode } from "primevue/api";
 import Badge from "primevue/badge";
@@ -276,24 +269,6 @@ const makeAssets = async () => {
     }
   }
   loading.value = false;
-};
-
-const getAssetSync = (id: number): StoredAsset | undefined => {
-  return store.state.indexer.assets.find(
-    (asset: StoredAsset) => BigInt(asset.assetId) === BigInt(id)
-  );
-};
-
-const getAssetName = (id: bigint) => {
-  if (typeof id !== "number") return undefined;
-  const asset = getAssetSync(id);
-  return asset ? asset["name"] : undefined;
-};
-
-const getAssetDecimals = (id: bigint) => {
-  if (typeof id !== "number") return undefined;
-  const asset = getAssetSync(id);
-  return asset ? Number(asset["decimals"]) : undefined;
 };
 
 const isNumericAssetId = (

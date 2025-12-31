@@ -353,7 +353,7 @@ import aprotocol from "../shared/algorand-protocol-parse";
 import MainLayout from "../layouts/Main.vue";
 import algosdk from "algosdk";
 import type { Transaction } from "algosdk";
-import { algo, AlgorandClient } from "@algorandfoundation/algokit-utils";
+import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import SelectAccount from "../components/SelectAccount.vue";
 import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
