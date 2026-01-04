@@ -27,11 +27,14 @@ describe("Create ARC76 Account", () => {
     cy.contains("Wallet", { timeout: 10000 }).click({ force: true });
 
     // Wait for menu to expand and hover on "New account"
-    cy.contains("New account", { timeout: 10000 }).trigger("mouseenter", { force: true });
+    cy.contains("New account", { timeout: 10000 }).trigger("mouseenter", {
+      force: true,
+    });
 
     // Wait for submenu to appear and click on "Email & Password account"
-    cy.contains("Email & Password account", { timeout: 10000 })
-      .click({ force: true });
+    cy.contains("Email & Password account", { timeout: 10000 }).click({
+      force: true,
+    });
 
     // Wait for ARC76 form to load
     cy.url().should("include", "/new-account/email-password");
