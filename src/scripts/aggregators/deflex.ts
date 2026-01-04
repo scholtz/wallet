@@ -55,6 +55,7 @@ export const deflexAggregator: DexAggregator = {
         context.error.value = "No deflex quotes available";
         return;
       }
+      console.log("Deflex quotes:", quotes);
       context.aggregatorData.deflexQuotes.value = quotes;
       const params = JSON.stringify({
         address: context.account.value?.addr,

@@ -3,6 +3,22 @@ import { FolksRouterClient, Network, SwapMode } from "@folks-router/js-sdk";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
 
+const getFolksClient = (context: SwapContext): FolksRouterClient | null => {
+  if (context.$store.state.config.env == "mainnet-v1.0") {
+    return new FolksRouterClient(Network.MAINNET);
+  }
+  if (context.$store.state.config.env == "mainnet") {
+    return new FolksRouterClient(Network.MAINNET);
+  }
+  if (context.$store.state.config.env == "testnet-v1.0") {
+    return new FolksRouterClient(Network.TESTNET);
+  }
+  if (context.$store.state.config.env == "testnet") {
+    return new FolksRouterClient(Network.TESTNET);
+  }
+  return null;
+};
+
 export const folksAggregator: DexAggregator = {
   name: "folks",
   displayName: "Folks Router",
@@ -11,21 +27,7 @@ export const folksAggregator: DexAggregator = {
   txnsKey: "folksTxns",
   processingKey: "processingTradeFolks",
 
-  getFolksClient(context: SwapContext) {
-    if (context.$store.state.config.env == "mainnet-v1.0") {
-      return new FolksRouterClient(Network.MAINNET);
-    }
-    if (context.$store.state.config.env == "mainnet") {
-      return new FolksRouterClient(Network.MAINNET);
-    }
-    if (context.$store.state.config.env == "testnet-v1.0") {
-      return new FolksRouterClient(Network.TESTNET);
-    }
-    if (context.$store.state.config.env == "testnet") {
-      return new FolksRouterClient(Network.TESTNET);
-    }
-    return null;
-  },
+  getFolksClient,
 
   async getQuote(context: SwapContext) {
     try {
@@ -36,7 +38,7 @@ export const folksAggregator: DexAggregator = {
             10 ** (context.fromAssetObj.value?.decimals ?? 6)
         )
       );
-      const folksRouterClient = (this as any).getFolksClient(context);
+      const folksRouterClient = getFolksClient(context);
       if (!folksRouterClient)
         throw Error(
           "Unable to create folks router client for specified network"
@@ -50,22 +52,31 @@ export const folksAggregator: DexAggregator = {
           ? context.toAsset.value
           : 0;
 
-      context.aggregatorData.folksQuote.value =
-        await folksRouterClient.fetchSwapQuote(
-          fromAsset,
-          toAsset,
+      const quote = await folksRouterClient.fetchSwapQuote(
+        {
           amount,
-          SwapMode.FIXED_INPUT,
-          15,
-          10,
-          "AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
-        );
+          fromAssetId: fromAsset,
+          toAssetId: toAsset,
+          swapMode: SwapMode.FIXED_INPUT,
+        },
+        15,
+        10,
+        0,
+        "AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
+      );
+      context.aggregatorData.folksQuote.value = quote;
       const slippage = Math.round(context.slippage.value * 100);
       context.aggregatorData.folksTxns.value =
         await folksRouterClient.prepareSwapTransactions(
+          {
+            amount,
+            fromAssetId: fromAsset,
+            toAssetId: toAsset,
+            swapMode: SwapMode.FIXED_INPUT,
+          },
           context.$route.params.account,
           slippage,
-          context.aggregatorData.folksQuote.value
+          quote
         );
       const token = await context.getAsset({
         assetIndex: toAsset,
