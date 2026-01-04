@@ -65,7 +65,7 @@
     "get_quote": "Get quote",
     "apps_optin": "SWAP requires your account to opt in to the applications",
     "apps_optin_button": "Opt in to the apps",
-    "execute_button_deflex": "Execute using Deflex",
+    "execute_button_deflex": "Execute using Haystack",
     "execute_button_folks": "Execute using Folks router",
     "execute_button_biatec": "Execute using Biatec router",
     "slippage": "Slippage percentage"
@@ -570,7 +570,6 @@
     "a8_3": "Select all accounts that can sign the transactions and select how many signatures that adhere to the minimum for the network to accept the multisig payment.",
     "a8_4": "After you create the multisignature account, you can access it from the accounts list page."
   },
-
   "connect": {
     "title": "Connect to DApps using WalletConnect",
     "uri": "WalletConnect URI",
@@ -783,7 +782,7 @@
   },
   "labels": {
     "use_folks": "Use Folks router",
-    "use_deflex": "Use Deflex",
+    "use_deflex": "Use Haystack",
     "use_biatec": "Use Biatec router",
     "quote": "Quote:",
     "price": "Price:"

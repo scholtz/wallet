@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import Button from "primevue/button";
 import MainLayout from "../../layouts/Main.vue";
 import { useRoute } from "vue-router";
@@ -6,23 +6,43 @@ import { useStore } from "vuex";
 import { reactive } from "vue";
 import { JsonViewer } from "vue3-json-viewer";
 import { Shamir } from "@spliterati/shamir";
-import { Buffer } from "buffer";
+import type { uint8 } from "@spliterati/uint8";
 import algosdk from "algosdk";
-import { entropyToMnemonic } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
 import QRCodeVue3 from "qrcode-vue3";
 import sha512 from "js-sha512";
 import copy from "copy-to-clipboard";
+import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 
-const store = useStore();
-const route = useRoute();
-const { t } = useI18n(); // use as global scope
+interface AccountWithSecret {
+  sk?: number[] | Uint8Array;
+  [key: string]: unknown;
+}
 
-const state = reactive({
-  json: {},
+type ExportStep = "step1" | "mn" | "shamir" | "shamir2";
+
+interface ExportState {
+  json: AccountWithSecret | null;
+  mn: string;
+  sh: Uint8Array[];
+  shIndex: number;
+  qr: boolean;
+  shamirMin: number;
+  shamirCount: number;
+  state: ExportStep;
+  pwd: string;
+  pwdChecked: boolean;
+}
+
+const { t } = useI18n();
+const store = useStore<RootState>();
+const route = useRoute();
+
+const state = reactive<ExportState>({
+  json: null,
   mn: "",
-  sh: {},
+  sh: [],
   shIndex: -1,
   qr: false,
   shamirMin: 3,
@@ -31,10 +51,14 @@ const state = reactive({
   pwd: "",
   pwdChecked: false,
 });
-function concatTypedArrays(a, b) {
+const toUint8Array = (input: number[] | Uint8Array): Uint8Array => {
+  return input instanceof Uint8Array ? input : new Uint8Array(input);
+};
+const toUint8 = (value: number): uint8 => value as unknown as uint8;
+function concatTypedArrays(a: Uint8Array, b: Uint8Array): Uint8Array {
   // a, b TypedArray of same type
   //https://stackoverflow.com/questions/33702838/how-to-append-bytes-multi-bytes-and-buffer-to-arraybuffer-in-javascript
-  var c = new a.constructor(a.length + b.length);
+  const c = new Uint8Array(a.length + b.length);
   c.set(a, 0);
   c.set(b, a.length);
   return c;
@@ -42,33 +66,33 @@ function concatTypedArrays(a, b) {
 const shamirBackup = async () => {
   try {
     await store.dispatch("wallet/prolong");
-    state.json = await store.dispatch("wallet/getAccount", {
+    state.json = (await store.dispatch("wallet/getAccount", {
       addr: route.params.account,
-    });
-    if (!state.json || !state.json.sk) {
+    })) as AccountWithSecret;
+    if (!state.json?.sk) {
       throw new Error("Private key is not stored for this account");
     }
 
-    const secret = new Uint8Array(Buffer.from(Object.values(state.json.sk)));
+    const secret = toUint8Array(state.json.sk);
     const shares = Shamir.split(
       secret.subarray(0, 32), // in first 32 bytes is the secret
-      state.shamirCount,
-      state.shamirMin
+      toUint8(state.shamirCount),
+      toUint8(state.shamirMin)
     );
     state.sh = shares;
     setShamirIndex(0);
   } catch (err) {
-    const error = err.message ?? err;
+    const error = err instanceof Error ? err.message : String(err);
     console.error("shamir err", error, err);
     await store.dispatch("toast/openError", error);
   }
 };
-function toUint11Array(buffer8) {
+function toUint11Array(buffer8: Uint8Array) {
   //https://github.com/algorand/js-algorand-sdk/blob/7965d1c194186e5c7b8a86756c546f2ec35291cd/src/mnemonic/mnemonic.ts#L12C1-L34C2
-  const buffer11 = [];
+  const buffer11: number[] = [];
   let acc = 0;
   let accBits = 0;
-  function add(octet) {
+  function add(octet: number) {
     acc |= octet << accBits;
     accBits += 8;
     if (accBits >= 11) {
@@ -87,10 +111,10 @@ function toUint11Array(buffer8) {
   flush();
   return buffer11;
 }
-function genericHash(arr) {
-  return sha512.sha512_256.array(arr);
+function genericHash(arr: Uint8Array) {
+  return Uint8Array.from(sha512.sha512_256.array(arr));
 }
-function computeChecksum(seed) {
+function computeChecksum(seed: Uint8Array) {
   const hashBuffer = genericHash(seed);
   const uint11Hash = toUint11Array(hashBuffer);
   const words = applyWords(uint11Hash);
@@ -98,7 +122,7 @@ function computeChecksum(seed) {
   return words[0];
 }
 
-function mnemonicFromSeed(seed) {
+function mnemonicFromSeed(seed: Uint8Array) {
   // https://github.com/algorand/js-algorand-sdk/blob/7965d1c194186e5c7b8a86756c546f2ec35291cd/src/mnemonic/mnemonic.ts#L54C17-L54C33
   const seedWithZero = concatTypedArrays(seed, new Uint8Array(1));
   const uint11Hash = toUint11Array(seedWithZero);
@@ -107,12 +131,16 @@ function mnemonicFromSeed(seed) {
 
   return `${words.join(" ")} ${checksumWord}`;
 }
-function applyWords(nums) {
+function applyWords(nums: number[]) {
   return nums.map((n) => wordlist[n]);
 }
 
-const setShamirIndex = (index) => {
-  state.mn = mnemonicFromSeed(state.sh[index]);
+const setShamirIndex = (index: number) => {
+  const shard = state.sh.at(index);
+  if (!shard) {
+    return;
+  }
+  state.mn = mnemonicFromSeed(shard);
   state.shIndex = index;
   state.state = "shamir2";
 
@@ -131,19 +159,18 @@ const setShamirIndex = (index) => {
 const algorandMnemonics = async () => {
   try {
     await store.dispatch("wallet/prolong");
-    state.json = await store.dispatch("wallet/getAccount", {
+    state.json = (await store.dispatch("wallet/getAccount", {
       addr: route.params.account,
-    });
-    if (!state.json.sk) {
+    })) as AccountWithSecret;
+    if (!state.json?.sk) {
       throw new Error("Private key is not stored for this account");
     }
-    state.mn = algosdk.secretKeyToMnemonic(
-      new Uint8Array(Buffer.from(Object.values(state.json.sk)))
-    );
+    const secret = toUint8Array(state.json.sk);
+    state.mn = algosdk.secretKeyToMnemonic(new Uint8Array(secret));
     state.shIndex = -1;
     state.state = "mn";
   } catch (err) {
-    const error = err.message ?? err;
+    const error = err instanceof Error ? err.message : String(err);
     console.error("shamir err", error, err);
     await store.dispatch("toast/openError", error);
   }
@@ -160,12 +187,12 @@ const checkPwd = async () => {
       await store.dispatch("toast/openError", "Wrong password");
     }
   } catch (err) {
-    const error = err.message ?? err;
+    const error = err instanceof Error ? err.message : String(err);
     await store.dispatch("toast/openError", error);
   }
 };
 
-async function copyToClipboard(text) {
+async function copyToClipboard(text: string) {
   if (copy(text)) {
     await store.dispatch("toast/openSuccess", "Mnemonics copied to clipboard");
   }
@@ -174,14 +201,14 @@ async function copyToClipboard(text) {
 
 <template>
   <MainLayout>
-    <h1>{{ $t("account_export.header") }}</h1>
+    <h1>{{ t("account_export.header") }}</h1>
     <Card>
       <template #content>
-        <p>{{ $t("account_export.help") }}</p>
+        <p>{{ t("account_export.help") }}</p>
         <div v-if="!state.pwdChecked">
           <div class="field grid">
             <label for="pwd" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("account_export.password") }}
+              {{ t("account_export.password") }}
             </label>
             <div class="col-12 md:col-10">
               <Password
@@ -196,7 +223,7 @@ async function copyToClipboard(text) {
             <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
             <div class="col-12 md:col-10">
               <Button @click="checkPwd">
-                {{ $t("account_export.continue") }}
+                {{ t("account_export.continue") }}
               </Button>
             </div>
           </div>
@@ -208,13 +235,13 @@ async function copyToClipboard(text) {
                 class="m-2 w-100"
                 :severity="state.state == 'step1' ? 'primary' : 'secondary'"
                 @click="algorandMnemonics"
-                >{{ $t("account_export.algo_mnemonic") }}</Button
+                >{{ t("account_export.algo_mnemonic") }}</Button
               >
               <Button
                 class="m-2 w-100"
                 :severity="state.state == 'step1' ? 'primary' : 'secondary'"
                 @click="state.state = 'shamir'"
-                >{{ $t("account_export.shamir_backup") }}</Button
+                >{{ t("account_export.shamir_backup") }}</Button
               >
             </div>
           </div>
@@ -223,12 +250,12 @@ async function copyToClipboard(text) {
               class="m-2"
               @click="state.qr = !state.qr"
               severity="secondary"
-              >{{ $t("account_export.toggle_qr") }}</Button
+              >{{ t("account_export.toggle_qr") }}</Button
             >
           </div>
           <div v-if="state.state == 'shamir' || state.state == 'shamir2'">
             <label for="shamirMin"
-              >{{ $t("account_export.recovery_threshold") }}:</label
+              >{{ t("account_export.recovery_threshold") }}:</label
             >
             <InputNumber
               inputId="shamirMin"
@@ -238,7 +265,7 @@ async function copyToClipboard(text) {
               :max="100"
             ></InputNumber>
             <label for="shamirCount"
-              >{{ $t("account_export.number_of_mnemonics") }}:</label
+              >{{ t("account_export.number_of_mnemonics") }}:</label
             >
             <InputNumber
               inputId="shamirCount"
@@ -251,7 +278,7 @@ async function copyToClipboard(text) {
               class="m-2"
               @click="shamirBackup"
               :severity="state.state == 'shamir' ? 'primary' : 'secondary'"
-              >{{ $t("account_export.generate_shamir") }}</Button
+              >{{ t("account_export.generate_shamir") }}</Button
             >
           </div>
           <div v-if="state.state == 'shamir2'">
@@ -259,32 +286,32 @@ async function copyToClipboard(text) {
               class="m-2"
               @click="state.qr = !state.qr"
               severity="secondary"
-              >{{ $t("account_export.toggle_qr") }}</Button
+              >{{ t("account_export.toggle_qr") }}</Button
             >
             <Button
               class="m-2"
               v-if="state.sh && state.shIndex >= 0"
               :disabled="state.shIndex == 0"
               @click="setShamirIndex(state.shIndex - 1)"
-              >{{ $t("account_export.previous") }}</Button
+              >{{ t("account_export.previous") }}</Button
             >
             <Button
               class="m-2"
               v-if="state.sh && state.shIndex >= 0"
               :disabled="state.shIndex == state.sh.length - 1"
               @click="setShamirIndex(state.shIndex + 1)"
-              >{{ $t("account_export.next") }}</Button
+              >{{ t("account_export.next") }}</Button
             >
           </div>
           <div v-if="state.mn" class="m-5">
             <div v-if="state.shIndex >= 0">
-              {{ $t("account_export.index") }} {{ state.shIndex + 1 }} /
+              {{ t("account_export.index") }} {{ state.shIndex + 1 }} /
               {{ state.sh.length }}
-              <b>{{ $t("account_export.shamir_help") }} </b>
+              <b>{{ t("account_export.shamir_help") }} </b>
             </div>
             <div v-else>
               <div>
-                <b>{{ $t("account_export.algo_help") }}</b>
+                <b>{{ t("account_export.algo_help") }}</b>
               </div>
             </div>
             <Button
@@ -308,7 +335,7 @@ async function copyToClipboard(text) {
             />
           </div>
           <div v-if="$store.state.config.dev && state.json">
-            <h2>{{ $t("account_export.dev_info") }}</h2>
+            <h2>{{ t("account_export.dev_info") }}</h2>
             <JsonViewer :value="state.json" copyable boxed sort />
           </div>
         </div>

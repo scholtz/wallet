@@ -6,6 +6,7 @@
     "jsx": "preserve",
     "importHelpers": true,
     "moduleResolution": "node",
+    "allowArbitraryExtensions": true,
     "experimentalDecorators": true,
     "allowJs": true,
     "skipLibCheck": true,
@@ -13,7 +14,7 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
-    "types": ["webpack-env"],
+    "types": ["vite/client"],
     "paths": {
       "@/*": ["src/*"]
     },
@@ -22,11 +23,13 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
+    "src/**/*.d.ts",
     "src/**/*.vue",
     "tests/**/*.ts",
     "tests/**/*.tsx",
-    "src/store/fa2.js",
-    "src/shared/wc.js"
+    "src/store/fa2.ts",
+    "src/shared/wc.ts",
+    "src/store/index.ts"
   ],
   "exclude": ["node_modules"]
 }

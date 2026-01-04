@@ -18,18 +18,23 @@ describe("Create ARC76 Account", () => {
     // Create wallet using custom command
     cy.createTestWallet();
 
-    // Navigate to account creation via menu using text-based selectors
-    // First expand the Wallet menu
-    cy.contains("Wallet", { timeout: 10000 }).click();
+    // The createTestWallet already redirects to /accounts
 
-    // Wait for menu to expand and click on "New account"
-    //cy.contains("New account", { timeout: 10000 }).should("be.visible").click();
-    cy.get(".pi-plus").first().trigger("mouseenter").wait(1000);
+    // Wait for the navbar to load
+    cy.get("nav", { timeout: 10000 }).should("be.visible");
+
+    // Use the menu to navigate to ARC76 account creation
+    cy.contains("Wallet", { timeout: 10000 }).click({ force: true });
+
+    // Wait for menu to expand and hover on "New account"
+    cy.contains("New account", { timeout: 10000 }).trigger("mouseenter", {
+      force: true,
+    });
 
     // Wait for submenu to appear and click on "Email & Password account"
-    cy.contains("Email & Password account", { timeout: 10000 })
-      .should("be.visible")
-      .click();
+    cy.contains("Email & Password account", { timeout: 10000 }).click({
+      force: true,
+    });
 
     // Wait for ARC76 form to load
     cy.url().should("include", "/new-account/email-password");

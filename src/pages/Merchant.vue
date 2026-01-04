@@ -20,24 +20,26 @@
           {{ $t("merchant.to_address") }} {{ b64decode.payTo }}
           {{ $t("merchant.please") }}
           <table class="w-100">
-            <tr v-if="b64decode.network">
-              <td>{{ $t("merchant.network") }}:</td>
-              <td>
-                <code>{{ b64decode.network }}</code>
-              </td>
-            </tr>
-            <tr v-if="b64decode.paynote">
-              <td>{{ $t("merchant.matching_symbol") }}:</td>
-              <td>
-                <code>{{ b64decode.paynote }}</code>
-              </td>
-            </tr>
-            <tr v-if="b64decode.fee">
-              <td>{{ $t("merchant.network_fee") }}:</td>
-              <td>
-                <code>{{ b64decode.fee }} ALGO</code>
-              </td>
-            </tr>
+            <tbody>
+              <tr v-if="b64decode.network">
+                <td>{{ $t("merchant.network") }}:</td>
+                <td>
+                  <code>{{ b64decode.network }}</code>
+                </td>
+              </tr>
+              <tr v-if="b64decode.paynote">
+                <td>{{ $t("merchant.matching_symbol") }}:</td>
+                <td>
+                  <code>{{ b64decode.paynote }}</code>
+                </td>
+              </tr>
+              <tr v-if="b64decode.fee">
+                <td>{{ $t("merchant.network_fee") }}:</td>
+                <td>
+                  <code>{{ b64decode.fee }} ALGO</code>
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
         <div v-else-if="b64decode.error" class="my-3">
@@ -160,7 +162,7 @@ export default {
       if (this.b64decode.asset == 312769) {
         return "/img/tether-usdt-logo-96.png";
       }
-      if (this.asset["asset-id"] === "") {
+      if (this.asset["assetId"] === "") {
         return "/img/algorand-algo-logo-96.png";
       }
       return "";
@@ -261,11 +263,11 @@ export default {
         }
       } else {
         this.asset = {
-          "asset-id": "",
+          assetId: "",
           amount: 0,
           name: "ALG",
           decimals: 6,
-          "unit-name": "Algo",
+          unitName: "Algo",
         };
       }
       // transfer to asset decimals

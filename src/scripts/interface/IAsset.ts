@@ -1,10 +1,10 @@
 interface IAsset {
-  "asset-id": number;
-  amount: number;
+  assetId: bigint;
+  amount: bigint;
   name: string;
   decimals: number;
-  "unit-name": string;
-  type: string;
+  unitName: string;
+  type: "Native" | "ASA" | "ARC200";
   label: string;
 }
 export default IAsset;

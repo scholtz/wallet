@@ -2,16 +2,16 @@
   <main-layout>
     <div class="grid">
       <div class="col">
-        <h1>{{ $t("accounts.title") }}</h1>
+        <h1>{{ t("accounts.title") }}</h1>
       </div>
     </div>
     <Message severity="warn" v-if="showNoAccountsForNetworkWarning">
-      {{ $t("newacc.no_accounts_at_network") }}
+      {{ t("newacc.no_accounts_at_network") }}
     </Message>
     <div v-if="accounts.length == 0">
       <RouterLink to="/new-account/ed25519">
         <Button class="my-5" id="create-first">
-          {{ $t("newacc.create_first") }}
+          {{ t("newacc.create_first") }}
         </Button>
       </RouterLink>
     </div>
@@ -35,7 +35,7 @@
                   <InputGroupAddon><i class="pi pi-search" /></InputGroupAddon>
                   <InputText
                     v-model="filters['global'].value"
-                    :placeholder="$t('placeholders.keyword_search')"
+                    :placeholder="t('placeholders.keyword_search')"
                   />
                 </InputGroup>
               </div>
@@ -44,8 +44,8 @@
                   class="text-right w-full h-full justify-content-center my-2"
                 >
                   <label for="showAll" class="mr-1">
-                    {{ $t("accounts.show_on_netowork_accounts") }}:
-                    {{ this.$store.state.config.envName }}
+                    {{ t("accounts.show_on_netowork_accounts") }}:
+                    {{ store.state.config.envName }}
                   </label>
                   <Checkbox
                     inputId="showAll"
@@ -59,11 +59,11 @@
             </div>
           </template>
           <template #empty>
-            {{ $t("accounts.no_accounts") }}
+            {{ t("accounts.no_accounts") }}
           </template>
           <Column
             field="name"
-            :header="$t('accounts.account_name')"
+            :header="t('accounts.account_name')"
             :sortable="true"
           >
             <template #filter="{ filterModel, filterCallback }">
@@ -72,13 +72,13 @@
                 type="text"
                 @input="filterCallback()"
                 class="p-column-filter"
-                :placeholder="$t('placeholders.search_by_name')"
+                :placeholder="t('placeholders.search_by_name')"
               />
             </template>
           </Column>
           <Column
             field="amount"
-            :header="$t('accounts.amount')"
+            :header="t('accounts.amount')"
             :sortable="true"
           >
             <template #body="slotProps">
@@ -86,15 +86,13 @@
                 v-if="
                   slotProps.data &&
                   slotProps.data.data &&
-                  slotProps.data.data[this.$store.state.config.env]
+                  slotProps.data.data[store.state.config.env]
                 "
                 class="text-end"
               >
                 {{
-                  $filters.formatCurrency(
-                    slotProps.data["data"][this.$store.state.config.env][
-                      "amount"
-                    ]
+                  formatCurrency(
+                    slotProps.data["data"][store.state.config.env]["amount"]
                   )
                 }}
               </div>
@@ -106,22 +104,18 @@
                 type="text"
                 @input="filterCallback()"
                 class="p-column-filter"
-                :placeholder="$t('placeholders.search_by_amount')"
+                :placeholder="t('placeholders.search_by_amount')"
               />
             </template>
           </Column>
-          <Column
-            field="addr"
-            :header="$t('accounts.address')"
-            :sortable="true"
-          >
+          <Column field="addr" :header="t('accounts.address')" :sortable="true">
             <template #filter="{ filterModel, filterCallback }">
               <InputText
                 v-model="filterModel.value"
                 type="text"
                 @input="filterCallback()"
                 class="p-column-filter"
-                :placeholder="$t('placeholders.search_by_address')"
+                :placeholder="t('placeholders.search_by_address')"
               />
             </template>
           </Column>
@@ -142,7 +136,7 @@
                 class="ml-2"
               >
                 <Button severity="secondary" size="small">
-                  {{ $t("accounts.pay") }}
+                  {{ t("accounts.pay") }}
                 </Button>
               </router-link>
               <router-link
@@ -150,7 +144,7 @@
                 class="ml-2"
               >
                 <Button severity="secondary" size="small">
-                  {{ $t("accounts.connect") }}
+                  {{ t("accounts.connect") }}
                 </Button>
               </router-link>
             </template>
@@ -161,143 +155,199 @@
   </main-layout>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "vuex";
 import MainLayout from "../layouts/Main.vue";
-import { mapActions } from "vuex";
 import Checkbox from "primevue/checkbox";
 import AccountType from "@/components/AccountType.vue";
 import { FilterMatchMode } from "primevue/api";
 import InputGroup from "primevue/inputgroup";
 import InputGroupAddon from "primevue/inputgroupaddon";
+import { useI18n } from "vue-i18n";
+import formatCurrency from "@/scripts/numbers/formatCurrency";
+import { RootState } from "@/store";
+import algosdk from "algosdk";
+import { Buffer } from "buffer";
+import { IAccountData, WalletAccount } from "@/store/wallet";
+type DisplayAccount = WalletAccount & { amount: number };
+type FilterMode = (typeof FilterMatchMode)[keyof typeof FilterMatchMode];
 
-//import VGrid, { VGridVueTemplate } from "@revolist/vue3-datagrid";
-//import VGridButton from "../components/VGridButton.vue";
-export default {
-  name: "App",
-  components: {
-    //VGrid,
-    MainLayout,
-    Checkbox,
-    AccountType,
-  },
-  data() {
-    return {
-      gridEditors: { button: false },
-      selection: null,
-      showNetworkAccounts: false,
-      accounts: [],
-      showNoAccountsForNetworkWarning: false,
-      filters: {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-        addr: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-        amount: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-      },
-    };
-  },
-  watch: {
-    async selection() {
-      if (this.selection && this.selection.addr) {
-        await this.lastActiveAccount({ addr: this.selection.addr });
-        this.$router.push("/account/" + this.selection.addr);
-      }
-    },
-    showNetworkAccounts() {
-      localStorage.setItem("showNetworkAccounts", this.showNetworkAccounts);
-      this.fillAccounts();
-    },
-    isAuth() {
-      this.accounts = [];
-      if (this.isAuth) {
-        this.fillAccounts();
-      }
-    },
-  },
-  computed: {
-    isAuth() {
-      return this.$store.state.wallet.isOpen;
-    },
-  },
-  async mounted() {
-    this.accounts = [];
-    if (localStorage.getItem("showNetworkAccounts") === null) {
-      this.showNetworkAccounts = true;
-    } else {
-      this.showNetworkAccounts =
-        localStorage.getItem("showNetworkAccounts") == "true";
-    }
-    this.fillAccounts();
-    await this.updateBalance();
-    this.fillAccounts();
-  },
-  methods: {
-    ...mapActions({
-      accountInformation: "indexer/accountInformation",
-      updateAccount: "wallet/updateAccount",
-      lastActiveAccount: "wallet/lastActiveAccount",
-    }),
-    accountData(account) {
-      if (!account) return false;
-      if (!account.data) return false;
-      return account.data[this.$store.state.config.env];
-    },
-    fillAccounts() {
-      this.showNoAccountsForNetworkWarning = false;
-      let filteredAccounts = [];
-      if (this.showNetworkAccounts) {
-        filteredAccounts = Object.values(
-          this.$store.state.wallet.privateAccounts
-        ).filter(
-          (a) =>
-            a.data &&
-            !a.isHidden &&
-            a.data[this.$store.state.config.env] &&
-            (a.data[this.$store.state.config.env].amount > 0 ||
-              // arc200 accounts does not have to have any amount
-              (a.data[this.$store.state.config.env].arc200 &&
-                Object.values(a.data[this.$store.state.config.env].arc200).find(
-                  (a) => a.balance > 0
-                )))
-        );
-        if (!filteredAccounts.length) {
-          filteredAccounts = Object.values(
-            this.$store.state.wallet.privateAccounts
-          );
-          if (filteredAccounts.length > 0) {
-            this.showNoAccountsForNetworkWarning = true;
-          }
-        }
-      } else {
-        filteredAccounts = Object.values(
-          this.$store.state.wallet.privateAccounts
-        );
-      }
-
-      // Add flat amount property for sorting
-      this.accounts = filteredAccounts.map((account) => ({
-        ...account,
-        amount: this.accountData(account)?.amount || 0,
-      }));
-    },
-    sleep(ms) {
-      return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-      });
-    },
-    async updateBalance() {
-      for (const account of this.accounts) {
-        await this.sleep(100);
-        if (!account.addr) {
-          continue;
-        }
-        const info = await this.accountInformation({
-          addr: account.addr,
-        });
-        if (info) {
-          await this.updateAccount({ info });
-        }
-      }
-    },
-  },
+type FilterEntry = {
+  value: string | null;
+  matchMode: FilterMode;
 };
+
+type AccountsFilters = {
+  global: FilterEntry;
+  name: FilterEntry;
+  addr: FilterEntry;
+  amount: FilterEntry;
+};
+
+const store = useStore<RootState>();
+const router = useRouter();
+const { t } = useI18n();
+
+const selection = ref<WalletAccount | null>(null);
+const showNetworkAccounts = ref(false);
+const accounts = ref<DisplayAccount[]>([]);
+const showNoAccountsForNetworkWarning = ref(false);
+const filters = ref<AccountsFilters>({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  addr: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  amount: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+});
+
+const isAuth = computed(() => store.state.wallet.isOpen);
+
+const accountData = (account?: WalletAccount): IAccountData | undefined => {
+  return account?.data?.[store.state.config.env];
+};
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
+const fillAccounts = () => {
+  showNoAccountsForNetworkWarning.value = false;
+  const privateAccounts = Object.values(
+    store.state.wallet.privateAccounts || {}
+  ) as WalletAccount[];
+
+  let filteredAccounts: WalletAccount[] = [];
+
+  if (showNetworkAccounts.value) {
+    filteredAccounts = privateAccounts.filter((account) => {
+      if (account.isHidden) {
+        return false;
+      }
+      const envData = accountData(account);
+      if (!envData) {
+        return false;
+      }
+      const hasPositiveBalance = BigInt(envData?.amount ?? 0) > 0;
+      const hasArc200Balance = envData.arc200
+        ? Object.values(envData.arc200).some(
+            (holding) => holding && holding.balance > 0
+          )
+        : false;
+      return hasPositiveBalance || hasArc200Balance;
+    });
+
+    if (filteredAccounts.length === 0 && privateAccounts.length > 0) {
+      filteredAccounts = privateAccounts;
+      showNoAccountsForNetworkWarning.value = true;
+    }
+  } else {
+    filteredAccounts = privateAccounts;
+  }
+  filteredAccounts = filteredAccounts.map((account) => {
+    let addr = account.addr;
+    if (typeof account.addr !== "string") {
+      // if addr is algorand address object, convert to string
+      const pk = (account.addr as any)?.publicKey;
+      if (pk) {
+        var buffer = Buffer.from(Object.values(pk));
+        const obj = new algosdk.Address(buffer);
+        addr = obj.toString();
+      }
+    }
+    return {
+      ...account,
+      addr,
+    };
+  });
+
+  accounts.value = filteredAccounts.map((account) => {
+    const envData = accountData(account);
+    if (envData) {
+      const amount = envData?.amount ?? 0;
+      return {
+        ...account,
+        amount,
+      } as DisplayAccount;
+    }
+    return {
+      ...account,
+      amount: 0,
+    } as DisplayAccount;
+  });
+};
+
+const accountInformation = (payload: { addr: string }) =>
+  store.dispatch("indexer/accountInformation", payload);
+const updateAccount = (payload: { info: unknown }) =>
+  store.dispatch("wallet/updateAccount", payload);
+const lastActiveAccount = (payload: { addr: string }) =>
+  store.dispatch("wallet/lastActiveAccount", payload);
+
+const updateBalance = async () => {
+  for (const account of accounts.value) {
+    await sleep(100);
+    if (!account.addr) {
+      continue;
+    }
+    try {
+      const info = await accountInformation({
+        addr: account.addr,
+      });
+      if (info) {
+        await updateAccount({ info });
+      }
+    } catch (error) {
+      const message =
+        (error as Error)?.message || "accountInformation request failed";
+      if (message.includes("no accounts found")) {
+        console.warn(
+          `Skipping missing account ${account.addr}: ${message}`,
+          error
+        );
+      } else {
+        console.error(
+          `Failed to refresh account ${account.addr}: ${message}`,
+          error
+        );
+      }
+    }
+  }
+};
+
+watch(
+  () => selection.value?.addr,
+  async (value) => {
+    if (value) {
+      await lastActiveAccount({ addr: value });
+      router.push(`/account/${value}`);
+    }
+  }
+);
+
+watch(showNetworkAccounts, (value) => {
+  localStorage.setItem("showNetworkAccounts", String(value));
+  fillAccounts();
+});
+
+watch(isAuth, (value) => {
+  accounts.value = [];
+  if (value) {
+    fillAccounts();
+  }
+});
+
+onMounted(async () => {
+  accounts.value = [];
+  const stored = localStorage.getItem("showNetworkAccounts");
+  if (stored === null) {
+    showNetworkAccounts.value = true;
+  } else {
+    showNetworkAccounts.value = stored === "true";
+  }
+  fillAccounts();
+  await updateBalance();
+  fillAccounts();
+});
 </script>

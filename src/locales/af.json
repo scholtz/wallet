@@ -65,8 +65,9 @@
     "get_quote": "Kry kwotasie",
     "apps_optin": "SWAP vereis dat jou rekening inskakel by die programme",
     "apps_optin_button": "Skakel in by die programme",
-    "execute_button_deflex": "Uitvoer met Deflex",
+    "execute_button_deflex": "Uitvoer met Haystack",
     "execute_button_folks": "Uitvoer met Folks router",
+    "execute_button_biatec": "Voer uit met Biatec router",
     "slippage": "Slippage persentasie"
   },
   "govtoolsmenu": {
@@ -569,7 +570,6 @@
     "a8_3": "Select all accounts that can sign the transactions and select how many signatures that adhere to the minimum for the network to accept the multisig payment.",
     "a8_4": "After you create the multisignature account, you can access it from the accounts list page."
   },
-
   "connect": {
     "title": "Connect to DApps using WalletConnect",
     "uri": "WalletConnect URI",
@@ -782,7 +782,7 @@
   },
   "labels": {
     "use_folks": "Gebruik Folks router",
-    "use_deflex": "Gebruik Deflex",
+    "use_deflex": "Gebruik Haystack",
     "use_biatec": "Gebruik Biatec router",
     "quote": "Kwotasie:",
     "price": "Prys:"

@@ -363,7 +363,7 @@
 <script>
 import PublicLayout from "../layouts/Public.vue";
 import base64url from "base64url";
-var Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer";
 window.Buffer = Buffer;
 
 export default {

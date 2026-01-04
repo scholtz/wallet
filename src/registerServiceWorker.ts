@@ -2,8 +2,8 @@
 
 import { register } from "register-service-worker";
 
-if (process.env.NODE_ENV === "production") {
-  register(`${process.env.BASE_URL}service-worker.js`, {
+if (import.meta.env.PROD) {
+  register(`${import.meta.env.BASE_URL}service-worker.js`, {
     ready() {
       console.warn(
         "App is being served from cache by a service worker.\n" +
@@ -23,7 +23,7 @@ if (process.env.NODE_ENV === "production") {
       console.warn("New content is available; please refresh.");
 
       caches.keys().then(function (names) {
-        for (let name of names) caches.delete(name);
+        for (const name of names) caches.delete(name);
       });
     },
     offline() {

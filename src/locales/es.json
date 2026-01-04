@@ -65,8 +65,9 @@
     "get_quote": "Cotizar (previsualizar el intercambio)",
     "apps_optin": "INTERCAMBIO require que su cuenta haga el Opt-in a la aplicación",
     "apps_optin_button": "Hacer Opt-in a la aplicación",
-    "execute_button_deflex": "Ejecutar usando Deflex",
+    "execute_button_deflex": "Ejecutar usando Haystack router",
     "execute_button_folks": "Ejecutar usando Folks router",
+    "execute_button_biatec": "Ejecutar usando Biatec router",
     "slippage": "Porcentaje de desviación"
   },
   "govtoolsmenu": {
@@ -450,7 +451,8 @@
     "protocol_title": "Registrar controlador de protocolo",
     "protocol_button": "Registrar web+algorand:// controlador",
     "protocol_change_success": "Se ha actualizado correctamente el controlador de protocolor",
-    "dev_settings": "Mostrar información para desarrolladores"
+    "dev_settings": "Mostrar información para desarrolladores",
+    "update_password": "Actualizar contraseña"
   },
   "transaction": {
     "title": "Detalle de la transacción",
@@ -568,7 +570,6 @@
     "a8_3": "Seleccione todas las cuentas que pueden firmar las transacciones y seleccione cuántas firmas se necesitan mínimo para que la red acepte el pago multifirma.",
     "a8_4": "Una vez creada la cuenta multifirma, puede acceder a ella desde la página de la lista de cuentas."
   },
-
   "connect": {
     "title": "Conectar con las DApps mediante WalletConnect",
     "uri": "WalletConnect URI",
@@ -781,7 +782,7 @@
   },
   "labels": {
     "use_folks": "Usar Folks router",
-    "use_deflex": "Usar Deflex",
+    "use_deflex": "Usar Haystack router",
     "use_biatec": "Usar Biatec router",
     "quote": "Cotización:",
     "price": "Precio:"

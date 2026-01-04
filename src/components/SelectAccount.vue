@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useStore } from "vuex";
 import Dropdown from "primevue/dropdown";
 import { useI18n } from "vue-i18n";
+import { RootState } from "@/store";
 
 const props = defineProps({
   modelValue: String,
@@ -22,7 +23,7 @@ const model = computed({
   },
 });
 
-const store = useStore();
+const store = useStore<RootState>();
 const { t } = useI18n();
 
 function getAccountName() {
@@ -40,7 +41,7 @@ function getAccountName() {
     :options="store.state.wallet.privateAccounts"
     optionLabel="name"
     optionValue="addr"
-    :placeholder="$t('account.select_account')"
+    :placeholder="t('account.select_account')"
     :class="props.class"
     :inputClass="props.class"
     :itemid="props.itemId"

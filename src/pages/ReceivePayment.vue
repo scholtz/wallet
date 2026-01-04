@@ -42,7 +42,7 @@
             <Dropdown
               id="asset"
               :options="assets"
-              option-value="asset-id"
+              option-value="assetId"
               option-label="name"
               v-model="asset"
               class="w-full"
@@ -50,9 +50,7 @@
               <template #option="slotProps">
                 <div v-if="slotProps.option" class="flex align-items-center">
                   <div>
-                    {{ slotProps.option.name }} ({{
-                      slotProps.option["asset-id"]
-                    }})
+                    {{ slotProps.option.name }} ({{ slotProps.option.assetId }})
                   </div>
                 </div>
               </template>
@@ -98,7 +96,8 @@
         </div>
         <div class="field grid">
           <label for="payto" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("receive.address") }}: <b>{{ account.name }}</b>
+            {{ $t("receive.address") }}:
+            <b>{{ account?.name || "" }}</b>
           </label>
           <div class="col-12 md:col-10">
             <InputText
@@ -141,289 +140,213 @@
   </main-layout>
 </template>
 
-<script>
-import MainLayout from "../layouts/Main.vue";
+<script lang="ts" setup>
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 import QRCodeVue3 from "qrcode-vue3";
-import { mapActions } from "vuex";
-import algosdk from "algosdk";
-export default {
-  components: {
-    MainLayout,
-    QRCodeVue3,
-  },
-  data() {
-    return {
-      payamount: 0,
-      paynote: "",
-      paynoteB64: false,
-      decimals: 0,
-      label: "",
-      noteeditable: true,
-      assets: [],
-      assetObj: {},
-      asset: 0,
-    };
-  },
-  computed: {
-    qrcode() {
-      if (!this.account) return "";
-      let ret = "algorand://" + this.account.addr;
-      if (
-        this.payamount > 0 ||
-        this.paynoteB64 ||
-        this.paynote ||
-        this.label ||
-        this.asset
-      ) {
-        ret += "?";
-      }
-      if (this.payamount > 0) {
-        if (this.decimals > 0) {
-          ret +=
-            "&amount=" +
-            Math.round(this.payamount * Math.pow(10, this.decimals));
-        } else {
-          ret += "&amount=" + this.payamount;
-        }
-      }
-      if (this.paynoteB64) {
-        ret += "&noteB64=1";
-      }
+import MainLayout from "../layouts/Main.vue";
+import { useStore } from "../store";
+import type { StoredAsset } from "../store/indexer";
+import type { WalletAccount, IAccountData } from "../store/wallet";
 
-      if (this.paynote && this.noteeditable) {
-        ret += "&note=" + this.paynote;
-      }
-      if (this.paynote && !this.noteeditable) {
-        ret += "&xnote=" + this.paynote;
-      }
-      if (this.label) {
-        ret += "&label=" + this.label;
-      }
-      if (this.asset > 0) {
-        ret += "&asset=" + this.asset;
-      }
-      return ret;
-    },
-    account() {
-      return this.$store.state.wallet.privateAccounts.find(
-        (a) => a.addr == this.$route.params.account
-      );
-    },
-    accountData() {
-      if (!this.account) return false;
-      if (!this.account.data) return false;
-      return this.account.data[this.$store.state.config.env];
-    },
-    assetName() {
-      const asset = this.assets.find((a) => a["asset-id"] == this.asset);
-      if (!asset) return "Algo";
-      return asset.name;
-    },
-  },
-  watch: {
-    account() {
-      this.makeAssets();
-    },
-    async asset() {
-      if (!this.asset) {
-        this.assetObj = {
-          "asset-id": 0,
-          name: this.$store.state.config.tokenSymbol,
-          decimals: 6,
-        };
-      } else {
-        this.assetObj = await this.getAsset({
-          assetIndex: this.asset,
-        });
-      }
-      this.decimals = this.assetObj.decimals;
-    },
-  },
-  mounted() {
-    this.makeAssets();
-  },
-  methods: {
-    ...mapActions({
-      prolong: "wallet/prolong",
-      makePayment: "algod/makePayment",
-      waitForConfirmation: "algod/waitForConfirmation",
-      lastActiveAccount: "wallet/lastActiveAccount",
-      getTransactionParams: "algod/getTransactionParams",
-      sendRawTransaction: "algod/sendRawTransaction",
-      getSK: "wallet/getSK",
-      getAsset: "indexer/getAsset",
-    }),
-    async makeAssets() {
-      this.assets = [];
-      if (this.accountData && this.accountData.amount > 0) {
-        this.assets.push({
-          "asset-id": 0,
-          amount: this.accountData.amount,
-          name: this.$store.state.config.tokenSymbol,
-          decimals: 6,
-          "unit-name": "",
-        });
-      }
-      if (this.accountData) {
-        for (let index in this.accountData.assets) {
-          const asset = await this.getAsset({
-            assetIndex: this.accountData.assets[index]["asset-id"],
-          });
-          if (asset) {
-            this.assets.push({
-              "asset-id": this.accountData.assets[index]["asset-id"],
-              amount: this.accountData.assets[index]["amount"],
-              name: asset["name"],
-              decimals: asset["decimals"],
-              "unit-name": asset["unit-name"],
-            });
-          }
-        }
-      }
-    },
-    reset() {
-      this.subpage = "";
-      this.error = "";
-      this.confirmedRound = "";
-      this.processing = true;
-      this.page = "review";
-      this.signMultisigWith = [];
-      this.rawSignedTxn = "";
-      this.rawSignedTxnInput = "";
-    },
-    previewPaymentClick(e) {
-      this.page = "review";
-      this.prolong();
-      e.preventDefault();
-    },
-    async payMultisig() {
-      this.prolong();
-      const multsigaddr = this.$route.params.account;
-      const payTo = this.payto;
-      const amount = this.amountLong;
-      const enc = new TextEncoder();
-      const note = enc.encode(this.paynote);
-
-      let params = await this.getTransactionParams();
-      // comment out the next two lines to use suggested fee
-      params.fee = 1000;
-      params.flatFee = true;
-      this.txn = algosdk.makePaymentTxnWithSuggestedParams(
-        multsigaddr,
-        payTo,
-        amount,
-        undefined,
-        note,
-        params
-      );
-      //let txId = txn.txID().toString();
-    },
-    async signMultisig(e) {
-      this.prolong();
-      e.preventDefault();
-      let rawSignedTxn = null;
-      if (this.rawSignedTxnInput) {
-        rawSignedTxn = this._base64ToArrayBuffer(this.rawSignedTxnInput);
-      }
-      const selected = Object.values(this.signMultisigWith);
-      for (const acc in this.accountsFromMultisig) {
-        if (!selected.includes(this.accountsFromMultisig[acc].addr)) {
-          continue;
-        }
-
-        if (rawSignedTxn == null) {
-          const sk = await this.getSK({
-            addr: this.accountsFromMultisig[acc].addr,
-          });
-          rawSignedTxn = algosdk.signMultisigTransaction(
-            this.txn,
-            this.account.params,
-            sk
-          ).blob;
-        } else {
-          const sk = await this.getSK({
-            addr: this.accountsFromMultisig[acc].addr,
-          });
-          rawSignedTxn = algosdk.appendSignMultisigTransaction(
-            rawSignedTxn,
-            this.account.params,
-            sk
-          ).blob;
-        }
-      }
-      this.rawSignedTxn = this._arrayBufferToBase64(rawSignedTxn);
-      this.rawSignedTxnInput = this.rawSignedTxn;
-      /*
-      var reader = new FileReader();
-      reader.readAsDataURL(new Blob(rawSignedTxn));
-      const that = this;
-      reader.onloadend = function () {
-        var base64 = reader.result.split(",")[1];
-        that.rawSignedTxn = base64;
-      };/**/
-    },
-    _arrayBufferToBase64(buffer) {
-      var binary = "";
-      var bytes = new Uint8Array(buffer);
-      var len = bytes.byteLength;
-      for (var i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return btoa(binary);
-    },
-    _base64ToArrayBuffer(base64) {
-      var binary_string = window.atob(base64);
-      var len = binary_string.length;
-      var bytes = new Uint8Array(len);
-      for (var i = 0; i < len; i++) {
-        bytes[i] = binary_string.charCodeAt(i);
-      }
-      return bytes.buffer;
-    },
-    loadMultisig(e) {
-      this.prolong();
-      e.preventDefault();
-      this.multisigDecoded = algosdk.decodeSignedTransaction(
-        this._base64ToArrayBuffer(this.rawSignedTxnInput)
-      );
-      this.page = "review";
-    },
-    encodeAddress(a) {
-      return algosdk.encodeAddress(a);
-    },
-    async sendMultisig(e) {
-      this.prolong();
-      this.error = "";
-
-      this.processing = true;
-      try {
-        e.preventDefault();
-        const signedTxn = this._base64ToArrayBuffer(this.rawSignedTxn);
-        const transaction = await this.sendRawTransaction({ signedTxn });
-        this.tx = transaction.txId;
-        const confirmation = await this.waitForConfirmation({
-          txId: this.tx,
-          timeout: 4,
-        });
-        if (!confirmation) {
-          this.processing = false;
-          this.error = this.$t("pay.state_error_not_sent");
-          // "Payment has probably not reached the network. Are you offline? Please check you account";
-          return;
-        }
-        if (confirmation["confirmed-round"]) {
-          this.processing = false;
-          this.confirmedRound = confirmation["confirmed-round"];
-        }
-        if (confirmation["pool-error"]) {
-          this.processing = false;
-          this.error = confirmation["pool-error"];
-        }
-      } catch (e) {
-        this.processing = false;
-        this.error = e;
-      }
-    },
-  },
+type AssetOption = {
+  assetId: bigint;
+  amount?: number | bigint;
+  name?: string;
+  decimals?: number;
+  unitName?: string;
 };
+
+type AssetDetails = {
+  assetId: bigint;
+  name?: string;
+  decimals: number;
+};
+
+const store = useStore();
+const route = useRoute();
+
+const payamount = ref(0);
+const paynote = ref("");
+const paynoteB64 = ref(false);
+const decimals = ref(0);
+const label = ref("");
+const noteeditable = ref(true);
+const assets = ref<AssetOption[]>([]);
+const assetObj = ref<AssetDetails>({
+  assetId: 0n,
+  name: store.state.config.tokenSymbol as string,
+  decimals: 6,
+});
+const asset = ref<bigint | number>(0);
+
+const account = computed<WalletAccount | undefined>(() =>
+  store.state.wallet.privateAccounts.find(
+    (walletAccount) => walletAccount.addr === (route.params.account as string)
+  )
+);
+
+const accountData = computed<IAccountData | undefined>(() => {
+  const currentAccount = account.value;
+  if (!currentAccount?.data) {
+    return undefined;
+  }
+  return currentAccount.data[store.state.config.env];
+});
+
+const hasPositiveAmount = (value?: number | bigint): boolean => {
+  if (typeof value === "bigint") {
+    return value > 0n;
+  }
+  if (typeof value === "number") {
+    return value > 0;
+  }
+  return false;
+};
+
+const qrcode = computed(() => {
+  const currentAccount = account.value;
+  if (!currentAccount) return "";
+  let ret = `algorand://${currentAccount.addr}`;
+  if (
+    payamount.value > 0 ||
+    paynoteB64.value ||
+    paynote.value ||
+    label.value ||
+    asset.value
+  ) {
+    ret += "?";
+  }
+  if (payamount.value > 0) {
+    if (decimals.value > 0) {
+      ret +=
+        "&amount=" + Math.round(payamount.value * Math.pow(10, decimals.value));
+    } else {
+      ret += "&amount=" + payamount.value;
+    }
+  }
+  if (paynoteB64.value) {
+    ret += "&noteB64=1";
+  }
+  if (paynote.value && noteeditable.value) {
+    ret += "&note=" + paynote.value;
+  }
+  if (paynote.value && !noteeditable.value) {
+    ret += "&xnote=" + paynote.value;
+  }
+  if (label.value) {
+    ret += "&label=" + label.value;
+  }
+  if (asset.value && Number(asset.value) > 0) {
+    ret += "&asset=" + asset.value;
+  }
+  return ret;
+});
+
+const assetName = computed(() => {
+  const selected = assets.value.find((option) => {
+    try {
+      return BigInt(option.assetId) === BigInt(asset.value ?? 0);
+    } catch {
+      return false;
+    }
+  });
+  return selected?.name ?? "Algo";
+});
+
+const makeAssets = async () => {
+  assets.value = [];
+  const data = accountData.value;
+  if (!data) return;
+
+  if (hasPositiveAmount(data.amount)) {
+    assets.value.push({
+      assetId: 0n,
+      amount: data.amount,
+      name: store.state.config.tokenSymbol as string,
+      decimals: 6,
+      unitName: "",
+    });
+  }
+
+  if (Array.isArray(data.assets)) {
+    for (const accountAsset of data.assets) {
+      if (!accountAsset?.assetId) continue;
+      const resolved = (await store.dispatch("indexer/getAsset", {
+        assetIndex: accountAsset.assetId,
+      })) as StoredAsset | undefined;
+      if (resolved) {
+        assets.value.push({
+          assetId: accountAsset.assetId,
+          amount: accountAsset.amount,
+          name: resolved.name,
+          decimals: resolved.decimals,
+          unitName: resolved.unitName ?? "",
+        });
+      }
+    }
+  }
+};
+
+const loadSelectedAsset = async () => {
+  if (!asset.value) {
+    assetObj.value = {
+      assetId: 0n,
+      name: store.state.config.tokenSymbol as string,
+      decimals: 6,
+    };
+    decimals.value = assetObj.value.decimals;
+    return;
+  }
+
+  try {
+    const resolved = (await store.dispatch("indexer/getAsset", {
+      assetIndex: asset.value,
+    })) as StoredAsset | undefined;
+    if (resolved) {
+      assetObj.value = {
+        assetId: resolved.assetId,
+        name: resolved.name ?? store.state.config.tokenSymbol,
+        decimals: resolved.decimals ?? 0,
+      };
+      decimals.value = assetObj.value.decimals;
+    } else {
+      decimals.value = 0;
+    }
+  } catch (err) {
+    console.error("loadSelectedAsset", err);
+  }
+};
+
+const _arrayBufferToBase64 = (buffer: Uint8Array) => {
+  let binary = "";
+  const bytes = buffer;
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary);
+};
+
+const _base64ToArrayBuffer = (base64: string) => {
+  const binaryString = window.atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+};
+
+watch(account, () => {
+  void makeAssets();
+});
+
+watch(asset, () => {
+  void loadSelectedAsset();
+});
+
+onMounted(() => {
+  void makeAssets();
+  void loadSelectedAsset();
+});
 </script>

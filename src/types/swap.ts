@@ -1,19 +1,14 @@
 // types/swap.ts - Type definitions for the Swap component
-export interface Asset {
-  "asset-id": number;
-  amount: number;
-  name: string;
-  decimals: number;
-  "unit-name": string;
-  type: "Native" | "ASA";
-  label: string;
-}
+/* eslint-disable no-unused-vars */
+
+import { StoredAsset } from "@/store/indexer";
+import algosdk from "algosdk";
 
 export interface AccountData {
   amount: number;
   assets: Array<{
-    "asset-id": number;
-    amount: number;
+    assetId: bigint;
+    amount: bigint;
   }>;
 }
 
@@ -40,13 +35,13 @@ export interface SwapStore {
   };
   getters: {
     algosdk: {
-      decodeUnsignedTransaction: (bytes: Uint8Array) => any;
-      signTransaction: (tx: any, sk: Uint8Array) => any;
-      computeGroupID: (txs: any[]) => Uint8Array;
+      decodeUnsignedTransaction: (_bytes: Uint8Array) => any;
+      signTransaction: (_tx: any, _sk: Uint8Array) => any;
+      computeGroupID: (_txs: any[]) => Uint8Array;
       waitForConfirmation: (
-        client: any,
-        txId: string,
-        timeout: number
+        _client: any,
+        _txId: string,
+        _timeout: number
       ) => Promise<any>;
     };
   };
@@ -61,12 +56,12 @@ export interface SwapRoute {
 }
 
 export interface SwapComponentData {
-  assets: Asset[];
+  assets: StoredAsset[];
   asset: number | null;
   toAsset: number | null;
   payamount: number;
-  fromAssetObj: Partial<Asset>;
-  toAssetObj: Partial<Asset>;
+  fromAssetObj: StoredAsset | undefined;
+  toAssetObj: StoredAsset | undefined;
   txsDetails: string;
   hasSK: boolean | null;
   processingQuote: boolean;
@@ -80,20 +75,20 @@ export interface SwapComponentData {
 }
 
 export interface SwapMethods {
-  openSuccess: (message: string) => void;
-  openError: (message: string) => void;
-  axiosGet: (config: { url: string }) => Promise<any>;
-  axiosPost: (config: {
+  openSuccess: (_message: string) => void;
+  openError: (_message: string) => void;
+  axiosGet: (_config: { url: string }) => Promise<any>;
+  axiosPost: (_config: {
     url: string;
     body?: any;
     config?: any;
   }) => Promise<any>;
-  getSK: (config: { addr: string }) => Promise<Uint8Array>;
-  getAsset: (config: { assetIndex: number }) => Promise<Asset>;
-  sendRawTransaction: (config: {
+  getSK: (_config: { addr: string }) => Promise<Uint8Array>;
+  getAsset: (_config: { assetIndex: number }) => Promise<StoredAsset>;
+  sendRawTransaction: (_config: {
     signedTxn: Uint8Array | Uint8Array[];
-  }) => Promise<{ txId: string }>;
-  waitForConfirmation: (config: {
+  }) => Promise<algosdk.modelsv2.PostTransactionsResponse>;
+  waitForConfirmation: (_config: {
     txId: string;
     timeout: number;
   }) => Promise<any>;
@@ -101,3 +96,5 @@ export interface SwapMethods {
   reloadAccount: () => Promise<void>;
   checkNetwork: () => string | false;
 }
+
+/* eslint-enable no-unused-vars */

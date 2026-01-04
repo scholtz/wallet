@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import MainLayout from "../../layouts/Main.vue";
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import algosdk from "algosdk";
 import QRCodeVue3 from "qrcode-vue3";
+import { RootState } from "@/store";
 
 const state = reactive({
   lastError: "",
@@ -49,14 +50,14 @@ const reset = async () => {
 
 const { t } = useI18n(); // use as global scope
 
-const store = useStore();
+const store = useStore<RootState>();
 const router = useRouter();
 
 const createAccount = async () => {
   try {
     state.page = "newaccount";
     let account = algosdk.generateAccount();
-    state.a = account.addr;
+    state.a = account.addr.toString();
     state.w = algosdk.secretKeyToMnemonic(account.sk);
     state.words = state.w.split(" ");
   } catch (err: any) {
@@ -116,19 +117,17 @@ onMounted(async () => {
   await store.dispatch("wallet/prolong");
   await createAccount();
 });
-
-const rotateCard = () => {};
 </script>
 <template>
   <MainLayout>
-    <h1>{{ $t("newacc.create_basic") }}</h1>
+    <h1>{{ t("newacc.create_basic") }}</h1>
 
     <Card>
       <template #content>
         <div v-if="state.challenge">
           <div class="field grid">
             <label class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.new_account_challange") }}
+              {{ t("newacc.new_account_challange") }}
             </label>
             <div class="col-12 md:col-10">
               {{ state.addr }}
@@ -136,7 +135,7 @@ const rotateCard = () => {};
           </div>
           <div class="field grid">
             <label for="guess" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.position_question") }} {{ state.r }}?
+              {{ t("newacc.position_question") }} {{ state.r }}?
             </label>
             <div class="col-12 md:col-10">
               <InputText id="guess" v-model="state.guess" class="w-full" />
@@ -146,24 +145,24 @@ const rotateCard = () => {};
             <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
             <div class="col-12 md:col-10">
               <Button class="m-1" @click="confirmCreate">
-                {{ $t("newacc.create_account") }}
+                {{ t("newacc.create_account") }}
               </Button>
               <Button class="m-1" @click="state.challenge = false">
-                {{ $t("global.go_back") }}
+                {{ t("global.go_back") }}
               </Button>
             </div>
           </div>
         </div>
         <div v-if="!state.challenge && state.page == 'newaccount'">
           <p>
-            {{ $t("newacc.create_account_help") }}
+            {{ t("newacc.create_account_help") }}
           </p>
           <p>
-            {{ $t("newacc.mnemonic_help") }}
+            {{ t("newacc.mnemonic_help") }}
           </p>
           <div class="field grid">
             <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("new_account_shamir.mnemonic") }}
+              {{ t("new_account_shamir.mnemonic") }}
             </label>
             <div class="col-12 md:col-10">
               <Password
@@ -186,8 +185,8 @@ const rotateCard = () => {};
                     "
                   >
                     <div v-if="!state.card1Fliped">
-                      {{ $t("newacc.click_to_show_positions") }} 1
-                      {{ $t("newacc.to") }} 5
+                      {{ t("newacc.click_to_show_positions") }} 1
+                      {{ t("newacc.to") }} 5
                     </div>
                     <div v-else>
                       <div>1: {{ state.words[0] }}</div>
@@ -210,8 +209,8 @@ const rotateCard = () => {};
                     "
                   >
                     <div v-if="!state.card2Fliped">
-                      {{ $t("newacc.click_to_show_positions") }} 6
-                      {{ $t("newacc.to") }} 10
+                      {{ t("newacc.click_to_show_positions") }} 6
+                      {{ t("newacc.to") }} 10
                     </div>
                     <div v-else>
                       <div>6: {{ state.words[5] }}</div>
@@ -234,8 +233,8 @@ const rotateCard = () => {};
                     "
                   >
                     <div v-if="!state.card3Fliped">
-                      {{ $t("newacc.click_to_show_positions") }} 11
-                      {{ $t("newacc.to") }} 15
+                      {{ t("newacc.click_to_show_positions") }} 11
+                      {{ t("newacc.to") }} 15
                     </div>
                     <div v-else>
                       <div>11: {{ state.words[10] }}</div>
@@ -258,8 +257,8 @@ const rotateCard = () => {};
                     "
                   >
                     <div v-if="!state.card4Fliped">
-                      {{ $t("newacc.click_to_show_positions") }} 16
-                      {{ $t("newacc.to") }} 20
+                      {{ t("newacc.click_to_show_positions") }} 16
+                      {{ t("newacc.to") }} 20
                     </div>
                     <div v-else>
                       <div>16: {{ state.words[15] }}</div>
@@ -282,8 +281,8 @@ const rotateCard = () => {};
                     "
                   >
                     <div v-if="!state.card5Fliped">
-                      {{ $t("newacc.click_to_show_positions") }} 21
-                      {{ $t("newacc.to") }} 25
+                      {{ t("newacc.click_to_show_positions") }} 21
+                      {{ t("newacc.to") }} 25
                     </div>
                     <div v-else>
                       <div>21: {{ state.words[20] }}</div>
@@ -299,7 +298,7 @@ const rotateCard = () => {};
           </div>
           <div class="field grid">
             <label for="name" class="col-12 mb-2 md:col-2 md:mb-0">
-              {{ $t("newacc.name") }}
+              {{ t("newacc.name") }}
             </label>
             <div class="col-12 md:col-10">
               <InputText id="name" v-model="state.name" class="w-full" />
@@ -312,7 +311,7 @@ const rotateCard = () => {};
             @click="state.showQR = true"
             class="m-1"
           >
-            {{ $t("newacc.show_qr_code") }}
+            {{ t("newacc.show_qr_code") }}
           </Button>
           <QRCodeVue3
             v-if="state.showQR"
@@ -352,7 +351,7 @@ const rotateCard = () => {};
             id="start_challenge"
             :disabled="!state.name"
           >
-            {{ $t("newacc.start_challenge") }}
+            {{ t("newacc.start_challenge") }}
           </Button>
           <Button
             class="m-1"
@@ -361,7 +360,7 @@ const rotateCard = () => {};
             id="skip_challange"
             :disabled="!state.name"
           >
-            {{ $t("newacc.skip_challange") }}
+            {{ t("newacc.skip_challange") }}
           </Button>
           <Button
             severity="secondary"
@@ -369,10 +368,10 @@ const rotateCard = () => {};
             @click="createAccount"
             id="create_new"
           >
-            {{ $t("newacc.create_new") }}
+            {{ t("newacc.create_new") }}
           </Button>
           <Button severity="secondary" class="m-1" @click="reset" id="reset">
-            {{ $t("newacc.drop_phrase") }}
+            {{ t("newacc.drop_phrase") }}
           </Button>
         </div>
       </template>

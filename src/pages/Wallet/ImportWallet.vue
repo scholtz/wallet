@@ -25,9 +25,8 @@
               <FileUpload
                 mode="basic"
                 id="newwallet-file"
-                ref="walletFile"
                 type="file"
-                @change="fileChanged"
+                @select="fileChanged"
               />
             </div>
           </div>
@@ -53,48 +52,69 @@
   </PublicLayout>
 </template>
 
-<script>
-import { mapActions } from "vuex";
+<script lang="ts" setup>
+import { ref } from "vue";
+import { RouterLink, useRouter } from "vue-router";
+import FileUpload, { type FileUploadSelectEvent } from "primevue/fileupload";
 import PublicLayout from "../../layouts/Public.vue";
-import { RouterLink } from "vue-router";
-import FileUpload from "primevue/fileupload";
+import { useStore } from "../../store";
 
-export default {
-  components: {
-    PublicLayout,
-    RouterLink,
-    FileUpload,
-  },
-  data() {
-    return {
-      name: "",
-      file: null,
-    };
-  },
-  methods: {
-    ...mapActions({
-      importWallet: "wallet/importWallet",
-    }),
-    fileChanged() {
-      this.readFile(this.$refs.walletFile.files[0]);
-    },
-    readFile(file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        //this.file = btoa(unescape(encodeURIComponent(e.target.result)));
-        this.file = e.target.result;
-      };
-      reader.readAsText(file);
-    },
-    createWalletClick(e) {
-      e.preventDefault();
+const store = useStore();
+const router = useRouter();
 
-      this.importWallet({ name: this.name, data: this.file }).then((r) => {
-        if (r) {
-          this.$router.push("/accounts");
-        }
-      });
-    },
-  },
+const name = ref("");
+const file = ref<string | null>(null);
+
+const readFile = (uploadedFile: File) => {
+  const reader = new FileReader();
+  reader.onload = (event: ProgressEvent<FileReader>) => {
+    const result = event.target?.result;
+    file.value = typeof result === "string" ? result : null;
+  };
+  reader.readAsText(uploadedFile);
+};
+
+const toFileArray = (
+  files: File | File[] | ArrayLike<File> | null | undefined
+): File[] => {
+  if (!files) {
+    return [];
+  }
+  if (Array.isArray(files)) {
+    return files;
+  }
+  if (files instanceof File) {
+    return [files];
+  }
+  return Array.from(files as ArrayLike<File>);
+};
+
+const fileChanged = (event: FileUploadSelectEvent) => {
+  const [firstFile] = toFileArray(
+    event.files as File | File[] | ArrayLike<File> | null
+  );
+
+  if (firstFile) {
+    readFile(firstFile);
+  } else {
+    file.value = null;
+  }
+};
+
+const createWalletClick = async (event: Event) => {
+  event.preventDefault();
+
+  if (!name.value || !file.value) {
+    return;
+  }
+
+  const result = await store.dispatch("wallet/importWallet", {
+    name: name.value,
+    data: file.value,
+  });
+
+  if (result) {
+    router.push("/accounts");
+  }
 };
 </script>

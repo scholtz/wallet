@@ -3,35 +3,145 @@ import MainLayout from "../../layouts/Main.vue";
 import { useStore } from "vuex";
 import { onMounted, reactive, watch } from "vue";
 import { FilterMatchMode } from "primevue/api";
-import SelectAccount from "../../components/SelectAccount.vue";
-import SelectAsset from "../../components/SelectAsset.vue";
 import DropDown from "primevue/dropdown";
 import Button from "primevue/button";
 import CAsset from "@/scripts/interface/CAsset";
 import base642base64url from "@/scripts/encoding/base642base64url";
 import { useRoute, useRouter } from "vue-router";
-import AlgorandAddress from "@/components/AlgorandAddress.vue";
 import formatCurrency from "@/scripts/numbers/formatCurrency";
 import * as algokit from "@algorandfoundation/algokit-utils";
 
 import copy from "copy-to-clipboard";
-import YAML from "yaml";
 import {
   BiatecTaskManagerClient,
   BiatecCronJobShortHashClient,
   getPoolManagerApp,
-  getBoxReferenceUser,
   getBoxReferenceApp,
   parseBoxData,
 } from "biatec-scheduler";
 import algosdk, { AtomicTransactionComposer } from "algosdk";
 import axios from "axios";
+import { RootState } from "@/store";
+import { useI18n } from "vue-i18n";
+import { Buffer } from "buffer";
+import { StoredAsset } from "@/store/indexer";
 
+type FilterMode = (typeof FilterMatchMode)[keyof typeof FilterMatchMode];
+
+type FilterEntry = {
+  value: string | null;
+  matchMode: FilterMode;
+};
+
+type WalletAccount = {
+  addr?: string;
+  data?: Record<string, AccountEnvData>;
+};
+
+type AccountAssetEntry = {
+  amount: number;
+  assetId: bigint;
+};
+
+type AssetHolding = algosdk.modelsv2.AssetHolding;
+
+type AccountEnvData = {
+  amount?: number;
+  assets?: AccountAssetEntry[];
+  arc200?: Record<string, unknown>;
+};
+
+type GlobalStateEntry = {
+  key: string;
+  value: {
+    uint?: number;
+    bytes?: string;
+  };
+};
+
+const readGlobalState = (
+  params?: algosdk.modelsv2.ApplicationParams | Record<string, unknown>
+): GlobalStateEntry[] => {
+  if (!params) return [];
+  const paramRecord = params as Record<string, unknown>;
+  const raw =
+    (paramRecord["global-state"] as GlobalStateEntry[] | undefined) ??
+    (paramRecord["globalState" as keyof typeof paramRecord] as
+      | GlobalStateEntry[]
+      | undefined);
+  return Array.isArray(raw) ? raw : [];
+};
+
+const normalizeAccountAssets = (
+  assets?: AssetHolding[]
+): AccountAssetEntry[] => {
+  if (!assets) return [];
+  return assets.map((asset) => ({
+    assetId: BigInt(
+      (asset as unknown as AccountAssetEntry).assetId ?? asset.assetId ?? 0n
+    ),
+    amount: Number(asset.amount ?? 0),
+  }));
+};
+
+interface EscrowAssetRow {
+  assetId: bigint;
+  amount: number;
+  assetName?: string;
+  info: StoredAsset | undefined;
+}
+
+interface AppInfo {
+  appId: number;
+  appAddress: string;
+  start: number;
+  period: number;
+  balanceFee: number;
+  fee: number;
+}
+
+type ScheduledAction = "" | "tx-deploy" | "tx-configure";
+
+type ScheduledPaymentDetailFilters = {
+  global: FilterEntry;
+  assetName: FilterEntry;
+  amount: FilterEntry;
+};
+
+interface ScheduledPaymentDetailState {
+  selection: EscrowAssetRow | null;
+  payTo: string;
+  assetData: CAsset;
+  account: string;
+  withdrawAmount: number;
+  maxAmount: number;
+  stepAmount: number;
+  appInfo: AppInfo;
+  assets: EscrowAssetRow[];
+  filters: ScheduledPaymentDetailFilters;
+  period: string;
+  optionsSchedule: Array<{ value: string; name: string }>;
+  start: number;
+  txID: string;
+  action: ScheduledAction;
+  hash: string;
+  client: string;
+  appId: string;
+  fee: number;
+  feeAssetId: number;
+  feeAssetData: StoredAsset;
+  optin: number;
+  withdrawAsset: number | string | null;
+  amountToDeposit: number;
+  script: string;
+}
+
+const { t } = useI18n();
 const route = useRoute();
-const store = useStore();
+const store = useStore<RootState>();
 const router = useRouter();
-const state = reactive({
-  selection: "",
+const state = reactive<ScheduledPaymentDetailState>({
+  selection: null,
   payTo: "",
   assetData: new CAsset(),
   account: route.params.account as string,
@@ -49,6 +159,8 @@ const state = reactive({
   assets: [],
   filters: {
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    assetName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    amount: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   },
   period: "86400",
   optionsSchedule: [
@@ -73,36 +185,35 @@ const state = reactive({
   appId: "",
   fee: 1000,
   feeAssetId: 0,
-  feeAssetData: new CAsset(),
+  feeAssetData: {} as StoredAsset,
   optin: 0,
-  withdrawAsset: "",
+  withdrawAsset: null,
   amountToDeposit: 0,
   script: "",
 });
 
-const getAccountData = () => {
-  const account = store.state.wallet.privateAccounts.find(
-    (a: any) => a.addr == state.account
+const getAccountData = (): AccountEnvData | undefined => {
+  const account = (store.state.wallet.privateAccounts as WalletAccount[]).find(
+    (a) => a.addr === state.account
   );
-  if (!account) return false;
-  if (!account.data) return false;
-  return account.data[store.state.config.env];
+  return account?.data?.[store.state.config.env];
 };
 const maxAmount = () => {
-  const accountData = getAccountData();
   if (!state.assetData) return 0;
-  if (state.assetData.type == "ARC200") {
-    if (!state.assetData) return 0;
-    return state.assetData.amount / 10 ** state.assetData.decimals;
-  } else if (state.assetData.type == "ASA") {
-    if (!state.assetData) return 0;
-    return state.assetData.amount / 10 ** state.assetData.decimals;
-  } else {
-    let ret = accountData.amount / 1000000 - 0.1;
-    if (accountData["assets"] && accountData["assets"].length > 0)
-      ret = ret - accountData["assets"].length * 0.1;
-    return ret;
+  if (state.assetData.type == "ARC200" || state.assetData.type == "ASA") {
+    const decimals = state.assetData.decimals ?? 0;
+    return Number(state.assetData.amount || 0) / 10 ** decimals;
   }
+  const accountInfo = getAccountData();
+  if (!accountInfo?.amount) {
+    return 0;
+  }
+  let ret = accountInfo.amount / 1_000_000 - 0.1;
+  const optedAssets = accountInfo.assets?.length ?? 0;
+  if (optedAssets > 0) {
+    ret -= optedAssets * 0.1;
+  }
+  return Math.max(ret, 0);
 };
 
 const stepAmount = () => {
@@ -135,15 +246,16 @@ const loadTableData = async () => {
     // );
     const poolAppId = getPoolManagerApp(store.state.config.env);
     const poolApp = await algod.getApplicationByID(poolAppId).do();
-    const fa = poolApp.params["global-state"].find((kv) => kv.key == "ZmE=")
-      .value.uint;
+    const poolState = readGlobalState(poolApp.params);
+    const fa = poolState.find((kv) => kv.key == "ZmE=")?.value.uint ?? 0;
     state.feeAssetId = fa;
-    state.feeAssetData = await store.dispatch("indexer/getAsset", {
+    const feeAsset = (await store.dispatch("indexer/getAsset", {
       assetIndex: fa,
-    });
+    })) as StoredAsset | undefined;
+    if (feeAsset) {
+      state.feeAssetData = feeAsset;
+    }
 
-    const addr = route.params.account as string;
-    const decodedAddr = algosdk.decodeAddress(addr);
     const appId = Number(route.params.appId);
     state.appId = appId.toString();
     const boxApp = await algod
@@ -155,13 +267,12 @@ const loadTableData = async () => {
     const data = parseBoxData(boxApp.value);
 
     const app = await algod.getApplicationByID(appId).do();
-    const s = app.params["global-state"].find((kv) => kv.key == "cw==").value
-      .uint;
-    const p = app.params["global-state"].find((kv) => kv.key == "cA==").value
-      .uint;
+    const appState = readGlobalState(app.params);
+    const s = appState.find((kv) => kv.key == "cw==")?.value.uint ?? 0;
+    const p = appState.find((kv) => kv.key == "cA==")?.value.uint ?? 0;
     state.appInfo = {
       appId: appId,
-      appAddress: algosdk.getApplicationAddress(appId),
+      appAddress: String(algosdk.getApplicationAddress(appId)),
       start: s,
       period: p,
       balanceFee: data.funds,
@@ -171,26 +282,30 @@ const loadTableData = async () => {
       .lookupAccountByID(algosdk.getApplicationAddress(appId))
       .do();
 
-    const assets = [];
-    let info = await store.dispatch("indexer/getAsset", { assetIndex: 0 });
+    const assets: EscrowAssetRow[] = [];
+    const info = (await store.dispatch("indexer/getAsset", {
+      assetIndex: 0,
+    })) as StoredAsset | undefined;
     assets.push({
-      "asset-id": 0,
-      amount: account.account.amount,
-      assetName: info.name,
+      assetId: 0n,
+      amount: Number(account?.account?.amount ?? 0),
+      assetName: info?.name ?? "",
       info: info,
     });
-    if (account.account.assets) {
-      for (const asset of account.account.assets) {
-        const infoA = await store.dispatch("indexer/getAsset", {
-          assetIndex: asset["asset-id"],
-        });
-        assets.push({
-          "asset-id": asset["asset-id"],
-          amount: asset.amount,
-          assetName: infoA.name,
-          info: infoA,
-        });
-      }
+    const accountAssets = normalizeAccountAssets(
+      account?.account?.assets as AssetHolding[] | undefined
+    );
+    for (const asset of accountAssets) {
+      const assetId = asset.assetId ?? 0n;
+      const infoA = (await store.dispatch("indexer/getAsset", {
+        assetIndex: assetId,
+      })) as StoredAsset | undefined;
+      assets.push({
+        assetId: assetId,
+        amount: Number(asset.amount ?? 0),
+        assetName: infoA?.name ?? "",
+        info: infoA,
+      });
     }
     state.assets = assets;
   } catch (e) {
@@ -206,7 +321,7 @@ onMounted(async () => {
       localStorage.getItem("currentAction") ?? ""
     );
     if (deserialized.selection) {
-      state.selection = deserialized.selection;
+      state.selection = deserialized.selection as EscrowAssetRow;
     }
     if (deserialized.payTo) {
       state.payTo = deserialized.payTo;
@@ -214,12 +329,12 @@ onMounted(async () => {
     if (deserialized.assetData) {
       var newAssetData = new CAsset();
       newAssetData.amount = deserialized.assetData.amount;
-      newAssetData["asset-id"] = deserialized.assetData["asset-id"];
+      newAssetData.assetId = deserialized.assetData.assetId;
       newAssetData.decimals = deserialized.assetData.decimals;
       newAssetData.label = deserialized.assetData.label;
       newAssetData.name = deserialized.assetData.name;
       newAssetData.type = deserialized.assetData.type;
-      newAssetData["unit-name"] = deserialized.assetData["unit-name"];
+      newAssetData.unitName = deserialized.assetData.unitName;
       state.assetData = newAssetData;
     }
   } catch (exc: any) {
@@ -232,8 +347,10 @@ const optinEscrowToAsset = async () => {
     const algod = (await store.dispatch("algod/getAlgod")) as algosdk.Algodv2;
     const signer = {
       addr: route.params.account as string,
-      // eslint-disable-next-line no-unused-vars
-      signer: async (txnGroup: Transaction[], indexesToSign: number[]) => {
+      signer: async (
+        _txnGroup: algosdk.Transaction[],
+        _indexesToSign: number[]
+      ) => {
         return [];
       },
     };
@@ -241,7 +358,6 @@ const optinEscrowToAsset = async () => {
       {
         resolveBy: "id",
         id: state.appInfo.appId,
-        sender: signer,
       },
       algod
     );
@@ -262,11 +378,12 @@ const optinEscrowToAsset = async () => {
       }
     );
     const params = await algod.getTransactionParams().do();
+    const receiver = state.appInfo.appAddress;
     const payToEscrowMBR = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       amount: 100_000,
-      from: signer.addr,
       suggestedParams: params,
-      to: state.appInfo.appAddress,
+      receiver: receiver,
+      sender: signer.addr.toString(),
     });
     const txs = atc.buildGroup().map((tx) => tx.txn);
     const txs2 = [payToEscrowMBR, txs[0]];
@@ -283,8 +400,10 @@ const depositToFeePool = async () => {
     const algod = (await store.dispatch("algod/getAlgod")) as algosdk.Algodv2;
     const signer = {
       addr: route.params.account as string,
-      // eslint-disable-next-line no-unused-vars
-      signer: async (txnGroup: Transaction[], indexesToSign: number[]) => {
+      signer: async (
+        _txnGroup: algosdk.Transaction[],
+        _indexesToSign: number[]
+      ) => {
         return [];
       },
     };
@@ -293,19 +412,20 @@ const depositToFeePool = async () => {
       {
         resolveBy: "id",
         id: poolAppId,
-        sender: signer,
+        sender: signer as never,
       },
       algod
     );
 
     const params = await algod.getTransactionParams().do();
+    const feeDecimals = state.feeAssetData.decimals ?? 0;
     const depositTx = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
       {
-        amount: state.amountToDeposit * 10 ** state.feeAssetData.decimals,
+        amount: state.amountToDeposit * 10 ** feeDecimals,
         assetIndex: state.feeAssetId,
-        from: signer.addr,
+        sender: signer.addr.toString(),
         suggestedParams: params,
-        to: algosdk.getApplicationAddress(poolAppId),
+        receiver: algosdk.getApplicationAddress(poolAppId),
       }
     );
     const box = getBoxReferenceApp(poolAppId, state.appInfo.appId);
@@ -337,8 +457,10 @@ const withdrawFromEscrow = async () => {
     const algod = (await store.dispatch("algod/getAlgod")) as algosdk.Algodv2;
     const signer = {
       addr: route.params.account as string,
-      // eslint-disable-next-line no-unused-vars
-      signer: async (txnGroup: Transaction[], indexesToSign: number[]) => {
+      signer: async (
+        _txnGroup: algosdk.Transaction[],
+        _indexesToSign: number[]
+      ) => {
         return [];
       },
     };
@@ -346,28 +468,30 @@ const withdrawFromEscrow = async () => {
       {
         resolveBy: "id",
         id: state.appInfo.appId,
-        sender: signer,
+        sender: signer as never,
       },
       algod
     );
     const atc = new AtomicTransactionComposer();
-    if (Number(state.withdrawAsset) > 0) {
-      const asset = await store.dispatch("indexer/getAsset", {
-        assetIndex: state.withdrawAsset,
-      });
+    const withdrawAssetId = Number(state.withdrawAsset);
+    if (withdrawAssetId > 0) {
+      const asset = (await store.dispatch("indexer/getAsset", {
+        assetIndex: withdrawAssetId,
+      })) as StoredAsset | undefined;
       await client.assetTransfer(
         {
-          assetAmount: Number(state.withdrawAmount) * 10 ** asset.decimals,
+          assetAmount:
+            Number(state.withdrawAmount) * 10 ** (asset?.decimals ?? 6),
           assetReceiver: signer.addr,
           note: "",
-          xferAsset: Number(state.withdrawAsset),
+          xferAsset: withdrawAssetId,
         },
         {
           sendParams: {
             fee: algokit.microAlgos(2000),
             atc: atc,
           },
-          assets: [Number(state.withdrawAsset)],
+          assets: [withdrawAssetId],
         }
       );
     } else {
@@ -385,8 +509,6 @@ const withdrawFromEscrow = async () => {
         }
       );
     }
-    const params = await algod.getTransactionParams().do();
-
     const grouped = atc.buildGroup().map((tx) => tx.txn);
     await store.dispatch("signer/returnTo", "ScheduledPayments");
     await store.dispatch("signer/toSign", { txx: grouped[0] });
@@ -409,13 +531,13 @@ const deposit = (data: any) => {
     params: {
       account: route.params.account,
       toAccountDirect: state.appInfo.appAddress,
-      asset: data["asset-id"],
+      asset: data.assetId,
     },
   });
 };
 
-async function copyToClipboard(text) {
-  if (copy(text)) {
+async function copyToClipboard(text: string | number) {
+  if (copy(String(text))) {
     await store.dispatch("toast/openSuccess", `${text} copied to clipboard`);
   }
 }
@@ -434,12 +556,12 @@ const loadScript = async () => {
     const algod = (await store.dispatch("algod/getAlgod")) as algosdk.Algodv2;
     const app = await algod.getApplicationByID(state.appInfo.appId).do();
 
-    const id = Buffer.from(
-      app.params["global-state"].find((kv) => kv.key == "aWQ=").value.bytes,
-      "base64"
-    )
-      .subarray(2)
-      .toString("utf-8");
+    const globalState = readGlobalState(app.params);
+    const fileBytes = globalState.find((kv) => kv.key == "aWQ=")?.value.bytes;
+    if (!fileBytes) {
+      throw new Error("Script identifier not found in global state");
+    }
+    const id = Buffer.from(fileBytes, "base64").subarray(2).toString("utf-8");
     const inputRequest = await axios.get(
       `https://api-scheduler.biatec.io/v1/file/${id}/input.yaml`
     );
@@ -451,16 +573,16 @@ const loadScript = async () => {
 </script>
 <template>
   <MainLayout>
-    <h1>{{ $t("scheduled_payments.title") }}</h1>
+    <h1>{{ t("scheduled_payments.title") }}</h1>
     <Card>
       <template #content>
         <p>
-          {{ $t("scheduled_payments.description_detail") }}
+          {{ t("scheduled_payments.description_detail") }}
         </p>
-        <h2>{{ $t("scheduled_payments.details_title") }}</h2>
+        <h2>{{ t("scheduled_payments.details_title") }}</h2>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.app_id") }}
+            {{ t("scheduled_payments.app_id") }}
           </label>
           <div class="col-12 md:col-10">
             {{ state.appInfo.appId }}
@@ -468,7 +590,7 @@ const loadScript = async () => {
         </div>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.appAddress") }}
+            {{ t("scheduled_payments.appAddress") }}
           </label>
           <div class="col-12 md:col-10">
             {{ state.appInfo.appAddress }}
@@ -476,15 +598,15 @@ const loadScript = async () => {
         </div>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.period") }}
+            {{ t("scheduled_payments.period") }}
           </label>
           <div class="col-12 md:col-10">
-            {{ state.appInfo.period }} {{ $t("scheduled_payments.seconds") }}
+            {{ state.appInfo.period }} {{ t("scheduled_payments.seconds") }}
           </div>
         </div>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.start") }}
+            {{ t("scheduled_payments.start") }}
           </label>
           <div class="col-12 md:col-10">
             {{ new Date(state.appInfo.start * 1000) }}
@@ -492,38 +614,38 @@ const loadScript = async () => {
         </div>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.feeBalance") }}
+            {{ t("scheduled_payments.feeBalance") }}
           </label>
           <div class="col-12 md:col-10">
             {{
               formatCurrency(
                 state.appInfo.balanceFee,
-                state.feeAssetData["unit-name"] ?? state.feeAssetData.name,
-                state.feeAssetData.decimals
+                state.feeAssetData.unitName ?? state.feeAssetData.name,
+                state.feeAssetData.decimals ?? 0
               )
             }}
           </div>
         </div>
         <div class="field grid">
           <label class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.execution_fee") }}
+            {{ t("scheduled_payments.execution_fee") }}
           </label>
           <div class="col-12 md:col-10">
             {{
               formatCurrency(
                 state.appInfo.fee,
-                state.feeAssetData["unit-name"] ?? state.feeAssetData.name,
-                state.feeAssetData.decimals
+                state.feeAssetData.unitName ?? state.feeAssetData.name,
+                state.feeAssetData.decimals ?? 0
               )
             }}
           </div>
         </div>
 
-        <h2>{{ $t("scheduled_payments.deposit_fee_title") }}</h2>
+        <h2>{{ t("scheduled_payments.deposit_fee_title") }}</h2>
 
         <div class="field grid">
           <label for="amountToDeposit" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.fee_asset_id") }}
+            {{ t("scheduled_payments.fee_asset_id") }}
           </label>
           <div class="col-12 md:col-10">
             <Button
@@ -534,13 +656,13 @@ const loadScript = async () => {
               {{ state.feeAssetId }}
             </Button>
             <Button severity="secondary" size="small" @click="toSwap">
-              {{ $t("scheduled_payments.get_more") }}
+              {{ t("scheduled_payments.get_more") }}
             </Button>
           </div>
         </div>
         <div class="field grid">
           <label for="amountToDeposit" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.amount_to_deposit") }}
+            {{ t("scheduled_payments.amount_to_deposit") }}
           </label>
           <div class="col-12 md:col-10">
             <InputNumber
@@ -557,12 +679,12 @@ const loadScript = async () => {
           <label class="col-12 mb-2 md:col-2 md:mb-0"> </label>
           <div class="col-12 md:col-10">
             <Button severity="primary" @click="depositToFeePool">
-              {{ $t("scheduled_payments.deposit") }}
+              {{ t("scheduled_payments.deposit") }}
             </Button>
           </div>
         </div>
 
-        <h2>{{ $t("scheduled_payments.list_of_assets") }}</h2>
+        <h2>{{ t("scheduled_payments.list_of_assets") }}</h2>
         <DataTable
           v-model:selection="state.selection"
           :value="state.assets"
@@ -572,7 +694,7 @@ const loadScript = async () => {
           :rows="20"
           v-model:filters="state.filters"
           filterDisplay="menu"
-          :globalFilterFields="['asset-id', 'assetName']"
+          :globalFilterFields="['assetId', 'assetName']"
         >
           <template #header>
             <div class="grid" v-if="state.filters['global']">
@@ -581,36 +703,33 @@ const loadScript = async () => {
                   <i class="pi pi-search" />
                   <InputText
                     v-model="state.filters['global'].value"
-                    :placeholder="$t('placeholders.keyword_search')"
+                    :placeholder="t('placeholders.keyword_search')"
                   />
                 </span>
               </div>
             </div>
           </template>
           <template #empty>
-            {{ $t("scheduled_payments.assets_loading") }}
+            {{ t("scheduled_payments.assets_loading") }}
           </template>
           <Column
             field="assetName"
-            :header="$t('scheduled_payments.asset_id')"
+            :header="t('scheduled_payments.asset_id')"
             :sortable="true"
           />
-          <Column :header="$t('scheduled_payments.asset_id')" :sortable="true">
+          <Column :header="t('scheduled_payments.asset_id')" :sortable="true">
             <template #body="slotProps">
-              {{ slotProps.data["asset-id"] }}
+              {{ slotProps.data["assetId"] }}
             </template>
           </Column>
-          <Column
-            :header="$t('scheduled_payments.asset_name')"
-            :sortable="true"
-          >
+          <Column :header="t('scheduled_payments.asset_name')" :sortable="true">
             <template #body="slotProps">
               {{ slotProps.data.info.name }}
             </template>
           </Column>
           <Column
             field="amount"
-            :header="$t('scheduled_payments.asset_amount')"
+            :header="t('scheduled_payments.asset_amount')"
             :sortable="true"
           >
             <template #body="slotProps">
@@ -626,19 +745,19 @@ const loadScript = async () => {
               </span>
             </template>
           </Column>
-          <Column :header="$t('scheduled_payments.actions')" :sortable="true">
+          <Column :header="t('scheduled_payments.actions')" :sortable="true">
             <template #body="slotProps">
               <Button @click="deposit(slotProps.data)">{{
-                $t("scheduled_payments.deposit")
+                t("scheduled_payments.deposit")
               }}</Button>
             </template>
           </Column>
         </DataTable>
-        <h2>{{ $t("scheduled_payments.optin_title") }}</h2>
+        <h2>{{ t("scheduled_payments.optin_title") }}</h2>
 
         <div class="field grid">
           <label for="optin" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.optin_to_asset") }}
+            {{ t("scheduled_payments.optin_to_asset") }}
           </label>
           <div class="col-12 md:col-10">
             <InputGroup>
@@ -654,15 +773,15 @@ const loadScript = async () => {
                 class="col-2"
                 @click="optinEscrowToAsset"
               >
-                {{ $t("scheduled_payments.optin_click") }}
+                {{ t("scheduled_payments.optin_click") }}
               </Button>
             </InputGroup>
           </div>
         </div>
-        <h2>{{ $t("scheduled_payments.withdraw_asset_title") }}</h2>
+        <h2>{{ t("scheduled_payments.withdraw_asset_title") }}</h2>
         <div class="field grid">
           <label for="withdrawAsset" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.withdraw_asset") }}
+            {{ t("scheduled_payments.withdraw_asset") }}
           </label>
           <div class="col-12 md:col-10">
             <DropDown
@@ -670,14 +789,14 @@ const loadScript = async () => {
               :options="state.assets"
               v-model="state.withdrawAsset"
               optionLabel="assetName"
-              optionValue="asset-id"
+              optionValue="assetId"
               class="w-full"
             ></DropDown>
           </div>
         </div>
         <div class="field grid">
           <label for="withdrawAmount" class="col-12 mb-2 md:col-2 md:mb-0">
-            {{ $t("scheduled_payments.withdraw_amount") }}
+            {{ t("scheduled_payments.withdraw_amount") }}
           </label>
           <div class="col-12 md:col-10">
             <InputGroup>
@@ -696,14 +815,14 @@ const loadScript = async () => {
           <label class="col-12 mb-2 md:col-2 md:mb-0"> </label>
           <div class="col-12 md:col-10">
             <Button severity="secondary" @click="withdrawFromEscrow">
-              {{ $t("scheduled_payments.withdraw_click") }}
+              {{ t("scheduled_payments.withdraw_click") }}
             </Button>
           </div>
         </div>
-        <h2>{{ $t("scheduled_payments.load_script_title") }}</h2>
+        <h2>{{ t("scheduled_payments.load_script_title") }}</h2>
         <div class="field grid">
           <Button severity="secondary" @click="loadScript">{{
-            $t("scheduled_payments.load_click")
+            t("scheduled_payments.load_click")
           }}</Button>
         </div>
         <div class="field grid" v-if="state.script">
