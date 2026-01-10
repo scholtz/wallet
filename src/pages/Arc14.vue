@@ -36,6 +36,11 @@
           <div>
             <Textarea v-model="output" disabled class="w-full" rows="5" />
           </div>
+          <div v-if="output">
+            <Button class="my-2" @click="copyToClipboard">
+              {{ $t("arc14.copy_token_to_dashboard") }}
+            </Button>
+          </div>
         </div>
       </template>
     </Card>
@@ -47,9 +52,13 @@ import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import MainLayout from "../layouts/Main.vue";
 import { useStore } from "../store";
+import { useToast } from "primevue/usetoast";
+import { useI18n } from "vue-i18n";
 
 const store = useStore();
 const route = useRoute();
+const toast = useToast();
+const { t } = useI18n();
 
 const processingSigning = ref(false);
 const output = ref("");
@@ -68,6 +77,20 @@ const clickSign = async () => {
     console.error(error);
   } finally {
     processingSigning.value = false;
+  }
+};
+
+const copyToClipboard = async () => {
+  try {
+    await navigator.clipboard.writeText(output.value);
+    toast.add({
+      severity: "info",
+      summary: t("global.copied"),
+      detail: t("arc14.token_copied_to_clipboard"),
+      life: 2000,
+    });
+  } catch (error) {
+    console.error("Failed to copy: ", error);
   }
 };
 

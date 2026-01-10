@@ -30,6 +30,7 @@
     "go_back": "Retroceder",
     "go_home": "Inicio",
     "copy_address": "Copiar dirección",
+    "copied": "Copied",
     "copied_to_clipboard": "Copiado al porta papeles!",
     "stop_camera": "Detener cámara",
     "cancel": "Cancelar",
@@ -797,7 +798,9 @@
   },
   "arc14": {
     "service_realm_title": "Dominio de servicio",
-    "network_note": "Tenga en cuenta que ARC14 requiere selección de red. Asegúrese de usar la misma red que el servicio de destino."
+    "network_note": "Tenga en cuenta que ARC14 requiere selección de red. Asegúrese de usar la misma red que el servicio de destino.",
+    "copy_token_to_dashboard": "Copy token to dashboard",
+    "token_copied_to_clipboard": "Token copied to clipboard"
   },
   "tools": {
     "opt_in_governance_title": "Optar por la gobernanza de algorand desde múltiples cuentas a la vez",

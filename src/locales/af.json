@@ -30,6 +30,7 @@
     "go_back": "Gaan terug",
     "go_home": "Gaan huis toe",
     "copy_address": "Kopieer adres",
+    "copied": "Copied",
     "copied_to_clipboard": "Gekopieer na knipbord",
     "stop_camera": "Stop kamera",
     "cancel": "Kanselleer",
@@ -797,7 +798,9 @@
   },
   "arc14": {
     "service_realm_title": "Diens domein",
-    "network_note": "Let wel dat ARC14 netwerk seleksie vereis. Maak seker jy gebruik dieselfde netwerk as die bestemming diens."
+    "network_note": "Let wel dat ARC14 netwerk seleksie vereis. Maak seker jy gebruik dieselfde netwerk as die bestemming diens.",
+    "copy_token_to_dashboard": "Copy token to dashboard",
+    "token_copied_to_clipboard": "Token copied to clipboard"
   },
   "tools": {
     "opt_in_governance_title": "Sluit aan vir algorand regering vanaf veelvuldige rekeninge gelyktydig",
