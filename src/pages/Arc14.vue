@@ -26,6 +26,7 @@
               @click="clickSign"
             >
               <ProgressSpinner
+                v-if="processingSigning"
                 style="width: 1em; height: 1em"
                 strokeWidth="5"
               />
