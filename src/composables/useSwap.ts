@@ -3,7 +3,7 @@ import { ref, computed, Ref } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { dexAggregators } from "../scripts/dexAggregators";
-import { SwapContext } from "../scripts/aggregators/types";
+import type { SwapContext } from "../scripts/aggregators/types";
 import type { Account, SwapStore } from "../types/swap";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
@@ -24,8 +24,8 @@ export function useSwap() {
 
   // Reactive state
   const assets: Ref<ExtendedStoredAsset[]> = ref([]);
-  const asset: Ref<number | null> = ref(null);
-  const toAsset: Ref<number | null> = ref(null);
+  const asset: Ref<bigint | null> = ref(null);
+  const toAsset: Ref<bigint | null> = ref(null);
   const payamount: Ref<number> = ref(0);
   const fromAssetObj: Ref<StoredAsset | undefined> = ref(undefined);
   const toAssetObj: Ref<StoredAsset | undefined> = ref(undefined);
@@ -114,7 +114,7 @@ export function useSwap() {
         : null;
     if (!accountInfo) return 0;
 
-    if (asset.value && asset.value > 0) {
+    if (asset.value !== null && asset.value > 0n) {
       const selectedAmount = normalizeAmount(
         selectedAssetFromAccount.value?.amount
       );
@@ -249,7 +249,7 @@ export function useSwap() {
     axiosPost: (config: { url: string; body?: any; config?: any }) =>
       store.dispatch("axios/post", config),
     getSK: (config: { addr: string }) => store.dispatch("wallet/getSK", config),
-    getAsset: (config: { assetIndex: number }) =>
+    getAsset: (config: { assetIndex: number | bigint }) =>
       store.dispatch("indexer/getAsset", config),
     sendRawTransaction: (config: {
       signedTxn: Uint8Array | Uint8Array[];

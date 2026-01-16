@@ -1,4 +1,4 @@
-import { DexAggregator, SwapContext } from "./types";
+import type { DexAggregator, SwapContext } from "./types";
 import { FolksRouterClient, Network, SwapMode } from "@folks-router/js-sdk";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
@@ -44,19 +44,19 @@ export const folksAggregator: DexAggregator = {
           "Unable to create folks router client for specified network"
         );
       const fromAsset =
-        context.asset.value && context.asset.value > 0
+        context.asset.value !== null && context.asset.value > 0n
           ? context.asset.value
-          : 0;
+          : 0n;
       const toAsset =
-        context.toAsset.value && context.toAsset.value > 0
+        context.toAsset.value !== null && context.toAsset.value > 0n
           ? context.toAsset.value
-          : 0;
+          : 0n;
 
       const quote = await folksRouterClient.fetchSwapQuote(
         {
           amount,
-          fromAssetId: fromAsset,
-          toAssetId: toAsset,
+          fromAssetId: fromAsset as any,
+          toAssetId: toAsset as any,
           swapMode: SwapMode.FIXED_INPUT,
         },
         15,
@@ -70,8 +70,8 @@ export const folksAggregator: DexAggregator = {
         await folksRouterClient.prepareSwapTransactions(
           {
             amount,
-            fromAssetId: fromAsset,
-            toAssetId: toAsset,
+            fromAssetId: fromAsset as any,
+            toAssetId: toAsset as any,
             swapMode: SwapMode.FIXED_INPUT,
           },
           context.$route.params.account,

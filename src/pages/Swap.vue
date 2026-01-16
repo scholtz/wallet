@@ -163,10 +163,25 @@ const {
   clickOptInToApps,
 } = useSwap();
 
-// Computed properties for template access to aggregator data
-const useFolks = computed(() => aggregatorData.useFolks.value);
-const useDeflex = computed(() => aggregatorData.useDeflex.value);
-const useBiatec = computed(() => aggregatorData.useBiatec.value);
+// Computed properties for template access to aggregator data (must be writable for v-model)
+const useFolks = computed({
+  get: () => aggregatorData.useFolks.value,
+  set: (value: boolean) => {
+    aggregatorData.useFolks.value = value;
+  },
+});
+const useDeflex = computed({
+  get: () => aggregatorData.useDeflex.value,
+  set: (value: boolean) => {
+    aggregatorData.useDeflex.value = value;
+  },
+});
+const useBiatec = computed({
+  get: () => aggregatorData.useBiatec.value,
+  set: (value: boolean) => {
+    aggregatorData.useBiatec.value = value;
+  },
+});
 const processingTradeDeflex = computed(
   () => aggregatorData.processingTradeDeflex.value
 );
@@ -189,7 +204,7 @@ watch(asset, async (newAsset) => {
       agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
   });
 
-  if (newAsset && newAsset > 0) {
+  if (newAsset !== null && newAsset > 0n) {
     const asset = (await store.dispatch("indexer/getAsset", {
       assetIndex: BigInt(newAsset),
     })) as StoredAsset | undefined;
@@ -218,7 +233,7 @@ watch(toAsset, async (newToAsset) => {
       agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
   });
 
-  if (newToAsset && newToAsset > 0) {
+  if (newToAsset !== null && newToAsset > 0n) {
     const asset = (await store.dispatch("indexer/getAsset", {
       assetIndex: BigInt(newToAsset),
     })) as StoredAsset | undefined;
@@ -281,42 +296,54 @@ onMounted(async () => {
 
   await waitForAssets();
 
-  let initialAsset = 0;
+  let initialAsset = 0n;
   if (route.params.fromAsset) {
-    initialAsset = Number(route.params.fromAsset);
+    try {
+      initialAsset = BigInt(route.params.fromAsset as string);
+    } catch {
+      initialAsset = 0n;
+    }
   } else {
     const savedAsset = localStorage.getItem("last-swap-from-asset");
     if (savedAsset !== null && savedAsset !== "" && savedAsset !== "0") {
-      const savedAssetId = Number(savedAsset);
-      // Check if the saved asset is available in current assets
-      const assetExists = assets.value.some(
-        (a) => Number(a.assetId) === savedAssetId
-      );
-      if (assetExists) {
-        initialAsset = savedAssetId;
+      try {
+        const savedAssetId = BigInt(savedAsset);
+        // Check if the saved asset is available in current assets
+        const assetExists = assets.value.some((a) => a.assetId === savedAssetId);
+        if (assetExists) {
+          initialAsset = savedAssetId;
+        }
+      } catch {
+        // ignore invalid saved value
       }
     }
   }
   asset.value = initialAsset;
 
-  let initialToAsset = 0;
+  let initialToAsset = 0n;
   const vote = assets.value.find((a) => a.assetId == 452399768n);
   if (vote) {
-    initialToAsset = 452399768;
+    initialToAsset = 452399768n;
   }
 
   if (route.params.toAsset) {
-    initialToAsset = Number(route.params.toAsset);
+    try {
+      initialToAsset = BigInt(route.params.toAsset as string);
+    } catch {
+      initialToAsset = 0n;
+    }
   } else {
     const savedAsset = localStorage.getItem("last-swap-to-asset");
     if (savedAsset !== null && savedAsset !== "" && savedAsset !== "0") {
-      const savedAssetId = Number(savedAsset);
-      // Check if the saved asset is available in current assets
-      const assetExists = assets.value.some(
-        (a) => Number(a.assetId) === savedAssetId
-      );
-      if (assetExists) {
-        initialToAsset = savedAssetId;
+      try {
+        const savedAssetId = BigInt(savedAsset);
+        // Check if the saved asset is available in current assets
+        const assetExists = assets.value.some((a) => a.assetId === savedAssetId);
+        if (assetExists) {
+          initialToAsset = savedAssetId;
+        }
+      } catch {
+        // ignore invalid saved value
       }
     }
   }

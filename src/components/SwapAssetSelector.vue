@@ -51,8 +51,8 @@ export default {
   name: "SwapAssetSelector",
   props: {
     assets: Array,
-    asset: [Number, String],
-    toAsset: [Number, String],
+    asset: [Number, String, BigInt],
+    toAsset: [Number, String, BigInt],
   },
   computed: {
     assetModel: {

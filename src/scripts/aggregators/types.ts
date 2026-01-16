@@ -7,8 +7,8 @@ import algosdk from "algosdk";
 export interface SwapContext {
   // State (Refs)
   assets: Ref<StoredAsset[]>;
-  asset: Ref<number | null>;
-  toAsset: Ref<number | null>;
+  asset: Ref<bigint | null>;
+  toAsset: Ref<bigint | null>;
   payamount: Ref<number>;
   fromAssetObj: Ref<StoredAsset | undefined>;
   toAssetObj: Ref<StoredAsset | undefined>;
@@ -41,7 +41,7 @@ export interface SwapContext {
     config?: any;
   }) => Promise<any>;
   getSK: (config: { addr: string }) => Promise<Uint8Array>;
-  getAsset: (config: { assetIndex: number }) => Promise<StoredAsset>;
+  getAsset: (config: { assetIndex: number | bigint }) => Promise<StoredAsset>;
   sendRawTransaction: (config: {
     signedTxn: Uint8Array | Uint8Array[];
   }) => Promise<algosdk.modelsv2.PostTransactionsResponse>;

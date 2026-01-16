@@ -57,8 +57,8 @@ export interface SwapRoute {
 
 export interface SwapComponentData {
   assets: StoredAsset[];
-  asset: number | null;
-  toAsset: number | null;
+  asset: bigint | null;
+  toAsset: bigint | null;
   payamount: number;
   fromAssetObj: StoredAsset | undefined;
   toAssetObj: StoredAsset | undefined;

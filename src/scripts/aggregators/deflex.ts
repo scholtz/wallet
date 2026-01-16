@@ -1,4 +1,4 @@
-import { DexAggregator, SwapContext } from "./types";
+import type { DexAggregator, SwapContext } from "./types";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
 
@@ -19,13 +19,13 @@ export const deflexAggregator: DexAggregator = {
         )
       );
       const fromAsset =
-        context.asset.value && context.asset.value > 0
+        context.asset.value !== null && context.asset.value > 0n
           ? context.asset.value
-          : 0;
+          : 0n;
       const toAsset =
-        context.toAsset.value && context.toAsset.value > 0
+        context.toAsset.value !== null && context.toAsset.value > 0n
           ? context.toAsset.value
-          : 0;
+          : 0n;
       const chain = context.checkNetwork();
       if (!chain) {
         context.txsDetails.value += "\nDEFLEX: Wrong network selected";

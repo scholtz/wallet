@@ -1,4 +1,4 @@
-import { DexAggregator, SwapContext } from "./types";
+import type { DexAggregator, SwapContext } from "./types";
 import { biatecRouter } from "biatec-router";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
@@ -25,11 +25,11 @@ export const biatecAggregator: DexAggregator = {
       const requestBody = {
         sender: context.account.value?.addr || "",
         fromAsset:
-          context.asset.value && context.asset.value > 0
+          context.asset.value !== null && context.asset.value > 0n
             ? Number(context.asset.value)
             : 0,
         toAsset:
-          context.toAsset.value && context.toAsset.value > 0
+          context.toAsset.value !== null && context.toAsset.value > 0n
             ? Number(context.toAsset.value)
             : 0,
         swapAmount: Math.round(
@@ -108,11 +108,11 @@ export const biatecAggregator: DexAggregator = {
       const requestBody = {
         sender: context.account.value?.addr || "",
         fromAsset:
-          context.asset.value && context.asset.value > 0
+          context.asset.value !== null && context.asset.value > 0n
             ? Number(context.asset.value)
             : 0,
         toAsset:
-          context.toAsset.value && context.toAsset.value > 0
+          context.toAsset.value !== null && context.toAsset.value > 0n
             ? Number(context.toAsset.value)
             : 0,
         swapAmount: Math.round(
