@@ -182,7 +182,7 @@ const biatecQuotes = computed(() => aggregatorData.biatecQuotes.value);
 
 // Watchers
 watch(
-  () => asset,
+  asset,
   async (newAsset) => {
     // Reset all aggregator data
     dexAggregators.forEach((agg) => {
@@ -191,9 +191,9 @@ watch(
         agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
     });
 
-    if (newAsset.value && newAsset.value > 0) {
+    if (newAsset && newAsset > 0) {
       const asset = (await store.dispatch("indexer/getAsset", {
-        assetIndex: BigInt(newAsset.value),
+        assetIndex: BigInt(newAsset),
       })) as StoredAsset | undefined;
       if (asset) {
         fromAssetObj.value = asset;
@@ -209,12 +209,12 @@ watch(
       };
     }
     payamount.value = 0;
-    localStorage.setItem("last-swap-from-asset", newAsset?.toString() || "");
+    localStorage.setItem("last-swap-from-asset", newAsset?.toString() || "0");
   }
 );
 
 watch(
-  () => toAsset,
+  toAsset,
   async (newToAsset) => {
     // Reset all aggregator data
     dexAggregators.forEach((agg) => {
@@ -223,9 +223,9 @@ watch(
         agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
     });
 
-    if (newToAsset.value && newToAsset.value > 0) {
+    if (newToAsset && newToAsset > 0) {
       const asset = (await store.dispatch("indexer/getAsset", {
-        assetIndex: BigInt(newToAsset.value),
+        assetIndex: BigInt(newToAsset),
       })) as StoredAsset | undefined;
       if (asset) {
         toAssetObj.value = asset;
@@ -240,7 +240,7 @@ watch(
         label: "ALGO (Native token)",
       };
     }
-    localStorage.setItem("last-swap-to-asset", newToAsset?.toString() || "");
+    localStorage.setItem("last-swap-to-asset", newToAsset?.toString() || "0");
   }
 );
 
@@ -269,13 +269,36 @@ onMounted(async () => {
   await reloadAccount();
   await makeAssets();
 
+  // Wait for assets to be loaded before setting saved values
+  const waitForAssets = () => {
+    return new Promise<void>((resolve) => {
+      if (!loadingAssets.value) {
+        resolve();
+      } else {
+        const unwatch = watch(loadingAssets, (newValue) => {
+          if (!newValue) {
+            unwatch();
+            resolve();
+          }
+        });
+      }
+    });
+  };
+
+  await waitForAssets();
+
   let initialAsset = 0;
   if (route.params.fromAsset) {
     initialAsset = Number(route.params.fromAsset);
   } else {
     const savedAsset = localStorage.getItem("last-swap-from-asset");
-    if (savedAsset !== null && savedAsset !== "") {
-      initialAsset = Number(savedAsset);
+    if (savedAsset !== null && savedAsset !== "" && savedAsset !== "0") {
+      const savedAssetId = Number(savedAsset);
+      // Check if the saved asset is available in current assets
+      const assetExists = assets.value.some(a => Number(a.assetId) === savedAssetId);
+      if (assetExists) {
+        initialAsset = savedAssetId;
+      }
     }
   }
   asset.value = initialAsset;
@@ -290,8 +313,13 @@ onMounted(async () => {
     initialToAsset = Number(route.params.toAsset);
   } else {
     const savedAsset = localStorage.getItem("last-swap-to-asset");
-    if (savedAsset !== null && savedAsset !== "") {
-      initialToAsset = Number(savedAsset);
+    if (savedAsset !== null && savedAsset !== "" && savedAsset !== "0") {
+      const savedAssetId = Number(savedAsset);
+      // Check if the saved asset is available in current assets
+      const assetExists = assets.value.some(a => Number(a.assetId) === savedAssetId);
+      if (assetExists) {
+        initialToAsset = savedAssetId;
+      }
     }
   }
   toAsset.value = initialToAsset;
