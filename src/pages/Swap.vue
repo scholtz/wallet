@@ -181,68 +181,62 @@ const folksQuote = computed(() => aggregatorData.folksQuote.value);
 const biatecQuotes = computed(() => aggregatorData.biatecQuotes.value);
 
 // Watchers
-watch(
-  asset,
-  async (newAsset) => {
-    // Reset all aggregator data
-    dexAggregators.forEach((agg) => {
-      aggregatorData[agg.quotesKey].value = {};
-      aggregatorData[agg.txnsKey].value =
-        agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
-    });
+watch(asset, async (newAsset) => {
+  // Reset all aggregator data
+  dexAggregators.forEach((agg) => {
+    aggregatorData[agg.quotesKey].value = {};
+    aggregatorData[agg.txnsKey].value =
+      agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
+  });
 
-    if (newAsset && newAsset > 0) {
-      const asset = (await store.dispatch("indexer/getAsset", {
-        assetIndex: BigInt(newAsset),
-      })) as StoredAsset | undefined;
-      if (asset) {
-        fromAssetObj.value = asset;
-      }
-    } else {
-      fromAssetObj.value = {
-        assetId: 0n,
-        name: "ALGO",
-        unitName: "Algo",
-        decimals: 6,
-        type: "Native",
-        label: "ALGO (Native token)",
-      };
+  if (newAsset && newAsset > 0) {
+    const asset = (await store.dispatch("indexer/getAsset", {
+      assetIndex: BigInt(newAsset),
+    })) as StoredAsset | undefined;
+    if (asset) {
+      fromAssetObj.value = asset;
     }
-    payamount.value = 0;
-    localStorage.setItem("last-swap-from-asset", newAsset?.toString() || "0");
+  } else {
+    fromAssetObj.value = {
+      assetId: 0n,
+      name: "ALGO",
+      unitName: "Algo",
+      decimals: 6,
+      type: "Native",
+      label: "ALGO (Native token)",
+    };
   }
-);
+  payamount.value = 0;
+  localStorage.setItem("last-swap-from-asset", newAsset?.toString() || "0");
+});
 
-watch(
-  toAsset,
-  async (newToAsset) => {
-    // Reset all aggregator data
-    dexAggregators.forEach((agg) => {
-      aggregatorData[agg.quotesKey].value = {};
-      aggregatorData[agg.txnsKey].value =
-        agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
-    });
+watch(toAsset, async (newToAsset) => {
+  // Reset all aggregator data
+  dexAggregators.forEach((agg) => {
+    aggregatorData[agg.quotesKey].value = {};
+    aggregatorData[agg.txnsKey].value =
+      agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
+  });
 
-    if (newToAsset && newToAsset > 0) {
-      const asset = (await store.dispatch("indexer/getAsset", {
-        assetIndex: BigInt(newToAsset),
-      })) as StoredAsset | undefined;
-      if (asset) {
-        toAssetObj.value = asset;
-      }
-    } else {
-      toAssetObj.value = {
-        assetId: 0n,
-        name: "ALGO",
-        unitName: "Algo",
-        decimals: 6,
-        type: "Native",
-        label: "ALGO (Native token)",
-      };
+  if (newToAsset && newToAsset > 0) {
+    const asset = (await store.dispatch("indexer/getAsset", {
+      assetIndex: BigInt(newToAsset),
+    })) as StoredAsset | undefined;
+    if (asset) {
+      toAssetObj.value = asset;
     }
-    localStorage.setItem("last-swap-to-asset", newToAsset?.toString() || "0");
+  } else {
+    toAssetObj.value = {
+      assetId: 0n,
+      name: "ALGO",
+      unitName: "Algo",
+      decimals: 6,
+      type: "Native",
+      label: "ALGO (Native token)",
+    };
   }
-);
+  localStorage.setItem("last-swap-to-asset", newToAsset?.toString() || "0");
+});
 
 watch(account, () => {
   // Reset all aggregator data
@@ -295,7 +289,9 @@ onMounted(async () => {
     if (savedAsset !== null && savedAsset !== "" && savedAsset !== "0") {
       const savedAssetId = Number(savedAsset);
       // Check if the saved asset is available in current assets
-      const assetExists = assets.value.some(a => Number(a.assetId) === savedAssetId);
+      const assetExists = assets.value.some(
+        (a) => Number(a.assetId) === savedAssetId
+      );
       if (assetExists) {
         initialAsset = savedAssetId;
       }
@@ -316,7 +312,9 @@ onMounted(async () => {
     if (savedAsset !== null && savedAsset !== "" && savedAsset !== "0") {
       const savedAssetId = Number(savedAsset);
       // Check if the saved asset is available in current assets
-      const assetExists = assets.value.some(a => Number(a.assetId) === savedAssetId);
+      const assetExists = assets.value.some(
+        (a) => Number(a.assetId) === savedAssetId
+      );
       if (assetExists) {
         initialToAsset = savedAssetId;
       }
