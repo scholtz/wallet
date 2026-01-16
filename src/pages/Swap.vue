@@ -309,7 +309,9 @@ onMounted(async () => {
       try {
         const savedAssetId = BigInt(savedAsset);
         // Check if the saved asset is available in current assets
-        const assetExists = assets.value.some((a) => a.assetId === savedAssetId);
+        const assetExists = assets.value.some(
+          (a) => a.assetId === savedAssetId
+        );
         if (assetExists) {
           initialAsset = savedAssetId;
         }
@@ -338,7 +340,9 @@ onMounted(async () => {
       try {
         const savedAssetId = BigInt(savedAsset);
         // Check if the saved asset is available in current assets
-        const assetExists = assets.value.some((a) => a.assetId === savedAssetId);
+        const assetExists = assets.value.some(
+          (a) => a.assetId === savedAssetId
+        );
         if (assetExists) {
           initialToAsset = savedAssetId;
         }
