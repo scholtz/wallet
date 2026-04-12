@@ -44,7 +44,7 @@
     "arc14": "^1.0.4",
     "arc200-client": "^1.1.7",
     "arc76": "^1.0.2",
-    "axios": "^1.12.2",
+    "axios": "^1.15.0",
     "base64url": "^3.0.1",
     "biatec-router": "^1.0.1",
     "biatec-scheduler": "^1.0.3",
