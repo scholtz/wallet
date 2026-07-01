@@ -52,7 +52,7 @@
         </div>
       </form>
     </Panel>
-    <div class="my-5">
+    <div class="my-5 link-strip">
       <a
         v-for="lang in $store.state.config.languages"
         :key="lang"
@@ -90,7 +90,7 @@
         </Button>
       </a>
     </div>
-    <div class="my-5">
+    <div class="my-5 link-strip">
       <a href="https://youtu.be/cCsx7t68DS4" target="youtube" role="button">
         <Button size="small" severity="secondary" link class="m-2">
           Youtube - {{ $t("login.basic_usage") }}

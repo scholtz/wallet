@@ -161,4 +161,39 @@ html.p-dark {
   font-weight: 600;
   letter-spacing: 0.01em;
 }
+
+/* Content surface for routed pages that don't wrap themselves in a Card
+   (most of them). Without this, page content sits directly on the
+   transparent animated gradient background, which both looks like a
+   "missing panel" and breaks text/button colors calibrated for a solid
+   surface (e.g. secondary-severity link buttons become nearly invisible
+   against the teal gradient). Applied in layouts/Main.vue (wallet-open
+   branch) and layouts/Public.vue. Not applied to the wallet-closed Login
+   branch of Main.vue, which manages its own centered/Panel'd layout —
+   see .link-strip below for that screen's equivalent fix. */
+.page-shell {
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  margin: 1rem;
+}
+
+/* Small opaque strip for content that intentionally lives outside a page's
+   main Card/Panel (e.g. the language-flag row and footer links below the
+   login/new-wallet forms) so it isn't rendered directly on the transparent
+   gradient background. */
+.link-strip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  padding: 0.75rem 1rem;
+}
 </style>

@@ -4,7 +4,7 @@
       <Navbar />
     </slot>
     <Toast />
-    <div class="flex flex-column flex-grow-1">
+    <div class="flex flex-column flex-grow-1 page-shell">
       <slot />
     </div>
     <slot name="footer">

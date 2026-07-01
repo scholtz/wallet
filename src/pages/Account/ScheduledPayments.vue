@@ -558,13 +558,13 @@ watch(
           <template #header>
             <div class="grid" v-if="state.filters['global']">
               <div class="col">
-                <span class="p-input-icon-left">
-                  <i class="pi pi-search" />
+                <IconField>
+                  <InputIcon class="pi pi-search" />
                   <InputText
                     v-model="state.filters['global'].value"
                     :placeholder="t('placeholders.keyword_search')"
                   />
-                </span>
+                </IconField>
               </div>
             </div>
           </template>
