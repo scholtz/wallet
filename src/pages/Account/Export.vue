@@ -14,9 +14,13 @@ import sha512 from "js-sha512";
 import copy from "copy-to-clipboard";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
+import { computed } from "vue";
 
 interface AccountWithSecret {
   sk?: number[] | Uint8Array;
+  type?: string;
+  hdMnemonic?: string;
+  hdRootAddr?: string;
   [key: string]: unknown;
 }
 
@@ -51,6 +55,18 @@ const state = reactive<ExportState>({
   pwd: "",
   pwdChecked: false,
 });
+const currentAccount = computed(() =>
+  store.state.wallet.privateAccounts.find(
+    (a) => a.addr === route.params.account
+  ) as AccountWithSecret | undefined
+);
+const isHdRoot = computed(
+  () => currentAccount.value?.type === "hd" && !!currentAccount.value?.hdMnemonic
+);
+const isHdChild = computed(
+  () => currentAccount.value?.type === "hd" && !currentAccount.value?.hdMnemonic
+);
+
 const toUint8Array = (input: number[] | Uint8Array): Uint8Array => {
   return input instanceof Uint8Array ? input : new Uint8Array(input);
 };
@@ -176,6 +192,25 @@ const algorandMnemonics = async () => {
   }
 };
 
+const hdMasterMnemonic = async () => {
+  try {
+    await store.dispatch("wallet/prolong");
+    state.json = (await store.dispatch("wallet/getAccount", {
+      addr: route.params.account,
+    })) as AccountWithSecret;
+    if (!state.json?.hdMnemonic) {
+      throw new Error("HD master mnemonic is not stored for this account");
+    }
+    state.mn = state.json.hdMnemonic;
+    state.shIndex = -1;
+    state.state = "mn";
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err);
+    console.error("hd mnemonic err", error, err);
+    await store.dispatch("toast/openError", error);
+  }
+};
+
 const checkPwd = async () => {
   try {
     await store.dispatch("wallet/prolong");
@@ -228,16 +263,33 @@ async function copyToClipboard(text: string) {
             </div>
           </div>
         </div>
+        <div v-else-if="isHdChild">
+          <Message severity="info">
+            {{ t("hdaccount.export_child_help") }}
+          </Message>
+          <RouterLink :to="'/account/export/' + currentAccount?.hdRootAddr">
+            <Button class="m-2">{{ t("hdaccount.export_go_to_root") }}</Button>
+          </RouterLink>
+        </div>
         <div v-else>
           <div class="grid">
             <div class="col">
               <Button
+                v-if="isHdRoot"
+                class="m-2 w-100"
+                :severity="state.state == 'step1' ? 'primary' : 'secondary'"
+                @click="hdMasterMnemonic"
+                >{{ t("hdaccount.master_mnemonic") }}</Button
+              >
+              <Button
+                v-else
                 class="m-2 w-100"
                 :severity="state.state == 'step1' ? 'primary' : 'secondary'"
                 @click="algorandMnemonics"
                 >{{ t("account_export.algo_mnemonic") }}</Button
               >
               <Button
+                v-if="!isHdRoot"
                 class="m-2 w-100"
                 :severity="state.state == 'step1' ? 'primary' : 'secondary'"
                 @click="state.state = 'shamir'"
@@ -245,6 +297,9 @@ async function copyToClipboard(text: string) {
               >
             </div>
           </div>
+          <Message severity="warn" v-if="isHdRoot">
+            {{ t("hdaccount.backup_warning") }}
+          </Message>
           <div v-if="state.state == 'mn'">
             <Button
               class="m-2"

@@ -185,6 +185,9 @@
     "connect": "WalletConnect",
     "payment_gateway": "Платежный шлюз",
     "export": "Экспорт",
+    "not_funded": "Аккаунт {addr} в сети {network} ещё не пополнен.",
+    "generate_next_hd": "Generate next HD account",
+    "generate_next_hd_help": "Derive another account from the same HD wallet mnemonic at the next iteration.",
     "no_assets": "На этом аккаунте пока нет активов",
     "actions": "Действия",
     "pay_help": "Отправляйте деньги или токены на другие аккаунты в сети.",
@@ -311,6 +314,7 @@
     "show_qr_code": "Показать QR-код",
     "email_pass_account": "Аккаунт электронной почты и пароля",
     "shamir_account": "Восстановление резервной копии Шамира",
+    "hd_wallet_account": "HD Wallet account",
     "overview": "Действия с новой учетной записью",
     "create_basic_help": "Базовая учетная запись Algorand — это учетная запись ED25519 с закрытым ключом. Этот метод использует генератор случайных чисел вашего компьютера для создания секрета для вашей учетной записи.",
     "ledger_account_help": "Одним из наиболее безопасных решений является обработка секретного ключа с помощью специального устройства. Эта учетная запись использует устройство Ledger для создания вашей учетной записи и выполнения операций подписи.",
@@ -322,6 +326,7 @@
     "watch_account_help": "Вы можете отслеживать любую учетную запись в сети.",
     "import_account_help": "Вы можете восстановить учетную запись с помощью мнемоники восстановления Algorand.",
     "shamir_account_help": "Вы можете восстановить учетную запись с помощью мнемоники восстановления резервной копии Shamir.",
+    "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
     "create_first": "Создайте свою первую учетную запись",
     "no_accounts_at_network": "Для выбранной сети нет учетных записей",
     "basic_options": "Основные параметры",
@@ -341,7 +346,24 @@
     "save_password_switch": "Сохранить пароль",
     "password_not_stored": "Осторожно. Мы не храним ваш пароль. Мы будем хранить в безопасном хранилище только публичный address учетной записи и address электронной почты. Когда вы будете совершать транзакции с этой учетной записью, вам будет предложено ввести пароль.",
     "gui_not_implemented": "Графический интерфейс для подписания транзакции без сохраненного пароля в настоящее время не реализован."
+  },  "hdaccount": {
+    "title": "HD Wallet account (ARC-52)",
+    "description": "HD (hierarchical deterministic) wallets use a single 24-word BIP-39 mnemonic to derive an unlimited number of independent Algorand accounts, following the ARC-52 (BIP32-Ed25519) standard. Create a new mnemonic or import an existing one to add its first account.",
+    "mode": "Mode",
+    "mode_create": "Create new mnemonic",
+    "mode_import": "Import existing mnemonic",
+    "master_mnemonic": "HD Master Mnemonic",
+    "backup_warning": "This mnemonic backs up every account derived from this HD wallet, not just this one. Keep it safe and never share it.",
+    "confirm_backup": "I have safely backed up my mnemonic",
+    "write_mnemonic": "Write down your 24 word BIP-39 mnemonic phrase",
+    "iteration": "Iteration (account index)",
+    "account_index_help": "Optional. The hardened account index (m'/44'/283'/index'/0/0) used to derive this wallet's first account from the mnemonic. Leave at 0 unless you specifically need to recover a non-default iteration.",
+    "generate_next": "Generate next account",
+    "generate_next_help": "Pick the iteration (account index) to derive the next account from this HD wallet's mnemonic. Each iteration produces a distinct, independent account address.",
+    "export_child_help": "This account does not store its own secret. It is derived from the master mnemonic of its HD wallet root account. Back up the mnemonic from the root account instead.",
+    "export_go_to_root": "Go to root account backup"
   },
+
   "import": {
     "title": "Импорт кошелька",
     "wallet_name": "Имя кошелька",
@@ -355,7 +377,8 @@
     "public_account": "Публичная учетная запись",
     "rekeyed": "Учетная запись изменена",
     "ledger_account": "Счет главной книги HW",
-    "wc_account": "Учетная запись WalletConnect"
+    "wc_account": "Учетная запись WalletConnect",
+    "hd_account": "HD wallet account"
   },
   "account": {
     "select_account": "Выбрать аккаунт"

@@ -185,6 +185,9 @@
     "connect": "Cüzdanbağlantısı",
     "payment_gateway": "Ödeme ağ geçidi",
     "export": "Dışa aktar",
+    "not_funded": "{addr} hesabı {network} ağında henüz fonlanmadı.",
+    "generate_next_hd": "Generate next HD account",
+    "generate_next_hd_help": "Derive another account from the same HD wallet mnemonic at the next iteration.",
     "no_assets": "Bu hesapta henüz varlık yok",
     "actions": "Eylemler",
     "pay_help": "Ağdaki diğer hesaplara para veya jeton gönderin.",
@@ -311,6 +314,7 @@
     "show_qr_code": "QR Kodunu Göster",
     "email_pass_account": "E-posta ve Şifre hesabı",
     "shamir_account": "Shamir yedekleme kurtarma",
+    "hd_wallet_account": "HD Wallet account",
     "overview": "Yeni hesap işlemleri",
     "create_basic_help": "Algorand temel hesabı, özel anahtara sahip ED25519 hesabıdır. Bu yöntem, hesabınız için sır oluşturmak için bilgisayarınızın rastgele sayı oluşturucusunu kullanır.",
     "ledger_account_help": "En güvenli çözümlerden biri gizli anahtar oluşturma işlemini özel bir cihazla gerçekleştirmektir. Bu hesap, hesabınızı oluşturmak ve imzalama işlemlerini gerçekleştirmek için Ledger cihazını kullanır.",
@@ -322,6 +326,7 @@
     "watch_account_help": "Ağdaki herhangi bir hesabı takip edebilirsiniz.",
     "import_account_help": "Hesabı algoritma ve kurtarma anımsatıcısından kurtarabilirsiniz.",
     "shamir_account_help": "Hesabı shamir yedekleme kurtarma anımsatıcılarından kurtarabilirsiniz.",
+    "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
     "create_first": "İlk hesabınızı oluşturun",
     "no_accounts_at_network": "Seçili ağ için hesap yok",
     "basic_options": "Temel seçenekler",
@@ -341,7 +346,24 @@
     "save_password_switch": "Şifreyi kaydet",
     "password_not_stored": "Dikkat edin. Şifrenizi saklamıyoruz. Yalnızca hesabınızın genel adresini ve e-posta adresini güvenli depolama alanında saklayacağız. Bu hesapla işlem yapacağınızda şifreyi girmeniz istenecektir.",
     "gui_not_implemented": "Saklanan şifre olmadan işlem imzalamaya yönelik GUI şu anda uygulanmıyor."
+  },  "hdaccount": {
+    "title": "HD Wallet account (ARC-52)",
+    "description": "HD (hierarchical deterministic) wallets use a single 24-word BIP-39 mnemonic to derive an unlimited number of independent Algorand accounts, following the ARC-52 (BIP32-Ed25519) standard. Create a new mnemonic or import an existing one to add its first account.",
+    "mode": "Mode",
+    "mode_create": "Create new mnemonic",
+    "mode_import": "Import existing mnemonic",
+    "master_mnemonic": "HD Master Mnemonic",
+    "backup_warning": "This mnemonic backs up every account derived from this HD wallet, not just this one. Keep it safe and never share it.",
+    "confirm_backup": "I have safely backed up my mnemonic",
+    "write_mnemonic": "Write down your 24 word BIP-39 mnemonic phrase",
+    "iteration": "Iteration (account index)",
+    "account_index_help": "Optional. The hardened account index (m'/44'/283'/index'/0/0) used to derive this wallet's first account from the mnemonic. Leave at 0 unless you specifically need to recover a non-default iteration.",
+    "generate_next": "Generate next account",
+    "generate_next_help": "Pick the iteration (account index) to derive the next account from this HD wallet's mnemonic. Each iteration produces a distinct, independent account address.",
+    "export_child_help": "This account does not store its own secret. It is derived from the master mnemonic of its HD wallet root account. Back up the mnemonic from the root account instead.",
+    "export_go_to_root": "Go to root account backup"
   },
+
   "import": {
     "title": "Cüzdanı içe aktar",
     "wallet_name": "Cüzdan adı",
@@ -355,7 +377,8 @@
     "public_account": "Genel hesap",
     "rekeyed": "Yeniden anahtarlanan hesap",
     "ledger_account": "HW genel muhasebe hesabı",
-    "wc_account": "Cüzdanbağlantısı hesabı"
+    "wc_account": "Cüzdanbağlantısı hesabı",
+    "hd_account": "HD wallet account"
   },
   "account": {
     "select_account": "Hessap seç"

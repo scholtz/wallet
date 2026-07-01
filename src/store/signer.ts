@@ -4,6 +4,7 @@ import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 import WalletConnect from "@walletconnect/client";
 import type { ActionTree, MutationTree } from "vuex";
 import type { RootState } from "./index";
+import { hdSignTransactionBytes } from "../scripts/encoding/hdWallet";
 
 const missingAccountMessage =
   "The from address is not in the list of accounts.";
@@ -165,6 +166,12 @@ const actions: ActionTree<SignerState, RootState> = {
           tx: payload.tx,
         });
       }
+      if (signerAccount.type === "hd") {
+        return await dispatch("signByHd", {
+          from: signerAccount.addr,
+          tx: payload.tx,
+        });
+      }
       if (signerAccount.params) {
         if (!payload.signator) {
           throw new Error("Missing signator for multisig transaction.");
@@ -213,7 +220,7 @@ const actions: ActionTree<SignerState, RootState> = {
   getSignerType(
     { dispatch, rootState },
     { from }: { from: string },
-  ): "ledger" | "msig" | "sk" | "?" {
+  ): "ledger" | "msig" | "sk" | "hd" | "?" {
     try {
       const env = ensureEnv(rootState);
       const baseAccount = ensureAccount(rootState, from);
@@ -225,6 +232,9 @@ const actions: ActionTree<SignerState, RootState> = {
       );
       if (resolvedAccount.type === "ledger") {
         return "ledger";
+      }
+      if (resolvedAccount.type === "hd") {
+        return "hd";
       }
       if (resolvedAccount.params) {
         return "msig";
@@ -327,6 +337,31 @@ const actions: ActionTree<SignerState, RootState> = {
       throw new Error("Transaction has not been signed");
     }
     const signedBytes = new Uint8Array(Buffer.from(response[0], "base64"));
+    commit("setSigned", signedBytes);
+    return signedBytes;
+  },
+  async signByHd(
+    { commit, rootState },
+    payload: SignByPayload,
+  ): Promise<Uint8Array<ArrayBufferLike>> {
+    const fromAccount = ensureAccount(rootState, payload.from);
+    if (!fromAccount.hdRootAddr) {
+      throw new Error("HD wallet root account address was not found");
+    }
+    const rootAccount = ensureAccount(rootState, fromAccount.hdRootAddr);
+    if (!rootAccount.hdMnemonic) {
+      throw new Error("HD wallet master mnemonic was not found");
+    }
+    const sig = await hdSignTransactionBytes(
+      rootAccount.hdMnemonic,
+      fromAccount.hdAccountIndex ?? 0,
+      0,
+      payload.tx.bytesToSign(),
+    );
+    const signedResult = payload.tx.attachSignature(payload.from, sig) as
+      | Uint8Array
+      | Record<string, unknown>;
+    const signedBytes = toSignedBytes(signedResult);
     commit("setSigned", signedBytes);
     return signedBytes;
   },

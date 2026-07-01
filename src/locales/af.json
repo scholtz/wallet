@@ -185,6 +185,9 @@
     "connect": "WalletConnect",
     "payment_gateway": "Betaalpoort",
     "export": "Voer uit",
+    "not_funded": "Rekening {addr} op die netwerk {network} is nog nie gefinansier nie.",
+    "generate_next_hd": "Generate next HD account",
+    "generate_next_hd_help": "Derive another account from the same HD wallet mnemonic at the next iteration.",
     "no_assets": "Daar is nog geen bates op hierdie rekening nie",
     "actions": "Aksies",
     "pay_help": "Stuur geld of tokens na ander rekeninge in die netwerk.",
@@ -311,6 +314,7 @@
     "show_qr_code": "Wys QR-kode",
     "email_pass_account": "E-pos & Wagwoord rekening",
     "shamir_account": "Shamir-back-upherstel",
+    "hd_wallet_account": "HD Wallet account",
     "overview": "Nuwe rekening aksies",
     "create_basic_help": "Algorand basiese rekening is ED25519 rekening met privaatsleutel. Hierdie metode gebruik jou rekenaar se ewekansige getalgenerator om 'n geheim vir jou rekening te skep.",
     "ledger_account_help": "Een van die mees veilige oplossings is om die geheime sleutelgenerering deur 'n gespesialiseerde toestel te hanteer. Hierdie rekening maak gebruik van die Ledger-toestel om jou rekening te skep en die ondertekeningsoperasies te hanteer.",
@@ -322,6 +326,7 @@
     "watch_account_help": "You can track any account on the network.",
     "import_account_help": "You can recover the account from the algorand recovery mnemonic.",
     "shamir_account_help": "You can recover the account from the shamir backup recovery mnemonics.",
+    "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
     "create_first": "Create your first account",
     "no_accounts_at_network": "There are no accounts for selected network",
     "basic_options": "Basic options",
@@ -341,7 +346,24 @@
     "save_password_switch": "Save password",
     "password_not_stored": "Watch out. We do not store your password. We will store only the account public address and email to the secure storage. When you will be doing transactions with this account you will be prompted to enter the password.",
     "gui_not_implemented": "GUI for signing transaction without stored password is not currently implemented."
+  },  "hdaccount": {
+    "title": "HD Wallet account (ARC-52)",
+    "description": "HD (hierarchical deterministic) wallets use a single 24-word BIP-39 mnemonic to derive an unlimited number of independent Algorand accounts, following the ARC-52 (BIP32-Ed25519) standard. Create a new mnemonic or import an existing one to add its first account.",
+    "mode": "Mode",
+    "mode_create": "Create new mnemonic",
+    "mode_import": "Import existing mnemonic",
+    "master_mnemonic": "HD Master Mnemonic",
+    "backup_warning": "This mnemonic backs up every account derived from this HD wallet, not just this one. Keep it safe and never share it.",
+    "confirm_backup": "I have safely backed up my mnemonic",
+    "write_mnemonic": "Write down your 24 word BIP-39 mnemonic phrase",
+    "iteration": "Iteration (account index)",
+    "account_index_help": "Optional. The hardened account index (m'/44'/283'/index'/0/0) used to derive this wallet's first account from the mnemonic. Leave at 0 unless you specifically need to recover a non-default iteration.",
+    "generate_next": "Generate next account",
+    "generate_next_help": "Pick the iteration (account index) to derive the next account from this HD wallet's mnemonic. Each iteration produces a distinct, independent account address.",
+    "export_child_help": "This account does not store its own secret. It is derived from the master mnemonic of its HD wallet root account. Back up the mnemonic from the root account instead.",
+    "export_go_to_root": "Go to root account backup"
   },
+
   "import": {
     "title": "Import wallet",
     "wallet_name": "Wallet name",
@@ -355,7 +377,8 @@
     "public_account": "Public account",
     "rekeyed": "Rekeyed account",
     "ledger_account": "HW ledger account",
-    "wc_account": "WalletConnect account"
+    "wc_account": "WalletConnect account",
+    "hd_account": "HD wallet account"
   },
   "account": {
     "select_account": "Select account"

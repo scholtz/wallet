@@ -309,6 +309,14 @@
 
         <div class="grid" v-if="account && accountData">
           <div class="col-12 lg:col-9">
+            <Message severity="info" v-if="isUnfunded">
+              {{
+                $t("acc_overview.not_funded", {
+                  addr: shortAccountAddress,
+                  network: $store.state.config.env,
+                })
+              }}
+            </Message>
             <AccountDetailsGrid
               :account="account"
               :account-data="accountData"
@@ -402,6 +410,22 @@ const accountData = computed<AccountNetworkData | null>(() => {
     return null;
   }
   return acc.data[env] ?? null;
+});
+
+const isUnfunded = computed(() => {
+  const data = accountData.value;
+  if (!data) return false;
+  const amount = Number(data.amount ?? 0);
+  const hasCreatedAssets = Array.isArray(data["created-apps"])
+    ? data["created-apps"].length > 0
+    : false;
+  return amount === 0 && !hasCreatedAssets;
+});
+
+const shortAccountAddress = computed(() => {
+  const addr = accountAddressParam.value;
+  if (addr.length <= 12) return addr;
+  return `${addr.slice(0, 6)}...${addr.slice(-6)}`;
 });
 
 const devMode = computed(() => Boolean(store.state?.config?.dev));
@@ -538,7 +562,7 @@ const makeAssets = async () => {
   }
 };
 
-const reloadAccount = async () => {
+const reloadAccount = async (silent = false) => {
   await prolongSession();
   const info = await accountInformationAction({
     addr: accountAddressParam.value,
@@ -547,6 +571,7 @@ const reloadAccount = async () => {
     await updateAccountAction({ info });
     await store.dispatch("wallet/syncAccountSigner", {
       addr: accountAddressParam.value,
+      silent,
     });
   }
   const searchData = await searchForTransactionsAction({
@@ -818,7 +843,7 @@ watch(account, async () => {
 });
 
 onMounted(async () => {
-  await reloadAccount();
+  await reloadAccount(true);
   await makeAssets();
   await prolongSession();
   if (isMultisig.value) {

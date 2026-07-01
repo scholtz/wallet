@@ -9,6 +9,11 @@ import db from "../shared/db";
 import wc from "../shared/wc";
 import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
 import type { RootState } from "./index";
+import {
+  generateHdMnemonic,
+  hdDeriveAddress,
+  isValidHdMnemonic,
+} from "../scripts/encoding/hdWallet";
 
 type WalletAccountData = Record<string, IAccountData>;
 
@@ -60,8 +65,14 @@ export interface WalletAccount {
   name?: string;
   params?: algosdk.MultisigMetadata;
   data?: WalletAccountData;
-  type?: "2faApi" | "2fa" | "msig" | "ledger" | "wc" | "emailPwd";
+  type?: "2faApi" | "2fa" | "msig" | "ledger" | "wc" | "emailPwd" | "hd";
   recoveryAccount?: string;
+  /** ARC-52 (BIP32-Ed25519) master mnemonic. Only set on the root (iteration 0) hd account. */
+  hdMnemonic?: string;
+  /** Address of the hd account holding hdMnemonic. Set on every hd account, including the root. */
+  hdRootAddr?: string;
+  /** Hardened BIP44 account' path component ("iteration"). */
+  hdAccountIndex?: number;
   [key: string]: any;
 }
 
@@ -179,6 +190,22 @@ type AddWalletConnectAccountPayload = {
   name: string;
   addr: string;
   session: unknown;
+  network: string;
+};
+
+type AddHdWalletAccountMutationPayload = {
+  name: string;
+  addr: string;
+  mnemonic: string;
+  hdAccountIndex: number;
+  network: string;
+};
+
+type AddHdWalletChildAccountMutationPayload = {
+  name: string;
+  addr: string;
+  hdRootAddr: string;
+  hdAccountIndex: number;
   network: string;
 };
 
@@ -549,6 +576,53 @@ const mutations: MutationTree<WalletState> = {
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
+  addHdWalletAccount(
+    state,
+    {
+      name,
+      addr,
+      mnemonic,
+      hdAccountIndex,
+      network,
+    }: AddHdWalletAccountMutationPayload
+  ) {
+    const account: WalletAccount = {
+      addr,
+      address: addr,
+      name,
+      network,
+      type: "hd",
+      hdMnemonic: mnemonic,
+      hdRootAddr: addr,
+      hdAccountIndex,
+    };
+    state.privateAccounts.push(account);
+    state.lastActiveAccount = addr;
+    state.lastActiveAccountName = name;
+  },
+  addHdWalletChildAccount(
+    state,
+    {
+      name,
+      addr,
+      hdRootAddr,
+      hdAccountIndex,
+      network,
+    }: AddHdWalletChildAccountMutationPayload
+  ) {
+    const account: WalletAccount = {
+      addr,
+      address: addr,
+      name,
+      network,
+      type: "hd",
+      hdRootAddr,
+      hdAccountIndex,
+    };
+    state.privateAccounts.push(account);
+    state.lastActiveAccount = addr;
+    state.lastActiveAccountName = name;
+  },
   setPrivateAccounts(state, accts?: WalletAccount[]) {
     if (accts) {
       for (const acct of accts) {
@@ -878,6 +952,96 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       throw error;
     }
   },
+  async addHdWalletAccount(
+    { dispatch, commit },
+    {
+      name,
+      mnemonic,
+      accountIndex,
+    }: { name: string; mnemonic?: string; accountIndex?: number }
+  ) {
+    if (!name) {
+      throw Error("Plase set account name");
+    }
+    try {
+      const finalMnemonic = mnemonic?.trim() || generateHdMnemonic();
+      if (!isValidHdMnemonic(finalMnemonic)) {
+        throw Error("Mnemonic is not a valid BIP-39 phrase");
+      }
+      const hdAccountIndex = accountIndex ?? 0;
+      const addr = await hdDeriveAddress(finalMnemonic, hdAccountIndex, 0);
+      await commit("addHdWalletAccount", {
+        name,
+        addr,
+        mnemonic: finalMnemonic,
+        hdAccountIndex,
+        network: this.state.config.env,
+      });
+      await dispatch("saveWallet");
+      return addr;
+    } catch (error) {
+      console.error("error", error);
+      dispatch(
+        "toast/openError",
+        "Account has not been created: " + toErrorMessage(error),
+        {
+          root: true,
+        }
+      );
+      throw error;
+    }
+  },
+  async addHdWalletChildAccount(
+    { dispatch, commit },
+    {
+      name,
+      hdRootAddr,
+      hdAccountIndex,
+    }: { name: string; hdRootAddr: string; hdAccountIndex: number }
+  ) {
+    if (!name) {
+      throw Error("Plase set account name");
+    }
+    try {
+      const rootAccount = this.state.wallet.privateAccounts.find(
+        (a) => a.addr === hdRootAddr && a.hdMnemonic
+      );
+      if (!rootAccount?.hdMnemonic) {
+        throw Error("HD wallet root account was not found");
+      }
+      const exists = this.state.wallet.privateAccounts.some(
+        (a) =>
+          a.hdRootAddr === hdRootAddr && a.hdAccountIndex === hdAccountIndex
+      );
+      if (exists) {
+        throw Error("This iteration has already been generated");
+      }
+      const addr = await hdDeriveAddress(
+        rootAccount.hdMnemonic,
+        hdAccountIndex,
+        0
+      );
+      await commit("addHdWalletChildAccount", {
+        name,
+        addr,
+        hdRootAddr,
+        hdAccountIndex,
+        network: this.state.config.env,
+      });
+      await dispatch("saveWallet");
+      return addr;
+    } catch (error) {
+      console.error("error", error);
+      dispatch(
+        "toast/openError",
+        "Account has not been created: " + toErrorMessage(error),
+        {
+          root: true,
+        }
+      );
+      throw error;
+    }
+  },
   async addMultiAccount(
     { dispatch, commit },
     { params, name }: { params: MultisigMetadata; name: string }
@@ -1097,7 +1261,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
   // it once a rekey is reversed), and warns if the account that is now
   // authoritative for signing is missing or lacks signing material in the
   // wallet. Works for every account type (sk, msig, ledger, wc).
-  async syncAccountSigner({ dispatch, commit }, { addr }: { addr: string }) {
+  async syncAccountSigner(
+    { dispatch, commit },
+    { addr, silent }: { addr: string; silent?: boolean }
+  ) {
     const network = String(this.state.config.env);
     const acc = this.state.wallet.privateAccounts.find((a) => a.addr == addr);
     if (!acc) return;
@@ -1135,19 +1302,22 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       (a) => a.addr == signatorAddr
     );
     if (!signatorAccount) {
-      await dispatch(
-        "toast/openError",
-        `This account is currently signed by ${signatorAddr}, which is not present in your wallet. Add that account (e.g. import its multisig configuration) so you are able to sign transactions.`,
-        { root: true }
-      );
+      if (!silent) {
+        await dispatch(
+          "toast/openError",
+          `This account is currently signed by ${signatorAddr}, which is not present in your wallet. Add that account (e.g. import its multisig configuration) so you are able to sign transactions.`,
+          { root: true }
+        );
+      }
       return;
     }
     const hasSigningMaterial =
       Boolean(signatorAccount.sk) ||
       Boolean(signatorAccount.params) ||
       signatorAccount.type === "ledger" ||
-      signatorAccount.type === "wc";
-    if (!hasSigningMaterial) {
+      signatorAccount.type === "wc" ||
+      signatorAccount.type === "hd";
+    if (!hasSigningMaterial && !silent) {
       await dispatch(
         "toast/openError",
         `Signing information for ${signatorAddr} is incomplete in your wallet.`,

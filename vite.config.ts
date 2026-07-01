@@ -41,6 +41,14 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
       "vue-i18n": "vue-i18n/dist/vue-i18n.esm-bundler.js",
+      // libsodium-wrappers-sumo's published ESM build has a broken relative
+      // import ("./libsodium-sumo.mjs") that doesn't resolve across packages.
+      // Force the CJS build instead, which requires the bare "libsodium-sumo"
+      // specifier and resolves correctly.
+      "libsodium-wrappers-sumo": path.resolve(
+        __dirname,
+        "node_modules/libsodium-wrappers-sumo/dist/modules-sumo/libsodium-wrappers.js"
+      ),
     },
   },
   envPrefix: ["VITE_", "VUE_APP_"],

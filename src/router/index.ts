@@ -42,7 +42,9 @@ import NewAccountVanity from "@/pages/NewAccount/Vanity.vue";
 import NewAccountMultisig from "@/pages/NewAccount/Multisig.vue";
 import NewAccountWatch from "@/pages/NewAccount/Watch.vue";
 import NewAccountImport from "@/pages/NewAccount/RecoverEd25519.vue";
+import NewAccountHdWallet from "@/pages/NewAccount/HdWallet.vue";
 import AccountExport from "@/pages/Account/Export.vue";
+import AccountHdNext from "@/pages/Account/HdNext.vue";
 
 const routes = [
   {
@@ -109,6 +111,11 @@ const routes = [
     path: "/new-account/watch",
     name: "NewAccountWatch",
     component: NewAccountWatch,
+  },
+  {
+    path: "/new-account/hd-wallet",
+    name: "NewAccountHdWallet",
+    component: NewAccountHdWallet,
   },
   {
     path: "/swap/:account",
@@ -234,6 +241,11 @@ const routes = [
     path: "/account/export/:account",
     name: "AccountExport",
     component: AccountExport,
+  },
+  {
+    path: "/account/hd-next/:account",
+    name: "AccountHdNext",
+    component: AccountHdNext,
   },
   {
     path: "/account/optin/:account",

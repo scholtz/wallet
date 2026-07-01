@@ -10,6 +10,10 @@ const store = useStore<RootState>();
 const route = useRoute();
 const { t } = useI18n();
 
+const currentAccount = store.state.wallet.privateAccounts.find(
+  (a) => a.addr === route?.params?.account
+);
+
 const items = ref([
   {
     label: store.state.wallet.lastActiveAccountName,
@@ -31,6 +35,15 @@ const items = ref([
     icon: "pi pi-list",
     route: "/account/txs/" + route?.params?.account,
   },
+  ...(currentAccount?.type === "hd"
+    ? [
+        {
+          label: t("acc_overview.generate_next_hd"),
+          icon: "pi pi-sitemap",
+          route: "/account/hd-next/" + route?.params?.account,
+        },
+      ]
+    : []),
 ]);
 let activeDefault = 0;
 for (const index in items.value) {

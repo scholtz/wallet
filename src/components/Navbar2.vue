@@ -46,6 +46,11 @@ const makeMenu = () => {
               separator: true,
             },
             {
+              label: t("newacc.hd_wallet_account"),
+              icon: "pi pi-sitemap",
+              route: "/new-account/hd-wallet",
+            },
+            {
               label: t("newacc.create_basic"),
               icon: "pi pi-book",
               route: "/new-account/ed25519",
@@ -179,6 +184,18 @@ const makeMenu = () => {
             icon: "pi pi-upload",
             route: "/account/export/" + store.state.wallet.lastActiveAccount,
           },
+          ...(store.state.wallet.privateAccounts.find(
+            (a) => a.addr === store.state.wallet.lastActiveAccount
+          )?.type === "hd"
+            ? [
+                {
+                  label: t("acc_overview.generate_next_hd"),
+                  icon: "pi pi-sitemap",
+                  route:
+                    "/account/hd-next/" + store.state.wallet.lastActiveAccount,
+                },
+              ]
+            : []),
           {
             label: "ARC14",
             icon: "pi pi-unlock",

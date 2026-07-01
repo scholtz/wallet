@@ -185,6 +185,9 @@
     "connect": "WalletConnect",
     "payment_gateway": "Fizetési gateway",
     "export": "Exportálás",
+    "not_funded": "A(z) {addr} számla a(z) {network} hálózaton még nincs feltöltve.",
+    "generate_next_hd": "Generate next HD account",
+    "generate_next_hd_help": "Derive another account from the same HD wallet mnemonic at the next iteration.",
     "no_assets": "Még nincsenek pénzeszközök a számlán",
     "actions": "Műveletek",
     "pay_help": "Pénz vagy érmék küldése a hálózat egy másik számlájára.",
@@ -311,6 +314,7 @@
     "show_qr_code": "QR kód megjelenítése",
     "email_pass_account": "Email & jelszó számla",
     "shamir_account": "Visszaállítás Shamir bizonsági mentésből",
+    "hd_wallet_account": "HD Wallet account",
     "overview": "Új számlára vonatkozó műveletek",
     "create_basic_help": "Az Algorand alapszámla egy ED25519 számla, amelyhez egy privát kulcs tartozik. Ez a módszer a számládhoz tartozó titok előállítására a számítógéped véletlenszám generátorát használja.",
     "ledger_account_help": "A legbiztonságosabb megoldás az, ha a titkos kulcs előállítását egy erre specializált berendezés végzi. Ez a számla a Ledger eszközét használja a számla létrehozására és az aláírási műveletek kezelésére.",
@@ -322,6 +326,7 @@
     "watch_account_help": "Követheted a hálózat bármely számlájának egyenlegét.",
     "import_account_help": "Visszaállíthatod a számlát az Algorand visszaállító mnemonikból.",
     "shamir_account_help": "Visszaállíthatod a számlát a Shamir biztonsági mentéshez tartozó mnemonikokból.",
+    "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
     "create_first": "Hozd létre az első számlát",
     "no_accounts_at_network": "Nincsek számláid a kiválasztott hálózaton",
     "basic_options": "Alapbeállítások",
@@ -341,7 +346,24 @@
     "save_password_switch": "Jelszó mentés",
     "password_not_stored": "Figyelem! Csak a számla nyilvános címét és az email címedet tároljuk, a jelszavadat nem. Ha ezzel a számlával akarsz tranzakciókat létrehozni, akkor újra meg kell adnod a jelszót.",
     "gui_not_implemented": "Az a segédprogram, amellyel az tranzakció a jelszó ismételt beadása nélkül is aláíratható, jelenleg nincs megvalósítva."
+  },  "hdaccount": {
+    "title": "HD Wallet account (ARC-52)",
+    "description": "HD (hierarchical deterministic) wallets use a single 24-word BIP-39 mnemonic to derive an unlimited number of independent Algorand accounts, following the ARC-52 (BIP32-Ed25519) standard. Create a new mnemonic or import an existing one to add its first account.",
+    "mode": "Mode",
+    "mode_create": "Create new mnemonic",
+    "mode_import": "Import existing mnemonic",
+    "master_mnemonic": "HD Master Mnemonic",
+    "backup_warning": "This mnemonic backs up every account derived from this HD wallet, not just this one. Keep it safe and never share it.",
+    "confirm_backup": "I have safely backed up my mnemonic",
+    "write_mnemonic": "Write down your 24 word BIP-39 mnemonic phrase",
+    "iteration": "Iteration (account index)",
+    "account_index_help": "Optional. The hardened account index (m'/44'/283'/index'/0/0) used to derive this wallet's first account from the mnemonic. Leave at 0 unless you specifically need to recover a non-default iteration.",
+    "generate_next": "Generate next account",
+    "generate_next_help": "Pick the iteration (account index) to derive the next account from this HD wallet's mnemonic. Each iteration produces a distinct, independent account address.",
+    "export_child_help": "This account does not store its own secret. It is derived from the master mnemonic of its HD wallet root account. Back up the mnemonic from the root account instead.",
+    "export_go_to_root": "Go to root account backup"
   },
+
   "import": {
     "title": "Pénztárca importja",
     "wallet_name": "Pénztárca neve",
@@ -355,7 +377,8 @@
     "public_account": "Nyilvános számla",
     "rekeyed": "Átkulcsolt számla",
     "ledger_account": "Ledger HW számla ",
-    "wc_account": "WalletConnect számla"
+    "wc_account": "WalletConnect számla",
+    "hd_account": "HD wallet account"
   },
   "account": {
     "select_account": "Számla választás"
