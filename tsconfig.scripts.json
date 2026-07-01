@@ -8,5 +8,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["scripts/run-tests.ts"]
+  "include": ["scripts/*.ts"]
 }

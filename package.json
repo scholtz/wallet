@@ -9,6 +9,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "check-typescript-errors-tsc": "npx tsc --noEmit",
     "check-typescript-errors-vue": "npx vue-tsc --noEmit",
+    "check-locales": "npm run build:scripts && node scripts/check-locales.js",
     "cypress": "cypress run",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run --config-file cypress.config.ts",

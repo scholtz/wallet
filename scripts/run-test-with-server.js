@@ -2,11 +2,31 @@
 
 const { spawn } = require("child_process");
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
+
+// Locate the Cypress binary cache dir the same way Cypress itself does,
+// so this check doesn't false-negative on Windows/macOS (see scripts/run-tests.ts).
+function getCypressCacheDir() {
+  const envCache = process.env.CYPRESS_CACHE_FOLDER;
+  if (envCache && envCache.trim()) {
+    return envCache;
+  }
+  const homeDir = os.homedir();
+  const platform = process.platform;
+  if (platform === "win32") {
+    const base = process.env.LOCALAPPDATA || path.join(homeDir, "AppData", "Local");
+    return path.join(base, "Cypress", "Cache");
+  }
+  if (platform === "darwin") {
+    return path.join(homeDir, "Library", "Caches", "Cypress");
+  }
+  return path.join(homeDir, ".cache", "Cypress");
+}
 
 // Check if Cypress binary exists
 function checkCypressBinary() {
-  const cypressPath = path.join(process.env.HOME || "", ".cache", "Cypress");
+  const cypressPath = getCypressCacheDir();
   try {
     return fs.existsSync(cypressPath) && fs.readdirSync(cypressPath).length > 0;
   } catch (error) {
