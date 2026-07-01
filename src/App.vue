@@ -177,7 +177,35 @@ html.p-dark {
   border-radius: var(--p-content-border-radius);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   padding: 1.5rem;
-  margin: 1rem;
+  /* Vertical rhythm only: #app already carries a horizontal m-2 (see
+     index.html) that both the navbar and this shell live inside, so a left/
+     right margin here on top of that would inset the content further than
+     the navbar above it and make the navbar look wider than the page. */
+  margin: 1rem 0;
+}
+
+/* Many pages wrap their own content in a top-level <Card> (e.g. Accounts.vue,
+   AccountOverview.vue) in addition to sitting inside .page-shell above, which
+   produced a visible "card inside a card": the Card's own background/border/
+   shadow doubled up on the shell's, and its .p-card-body padding stacked on
+   top of the shell's padding, so a heading rendered as a page-shell sibling
+   (flush with the shell's own padding) no longer lined up with the Card's
+   indented content directly below it. Flattening a Card that's a direct
+   child of .page-shell into a plain content block (no competing background/
+   border/shadow, no extra padding of its own) makes it inherit the shell's
+   single surface and padding instead of layering a second one — one visual
+   card per page, however many the page's own markup nests. Doesn't affect
+   header/content internal spacing (that's `.p-card-body`'s `gap`, untouched)
+   or Cards nested deeper than a direct shell child. */
+.page-shell > .p-card {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  border-radius: 0;
+}
+
+.page-shell > .p-card > .p-card-body {
+  padding: 0;
 }
 
 /* Small opaque strip for content that intentionally lives outside a page's
