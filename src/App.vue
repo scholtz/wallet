@@ -170,7 +170,7 @@ html.p-dark {
    against the teal gradient). Applied in layouts/Main.vue (wallet-open
    branch) and layouts/Public.vue. Not applied to the wallet-closed Login
    branch of Main.vue, which manages its own centered/Panel'd layout —
-   see .link-strip below for that screen's equivalent fix. */
+   see .language-footer below for that screen's language switcher. */
 .page-shell {
   background: var(--p-content-background);
   border: 1px solid var(--p-content-border-color);
@@ -208,20 +208,38 @@ html.p-dark {
   padding: 0;
 }
 
-/* Small opaque strip for content that intentionally lives outside a page's
-   main Card/Panel (e.g. the language-flag row and footer links below the
-   login/new-wallet forms) so it isn't rendered directly on the transparent
-   gradient background. */
-.link-strip {
-  display: inline-flex;
+/* Language switcher on the Login/New-Wallet screens, pinned to the bottom
+   of the (relatively-positioned) centering container as its own translucent
+   footer bar — same blurred-glass treatment as the sticky navbar — instead
+   of sitting inline below the auth Panel and competing with it for vertical
+   centering. */
+.language-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  background: var(--p-content-background);
-  border: 1px solid var(--p-content-border-color);
-  border-radius: var(--p-content-border-radius);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  gap: 0.25rem;
   padding: 0.75rem 1rem;
+  backdrop-filter: blur(10px);
+  background-color: color-mix(
+    in srgb,
+    var(--p-content-background) 80%,
+    transparent
+  );
+  border-top: 1px solid var(--p-content-border-color);
+}
+
+/* Bolded Panel headers: several Panels (Login/NewWallet/ImportWallet/...)
+   supply the #header slot as plain text rather than via the scoped
+   `:class` the slot exposes (which would apply .p-panel-title, already
+   bold via a design token) — so their header text rendered unbolded at
+   regular body weight. Bolding .p-panel-header directly covers both
+   cases without touching every individual Panel's header markup. */
+.p-panel-header {
+  font-weight: 700;
 }
 </style>

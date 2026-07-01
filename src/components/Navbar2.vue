@@ -21,7 +21,7 @@ watch(
   () => {
     makeMenu();
   },
-  { deep: true }
+  { deep: true },
 );
 
 const makeMenu = () => {
@@ -188,7 +188,7 @@ const makeMenu = () => {
             route: "/account/export/" + store.state.wallet.lastActiveAccount,
           },
           ...(store.state.wallet.privateAccounts.find(
-            (a) => a.addr === store.state.wallet.lastActiveAccount
+            (a) => a.addr === store.state.wallet.lastActiveAccount,
           )?.type === "hd"
             ? [
                 {
@@ -269,6 +269,12 @@ const makeMenu = () => {
       });
     }
     menu.push({
+      label: "GitHub",
+      icon: "pi pi-github",
+      url: "https://github.com/scholtz/wallet/",
+      target: "_blank",
+    });
+    menu.push({
       label: store.state.config.env,
       icon: "pi pi-cog",
 
@@ -322,6 +328,12 @@ const makeMenu = () => {
         label: t("merchant.make_payment"),
         icon: "pi pi-credit-card",
         route: "/payment-gateway",
+      },
+      {
+        label: "GitHub",
+        icon: "pi pi-github",
+        url: "https://github.com/scholtz/wallet/",
+        target: "_blank",
       },
       {
         label: store.state.config.envName,
@@ -529,6 +541,8 @@ makeMenu();
           v-ripple
           class="flex align-items-center"
           v-bind="props.action"
+          :href="item.url"
+          :target="item.target"
         >
           <span :class="[item.icon, 'p-menubar-item-icon']" />
           <span class="p-menubar-item-label">{{ item.label }}</span>
@@ -573,7 +587,11 @@ makeMenu();
   top: 0;
   z-index: 1000;
   backdrop-filter: blur(10px);
-  background-color: color-mix(in srgb, var(--p-content-background) 80%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--p-content-background) 80%,
+    transparent
+  );
   border-radius: var(--p-content-border-radius);
 }
 

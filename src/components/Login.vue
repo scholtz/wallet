@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-column align-items-center justify-content-center h-full m-2"
+    class="relative flex flex-column align-items-center justify-content-center h-full m-2"
   >
     <Panel v-if="newWalletForm" class="col-12 md:col-8 lg:col-6">
       <template #header>
@@ -113,30 +113,27 @@
         </div>
       </form>
     </Panel>
-    <div class="my-5 link-strip">
+    <div class="language-footer">
       <a
         v-for="lang in $store.state.config.languages"
         :key="lang"
-        class="m-2 d-inline-block"
         role="button"
         @click="setLanguage(lang)"
       >
-        <Button size="small" severity="secondary" link class="m-2">
-          <LanguageFlag :locale="lang" size="2rem" />
+        <Button size="small" severity="secondary" link class="m-1">
+          <LanguageFlag :locale="lang" size="1.25rem" />
         </Button>
       </a>
       <a
-        class="m-2"
         href="https://github.com/scholtz/wallet/wiki/I-want-to-help-to-translate"
         target="_blank"
         role="button"
-        style="width: 75; height: 50"
       >
-        <Button size="small" severity="secondary" link class="m-2">
+        <Button size="small" severity="secondary" link class="m-1">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="50"
-            height="50"
+            width="20"
+            height="20"
             fill="currentColor"
             class="bi bi-plus-circle"
             viewBox="0 0 16 16"
@@ -148,32 +145,6 @@
               d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"
             />
           </svg>
-        </Button>
-      </a>
-    </div>
-    <div class="my-5 link-strip">
-      <a href="https://youtu.be/cCsx7t68DS4" target="youtube" role="button">
-        <Button size="small" severity="secondary" link class="m-2">
-          Youtube - {{ $t("login.basic_usage") }}
-        </Button></a
-      >
-      <a href="https://youtu.be/M0KZvp7AJQs" target="youtube" role="button">
-        <Button size="small" severity="secondary" link class="m-2">
-          Youtube - {{ $t("login.tether_usage") }}
-        </Button>
-      </a>
-      <a
-        href="https://github.com/scholtz/wallet/"
-        target="github"
-        role="button"
-      >
-        <Button size="small" severity="secondary" link class="m-2">
-          GitHub: {{ $t("login.source_code") }}
-        </Button>
-      </a>
-      <a href="/donate" class="m-2" role="button">
-        <Button size="small" severity="secondary" link class="m-2">
-          Support us
         </Button>
       </a>
     </div>
