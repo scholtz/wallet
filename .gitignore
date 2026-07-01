@@ -25,6 +25,11 @@ public/config.json
 cypress/videos
 cypress/screenshots
 
+playwright-report
+test-results
+/blob-report
+/playwright/.cache
+
 k8s/conf
 k8s/stable
 

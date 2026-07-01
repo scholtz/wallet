@@ -200,7 +200,7 @@ import { useStore } from "../../store";
 import type { StoredAsset } from "../../store/indexer";
 import type { WalletAccount, IAccountData } from "../../store/wallet";
 import algosdk from "algosdk";
-import {
+import type {
   TransactionAssetTransfer,
   TransactionPayment,
 } from "algosdk/dist/types/client/v2/indexer/models/types";
