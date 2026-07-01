@@ -2,10 +2,10 @@
 import MainLayout from "../../layouts/Main.vue";
 import { useStore } from "vuex";
 import { onMounted, reactive, watch } from "vue";
-import { FilterMatchMode } from "primevue/api";
+import { FilterMatchMode } from "@primevue/core/api";
 import SelectAccount from "../../components/SelectAccount.vue";
 import SelectAsset from "../../components/SelectAsset.vue";
-import DropDown from "primevue/dropdown";
+import Select from "primevue/select";
 import CAsset from "@/scripts/interface/CAsset";
 import base642base64url from "@/scripts/encoding/base642base64url";
 import { useRoute, useRouter } from "vue-router";
@@ -466,14 +466,14 @@ watch(
             {{ t("scheduled_payments.period") }}
           </label>
           <div class="col-12 md:col-10">
-            <DropDown
+            <Select
               v-model="state.period"
               option-label="name"
               option-value="value"
               :options="state.optionsSchedule"
               class="w-full"
             >
-            </DropDown>
+            </Select>
           </div>
         </div>
         <div class="field grid">

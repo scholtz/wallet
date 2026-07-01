@@ -56,7 +56,7 @@ const active = ref(activeDefault);
 </script>
 
 <template>
-  <div class="card">
+  <div class="account-top-menu">
     <TabMenu :model="items" v-model:activeIndex="active">
       <template #item="{ item, props }">
         <router-link
@@ -65,13 +65,7 @@ const active = ref(activeDefault);
           :to="item.route"
           custom
         >
-          <a
-            v-ripple
-            :href="href"
-            v-bind="props.action"
-            @click="navigate"
-            class="mx-1"
-          >
+          <a v-ripple :href="href" v-bind="props.action" @click="navigate">
             <span v-bind="props.icon" />
             <span v-bind="props.label">{{ item.label }}</span>
           </a>
@@ -82,7 +76,6 @@ const active = ref(activeDefault);
           :href="item.url"
           :target="item.target"
           v-bind="props.action"
-          class="mx-1"
         >
           <span v-bind="props.icon" />
           <span v-bind="props.label">{{ item.label }}</span>
@@ -91,3 +84,37 @@ const active = ref(activeDefault);
     </TabMenu>
   </div>
 </template>
+
+<style>
+/* Segmented-control look instead of the bare underline-tab default: a
+   floating pill bar with a solid background fill on the active tab, more in
+   line with the rest of the app's card-elevated chrome. */
+.account-top-menu {
+  margin-bottom: 1rem;
+}
+
+.account-top-menu .p-tabmenu-tablist {
+  gap: 0.25rem;
+  padding: 0.35rem;
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.account-top-menu .p-tabmenu-item-link {
+  border: none;
+  border-radius: calc(var(--p-content-border-radius) - 2px);
+  font-weight: 500;
+}
+
+.account-top-menu .p-tabmenu-item-active .p-tabmenu-item-link {
+  background: var(--p-primary-color);
+  color: var(--p-primary-contrast-color);
+  font-weight: 600;
+}
+
+.account-top-menu .p-tabmenu-item-active .p-tabmenu-item-icon {
+  color: var(--p-primary-contrast-color);
+}
+</style>

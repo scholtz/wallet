@@ -16,7 +16,10 @@
     "baseUrl": ".",
     "types": ["vite/client"],
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@primeuix/themes/aura": [
+        "node_modules/@primeuix/themes/dist/aura/index.d.ts"
+      ]
     },
     "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
   },

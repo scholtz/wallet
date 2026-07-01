@@ -32,6 +32,7 @@
               class="w-full"
               inputClass="w-full"
               autocomplete="new-password"
+              :feedback="false"
             />
           </div>
         </div>
@@ -75,7 +76,7 @@
             $t("login.select_wallet")
           }}</label>
           <div class="col-12 md:col-10">
-            <Dropdown
+            <Select
               id="wallet-select"
               v-model="wallet"
               :options="wallets"
@@ -121,11 +122,7 @@
         @click="setLanguage(lang)"
       >
         <Button size="small" severity="secondary" link class="m-2">
-          <img
-            :src="'/flags/3x2/' + lang + '.svg'"
-            height="50"
-            class="border border-1 border-round-xl"
-          />
+          <LanguageFlag :locale="lang" size="2rem" />
         </Button>
       </a>
       <a

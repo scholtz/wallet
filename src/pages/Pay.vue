@@ -98,6 +98,7 @@
                     <div class="col-12 md:col-10">
                       <TabView class="w-full" header-class="mr-2">
                         <TabPanel
+                          value="0"
                           :header="t('pay.pay_to_wallet')"
                           headerClass="mr-2"
                         >
@@ -106,7 +107,7 @@
                             class="w-full"
                           ></SelectAccount>
                         </TabPanel>
-                        <TabPanel :header="t('pay.pay_to_other')">
+                        <TabPanel value="1" :header="t('pay.pay_to_other')">
                           <InputText
                             id="payTo"
                             v-model="payTo"
@@ -143,6 +144,7 @@
                   <div class="col-12 md:col-10">
                     <TabView>
                       <TabPanel
+                        value="0"
                         :header="t('pay.rekey_to_wallet_account')"
                         class="mr-2"
                       >
@@ -151,7 +153,10 @@
                           class="w-full"
                         ></SelectAccount>
                       </TabPanel>
-                      <TabPanel :header="t('pay.rekey_to_external_account')">
+                      <TabPanel
+                        value="1"
+                        :header="t('pay.rekey_to_external_account')"
+                      >
                         <InputText
                           id="rekeyTo"
                           v-model="rekeyTo"
@@ -195,7 +200,7 @@
                     </label>
 
                     <div class="col-12 md:col-10">
-                      <Dropdown
+                      <Select
                         inputId="asset"
                         v-model="asset"
                         filter
@@ -206,7 +211,7 @@
                         class="w-full"
                         inputClass="w-full"
                       >
-                      </Dropdown>
+                      </Select>
                     </div>
                   </div>
                 </div>

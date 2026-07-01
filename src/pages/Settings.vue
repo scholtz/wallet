@@ -10,7 +10,7 @@
             {{ $t("settings.environment") }}
           </label>
           <div class="col-12 md:col-10">
-            <Dropdown
+            <Select
               id="env2"
               v-model="env"
               class="w-full"
@@ -18,7 +18,7 @@
               optionLabel="name"
               optionValue="network"
             >
-            </Dropdown>
+            </Select>
           </div>
         </div>
         <div
@@ -29,7 +29,7 @@
             Public AlgoD provider
           </label>
           <div class="col-12 md:col-10">
-            <Dropdown
+            <Select
               id="algodProvider"
               v-model="algodHost"
               class="w-full"
@@ -37,7 +37,7 @@
               optionLabel="providerName"
               optionValue="host"
             >
-            </Dropdown>
+            </Select>
           </div>
         </div>
         <div class="field grid">
@@ -80,7 +80,7 @@
             Public participation provider
           </label>
           <div class="col-12 md:col-10">
-            <Dropdown
+            <Select
               id="participationProvider"
               v-model="participationHost"
               class="w-full"
@@ -88,7 +88,7 @@
               optionLabel="providerName"
               optionValue="host"
             >
-            </Dropdown>
+            </Select>
           </div>
         </div>
         <div class="field grid">
@@ -116,7 +116,7 @@
             Public Indexer provider
           </label>
           <div class="col-12 md:col-10">
-            <Dropdown
+            <Select
               id="indexerProvider"
               v-model="indexerHost"
               class="w-full"
@@ -124,7 +124,7 @@
               optionLabel="providerName"
               optionValue="host"
             >
-            </Dropdown>
+            </Select>
           </div>
         </div>
         <div class="field grid">
@@ -165,37 +165,28 @@
 
         <h2>{{ $t("settings.language") }}</h2>
 
-        <Dropdown
+        <Select
           v-model="$i18n.locale"
           :options="$store.state.config.languages"
           style="min-width: 100px"
           @change="languageUpdated"
         >
           <template #value="slotProps">
-            <div v-if="slotProps.value" class="border-dark">
-              <img
-                :alt="slotProps.value"
-                class="border-dark"
-                :src="'/flags/3x2/' + slotProps.value + '.svg'"
-                height="15"
-              />
-              <span class="m-1">{{ slotProps.value }}</span>
+            <div v-if="slotProps.value" class="flex align-items-center">
+              <LanguageFlag :locale="slotProps.value" size="1.25rem" />
+              <span class="ml-2">{{ slotProps.value }}</span>
             </div>
             <span v-else>
               {{ slotProps.placeholder }}
             </span>
           </template>
           <template #option="slotProps">
-            <div class="border-dark">
-              <img
-                :alt="slotProps.option"
-                :src="'/flags/3x2/' + slotProps.option + '.svg'"
-                height="15"
-              />
-              <span class="m-1">{{ slotProps.option }}</span>
+            <div class="flex align-items-center">
+              <LanguageFlag :locale="slotProps.option" size="1.25rem" />
+              <span class="ml-2">{{ slotProps.option }}</span>
             </div>
           </template>
-        </Dropdown>
+        </Select>
         <h2>{{ $t("settings.pass") }}</h2>
         <form @submit="changePasswordClick">
           <div class="field grid">
@@ -208,6 +199,7 @@
                 v-model="passw1"
                 inputClass="w-full"
                 class="w-full"
+                :feedback="false"
               />
             </div>
           </div>
@@ -221,6 +213,7 @@
                 v-model="passw2"
                 inputClass="w-full"
                 class="w-full"
+                :feedback="false"
               />
             </div>
           </div>
@@ -234,6 +227,7 @@
                 v-model="passw3"
                 inputClass="w-full"
                 class="w-full"
+                :feedback="false"
               />
             </div>
           </div>
@@ -248,7 +242,7 @@
         </form>
         <h2>{{ $t("settings.dev_settings") }}</h2>
         <div>
-          <InputSwitch v-model="dev" aria-label="Enable dev output" />
+          <ToggleSwitch v-model="dev" aria-label="Enable dev output" />
         </div>
         <h2>{{ $t("settings.backup") }}</h2>
         <p>{{ $t("settings.backup_help") }}</p>

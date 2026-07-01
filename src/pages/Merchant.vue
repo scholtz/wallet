@@ -118,11 +118,7 @@
               role="button"
               @click="setLanguage(lang)"
             >
-              <img
-                :src="'/flags/3x2/' + lang + '.svg'"
-                height="50"
-                class="border border-3 rounded rounded-3"
-              />
+              <LanguageFlag :locale="lang" size="2rem" />
             </a>
           </div>
         </div>

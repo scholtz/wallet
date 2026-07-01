@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useStore } from "vuex";
 const { t, locale } = useI18n();
-import { usePrimeVue } from "primevue/config";
-const PrimeVue = usePrimeVue();
-import { PrimeIcons } from "primevue/api";
+import { PrimeIcons } from "@primevue/core/api";
 import { RootState } from "@/store";
 const store = useStore<RootState>();
+
+const isDark = computed(() => store.state.config.theme === "dark");
+const toggleTheme = () => {
+  store.dispatch("config/setTheme", isDark.value ? "light" : "dark");
+};
 
 watch(locale, () => {
   makeMenu();
@@ -276,11 +279,6 @@ const makeMenu = () => {
           route: "/settings",
         },
         {
-          label: "Theme",
-          icon: "pi pi-palette",
-          items: makeThemes(),
-        },
-        {
           label: "Help",
           icon: "pi pi-question-circle",
           items: [
@@ -350,66 +348,11 @@ const makeMenu = () => {
           },
         ],
       },
-      {
-        label: "Theme",
-        icon: "pi pi-palette",
-        items: makeThemes(),
-      },
     ];
   }
 };
 
 const items = ref<any>([]);
-const makeThemes = () => {
-  const allowed = [
-    { name: "Lara Dark Teal", file: "lara-dark-teal", icon: "pi pi-moon" },
-    { name: "Lara Light Teal", file: "lara-light-teal", icon: "pi pi-sun" },
-
-    { name: "Aura Dark Teal", file: "aura-dark-teal", icon: "pi pi-moon" },
-    { name: "Aura Light Teal", file: "aura-light-teal", icon: "pi pi-sun" },
-
-    { name: "Saga Blue", file: "saga-blue", icon: "pi pi-sun" },
-    { name: "Rhea Light", file: "rhea", icon: "pi pi-sun" },
-    { name: "Arya Purple", file: "arya-purple", icon: "pi pi-moon" },
-    { name: "Nova Alt", file: "nova-alt", icon: "pi pi-sun" },
-
-    { name: "Soho Dark", file: "soho-dark", icon: "pi pi-moon" },
-    { name: "Soho Light", file: "soho-light", icon: "pi pi-sun" },
-
-    {
-      name: "Bootstrap Dark Purple",
-      file: "bootstrap4-dark-purple",
-      icon: "pi pi-moon",
-    },
-    {
-      name: "Bootstrap Light Purple",
-      file: "bootstrap4-light-purple",
-      icon: "pi pi-sun",
-    },
-  ];
-
-  const ret = [];
-  for (const item of allowed) {
-    ret.push({
-      label: item.name,
-      icon: item.icon,
-      command: async () => {
-        let lastTheme = localStorage.getItem("lastTheme");
-        if (!lastTheme) lastTheme = "lara-dark-teal";
-        PrimeVue.changeTheme(lastTheme, item.file, "theme-link", () => {});
-        PrimeVue.changeTheme(
-          lastTheme,
-          item.file,
-          "theme-link-custom",
-          () => {}
-        );
-        localStorage.setItem("lastTheme", item.file);
-        store.dispatch("config/setTheme");
-      },
-    });
-  }
-  return ret;
-};
 makeMenu();
 </script>
 
@@ -558,11 +501,12 @@ makeMenu();
       <template #item="{ item, props, hasSubmenu, root }">
         <RouterLink
           v-if="item.route"
+          v-bind="props.action"
           :to="item.route"
-          class="flex align-items-center p-menuitem-link"
+          class="flex align-items-center"
         >
-          <span :class="item.icon" />
-          <span class="ml-2">{{ item.label }}</span>
+          <span :class="[item.icon, 'p-menubar-item-icon']" />
+          <span class="p-menubar-item-label">{{ item.label }}</span>
           <Badge
             v-if="item.badge"
             :class="{ 'ml-auto': !root, 'ml-2': root }"
@@ -575,10 +519,8 @@ makeMenu();
           >
           <i
             v-if="hasSubmenu"
-            :class="[
-              'pi pi-angle-down',
-              { 'pi-angle-down ml-2': root, 'pi-angle-right ml-auto': !root },
-            ]"
+            class="p-menubar-submenu-icon"
+            :class="root ? 'pi pi-angle-down' : 'pi pi-angle-right ml-auto'"
           ></i>
         </RouterLink>
 
@@ -588,8 +530,8 @@ makeMenu();
           class="flex align-items-center"
           v-bind="props.action"
         >
-          <span :class="item.icon" />
-          <span class="ml-2">{{ item.label }}</span>
+          <span :class="[item.icon, 'p-menubar-item-icon']" />
+          <span class="p-menubar-item-label">{{ item.label }}</span>
           <Badge
             v-if="item.badge"
             :class="{ 'ml-auto': !root, 'ml-2': root }"
@@ -602,18 +544,55 @@ makeMenu();
           >
           <i
             v-if="hasSubmenu"
-            :class="[
-              'pi pi-angle-down',
-              { 'pi-angle-down ml-2': root, 'pi-angle-right ml-auto': !root },
-            ]"
+            class="p-menubar-submenu-icon"
+            :class="root ? 'pi pi-angle-down' : 'pi pi-angle-right ml-auto'"
           ></i>
         </a>
+      </template>
+      <template #end>
+        <button
+          type="button"
+          class="theme-toggle"
+          :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+          v-tooltip.bottom="isDark ? 'Light mode' : 'Dark mode'"
+          @click="toggleTheme"
+        >
+          <i :class="isDark ? 'pi pi-sun' : 'pi pi-moon'"></i>
+        </button>
       </template>
     </Menubar>
   </div>
 </template>
 <style>
-.p-submenu-list {
+.p-menubar-submenu {
   min-width: 300px;
+}
+
+.card > .p-menubar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  background-color: color-mix(in srgb, var(--p-content-background) 80%, transparent);
+  border-radius: var(--p-content-border-radius);
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-left: auto;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--p-text-color);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.theme-toggle:hover {
+  background-color: var(--p-content-hover-background);
 }
 </style>

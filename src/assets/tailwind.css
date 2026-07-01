@@ -1,0 +1,20 @@
+/*
+ * Tailwind is namespaced with the "tw:" prefix (v4 syntax, e.g. tw:flex)
+ * so its utility classes can never collide with PrimeFlex's utilities (many
+ * names overlap, e.g. .flex, .gap-2, .hidden). Existing PrimeFlex-based
+ * pages are unaffected; new/redesigned chrome (Navbar2, App shell, etc.)
+ * opts into Tailwind explicitly via the tw: prefix.
+ *
+ * Preflight (Tailwind's base-element reset) is intentionally NOT imported:
+ * it is a global, unprefixed reset of raw elements (img, button, h1, etc.)
+ * that clobbered plain HTML across the whole app (e.g. <img height="50">
+ * flag icons collapsing to `height: auto`) even though only this project's
+ * own prefixed classes should opt in to Tailwind.
+ */
+@layer theme, utilities;
+@import "tailwindcss/theme.css" layer(theme) prefix(tw);
+@import "tailwindcss/utilities.css" layer(utilities) prefix(tw);
+@import "tailwindcss-primeui";
+
+/* Mirrors PrimeVue's darkModeSelector so tw:dark: tracks .p-dark */
+@custom-variant dark (&:where(.p-dark, .p-dark *));

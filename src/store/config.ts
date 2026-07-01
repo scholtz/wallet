@@ -106,9 +106,16 @@ const mutations: MutationTree<ConfigState> = {
     localStorage.setItem("dev", String(value));
     currentState.dev = value;
   },
-  setTheme(currentState) {
-    const value = localStorage.getItem("lastTheme");
-    currentState.theme = value ?? currentState.theme;
+  setTheme(currentState, value?: string) {
+    let resolved = value ?? localStorage.getItem("lastTheme") ?? undefined;
+    if (!resolved) {
+      resolved =
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+    }
+    currentState.theme = resolved;
   },
   setConfig(currentState, value: RemoteConfig) {
     const removeConsoleLogs = !value.debug;
@@ -383,8 +390,11 @@ const actions: ActionTree<ConfigState, RootState> = {
   async setDev({ commit }, { dev }: SetDevPayload) {
     commit("setDev", dev);
   },
-  async setTheme({ commit }) {
-    commit("setTheme");
+  async setTheme({ commit }, value?: string) {
+    if (value) {
+      localStorage.setItem("lastTheme", value);
+    }
+    commit("setTheme", value);
   },
   async getConfig({ dispatch, commit }) {
     try {
