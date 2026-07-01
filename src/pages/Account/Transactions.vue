@@ -431,23 +431,7 @@ const reloadAccount = async () => {
     });
     if (info) {
       await store.dispatch("wallet/updateAccount", { info });
-      const data = accountData.value;
-      if (data && data.rekeyedTo !== data["auth-addr"]) {
-        const rekeyedTo = data["auth-addr"] as string | undefined;
-        console.error(
-          `New rekey information detected: ${data.rekeyedTo} -> ${rekeyedTo}`
-        );
-        if (rekeyedTo) {
-          const info2: Partial<IAccountData> = {};
-          info2.address = data.addr;
-          info2.rekeyedTo = rekeyedTo;
-          await store.dispatch("wallet/updateAccount", { info: info2 });
-          await store.dispatch(
-            "toast/openSuccess",
-            `Information about rekeying to address ${rekeyedTo} has been stored`
-          );
-        }
-      }
+      await store.dispatch("wallet/syncAccountSigner", { addr });
     }
 
     const searchData = (await store.dispatch("indexer/searchForTransactions", {

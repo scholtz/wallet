@@ -387,15 +387,6 @@ const actions: ActionTree<SignerState, RootState> = {
     }
     const signatorAccount = ensureAccount(rootState, payload.signator);
     const signedTxn = decodeMultisigTxn(payload.msigTx);
-    const sender = algosdk.encodeAddress(signedTxn.txn.snd);
-    let fromAccount = ensureAccount(rootState, sender);
-    if (fromAccount.rekeyedTo && fromAccount.rekeyedTo !== sender) {
-      fromAccount = ensureAccount(
-        rootState,
-        fromAccount.rekeyedTo,
-        missingRekeyMessage,
-      );
-    }
     const rawSk = signatorAccount.sk;
     if (!rawSk) {
       throw new Error("Secret key not found for signator");

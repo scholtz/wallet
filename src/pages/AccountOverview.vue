@@ -545,17 +545,9 @@ const reloadAccount = async () => {
   });
   if (info) {
     await updateAccountAction({ info });
-    const data = accountData.value;
-    if (data && data.rekeyedTo !== data["auth-addr"]) {
-      const rekeyedTo = data["auth-addr"];
-      const info2: Record<string, unknown> = {};
-      info2.address = data.addr;
-      info2.rekeyedTo = rekeyedTo;
-      await updateAccountAction({ info: info2 });
-      await openSuccessAction(
-        `Information about rekeying to address ${rekeyedTo} has been stored`
-      );
-    }
+    await store.dispatch("wallet/syncAccountSigner", {
+      addr: accountAddressParam.value,
+    });
   }
   const searchData = await searchForTransactionsAction({
     addr: accountAddressParam.value,

@@ -211,8 +211,6 @@ const getAssetAction = (payload: {
 }): Promise<StoredAsset | undefined> =>
   store.dispatch("indexer/getAsset", payload);
 const prolongAction = () => store.dispatch("wallet/prolong");
-const openSuccessAction = (message: string) =>
-  store.dispatch("toast/openSuccess", message);
 const getAlgodAction = () => store.dispatch("algod/getAlgod");
 const getIndexerAction = () => store.dispatch("indexer/getIndexer");
 const updateArc200BalanceAction = (payload: {
@@ -348,17 +346,9 @@ const reloadAccount = async () => {
   });
   if (!info) return;
   await updateAccountAction({ info });
-  const data = accountData.value;
-  if (data && data.rekeyedTo !== data["auth-addr"]) {
-    const rekeyedTo = data["auth-addr"];
-    const info2: Record<string, unknown> = {};
-    info2.address = data.addr;
-    info2.rekeyedTo = rekeyedTo;
-    await updateAccountAction({ info: info2 });
-    await openSuccessAction(
-      `Information about rekeying to address ${rekeyedTo} has been stored`
-    );
-  }
+  await store.dispatch("wallet/syncAccountSigner", {
+    addr: accountAddressParam.value,
+  });
 };
 
 const refresh = async (data: AssetListItem) => {

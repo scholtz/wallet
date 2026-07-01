@@ -126,6 +126,12 @@ type SetPrivateAccountPayload = {
   network: string;
 };
 
+type SetAccountRekeyPayload = {
+  addr: string;
+  network: string;
+  rekeyedTo?: string;
+};
+
 type AddEmailPasswordAccountPayload = {
   name: string;
   savePassword: boolean;
@@ -376,6 +382,22 @@ const mutations: MutationTree<WalletState> = {
           delete acc.rekeyedTo;
         }
       }
+    }
+  },
+  setAccountRekey(
+    state,
+    { addr, network, rekeyedTo }: SetAccountRekeyPayload
+  ) {
+    const acc = state.privateAccounts.find((x) => x.addr == addr);
+    if (!acc) {
+      console.error(`Error updating rekey info. Address ${addr} not found`);
+      return;
+    }
+    const networkData = ensureAccountNetworkData(acc, network);
+    if (rekeyedTo) {
+      networkData.rekeyedTo = rekeyedTo;
+    } else {
+      delete networkData.rekeyedTo;
     }
   },
   addEmailPasswordAccount(
@@ -1069,6 +1091,69 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     }
     await commit("setPrivateAccount", { info, network: this.state.config.env });
     await dispatch("saveWallet");
+  },
+  // Detects whether the account's on-chain auth-addr (rekey target) differs
+  // from what is stored locally, keeps rekeyedTo in sync (including clearing
+  // it once a rekey is reversed), and warns if the account that is now
+  // authoritative for signing is missing or lacks signing material in the
+  // wallet. Works for every account type (sk, msig, ledger, wc).
+  async syncAccountSigner({ dispatch, commit }, { addr }: { addr: string }) {
+    const network = String(this.state.config.env);
+    const acc = this.state.wallet.privateAccounts.find((a) => a.addr == addr);
+    if (!acc) return;
+    const networkData = acc.data?.[network];
+    const authAddr = networkData?.["auth-addr"];
+    const currentRekey =
+      typeof authAddr === "string" && authAddr.length > 0 && authAddr !== addr
+        ? authAddr
+        : undefined;
+
+    if ((networkData?.rekeyedTo ?? undefined) !== currentRekey) {
+      await commit("setAccountRekey", {
+        addr,
+        network,
+        rekeyedTo: currentRekey,
+      });
+      await dispatch("saveWallet");
+      if (currentRekey) {
+        await dispatch(
+          "toast/openSuccess",
+          `Information about rekeying to address ${currentRekey} has been stored`,
+          { root: true }
+        );
+      } else {
+        await dispatch(
+          "toast/openSuccess",
+          "Account is no longer rekeyed. Local rekey information has been cleared.",
+          { root: true }
+        );
+      }
+    }
+
+    const signatorAddr = currentRekey ?? addr;
+    const signatorAccount = this.state.wallet.privateAccounts.find(
+      (a) => a.addr == signatorAddr
+    );
+    if (!signatorAccount) {
+      await dispatch(
+        "toast/openError",
+        `This account is currently signed by ${signatorAddr}, which is not present in your wallet. Add that account (e.g. import its multisig configuration) so you are able to sign transactions.`,
+        { root: true }
+      );
+      return;
+    }
+    const hasSigningMaterial =
+      Boolean(signatorAccount.sk) ||
+      Boolean(signatorAccount.params) ||
+      signatorAccount.type === "ledger" ||
+      signatorAccount.type === "wc";
+    if (!hasSigningMaterial) {
+      await dispatch(
+        "toast/openError",
+        `Signing information for ${signatorAddr} is incomplete in your wallet.`,
+        { root: true }
+      );
+    }
   },
   async changePassword(
     { dispatch },

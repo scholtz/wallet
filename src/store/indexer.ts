@@ -172,12 +172,23 @@ const actions: ActionTree<IndexerState, RootState> = {
       if (!ret?.account) {
         return { ...DEFAULT_ACCOUNT, address: addr };
       }
-      return (
-        (ret.account as unknown as IndexerAccount) ?? {
-          ...DEFAULT_ACCOUNT,
-          address: addr,
-        }
-      );
+      // algosdk's typed indexer models expose fields in camelCase (e.g.
+      // `authAddr`), not the dash-cased REST keys (e.g. "auth-addr") that
+      // the rest of the app stores/compares against. Bridge the fields we
+      // rely on here so rekey detection keeps working. `authAddr` is always
+      // normalized to a string (empty when not rekeyed) so a fresh fetch
+      // always overwrites any stale locally-stored value.
+      const account = ret.account as unknown as IndexerAccount & {
+        authAddr?: unknown;
+      };
+      const authAddr = account.authAddr;
+      return {
+        ...account,
+        "auth-addr":
+          typeof authAddr === "undefined" || authAddr === null
+            ? ""
+            : String(authAddr),
+      };
     } catch (error) {
       const message = (error as Error)?.message ?? "";
       if (message.includes("no accounts found")) {
