@@ -269,12 +269,6 @@ const makeMenu = () => {
       });
     }
     menu.push({
-      label: "GitHub",
-      icon: "pi pi-github",
-      url: "https://github.com/scholtz/wallet/",
-      target: "_blank",
-    });
-    menu.push({
       label: store.state.config.env,
       icon: "pi pi-cog",
 
@@ -297,6 +291,12 @@ const makeMenu = () => {
               route: "/privacy-policy",
             },
           ],
+        },
+        {
+          label: "GitHub",
+          icon: "pi pi-github",
+          url: "https://github.com/scholtz/wallet/",
+          target: "_blank",
         },
       ],
     });
@@ -330,12 +330,6 @@ const makeMenu = () => {
         route: "/payment-gateway",
       },
       {
-        label: "GitHub",
-        icon: "pi pi-github",
-        url: "https://github.com/scholtz/wallet/",
-        target: "_blank",
-      },
-      {
         label: store.state.config.envName,
         icon: "pi pi-question-circle",
         items: [
@@ -357,6 +351,12 @@ const makeMenu = () => {
                 route: "/privacy-policy",
               },
             ],
+          },
+          {
+            label: "GitHub",
+            icon: "pi pi-github",
+            url: "https://github.com/scholtz/wallet/",
+            target: "_blank",
           },
         ],
       },

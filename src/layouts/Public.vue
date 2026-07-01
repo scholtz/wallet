@@ -4,7 +4,10 @@
       <Navbar />
     </slot>
     <Toast />
-    <div class="flex flex-column flex-grow-1 page-shell">
+    <div
+      class="flex flex-column flex-grow-1"
+      :class="{ 'page-shell': !noShell }"
+    >
       <slot />
     </div>
     <slot name="footer">
@@ -23,6 +26,16 @@ export default {
     Navbar,
     Footer,
     Toast,
+  },
+  props: {
+    // Centered-auth-form pages (new/import wallet) manage their own
+    // Panel and want the transparent gradient behind it, matching
+    // Login.vue's "open wallet" screen — same pattern, opted out of the
+    // shared opaque .page-shell that most other pages get.
+    noShell: {
+      type: Boolean,
+      default: false,
+    },
   },
   created() {
     this.setVM({ _vm: this });
