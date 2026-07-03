@@ -31,8 +31,15 @@ test("create basic ed25519 account, verify mnemonic export, back up via 2-of-3 S
   await expect(page.locator("h1")).toContainText("Basic Account");
   await expect(page.locator("h1")).toContainText("Account overview");
 
-  // --- Show account detail (Overview tab, already here) ---
-  await expect(page.getByText(accountAddress)).toBeVisible();
+  // --- Show account detail (Overview tab, already here). The full address
+  // text on this page only renders once the account's indexer data has
+  // loaded (AccountOverview.vue gates it behind `v-if="account &&
+  // accountData"`, populated by a live mainnet indexer call) - that's not
+  // guaranteed to resolve in a test environment, so assert against the
+  // account tab-menu link instead, which reflects local wallet state only.
+  await expect(
+    page.locator(`.p-tabmenu a[href="/account/${accountAddress}"]`)
+  ).toBeVisible();
 
   // --- List transactions via the in-app account tab (not page.goto - a
   // full reload would log the unlocked wallet back out) ---
