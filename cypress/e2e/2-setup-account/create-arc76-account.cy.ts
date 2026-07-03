@@ -18,7 +18,7 @@ describe("Create ARC76 Account", () => {
     // Create wallet using custom command
     cy.createTestWallet();
 
-    // The createTestWallet already redirects to /accounts
+    // createTestWallet redirects to the auto-created first HD account's page
 
     // Wait for the navbar to load
     cy.get("nav", { timeout: 10000 }).should("be.visible");

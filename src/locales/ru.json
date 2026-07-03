@@ -362,7 +362,13 @@
     "generate_next": "Generate next account",
     "generate_next_help": "Pick the iteration (account index) to derive the next account from this HD wallet's mnemonic. Each iteration produces a distinct, independent account address.",
     "export_child_help": "This account does not store its own secret. It is derived from the master mnemonic of its HD wallet root account. Back up the mnemonic from the root account instead.",
-    "export_go_to_root": "Go to root account backup"
+    "export_go_to_root": "Go to root account backup",
+    "default_account_name": "Основной аккаунт",
+    "not_backed_up_title": "Этот аккаунт не сохранён в резервной копии!",
+    "not_backed_up_body": "Этот HD-кошелёк был создан автоматически, и его мнемоническая фраза восстановления ещё не сохранена в резервной копии. Если вы потеряете доступ к этому устройству без резервной копии, вы рискуете безвозвратно потерять свои средства.",
+    "back_up_now": "Создать резервную копию сейчас",
+    "mark_as_backed_up": "Отметить аккаунт как сохранённый",
+    "backed_up_success": "Аккаунт отмечен как сохранённый"
   },
 
   "import": {

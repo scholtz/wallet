@@ -362,7 +362,13 @@
     "generate_next": "Generate next account",
     "generate_next_help": "Pick the iteration (account index) to derive the next account from this HD wallet's mnemonic. Each iteration produces a distinct, independent account address.",
     "export_child_help": "This account does not store its own secret. It is derived from the master mnemonic of its HD wallet root account. Back up the mnemonic from the root account instead.",
-    "export_go_to_root": "Go to root account backup"
+    "export_go_to_root": "Go to root account backup",
+    "default_account_name": "Hoofdaccount",
+    "not_backed_up_title": "Dit account is niet geback-upt!",
+    "not_backed_up_body": "Dit HD-walletaccount is automatisch aangemaakt en de herstelmnemonic is nog niet geback-upt. Als u zonder back-up de toegang tot dit apparaat verliest, loopt u het risico uw tegoeden permanent te verliezen.",
+    "back_up_now": "Nu back-uppen",
+    "mark_as_backed_up": "Account markeren als geback-upt",
+    "backed_up_success": "Account gemarkeerd als geback-upt"
   },
 
   "import": {

@@ -114,6 +114,7 @@ async function createAccount() {
       name: state.name,
       mnemonic: state.mode === "import" ? state.mnemonic : undefined,
       accountIndex: state.accountIndex,
+      backedUp: state.mode === "import" ? true : state.confirmedBackup,
     });
     router.push("/account/" + addr);
   } catch (err: any) {

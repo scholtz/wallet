@@ -66,6 +66,9 @@ const isHdRoot = computed(
 const isHdChild = computed(
   () => currentAccount.value?.type === "hd" && !currentAccount.value?.hdMnemonic
 );
+const needsBackup = computed(
+  () => isHdRoot.value && !currentAccount.value?.backedUp
+);
 
 const toUint8Array = (input: number[] | Uint8Array): Uint8Array => {
   return input instanceof Uint8Array ? input : new Uint8Array(input);
@@ -232,6 +235,19 @@ async function copyToClipboard(text: string) {
     await store.dispatch("toast/openSuccess", "Mnemonics copied to clipboard");
   }
 }
+
+const markBackedUp = async () => {
+  try {
+    if (!currentAccount.value?.addr) return;
+    await store.dispatch("wallet/markAccountBackedUp", {
+      addr: currentAccount.value.addr,
+    });
+    await store.dispatch("toast/openSuccess", t("hdaccount.backed_up_success"));
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err);
+    await store.dispatch("toast/openError", error);
+  }
+};
 </script>
 
 <template>
@@ -306,6 +322,14 @@ async function copyToClipboard(text: string) {
               @click="state.qr = !state.qr"
               severity="secondary"
               >{{ t("account_export.toggle_qr") }}</Button
+            >
+            <Button
+              v-if="needsBackup"
+              class="m-2"
+              severity="success"
+              id="mark_account_backed_up"
+              @click="markBackedUp"
+              >{{ t("hdaccount.mark_as_backed_up") }}</Button
             >
           </div>
           <div v-if="state.state == 'shamir' || state.state == 'shamir2'">

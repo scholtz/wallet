@@ -116,6 +116,7 @@ export default {
       getWallets: "wallet/getWallets",
       createWallet: "wallet/createWallet",
       openWallet: "wallet/openWallet",
+      addHdWalletAccount: "wallet/addHdWalletAccount",
     }),
     async auth(e) {
       e.preventDefault();
@@ -141,13 +142,11 @@ export default {
           pass: this.pass,
         });
         if (created) {
-          if (
-            this.$store.state.wallet.lastActiveAccount &&
-            this.$store.state.wallet.lastActiveAccountName
-          ) {
-            this.$router.push(
-              "/account/" + this.$store.state.wallet.lastActiveAccount
-            );
+          const addr = await this.addHdWalletAccount({
+            name: this.$t("hdaccount.default_account_name"),
+          });
+          if (addr) {
+            this.$router.push("/account/" + addr);
           } else {
             this.$router.push("/accounts");
           }

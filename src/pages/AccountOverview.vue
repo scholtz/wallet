@@ -307,6 +307,21 @@
           </Dialog>
         </p>
 
+        <Message
+          severity="error"
+          icon="pi pi-exclamation-triangle"
+          v-if="needsBackup"
+          class="backup-warning"
+        >
+          <strong>{{ $t("hdaccount.not_backed_up_title") }}</strong>
+          <p class="m-0 mt-1">{{ $t("hdaccount.not_backed_up_body") }}</p>
+          <RouterLink :to="'/account/export/' + account?.addr">
+            <Button severity="danger" class="mt-2" id="account_overview_back_up_now">
+              {{ $t("hdaccount.back_up_now") }}
+            </Button>
+          </RouterLink>
+        </Message>
+
         <div class="grid" v-if="account && accountData">
           <div class="col-12 lg:col-9">
             <Message severity="info" v-if="isUnfunded">
@@ -407,6 +422,10 @@ const accountData = computed<AccountNetworkData | null>(() => {
   }
   return acc.data[env] ?? null;
 });
+
+const needsBackup = computed(
+  () => account.value?.type === "hd" && !!account.value?.hdMnemonic && !account.value?.backedUp
+);
 
 const isUnfunded = computed(() => {
   const data = accountData.value;
@@ -847,3 +866,11 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped>
+.backup-warning {
+  font-size: 1.1rem;
+  border-width: 2px;
+  margin-bottom: 1rem;
+}
+</style>
