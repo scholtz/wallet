@@ -12,6 +12,35 @@ const toggleTheme = () => {
   store.dispatch("config/setTheme", isDark.value ? "light" : "dark");
 };
 
+const switchNetwork = (env: string) => {
+  store.dispatch("config/setEnv", { env });
+};
+
+const networkMenuItems = () => [
+  {
+    label: "Algorand",
+    icon: "pi pi-bolt",
+    class: store.state.config.env === "mainnet-v1.0" ? "font-bold" : undefined,
+    command: () => switchNetwork("mainnet-v1.0"),
+  },
+  {
+    label: "Voi",
+    icon: "pi pi-bolt",
+    class: store.state.config.env === "voimain-v1.0" ? "font-bold" : undefined,
+    command: () => switchNetwork("voimain-v1.0"),
+  },
+  {
+    label: "Aramid",
+    icon: "pi pi-bolt",
+    class:
+      store.state.config.env === "aramidmain-v1.0" ? "font-bold" : undefined,
+    command: () => switchNetwork("aramidmain-v1.0"),
+  },
+  {
+    separator: true,
+  },
+];
+
 watch(locale, () => {
   makeMenu();
 });
@@ -26,6 +55,13 @@ watch(
 
 watch(
   () => store.state.config.multiaccountOps,
+  () => {
+    makeMenu();
+  },
+);
+
+watch(
+  () => store.state.config.env,
   () => {
     makeMenu();
   },
@@ -278,10 +314,11 @@ const makeMenu = () => {
       });
     }
     menu.push({
-      label: store.state.config.env,
+      label: store.state.config.envName,
       icon: "pi pi-cog",
 
       items: [
+        ...networkMenuItems(),
         {
           label: t("navbar.settings"),
           icon: "pi pi-cog",
@@ -342,6 +379,7 @@ const makeMenu = () => {
         label: store.state.config.envName,
         icon: "pi pi-question-circle",
         items: [
+          ...networkMenuItems(),
           {
             label: t("navbar.settings"),
             icon: "pi pi-cog",

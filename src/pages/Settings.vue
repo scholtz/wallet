@@ -295,7 +295,8 @@ export default {
   },
   data() {
     return {
-      env: "mainnet",
+      env: "mainnet-v1.0",
+      isInitializing: true,
       passw1: "",
       passw2: "",
       passw3: "",
@@ -308,11 +309,6 @@ export default {
       indexerToken: "",
       dev: false,
       multiaccountOps: false,
-      publicList: [],
-      publicListItem: null,
-      algodList: [],
-      participationList: [],
-      indexerList: [],
     };
   },
   computed: {
@@ -337,6 +333,27 @@ export default {
     indexerTokenConfig() {
       return this.$store.state.config.indexerToken;
     },
+    publicList() {
+      return [
+        ...this.$store.state.publicData.genesisList,
+        { name: "Custom", network: "custom" },
+      ];
+    },
+    algodList() {
+      return (this.$store.state.publicData.algodList[this.env] || []).filter(
+        (i) => !i.registrationRequired,
+      );
+    },
+    participationList() {
+      return (
+        this.$store.state.publicData.participationList[this.env] || []
+      ).filter((i) => !i.registrationRequired);
+    },
+    indexerList() {
+      return (
+        this.$store.state.publicData.indexerList[this.env] || []
+      ).filter((i) => !i.registrationRequired);
+    },
     downloadableWalletName() {
       return (
         this.$store.state.wallet.name.replace(" ", "") +
@@ -349,10 +366,10 @@ export default {
 
   watch: {
     async env() {
+      if (this.isInitializing) return;
       if (this.env != "custom") {
-        await this.loadPublicData();
+        await this.setEnv({ env: this.env });
       }
-      localStorage.setItem("env", this.env);
     },
     algodHostConfig() {
       if (this.algodHost != this.algodHostConfig)
@@ -417,13 +434,23 @@ export default {
     this.indexerToken = this.indexerTokenConfig;
     this.dev = this.$store.state.config.dev;
     this.multiaccountOps = this.$store.state.config.multiaccountOps;
-    await this.fillGenesisList();
+    await this.getGenesisList();
     if (this.env != "custom") {
-      await this.loadPublicData();
+      // Only fetches the provider lists for display in the override Selects
+      // below - the active network's hosts are resolved by config/setEnv,
+      // not here, so re-visiting this page never clobbers a manually picked
+      // provider.
+      await Promise.all([
+        this.getAlgodList({ chainId: this.env }),
+        this.getParticipationList({ chainId: this.env }),
+        this.getIndexerList({ chainId: this.env }),
+      ]);
     }
+    this.isInitializing = false;
   },
   methods: {
     ...mapActions({
+      setEnv: "config/setEnv",
       setHosts: "config/setHosts",
       setLanguage: "config/setLanguage",
       setDev: "config/setDev",
@@ -449,14 +476,6 @@ export default {
         this.openSuccess(this.$t("settings.updated_password"));
       }
     },
-    async fillGenesisList() {
-      const list = [...(await this.getGenesisList())];
-      list.push({
-        name: "Custom",
-        network: "custom",
-      });
-      this.publicList = list;
-    },
     async makeBackupDataClick() {
       this.b64wallet = await this.backupWallet();
     },
@@ -468,7 +487,7 @@ export default {
     },
     updateConfig() {
       const publicListItem1 = this.publicList.find(
-        (pl) => pl.network == this.env
+        (pl) => pl.network == this.env,
       );
       let envName = this.env;
       if (publicListItem1) {
@@ -491,74 +510,11 @@ export default {
         navigator.registerProtocolHandler(
           "web+algorand",
           location.origin + "/pay/%s",
-          "A Wallet"
+          "A Wallet",
         );
         this.openSuccess(this.$t("settings.protocol_change_success"));
       } catch (exc) {
         this.openError(exc.message);
-      }
-    },
-    async loadPublicData() {
-      if (this.env) {
-        this.publicListItem = this.publicList.find(
-          (x) => x.network == this.env
-        );
-        if (this.publicListItem) {
-          const listAlgod = await this.getAlgodList({ chainId: this.env });
-          this.algodList = listAlgod.filter((i) => !i.registrationRequired);
-          if (this.algodList.length > 0) {
-            const alreadySet = this.algodList.find((i) =>
-              i.host ? i.host == this.algodHost : i.algodHost == this.algodHost
-            );
-            if (!alreadySet) {
-              this.algodHost = this.algodList[0].host;
-            }
-          }
-
-          const listParticipation = await this.getParticipationList({
-            chainId: this.env,
-          });
-          this.participationList = listParticipation.filter(
-            (i) => !i.registrationRequired
-          );
-          if (this.participationList.length > 0) {
-            const alreadySet = this.participationList.find((i) =>
-              i.host
-                ? i.host == this.participationHost
-                : i.participationHost == this.participationHost
-            );
-            if (!alreadySet) {
-              this.participationHost = this.participationList[0].host;
-            }
-          }
-
-          const listIndexer = await this.getIndexerList({ chainId: this.env });
-          this.indexerList = listIndexer.filter((i) => !i.registrationRequired);
-          if (this.indexerList.length > 0) {
-            const alreadySet = this.indexerList.find((i) =>
-              i.host
-                ? i.host == this.indexerHost
-                : i.indexerHost == this.indexerHost
-            );
-            if (!alreadySet) {
-              this.indexerHost = this.indexerList[0].host;
-            }
-          }
-
-          this.setHosts({
-            env: this.env,
-            algod: this.algodHost,
-            participation: this.participationHost,
-            indexer: this.indexerHost,
-            algodToken: this.algodToken,
-            participationToken: this.participationToken,
-            indexerToken: this.indexerToken,
-          });
-        } else {
-          this.algodList = [];
-          this.participationList = [];
-          this.indexerList = [];
-        }
       }
     },
   },
