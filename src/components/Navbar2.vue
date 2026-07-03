@@ -80,6 +80,11 @@ const makeMenu = () => {
           route: "/accounts",
         },
         {
+          label: t("navbar.assets_overview"),
+          icon: "pi pi-wallet",
+          route: "/assets-overview",
+        },
+        {
           label: t("navbar.new_account"),
           icon: PrimeIcons.PLUS,
           items: [

@@ -10,6 +10,20 @@ export interface WalletConnectMetadata {
   icons: string[];
 }
 
+export interface AssetProfileRule {
+  id: string; // uuid
+  accountAddr?: string; // undefined = matches any account
+  assetId?: string; // undefined = matches any asset
+  assetType?: "Native" | "ASA" | "ARC200"; // set together with assetId
+}
+
+export interface AssetProfile {
+  id: string; // uuid
+  name: string;
+  mode: "blacklist" | "whitelist";
+  rules: AssetProfileRule[];
+}
+
 export interface ConfigState {
   debug: boolean;
   LOGO: string;
@@ -32,6 +46,8 @@ export interface ConfigState {
   language: string;
   theme: string;
   multiaccountOps: boolean;
+  assetProfiles: AssetProfile[];
+  activeAssetProfileId: string;
 }
 
 export interface RemoteConfig
@@ -83,6 +99,8 @@ const state = (): ConfigState => ({
   language: "en-US",
   theme: "",
   multiaccountOps: false,
+  assetProfiles: [],
+  activeAssetProfileId: "",
 });
 
 const methodsToDisable = ["log", "debug", "warn", "info"] as const;
@@ -112,6 +130,14 @@ const mutations: MutationTree<ConfigState> = {
   setMultiaccountOps(currentState, value: boolean) {
     localStorage.setItem("multiaccountOps", String(value));
     currentState.multiaccountOps = value;
+  },
+  setAssetProfiles(currentState, value: AssetProfile[]) {
+    localStorage.setItem("assetProfiles", JSON.stringify(value));
+    currentState.assetProfiles = value;
+  },
+  setActiveAssetProfileId(currentState, value: string) {
+    localStorage.setItem("activeAssetProfileId", value);
+    currentState.activeAssetProfileId = value;
   },
   setTheme(currentState, value?: string) {
     let resolved = value ?? localStorage.getItem("lastTheme") ?? undefined;
@@ -215,6 +241,21 @@ const mutations: MutationTree<ConfigState> = {
     const indexerToken = localStorage.getItem("indexerToken");
     if (indexerToken) {
       currentState.indexerToken = indexerToken;
+    }
+    const assetProfilesRaw = localStorage.getItem("assetProfiles");
+    if (assetProfilesRaw) {
+      try {
+        const parsed = JSON.parse(assetProfilesRaw);
+        if (Array.isArray(parsed)) {
+          currentState.assetProfiles = parsed as AssetProfile[];
+        }
+      } catch (e) {
+        console.error("Failed to parse assetProfiles", e);
+      }
+    }
+    const activeAssetProfileId = localStorage.getItem("activeAssetProfileId");
+    if (activeAssetProfileId) {
+      currentState.activeAssetProfileId = activeAssetProfileId;
     }
   },
   setHosts(currentState, payload: SetHostsPayload) {
@@ -498,6 +539,22 @@ const actions: ActionTree<ConfigState, RootState> = {
   },
   async setMultiaccountOps({ commit }, value: boolean) {
     commit("setMultiaccountOps", value);
+  },
+  async upsertAssetProfile({ commit, state }, profile: AssetProfile) {
+    const existing = state.assetProfiles.filter((p) => p.id !== profile.id);
+    commit("setAssetProfiles", [...existing, profile]);
+  },
+  async deleteAssetProfile({ commit, state }, id: string) {
+    commit(
+      "setAssetProfiles",
+      state.assetProfiles.filter((p) => p.id !== id),
+    );
+    if (state.activeAssetProfileId === id) {
+      commit("setActiveAssetProfileId", "");
+    }
+  },
+  async setActiveAssetProfileId({ commit }, id: string) {
+    commit("setActiveAssetProfileId", id);
   },
   async setTheme({ commit }, value?: string) {
     if (value) {
