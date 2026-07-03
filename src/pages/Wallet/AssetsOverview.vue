@@ -37,6 +37,8 @@
           :rows="20"
           :loading="loading"
           v-model:filters="filters"
+          v-model:selection="selectedRow"
+          selection-mode="single"
           filterDisplay="menu"
           :globalFilterFields="[
             'accountName',
@@ -179,6 +181,7 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 import { FilterMatchMode } from "@primevue/core/api";
 import Badge from "primevue/badge";
 import MainLayout from "../../layouts/Main.vue";
@@ -193,6 +196,7 @@ import {
 } from "@/scripts/aggregators/assetsOverview";
 
 const store = useStore();
+const router = useRouter();
 const { t } = useI18n();
 
 const instance = getCurrentInstance();
@@ -201,6 +205,7 @@ const filtersUtil = instance?.appContext.config.globalProperties.$filters;
 const loading = ref(true);
 const rows = ref<AssetOverviewRow[]>([]);
 const showManageDialog = ref(false);
+const selectedRow = ref<AssetOverviewRow | null>(null);
 
 const filters = ref<Record<string, { value: string | null; matchMode: string }>>({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -326,6 +331,15 @@ watch(
 watch(
   () => store.state.config.env,
   () => buildRows()
+);
+
+watch(
+  () => selectedRow.value?.accountAddr,
+  async (addr) => {
+    if (!addr) return;
+    await store.dispatch("wallet/lastActiveAccount", { addr });
+    router.push(`/account/${addr}`);
+  }
 );
 
 onMounted(() => {
