@@ -11,6 +11,7 @@ import AccountTransactions from "@/pages/Account/Transactions.vue";
 import TransactionDetail from "@/pages/TransactionDetail.vue";
 import NotFound from "@/pages/404.vue";
 import FAQ from "@/pages/FAQ.vue";
+import Changelog from "@/pages/Changelog.vue";
 import Pay from "@/pages/Pay.vue";
 import Sign from "@/pages/Sign.vue";
 import SignAll from "@/pages/SignAll.vue";
@@ -332,6 +333,11 @@ const routes = [
     path: "/faq",
     name: "FAQ",
     component: FAQ,
+  },
+  {
+    path: "/changelog",
+    name: "Changelog",
+    component: Changelog,
   },
   {
     path: "/:catchAll(.*)",

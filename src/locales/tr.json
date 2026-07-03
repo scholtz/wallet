@@ -52,6 +52,7 @@
     "asset_create": "NFT oluştur",
     "faq": "SSS",
     "privacy_policy": "Gizlilik Politikası",
+    "changelog": "Değişiklik günlüğü",
     "logout": "Çıkış Yap",
     "vote": "Oylama",
     "swap": "TAKAS",
@@ -630,6 +631,9 @@
     "a8_2": "Yeni bir adres oluşturmaya gidin ve çoklu imza adresini seçin.",
     "a8_3": "İşlemleri imzalayabilen tüm hesapları seçin ve ağın çoklu imza ödemesini kabul etmesi için minimum sayıya uyan imza sayısını seçin.",
     "a8_4": "Çoklu imza hesabını oluşturduktan sonra bu hesaba hesap listesi sayfasından erişebilirsiniz."
+  },
+  "changelog": {
+    "title": "Geliştirme ve özellik geçmişi"
   },
   "connect": {
     "title": "WalletConnect'i kullanarak DApp'lere bağlanın",

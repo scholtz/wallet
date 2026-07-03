@@ -52,6 +52,7 @@
     "asset_create": "Crear NFT",
     "faq": "FAQ",
     "privacy_policy": "Política de privacidad",
+    "changelog": "Registro de cambios",
     "logout": "Cerrar sesión",
     "vote": "Votar",
     "swap": "INTERCAMBIO",
@@ -630,6 +631,9 @@
     "a8_2": "Vaya a crear una nueva dirección y seleccione dirección multifirma.",
     "a8_3": "Seleccione todas las cuentas que pueden firmar las transacciones y seleccione cuántas firmas se necesitan mínimo para que la red acepte el pago multifirma.",
     "a8_4": "Una vez creada la cuenta multifirma, puede acceder a ella desde la página de la lista de cuentas."
+  },
+  "changelog": {
+    "title": "Historial de desarrollo y funciones"
   },
   "connect": {
     "title": "Conectar con las DApps mediante WalletConnect",

@@ -52,6 +52,7 @@
     "asset_create": "Vytvořit NFT",
     "faq": "FAQ",
     "privacy_policy": "Ochrana osobních údajů",
+    "changelog": "Seznam změn",
     "logout": "Odhlášení",
     "vote": "Hlasování",
     "swap": "SWAP",
@@ -630,6 +631,9 @@
     "a8_2": "Prejdite na vytvorenie novej adresy a vyberte adresu s viacerými podpismi.",
     "a8_3": "Vyberte všetky účty, ktoré môžu podpisovať transakcie, a vyberte počet podpisov, ktoré sú minimálne na to, aby sieť mohla akceptovať multipodpisovú platbu.",
     "a8_4": "Po vytvorení účtu s viacerými podpismi k nemu získate prístup zo stránky so zoznamom účtov."
+  },
+  "changelog": {
+    "title": "Historie vývoje a nových funkcí"
   },
   "connect": {
     "title": "Connect to DApps using WalletConnect",

@@ -52,6 +52,7 @@
     "asset_create": "Maak NTF",
     "faq": "Veelgestelde Vragen",
     "privacy_policy": "Privacy beleid",
+    "changelog": "Wijzigingslogboek",
     "logout": "Uitloggen",
     "vote": "Voting",
     "swap": "SWAP",
@@ -630,6 +631,9 @@
     "a8_2": "Ga naar nieuw adres aanmaken en selecteer adres met meerdere handtekeningen.",
     "a8_3": "Selecteer alle accounts die de transacties kunnen ondertekenen en selecteer hoeveel handtekeningen minimaal zijn voor het netwerk om de multisig-betaling te accepteren.",
     "a8_4": "Nadat u de multisignature-rekening hebt aangemaakt, kunt u deze openen via de rekeningenlijstpagina."
+  },
+  "changelog": {
+    "title": "Ontwikkel- en functiegeschiedenis"
   },
   "connect": {
     "title": "Connect to DApps using WalletConnect",

@@ -122,6 +122,12 @@ Other design-system notes:
 
 Write new one-off/repo-tooling scripts in TypeScript, not plain `.js` — the source of truth is a `.ts` file compiled via `npm run build:scripts` (`tsc -p tsconfig.scripts.json`, which includes all of `scripts/*.ts`) into a same-named `.js`. There's no ts-node/tsx installed, so `node scripts/<name>.js` (the compiled output) is what actually runs — never hand-edit the `.js`, regenerate it after editing the `.ts`. The compiled `.js` for each `.ts`-sourced script is gitignored (listed explicitly in `.gitignore`, e.g. `scripts/check-locales.js`, `scripts/run-tests.js`) — only the `.ts` is committed, so wire the npm script to always rebuild first: `npm run build:scripts && node scripts/<name>.js` (see `check-locales`, `test`). `run-test-with-server.js` and `wait-for-server.js` predate this convention, have no `.ts` source, and stay committed as plain hand-written `.js` — leave them as-is unless asked to convert them (and if you do, add the new compiled `.js` to `.gitignore` too).
 
+### Changelog
+
+`CHANGELOG.md` (repo root) is a public-facing, user-oriented history of the wallet's features, grouped by month/quarter (`## YYYY-MM` headings, oldest first), rendered in-app at `/changelog` (`src/pages/Changelog.vue`, linked from the navbar's Help menu). It exists so users can see that the wallet has been actively developed since May 2021 and what it can do — write entries for *end users*, not developers (e.g. "Added hardware wallet support via Ledger devices", not "add ledger signer to signer.ts"), and skip internal-only noise (refactors, dependency bumps, CI tweaks, typo fixes) unless the change is itself user-visible (a UI framework migration, a new theme, a redesign).
+
+**Update `CHANGELOG.md` whenever you ship an important, user-visible change** — a new feature, a new supported account/asset type, a significant UI redesign, a new integration (swap provider, WalletConnect, etc.), or a notable fix that changes behavior users would notice. Add a bullet under the current `## YYYY-MM` section (create it if this is the first change of the month). Skip the changelog for pure refactors, dependency bumps, test-only changes, or internal tooling changes with no user-visible effect.
+
 ## Notes
 
 - ESLint config is defined inline in `package.json` (`eslintConfig` key), not a standalone `.eslintrc` for the main app rules (though `.eslintrc.js` also exists).

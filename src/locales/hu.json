@@ -52,6 +52,7 @@
     "asset_create": "NTF létrehozás",
     "faq": "GYIK",
     "privacy_policy": "Adatvédelem",
+    "changelog": "Változásnapló",
     "logout": "Kijelentkezés",
     "vote": "Szavazás",
     "swap": "Csere (SWAP)",
@@ -630,6 +631,9 @@
     "a8_2": "Menj az 'Új cím létrehozásá'-hoz, és válaszd a multisig számlát.",
     "a8_3": "Válaszd ki az összes számlát, amely aláírhatja a tranzakciókat, és határozd meg, hogy minimum hány aláírásra legyen szükség ahhoz, hogy a hálózat elfogadja a multisig tranzakciót.",
     "a8_4": "A multisig számla a létrehozása után a 'Számlák listázása' lapról érhető el."
+  },
+  "changelog": {
+    "title": "Fejlesztési és funkciótörténet"
   },
   "connect": {
     "title": "DApp-okhoz történő kapcsolódás a WalletConnect segítségével",

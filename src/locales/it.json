@@ -52,6 +52,7 @@
     "asset_create": "Creat NTF",
     "faq": "FAQ",
     "privacy_policy": "Privacy policy",
+    "changelog": "Registro modifiche",
     "logout": "Logout",
     "vote": "Voting",
     "swap": "SWAP",
@@ -630,6 +631,9 @@
     "a8_2": "Andate su crea nuovo indirizzo e selezionate l'indirizzo multifirma.",
     "a8_3": "Seleziona tutti i gli account che possono firmare le transazioni e seleziona quante firme sono necessarie come minimo perché la rete accetti il pagamento multifirma.",
     "a8_4": "Dopo aver creato l'account multifirma, puoi accedervi dalla pagina dell'elenco degli account."
+  },
+  "changelog": {
+    "title": "Cronologia di sviluppo e funzionalità"
   },
   "connect": {
     "title": "Connect to DApps using WalletConnect",

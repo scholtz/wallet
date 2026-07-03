@@ -338,6 +338,10 @@ const makeMenu = () => {
               route: "/faq",
             },
             {
+              label: t("navbar.changelog"),
+              route: "/changelog",
+            },
+            {
               label: t("navbar.privacy_policy"),
               route: "/privacy-policy",
             },
@@ -397,6 +401,10 @@ const makeMenu = () => {
               {
                 label: t("navbar.faq"),
                 route: "/faq",
+              },
+              {
+                label: t("navbar.changelog"),
+                route: "/changelog",
               },
               {
                 label: t("navbar.privacy_policy"),
