@@ -476,6 +476,7 @@
     "protocol_button": "Register web+algorand:// handler",
     "protocol_change_success": "Successfully updated the protocol handler",
     "dev_settings": "Show information for developers",
+    "multiaccount_ops": "Multi-accountbewerkingen inschakelen",
     "update_password": "Update password"
   },
   "transaction": {

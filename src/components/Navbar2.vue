@@ -24,6 +24,13 @@ watch(
   { deep: true },
 );
 
+watch(
+  () => store.state.config.multiaccountOps,
+  () => {
+    makeMenu();
+  },
+);
+
 const makeMenu = () => {
   if (store.state.wallet.isOpen) {
     const menu: any = [];
@@ -234,32 +241,34 @@ const makeMenu = () => {
         ],
       });
     }
-    menu.push({
-      label: "Multiaccount ops",
-      icon: "pi pi-globe",
-      items: [
-        {
-          label: t("govtoolsmenu.gen"),
-          icon: "pi pi-plus",
-          route: "/multiaccount/gen",
-        },
-        {
-          label: t("govtoolsmenu.distribute"),
-          icon: "pi pi-send",
-          route: "/multiaccount/distribute",
-        },
-        {
-          label: t("govtoolsmenu.optin"),
-          icon: "pi pi-table",
-          route: "/multiaccount/optin",
-        },
-        {
-          label: t("govtoolsmenu.pay"),
-          icon: "pi pi-tag",
-          route: "/multiaccount/pay",
-        },
-      ],
-    });
+    if (store.state.config.multiaccountOps) {
+      menu.push({
+        label: "Multiaccount ops",
+        icon: "pi pi-globe",
+        items: [
+          {
+            label: t("govtoolsmenu.gen"),
+            icon: "pi pi-plus",
+            route: "/multiaccount/gen",
+          },
+          {
+            label: t("govtoolsmenu.distribute"),
+            icon: "pi pi-send",
+            route: "/multiaccount/distribute",
+          },
+          {
+            label: t("govtoolsmenu.optin"),
+            icon: "pi pi-table",
+            route: "/multiaccount/optin",
+          },
+          {
+            label: t("govtoolsmenu.pay"),
+            icon: "pi pi-tag",
+            route: "/multiaccount/pay",
+          },
+        ],
+      });
+    }
     if (store.state.wallet.lastActiveAccount) {
       menu.push({
         label: t("acc_overview.connect"),

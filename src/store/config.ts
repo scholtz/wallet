@@ -30,6 +30,7 @@ export interface ConfigState {
   deflex: string;
   language: string;
   theme: string;
+  multiaccountOps: boolean;
 }
 
 export interface RemoteConfig
@@ -80,6 +81,7 @@ const state = (): ConfigState => ({
   deflex: "",
   language: "en-US",
   theme: "",
+  multiaccountOps: false,
 });
 
 const methodsToDisable = ["log", "debug", "warn", "info"] as const;
@@ -105,6 +107,10 @@ const mutations: MutationTree<ConfigState> = {
   setDev(currentState, value: boolean) {
     localStorage.setItem("dev", String(value));
     currentState.dev = value;
+  },
+  setMultiaccountOps(currentState, value: boolean) {
+    localStorage.setItem("multiaccountOps", String(value));
+    currentState.multiaccountOps = value;
   },
   setTheme(currentState, value?: string) {
     let resolved = value ?? localStorage.getItem("lastTheme") ?? undefined;
@@ -165,6 +171,10 @@ const mutations: MutationTree<ConfigState> = {
     const dev = localStorage.getItem("dev");
     if (dev && dev !== "false") {
       currentState.dev = true;
+    }
+    const multiaccountOps = localStorage.getItem("multiaccountOps");
+    if (multiaccountOps && multiaccountOps !== "false") {
+      currentState.multiaccountOps = true;
     }
     const algodHost = localStorage.getItem("algodHost");
     if (algodHost) {
@@ -389,6 +399,9 @@ const actions: ActionTree<ConfigState, RootState> = {
   },
   async setDev({ commit }, { dev }: SetDevPayload) {
     commit("setDev", dev);
+  },
+  async setMultiaccountOps({ commit }, value: boolean) {
+    commit("setMultiaccountOps", value);
   },
   async setTheme({ commit }, value?: string) {
     if (value) {

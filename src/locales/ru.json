@@ -476,6 +476,7 @@
     "protocol_button": "Зарегистрировать обработчик web+algorand://",
     "protocol_change_success": "Обработчик протокола успешно обновлен",
     "dev_settings": "Показать информацию для разработчиков",
+    "multiaccount_ops": "Включить операции с несколькими счетами",
     "update_password": "Обновить пароль"
   },
   "transaction": {

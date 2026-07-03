@@ -244,6 +244,13 @@
         <div>
           <ToggleSwitch v-model="dev" aria-label="Enable dev output" />
         </div>
+        <h2>{{ $t("settings.multiaccount_ops") }}</h2>
+        <div>
+          <ToggleSwitch
+            v-model="multiaccountOps"
+            aria-label="Enable multiaccount ops"
+          />
+        </div>
         <h2>{{ $t("settings.backup") }}</h2>
         <p>{{ $t("settings.backup_help") }}</p>
         <p>
@@ -300,6 +307,7 @@ export default {
       indexerHost: "",
       indexerToken: "",
       dev: false,
+      multiaccountOps: false,
       publicList: [],
       publicListItem: null,
       algodList: [],
@@ -393,6 +401,9 @@ export default {
     dev() {
       this.setDev({ dev: this.dev });
     },
+    multiaccountOps() {
+      this.setMultiaccountOps(this.multiaccountOps);
+    },
   },
   async mounted() {
     if (this.envConfig) {
@@ -405,6 +416,7 @@ export default {
     this.indexerHost = this.indexerHostConfig;
     this.indexerToken = this.indexerTokenConfig;
     this.dev = this.$store.state.config.dev;
+    this.multiaccountOps = this.$store.state.config.multiaccountOps;
     await this.fillGenesisList();
     if (this.env != "custom") {
       await this.loadPublicData();
@@ -415,6 +427,7 @@ export default {
       setHosts: "config/setHosts",
       setLanguage: "config/setLanguage",
       setDev: "config/setDev",
+      setMultiaccountOps: "config/setMultiaccountOps",
       changePassword: "wallet/changePassword",
       backupWallet: "wallet/backupWallet",
       destroyWallet: "wallet/destroyWallet",

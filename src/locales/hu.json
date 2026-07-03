@@ -476,6 +476,7 @@
     "protocol_button": "web+algorand:// kezelő regisztrálása",
     "protocol_change_success": "A protokoll kezelő módosítása sikeres volt",
     "dev_settings": "Információ fejlesztők számára",
+    "multiaccount_ops": "Több fiókos műveletek engedélyezése",
     "update_password": "Jelszó módosítás"
   },
   "transaction": {

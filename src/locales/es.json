@@ -476,6 +476,7 @@
     "protocol_button": "Registrar web+algorand:// controlador",
     "protocol_change_success": "Se ha actualizado correctamente el controlador de protocolor",
     "dev_settings": "Mostrar información para desarrolladores",
+    "multiaccount_ops": "Habilitar operaciones multicuenta",
     "update_password": "Actualizar contraseña"
   },
   "transaction": {

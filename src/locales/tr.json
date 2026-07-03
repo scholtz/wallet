@@ -476,6 +476,7 @@
     "protocol_button": "Web+algorand:// işleyicisini kaydedin",
     "protocol_change_success": "Protokol işleyicisi başarıyla güncellendi",
     "dev_settings": "Geliştiriciler için bilgileri göster",
+    "multiaccount_ops": "Çoklu hesap işlemlerini etkinleştir",
     "update_password": "Şifreyi güncelle"
   },
   "transaction": {

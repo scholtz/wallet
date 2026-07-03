@@ -476,6 +476,7 @@
     "protocol_button": "Zaregistrovať protokol web+algorand://",
     "protocol_change_success": "Protokol bol úspešne zaregistrovaný",
     "dev_settings": "Zobrazovať informácie pre vývojárov",
+    "multiaccount_ops": "Povoliť operácie s viacerými účtami",
     "update_password": "Zmeniť heslo"
   },
   "transaction": {
