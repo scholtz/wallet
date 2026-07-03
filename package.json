@@ -30,6 +30,7 @@
     "playwright:install": "playwright install chromium",
     "playwright:test": "playwright test",
     "playwright:test:multisig-flow": "playwright test create-multisig-flow.spec.ts",
+    "playwright:test:ed25519-export-shamir-recover": "playwright test ed25519-export-shamir-recover.spec.ts",
     "playwright:report": "playwright show-report"
   },
   "dependencies": {
