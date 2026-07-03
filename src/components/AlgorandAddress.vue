@@ -28,13 +28,13 @@ const copyAddress = async () => {
 </script>
 
 <template>
-  <span class="algorand-address" :title="props.address ?? ''">
+  <span v-tooltip="props.address ?? ''" class="algorand-address">
     <span class="algorand-address-short">{{ shortAddress }}</span>
     <i
       v-if="props.address"
       class="pi pi-copy algorand-address-copy"
       role="button"
-      :title="t('global.copy_address')"
+      v-tooltip="t('global.copy_address')"
       @click.stop.prevent="copyAddress"
     />
   </span>
