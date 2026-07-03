@@ -627,6 +627,11 @@ makeMenu();
 <style>
 .p-menubar-submenu {
   min-width: 300px;
+  width: max-content;
+}
+
+.p-menubar-item-label {
+  white-space: nowrap;
 }
 
 .card > .p-menubar {
