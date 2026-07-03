@@ -65,6 +65,7 @@
             field="accountName"
             :header="t('assets_overview.account')"
             :sortable="true"
+            :show-filter-match-modes="false"
           >
             <template #body="slotProps">
               <div class="flex align-items-center gap-1">
@@ -88,6 +89,7 @@
             field="name"
             :header="t('assets_overview.name')"
             :sortable="true"
+            :show-filter-match-modes="false"
           >
             <template #filter="{ filterModel, filterCallback }">
               <InputText
@@ -103,6 +105,7 @@
             field="assetType"
             :header="t('assets_overview.type')"
             :sortable="true"
+            :show-filter-match-modes="false"
           >
             <template #body="slotProps">
               <div v-if="slotProps.data.assetType == 'Native'">
@@ -129,6 +132,7 @@
             field="assetId"
             :header="t('assets_overview.id')"
             :sortable="true"
+            :show-filter-match-modes="false"
           >
             <template #filter="{ filterModel, filterCallback }">
               <InputText
@@ -144,6 +148,7 @@
             field="amount"
             :header="t('assets_overview.amount')"
             :sortable="true"
+            :show-filter-match-modes="false"
           >
             <template #body="slotProps">
               <div class="text-right">
