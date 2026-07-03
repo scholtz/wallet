@@ -32,6 +32,7 @@
     "copy_address": "Skopírovať adresu",
     "copied": "Copied",
     "copied_to_clipboard": "Skopírované",
+    "address_copied": "Adresa {address} bola skopírovaná do schránky",
     "stop_camera": "Vypnúť kameru",
     "cancel": "Zrušiť",
     "yes": "Áno",

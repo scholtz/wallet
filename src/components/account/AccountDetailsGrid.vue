@@ -28,16 +28,7 @@
       {{ t("acc_overview.address") }}
     </label>
     <div class="col-12 md:col-8">
-      <Button
-        size="small"
-        severity="secondary"
-        class="m-1"
-        :title="t('global.copy_address')"
-        @click="emit('copy-address')"
-      >
-        <i class="pi pi-copy" />
-      </Button>
-      {{ account.addr }}
+      <AlgorandAddress :address="account.addr" />
     </div>
   </div>
 
@@ -48,7 +39,7 @@
       {{ t("acc_overview.rekeyedTo") }}
     </label>
     <div class="col-12 md:col-8">
-      {{ accountData.rekeyedTo }}
+      <AlgorandAddress :address="accountData.rekeyedTo" />
 
       <div v-if="rekeyedToInfo">
         <AccountType :account="rekeyedToInfo" />
@@ -75,7 +66,7 @@
       {{ t("acc_overview.account0") }}
     </label>
     <div class="col-12 md:col-8">
-      {{ account.addr0 }}
+      <AlgorandAddress :address="account.addr0" />
     </div>
   </div>
 
@@ -281,6 +272,7 @@
 import { computed, getCurrentInstance } from "vue";
 import { useI18n } from "vue-i18n";
 import AccountType from "@/components/AccountType.vue";
+import AlgorandAddress from "@/components/AlgorandAddress.vue";
 import ProgressSpinner from "primevue/progressspinner";
 import { JsonViewer } from "vue3-json-viewer";
 import type { AccountNetworkData, PrivateAccount } from "@/types/account";
@@ -296,7 +288,6 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: "copy-address"): void;
   (e: "refresh"): void;
   (e: "open-participation-dialog"): void;
 }>();

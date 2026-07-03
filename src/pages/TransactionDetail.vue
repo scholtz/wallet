@@ -50,16 +50,8 @@
                       :to="'/account/' + transaction.sender"
                       class="text-primary font-bold no-underline hover:underline text-lg"
                     >
-                      {{ formatAddress(transaction.sender) }}
+                      <AlgorandAddress :address="transaction.sender" />
                     </router-link>
-                    <Button
-                      icon="pi pi-copy"
-                      class="p-0 h-2rem w-2rem"
-                      text
-                      rounded
-                      v-tooltip="'Copy Address'"
-                      @click="copyToClipboard(transaction.sender)"
-                    />
                   </div>
                 </div>
               </div>
@@ -100,16 +92,8 @@
                       :to="'/account/' + receiver"
                       class="text-primary font-bold no-underline hover:underline text-lg"
                     >
-                      {{ formatAddress(receiver) }}
+                      <AlgorandAddress :address="receiver" />
                     </router-link>
-                    <Button
-                      icon="pi pi-copy"
-                      class="p-0 h-2rem w-2rem"
-                      text
-                      rounded
-                      v-tooltip="'Copy Address'"
-                      @click="copyToClipboard(receiver)"
-                    />
                   </div>
                   <Avatar
                     icon="pi pi-wallet"
@@ -251,6 +235,7 @@ import {
 } from "vue";
 import { useStore } from "../store";
 import MainLayout from "../layouts/Main.vue";
+import AlgorandAddress from "../components/AlgorandAddress.vue";
 import type { StoredAsset } from "../store/indexer";
 import copy from "copy-to-clipboard";
 import { useToast } from "primevue/usetoast";
@@ -373,13 +358,6 @@ const copyToClipboard = (text: string) => {
     detail: "Copied to clipboard",
     life: 2000,
   });
-};
-
-const formatAddress = (address: string) => {
-  if (!address) return "";
-  return (
-    address.substring(0, 6) + "..." + address.substring(address.length - 6)
-  );
 };
 
 const decodedNote = computed(() => {

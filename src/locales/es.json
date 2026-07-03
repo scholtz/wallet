@@ -32,6 +32,7 @@
     "copy_address": "Copiar dirección",
     "copied": "Copied",
     "copied_to_clipboard": "Copiado al porta papeles!",
+    "address_copied": "La dirección {address} se ha copiado al portapapeles",
     "stop_camera": "Detener cámara",
     "cancel": "Cancelar",
     "yes": "Si",

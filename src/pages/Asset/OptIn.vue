@@ -79,7 +79,7 @@
             <b>{{ account.name }}</b>
           </p>
           <p v-if="account">
-            {{ account.addr }}
+            <AlgorandAddress :address="account.addr" />
           </p>
           <template #footer>
             <Button
@@ -243,6 +243,7 @@
 
 <script>
 import MainLayout from "../../layouts/Main.vue";
+import AlgorandAddress from "@/components/AlgorandAddress.vue";
 import { mapActions } from "vuex";
 //import base64url from "base64url";
 import algosdk from "algosdk";
@@ -250,6 +251,7 @@ import algosdk from "algosdk";
 export default {
   components: {
     MainLayout,
+    AlgorandAddress,
   },
   data() {
     return {

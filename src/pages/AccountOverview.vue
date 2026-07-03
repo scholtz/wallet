@@ -325,7 +325,6 @@
               :change-offline="changeOffline"
               :dev-mode="devMode"
               :has-participation-host="hasParticipationHost"
-              @copy-address="copyToClipboard(account.addr)"
               @refresh="reloadAccount"
               @open-participation-dialog="clickOpenParticipationDialog"
             />
@@ -348,8 +347,6 @@ import {
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { useI18n } from "vue-i18n";
-import copy from "copy-to-clipboard";
 import algosdk from "algosdk";
 import type { SuggestedParams } from "algosdk";
 
@@ -369,7 +366,6 @@ import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
-const { t } = useI18n();
 const instance = getCurrentInstance();
 const $filters = instance?.appContext.config.globalProperties.$filters;
 
@@ -579,12 +575,6 @@ const reloadAccount = async (silent = false) => {
   });
   if (searchData) {
     transactions.value = searchData.transactions;
-  }
-};
-
-const copyToClipboard = (text: string) => {
-  if (copy(text)) {
-    openSuccessAction(t("global.copied_to_clipboard"));
   }
 };
 

@@ -32,6 +32,7 @@
     "copy_address": "Copy address",
     "copied": "Copied",
     "copied_to_clipboard": "Copied to clipboard",
+    "address_copied": "Address {address} has been copied to the clipboard",
     "stop_camera": "Stop camera",
     "cancel": "Cancel",
     "yes": "Yes",

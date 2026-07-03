@@ -32,6 +32,7 @@
     "copy_address": "Kopieer adres",
     "copied": "Copied",
     "copied_to_clipboard": "Gekopieerd naar uw klembord",
+    "address_copied": "Adres {address} is gekopieerd naar uw klembord",
     "stop_camera": "Stop camera",
     "cancel": "Cancel",
     "yes": "Yes",

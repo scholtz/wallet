@@ -34,7 +34,10 @@
               {{ store.state.signer.toSign }}
             </Message>
 
-            <p>{{ t("pay.selected_account") }}: {{ account.addr }}</p>
+            <p class="flex align-items-center flex-wrap gap-1">
+              {{ t("pay.selected_account") }}:
+              <AlgorandAddress :address="account.addr" />
+            </p>
             <div v-if="isMultisig && !subpage">
               <h2>{{ t("pay.multisig_account") }}</h2>
               <Button class="my-2" @click="subpage = 'proposal'">
@@ -373,6 +376,7 @@ import {
   populateAppCallResources,
 } from "@algorandfoundation/algokit-utils";
 import SelectAccount from "../components/SelectAccount.vue";
+import AlgorandAddress from "../components/AlgorandAddress.vue";
 import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
 import { getArc200Client } from "arc200-client";

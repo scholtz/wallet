@@ -32,6 +32,7 @@
     "copy_address": "Adresi kopyala",
     "copied": "Copied",
     "copied_to_clipboard": "Panoya kopyalandı",
+    "address_copied": "{address} adresi panoya kopyalandı",
     "stop_camera": "kamerayı durdur",
     "cancel": "İptal",
     "yes": "Evet",

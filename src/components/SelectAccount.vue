@@ -4,6 +4,7 @@ import { useStore } from "vuex";
 import Select from "primevue/select";
 import { useI18n } from "vue-i18n";
 import { RootState } from "@/store";
+import AlgorandAddress from "@/components/AlgorandAddress.vue";
 
 const props = defineProps({
   modelValue: String,
@@ -31,7 +32,7 @@ function getAccountName() {
     (a: any) => a.addr == props.modelValue
   );
   if (!ret) return props.modelValue;
-  return `${ret.name}: ${props.modelValue}`;
+  return ret.name;
 }
 </script>
 <template>
@@ -47,16 +48,21 @@ function getAccountName() {
     :itemid="props.itemId"
   >
     <template #value="slotProps">
-      <div v-if="slotProps.value" class="flex align-items-center">
-        <div>{{ getAccountName() }}</div>
+      <div
+        v-if="slotProps.value"
+        class="flex align-items-center gap-1 overflow-hidden"
+      >
+        <span class="white-space-nowrap">{{ getAccountName() }}:</span>
+        <AlgorandAddress :address="slotProps.value" />
       </div>
       <span v-else>
         {{ slotProps.placeholder }}
       </span>
     </template>
     <template #option="slotProps">
-      <div v-if="slotProps.option" class="flex align-items-center">
-        <div>{{ slotProps.option.name }} : {{ slotProps.option.addr }}</div>
+      <div v-if="slotProps.option" class="flex align-items-center gap-1">
+        <span class="white-space-nowrap">{{ slotProps.option.name }}:</span>
+        <AlgorandAddress :address="slotProps.option.addr" />
       </div>
     </template>
   </Select>

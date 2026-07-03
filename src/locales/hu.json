@@ -32,6 +32,7 @@
     "copy_address": "Cím másolása",
     "copied": "Copied",
     "copied_to_clipboard": "Átmásolva a vágólapra",
+    "address_copied": "A(z) {address} cím a vágólapra másolva",
     "stop_camera": "Fényképezőgép leállítása",
     "cancel": "Mégsem",
     "yes": "Igen",

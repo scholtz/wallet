@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import MainLayout from "../../layouts/Main.vue";
+import AlgorandAddress from "@/components/AlgorandAddress.vue";
 import { onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -130,7 +131,7 @@ onMounted(async () => {
               {{ t("newacc.new_account_challange") }}
             </label>
             <div class="col-12 md:col-10">
-              {{ state.addr }}
+              <AlgorandAddress :address="state.addr" />
             </div>
           </div>
           <div class="field grid">
