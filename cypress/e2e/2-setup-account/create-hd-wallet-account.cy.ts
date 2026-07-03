@@ -21,7 +21,7 @@ describe("Create HD Wallet Account", () => {
     cy.url({ timeout: 15000 }).should("include", "/account/");
 
     // Wait for the navbar to load
-    cy.get("nav", { timeout: 10000 }).should("be.visible");
+    cy.get(".p-menubar", { timeout: 10000 }).should("be.visible");
 
     // Use the menu to navigate to HD wallet account creation
     cy.contains("Wallet", { timeout: 10000 }).click({ force: true });

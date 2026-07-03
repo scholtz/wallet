@@ -21,7 +21,7 @@ describe("Create ARC76 Account", () => {
     // createTestWallet redirects to the auto-created first HD account's page
 
     // Wait for the navbar to load
-    cy.get("nav", { timeout: 10000 }).should("be.visible");
+    cy.get(".p-menubar", { timeout: 10000 }).should("be.visible");
 
     // Use the menu to navigate to ARC76 account creation
     cy.contains("Wallet", { timeout: 10000 }).click({ force: true });

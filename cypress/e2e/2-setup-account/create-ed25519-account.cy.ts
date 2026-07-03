@@ -23,7 +23,7 @@ describe("Create ED25519 Account", () => {
     cy.url().should("include", "/account/");
 
     // Wait for the navbar to load
-    cy.get("nav", { timeout: 10000 }).should("be.visible");
+    cy.get(".p-menubar", { timeout: 10000 }).should("be.visible");
 
     // Use the menu to navigate to ED25519 account creation
     cy.contains("Wallet", { timeout: 10000 }).click({ force: true });
