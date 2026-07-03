@@ -375,11 +375,11 @@ const makeMenu = () => {
           },
         ],
       },
-      {
-        label: t("merchant.make_payment"),
-        icon: "pi pi-credit-card",
-        route: "/payment-gateway",
-      },
+      // {
+      //   label: t("merchant.make_payment"),
+      //   icon: "pi pi-credit-card",
+      //   route: "/payment-gateway",
+      // },
       {
         label: store.state.config.envName,
         icon: "pi pi-question-circle",
