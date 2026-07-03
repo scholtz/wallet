@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
 describe("Create HD Wallet Account", () => {
-  it("should create a new wallet, HD account, and generate a next iteration", () => {
+  it("should create a new wallet and a second, manually confirmed HD account", () => {
     cy.clearAWalletDB();
     cy.viewport(1920, 1050);
     cy.visit("/new-wallet", {
@@ -15,11 +15,13 @@ describe("Create HD Wallet Account", () => {
     cy.get("#newwallet-pass").should("be.visible");
     cy.get("#new_wallet_button_create").should("be.visible");
 
-    // Create wallet using custom command
+    // Create wallet using custom command. This auto-creates a first HD
+    // account and lands on its overview page.
     cy.createTestWallet();
+    cy.url({ timeout: 15000 }).should("include", "/account/");
 
     // Wait for the navbar to load
-    cy.get("nav", { timeout: 10000 }).should("be.visible");
+    cy.get(".p-menubar", { timeout: 10000 }).should("be.visible");
 
     // Use the menu to navigate to HD wallet account creation
     cy.contains("Wallet", { timeout: 10000 }).click({ force: true });
@@ -30,47 +32,23 @@ describe("Create HD Wallet Account", () => {
       force: true,
     });
 
-    // Wait for HD wallet form to load - defaults to "create new mnemonic" mode
     cy.url().should("include", "/new-account/hd-wallet");
-    cy.get("#confirmedBackup", { timeout: 10000 }).should("be.visible");
 
-    // Confirm the mnemonic has been backed up and fill account name
+    cy.get("#name", { timeout: 10000 }).should("be.visible").type("Second HD Account");
+
+    // Confirm the mnemonic has been backed up so this account is not flagged
+    // as unbacked-up like the automatically created first account.
     cy.get("#confirmedBackup").click({ force: true });
-    cy.get("#name").clear().type("HD Root Account");
 
-    cy.get("#create_hd_account", { timeout: 10000 }).should("be.visible");
-    cy.get("#create_hd_account").click();
+    cy.get("#create_hd_account").should("be.visible").click();
 
-    // Verify first (root) account creation
-    cy.url().should("include", "/account/", { timeout: 15000 });
-    cy.contains("HD Root Account").should("be.visible");
+    // Verify account creation
+    cy.url({ timeout: 15000 }).should("include", "/account/");
+    cy.contains("Second HD Account").should("be.visible");
     cy.get("h1").should("contain", "Account overview");
 
-    cy.url().then((url) => {
-      const rootAddress = url.split("/account/")[1];
-
-      // Navigate to account actions and open "Generate next HD account"
-      cy.visit("/account/actions/" + rootAddress);
-      cy.contains("Generate next HD account", { timeout: 10000 }).click({
-        force: true,
-      });
-
-      cy.url().should("include", "/account/hd-next/");
-      cy.get("#name", { timeout: 10000 })
-        .should("be.visible")
-        .clear()
-        .type("HD Account 1");
-      cy.get("#generate_hd_account", { timeout: 10000 })
-        .should("be.visible")
-        .click();
-
-      // Verify the second (derived) account was created with a different address
-      cy.url().should("include", "/account/", { timeout: 15000 });
-      cy.contains("HD Account 1").should("be.visible");
-      cy.url().should((newUrl) => {
-        const childAddress = newUrl.split("/account/")[1];
-        expect(childAddress).not.to.eq(rootAddress);
-      });
-    });
+    // Since the user confirmed the backup before creating this account, the
+    // "not backed up" warning must not be shown.
+    cy.contains("This account is not backed up!").should("not.exist");
   });
 });

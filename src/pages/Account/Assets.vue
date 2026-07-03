@@ -15,13 +15,13 @@
     >
       <template #header>
         <div class="flex justify-content-end" v-if="filters['global']">
-          <span class="p-input-icon-left">
-            <i class="pi pi-search" />
+          <IconField>
+            <InputIcon class="pi pi-search" />
             <InputText
               v-model="filters['global'].value"
               :placeholder="$t('global.keyword_search')"
             />
-          </span>
+          </IconField>
         </div>
       </template>
       <template #empty>
@@ -129,7 +129,7 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { FilterMatchMode } from "primevue/api";
+import { FilterMatchMode } from "@primevue/core/api";
 import Badge from "primevue/badge";
 import MainLayout from "../../layouts/Main.vue";
 import AccountTopMenu from "../../components/AccountTopMenu.vue";

@@ -26,13 +26,13 @@
     >
       <template #header>
         <div class="flex justify-content-end" v-if="tableFilters['global']">
-          <span class="p-input-icon-left">
-            <i class="pi pi-search" />
+          <IconField>
+            <InputIcon class="pi pi-search" />
             <InputText
               v-model="tableFilters['global'].value"
               :placeholder="$t('placeholders.keyword_search')"
             />
-          </span>
+          </IconField>
         </div>
       </template>
       <template #empty>
@@ -193,7 +193,7 @@ import {
   watch,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { FilterMatchMode } from "primevue/api";
+import { FilterMatchMode } from "@primevue/core/api";
 import MainLayout from "../../layouts/Main.vue";
 import AccountTopMenu from "../../components/AccountTopMenu.vue";
 import { useStore } from "../../store";

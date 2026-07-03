@@ -32,6 +32,7 @@
     "copy_address": "Cím másolása",
     "copied": "Copied",
     "copied_to_clipboard": "Átmásolva a vágólapra",
+    "address_copied": "A(z) {address} cím a vágólapra másolva",
     "stop_camera": "Fényképezőgép leállítása",
     "cancel": "Mégsem",
     "yes": "Igen",
@@ -361,7 +362,13 @@
     "generate_next": "Generate next account",
     "generate_next_help": "Pick the iteration (account index) to derive the next account from this HD wallet's mnemonic. Each iteration produces a distinct, independent account address.",
     "export_child_help": "This account does not store its own secret. It is derived from the master mnemonic of its HD wallet root account. Back up the mnemonic from the root account instead.",
-    "export_go_to_root": "Go to root account backup"
+    "export_go_to_root": "Go to root account backup",
+    "default_account_name": "Fő fiók",
+    "not_backed_up_title": "Ez a fiók nincs biztonsági mentve!",
+    "not_backed_up_body": "Ez a HD tárca fiók automatikusan jött létre, és helyreállító mnemonikus kifejezése még nincs biztonsági mentve. Ha biztonsági mentés nélkül elveszíti a hozzáférést ehhez az eszközhöz, végleg elveszítheti pénzeszközeit.",
+    "back_up_now": "Biztonsági mentés most",
+    "mark_as_backed_up": "Fiók megjelölése mentettként",
+    "backed_up_success": "A fiók mentettként lett megjelölve"
   },
 
   "import": {
@@ -476,6 +483,7 @@
     "protocol_button": "web+algorand:// kezelő regisztrálása",
     "protocol_change_success": "A protokoll kezelő módosítása sikeres volt",
     "dev_settings": "Információ fejlesztők számára",
+    "multiaccount_ops": "Több fiókos műveletek engedélyezése",
     "update_password": "Jelszó módosítás"
   },
   "transaction": {

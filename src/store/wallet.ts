@@ -73,6 +73,8 @@ export interface WalletAccount {
   hdRootAddr?: string;
   /** Hardened BIP44 account' path component ("iteration"). */
   hdAccountIndex?: number;
+  /** Whether the user has confirmed backing up this account's recovery secret (mnemonic). Only meaningful for accounts holding their own secret, e.g. an hd root account. */
+  backedUp?: boolean;
   [key: string]: any;
 }
 
@@ -199,6 +201,7 @@ type AddHdWalletAccountMutationPayload = {
   mnemonic: string;
   hdAccountIndex: number;
   network: string;
+  backedUp: boolean;
 };
 
 type AddHdWalletChildAccountMutationPayload = {
@@ -584,6 +587,7 @@ const mutations: MutationTree<WalletState> = {
       mnemonic,
       hdAccountIndex,
       network,
+      backedUp,
     }: AddHdWalletAccountMutationPayload
   ) {
     const account: WalletAccount = {
@@ -595,10 +599,19 @@ const mutations: MutationTree<WalletState> = {
       hdMnemonic: mnemonic,
       hdRootAddr: addr,
       hdAccountIndex,
+      backedUp,
     };
     state.privateAccounts.push(account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
+  },
+  setAccountBackedUp(state, { addr }: { addr: string }) {
+    const acc = state.privateAccounts.find((x) => x.addr == addr);
+    if (!acc) {
+      console.error(`Error marking account as backed up. Address ${addr} not found`);
+      return;
+    }
+    acc.backedUp = true;
   },
   addHdWalletChildAccount(
     state,
@@ -958,7 +971,13 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       name,
       mnemonic,
       accountIndex,
-    }: { name: string; mnemonic?: string; accountIndex?: number }
+      backedUp,
+    }: {
+      name: string;
+      mnemonic?: string;
+      accountIndex?: number;
+      backedUp?: boolean;
+    }
   ) {
     if (!name) {
       throw Error("Plase set account name");
@@ -976,6 +995,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
         mnemonic: finalMnemonic,
         hdAccountIndex,
         network: this.state.config.env,
+        backedUp: backedUp ?? false,
       });
       await dispatch("saveWallet");
       return addr;
@@ -990,6 +1010,14 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       );
       throw error;
     }
+  },
+  async markAccountBackedUp({ dispatch, commit }, { addr }: { addr: string }) {
+    if (!addr) {
+      throw Error("Plase set account address");
+    }
+    await commit("setAccountBackedUp", { addr });
+    await dispatch("saveWallet");
+    return true;
   },
   async addHdWalletChildAccount(
     { dispatch, commit },

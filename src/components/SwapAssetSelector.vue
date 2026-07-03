@@ -4,7 +4,7 @@
       {{ $t("swap.swap_asset_from") }}
     </label>
     <div class="col-12 md:col-10">
-      <Dropdown
+      <Select
         inputId="swap_asset_from"
         v-model="assetModel"
         filter
@@ -14,13 +14,13 @@
         :placeholder="$t('placeholders.source_asset')"
         class="w-full"
       >
-      </Dropdown>
+      </Select>
     </div>
   </div>
   <div class="field grid">
     <label for="swap_asset_to" class="col-12 mb-2 md:col-2 md:mb-0"> </label>
     <div class="col-12 md:col-10">
-      <Dropdown
+      <Select
         inputId="swap_asset_to"
         v-model="toAssetModel"
         :options="assets"
@@ -30,7 +30,7 @@
         :placeholder="$t('placeholders.destination_asset')"
         class="w-full"
       >
-      </Dropdown>
+      </Select>
     </div>
   </div>
   <div class="field grid">

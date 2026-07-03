@@ -81,10 +81,10 @@ test("create wallet, HD root + next account, basic account, then a 2-of-3 multis
   await expect(page).toHaveURL(/\/new-account\/multisig/);
 
   await page.locator("#accounts").click();
-  const panel = page.locator(".p-multiselect-panel");
+  const panel = page.locator(".p-multiselect-overlay");
   await expect(panel).toBeVisible();
   for (const name of ["HD Root Account", "HD Account 1", "Basic Account"]) {
-    await panel.locator(".p-multiselect-item", { hasText: name }).click();
+    await panel.locator(".p-multiselect-option", { hasText: name }).click();
   }
   await page.keyboard.press("Escape");
 

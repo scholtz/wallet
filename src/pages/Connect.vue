@@ -115,7 +115,9 @@
                         :sortable="true"
                       >
                         <template #body="slotProps">
-                          {{ encodeAddress(slotProps.data.txn.sender) }}
+                          <AlgorandAddress
+                            :address="encodeAddress(slotProps.data.txn.sender)"
+                          />
                         </template>
                       </Column>
                       <Column
@@ -170,7 +172,9 @@
                       </Column>
                       <Column :header="$t('connect.rekeyto')" :sortable="true">
                         <template #body="slotProps">
-                          {{ encodeAddress(slotProps.data.txn.rekeyTo) }}
+                          <AlgorandAddress
+                            :address="encodeAddress(slotProps.data.txn.rekeyTo)"
+                          />
                         </template>
                       </Column>
                       <template #expansion="txProps">
@@ -180,7 +184,11 @@
                               <tr v-if="txProps.data.txn.sender">
                                 <td>{{ $t("connect.from") }}:</td>
                                 <td>
-                                  {{ encodeAddress(txProps.data.txn.sender) }}
+                                  <AlgorandAddress
+                                    :address="
+                                      encodeAddress(txProps.data.txn.sender)
+                                    "
+                                  />
                                 </td>
                               </tr>
                               <tr
@@ -191,12 +199,15 @@
                               >
                                 <td>{{ $t("connect.to") }}:</td>
                                 <td>
-                                  {{
-                                    encodeAddress(
-                                      txProps.data.txn.payment?.receiver ||
-                                        txProps.data.txn.assetTransfer?.receiver
-                                    )
-                                  }}
+                                  <AlgorandAddress
+                                    :address="
+                                      encodeAddress(
+                                        txProps.data.txn.payment?.receiver ||
+                                          txProps.data.txn.assetTransfer
+                                            ?.receiver
+                                      )
+                                    "
+                                  />
                                 </td>
                               </tr>
                               <tr>
@@ -514,7 +525,7 @@
                   :sortable="true"
                 >
                   <template #body="slotProps">
-                    {{ slotProps.data.address }}
+                    <AlgorandAddress :address="slotProps.data.address" />
                   </template>
                 </Column>
                 <Column :header="$t('connect.peer')">
@@ -592,6 +603,7 @@ import {
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import MainLayout from "../layouts/Main.vue";
+import AlgorandAddress from "../components/AlgorandAddress.vue";
 import wc from "../shared/wc";
 import { useStore } from "../store";
 

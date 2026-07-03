@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 import Password from "primevue/password";
 import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
-import InputSwitch from "primevue/inputswitch";
+import ToggleSwitch from "primevue/toggleswitch";
 import { QrcodeStream } from "qrcode-reader-vue3";
 import QRCodeVue3 from "qrcode-vue3";
 import copy from "copy-to-clipboard";
@@ -114,6 +114,7 @@ async function createAccount() {
       name: state.name,
       mnemonic: state.mode === "import" ? state.mnemonic : undefined,
       accountIndex: state.accountIndex,
+      backedUp: state.mode === "import" ? true : state.confirmedBackup,
     });
     router.push("/account/" + addr);
   } catch (err: any) {
@@ -234,7 +235,7 @@ onMounted(async () => {
               {{ t("hdaccount.confirm_backup") }}
             </label>
             <div class="col-12 md:col-10">
-              <InputSwitch
+              <ToggleSwitch
                 inputId="confirmedBackup"
                 v-model="state.confirmedBackup"
               />

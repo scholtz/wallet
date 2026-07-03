@@ -307,6 +307,21 @@
           </Dialog>
         </p>
 
+        <Message
+          severity="error"
+          icon="pi pi-exclamation-triangle"
+          v-if="needsBackup"
+          class="backup-warning"
+        >
+          <strong>{{ $t("hdaccount.not_backed_up_title") }}</strong>
+          <p class="m-0 mt-1">{{ $t("hdaccount.not_backed_up_body") }}</p>
+          <RouterLink :to="'/account/export/' + account?.addr">
+            <Button severity="danger" class="mt-2" id="account_overview_back_up_now">
+              {{ $t("hdaccount.back_up_now") }}
+            </Button>
+          </RouterLink>
+        </Message>
+
         <div class="grid" v-if="account && accountData">
           <div class="col-12 lg:col-9">
             <Message severity="info" v-if="isUnfunded">
@@ -325,7 +340,6 @@
               :change-offline="changeOffline"
               :dev-mode="devMode"
               :has-participation-host="hasParticipationHost"
-              @copy-address="copyToClipboard(account.addr)"
               @refresh="reloadAccount"
               @open-participation-dialog="clickOpenParticipationDialog"
             />
@@ -348,8 +362,6 @@ import {
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { useI18n } from "vue-i18n";
-import copy from "copy-to-clipboard";
 import algosdk from "algosdk";
 import type { SuggestedParams } from "algosdk";
 
@@ -369,7 +381,6 @@ import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
-const { t } = useI18n();
 const instance = getCurrentInstance();
 const $filters = instance?.appContext.config.globalProperties.$filters;
 
@@ -411,6 +422,10 @@ const accountData = computed<AccountNetworkData | null>(() => {
   }
   return acc.data[env] ?? null;
 });
+
+const needsBackup = computed(
+  () => account.value?.type === "hd" && !!account.value?.hdMnemonic && !account.value?.backedUp
+);
 
 const isUnfunded = computed(() => {
   const data = accountData.value;
@@ -579,12 +594,6 @@ const reloadAccount = async (silent = false) => {
   });
   if (searchData) {
     transactions.value = searchData.transactions;
-  }
-};
-
-const copyToClipboard = (text: string) => {
-  if (copy(text)) {
-    openSuccessAction(t("global.copied_to_clipboard"));
   }
 };
 
@@ -857,3 +866,11 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped>
+.backup-warning {
+  font-size: 1.1rem;
+  border-width: 2px;
+  margin-bottom: 1rem;
+}
+</style>

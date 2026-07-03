@@ -3,6 +3,7 @@ import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { onMounted, reactive } from "vue";
 import MainLayout from "../layouts/Main.vue";
+import AlgorandAddress from "../components/AlgorandAddress.vue";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import { RootState } from "@/store";
@@ -400,7 +401,11 @@ const getAssetDecimals = (id: number) => {
           </Column>
           <Column field="index" :header="t('connect.index')" :sortable="true" />
           <Column field="type" :header="t('connect.type')" :sortable="true" />
-          <Column field="from" :header="t('connect.from')" :sortable="true" />
+          <Column field="from" :header="t('connect.from')" :sortable="true">
+            <template #body="slotProps">
+              <AlgorandAddress :address="slotProps.data.from" />
+            </template>
+          </Column>
           <Column field="asset" :header="t('connect.asset')" :sortable="true" />
           <Column field="amount" :header="t('connect.amount')" :sortable="true">
             <template #body="slotProps">
@@ -447,13 +452,17 @@ const getAssetDecimals = (id: number) => {
                   <tr v-if="txProps.data.txn.from">
                     <td>{{ t("connect.from") }}:</td>
                     <td>
-                      {{ encodeAddress(txProps.data.txn.from) }}
+                      <AlgorandAddress
+                        :address="encodeAddress(txProps.data.txn.from)"
+                      />
                     </td>
                   </tr>
                   <tr v-if="txProps.data.txn.to">
                     <td>{{ t("connect.to") }}:</td>
                     <td>
-                      {{ encodeAddress(txProps.data.txn.to) }}
+                      <AlgorandAddress
+                        :address="encodeAddress(txProps.data.txn.to)"
+                      />
                     </td>
                   </tr>
                   <tr>

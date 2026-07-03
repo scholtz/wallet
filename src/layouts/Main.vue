@@ -4,7 +4,7 @@
     <Toast />
     <div
       v-if="$store.state.wallet.isOpen"
-      class="container-fluid flex flex-column flex-grow-1"
+      class="container-fluid flex flex-column flex-grow-1 page-shell"
     >
       <slot />
     </div>

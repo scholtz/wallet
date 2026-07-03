@@ -28,7 +28,9 @@
                       {{ $t("pay.from_account") }}
                     </label>
 
-                    <div class="col-12 md:col-10">{{ payFrom }}</div>
+                    <div class="col-12 md:col-10">
+                      <AlgorandAddress :address="payFrom" />
+                    </div>
                   </div>
                   <div class="field grid" v-if="malformedAddress">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
@@ -52,7 +54,7 @@
                       {{ $t("pay.pay_to") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ payTo }}
+                      <AlgorandAddress :address="payTo" />
                     </div>
                   </div>
                   <div
@@ -168,7 +170,7 @@
                     </label>
                     <div class="col-12 md:col-10">
                       <Message severity="error">
-                        {{ rekeyTo }}
+                        <AlgorandAddress :address="rekeyTo" />
                       </Message>
                     </div>
                   </div>
@@ -274,7 +276,9 @@
                       {{ $t("pay.from_account") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ encodeAddress(multisigTxn?.from?.publicKey) }}
+                      <AlgorandAddress
+                        :address="encodeAddress(multisigTxn?.from?.publicKey)"
+                      />
                     </div>
                   </div>
                   <div
@@ -286,7 +290,11 @@
                     </label>
                     <div class="col-12 md:col-10">
                       <Message severity="error">
-                        {{ encodeAddress(multisigTxn?.reKeyTo?.publicKey) }}
+                        <AlgorandAddress
+                          :address="
+                            encodeAddress(multisigTxn?.reKeyTo?.publicKey)
+                          "
+                        />
                       </Message>
                     </div>
                   </div>
@@ -295,7 +303,9 @@
                       {{ $t("pay.to_account") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ encodeAddress(multisigTxn?.to?.publicKey) }}
+                      <AlgorandAddress
+                        :address="encodeAddress(multisigTxn?.to?.publicKey)"
+                      />
                     </div>
                   </div>
                 </div>

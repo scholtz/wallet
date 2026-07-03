@@ -11,7 +11,11 @@ const { t } = useI18n();
   <MainLayout>
     <h1>{{ t("newacc.title") }}</h1>
     <TabView>
-      <TabPanel :header="t('newacc.basic_options')" headerClass="mr-2">
+      <TabPanel
+        value="0"
+        :header="t('newacc.basic_options')"
+        headerClass="mr-2"
+      >
         <div class="field grid">
           <RouterLink
             to="/new-account/hd-wallet"
@@ -52,7 +56,11 @@ const { t } = useI18n();
           </div>
         </div>
       </TabPanel>
-      <TabPanel :header="t('newacc.advanced_options')" headerClass="mr-2">
+      <TabPanel
+        value="1"
+        :header="t('newacc.advanced_options')"
+        headerClass="mr-2"
+      >
         <div class="field grid">
           <RouterLink
             to="/new-account/hd-wallet"

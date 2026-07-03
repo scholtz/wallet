@@ -34,7 +34,10 @@
               {{ store.state.signer.toSign }}
             </Message>
 
-            <p>{{ t("pay.selected_account") }}: {{ account.addr }}</p>
+            <p class="flex align-items-center flex-wrap gap-1">
+              {{ t("pay.selected_account") }}:
+              <AlgorandAddress :address="account.addr" />
+            </p>
             <div v-if="isMultisig && !subpage">
               <h2>{{ t("pay.multisig_account") }}</h2>
               <Button class="my-2" @click="subpage = 'proposal'">
@@ -98,6 +101,7 @@
                     <div class="col-12 md:col-10">
                       <TabView class="w-full" header-class="mr-2">
                         <TabPanel
+                          value="0"
                           :header="t('pay.pay_to_wallet')"
                           headerClass="mr-2"
                         >
@@ -106,7 +110,7 @@
                             class="w-full"
                           ></SelectAccount>
                         </TabPanel>
-                        <TabPanel :header="t('pay.pay_to_other')">
+                        <TabPanel value="1" :header="t('pay.pay_to_other')">
                           <InputText
                             id="payTo"
                             v-model="payTo"
@@ -143,6 +147,7 @@
                   <div class="col-12 md:col-10">
                     <TabView>
                       <TabPanel
+                        value="0"
                         :header="t('pay.rekey_to_wallet_account')"
                         class="mr-2"
                       >
@@ -151,7 +156,10 @@
                           class="w-full"
                         ></SelectAccount>
                       </TabPanel>
-                      <TabPanel :header="t('pay.rekey_to_external_account')">
+                      <TabPanel
+                        value="1"
+                        :header="t('pay.rekey_to_external_account')"
+                      >
                         <InputText
                           id="rekeyTo"
                           v-model="rekeyTo"
@@ -195,7 +203,7 @@
                     </label>
 
                     <div class="col-12 md:col-10">
-                      <Dropdown
+                      <Select
                         inputId="asset"
                         v-model="asset"
                         filter
@@ -206,7 +214,7 @@
                         class="w-full"
                         inputClass="w-full"
                       >
-                      </Dropdown>
+                      </Select>
                     </div>
                   </div>
                 </div>
@@ -368,6 +376,7 @@ import {
   populateAppCallResources,
 } from "@algorandfoundation/algokit-utils";
 import SelectAccount from "../components/SelectAccount.vue";
+import AlgorandAddress from "../components/AlgorandAddress.vue";
 import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
 import { getArc200Client } from "arc200-client";

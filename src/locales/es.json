@@ -32,6 +32,7 @@
     "copy_address": "Copiar dirección",
     "copied": "Copied",
     "copied_to_clipboard": "Copiado al porta papeles!",
+    "address_copied": "La dirección {address} se ha copiado al portapapeles",
     "stop_camera": "Detener cámara",
     "cancel": "Cancelar",
     "yes": "Si",
@@ -361,7 +362,13 @@
     "generate_next": "Generate next account",
     "generate_next_help": "Pick the iteration (account index) to derive the next account from this HD wallet's mnemonic. Each iteration produces a distinct, independent account address.",
     "export_child_help": "This account does not store its own secret. It is derived from the master mnemonic of its HD wallet root account. Back up the mnemonic from the root account instead.",
-    "export_go_to_root": "Go to root account backup"
+    "export_go_to_root": "Go to root account backup",
+    "default_account_name": "Cuenta principal",
+    "not_backed_up_title": "¡Esta cuenta no está respaldada!",
+    "not_backed_up_body": "Esta cuenta de billetera HD se creó automáticamente y su frase mnemotécnica de recuperación aún no se ha respaldado. Si pierde el acceso a este dispositivo sin una copia de seguridad, corre el riesgo de perder sus fondos de forma permanente.",
+    "back_up_now": "Respaldar ahora",
+    "mark_as_backed_up": "Marcar cuenta como respaldada",
+    "backed_up_success": "Cuenta marcada como respaldada"
   },
 
   "import": {
@@ -476,6 +483,7 @@
     "protocol_button": "Registrar web+algorand:// controlador",
     "protocol_change_success": "Se ha actualizado correctamente el controlador de protocolor",
     "dev_settings": "Mostrar información para desarrolladores",
+    "multiaccount_ops": "Habilitar operaciones multicuenta",
     "update_password": "Actualizar contraseña"
   },
   "transaction": {

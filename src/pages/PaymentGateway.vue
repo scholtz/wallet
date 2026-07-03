@@ -91,7 +91,7 @@
                 $t("gateway.asset")
               }}</label>
               <div class="col-12 md:col-10">
-                <Dropdown
+                <Select
                   v-if="build"
                   filter
                   id="asset"
@@ -113,7 +113,7 @@
                       </div>
                     </div>
                   </template>
-                </Dropdown>
+                </Select>
                 <span v-if="!build">
                   <code>asset</code> - {{ $t("gateway.asset") }}
                 </span>
