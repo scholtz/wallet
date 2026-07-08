@@ -420,13 +420,9 @@ const actions: ActionTree<WcState, RootState> = {
     });
     await dispatch("refreshActiveSessions");
   },
-  async enableWc1({ commit, rootState }) {
+  async enableWc1({ commit }) {
     await wc.restore();
     commit("setWc1Enabled", true);
-    const name = rootState.wallet.name;
-    if (name) {
-      localStorage.setItem(`wc1Enabled_${name}`, "1");
-    }
   },
   async rejectSession({ commit, state }, payload: RejectSessionPayload) {
     const { web3wallet } = state;
