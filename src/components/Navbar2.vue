@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useStore } from "vuex";
 const { t, locale } = useI18n();
@@ -41,33 +41,8 @@ const networkMenuItems = () => [
   },
 ];
 
-watch(locale, () => {
-  makeMenu();
-});
-
-watch(
-  () => store.state.wallet,
-  () => {
-    makeMenu();
-  },
-  { deep: true },
-);
-
-watch(
-  () => store.state.config.multiaccountOps,
-  () => {
-    makeMenu();
-  },
-);
-
-watch(
-  () => store.state.config.env,
-  () => {
-    makeMenu();
-  },
-);
-
-const makeMenu = () => {
+const items = computed<any>(() => {
+  void locale.value;
   if (store.state.wallet.isOpen) {
     const menu: any = [];
     menu.push({
@@ -355,9 +330,9 @@ const makeMenu = () => {
         },
       ],
     });
-    items.value = menu;
+    return menu;
   } else {
-    items.value = [
+    return [
       {
         label: "Wallet",
         icon: "pi pi-home",
@@ -422,10 +397,7 @@ const makeMenu = () => {
       },
     ];
   }
-};
-
-const items = ref<any>([]);
-makeMenu();
+});
 </script>
 
 <template>
