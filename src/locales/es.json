@@ -185,7 +185,7 @@
     "rekeyedTo": "Llaves re asignadas a la cuenta (Rekeyed)",
     "account0": "Cuenta primaria del Ledger",
     "slot": "Cuenta en la ranura del ledger",
-    "connect": "WalletConnect",
+    "connect": "Conectar aplicación",
     "payment_gateway": "Pasarela de pagos",
     "export": "Exportar",
     "not_funded": "La cuenta {addr} en la red {network} aún no tiene fondos.",
@@ -683,7 +683,12 @@
     "init_wc": "Inicializar la conexión con WalletConnect",
     "sign_all": "Firmar todo",
     "proposer": "Proposer",
-    "all_accounts": "Use all wallet accounts"
+    "all_accounts": "Use all wallet accounts",
+    "wc1_tab": "WalletConnect v1",
+    "wc2_tab": "WalletConnect v2",
+    "enable_wc1": "Habilitar WalletConnect v1",
+    "active_sessions": "Sesiones activas",
+    "all_addresses": "Todas las direcciones seleccionadas"
   },
   "new_account_wc": {
     "title": "Añadir cuenta WalletConnect",

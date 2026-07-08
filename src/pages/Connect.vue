@@ -1,11 +1,120 @@
 <template>
   <MainLayout>
-    <div v-if="$store.state.wc.web3wallet">
+    <div>
       <h1>{{ $t("connect.title") }}</h1>
 
       <Card>
         <template #content>
-          <div>
+          <TabView>
+            <TabPanel value="0" :header="$t('connect.wc1_tab')">
+              <div v-if="!wc1Enabled">
+                <Button @click="clickEnableWc1">
+                  {{ $t("connect.enable_wc1") }}
+                </Button>
+              </div>
+              <div v-else>
+                <h2>{{ $t("connect.uri") }}</h2>
+                <InputText
+                  id="uriWc1"
+                  v-model="uriWc1"
+                  class="w-full"
+                  autocomplete="off"
+                />
+                <div v-if="scanWc1" class="col-12 m-2">
+                  <QrcodeStream @decode="onDecodeQRWc1" />
+                </div>
+                <div>
+                  <Button
+                    class="m-1"
+                    :disabled="!!uriWc1 && !connectableWc1"
+                    @click="clickConnectWc1(uriWc1)"
+                  >
+                    {{ $t("connect.connect") }}
+                  </Button>
+                  {{ $t("connect.or") }}
+                  <Button class="m-1" @click="clickPasteWc1">
+                    {{ $t("connect.clipboard") }}
+                  </Button>
+                  {{ $t("connect.or") }}
+                  <Button class="m-1" @click="scanWc1 = !scanWc1">
+                    {{ $t("connect.toggle_camera") }}
+                  </Button>
+                </div>
+
+                <div v-if="connectors && connectors.length > 0">
+                  <h2>{{ $t("connect.sessions") }}</h2>
+                  <DataTable
+                    :value="connectors"
+                    responsive-layout="scroll"
+                    selection-mode="single"
+                    :paginator="true"
+                    :rows="20"
+                  >
+                    <Column
+                      field="id"
+                      :header="$t('connect.client_id')"
+                      :sortable="true"
+                    />
+                    <Column
+                      field="address"
+                      :header="$t('connect.address')"
+                      :sortable="true"
+                    >
+                      <template #body="slotProps">
+                        <AlgorandAddress :address="slotProps.data.address" />
+                      </template>
+                    </Column>
+                    <Column :header="$t('connect.peer')">
+                      <template #body="slotProps">
+                        <div v-if="slotProps.data.peer">
+                          <img
+                            v-if="
+                              slotProps.data.peer.icons &&
+                              slotProps.data.peer.icons.length
+                            "
+                            :src="slotProps.data.peer.icons[0]"
+                            width="24"
+                            height="24"
+                          />
+                          <a
+                            target="_blank"
+                            class="m-1"
+                            :href="slotProps.data.peer.url"
+                            :title="slotProps.data.peer.description"
+                          >
+                            {{ slotProps.data.peer.name }}
+                          </a>
+                        </div>
+                      </template>
+                    </Column>
+                    <Column :header="$t('connect.connected')" :sortable="true">
+                      <template #body="slotProps">
+                        <input
+                          class="form-check-input me-1"
+                          type="checkbox"
+                          :checked="slotProps.data.connected"
+                          disabled
+                        />
+                        <Button
+                          variant="secondary"
+                          class="m-1"
+                          @click="clickDisconnect(slotProps.data.id)"
+                        >
+                          {{ $t("connect.disconnect") }}
+                        </Button>
+                      </template>
+                    </Column>
+                  </DataTable>
+                </div>
+              </div>
+            </TabPanel>
+            <TabPanel value="1" :header="$t('connect.wc2_tab')">
+              <div v-if="!$store.state.wc.web3wallet">
+                <Button @click="initConnection">
+                  {{ $t("connect.init_wc") }}
+                </Button>
+              </div>
+              <div v-else>
             <div v-if="requests.length > 0">
               <h2 id="requests">
                 {{ $t("connect.requests") }}
@@ -505,27 +614,38 @@
               </div>
             </div>
 
-            <div v-if="connectors && connectors.length > 0">
-              <h2>{{ $t("connect.sessions") }}</h2>
+            <div v-if="activeSessions && activeSessions.length > 0">
+              <h2>{{ $t("connect.active_sessions") }}</h2>
               <DataTable
-                :value="connectors"
+                :value="activeSessions"
                 responsive-layout="scroll"
                 selection-mode="single"
                 :paginator="true"
                 :rows="20"
               >
                 <Column
-                  field="id"
+                  field="topic"
                   :header="$t('connect.client_id')"
                   :sortable="true"
                 />
-                <Column
-                  field="address"
-                  :header="$t('connect.address')"
-                  :sortable="true"
-                >
+                <Column :header="$t('connect.address')">
                   <template #body="slotProps">
-                    <AlgorandAddress :address="slotProps.data.address" />
+                    <div
+                      v-if="
+                        sessionAddresses(slotProps.data.accounts).length > 1
+                      "
+                    >
+                      {{ $t("connect.all_addresses") }}
+                    </div>
+                    <div
+                      v-else-if="
+                        sessionAddresses(slotProps.data.accounts).length === 1
+                      "
+                    >
+                      <AlgorandAddress
+                        :address="sessionAddresses(slotProps.data.accounts)[0]"
+                      />
+                    </div>
                   </template>
                 </Column>
                 <Column :header="$t('connect.peer')">
@@ -543,7 +663,7 @@
                       <a
                         target="_blank"
                         class="m-1"
-                        :href="slotProps.data.peer.url"
+                        :href="normalizeUrl(slotProps.data.peer.url)"
                         :title="slotProps.data.peer.description"
                       >
                         {{ slotProps.data.peer.name }}
@@ -551,18 +671,12 @@
                     </div>
                   </template>
                 </Column>
-                <Column :header="$t('connect.connected')" :sortable="true">
+                <Column>
                   <template #body="slotProps">
-                    <input
-                      class="form-check-input me-1"
-                      type="checkbox"
-                      :checked="slotProps.data.connected"
-                      disabled
-                    />
                     <Button
                       variant="secondary"
                       class="m-1"
-                      @click="clickDisconnect(slotProps.data.id)"
+                      @click="clickDisconnectSession(slotProps.data.topic)"
                     >
                       {{ $t("connect.disconnect") }}
                     </Button>
@@ -573,16 +687,9 @@
             <Message severity="error" v-if="error" class="my-2">
               {{ error }}
             </Message>
-          </div>
-        </template>
-      </Card>
-    </div>
-    <div class="container-fluid" v-else>
-      <h1>{{ $t("connect.title") }}</h1>
-
-      <Card>
-        <template #content>
-          <Button @click="initConnection">{{ $t("connect.init_wc") }}</Button>
+              </div>
+            </TabPanel>
+          </TabView>
         </template>
       </Card>
     </div>
@@ -602,6 +709,8 @@ import {
   watch,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import TabView from "primevue/tabview";
+import TabPanel from "primevue/tabpanel";
 import MainLayout from "../layouts/Main.vue";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
 import wc from "../shared/wc";
@@ -680,6 +789,17 @@ interface ConnectorItem {
   connected: boolean;
 }
 
+interface ActiveSessionItem {
+  topic: string;
+  peer?: {
+    icons: string[];
+    url: string;
+    description: string;
+    name: string;
+  };
+  accounts: string[];
+}
+
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
@@ -695,6 +815,7 @@ if (!proxy?.$filters) {
 const $filters = proxy.$filters;
 
 const uri = ref("");
+const uriWc1 = ref("");
 const addr = ref("");
 const error = ref<unknown>("");
 const selectedRequest = ref<RequestItem | null>(null);
@@ -702,6 +823,7 @@ const selectedTransaction = ref<TransactionWrapper | null>(null);
 const expandedRequests = ref<RequestItem[]>([]);
 const expandedTransactions = ref<TransactionWrapper[]>([]);
 const scan = ref(false);
+const scanWc1 = ref(false);
 const allAccounts = ref(true);
 
 const requests = computed<RequestItem[]>(
@@ -733,7 +855,17 @@ const connectors = computed<ConnectorItem[]>(
   () =>
     (store.state.wc.connectors as unknown as ConnectorItem[] | undefined) ?? []
 );
+const activeSessions = computed<ActiveSessionItem[]>(
+  () =>
+    (store.state.wc.activeSessions as unknown as
+      | ActiveSessionItem[]
+      | undefined) ?? []
+);
+const wc1Enabled = computed(() => Boolean(store.state.wc.wc1Enabled));
 const connectable = computed(() => Boolean(uri.value && uri.value.trim()));
+const connectableWc1 = computed(() =>
+  Boolean(uriWc1.value && uriWc1.value.trim())
+);
 const accountAddress = computed(() =>
   typeof route.params.account === "string" ? route.params.account : ""
 );
@@ -746,6 +878,14 @@ const normalizeUrl = (url: string): string => {
   if (url.startsWith("http")) return url;
   if (url.startsWith("//")) return url;
   return `https://${url}`;
+};
+
+const sessionAddresses = (accounts: string[]): string[] => {
+  const addresses = (accounts ?? []).map((account) => {
+    const parts = account.split(":");
+    return parts[parts.length - 1] ?? "";
+  });
+  return Array.from(new Set(addresses)).filter(Boolean);
 };
 
 const initConnection = () => {
@@ -983,6 +1123,65 @@ const clickDisconnect = async (id: string) => {
   });
 };
 
+const clickDisconnectSession = async (topic: string) => {
+  await prolong();
+  try {
+    await store.dispatch("wc/disconnectSession", { topic });
+    await store.dispatch("toast/openSuccess", {
+      severity: "info",
+      summary: "Session removed",
+      life: 3000,
+    });
+  } catch (ex) {
+    await store.dispatch("toast/openError", {
+      severity: "error",
+      summary: "Disconnect session failed",
+      detail: ex,
+      life: 5000,
+    });
+  }
+};
+
+const clickEnableWc1 = async () => {
+  try {
+    await store.dispatch("wc/enableWc1");
+  } catch (ex) {
+    await store.dispatch("toast/openError", {
+      severity: "error",
+      summary: "Enable WalletConnect v1 failed",
+      detail: ex,
+      life: 5000,
+    });
+  }
+};
+
+const clickConnectWc1 = async (value: string) => {
+  await prolong();
+  wc.createConnector(value, accountAddress.value);
+  uriWc1.value = "";
+  await store.dispatch("toast/openSuccess", {
+    severity: "info",
+    summary: "Session added",
+    life: 3000,
+  });
+};
+
+const clickPasteWc1 = async () => {
+  await prolong();
+  const clipboardUri = await navigator.clipboard.readText();
+  try {
+    await clickConnectWc1(clipboardUri);
+  } catch (ex) {
+    await store.dispatch("toast/openError", {
+      severity: "error",
+      summary: "Connect from Clipboard",
+      detail: ex,
+      life: 5000,
+    });
+    throw ex;
+  }
+};
+
 const clickPaste = async () => {
   await prolong();
   const clipboardUri = await navigator.clipboard.readText();
@@ -1088,6 +1287,13 @@ const onDecodeQR = (result: string) => {
   if (result) {
     uri.value = result;
     scan.value = false;
+  }
+};
+
+const onDecodeQRWc1 = (result: string) => {
+  if (result) {
+    uriWc1.value = result;
+    scanWc1.value = false;
   }
 };
 

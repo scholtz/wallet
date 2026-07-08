@@ -185,7 +185,7 @@
     "rekeyedTo": "Klíč přepsán na účet",
     "account0": "Ledger primární účet",
     "slot": "Účet na ledger slotu",
-    "connect": "WalletConnect",
+    "connect": "Připojit aplikaci",
     "payment_gateway": "Platební brána",
     "export": "Export",
     "not_funded": "Účet {addr} v síti {network} zatím není financován.",
@@ -683,7 +683,12 @@
     "init_wc": "Initialize connection to Wallet Connect",
     "sign_all": "Sign all",
     "proposer": "Proposer",
-    "all_accounts": "Use all wallet accounts"
+    "all_accounts": "Use all wallet accounts",
+    "wc1_tab": "WalletConnect v1",
+    "wc2_tab": "WalletConnect v2",
+    "enable_wc1": "Povolit WalletConnect v1",
+    "active_sessions": "Aktivní relace",
+    "all_addresses": "Vybrané všechny adresy"
   },
   "new_account_wc": {
     "title": "Add WalletConnect account",

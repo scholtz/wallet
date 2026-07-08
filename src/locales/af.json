@@ -185,7 +185,7 @@
     "rekeyedTo": "Herstel na rekening",
     "account0": "Ledger primêre rekening",
     "slot": "Rekening by ledger gleuf",
-    "connect": "WalletConnect",
+    "connect": "Connect App",
     "payment_gateway": "Betaalpoort",
     "export": "Voer uit",
     "not_funded": "Rekening {addr} op die netwerk {network} is nog nie gefinansier nie.",
@@ -683,7 +683,12 @@
     "init_wc": "Initialize connection to Wallet Connect",
     "sign_all": "Sign all",
     "proposer": "Proposer",
-    "all_accounts": "Use all wallet accounts"
+    "all_accounts": "Use all wallet accounts",
+    "wc1_tab": "WalletConnect v1",
+    "wc2_tab": "WalletConnect v2",
+    "enable_wc1": "Enable WalletConnect v1",
+    "active_sessions": "Active sessions",
+    "all_addresses": "All addresses selected"
   },
   "new_account_wc": {
     "title": "Add WalletConnect account",

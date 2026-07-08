@@ -185,7 +185,7 @@
     "rekeyedTo": "Ключ к аккаунту изменен",
     "account0": "Основной аккаунт книги",
     "slot": "Счет в слоте реестра",
-    "connect": "WalletConnect",
+    "connect": "Подключить приложение",
     "payment_gateway": "Платежный шлюз",
     "export": "Экспорт",
     "not_funded": "Аккаунт {addr} в сети {network} ещё не пополнен.",
@@ -683,7 +683,12 @@
     "init_wc": "Инициализировать подключение к Wallet Connect",
     "sign_all": "Подписать все",
     "proposer": "Инициатор",
-    "all_accounts": "Использовать все счета кошелька"
+    "all_accounts": "Использовать все счета кошелька",
+    "wc1_tab": "WalletConnect v1",
+    "wc2_tab": "WalletConnect v2",
+    "enable_wc1": "Включить WalletConnect v1",
+    "active_sessions": "Активные сессии",
+    "all_addresses": "Выбраны все адреса"
   },
   "new_account_wc": {
     "title": "Добавить учетную запись WalletConnect",

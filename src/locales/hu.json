@@ -185,7 +185,7 @@
     "rekeyedTo": "Átkulcsolva a köv. számlához",
     "account0": "Ledger elsődleges számla",
     "slot": "A Ledger rekeszhez (slot) tartozó számla",
-    "connect": "WalletConnect",
+    "connect": "Alkalmazás csatlakoztatása",
     "payment_gateway": "Fizetési gateway",
     "export": "Exportálás",
     "not_funded": "A(z) {addr} számla a(z) {network} hálózaton még nincs feltöltve.",
@@ -683,7 +683,12 @@
     "init_wc": "Kapcsolat inicializálása a WalletConnect-hez",
     "sign_all": "Az összes aláírása",
     "proposer": "Proposer",
-    "all_accounts": "Use all wallet accounts"
+    "all_accounts": "Use all wallet accounts",
+    "wc1_tab": "WalletConnect v1",
+    "wc2_tab": "WalletConnect v2",
+    "enable_wc1": "WalletConnect v1 engedélyezése",
+    "active_sessions": "Aktív munkamenetek",
+    "all_addresses": "Minden cím kiválasztva"
   },
   "new_account_wc": {
     "title": "WalletConnect számla létrehozása",

@@ -1466,7 +1466,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return;
     }
 
-    await wc.restore();
+    if (localStorage.getItem(`wc1Enabled_${name}`) === "1") {
+      await wc.restore();
+      commit("wc/setWc1Enabled", true, { root: true });
+    }
     return true;
   },
   async checkPassword({ dispatch }, { pass }: { pass: string }) {
