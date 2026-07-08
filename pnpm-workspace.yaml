@@ -1,6 +1,6 @@
 allowBuilds:
   core-js: false
-  cypress: false
+  cypress: true
   esbuild: true
 minimumReleaseAgeExclude:
   - '@vue/language-core@3.3.7'
