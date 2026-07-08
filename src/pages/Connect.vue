@@ -707,6 +707,25 @@ const allAccounts = ref(true);
 const requests = computed<RequestItem[]>(
   () => (store.state.wc.requests as RequestItem[] | undefined) ?? []
 );
+
+watch(
+  requests,
+  (list) => {
+    const assetIndexes = new Set<bigint>();
+    for (const request of list) {
+      for (const tx of request.transactions ?? []) {
+        const assetIndex = tx.txn?.assetTransfer?.assetIndex;
+        if (assetIndex) {
+          assetIndexes.add(BigInt(assetIndex));
+        }
+      }
+    }
+    for (const assetIndex of assetIndexes) {
+      void store.dispatch("indexer/getAsset", { assetIndex });
+    }
+  },
+  { immediate: true, deep: true }
+);
 const sessionProposals = computed<SessionProposal[]>(
   () => (store.state.wc.sessionProposals as SessionProposal[] | undefined) ?? []
 );

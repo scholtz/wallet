@@ -71,6 +71,18 @@ onMounted(async () => {
   state.transactions = data;
   await checkAtLeastOneSigned();
   await checkAllTxsAreSigned();
+
+  const assetIndexes = new Set<bigint>();
+  for (const entry of data) {
+    if (entry.txn.type === "axfer" && entry.txn.assetTransfer?.assetIndex) {
+      assetIndexes.add(BigInt(entry.txn.assetTransfer.assetIndex));
+    }
+  }
+  await Promise.all(
+    Array.from(assetIndexes).map((assetIndex) =>
+      store.dispatch("indexer/getAsset", { assetIndex }),
+    ),
+  );
 });
 
 const formatGenesisHash = (genesisHash?: Uint8Array | number[]) => {
