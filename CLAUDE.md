@@ -8,24 +8,29 @@ AWallet — an open-source Algorand cryptocurrency wallet built with Vue 3 + Typ
 
 ## Commands
 
-- Install: `CYPRESS_INSTALL_BINARY=0 npm install` (skips Cypress binary download, which often fails on restricted networks)
-- Dev server: `npm run serve` (Vite, http://localhost:8080)
-- Build: `npm run build` (runs `vue-tsc --noEmit` type-check then `vite build` into `dist/`)
-- Lint (with autofix): `npm run lint`
-- Type-check only: `npm run check-typescript-errors-tsc` (plain tsc) or `npm run check-typescript-errors-vue` (vue-tsc, checks .vue files too)
-- Locale parity check: `npm run check-locales` (builds `scripts/*.ts` then runs the compiled `scripts/check-locales.js`; verifies every `src/locales/*.json` has the same keys, in the same order, as `en.json`)
-- Serve production build: `npm run build` then `npm run server` (browser-sync on port 8080)
+This project uses **pnpm** as its package manager (migrated from npm; `pnpm-lock.yaml` is the committed lockfile, `package-lock.json` is gone). A `pnpm-workspace.yaml` carries pnpm-specific policy settings (`allowBuilds`, `minimumReleaseAgeExclude`).
+
+- Install: `CYPRESS_INSTALL_BINARY=0 pnpm install` (skips Cypress binary download, which often fails on restricted networks)
+- Dev server: `pnpm run serve` (Vite, http://localhost:8080)
+- Build: `pnpm run build` (runs `vue-tsc --noEmit` type-check then `vite build` into `dist/`)
+- Lint (with autofix): `pnpm run lint`
+- Type-check only: `pnpm run check-typescript-errors-tsc` (plain tsc) or `pnpm run check-typescript-errors-vue` (vue-tsc, checks .vue files too)
+- Locale parity check: `pnpm run check-locales` (builds `scripts/*.ts` then runs the compiled `scripts/check-locales.js`; verifies every `src/locales/*.json` has the same keys, in the same order, as `en.json`)
+- Serve production build: `pnpm run build` then `pnpm run server` (browser-sync on port 8080)
+
+pnpm's strict, non-hoisted `node_modules` means a package that's only a *transitive* dependency (e.g. pulled in by `@algorandfoundation/xhd-wallet-api`, `@walletconnect/*`, or `primevue`/`vue-i18n`) is not resolvable from the project root even if app code imports it directly (e.g. `@walletconnect/safe-json`, `@spliterati/uint8`, `@primevue/core`, `libsodium-wrappers-sumo`). If you see a Vite build fail with "failed to resolve import" or "cannot load" for a package not in `package.json`, add it there as a direct dependency at the version pnpm already resolved (check `pnpm-lock.yaml`) rather than trying to fix the resolution another way — that's what makes pnpm symlink it at the root.
+
+ESLint config is a flat config (`eslint.config.mjs`, ESLint 10 requires this — the old `.eslintrc.js` and `package.json`'s `eslintConfig` key are gone). It uses `vueTsConfigs.base` from `@vue/eslint-config-typescript`, not `.recommended` — deliberately, to match the ruleset that was actually enforced before the ESLint 10 upgrade (the old package.json config extended `@vue/typescript`, the equivalent lightweight base with no type-aware rules). Don't switch this to `.recommended`/`.strict` casually: it would newly flag ~130 pre-existing `@typescript-eslint/no-explicit-any` usages across `src/scripts/aggregators/`, `src/store/{wc,wcClient,signer,wallet}.ts`, etc. that were never actually linted. Also calls `configureVueProject({ scriptLangs: ["ts", "js"] })` so `vue/block-lang` doesn't force every legacy plain-`<script>` Options API component (many exist) into strict TS typing — one file (`Settings.vue`) was tried as `lang="ts"` during this migration and immediately surfaced real implicit-`any`/argument-count errors, confirming these files rely on being checked as loose JS, not TS.
 
 ### Testing (Cypress E2E)
 
-Cypress requires its binary, which frequently fails to install in sandboxed/restricted environments — don't assume `npm run test` works without checking first.
+Cypress requires its binary, which frequently fails to install in sandboxed/restricted environments — don't assume `pnpm run test` works without checking first.
 
-`scripts/run-test-with-server.js` and `scripts/run-tests.js`/`run-tests.ts` locate the Cypress binary cache cross-platform (Windows `%LOCALAPPDATA%\Cypress\Cache`, macOS `~/Library/Caches/Cypress`, Linux `~/.cache/Cypress`) — both were fixed to agree on this (previously `run-test-with-server.js` only checked the Linux path and false-negatived on Windows). Even with the binary present, `npx cypress run ...` can still fail in a sandboxed/headless Windows environment with `Cypress.exe: bad option: --smoke-test` (the sandboxed `.exe` isn't the real Cypress binary, and this reproduces identically via `npx cypress install` + direct invocation in both Git Bash and native PowerShell). If you hit that, don't keep retrying Cypress — fall back to a plain Node `.mjs` script exercising the underlying logic directly (e.g. algosdk + the relevant `src/scripts/` helper) for verification instead.
+`scripts/run-test-with-server.js` and `scripts/run-tests.js`/`run-tests.ts` locate the Cypress binary cache cross-platform (Windows `%LOCALAPPDATA%\Cypress\Cache`, macOS `~/Library/Caches/Cypress`, Linux `~/.cache/Cypress`) — both were fixed to agree on this (previously `run-test-with-server.js` only checked the Linux path and false-negatived on Windows). Even with the binary present, `npx cypress run ...` can still fail in a sandboxed/headless Windows environment with `Cypress.exe: bad option: --smoke-test` (the sandboxed `.exe` isn't the real Cypress binary, and this reproduces identically via `npx cypress install` + direct invocation in both Git Bash and native PowerShell, with or without sandboxing disabled). If you hit that, don't keep retrying Cypress — fall back to a plain Node script exercising the underlying logic directly (e.g. algosdk + the relevant `src/scripts/` helper) for verification instead. Note that `@algorandfoundation/xhd-wallet-api`'s `libsodium-wrappers-sumo` dependency only resolves via Vite's build-time alias (see Build config quirks below) — a bare Node script importing it directly will hit the same broken-ESM-build error Vite works around, so verify HD-wallet-adjacent logic via a successful `vite build` instead of a standalone script for that specific dependency chain.
 
-- Run full suite: `npm run test` (compiles scripts then runs `scripts/run-tests.js`)
-- Run a single spec against an auto-started server: `node scripts/run-test-with-server.js cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/<path>/<file>.cy.ts'`
-  - Predefined single-spec scripts: `npm run test:arc76`, `npm run test:ed25519`, `npm run test:hd-wallet`, `npm run test:basic`
-- Interactive: `npm run test:open` (starts server + opens Cypress UI)
+- Run full suite: `pnpm run test` (compiles scripts then runs `scripts/run-tests.js`)
+- Run a single spec against an auto-started server: `pnpm run test:basic` / `test:arc76` / `test:ed25519` / `test:hd-wallet`, or directly: `node scripts/run-test-with-server.js cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/<path>/<file>.cy.ts'` (run this via `pnpm run <script>` rather than bare `node`, so `node_modules/.bin` is on `PATH` and `cypress` resolves)
+- Interactive: `pnpm run test:open` (starts server + opens Cypress UI)
 - Specs live under `cypress/e2e/<n-category>/*.cy.ts`, numbered by test phase (e.g. `1-basic-tests`, `2-setup-account`).
 
 There is no unit test runner in this repo — correctness is verified via type-checking, lint, and Cypress E2E flows.
@@ -78,7 +83,7 @@ Chain-adjacent utilities that aren't Vue-specific live under `src/scripts/` (`en
 
 ### Localization
 
-`src/locales/en.json` is the source of truth. Every other locale file (`af`, `cs`, `es`, `hu`, `it`, `nl`, `ru`, `sk`, `tr`) must have identical keys in identical order, 2-space indented, newline at EOF. Run `npm run check-locales` (`scripts/check-locales.js`) to verify this deterministically instead of hand-writing a comparison script each time.
+`src/locales/en.json` is the source of truth. Every other locale file (`af`, `cs`, `es`, `hu`, `it`, `nl`, `ru`, `sk`, `tr`) must have identical keys in identical order, 2-space indented, newline at EOF. Run `pnpm run check-locales` (`scripts/check-locales.js`) to verify this deterministically instead of hand-writing a comparison script each time.
 
 All locale JSON files use CRLF (`\r\n`) line endings. If you script inserting a new key across all files (e.g. a Node one-liner with an anchor-based regex), match `\r?\n`, not just `\n` — the `\n`-only version silently inserts nothing on every file and looks like it succeeded.
 
@@ -120,7 +125,7 @@ Other design-system notes:
 
 ### `scripts/` (repo tooling, not app code)
 
-Write new one-off/repo-tooling scripts in TypeScript, not plain `.js` — the source of truth is a `.ts` file compiled via `npm run build:scripts` (`tsc -p tsconfig.scripts.json`, which includes all of `scripts/*.ts`) into a same-named `.js`. There's no ts-node/tsx installed, so `node scripts/<name>.js` (the compiled output) is what actually runs — never hand-edit the `.js`, regenerate it after editing the `.ts`. The compiled `.js` for each `.ts`-sourced script is gitignored (listed explicitly in `.gitignore`, e.g. `scripts/check-locales.js`, `scripts/run-tests.js`) — only the `.ts` is committed, so wire the npm script to always rebuild first: `npm run build:scripts && node scripts/<name>.js` (see `check-locales`, `test`). `run-test-with-server.js` and `wait-for-server.js` predate this convention, have no `.ts` source, and stay committed as plain hand-written `.js` — leave them as-is unless asked to convert them (and if you do, add the new compiled `.js` to `.gitignore` too).
+Write new one-off/repo-tooling scripts in TypeScript, not plain `.js` — the source of truth is a `.ts` file compiled via `pnpm run build:scripts` (`tsc -p tsconfig.scripts.json`, which includes all of `scripts/*.ts`) into a same-named `.js`. There's no ts-node/tsx installed, so `node scripts/<name>.js` (the compiled output) is what actually runs — never hand-edit the `.js`, regenerate it after editing the `.ts`. The compiled `.js` for each `.ts`-sourced script is gitignored (listed explicitly in `.gitignore`, e.g. `scripts/check-locales.js`, `scripts/run-tests.js`) — only the `.ts` is committed, so wire the npm script to always rebuild first: `pnpm run build:scripts && node scripts/<name>.js` (see `check-locales`, `test`). `run-test-with-server.js` and `wait-for-server.js` predate this convention, have no `.ts` source, and stay committed as plain hand-written `.js` — leave them as-is unless asked to convert them (and if you do, add the new compiled `.js` to `.gitignore` too).
 
 ### Changelog
 
@@ -131,6 +136,6 @@ Write new one-off/repo-tooling scripts in TypeScript, not plain `.js` — the so
 ## Notes
 
 - ESLint config is defined inline in `package.json` (`eslintConfig` key), not a standalone `.eslintrc` for the main app rules (though `.eslintrc.js` also exists).
-- No backend/server-side code in this repo — it's a pure client-side SPA; "server" scripts (`npm run server`, `bs-config.js`) only serve the static `dist/` build for local testing.
+- No backend/server-side code in this repo — it's a pure client-side SPA; "server" scripts (`pnpm run server`, `bs-config.js`) only serve the static `dist/` build for local testing.
 - The only existing UI precedent for "ask the user for a BIP44 derivation index" is `src/pages/NewAccount/Ledger.vue`'s `slot` field (`InputNumber` with `showButtons`, `:min="0"`, `:max="2147483647"`). ARC-76 (`EmailPassword.vue`/`wallet.ts`'s `addEmailPasswordAccount`) has a `slot`/derivation-index *concept* baked into its ARC-0076 init string but no UI for it (hardcoded to `0`) — don't expect to find a UI pattern there.
 - For actions that run both automatically (e.g. on page mount) and on explicit user request (e.g. a Refresh button), and that can legitimately fail on empty/not-yet-populated state (e.g. `wallet/syncAccountSigner`'s rekey check on a brand-new unfunded account), add a `silent?: boolean` param rather than special-casing the check itself — pass `true` from the mount path and let user-triggered call sites default to `false` so errors surface only when the user asked for the check.

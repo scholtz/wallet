@@ -59,7 +59,7 @@ function seedFromMnemonic(mnemonic: string) {
   const uint11Array = key.map((word) => wordlist.indexOf(word));
 
   // Convert the key to uint8Array
-  let uint8Array = toUint8Array(uint11Array);
+  const uint8Array = toUint8Array(uint11Array);
   const data = uint8Array.slice(0, 33);
   // We dont need to chop the last byte - the shamir adds one byte extra to the array
 

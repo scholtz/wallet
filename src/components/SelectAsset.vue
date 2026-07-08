@@ -34,7 +34,7 @@ watch(
       (a) => Number(a.assetId) == Number(newAssetId)
     );
     if (value) {
-      var ret: ExtendedStoredAsset = {
+      const ret: ExtendedStoredAsset = {
         assetId: value.assetId,
         amount: value.amount,
         decimals: value.decimals,

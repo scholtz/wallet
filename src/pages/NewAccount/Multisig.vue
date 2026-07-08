@@ -34,9 +34,9 @@ const store = useStore<RootState>();
 const router = useRouter();
 const makeAccounts = () => {
   const accounts = state.friendaccounts.split("\n");
-  let accts: string[] = [];
+  const accts: string[] = [];
 
-  for (let account of accounts) {
+  for (const account of accounts) {
     if (account.length == 58) {
       accts.push(account);
     }
@@ -45,7 +45,7 @@ const makeAccounts = () => {
 };
 const createMultisignClick = async () => {
   try {
-    let accts = makeAccounts();
+    const accts = makeAccounts();
     const mparams = {
       version: 1,
       threshold: state.multisignum,

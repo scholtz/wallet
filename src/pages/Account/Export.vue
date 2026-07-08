@@ -231,7 +231,7 @@ const checkPwd = async () => {
 };
 
 async function copyToClipboard(text: string) {
-  if (copy(text)) {
+  if (await copy(text)) {
     await store.dispatch("toast/openSuccess", "Mnemonics copied to clipboard");
   }
 }
@@ -413,7 +413,7 @@ const markBackedUp = async () => {
               :key="state.mn"
             />
           </div>
-          <div v-if="$store.state.config.dev && state.json">
+          <div v-if="store.state.config.dev && state.json">
             <h2>{{ t("account_export.dev_info") }}</h2>
             <JsonViewer :value="state.json" copyable boxed sort />
           </div>

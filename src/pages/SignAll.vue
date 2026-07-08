@@ -232,7 +232,7 @@ const clickSignAll = async () => {
   }
 };
 const checkAtLeastOneSigned = () => {
-  for (let tx of state.transactions) {
+  for (const tx of state.transactions) {
     if (tx.txn.txID() in store.state.signer.signed) {
       state.atLeastOneSigned = true;
       return true;
@@ -243,7 +243,7 @@ const checkAtLeastOneSigned = () => {
 };
 const checkAllTxsAreSigned = () => {
   let result = true;
-  for (let tx of state.transactions) {
+  for (const tx of state.transactions) {
     const id = tx.txn.txID();
     if (!(id in store.state.signer.signed)) {
       result = false;
@@ -378,7 +378,7 @@ const getAssetDecimals = (id: number) => {
             />
           </Button>
           <Button
-            v-if="$store.state.signer.returnToSignAll == 'ScheduledPayments'"
+            v-if="store.state.signer.returnToSignAll == 'ScheduledPayments'"
             class="ml-2"
             :severity="state.confirmedRound ? 'primary' : 'secondary'"
             :disabled="!state.atLeastOneSigned"

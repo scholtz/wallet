@@ -92,7 +92,7 @@ const reset = async () => {
 const createAccount = async () => {
   try {
     state.page = "newaccount";
-    let account = algosdk.generateAccount();
+    const account = algosdk.generateAccount();
     state.a = account.addr.toString();
     state.w = algosdk.secretKeyToMnemonic(account.sk);
   } catch (err: unknown) {

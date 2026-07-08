@@ -2,26 +2,27 @@
   "name": "wallet",
   "version": "2.0.0",
   "private": false,
+  "packageManager": "pnpm@11.10.0",
   "scripts": {
     "dev": "vite",
     "serve": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "lint": "eslint . --fix",
     "check-typescript-errors-tsc": "npx tsc --noEmit",
     "check-typescript-errors-vue": "npx vue-tsc --noEmit",
-    "check-locales": "npm run build:scripts && node scripts/check-locales.js",
+    "check-locales": "pnpm run build:scripts && node scripts/check-locales.js",
     "cypress": "cypress run",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run --config-file cypress.config.ts",
     "cypress:run-video": "cypress run --config-file cypress.config.video.ts",
     "server": "browser-sync start --config bs-config.js",
     "server2": "node -e \"const http = require('http'); const fs = require('fs'); const path = require('path'); const server = http.createServer((req, res) => { let filePath = path.join(__dirname, 'dist', req.url === '/' ? 'index.html' : req.url); fs.access(filePath, fs.constants.F_OK, (err) => { if (err) { res.writeHead(404); res.end('Not Found'); return; } fs.readFile(filePath, (err, data) => { if (err) { res.writeHead(500); res.end('Internal Server Error'); return; } const ext = path.extname(filePath); const contentType = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml' }[ext] || 'text/plain'; res.writeHead(200, { 'Content-Type': contentType }); res.end(data); }); }); }); server.listen(8080, () => console.log('Server running at http://localhost:8080'));\"",
-    "run-app-for-test": "npm run serve -- --port 8080",
+    "run-app-for-test": "pnpm run serve -- --port 8080",
     "build:scripts": "tsc -p tsconfig.scripts.json",
-    "test": "npm run build:scripts && node scripts/run-tests.js",
+    "test": "pnpm run build:scripts && node scripts/run-tests.js",
     "test:parallel": "run-p server cypress:run",
     "test:video": "run-p server cypress:run-video",
-    "test:prepare": "npm run build",
+    "test:prepare": "pnpm run build",
     "test:arc76": "node scripts/run-test-with-server.js cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/2-setup-account/create-arc76-account.cy.ts'",
     "test:ed25519": "node scripts/run-test-with-server.js cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/2-setup-account/create-ed25519-account.cy.ts'",
     "test:hd-wallet": "node scripts/run-test-with-server.js cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/2-setup-account/create-hd-wallet-account.cy.ts'",
@@ -39,19 +40,24 @@
     "@folks-router/js-sdk": "^0.5.1",
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource-variable/space-grotesk": "^5.2.10",
+    "@intlify/core-base": "^11.4.6",
     "@ledgerhq/hw-app-algorand": "^6.35.5",
     "@ledgerhq/hw-transport-webusb": "^6.35.0",
     "@popperjs/core": "^2.11.8",
+    "@primevue/core": "^4.5.5",
     "@primeuix/themes": "^2.0.3",
+    "@reown/walletkit": "^1.5.6",
     "@revolist/vue3-datagrid": "^4.23.21",
     "@scure/bip39": "^2.2.0",
     "@spliterati/shamir": "^0.5.1",
+    "@spliterati/uint8": "^1.0.5",
     "@walletconnect/client": "^1.8.0",
     "@walletconnect/core": "^2.23.10",
+    "@walletconnect/keyvaluestorage": "^1.1.1",
+    "@walletconnect/safe-json": "^1.0.2",
     "@walletconnect/sign-client": "^2.23.10",
     "@walletconnect/types": "^2.23.10",
     "@walletconnect/utils": "^2.23.10",
-    "@walletconnect/web3wallet": "^1.16.1",
     "algosdk": "^3.6.0",
     "arc14": "^1.0.4",
     "arc200-client": "^1.1.7",
@@ -72,6 +78,7 @@
     "dexie": "^4.4.4",
     "flag-icons": "^7.5.0",
     "js-sha512": "^0.9.0",
+    "libsodium-wrappers-sumo": "^0.7.16",
     "moment": "^2.30.1",
     "page": "^1.11.6",
     "path-browserify": "^1.0.1",
@@ -96,6 +103,7 @@
   "devDependencies": {
     "@babel/core": "^8.0.1",
     "@babel/eslint-parser": "^8.0.1",
+    "@eslint/js": "^10.0.1",
     "@intlify/unplugin-vue-i18n": "^11.2.4",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/vite": "^4.3.2",
@@ -112,6 +120,7 @@
     "eslint": "^10.6.0",
     "eslint-plugin-vue": "^10.9.2",
     "glob-parent": "^6.0.2",
+    "globals": "^17.7.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.9.4",
     "tailwindcss": "^4.3.2",
@@ -124,21 +133,6 @@
     "vue-eslint-parser": "^10.4.1",
     "vue-tsc": "^3.3.7"
   },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/vue3-essential",
-      "eslint:recommended",
-      "@vue/typescript"
-    ],
-    "parserOptions": {
-      "parser": "@typescript-eslint/parser"
-    },
-    "rules": {}
-  },
   "browserslist": [
     "> 1%",
     "last 2 versions",
@@ -146,6 +140,6 @@
   ],
   "engines": {
     "node": ">=22.0.0",
-    "npm": ">=10.0.0"
+    "pnpm": ">=9.0.0"
   }
 }

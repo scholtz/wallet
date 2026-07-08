@@ -1,5 +1,5 @@
 import { Core } from "@walletconnect/core";
-import { Web3Wallet } from "@walletconnect/web3wallet";
+import { WalletKit } from "@reown/walletkit";
 import { parseUri } from "@walletconnect/utils";
 import algosdk from "algosdk";
 import type { ActionTree, MutationTree } from "vuex";
@@ -7,8 +7,8 @@ import wc from "../shared/wc";
 import WCKeyValueStore from "../shared/WCKeyValueStore";
 import type { RootState } from "./index";
 
-type Web3WalletInstance = Awaited<ReturnType<typeof Web3Wallet.init>>;
-type Web3WalletInitOptions = Parameters<typeof Web3Wallet.init>[0];
+type Web3WalletInstance = Awaited<ReturnType<typeof WalletKit.init>>;
+type Web3WalletInitOptions = Parameters<typeof WalletKit.init>[0];
 type DecodedAlgorandTransaction = ReturnType<
   typeof algosdk.decodeUnsignedTransaction
 > &
@@ -171,7 +171,7 @@ const actions: ActionTree<WcState, RootState> = {
       storage: store,
     });
 
-    const web3wallet = await Web3Wallet.init({
+    const web3wallet = await WalletKit.init({
       core: core as unknown as Web3WalletInitOptions["core"],
       metadata: walletConnectMetadata,
     });

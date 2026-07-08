@@ -390,7 +390,7 @@ onMounted(async () => {
       state.payTo = deserialized.payTo;
     }
     if (deserialized.assetData) {
-      var newAssetData = new CAsset();
+      const newAssetData = new CAsset();
       newAssetData.amount = deserialized.assetData.amount;
       newAssetData.assetId = deserialized.assetData.assetId;
       newAssetData.decimals = deserialized.assetData.decimals;

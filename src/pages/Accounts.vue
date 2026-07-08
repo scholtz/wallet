@@ -218,7 +218,7 @@ const fillAccounts = () => {
     store.state.wallet.privateAccounts || {}
   ) as WalletAccount[];
 
-  let filteredAccounts: WalletAccount[] = [];
+  let filteredAccounts: WalletAccount[];
 
   if (showNetworkAccounts.value) {
     filteredAccounts = privateAccounts.filter((account) => {
@@ -251,7 +251,7 @@ const fillAccounts = () => {
       // if addr is algorand address object, convert to string
       const pk = (account.addr as any)?.publicKey;
       if (pk) {
-        var buffer = Buffer.from(Object.values(pk));
+        const buffer = Buffer.from(Object.values(pk));
         const obj = new algosdk.Address(buffer);
         addr = obj.toString();
       }

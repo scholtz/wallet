@@ -134,7 +134,7 @@ export default {
       let toSend = 0;
       let sent = 0;
       const arrayOfLines = this.accounts.split(/\r?\n/);
-      for (let index in arrayOfLines) {
+      for (const index in arrayOfLines) {
         const line = arrayOfLines[index];
 
         if (line) {
@@ -149,7 +149,7 @@ export default {
           for (let i = 0; i < 25; i++) {
             mn += words[i] + " ";
           }
-          let secret = null;
+          let secret;
           try {
             secret = algosdk.mnemonicToSecretKey(mn.trim());
           } catch {
@@ -158,12 +158,12 @@ export default {
           }
 
           const enc = new TextEncoder();
-          let noteEnc = enc.encode(this.note);
-          let amount = Math.round(this.amount * 1000000);
-          let payFrom = secret;
-          let payTo = this.sendTo;
-          let fee = 1000;
-          let asset = null;
+          const noteEnc = enc.encode(this.note);
+          const amount = Math.round(this.amount * 1000000);
+          const payFrom = secret;
+          const payTo = this.sendTo;
+          const fee = 1000;
+          const asset = null;
           toSend++;
           try {
             this.makePayment({

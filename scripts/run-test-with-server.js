@@ -96,14 +96,14 @@ async function main() {
     console.log("🏗️  Ensuring app is built...");
     if (!fs.existsSync("dist") || !fs.existsSync("dist/index.html")) {
       console.log("📦 Building application...");
-      await runCommand("npm", ["run", "build"]);
+      await runCommand("pnpm", ["run", "build"]);
     } else {
       console.log("✅ App is already built");
     }
 
     // Start the server
     console.log("🖥️  Starting production server...");
-    serverProcess = spawn("npm", ["run", "server"], {
+    serverProcess = spawn("pnpm", ["run", "server"], {
       stdio: "pipe",
       shell: true,
       detached: true, // Allow server to run independently

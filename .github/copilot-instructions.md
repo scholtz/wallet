@@ -8,11 +8,11 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 
 ### Bootstrap and Build
 
-- Install dependencies: `CYPRESS_INSTALL_BINARY=0 npm install`
+- Install dependencies: `CYPRESS_INSTALL_BINARY=0 pnpm install`
   - **NEVER CANCEL: Installation takes 20-30 seconds. Set timeout to 600+ seconds.**
   - Note: Cypress binary installation often fails due to network restrictions. The CYPRESS_INSTALL_BINARY=0 flag skips the binary download.
   - Expected warnings about deprecated packages are normal
-- Build the application: `npm run build`
+- Build the application: `pnpm run build`
   - **NEVER CANCEL: Build takes 65-70 seconds. Set timeout to 180+ seconds.**
   - Outputs production files to `dist/` directory
   - Includes multiple PrimeVue theme files and assets
@@ -20,7 +20,7 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 
 ### Development Server
 
-- Start development server: `npm run serve`
+- Start development server: `pnpm run serve`
   - **NEVER CANCEL: Initial compilation takes 80-90 seconds. Set timeout to 180+ seconds.**
   - Runs on `http://localhost:8080` by default
   - Includes hot module replacement
@@ -29,8 +29,8 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 
 ### Production Server
 
-- Build first: `npm run build`
-- Serve production build: `npm run server`
+- Build first: `pnpm run build`
+- Serve production build: `pnpm run server`
   - **NEVER CANCEL: Command appears to hang but works correctly. Set timeout to 30+ seconds.**
   - Uses browser-sync to serve from `dist/` directory
   - Runs on port 8080
@@ -38,7 +38,7 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 
 ### Linting and Code Quality
 
-- Run linting: `npm run lint`
+- Run linting: `pnpm run lint`
   - **Expected timing: 5-6 seconds**
   - Shows many warnings (83) and some errors (20) but this is expected
   - Vue template HTML structure warnings are expected
@@ -57,12 +57,12 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 ### Cypress E2E Tests
 
 - **WARNING: Cypress binary installation often fails due to network restrictions**
-- Run tests: `npm run test`
+- Run tests: `pnpm run test`
   - **Will fail without Cypress binary: "The cypress npm package is installed, but the Cypress binary is missing"**
   - Do NOT attempt to install Cypress binary unless you have confirmed network access
 - Alternative test commands:
-  - `npm run test:open` - Opens Cypress UI (requires binary)
-  - `npm run test1` - Runs specific test (requires binary)
+  - `pnpm run test:open` - Opens Cypress UI (requires binary)
+  - `pnpm run test1` - Runs specific test (requires binary)
 
 ### Manual Validation Scenarios
 
@@ -119,8 +119,8 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 
 ### Cypress Installation Issues
 
-- **Problem**: `npm install` fails with Cypress download errors
-- **Solution**: Use `CYPRESS_INSTALL_BINARY=0 npm install`
+- **Problem**: `pnpm install` fails with Cypress download errors
+- **Solution**: Use `CYPRESS_INSTALL_BINARY=0 pnpm install`
 - **Impact**: E2E tests cannot be run, but application development works normally
 
 ### TypeScript Version Warnings
@@ -146,26 +146,26 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 - Build Docker image: `cd docker && ./compose.sh`
   - Uses Node 22 for build stage
   - Serves via nginx on port 8080
-  - Build process includes `npm ci`, `npm run build`
+  - Build process includes `pnpm install --frozen-lockfile`, `pnpm run build`
 
 ### CI/CD Pipeline
 
 - GitHub Actions workflows in `.github/workflows/`:
   - `gh-pages.yml`: Builds and deploys to GitHub Pages
   - `awallet-main.yml`: Deploys to private K8S cluster
-- Build steps: `npm install` → `npm run build` → `npm run test`
+- Build steps: `pnpm install` → `pnpm run build` → `pnpm run test`
 - **WARNING: CI tests will fail without Cypress binary access**
 
 ## Key URLs and Access Points
 
-### Development URLs (npm run serve)
+### Development URLs (pnpm run serve)
 
 - Main application: `http://localhost:8080/`
 - Wallet creation: `http://localhost:8080/new-wallet` (auto-redirects if no wallets)
 - Account creation: `http://localhost:8080/new-account/ed25519`
 - Accounts overview: `http://localhost:8080/accounts`
 
-### Production URLs (npm run server)
+### Production URLs (pnpm run server)
 
 - Main application: `http://localhost:8080/`
 - Same URL structure as development
@@ -192,7 +192,7 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 
 ### Configuration Files
 
-- `package.json`: Dependencies and npm scripts
+- `package.json`: Dependencies and pnpm scripts
 - `vue.config.js`: Vue CLI configuration with crypto polyfills
 - `tsconfig.json`: TypeScript configuration
 - `cypress.config.ts`: Cypress test configuration
@@ -207,11 +207,11 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 
 ## Development Workflow
 
-1. **Setup**: `CYPRESS_INSTALL_BINARY=0 npm install`
-2. **Development**: `npm run serve` (wait for compilation)
+1. **Setup**: `CYPRESS_INSTALL_BINARY=0 pnpm install`
+2. **Development**: `pnpm run serve` (wait for compilation)
 3. **Testing**: Manual validation scenarios (Cypress tests require binary)
-4. **Linting**: `npm run lint` before committing
-5. **Building**: `npm run build` for production
+4. **Linting**: `pnpm run lint` before committing
+5. **Building**: `pnpm run build` for production
 6. **Validation**: Test wallet creation and navigation flows
 
 ## Performance Notes

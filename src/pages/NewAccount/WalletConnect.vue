@@ -138,7 +138,7 @@ export default {
     }),
     onSessionEvent() {},
     async clickCopy() {
-      if (copy(this.uri)) {
+      if (await copy(this.uri)) {
         this.openSuccess(this.$t("global.copied_to_clipboard"));
       }
     },

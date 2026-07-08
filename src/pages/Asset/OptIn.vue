@@ -378,19 +378,19 @@ export default {
       this.$router.push(pushTo);
     },
     _arrayBufferToBase64(buffer) {
-      var binary = "";
-      var bytes = new Uint8Array(buffer);
-      var len = bytes.byteLength;
-      for (var i = 0; i < len; i++) {
+      let binary = "";
+      const bytes = new Uint8Array(buffer);
+      const len = bytes.byteLength;
+      for (let i = 0; i < len; i++) {
         binary += String.fromCharCode(bytes[i]);
       }
       return btoa(binary);
     },
     _base64ToArrayBuffer(base64) {
-      var binary_string = window.atob(base64);
-      var len = binary_string.length;
-      var bytes = new Uint8Array(len);
-      for (var i = 0; i < len; i++) {
+      const binary_string = window.atob(base64);
+      const len = binary_string.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
         bytes[i] = binary_string.charCodeAt(i);
       }
       return bytes.buffer;
@@ -400,7 +400,7 @@ export default {
       input = input.replace(/-/g, "+").replace(/_/g, "/");
 
       // Pad out with standard base64 required padding characters
-      var pad = input.length % 4;
+      const pad = input.length % 4;
       if (pad) {
         if (pad === 1) {
           throw new Error(

@@ -327,7 +327,7 @@ onMounted(async () => {
       state.payTo = deserialized.payTo;
     }
     if (deserialized.assetData) {
-      var newAssetData = new CAsset();
+      const newAssetData = new CAsset();
       newAssetData.amount = deserialized.assetData.amount;
       newAssetData.assetId = deserialized.assetData.assetId;
       newAssetData.decimals = deserialized.assetData.decimals;
@@ -354,7 +354,7 @@ const optinEscrowToAsset = async () => {
         return [];
       },
     };
-    var client = new BiatecCronJobShortHashClient(
+    const client = new BiatecCronJobShortHashClient(
       {
         resolveBy: "id",
         id: state.appInfo.appId,
@@ -408,7 +408,7 @@ const depositToFeePool = async () => {
       },
     };
     const poolAppId = getPoolManagerApp(store.state.config.env);
-    var client = new BiatecTaskManagerClient(
+    const client = new BiatecTaskManagerClient(
       {
         resolveBy: "id",
         id: poolAppId,
@@ -464,7 +464,7 @@ const withdrawFromEscrow = async () => {
         return [];
       },
     };
-    var client = new BiatecCronJobShortHashClient(
+    const client = new BiatecCronJobShortHashClient(
       {
         resolveBy: "id",
         id: state.appInfo.appId,
@@ -537,7 +537,7 @@ const deposit = (data: any) => {
 };
 
 async function copyToClipboard(text: string | number) {
-  if (copy(String(text))) {
+  if (await copy(String(text))) {
     await store.dispatch("toast/openSuccess", `${text} copied to clipboard`);
   }
 }

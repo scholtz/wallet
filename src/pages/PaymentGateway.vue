@@ -445,11 +445,11 @@ export default {
     },
     paymentinfoB64() {
       if (!this.paymentinfo) return "";
-      var buffer = Buffer.from(this.paymentinfo, "utf8");
+      const buffer = Buffer.from(this.paymentinfo, "utf8");
       return base64url(buffer);
     },
     callbackConfig() {
-      let ret = {};
+      const ret = {};
       if (this.success) ret.success = this.success;
       if (this.cancel) ret.cancel = this.cancel;
       return JSON.stringify(ret);

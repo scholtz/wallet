@@ -96,7 +96,7 @@ function setMode(mode: HdWalletMode) {
 }
 
 async function copyToClipboard() {
-  if (copy(state.mnemonic)) {
+  if (await copy(state.mnemonic)) {
     await store.dispatch("toast/openSuccess", "Mnemonic copied to clipboard");
   }
 }

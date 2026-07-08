@@ -384,7 +384,6 @@ import { useStore } from "@/store";
 import { Buffer } from "buffer";
 import type { WalletAccount, IAccountData } from "@/store/wallet";
 import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
-import { BoxReference } from "@algorandfoundation/algokit-utils/types/app-manager";
 import { TransactionComposer } from "@algorandfoundation/algokit-utils/types/composer";
 
 type AccountNetworkData = IAccountData;
@@ -1023,7 +1022,7 @@ const previewPaymentClick = async (e: Event | undefined) => {
 const redirectToASAPayment = async () => {
   try {
     const enc = new TextEncoder();
-    let noteEnc = enc.encode(state.paynote);
+    const noteEnc = enc.encode(state.paynote);
     const assetId = nonNativeAssetId.value;
     if (assetId === undefined) {
       throw new Error("Asset id is required for ASA payments");
@@ -1051,7 +1050,7 @@ const redirectToASAPayment = async () => {
 const redirectToNativePayment = async () => {
   try {
     const enc = new TextEncoder();
-    let noteEnc = enc.encode(state.paynote);
+    const noteEnc = enc.encode(state.paynote);
     const senderAddr = requirePayFrom();
     const txData = await preparePayment({
       payTo: state.payTo,

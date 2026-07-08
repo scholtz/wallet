@@ -1,23 +1,24 @@
-FROM node:22 AS build
-ENV DEBIAN_FRONTEND noninteractive
+FROM node:26 AS build
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update \
   && apt dist-upgrade -y \
   && apt-get clean autoclean \
   && apt-get autoremove --yes \
   && rm -rf /var/lib/{apt,dpkg,cache,log}/ \
-  && npm install -g npm@latest
+  && npm install -g pnpm@11.10.0
 WORKDIR /src
-COPY package-lock.json package-lock.json
+COPY pnpm-lock.yaml pnpm-lock.yaml
+COPY pnpm-workspace.yaml pnpm-workspace.yaml
 COPY package.json package.json
-RUN npm ci
+RUN pnpm install --frozen-lockfile
 COPY . .
-RUN npm run build
+RUN pnpm run build
 RUN cd /src/dist && ls
-#RUN npm run test
+#RUN pnpm run test
 
 FROM nginxinc/nginx-unprivileged:latest
 USER root
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt dist-upgrade -y && apt install -y bc mc wget telnet git curl iotop atop vim && apt-get clean autoclean && apt-get autoremove --yes && rm -rf /var/lib/{apt,dpkg,cache,log}/
 RUN mkdir /app
 COPY docker/default.conf /etc/nginx/conf.d/default.conf

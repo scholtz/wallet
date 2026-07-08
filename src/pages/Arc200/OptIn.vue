@@ -42,7 +42,7 @@ const fetchAsset = async () => {
     const algod: algosdk.Algodv2 = await store.dispatch("algod/getAlgod");
     const indexerClient = await store.dispatch("indexer/getIndexer");
     state.arc200Info.arc200id = parseInt(state.arc200id);
-    var algoClient = AlgorandClient.fromClients({
+    const algoClient = AlgorandClient.fromClients({
       algod,
       indexer: indexerClient,
     });
@@ -214,7 +214,7 @@ const makeOptInTxs = async () => {
     console.log("transactionSigner", txnGroup, indexesToSign);
     return [] as Uint8Array[];
   };
-  var algoClient = AlgorandClient.fromClients({
+  const algoClient = AlgorandClient.fromClients({
     algod,
     indexer: indexerClient,
   });
@@ -228,19 +228,19 @@ const makeOptInTxs = async () => {
     clearSourceMap: undefined,
   });
   const fromDecoded = algosdk.decodeAddress(state.account.addr);
-  var boxFromDirect: BoxReference = {
+  const boxFromDirect: BoxReference = {
     // : algosdk.BoxReference
     appId: BigInt(appId),
     name: new Uint8Array(Buffer.from(fromDecoded.publicKey)),
   };
-  var boxFrom: BoxReference = {
+  const boxFrom: BoxReference = {
     // : algosdk.BoxReference
     appId: BigInt(appId),
     name: new Uint8Array(
       Buffer.concat([Buffer.from([0x00]), Buffer.from(fromDecoded.publicKey)]),
     ), // data box
   };
-  var boxFromAddrText: BoxReference = {
+  const boxFromAddrText: BoxReference = {
     // : algosdk.BoxReference
     appId: BigInt(appId),
     name: new Uint8Array(Buffer.from(state.account.addr, "ascii")), // box as the address encoded as text
@@ -253,7 +253,7 @@ const makeOptInTxs = async () => {
     boxReferences: [boxFromDirect, boxFrom, boxFromAddrText],
   });
   const enc = new TextEncoder();
-  let noteEnc = enc.encode("o");
+  const noteEnc = enc.encode("o");
   const payTx = await store.dispatch("algod/preparePayment", {
     payTo: algosdk.getApplicationAddress(appId),
     payFrom: state.account.addr,

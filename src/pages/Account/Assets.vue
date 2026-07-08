@@ -300,7 +300,7 @@ const reloadArc200AccountBalance = async (data: AssetListItem) => {
     const algodClient = await getAlgodAction();
     const indexerClient = await getIndexerAction();
 
-    var algoClient = AlgorandClient.fromClients({
+    const algoClient = AlgorandClient.fromClients({
       algod: algodClient,
       indexer: indexerClient,
     });

@@ -73,13 +73,13 @@ async function main() {
         if (!fs_1.default.existsSync("dist") ||
             !fs_1.default.existsSync(path_1.default.join("dist", "index.html"))) {
             console.log("📦 Building application...");
-            await runCommand("npm", ["run", "build"]);
+            await runCommand("pnpm", ["run", "build"]);
         }
         else {
             console.log("✅ App is already built");
         }
         console.log("🖥️  Starting production server...");
-        serverProcess = (0, child_process_1.spawn)("npm", ["run", "server"], {
+        serverProcess = (0, child_process_1.spawn)("pnpm", ["run", "server"], {
             stdio: "pipe",
             shell: true,
             detached: true,
@@ -101,7 +101,7 @@ async function main() {
         console.log("⏳ Waiting for server to be ready...");
         await runCommand("node", ["scripts/wait-for-server.js"]);
         console.log("🧪 Running Cypress tests...");
-        await runCommand("npm", ["run", "cypress:run"]);
+        await runCommand("pnpm", ["run", "cypress:run"]);
         console.log("✅ All tests completed successfully!");
         process.exit(0);
     }

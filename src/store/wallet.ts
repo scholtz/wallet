@@ -700,13 +700,13 @@ const mutations: MutationTree<WalletState> = {
   },
 };
 type WalletActionContext = ActionContext<WalletState, RootState>;
-/* eslint-disable no-unused-vars */
+ 
 type WalletActionHandler = (
   this: Store<RootState>,
   _context: WalletActionContext,
   _payload?: any
 ) => any;
-/* eslint-enable no-unused-vars */
+ 
 
 const actionHandlers: Record<string, WalletActionHandler> = {
   async setTransaction(

@@ -6,7 +6,7 @@
       <template #content>
         <AccountOverviewHeader
           :account="account"
-          :account-name="$store.state.wallet.lastActiveAccountName"
+          :account-name="store.state.wallet.lastActiveAccountName"
           @delete="deleteAccountClick"
           @toggle-visibility="hideAccountClick"
         />
@@ -158,7 +158,7 @@
               </p>
               <p>
                 {{ $t("onlineofflinedialog.host") }}:
-                {{ $store.state.config.participation }}
+                {{ store.state.config.participation }}
               </p>
               <p v-if="participationRealm">
                 {{ $t("acc_overview.realm") }} : {{ participationRealm }}
@@ -328,7 +328,7 @@
               {{
                 $t("acc_overview.not_funded", {
                   addr: shortAccountAddress,
-                  network: $store.state.config.env,
+                  network: store.state.config.env,
                 })
               }}
             </Message>
