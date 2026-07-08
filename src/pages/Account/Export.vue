@@ -8,7 +8,7 @@ import { JsonViewer } from "vue3-json-viewer";
 import { Shamir } from "@spliterati/shamir";
 import type { uint8 } from "@spliterati/uint8";
 import algosdk from "algosdk";
-import { wordlist } from "@scure/bip39/wordlists/english";
+import { wordlist } from "@scure/bip39/wordlists/english.js";
 import QRCodeVue3 from "qrcode-vue3";
 import sha512 from "js-sha512";
 import copy from "copy-to-clipboard";

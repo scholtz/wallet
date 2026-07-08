@@ -4,7 +4,7 @@ import MainLayout from "../../layouts/Main.vue";
 import { reactive, onMounted } from "vue";
 import Password from "primevue/password";
 import Button from "primevue/button";
-import { wordlist } from "@scure/bip39/wordlists/english";
+import { wordlist } from "@scure/bip39/wordlists/english.js";
 import sha512 from "js-sha512";
 import { Shamir } from "@spliterati/shamir";
 import algosdk from "algosdk";
