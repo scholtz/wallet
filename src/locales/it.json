@@ -56,7 +56,10 @@
     "logout": "Logout",
     "vote": "Voting",
     "swap": "SWAP",
-    "connect": "WalletConnect"
+    "connect": "WalletConnect",
+    "wallet": "Portafoglio",
+    "help": "Aiuto",
+    "recover_wallet": "Ripristina portafoglio"
   },
   "swap": {
     "title": "Swap assets",

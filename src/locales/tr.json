@@ -56,7 +56,10 @@
     "logout": "Çıkış Yap",
     "vote": "Oylama",
     "swap": "TAKAS",
-    "connect": "Cüzdanbağlantısı"
+    "connect": "Cüzdanbağlantısı",
+    "wallet": "Cüzdan",
+    "help": "Yardım",
+    "recover_wallet": "Cüzdanı kurtar"
   },
   "swap": {
     "title": "Varlıkları takas yap",

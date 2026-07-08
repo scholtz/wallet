@@ -56,7 +56,10 @@
     "logout": "Kijelentkezés",
     "vote": "Szavazás",
     "swap": "Csere (SWAP)",
-    "connect": "WalletConnect"
+    "connect": "WalletConnect",
+    "wallet": "Tárca",
+    "help": "Súgó",
+    "recover_wallet": "Tárca visszaállítása"
   },
   "swap": {
     "title": "Pénzeszköz csere",

@@ -56,7 +56,10 @@
     "logout": "Odhlášení",
     "vote": "Hlasování",
     "swap": "SWAP",
-    "connect": "WalletConnect"
+    "connect": "WalletConnect",
+    "wallet": "Peněženka",
+    "help": "Nápověda",
+    "recover_wallet": "Obnovit peněženku"
   },
   "swap": {
     "title": "Swap assets",

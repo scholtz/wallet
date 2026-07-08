@@ -56,7 +56,10 @@
     "logout": "Выход",
     "vote": "Голосование",
     "swap": "Обмен",
-    "connect": "WalletConnect"
+    "connect": "WalletConnect",
+    "wallet": "Кошелёк",
+    "help": "Помощь",
+    "recover_wallet": "Восстановить кошелёк"
   },
   "swap": {
     "title": "Обменять активы",

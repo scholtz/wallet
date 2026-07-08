@@ -56,7 +56,10 @@
     "logout": "Cerrar sesión",
     "vote": "Votar",
     "swap": "INTERCAMBIO",
-    "connect": "WalletConnect"
+    "connect": "WalletConnect",
+    "wallet": "Monedero",
+    "help": "Ayuda",
+    "recover_wallet": "Recuperar monedero"
   },
   "swap": {
     "title": "Intercambiar activos",

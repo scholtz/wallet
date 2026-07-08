@@ -10,6 +10,8 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 - Major UI framework upgrade to PrimeVue 4, including a new light/dark mode toggle, refreshed navigation, and consistent page styling across the app.
 - Added an Assets Overview page for browsing and managing asset profiles across accounts, with selectable rows for quick actions.
 - Added an in-app Changelog page (linked from the Help menu) so users can see the wallet's feature history at a glance.
+- Fixed the navbar staying in English after switching language on the login screen.
+- Fixed the WalletConnect signature-request notification badge not appearing for incoming requests unless the Connect page had already been visited in that session; WalletConnect now connects as soon as the wallet is opened.
 
 ## 2026-01
 

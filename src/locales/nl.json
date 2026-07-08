@@ -56,7 +56,10 @@
     "logout": "Uitloggen",
     "vote": "Voting",
     "swap": "SWAP",
-    "connect": "WalletConnect"
+    "connect": "WalletConnect",
+    "wallet": "Portemonnee",
+    "help": "Help",
+    "recover_wallet": "Portemonnee herstellen"
   },
   "swap": {
     "title": "Swap assets",

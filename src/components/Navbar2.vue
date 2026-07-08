@@ -46,11 +46,11 @@ const items = computed<any>(() => {
   if (store.state.wallet.isOpen) {
     const menu: any = [];
     menu.push({
-      label: "Wallet",
+      label: t("navbar.wallet"),
       icon: PrimeIcons.HOME,
       items: [
         {
-          label: "List accounts",
+          label: t("navbar.list_accounts"),
           icon: PrimeIcons.SERVER,
           route: "/accounts",
         },
@@ -305,7 +305,7 @@ const items = computed<any>(() => {
           route: "/settings",
         },
         {
-          label: "Help",
+          label: t("navbar.help"),
           icon: "pi pi-question-circle",
           items: [
             {
@@ -334,21 +334,21 @@ const items = computed<any>(() => {
   } else {
     return [
       {
-        label: "Wallet",
+        label: t("navbar.wallet"),
         icon: "pi pi-home",
         items: [
           {
-            label: "New Wallet",
+            label: t("login.new_wallet"),
             icon: "pi pi-plus",
             route: "/new-wallet",
           },
           {
-            label: "Open Wallet",
+            label: t("login.open_wallet"),
             icon: "pi pi-shield",
             route: "/accounts",
           },
           {
-            label: "Recover Wallet",
+            label: t("navbar.recover_wallet"),
             icon: "pi pi-download",
             route: "/import-wallet",
           },
@@ -370,7 +370,7 @@ const items = computed<any>(() => {
             route: "/settings",
           },
           {
-            label: "Help",
+            label: t("navbar.help"),
             icon: "pi pi-question-circle",
             items: [
               {

@@ -56,7 +56,10 @@
     "logout": "Uitlog",
     "vote": "Stem",
     "swap": "RUIL",
-    "connect": "Verbind"
+    "connect": "Verbind",
+    "wallet": "Wallet",
+    "help": "Help",
+    "recover_wallet": "Recover Wallet"
   },
   "swap": {
     "title": "Ruil bates",

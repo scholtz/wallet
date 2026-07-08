@@ -56,7 +56,10 @@
     "logout": "Odhlásenie",
     "vote": "Voting",
     "swap": "SWAP",
-    "connect": "WalletConnect"
+    "connect": "WalletConnect",
+    "wallet": "Peňaženka",
+    "help": "Pomoc",
+    "recover_wallet": "Obnoviť peňaženku"
   },
   "swap": {
     "title": "Swapnúť tokeny",
