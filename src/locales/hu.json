@@ -417,8 +417,8 @@
     "public_account": "Nyilvános Iwatch) számla",
     "rekeyed": "Átkulcsolt számla",
     "ledger_account": "Ledger HW számla",
-    "wc_account": "WalletConnect számla"
-    "hd_account": "HD wallet account"
+    "wc_account": "WalletConnect számla",
+    "hd_account": "HD pénztárca számla"
   },
   "account": {
     "select_account": "Számla választás"
@@ -686,7 +686,7 @@
     "init_wc": "WalletConnect kapcsolat inicializálása",
     "sign_all": "Az összes aláírása",
     "proposer": "Javaslattevő (Proposer)",
-    "all_accounts": "Az összes számla használata"
+    "all_accounts": "Az összes számla használata",
     "wc1_tab": "WalletConnect v1",
     "wc2_tab": "WalletConnect v2",
     "enable_wc1": "WalletConnect v1 engedélyezése",
