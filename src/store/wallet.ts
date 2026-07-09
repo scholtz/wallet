@@ -14,6 +14,11 @@ import {
   hdDeriveAddress,
   isValidHdMnemonic,
 } from "../scripts/encoding/hdWallet";
+import {
+  decryptWalletData,
+  encryptWalletData,
+  isLegacyEncryptedData,
+} from "../scripts/encoding/walletCrypto";
 
 type WalletAccountData = Record<string, IAccountData>;
 
@@ -308,7 +313,6 @@ const mutations: MutationTree<WalletState> = {
     state.lastPayTo = addr;
   },
   lastActiveAccount(state, addr: string) {
-    console.log("lastActiveAccount set to", addr, state.privateAccounts);
     const current = state.privateAccounts.find((a) => a.addr == addr);
     if (current) {
       state.lastActiveAccount = addr;
@@ -720,34 +724,40 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     await dispatch("saveWallet");
   },
   async lastActiveAccount({ commit, dispatch }, { addr }: { addr: string }) {
-    console.log("lastActiveAccount action handler called with", addr);
     await commit("lastActiveAccount", addr);
     await dispatch("saveWallet");
   },
   async getAccount(_context, { addr }: { addr: string }) {
     return this.state.wallet.privateAccounts.find((a) => a.addr == addr);
   },
-  async getSK({ dispatch }, { addr }: { addr: string }) {
-    const address = this.state.wallet.privateAccounts.find(
-      (a) => a.addr == addr
-    );
-    if (address) {
-      const network = String(this.state.config.env);
-      if (
-        address &&
-        address.data &&
-        address.data[network] &&
-        address.data[network].rekeyedTo &&
-        address.data[network].rekeyedTo != addr
-      ) {
-        return await dispatch("getSK", {
-          addr: address.data[network].rekeyedTo,
-        });
+  async getSK(_context, { addr }: { addr: string }) {
+    const network = String(this.state.config.env);
+    // Follow the rekey chain iteratively with cycle detection, so a
+    // multi-hop rekey loop (A→B→A) recorded in local state cannot cause
+    // unbounded recursion (audit finding AW-2026-019).
+    const visited = new Set<string>();
+    let currentAddr = addr;
+    for (;;) {
+      if (visited.has(currentAddr)) {
+        console.error("Rekey cycle detected while resolving signing key", addr);
+        return undefined;
       }
-      if (address.sk) {
-        const ret = Uint8Array.from(Object.values(address.sk));
-        return ret;
+      visited.add(currentAddr);
+      const account = this.state.wallet.privateAccounts.find(
+        (a) => a.addr == currentAddr
+      );
+      if (!account) {
+        return undefined;
       }
+      const rekeyedTo = account.data?.[network]?.rekeyedTo;
+      if (rekeyedTo && rekeyedTo != currentAddr) {
+        currentAddr = rekeyedTo;
+        continue;
+      }
+      if (account.sk) {
+        return Uint8Array.from(Object.values(account.sk));
+      }
+      return undefined;
     }
   },
   async logout({ commit }) {
@@ -1391,8 +1401,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       this.state.wallet,
       (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
     );
-    const dataencoded = CryptoJS.AES.encrypt(data, passw2);
-    walletRecord.data = dataencoded.toString();
+    walletRecord.data = await encryptWalletData(data, passw2);
     await dbAny.wallets.update(walletRecord.id, walletRecord);
     return true;
   },
@@ -1435,9 +1444,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
         this.state.wallet,
         (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
       );
-      const dataencoded = CryptoJS.AES.encrypt(data, pass);
+      const dataencoded = await encryptWalletData(data, pass, walletRecord.data);
       if (walletRecord && dataencoded) {
-        walletRecord.data = dataencoded.toString();
+        walletRecord.data = dataencoded;
         await dbAny.wallets.update(walletRecord.id, walletRecord);
       }
     }
@@ -1449,8 +1458,8 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     const walletRecord = await dbAny.wallets.get({ name });
     const encryptedData = walletRecord.data;
     try {
-      const decryptedData = CryptoJS.AES.decrypt(encryptedData, pass);
-      const json = JSON.parse(decryptedData.toString(CryptoJS.enc.Utf8));
+      const decryptedData = await decryptWalletData(encryptedData, pass);
+      const json = JSON.parse(decryptedData);
       await commit("setPrivateAccounts", json.privateAccounts);
       await commit("lastPayTo", json.lastPayTo);
       await commit("lastActiveAccount", json.lastActiveAccount);
@@ -1458,6 +1467,14 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       await commit("setIsOpen", { name, pass });
 
       localStorage.setItem("lastUsedWallet", name);
+
+      if (isLegacyEncryptedData(encryptedData)) {
+        // Transparently upgrade wallets encrypted with the legacy
+        // CryptoJS passphrase scheme (single-round-MD5 KDF, audit finding
+        // AW-2026-002) to the PBKDF2 + AES-GCM format.
+        walletRecord.data = await encryptWalletData(decryptedData, pass);
+        await dbAny.wallets.update(walletRecord.id, walletRecord);
+      }
     } catch (error) {
       dispatch("toast/openError", "Wrong password", {
         root: true,
@@ -1473,8 +1490,8 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     const walletRecord = await dbAny.wallets.get({ name });
     const encryptedData = walletRecord.data;
     try {
-      const decryptedData = CryptoJS.AES.decrypt(encryptedData, pass);
-      const json = JSON.parse(decryptedData.toString(CryptoJS.enc.Utf8));
+      const decryptedData = await decryptWalletData(encryptedData, pass);
+      const json = JSON.parse(decryptedData);
       return !!json;
     } catch {
       return false;
@@ -1501,10 +1518,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       this.state.wallet,
       (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
     );
-    const dataencoded = CryptoJS.AES.encrypt(data, pass);
+    const dataencoded = await encryptWalletData(data, pass);
 
     try {
-      await dbAny.wallets.add({ name, data: dataencoded.toString() });
+      await dbAny.wallets.add({ name, data: dataencoded });
     } catch (error: unknown) {
       const stack = (error as Error).stack;
       dispatch("toast/openError", "Error: " + (stack || toErrorMessage(error)), {
@@ -1616,8 +1633,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     const decryptedData = await CryptoJS.AES.decrypt(encryptedPass, rs1);
 
     const pass = decryptedData.toString(CryptoJS.enc.Utf8);
-    const cipher = CryptoJS.AES.encrypt(data, pass).toString();
-    return cipher;
+    return encryptWalletData(data, pass);
   },
   decrypt: async (store: WalletActionContext, { data }: { data: string }) => {
     const encryptedPass = store.state.pass;
@@ -1625,8 +1641,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     const decryptedData = await CryptoJS.AES.decrypt(encryptedPass, rs1);
 
     const pass = decryptedData.toString(CryptoJS.enc.Utf8);
-    const plain = CryptoJS.AES.decrypt(data, pass).toString(CryptoJS.enc.Utf8);
-    return plain;
+    // decryptWalletData transparently handles both the new PBKDF2+AES-GCM
+    // format and legacy CryptoJS-encrypted values.
+    return decryptWalletData(data, pass);
   },
   getName: (store: WalletActionContext) => {
     return store.state.name;

@@ -48,11 +48,7 @@ const fetchAsset = async () => {
     });
     const dummyAddress =
       "TESTNTTTJDHIF5PJZUBTTDYYSKLCLM6KXCTWIOOTZJX5HO7263DPPMM2SU";
-    const dummyTransactionSigner = async (
-      txnGroup: algosdk.Transaction[],
-      indexesToSign: number[],
-    ): Promise<Uint8Array[]> => {
-      console.log("transactionSigner", txnGroup, indexesToSign);
+    const dummyTransactionSigner = async (): Promise<Uint8Array[]> => {
       return [] as Uint8Array[];
     };
     const client = getArc200Client({
@@ -207,11 +203,7 @@ const makeOptInTxs = async () => {
   const algod: algosdk.Algodv2 = await store.dispatch("algod/getAlgod");
   const indexerClient = await store.dispatch("indexer/getIndexer");
   const appId = Number(state.arc200Info.arc200id);
-  const dummyTransactionSigner = async (
-    txnGroup: algosdk.Transaction[],
-    indexesToSign: number[],
-  ): Promise<Uint8Array[]> => {
-    console.log("transactionSigner", txnGroup, indexesToSign);
+  const dummyTransactionSigner = async (): Promise<Uint8Array[]> => {
     return [] as Uint8Array[];
   };
   const algoClient = AlgorandClient.fromClients({
@@ -245,9 +237,6 @@ const makeOptInTxs = async () => {
     appId: BigInt(appId),
     name: new Uint8Array(Buffer.from(state.account.addr, "ascii")), // box as the address encoded as text
   };
-  console.log("boxes: [boxFromDirect, boxFrom, boxFromAddrText]", {
-    boxes: [boxFromDirect, boxFrom, boxFromAddrText],
-  });
   const txsToSignArc200 = await client.createTransaction.arc200Transfer({
     args: { to: state.account.addr, value: BigInt(0) },
     boxReferences: [boxFromDirect, boxFrom, boxFromAddrText],

@@ -83,10 +83,6 @@ export const biatecAggregator: DexAggregator = {
         context.aggregatorData.processingTradeBiatec.value = false;
         return;
       }
-      console.log(
-        "component.biatecQuotes",
-        context.aggregatorData.biatecQuotes.value
-      );
       if (
         !context.aggregatorData.biatecQuotes.value?.route?.route?.outputAmount
       ) {
@@ -147,34 +143,21 @@ export const biatecAggregator: DexAggregator = {
 
       // Decode and group transactions
       const transactions = [];
-      console.log(
-        "component.biatecQuotes.route",
-        context.aggregatorData.biatecQuotes.value.route
-      );
       for (const txBase64 of context.aggregatorData.biatecQuotes.value.route
         .txsToSign) {
-        console.log("txBase64", txBase64);
         const txBytes = new Uint8Array(Buffer.from(txBase64, "base64"));
         // Check for "TX" prefix (0x54, 0x58)
         const tx = algosdk.decodeUnsignedTransaction(
           txBytes
         ) as algosdk.Transaction;
-        console.log("tx", tx);
         transactions.push(tx);
       }
-      console.log("transactions", transactions);
       // Clear group and compute new group ID
       transactions.forEach((tx) => {
         tx.group = undefined;
       });
       const groupId = algosdk.computeGroupID(transactions);
       transactions.forEach((tx) => (tx.group = groupId));
-      console.log(
-        "grouped transactions",
-        transactions.map((tx) => {
-          return tx.txID();
-        })
-      );
 
       // Sign transactions
       const signedTxs = [];
@@ -182,7 +165,6 @@ export const biatecAggregator: DexAggregator = {
         const signedTx = tx.signTxn(senderSK);
         signedTxs.push(signedTx);
       }
-      console.log("signedTxs", signedTxs);
       const tx = await context
         .sendRawTransaction({
           signedTxn: signedTxs,

@@ -134,6 +134,15 @@ const toBeSigned = async (txn: algosdk.Transaction): Promise<boolean> => {
     return !signed;
   }
 };
+// closeRemainderTo (pay) / assetCloseTo (axfer) sends the account's entire
+// remaining balance / asset holding to this address (audit finding
+// AW-2026-001) — it must always be surfaced with a prominent warning.
+const getCloseTo = (txn: algosdk.Transaction): string => {
+  const closeAddr =
+    txn?.payment?.closeRemainderTo ?? txn?.assetTransfer?.closeRemainderTo;
+  return closeAddr ? closeAddr.toString() : "";
+};
+
 const formatAppAccount = (acc: algosdk.Address | string) => {
   try {
     if (typeof acc === "string") {
@@ -452,29 +461,86 @@ const getAssetDecimals = (id: number) => {
               {{ formatCurrency(slotProps.data.txn["fee"]) }}
             </template>
           </Column>
-          <Column
-            field="rekeyTo"
-            :header="t('connect.rekeyto')"
-            :sortable="true"
-          />
+          <Column :header="t('connect.rekeyto')">
+            <template #body="slotProps">
+              <Message
+                v-if="slotProps.data.txn.rekeyTo"
+                severity="error"
+                class="m-0"
+              >
+                <AlgorandAddress
+                  :address="encodeAddress(slotProps.data.txn.rekeyTo)"
+                />
+              </Message>
+            </template>
+          </Column>
+          <Column :header="t('connect.close_to')">
+            <template #body="slotProps">
+              <Message
+                v-if="getCloseTo(slotProps.data.txn)"
+                severity="error"
+                class="m-0"
+              >
+                <AlgorandAddress :address="getCloseTo(slotProps.data.txn)" />
+              </Message>
+            </template>
+          </Column>
           <template #expansion="txProps">
             <div class="p-3">
               <table>
                 <tbody>
-                  <tr v-if="txProps.data.txn.from">
+                  <tr v-if="txProps.data.txn.sender">
                     <td>{{ t("connect.from") }}:</td>
                     <td>
                       <AlgorandAddress
-                        :address="encodeAddress(txProps.data.txn.from)"
+                        :address="encodeAddress(txProps.data.txn.sender)"
                       />
                     </td>
                   </tr>
-                  <tr v-if="txProps.data.txn.to">
+                  <tr
+                    v-if="
+                      txProps.data.txn.payment?.receiver ||
+                      txProps.data.txn.assetTransfer?.receiver
+                    "
+                  >
                     <td>{{ t("connect.to") }}:</td>
                     <td>
                       <AlgorandAddress
-                        :address="encodeAddress(txProps.data.txn.to)"
+                        :address="
+                          encodeAddress(
+                            txProps.data.txn.payment?.receiver ||
+                              txProps.data.txn.assetTransfer?.receiver
+                          )
+                        "
                       />
+                    </td>
+                  </tr>
+                  <tr v-if="txProps.data.txn.rekeyTo">
+                    <td>{{ t("connect.rekeyto") }}:</td>
+                    <td>
+                      <Message severity="error" class="m-0">
+                        <AlgorandAddress
+                          :address="encodeAddress(txProps.data.txn.rekeyTo)"
+                        />
+                        <div>{{ t("pay.rekey_warning") }}</div>
+                      </Message>
+                    </td>
+                  </tr>
+                  <tr v-if="getCloseTo(txProps.data.txn)">
+                    <td>{{ t("connect.close_to") }}:</td>
+                    <td>
+                      <Message severity="error" class="m-0">
+                        <AlgorandAddress
+                          :address="getCloseTo(txProps.data.txn)"
+                        />
+                        <div>
+                          {{
+                            txProps.data.txn.assetTransfer?.closeRemainderTo
+                              ? t("pay.asset_close_to_warning")
+                              : t("pay.close_to_warning")
+                          }}
+                        </div>
+                      </Message>
                     </td>
                   </tr>
                   <tr>

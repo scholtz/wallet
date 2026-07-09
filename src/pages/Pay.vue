@@ -695,11 +695,6 @@ const isNotValid = computed(() => {
 
 watch(payFromDirect, (value) => {
   if (value) {
-    console.log(
-      "setting last active account to: payFromDirect",
-      payFromDirect,
-      value,
-    );
     lastActiveAccount({ addr: value });
   }
 });
@@ -768,7 +763,6 @@ onMounted(async () => {
         state.payTo = algosdk.encodeAddress(state.txn.to.publicKey);
       }
       if (state.txn?.from) {
-        console.log("setting payFromDirect from txn.from", state.txn.from);
         state.payFromDirect = algosdk.encodeAddress(state.txn.from.publicKey);
       }
 
@@ -823,7 +817,6 @@ onMounted(async () => {
     route.params.account as string | string[] | undefined,
   );
   if (accountParam) {
-    console.log("setting last active account to: accountParam", accountParam);
     await lastActiveAccount({ addr: accountParam });
   }
   await makeAssets();
@@ -833,10 +826,6 @@ onMounted(async () => {
     store.state.wallet.privateAccounts &&
     store.state.wallet.privateAccounts.length === 1
   ) {
-    console.log(
-      "setting payFromDirect from single account wallet",
-      store.state.wallet.privateAccounts[0].addr,
-    );
     state.payFromDirect = store.state.wallet.privateAccounts[0].addr || "";
   }
 
@@ -845,10 +834,8 @@ onMounted(async () => {
   }
   if (state.payTo && !state.payFromDirect) {
     if (store.state.wallet.lastActiveAccount) {
-      console.log("setting payFromDirect from lastActiveAccount", state.payTo);
       state.payFromDirect = store.state.wallet.lastActiveAccount;
     } else {
-      console.log("setting payFromDirect from payTo", state.payTo);
       state.payFromDirect = state.payTo;
     }
   }

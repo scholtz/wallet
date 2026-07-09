@@ -74,7 +74,6 @@
     "crypto-browserify": "^3.12.1",
     "crypto-js": "^4.2.0",
     "crypto-random-string": "^5.0.0",
-    "cryptojs": "^2.5.3",
     "dexie": "^4.4.4",
     "flag-icons": "^7.5.0",
     "js-sha512": "^0.9.0",

@@ -67,7 +67,7 @@ const showToast = (
   ) {
     window.alert(options.detail);
   } else {
-    console.log(options.severity.toUpperCase(), options.detail);
+    console.error(options.severity.toUpperCase(), options.detail);
   }
 };
 

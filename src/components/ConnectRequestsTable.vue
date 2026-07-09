@@ -150,9 +150,26 @@
             </Column>
             <Column :header="$t('connect.rekeyto')" :sortable="true">
               <template #body="slotProps">
-                <AlgorandAddress
-                  :address="encodeAddress(slotProps.data.txn.rekeyTo)"
-                />
+                <Message
+                  v-if="slotProps.data.txn.rekeyTo"
+                  severity="error"
+                  class="m-0"
+                >
+                  <AlgorandAddress
+                    :address="encodeAddress(slotProps.data.txn.rekeyTo)"
+                  />
+                </Message>
+              </template>
+            </Column>
+            <Column :header="$t('connect.close_to')">
+              <template #body="slotProps">
+                <Message
+                  v-if="getCloseTo(slotProps.data.txn)"
+                  severity="error"
+                  class="m-0"
+                >
+                  <AlgorandAddress :address="getCloseTo(slotProps.data.txn)" />
+                </Message>
               </template>
             </Column>
             <template #expansion="txProps">
@@ -183,6 +200,34 @@
                             )
                           "
                         />
+                      </td>
+                    </tr>
+                    <tr v-if="txProps.data.txn.rekeyTo">
+                      <td>{{ $t("connect.rekeyto") }}:</td>
+                      <td>
+                        <Message severity="error" class="m-0">
+                          <AlgorandAddress
+                            :address="encodeAddress(txProps.data.txn.rekeyTo)"
+                          />
+                          <div>{{ $t("pay.rekey_warning") }}</div>
+                        </Message>
+                      </td>
+                    </tr>
+                    <tr v-if="getCloseTo(txProps.data.txn)">
+                      <td>{{ $t("connect.close_to") }}:</td>
+                      <td>
+                        <Message severity="error" class="m-0">
+                          <AlgorandAddress
+                            :address="getCloseTo(txProps.data.txn)"
+                          />
+                          <div>
+                            {{
+                              txProps.data.txn.assetTransfer?.closeRemainderTo
+                                ? $t("pay.asset_close_to_warning")
+                                : $t("pay.close_to_warning")
+                            }}
+                          </div>
+                        </Message>
                       </td>
                     </tr>
                     <tr>
@@ -327,7 +372,16 @@
                     </tr>
                     <tr>
                       <td>{{ $t("connect.genesis") }}:</td>
-                      <td>{{ txProps.data.txn.genesisID }}</td>
+                      <td>
+                        {{ txProps.data.txn.genesisID }}
+                        <Message
+                          v-if="genesisMismatch(txProps.data.txn)"
+                          severity="error"
+                          class="m-0"
+                        >
+                          {{ $t("connect.genesis_mismatch") }}
+                        </Message>
+                      </td>
                     </tr>
                     <tr>
                       <td>{{ $t("connect.genesis_hash") }}:</td>
@@ -697,6 +751,26 @@ const encodeAddress = (addrValue: { publicKey?: Uint8Array }) => {
   } catch {
     return "-";
   }
+};
+
+// closeRemainderTo (pay) / assetCloseTo (axfer) sends the account's entire
+// remaining balance / asset holding to this address (audit finding
+// AW-2026-001) — it must always be surfaced with a prominent warning.
+const getCloseTo = (txn: algosdk.Transaction): string => {
+  try {
+    const closeAddr =
+      txn?.payment?.closeRemainderTo ?? txn?.assetTransfer?.closeRemainderTo;
+    if (!closeAddr?.publicKey) return "";
+    return algosdk.encodeAddress(closeAddr.publicKey);
+  } catch {
+    return "";
+  }
+};
+
+const genesisMismatch = (txn: algosdk.Transaction): boolean => {
+  const genesisId = txn?.genesisID;
+  const env = store.state.config.env;
+  return Boolean(genesisId && env && genesisId !== env);
 };
 
 const getAssetSync = (id: bigint | number | string) => {

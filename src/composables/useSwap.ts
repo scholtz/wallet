@@ -329,7 +329,6 @@ export function useSwap() {
 
     if (accountData.value && accountData.value.assets) {
       // Parallel fetch all asset infos
-      console.log("Fetching asset infos for assets", accountData.value.assets);
       const assetPromises = accountData.value.assets.map(
         (asset: AccountAssetHolding) =>
           store
@@ -339,7 +338,6 @@ export function useSwap() {
             .catch(() => null) // Ignore errors for individual assets
       );
       const assetInfos = (await Promise.all(assetPromises)) as StoredAsset[];
-      console.log("Fetched asset infos", assetInfos);
       for (let index = 0; index < accountData.value.assets.length; index++) {
         const assetInfo = assetInfos[index];
         if (assetInfo) {
@@ -367,7 +365,6 @@ export function useSwap() {
       }
     }
     loadingAssets.value = false;
-    console.log("makeAssets", assets.value);
   };
 
   const clickGetQuote = async (): Promise<void> => {

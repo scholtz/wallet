@@ -69,6 +69,19 @@ const isHdChild = computed(
 const needsBackup = computed(
   () => isHdRoot.value && !currentAccount.value?.backedUp
 );
+// The dev-info panel must never render raw key material — users may
+// screenshot/share it when reporting bugs (audit finding AW-2026-020).
+const devJson = computed(() => {
+  if (!state.json) return null;
+  const redacted: AccountWithSecret = { ...state.json };
+  if (redacted.sk) {
+    redacted.sk = "<redacted secret key>" as unknown as AccountWithSecret["sk"];
+  }
+  if (redacted.hdMnemonic) {
+    redacted.hdMnemonic = "<redacted mnemonic>";
+  }
+  return redacted;
+});
 
 const toUint8Array = (input: number[] | Uint8Array): Uint8Array => {
   return input instanceof Uint8Array ? input : new Uint8Array(input);
@@ -413,9 +426,9 @@ const markBackedUp = async () => {
               :key="state.mn"
             />
           </div>
-          <div v-if="store.state.config.dev && state.json">
+          <div v-if="store.state.config.dev && devJson">
             <h2>{{ t("account_export.dev_info") }}</h2>
-            <JsonViewer :value="state.json" copyable boxed sort />
+            <JsonViewer :value="devJson" copyable boxed sort />
           </div>
         </div>
       </template>

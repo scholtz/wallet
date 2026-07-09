@@ -72,6 +72,37 @@ const createAlgodClient = (rootState: RootState): algosdk.Algodv2 => {
   return new algosdk.Algodv2(algodToken, algod, url.port);
 };
 
+// Cross-checks the suggested params returned by the configured node against
+// the network the user believes they are on (audit finding AW-2026-005) —
+// a malicious/compromised node must not be able to have the wallet sign a
+// transaction that is valid on a different network than the one shown in
+// the UI. Mirrors the guard Sign.vue applies to externally supplied txns.
+const assertParamsMatchNetwork = (
+  rootState: RootState,
+  params: algosdk.SuggestedParams
+): void => {
+  const env = rootState.config.env;
+  if (!env) return;
+  const genesisId = params.genesisID;
+  if (genesisId && genesisId !== env) {
+    throw new Error(
+      `The configured node returned genesis id "${genesisId}" which does not match the selected network "${env}". Refusing to build the transaction.`
+    );
+  }
+  const knownNetwork = rootState.publicData?.genesisList?.find(
+    (network) => network.network === env
+  );
+  const caip10 = knownNetwork?.CAIP10;
+  if (typeof caip10 === "string" && caip10 && params.genesisHash) {
+    const hashB64 = Buffer.from(params.genesisHash).toString("base64");
+    if (!hashB64.startsWith(caip10)) {
+      throw new Error(
+        `The configured node returned a genesis hash that does not match the selected network "${env}". Refusing to build the transaction.`
+      );
+    }
+  }
+};
+
 const resolveSenderAddress = (account: PaymentAccount): string => {
   return typeof account === "string" ? account : account.addr;
 };
@@ -133,11 +164,12 @@ const actions: ActionTree<AlgodState, RootState> = {
       return undefined;
     }
   },
-  async preparePayment({ rootState }, payload: PreparePaymentPayload) {
+  async preparePayment({ dispatch, rootState }, payload: PreparePaymentPayload) {
     try {
       const algodClient = createAlgodClient(rootState);
       const fromAcct = resolveSenderAddress(payload.payFrom);
       const params = await algodClient.getTransactionParams().do();
+      assertParamsMatchNetwork(rootState, params);
 
       if (payload.fee !== undefined) {
         params.fee = BigInt(payload.fee);
@@ -167,6 +199,8 @@ const actions: ActionTree<AlgodState, RootState> = {
       });
     } catch (error) {
       console.error("Failed to prepare payment", error);
+      const message = error instanceof Error ? error.message : String(error);
+      dispatch("toast/openError", message, { root: true });
       return undefined;
     }
   },
@@ -224,6 +258,7 @@ const actions: ActionTree<AlgodState, RootState> = {
   ) {
     const algodClient = createAlgodClient(rootState);
     const params = await algodClient.getTransactionParams().do();
+    assertParamsMatchNetwork(rootState, params);
     const txn = buildAssetCreateTransaction(asset, params);
     return txn;
   },
@@ -233,6 +268,7 @@ const actions: ActionTree<AlgodState, RootState> = {
   ) {
     const algodClient = createAlgodClient(rootState);
     const params = await algodClient.getTransactionParams().do();
+    assertParamsMatchNetwork(rootState, params);
     const txn = buildAssetCreateTransaction(asset, params);
 
     const signedTxn = (await dispatch(

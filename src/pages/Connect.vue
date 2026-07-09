@@ -92,8 +92,9 @@
                           />
                           <a
                             target="_blank"
+                            rel="noopener noreferrer"
                             class="m-1"
-                            :href="slotProps.data.peer.url"
+                            :href="normalizeUrl(slotProps.data.peer.url)"
                             :title="slotProps.data.peer.description"
                           >
                             {{ slotProps.data.peer.name }}
@@ -174,6 +175,7 @@
 
                       <a
                         target="_blank"
+                        rel="noopener noreferrer"
                         class="m-1"
                         :href="
                           normalizeUrl(
@@ -195,6 +197,36 @@
                         {{ slotProps.data.params.proposer.metadata.name }}
                       </div>
                     </div>
+                  </template>
+                </Column>
+                <Column :header="$t('connect.verification')">
+                  <template #body="slotProps">
+                    <Badge
+                      v-if="verificationStatus(slotProps.data) === 'valid'"
+                      severity="success"
+                      :value="$t('connect.domain_verified')"
+                    />
+                    <Message
+                      v-else-if="verificationStatus(slotProps.data) === 'scam'"
+                      severity="error"
+                      class="m-0"
+                    >
+                      {{ $t("connect.domain_scam") }}
+                    </Message>
+                    <Message
+                      v-else-if="
+                        verificationStatus(slotProps.data) === 'invalid'
+                      "
+                      severity="error"
+                      class="m-0"
+                    >
+                      {{ $t("connect.domain_mismatch") }}
+                    </Message>
+                    <Badge
+                      v-else
+                      severity="warn"
+                      :value="$t('connect.domain_unknown')"
+                    />
                   </template>
                 </Column>
                 <Column :header="$t('connect.all_accounts')">
@@ -300,6 +332,7 @@
                       />
                       <a
                         target="_blank"
+                        rel="noopener noreferrer"
                         class="m-1"
                         :href="normalizeUrl(slotProps.data.peer.url)"
                         :title="slotProps.data.peer.description"
@@ -379,6 +412,14 @@ interface SessionProposal {
       };
     };
   };
+  /** WalletConnect v2 domain-verification signal (audit finding AW-2026-008). */
+  verifyContext?: {
+    verified?: {
+      origin?: string;
+      validation?: "UNKNOWN" | "VALID" | "INVALID";
+      isScam?: boolean;
+    };
+  };
 }
 
 interface ConnectorItem {
@@ -414,7 +455,9 @@ const addr = ref("");
 const error = ref<unknown>("");
 const scan = ref(false);
 const scanWc1 = ref(false);
-const allAccounts = ref(true);
+// Default to exposing only the active account to a connecting DApp; the
+// user must opt in to sharing every account (audit finding AW-2026-009).
+const allAccounts = ref(false);
 
 const requests = computed<RequestItem[]>(
   () => (store.state.wc.requests as RequestItem[] | undefined) ?? []
@@ -455,6 +498,16 @@ const normalizeUrl = (url: string): string => {
   if (url.startsWith("http")) return url;
   if (url.startsWith("//")) return url;
   return `https://${url}`;
+};
+
+type VerificationStatus = "valid" | "invalid" | "scam" | "unknown";
+
+const verificationStatus = (proposal: SessionProposal): VerificationStatus => {
+  const verified = proposal.verifyContext?.verified;
+  if (verified?.isScam) return "scam";
+  if (verified?.validation === "VALID") return "valid";
+  if (verified?.validation === "INVALID") return "invalid";
+  return "unknown";
 };
 
 const sessionAddresses = (accounts: string[]): string[] => {

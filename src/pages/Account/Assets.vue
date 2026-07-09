@@ -138,7 +138,6 @@ import type { AccountNetworkData, PrivateAccount } from "@/types/account";
 import { StoredAsset } from "@/store/indexer";
 import { getArc200Client } from "arc200-client";
 import { AlgorandClient } from "@algorandfoundation/algokit-utils";
-import algosdk from "algosdk";
 
 type AssetType = "Native" | "ASA" | "ARC200";
 
@@ -307,11 +306,7 @@ const reloadArc200AccountBalance = async (data: AssetListItem) => {
 
     const dummyAddress =
       "TESTNTTTJDHIF5PJZUBTTDYYSKLCLM6KXCTWIOOTZJX5HO7263DPPMM2SU";
-    const dummyTransactionSigner = async (
-      txnGroup: algosdk.Transaction[],
-      indexesToSign: number[]
-    ): Promise<Uint8Array[]> => {
-      console.log("transactionSigner", txnGroup, indexesToSign);
+    const dummyTransactionSigner = async (): Promise<Uint8Array[]> => {
       return [] as Uint8Array[];
     };
     const client = getArc200Client({

@@ -27,6 +27,8 @@ interface DecodedTransactionSummary {
   asset: string | number;
   amount?: number | string;
   rekeyTo?: string;
+  /** closeRemainderTo (pay) / assetCloseTo (axfer) — drains the entire remaining balance/holding. */
+  closeTo?: string;
   txn: DecodedAlgorandTransaction;
   txnB64: string;
 }
@@ -286,6 +288,14 @@ const actions: ActionTree<WcState, RootState> = {
             rekeyTo = algosdk.encodeAddress(decoded.rekeyTo.publicKey);
           }
 
+          let closeTo: string | undefined;
+          const closeAddr =
+            decoded.payment?.closeRemainderTo ??
+            decoded.assetTransfer?.closeRemainderTo;
+          if (closeAddr?.publicKey) {
+            closeTo = algosdk.encodeAddress(closeAddr.publicKey);
+          }
+
           const feeValue = decoded.fee ?? 0;
 
           return {
@@ -296,6 +306,7 @@ const actions: ActionTree<WcState, RootState> = {
             asset,
             amount,
             rekeyTo,
+            closeTo,
             txn: decoded,
             txnB64,
           };

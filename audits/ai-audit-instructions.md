@@ -110,7 +110,7 @@ Every audit report file **must** open with this metadata block, filled in accura
 | Audit date | `<YYYY-MM-DD>` |
 | Performed by | `<model id, e.g. claude-sonnet-5, OR human name/handle>` |
 | Instruction file version | `<git log -1 --format=%h -- audits/ai-audit-instructions.md>` |
-| Audit report file | `audits/reports/<YYYY-MM-DD>-<short-commit>.md` |
+| Audit report file | `audits/reports/<YYYY-MM-DD>-<short-commit>-<auditor-slug>.md` |
 | Prior audit reference | `<link to previous report in audits/reports/, or "None — first audit">` |
 ```
 
@@ -130,8 +130,18 @@ instructions — since both the code and this instruction file will evolve over 
 
 ## 5. Output format
 
-Write the full report to `audits/reports/<YYYY-MM-DD>-<short-commit>.md` (create the
-`audits/reports/` folder if absent). Structure:
+Write the full report to
+`audits/reports/<YYYY-MM-DD>-<short-commit>-<auditor-slug>.md` (create the
+`audits/reports/` folder if absent). `<auditor-slug>` is a short, filename-safe
+identifier for whoever/whatever performed the audit — derived from the "Performed
+by" field in the header (section 3):
+- AI model: the model id with the `claude-` prefix dropped, e.g. `claude-sonnet-5`
+  → `sonnet-5`, `claude-fable-5` → `fable-5`.
+- Human: their handle/username, e.g. `jsmith`.
+
+Example: `audits/reports/2026-07-09-4f915d4-sonnet-5.md`. This lets multiple audits
+of the same commit by different auditors coexist without overwriting each other.
+Structure:
 
 1. Header metadata block (section 3).
 2. **Executive summary** — 3-6 sentences, plain language, for a non-technical

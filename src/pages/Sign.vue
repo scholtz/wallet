@@ -174,6 +174,23 @@
                       </Message>
                     </div>
                   </div>
+                  <div class="field grid" v-if="closeTo">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.close_to") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      <Message severity="error">
+                        <AlgorandAddress :address="closeTo" />
+                        <div>
+                          {{
+                            isAssetCloseTo
+                              ? $t("pay.asset_close_to_warning")
+                              : $t("pay.close_to_warning")
+                          }}
+                        </div>
+                      </Message>
+                    </div>
+                  </div>
                 </div>
 
                 <div v-if="multisigTxn">
@@ -306,6 +323,23 @@
                       <AlgorandAddress
                         :address="encodeAddress(multisigTxn?.to?.publicKey)"
                       />
+                    </div>
+                  </div>
+                  <div class="field grid" v-if="multisigCloseTo">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.close_to") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      <Message severity="error">
+                        <AlgorandAddress :address="multisigCloseTo" />
+                        <div>
+                          {{
+                            multisigIsAssetCloseTo
+                              ? $t("pay.asset_close_to_warning")
+                              : $t("pay.close_to_warning")
+                          }}
+                        </div>
+                      </Message>
                     </div>
                   </div>
                 </div>
@@ -819,6 +853,34 @@ const amountLong = computed(() =>
   Math.round(payamount.value * decimalsPower.value)
 );
 const feeLong = computed(() => fee.value * 1_000_000);
+// closeRemainderTo / assetCloseTo drains the entire remaining balance or
+// asset holding to the given address (audit finding AW-2026-001) — always
+// surfaced with a prominent warning before signing.
+const extractCloseTo = (
+  tx:
+    | {
+        payment?: { closeRemainderTo?: unknown };
+        assetTransfer?: { closeRemainderTo?: unknown };
+      }
+    | null
+    | undefined
+): { address: string; isAsset: boolean } => {
+  const closeAddr =
+    tx?.payment?.closeRemainderTo ?? tx?.assetTransfer?.closeRemainderTo;
+  if (!closeAddr) return { address: "", isAsset: false };
+  return {
+    address: String(closeAddr),
+    isAsset: Boolean(tx?.assetTransfer?.closeRemainderTo),
+  };
+};
+const closeTo = computed(() => extractCloseTo(txn.value).address);
+const isAssetCloseTo = computed(() => extractCloseTo(txn.value).isAsset);
+const multisigCloseTo = computed(
+  () => extractCloseTo(multisigTxn.value).address
+);
+const multisigIsAssetCloseTo = computed(
+  () => extractCloseTo(multisigTxn.value).isAsset
+);
 const isRekey = computed(() => {
   if (multisigDecoded.value?.txn?.rekeyTo) {
     return true;
@@ -1235,7 +1297,6 @@ const submitSignedClick = async () => {
       txId: tx.value,
       timeout: 4,
     });
-    console.log("confirmation", confirmation);
     if (!confirmation) {
       const message = t("pay.state_error_not_sent") as string;
       console.error("confirmation not received");
