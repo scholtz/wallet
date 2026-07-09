@@ -465,9 +465,9 @@ export default {
       getParticipationList: "publicData/getParticipationList",
       getIndexerList: "publicData/getIndexerList",
     }),
-    changePasswordClick(e) {
+    async changePasswordClick(e) {
       e.preventDefault();
-      const result = this.changePassword({
+      const result = await this.changePassword({
         passw1: this.passw1,
         passw2: this.passw2,
         passw3: this.passw3,

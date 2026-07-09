@@ -1,4 +1,4 @@
-| Mitigated || Closed || Closed || Closed || Closed || Closed || Closed || Closed || Closed || Closed || Closed || Closed || Closed || Closed || Closed |# AWallet (Biatec Wallet) — Risk Registry
+# AWallet (Biatec Wallet) — Risk Registry
 
 Living, cumulative record of security/code-audit risks identified for this
 repository. Individual point-in-time reports live in `audits/reports/`; this file
@@ -14,12 +14,12 @@ Never delete a row. When a risk is fixed, set Status to `Closed` and keep the ro
 
 | Field | Value |
 |---|---|
-| Last updated by audit report | `audits/reports/2026-07-09-4f915d4.md` |
-| Last updated (audited commit) | `4f915d4057d72f766ebcedae558f56ccf87f157a` |
+| Last updated by audit report | `audits/reports/2026-07-09-ebe2059-fable-5.md`, plus a same-day fix pass (AW-2026-025, -027) and addition of Accepted out-of-scope risks (AW-2026-029..034) not tied to a new dated report |
+| Last updated (audited commit) | `ebe2059ca253bb44e46190c54dbeb2c850237c88` (fix pass applied on top, uncommitted as of this registry update) |
 | Last updated (commit date) | `2026-07-09` |
 | Last updated (AWallet package version) | `2.0.0` |
-| Last updated by | `claude-sonnet-5` |
-| Instructions file version used | `99dfdc1` |
+| Last updated by | `claude-fable-5` |
+| Instructions file version used | `ebe2059` |
 
 ## How to read this table
 
@@ -46,30 +46,40 @@ Never delete a row. When a risk is fixed, set Status to `Closed` and keep the ro
 
 | ID | Title | Severity | 5yr misuse probability | Status | Affected area | First identified | Last reviewed |
 |---|---|---|---|---|---|---|---|
-| AW-2026-001 | No warning/display for `closeRemainderTo`/`assetCloseTo` in any signing surface | Critical | High (~50%) | Open | `store/wc.ts`, `pages/Sign.vue`, `pages/SignAll.vue`, `components/ConnectRequestsTable.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-002 | Weak KDF (single-round MD5 via CryptoJS passphrase overload) for wallet-at-rest encryption | High | Medium (~20%) | Open | `store/wallet.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-003 | Full private key material logged to console on every account switch | High | Low (~8%) | Open | `store/wallet.ts:311` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-004 | Addresses truncated to 4+4 chars in signing UI; full value hover-only (no mobile access) | High | Medium (~15%) | Open | `components/AlgorandAddress.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-005 | Self-originated payments trust configured node's genesis data with no cross-check | High | Low (~10%) | Open | `store/algod.ts`, `pages/Pay.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-006 | Unsanitized `href`/missing `rel=noopener` on WalletConnect v1 peer link | High | Low (~8%) | Open | `pages/Connect.vue:93-100` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-007 | `SignAll.vue` rekeyTo column bound to nonexistent field, always blank | Medium | Low (~5%) | Open | `pages/SignAll.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-008 | WalletConnect `verifyContext` domain-verification signal received but never surfaced | Medium | Medium (~15%) | Open | `store/wc.ts`, `pages/Connect.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-009 | Session approval defaults to granting all accounts across all networks | Medium | Medium (~15%) | Open | `pages/Connect.vue`, `store/wc.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-010 | Custom algod/indexer endpoints fully user-editable, no validation/warning | Medium | Low (~8%) | Open | `store/config.ts`, `pages/Settings.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-011 | Auto-selected public node/indexer list fetched unauthenticated, unpinned | Medium | Low (~5%) | Open | `store/publicData.ts`, `store/config.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-012 | No auto-lock/session timeout; keys persist indefinitely in memory | Medium | Low (~10%) | Open | `store/wallet.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-013 | Reverse tabnabbing: WC v2 peer links lack `rel="noopener noreferrer"` | Medium | Low (~5%) | Open | `pages/Connect.vue:175-180,301-305` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-014 | Rekey warning styling inconsistent; WC batch table lacks visual emphasis | Low | Low (~5%) | Open | `components/ConnectRequestsTable.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-015 | No Content-Security-Policy anywhere in the deployment stack | Low–Medium | Low (~8%) | Open | `index.html`, K8s ingress, no vercel.json | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-016 | `approveSession` grants all networks regardless of DApp's requested namespaces | Low | Very Low (<2%) | Open | `store/wc.ts`, `store/wcClient.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-017 | WC v1 path hardcodes mainnet chainId 4160 regardless of active network | Low | Very Low (<2%) | Open | `shared/wc.ts:234-237` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-018 | Genesis hash/ID shown in WC detail view but not actively cross-validated | Low | Very Low (<2%) | Open | `components/ConnectRequestsTable.vue:328-337` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-019 | Unbounded recursion in `getSK` on multi-hop rekey cycle (DoS) | Low | Very Low (<2%) | Open | `store/wallet.ts:730-752` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-020 | Dev-mode raw `sk` JSON dump on Export page, ambiguously labeled | Low | Very Low (<2%) | Open | `pages/Account/Export.vue:416-419` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-021 | ARC-14 auth token lacks explicit endpoint/audience/timestamp binding | Medium | Needs verification | Open | `store/arc14.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-022 | Production deploy workflow has no build/test gate of its own | Medium | Low (~5%) | Open | `.github/workflows/awallet-main.yml` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-023 | Unused, name-confusable dependency `cryptojs@2.5.3` | Low | Very Low (<2%) | Open | `package.json` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
-| AW-2026-024 | Legacy WalletConnect v1 client still a direct dependency | Low | Needs verification | Open | `package.json`, `shared/wc.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | same |
+| AW-2026-001 | No warning/display for `closeRemainderTo`/`assetCloseTo` in any signing surface | Critical | High (~50%) | Closed | `store/wc.ts`, `pages/Sign.vue`, `pages/SignAll.vue`, `components/ConnectRequestsTable.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-002 | Weak KDF (single-round MD5 via CryptoJS passphrase overload) for wallet-at-rest encryption | High | Medium (~20%) | Closed | `store/wallet.ts`, `scripts/encoding/walletCrypto.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-003 | Full private key material logged to console on every account switch | High | Low (~8%) | Closed | `store/wallet.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-004 | Addresses truncated to 4+4 chars in signing UI; full value hover-only (no mobile access) | High | Medium (~15%) | Closed | `components/AlgorandAddress.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-005 | Self-originated payments trust configured node's genesis data with no cross-check | High | Low (~5%, post-mitigation) | Mitigated | `store/algod.ts`, `pages/Pay.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-006 | Unsanitized `href`/missing `rel=noopener` on WalletConnect v1 peer link | High | Low (~8%) | Closed | `pages/Connect.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-007 | `SignAll.vue` rekeyTo column bound to nonexistent field, always blank | Medium | Low (~5%) | Closed | `pages/SignAll.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-008 | WalletConnect `verifyContext` domain-verification signal received but never surfaced | Medium | Medium (~15%) | Closed | `store/wc.ts`, `pages/Connect.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-009 | Session approval defaults to granting all accounts across all networks | Medium | Medium (~15%) | Closed | `pages/Connect.vue`, `store/wc.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-010 | Custom algod/indexer endpoints fully user-editable, no validation/warning | Medium | Low (~8%) | Open | `store/config.ts`, `pages/Settings.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-011 | Auto-selected public node/indexer list fetched unauthenticated, unpinned (now also feeds the AW-2026-005 genesis cross-check) | Medium | Low (~8%, raised) | Open | `store/publicData.ts`, `store/config.ts`, `store/algod.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-012 | No auto-lock/session timeout; keys persist indefinitely in memory | Medium | Low (~10%) | Open | `store/wallet.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-013 | Reverse tabnabbing: WC v2 peer links lack `rel="noopener noreferrer"` | Medium | Low (~5%) | Closed | `pages/Connect.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-014 | Rekey warning styling inconsistent; WC batch table lacks visual emphasis | Low | Low (~5%) | Closed | `components/ConnectRequestsTable.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-015 | No Content-Security-Policy anywhere in the deployment stack | Low–Medium | Low (~8%) | Open | `index.html`, K8s ingress, no vercel.json | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-016 | `approveSession` grants all networks regardless of DApp's requested namespaces | Low | Very Low (<2%) | Open | `store/wc.ts`, `store/wcClient.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-017 | WC v1 path hardcodes mainnet chainId 4160 regardless of active network | Low | Very Low (<2%) | Open | `shared/wc.ts:236` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-018 | Genesis hash/ID shown in WC detail view but not actively cross-validated | Low | Very Low (<2%) | Closed | `components/ConnectRequestsTable.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-019 | Unbounded recursion in `getSK` on multi-hop rekey cycle (DoS) | Low | Very Low (<2%) | Closed | `store/wallet.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-020 | Dev-mode raw `sk` JSON dump on Export page, ambiguously labeled | Low | Very Low (<2%) | Closed | `pages/Account/Export.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-021 | ARC-14 auth token lacks explicit endpoint/audience/timestamp binding | Medium | Needs verification | Open | `store/arc14.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-022 | Production deploy workflow has no build/test gate of its own | Medium | Low (~5%) | Open | `.github/workflows/awallet-main.yml` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-023 | Unused, name-confusable dependency `cryptojs@2.5.3` | Low | Very Low (<2%) | Closed | `package.json` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-024 | Legacy WalletConnect v1 client still a direct dependency (now confirmed source of 2 high + 1 moderate `pnpm audit` advisories) | Low | Low (~5%, raised) | Open | `package.json`, `shared/wc.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
+| AW-2026-025 | `changePassword` silently reverts: old password remains in session state and re-encrypts wallet on next auto-save | High | Medium (~25%, triggered by normal use, no attacker needed) | Closed | `store/wallet.ts` (`changePassword`/`saveWallet`/`setIsOpen`), `pages/Settings.vue` | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | fix applied 2026-07-09 (uncommitted, on top of `ebe2059`) |
+| AW-2026-026 | In-memory session password wrapped with legacy CryptoJS keyed from localStorage (obfuscation only); dead `rs2` key | Low | Very Low (<2%) | Open | `store/wallet.ts`, localStorage `rs1`/`rs2` | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | same |
+| AW-2026-027 | PBKDF2 derived-key cache never cleared on logout (decryption capability outlives session) | Low | Very Low (<2%) | Closed | `scripts/encoding/walletCrypto.ts`, `store/wallet.ts` (`logout`, `destroyWallet`) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | fix applied 2026-07-09 (uncommitted, on top of `ebe2059`) |
+| AW-2026-028 | Known CVEs in transitive deps (mostly via WC v1 chain) + unused `page` package with high ReDoS advisory | Low | Low (~3%) | Open | `package.json`, `pnpm-lock.yaml` | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | same |
+| AW-2026-029 | Password sharing / weak or reused user passwords | Critical (impact) | Medium (~20%) | Accepted | User behavior — no code surface; `store/wallet.ts` KDF is the only mitigating lever | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | same |
+| AW-2026-030 | Shared/unattended device or stolen device with an unlocked or persistently-decrypted session | High (impact) | Medium (~15%) | Accepted | User behavior + `store/wallet.ts` (no auto-lock, see AW-2026-012 for the one in-scope lever) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | same |
+| AW-2026-031 | Phishing of the wallet's own UI (fake AWallet site/app, fake update, fake support) | Critical (impact) | High (~40%) | Accepted | Outside the app itself — domain/app-store/distribution integrity, user vigilance | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | same |
+| AW-2026-032 | Social engineering to get the user to voluntarily export/paste their mnemonic, sk, or password (fake support, fake dApp, fake "verify your wallet") | Critical (impact) | High (~40%) | Accepted | User behavior — `pages/Account/Export.vue` UI copy is the only in-scope lever | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | same |
+| AW-2026-033 | Compromise of the user's own device (malware, keylogger, malicious browser extension, OS-level compromise) | Critical (impact) | Medium (~25%) | Accepted | Outside the app — OS/browser trust boundary; app cannot defend against a compromised execution environment | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | same |
+| AW-2026-034 | User loses/forgets their password or mnemonic backup with no recovery mechanism (by design, non-custodial) | High (impact) | Medium (~20%) | Accepted | Inherent to non-custodial design — not a vulnerability, a property of the trust model | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | same |
 
 <!--
 Row template to copy when adding a new risk:
@@ -81,15 +91,96 @@ Each row should link (below the table, or in the linked report) to:
 - The specific finding ID's full writeup in its originating audits/reports/*.md file.
 -->
 
+## Accepted risks outside the wallet's control (AW-2026-029 .. -034)
+
+AWallet is a non-custodial client with no backend (see `ai-audit-instructions.md`
+§1); by design there is no code-level control over what happens on the user's own
+device, in the user's own head, or on domains/channels AWallet doesn't operate.
+The audit process (§0 item 4 / §2 item 6) still requires these to be recorded
+rather than silently excluded, since they are the dominant *real-world* cause of
+wallet fund loss industry-wide — a professional audit that only lists in-scope
+code bugs and says nothing about them would understate the actual risk picture a
+stakeholder needs to see. They are logged with Status `Accepted`: acknowledged,
+not fixable by a code change, tracked so the app's *UI-level* mitigations (warning
+copy, confirmation friction, education) can be evaluated against them over time.
+
+- **AW-2026-029 (password sharing / weak or reused passwords):** the wallet
+  cannot prevent a user from choosing a weak password or disclosing it. In-scope
+  lever: the KDF strength (AW-2026-002, fixed) sets the floor for how much a weak
+  password actually protects; consider a password-strength meter/minimum on
+  wallet creation as a further UI-level mitigation.
+- **AW-2026-030 (shared/unattended/stolen device):** no code control over
+  physical device custody. In-scope lever: AW-2026-012 (no auto-lock) is the one
+  concrete, still-open code-level mitigation that reduces this risk's window.
+- **AW-2026-031 (phishing of the wallet's own identity — fake site, fake app,
+  fake update):** outside the running application's own code; depends on domain/
+  app-store/build-distribution integrity (outside this repo) and user vigilance.
+  Note for future audits: this is *distinct* from AW-2026-008 (in-scope — a
+  malicious *DApp* impersonating a trusted DApp *to* AWallet), which is a code
+  surface AWallet does control and has already mitigated.
+- **AW-2026-032 (social engineering to voluntarily export secrets):** e.g. fake
+  support asking a user to paste their mnemonic, a fake "wallet verification"
+  flow. In-scope lever: `Export.vue`'s password-gate and its labeling
+  (AW-2026-020, fixed) are the app's only real friction point here; the wallet
+  cannot distinguish a legitimate self-export from a coerced one.
+- **AW-2026-033 (device/OS/browser compromise — malware, keylogger, malicious
+  extension):** a compromised execution environment can read anything the page
+  can read, including decrypted key material while the wallet is unlocked
+  (compounds with AW-2026-012/-026/-027). No in-browser JS application can fully
+  defend against this; it's the trust boundary the whole client-side model sits
+  on top of.
+- **AW-2026-034 (lost password / lost mnemonic backup, no recovery):** this is
+  not a bug — it is the direct, intended consequence of "non-custodial, no
+  backend, all key material stays local" (`ai-audit-instructions.md` §1). Logged
+  here because it is a real, common cause of permanent fund loss for this class
+  of wallet and belongs in a complete risk picture, not because it should change.
+
 ## Closed / historical risks
 
 _(Closed rows stay in the table above with Status = Closed; this section is for any
 narrative context on closures — e.g. "fixed by commit `abc1234`, verified in audit
 `audits/reports/YYYY-MM-DD-....md`" — that doesn't fit in the table.)_
 
+**2026-07-09 — fix pass following `audits/reports/2026-07-09-ebe2059-fable-5.md`**
+(applied on top of `ebe2059`, uncommitted at time of this registry update; to be
+independently re-verified by the next audit run):
+
+- **AW-2026-025 (Closed):** `changePassword` (`store/wallet.ts`) now commits
+  `setIsOpen({ name, pass: passw2 })` after successfully re-encrypting the wallet
+  record, so `state.pass` (and therefore every subsequent `saveWallet`) uses the
+  *new* password instead of the old one it had been left holding from the
+  `openWallet` verification step. `Settings.vue`'s `changePasswordClick` now
+  `await`s the dispatch and only shows the success toast when it actually
+  returns `true`.
+- **AW-2026-027 (Closed):** added `clearDerivedKeys()` to
+  `scripts/encoding/walletCrypto.ts`, dispatched from both the `logout` and
+  `destroyWallet` actions in `store/wallet.ts`, so cached non-extractable AES
+  keys don't outlive the session.
+
+**2026-07-09 — audit `audits/reports/2026-07-09-ebe2059-fable-5.md` @ `ebe2059`
+(independent verification of the remediation pass in commit `ebe2059`):**
+
+All closures claimed by the 2026-07-09 remediation pass were independently
+re-verified in source and confirmed. Closed at this audit: AW-2026-001, -002,
+-003, -004, -006, -007, -008, -009, -013, -014, -018, -019, -020, -023.
+Mitigated (confirmed): AW-2026-005 — genesis id + CAIP-10 hash cross-check in
+`store/algod.ts` covers all three transaction-building paths, but node-supplied
+balance/asset data is still trusted and the CAIP-10 reference list is itself the
+unpinned external source flagged by AW-2026-011 (whose value as a target this
+mitigation increases — noted on that row).
+
+New at this audit: AW-2026-025 (High — `changePassword` silently reverted by the
+next auto-save; fix by updating `state.pass` to the new password before
+returning, and awaiting the action in `Settings.vue`), AW-2026-026, AW-2026-027,
+AW-2026-028 (Low — see the report for full writeups).
+
+Note: this registry's header/first line was corrupted by the previous update (a
+stray row of status cells prepended before the title); repaired as part of this
+audit's registry update with no row data lost.
+
 **2026-07-09 — remediation pass following `audits/reports/2026-07-09-4f915d4.md`**
-(statuses updated as part of the fix work; to be independently re-verified by the
-next audit run):
+(statuses updated as part of the fix work; independently re-verified by
+`2026-07-09-ebe2059-fable-5.md`, see above):
 
 - **AW-2026-001 (Closed):** `closeRemainderTo`/`assetCloseTo` is now extracted and
   rendered as a red `Message severity="error"` warning (with explanatory copy,
@@ -130,5 +221,8 @@ next audit run):
   `hdMnemonic`.
 - **AW-2026-023 (Closed):** unused `cryptojs@2.5.3` dependency removed.
 
-Still open after this pass: AW-2026-010, -011, -012, -015, -016, -017, -021,
--022, -024.
+Still open after the `ebe2059` audit and the follow-up fix pass above:
+AW-2026-010, -011, -012, -015, -016, -017, -021, -022, -024, -026, -028 (Medium/
+Low, code-fixable). AW-2026-025 and -027 (High/Low) were fixed in the follow-up
+pass. AW-2026-029 through -034 are `Accepted` — outside the wallet's code-level
+control by nature (see "Accepted risks outside the wallet's control" above).

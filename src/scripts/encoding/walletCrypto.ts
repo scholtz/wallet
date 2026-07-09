@@ -92,6 +92,17 @@ const deriveAesKey = async (
   return aesKey;
 };
 
+/**
+ * Drop all cached derived AES keys. Must be called on logout/wallet
+ * destruction — without this, an in-origin attacker who can read the
+ * IndexedDB-persisted encrypted blob after logout could still decrypt it via
+ * a cached key without ever knowing the password (audit finding
+ * AW-2026-027).
+ */
+export const clearDerivedKeys = (): void => {
+  derivedKeyCache.clear();
+};
+
 /** True when the ciphertext is in the legacy CryptoJS passphrase format. */
 export const isLegacyEncryptedData = (encrypted: string): boolean =>
   !encrypted.startsWith(`${NEW_FORMAT_PREFIX}.`);

@@ -15,6 +15,7 @@ import {
   isValidHdMnemonic,
 } from "../scripts/encoding/hdWallet";
 import {
+  clearDerivedKeys,
   decryptWalletData,
   encryptWalletData,
   isLegacyEncryptedData,
@@ -762,6 +763,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
   },
   async logout({ commit }) {
     wc.clear();
+    clearDerivedKeys();
     await commit("logout");
   },
   async prolong({ commit }) {
@@ -1364,7 +1366,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     }
   },
   async changePassword(
-    { dispatch },
+    { commit, dispatch },
     {
       passw1,
       passw2,
@@ -1403,6 +1405,12 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     );
     walletRecord.data = await encryptWalletData(data, passw2);
     await dbAny.wallets.update(walletRecord.id, walletRecord);
+    // openWallet above committed setIsOpen with the *old* password (passw1)
+    // to verify it; without re-committing here, state.pass keeps wrapping
+    // passw1, so the next saveWallet() (triggered by almost any subsequent
+    // action) would silently re-encrypt the wallet record under the old
+    // password again, undoing this change (audit finding AW-2026-025).
+    commit("setIsOpen", { name, pass: passw2 });
     return true;
   },
   async saveWallet({ dispatch }) {
@@ -1597,6 +1605,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     ) {
       const walletRecord = await dbAny.wallets.get({ name });
       await dbAny.wallets.delete(walletRecord.id);
+      clearDerivedKeys();
       commit("logout");
     }
   },
