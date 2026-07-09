@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import MainLayout from "../../layouts/Main.vue";
+import AlgorandAddress from "@/components/AlgorandAddress.vue";
 import { onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -91,7 +92,7 @@ const reset = async () => {
 const createAccount = async () => {
   try {
     state.page = "newaccount";
-    let account = algosdk.generateAccount();
+    const account = algosdk.generateAccount();
     state.a = account.addr.toString();
     state.w = algosdk.secretKeyToMnemonic(account.sk);
   } catch (err: unknown) {
@@ -340,7 +341,7 @@ const useVanityStartClick = () => {
               New account challange
             </label>
             <div class="col-12 md:col-10">
-              {{ state.addr }}
+              <AlgorandAddress :address="state.addr" />
             </div>
           </div>
           <div class="field grid">

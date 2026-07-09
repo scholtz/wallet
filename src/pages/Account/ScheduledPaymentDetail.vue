@@ -2,8 +2,8 @@
 import MainLayout from "../../layouts/Main.vue";
 import { useStore } from "vuex";
 import { onMounted, reactive, watch } from "vue";
-import { FilterMatchMode } from "primevue/api";
-import DropDown from "primevue/dropdown";
+import { FilterMatchMode } from "@primevue/core/api";
+import Select from "primevue/select";
 import Button from "primevue/button";
 import CAsset from "@/scripts/interface/CAsset";
 import base642base64url from "@/scripts/encoding/base642base64url";
@@ -327,7 +327,7 @@ onMounted(async () => {
       state.payTo = deserialized.payTo;
     }
     if (deserialized.assetData) {
-      var newAssetData = new CAsset();
+      const newAssetData = new CAsset();
       newAssetData.amount = deserialized.assetData.amount;
       newAssetData.assetId = deserialized.assetData.assetId;
       newAssetData.decimals = deserialized.assetData.decimals;
@@ -354,7 +354,7 @@ const optinEscrowToAsset = async () => {
         return [];
       },
     };
-    var client = new BiatecCronJobShortHashClient(
+    const client = new BiatecCronJobShortHashClient(
       {
         resolveBy: "id",
         id: state.appInfo.appId,
@@ -408,7 +408,7 @@ const depositToFeePool = async () => {
       },
     };
     const poolAppId = getPoolManagerApp(store.state.config.env);
-    var client = new BiatecTaskManagerClient(
+    const client = new BiatecTaskManagerClient(
       {
         resolveBy: "id",
         id: poolAppId,
@@ -464,7 +464,7 @@ const withdrawFromEscrow = async () => {
         return [];
       },
     };
-    var client = new BiatecCronJobShortHashClient(
+    const client = new BiatecCronJobShortHashClient(
       {
         resolveBy: "id",
         id: state.appInfo.appId,
@@ -537,7 +537,7 @@ const deposit = (data: any) => {
 };
 
 async function copyToClipboard(text: string | number) {
-  if (copy(String(text))) {
+  if (await copy(String(text))) {
     await store.dispatch("toast/openSuccess", `${text} copied to clipboard`);
   }
 }
@@ -699,13 +699,13 @@ const loadScript = async () => {
           <template #header>
             <div class="grid" v-if="state.filters['global']">
               <div class="col">
-                <span class="p-input-icon-left">
-                  <i class="pi pi-search" />
+                <IconField>
+                  <InputIcon class="pi pi-search" />
                   <InputText
                     v-model="state.filters['global'].value"
                     :placeholder="t('placeholders.keyword_search')"
                   />
-                </span>
+                </IconField>
               </div>
             </div>
           </template>
@@ -784,14 +784,14 @@ const loadScript = async () => {
             {{ t("scheduled_payments.withdraw_asset") }}
           </label>
           <div class="col-12 md:col-10">
-            <DropDown
+            <Select
               inputId="withdrawAsset"
               :options="state.assets"
               v-model="state.withdrawAsset"
               optionLabel="assetName"
               optionValue="assetId"
               class="w-full"
-            ></DropDown>
+            ></Select>
           </div>
         </div>
         <div class="field grid">

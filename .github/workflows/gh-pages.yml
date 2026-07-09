@@ -8,21 +8,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v2.3.4
-      - uses: actions/setup-node@v2
+        uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
         with:
-          node-version: "22.x"
+          version: 11.10.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "26.x"
           registry-url: "https://registry.npmjs.org"
+          cache: "pnpm"
 
-      - name: npm install 🔧 # Install
+      - name: pnpm install 🔧 # Install
         run: |
-          npm install
-      - name: npm run build 🔧 # Build
+          pnpm install --frozen-lockfile
+      - name: pnpm run build 🔧 # Build
         run: |
-          npm run build
-      - name: npm run test 🔧 # Test
+          pnpm run build
+      - name: pnpm run test 🔧 # Test
         run: |
-          npm run test
+          pnpm run test
 
       - name: Deploy 🚀 # Deploy to gh-pages branch
         uses: JamesIves/github-pages-deploy-action@4.1.5

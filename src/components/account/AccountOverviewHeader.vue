@@ -41,7 +41,7 @@
       <b>{{ account.name }}</b>
     </p>
     <p v-if="account">
-      {{ account.addr }}
+      <AlgorandAddress :address="account.addr" />
     </p>
 
     <template #footer>
@@ -58,6 +58,7 @@
 <script setup lang="ts">
 import { ref, toRefs } from "vue";
 import { useI18n } from "vue-i18n";
+import AlgorandAddress from "@/components/AlgorandAddress.vue";
 import type { PrivateAccount } from "@/types/account";
 
 const props = defineProps<{

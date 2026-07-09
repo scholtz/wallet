@@ -10,13 +10,13 @@ interface ToastAddOptions {
   summary?: string;
 }
 
-/* eslint-disable no-unused-vars */
+ 
 interface ToastInstance {
   $toast: {
     add(options: ToastAddOptions): void;
   };
 }
-/* eslint-enable no-unused-vars */
+ 
 
 export interface ToastState {
   _vm: ToastInstance | null;

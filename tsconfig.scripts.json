@@ -4,9 +4,10 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "strict": true,
+    "ignoreDeprecations": "6.0",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["scripts/run-tests.ts"]
+  "include": ["scripts/*.ts"]
 }

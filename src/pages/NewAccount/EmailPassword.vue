@@ -6,7 +6,7 @@ import Password from "primevue/password";
 import InputText from "primevue/inputtext";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-import InputSwitch from "primevue/inputswitch";
+import ToggleSwitch from "primevue/toggleswitch";
 import { RootState } from "@/store";
 
 const state = reactive({
@@ -107,7 +107,7 @@ onMounted(async () => {
             {{ t("arc76account.save_password_switch") }}
           </label>
           <div class="col-12 md:col-10">
-            <InputSwitch
+            <ToggleSwitch
               class="my-2"
               v-model="state.savePassword"
               inputId="savePassword"

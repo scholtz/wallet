@@ -3,6 +3,7 @@ import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { onMounted, reactive } from "vue";
 import MainLayout from "../layouts/Main.vue";
+import AlgorandAddress from "../components/AlgorandAddress.vue";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import { RootState } from "@/store";
@@ -70,6 +71,18 @@ onMounted(async () => {
   state.transactions = data;
   await checkAtLeastOneSigned();
   await checkAllTxsAreSigned();
+
+  const assetIndexes = new Set<bigint>();
+  for (const entry of data) {
+    if (entry.txn.type === "axfer" && entry.txn.assetTransfer?.assetIndex) {
+      assetIndexes.add(BigInt(entry.txn.assetTransfer.assetIndex));
+    }
+  }
+  await Promise.all(
+    Array.from(assetIndexes).map((assetIndex) =>
+      store.dispatch("indexer/getAsset", { assetIndex }),
+    ),
+  );
 });
 
 const formatGenesisHash = (genesisHash?: Uint8Array | number[]) => {
@@ -219,7 +232,7 @@ const clickSignAll = async () => {
   }
 };
 const checkAtLeastOneSigned = () => {
-  for (let tx of state.transactions) {
+  for (const tx of state.transactions) {
     if (tx.txn.txID() in store.state.signer.signed) {
       state.atLeastOneSigned = true;
       return true;
@@ -230,7 +243,7 @@ const checkAtLeastOneSigned = () => {
 };
 const checkAllTxsAreSigned = () => {
   let result = true;
-  for (let tx of state.transactions) {
+  for (const tx of state.transactions) {
     const id = tx.txn.txID();
     if (!(id in store.state.signer.signed)) {
       result = false;
@@ -365,7 +378,7 @@ const getAssetDecimals = (id: number) => {
             />
           </Button>
           <Button
-            v-if="$store.state.signer.returnToSignAll == 'ScheduledPayments'"
+            v-if="store.state.signer.returnToSignAll == 'ScheduledPayments'"
             class="ml-2"
             :severity="state.confirmedRound ? 'primary' : 'secondary'"
             :disabled="!state.atLeastOneSigned"
@@ -400,7 +413,11 @@ const getAssetDecimals = (id: number) => {
           </Column>
           <Column field="index" :header="t('connect.index')" :sortable="true" />
           <Column field="type" :header="t('connect.type')" :sortable="true" />
-          <Column field="from" :header="t('connect.from')" :sortable="true" />
+          <Column field="from" :header="t('connect.from')" :sortable="true">
+            <template #body="slotProps">
+              <AlgorandAddress :address="slotProps.data.from" />
+            </template>
+          </Column>
           <Column field="asset" :header="t('connect.asset')" :sortable="true" />
           <Column field="amount" :header="t('connect.amount')" :sortable="true">
             <template #body="slotProps">
@@ -447,13 +464,17 @@ const getAssetDecimals = (id: number) => {
                   <tr v-if="txProps.data.txn.from">
                     <td>{{ t("connect.from") }}:</td>
                     <td>
-                      {{ encodeAddress(txProps.data.txn.from) }}
+                      <AlgorandAddress
+                        :address="encodeAddress(txProps.data.txn.from)"
+                      />
                     </td>
                   </tr>
                   <tr v-if="txProps.data.txn.to">
                     <td>{{ t("connect.to") }}:</td>
                     <td>
-                      {{ encodeAddress(txProps.data.txn.to) }}
+                      <AlgorandAddress
+                        :address="encodeAddress(txProps.data.txn.to)"
+                      />
                     </td>
                   </tr>
                   <tr>

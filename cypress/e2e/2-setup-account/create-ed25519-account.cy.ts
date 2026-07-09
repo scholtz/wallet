@@ -18,9 +18,21 @@ describe("Create ED25519 Account", () => {
     // Create wallet using custom command
     cy.createTestWallet();
 
-    // Wait for accounts page to load and create account
-    cy.url().should("include", "/accounts");
-    cy.get("#create-first", { timeout: 10000 }).should("be.visible").click();
+    // Wallet creation now auto-creates a first HD account and lands on its
+    // overview page, so create a second (ED25519) account via the nav menu.
+    cy.url().should("include", "/account/");
+
+    // Wait for the navbar to load
+    cy.get(".p-menubar", { timeout: 10000 }).should("be.visible");
+
+    // Use the menu to navigate to ED25519 account creation
+    cy.contains("Wallet", { timeout: 10000 }).click({ force: true });
+    cy.contains("New account", { timeout: 10000 }).trigger("mouseenter", {
+      force: true,
+    });
+    cy.contains("Create basic account", { timeout: 10000 }).click({
+      force: true,
+    });
 
     // Wait for account creation page
     cy.url().should("include", "/new-account/ed25519");

@@ -2,6 +2,7 @@ import { createWebHistory, createRouter } from "vue-router";
 import Privacy from "@/pages/Privacy.vue";
 import ImportWallet from "@/pages/Wallet/ImportWallet.vue";
 import NewWallet from "@/pages/Wallet/NewWallet.vue";
+import AssetsOverview from "@/pages/Wallet/AssetsOverview.vue";
 import Accounts from "@/pages/Accounts.vue";
 import AccountOverview from "@/pages/AccountOverview.vue";
 import AccountActions from "@/pages/Account/Actions.vue";
@@ -10,6 +11,7 @@ import AccountTransactions from "@/pages/Account/Transactions.vue";
 import TransactionDetail from "@/pages/TransactionDetail.vue";
 import NotFound from "@/pages/404.vue";
 import FAQ from "@/pages/FAQ.vue";
+import Changelog from "@/pages/Changelog.vue";
 import Pay from "@/pages/Pay.vue";
 import Sign from "@/pages/Sign.vue";
 import SignAll from "@/pages/SignAll.vue";
@@ -42,7 +44,9 @@ import NewAccountVanity from "@/pages/NewAccount/Vanity.vue";
 import NewAccountMultisig from "@/pages/NewAccount/Multisig.vue";
 import NewAccountWatch from "@/pages/NewAccount/Watch.vue";
 import NewAccountImport from "@/pages/NewAccount/RecoverEd25519.vue";
+import NewAccountHdWallet from "@/pages/NewAccount/HdWallet.vue";
 import AccountExport from "@/pages/Account/Export.vue";
+import AccountHdNext from "@/pages/Account/HdNext.vue";
 
 const routes = [
   {
@@ -109,6 +113,11 @@ const routes = [
     path: "/new-account/watch",
     name: "NewAccountWatch",
     component: NewAccountWatch,
+  },
+  {
+    path: "/new-account/hd-wallet",
+    name: "NewAccountHdWallet",
+    component: NewAccountHdWallet,
   },
   {
     path: "/swap/:account",
@@ -211,6 +220,11 @@ const routes = [
     component: Accounts,
   },
   {
+    path: "/assets-overview",
+    name: "AssetsOverview",
+    component: AssetsOverview,
+  },
+  {
     path: "/account/:account",
     name: "AccountOverview",
     component: AccountOverview,
@@ -234,6 +248,11 @@ const routes = [
     path: "/account/export/:account",
     name: "AccountExport",
     component: AccountExport,
+  },
+  {
+    path: "/account/hd-next/:account",
+    name: "AccountHdNext",
+    component: AccountHdNext,
   },
   {
     path: "/account/optin/:account",
@@ -314,6 +333,11 @@ const routes = [
     path: "/faq",
     name: "FAQ",
     component: FAQ,
+  },
+  {
+    path: "/changelog",
+    name: "Changelog",
+    component: Changelog,
   },
   {
     path: "/:catchAll(.*)",

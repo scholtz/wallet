@@ -162,7 +162,7 @@ import { useStore } from "vuex";
 import MainLayout from "../layouts/Main.vue";
 import Checkbox from "primevue/checkbox";
 import AccountType from "@/components/AccountType.vue";
-import { FilterMatchMode } from "primevue/api";
+import { FilterMatchMode } from "@primevue/core/api";
 import InputGroup from "primevue/inputgroup";
 import InputGroupAddon from "primevue/inputgroupaddon";
 import { useI18n } from "vue-i18n";
@@ -218,7 +218,7 @@ const fillAccounts = () => {
     store.state.wallet.privateAccounts || {}
   ) as WalletAccount[];
 
-  let filteredAccounts: WalletAccount[] = [];
+  let filteredAccounts: WalletAccount[];
 
   if (showNetworkAccounts.value) {
     filteredAccounts = privateAccounts.filter((account) => {
@@ -251,7 +251,7 @@ const fillAccounts = () => {
       // if addr is algorand address object, convert to string
       const pk = (account.addr as any)?.publicKey;
       if (pk) {
-        var buffer = Buffer.from(Object.values(pk));
+        const buffer = Buffer.from(Object.values(pk));
         const obj = new algosdk.Address(buffer);
         addr = obj.toString();
       }

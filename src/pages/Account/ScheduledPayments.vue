@@ -2,10 +2,10 @@
 import MainLayout from "../../layouts/Main.vue";
 import { useStore } from "vuex";
 import { onMounted, reactive, watch } from "vue";
-import { FilterMatchMode } from "primevue/api";
+import { FilterMatchMode } from "@primevue/core/api";
 import SelectAccount from "../../components/SelectAccount.vue";
 import SelectAsset from "../../components/SelectAsset.vue";
-import DropDown from "primevue/dropdown";
+import Select from "primevue/select";
 import CAsset from "@/scripts/interface/CAsset";
 import base642base64url from "@/scripts/encoding/base642base64url";
 import { useRoute, useRouter } from "vue-router";
@@ -390,7 +390,7 @@ onMounted(async () => {
       state.payTo = deserialized.payTo;
     }
     if (deserialized.assetData) {
-      var newAssetData = new CAsset();
+      const newAssetData = new CAsset();
       newAssetData.amount = deserialized.assetData.amount;
       newAssetData.assetId = deserialized.assetData.assetId;
       newAssetData.decimals = deserialized.assetData.decimals;
@@ -466,14 +466,14 @@ watch(
             {{ t("scheduled_payments.period") }}
           </label>
           <div class="col-12 md:col-10">
-            <DropDown
+            <Select
               v-model="state.period"
               option-label="name"
               option-value="value"
               :options="state.optionsSchedule"
               class="w-full"
             >
-            </DropDown>
+            </Select>
           </div>
         </div>
         <div class="field grid">
@@ -558,13 +558,13 @@ watch(
           <template #header>
             <div class="grid" v-if="state.filters['global']">
               <div class="col">
-                <span class="p-input-icon-left">
-                  <i class="pi pi-search" />
+                <IconField>
+                  <InputIcon class="pi pi-search" />
                   <InputText
                     v-model="state.filters['global'].value"
                     :placeholder="t('placeholders.keyword_search')"
                   />
-                </span>
+                </IconField>
               </div>
             </div>
           </template>

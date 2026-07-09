@@ -91,7 +91,7 @@
                 $t("gateway.asset")
               }}</label>
               <div class="col-12 md:col-10">
-                <Dropdown
+                <Select
                   v-if="build"
                   filter
                   id="asset"
@@ -113,7 +113,7 @@
                       </div>
                     </div>
                   </template>
-                </Dropdown>
+                </Select>
                 <span v-if="!build">
                   <code>asset</code> - {{ $t("gateway.asset") }}
                 </span>
@@ -445,11 +445,11 @@ export default {
     },
     paymentinfoB64() {
       if (!this.paymentinfo) return "";
-      var buffer = Buffer.from(this.paymentinfo, "utf8");
+      const buffer = Buffer.from(this.paymentinfo, "utf8");
       return base64url(buffer);
     },
     callbackConfig() {
-      let ret = {};
+      const ret = {};
       if (this.success) ret.success = this.success;
       if (this.cancel) ret.cancel = this.cancel;
       return JSON.stringify(ret);

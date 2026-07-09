@@ -44,12 +44,17 @@
         <div class="field grid" v-if="address">
           <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
           <div class="col-12 md:col-10">
-            <div>
+            <div class="flex align-items-center flex-wrap gap-1">
               {{ $t("new_account_ledger.slot") }} {{ loadedSlot }}
-              {{ $t("new_account_ledger.address") }}: {{ address }}
+              {{ $t("new_account_ledger.address") }}:
+              <AlgorandAddress :address="address" />
             </div>
-            <div v-if="address0 != address">
-              {{ $t("new_account_ledger.primary_address") }}: {{ address0 }}
+            <div
+              v-if="address0 != address"
+              class="flex align-items-center flex-wrap gap-1"
+            >
+              {{ $t("new_account_ledger.primary_address") }}:
+              <AlgorandAddress :address="address0" />
             </div>
           </div>
         </div>
@@ -78,6 +83,7 @@
 
 <script>
 import MainLayout from "../../layouts/Main.vue";
+import AlgorandAddress from "@/components/AlgorandAddress.vue";
 import Algorand from "@ledgerhq/hw-app-algorand";
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 
@@ -85,6 +91,7 @@ import { mapActions } from "vuex";
 export default {
   components: {
     MainLayout,
+    AlgorandAddress,
   },
   data() {
     return {

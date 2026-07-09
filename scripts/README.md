@@ -28,7 +28,7 @@ Individual test runner for specific test files that:
 The original issue was that Cypress tests failed with **404 errors** instead of meaningful error messages:
 
 ### Before Fix
-- `npm run test` used `run-p -r server cypress:run` which caused race conditions
+- `pnpm run test` used `run-p -r server cypress:run` which caused race conditions
 - The `-r/--race` flag kills all processes when one exits  
 - When Cypress binary was missing, Cypress failed immediately
 - This killed the server before it could start, causing **404 connection errors**
@@ -47,21 +47,21 @@ The original issue was that Cypress tests failed with **404 errors** instead of 
 
 ```bash
 # Main test command (recommended) - handles everything automatically
-npm run test
+pnpm run test
 
 # Individual test commands - now start server automatically  
-npm run test:basic      # Basic application load test
-npm run test:ed25519    # ED25519 account creation test
-npm run test:arc76      # ARC76 account creation test
+pnpm run test:basic      # Basic application load test
+pnpm run test:ed25519    # ED25519 account creation test
+pnpm run test:arc76      # ARC76 account creation test
 
 # Parallel execution (requires Cypress binary and manual server management)
-npm run test:parallel   # Fixed version without race conditions
-npm run test:video      # Parallel with video recording
-npm run test:open       # Open Cypress UI
+pnpm run test:parallel   # Fixed version without race conditions
+pnpm run test:video      # Parallel with video recording
+pnpm run test:open       # Open Cypress UI
 
 # Utility commands
-npm run test:prepare    # Just build the app
-npm run server          # Start production server manually
+pnpm run test:prepare    # Just build the app
+pnpm run server          # Start production server manually
 ```
 
 ## For CI/CD Environments

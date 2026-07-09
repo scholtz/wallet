@@ -9,6 +9,11 @@ import db from "../shared/db";
 import wc from "../shared/wc";
 import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
 import type { RootState } from "./index";
+import {
+  generateHdMnemonic,
+  hdDeriveAddress,
+  isValidHdMnemonic,
+} from "../scripts/encoding/hdWallet";
 
 type WalletAccountData = Record<string, IAccountData>;
 
@@ -60,8 +65,16 @@ export interface WalletAccount {
   name?: string;
   params?: algosdk.MultisigMetadata;
   data?: WalletAccountData;
-  type?: "2faApi" | "2fa" | "msig" | "ledger" | "wc" | "emailPwd";
+  type?: "2faApi" | "2fa" | "msig" | "ledger" | "wc" | "emailPwd" | "hd";
   recoveryAccount?: string;
+  /** ARC-52 (BIP32-Ed25519) master mnemonic. Only set on the root (iteration 0) hd account. */
+  hdMnemonic?: string;
+  /** Address of the hd account holding hdMnemonic. Set on every hd account, including the root. */
+  hdRootAddr?: string;
+  /** Hardened BIP44 account' path component ("iteration"). */
+  hdAccountIndex?: number;
+  /** Whether the user has confirmed backing up this account's recovery secret (mnemonic). Only meaningful for accounts holding their own secret, e.g. an hd root account. */
+  backedUp?: boolean;
   [key: string]: any;
 }
 
@@ -126,6 +139,12 @@ type SetPrivateAccountPayload = {
   network: string;
 };
 
+type SetAccountRekeyPayload = {
+  addr: string;
+  network: string;
+  rekeyedTo?: string;
+};
+
 type AddEmailPasswordAccountPayload = {
   name: string;
   savePassword: boolean;
@@ -173,6 +192,23 @@ type AddWalletConnectAccountPayload = {
   name: string;
   addr: string;
   session: unknown;
+  network: string;
+};
+
+type AddHdWalletAccountMutationPayload = {
+  name: string;
+  addr: string;
+  mnemonic: string;
+  hdAccountIndex: number;
+  network: string;
+  backedUp: boolean;
+};
+
+type AddHdWalletChildAccountMutationPayload = {
+  name: string;
+  addr: string;
+  hdRootAddr: string;
+  hdAccountIndex: number;
   network: string;
 };
 
@@ -378,6 +414,22 @@ const mutations: MutationTree<WalletState> = {
       }
     }
   },
+  setAccountRekey(
+    state,
+    { addr, network, rekeyedTo }: SetAccountRekeyPayload
+  ) {
+    const acc = state.privateAccounts.find((x) => x.addr == addr);
+    if (!acc) {
+      console.error(`Error updating rekey info. Address ${addr} not found`);
+      return;
+    }
+    const networkData = ensureAccountNetworkData(acc, network);
+    if (rekeyedTo) {
+      networkData.rekeyedTo = rekeyedTo;
+    } else {
+      delete networkData.rekeyedTo;
+    }
+  },
   addEmailPasswordAccount(
     state,
     {
@@ -527,6 +579,63 @@ const mutations: MutationTree<WalletState> = {
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
+  addHdWalletAccount(
+    state,
+    {
+      name,
+      addr,
+      mnemonic,
+      hdAccountIndex,
+      network,
+      backedUp,
+    }: AddHdWalletAccountMutationPayload
+  ) {
+    const account: WalletAccount = {
+      addr,
+      address: addr,
+      name,
+      network,
+      type: "hd",
+      hdMnemonic: mnemonic,
+      hdRootAddr: addr,
+      hdAccountIndex,
+      backedUp,
+    };
+    state.privateAccounts.push(account);
+    state.lastActiveAccount = addr;
+    state.lastActiveAccountName = name;
+  },
+  setAccountBackedUp(state, { addr }: { addr: string }) {
+    const acc = state.privateAccounts.find((x) => x.addr == addr);
+    if (!acc) {
+      console.error(`Error marking account as backed up. Address ${addr} not found`);
+      return;
+    }
+    acc.backedUp = true;
+  },
+  addHdWalletChildAccount(
+    state,
+    {
+      name,
+      addr,
+      hdRootAddr,
+      hdAccountIndex,
+      network,
+    }: AddHdWalletChildAccountMutationPayload
+  ) {
+    const account: WalletAccount = {
+      addr,
+      address: addr,
+      name,
+      network,
+      type: "hd",
+      hdRootAddr,
+      hdAccountIndex,
+    };
+    state.privateAccounts.push(account);
+    state.lastActiveAccount = addr;
+    state.lastActiveAccountName = name;
+  },
   setPrivateAccounts(state, accts?: WalletAccount[]) {
     if (accts) {
       for (const acct of accts) {
@@ -591,13 +700,13 @@ const mutations: MutationTree<WalletState> = {
   },
 };
 type WalletActionContext = ActionContext<WalletState, RootState>;
-/* eslint-disable no-unused-vars */
+ 
 type WalletActionHandler = (
   this: Store<RootState>,
   _context: WalletActionContext,
   _payload?: any
 ) => any;
-/* eslint-enable no-unused-vars */
+ 
 
 const actionHandlers: Record<string, WalletActionHandler> = {
   async setTransaction(
@@ -856,6 +965,111 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       throw error;
     }
   },
+  async addHdWalletAccount(
+    { dispatch, commit },
+    {
+      name,
+      mnemonic,
+      accountIndex,
+      backedUp,
+    }: {
+      name: string;
+      mnemonic?: string;
+      accountIndex?: number;
+      backedUp?: boolean;
+    }
+  ) {
+    if (!name) {
+      throw Error("Plase set account name");
+    }
+    try {
+      const finalMnemonic = mnemonic?.trim() || generateHdMnemonic();
+      if (!isValidHdMnemonic(finalMnemonic)) {
+        throw Error("Mnemonic is not a valid BIP-39 phrase");
+      }
+      const hdAccountIndex = accountIndex ?? 0;
+      const addr = await hdDeriveAddress(finalMnemonic, hdAccountIndex, 0);
+      await commit("addHdWalletAccount", {
+        name,
+        addr,
+        mnemonic: finalMnemonic,
+        hdAccountIndex,
+        network: this.state.config.env,
+        backedUp: backedUp ?? false,
+      });
+      await dispatch("saveWallet");
+      return addr;
+    } catch (error) {
+      console.error("error", error);
+      dispatch(
+        "toast/openError",
+        "Account has not been created: " + toErrorMessage(error),
+        {
+          root: true,
+        }
+      );
+      throw error;
+    }
+  },
+  async markAccountBackedUp({ dispatch, commit }, { addr }: { addr: string }) {
+    if (!addr) {
+      throw Error("Plase set account address");
+    }
+    await commit("setAccountBackedUp", { addr });
+    await dispatch("saveWallet");
+    return true;
+  },
+  async addHdWalletChildAccount(
+    { dispatch, commit },
+    {
+      name,
+      hdRootAddr,
+      hdAccountIndex,
+    }: { name: string; hdRootAddr: string; hdAccountIndex: number }
+  ) {
+    if (!name) {
+      throw Error("Plase set account name");
+    }
+    try {
+      const rootAccount = this.state.wallet.privateAccounts.find(
+        (a) => a.addr === hdRootAddr && a.hdMnemonic
+      );
+      if (!rootAccount?.hdMnemonic) {
+        throw Error("HD wallet root account was not found");
+      }
+      const exists = this.state.wallet.privateAccounts.some(
+        (a) =>
+          a.hdRootAddr === hdRootAddr && a.hdAccountIndex === hdAccountIndex
+      );
+      if (exists) {
+        throw Error("This iteration has already been generated");
+      }
+      const addr = await hdDeriveAddress(
+        rootAccount.hdMnemonic,
+        hdAccountIndex,
+        0
+      );
+      await commit("addHdWalletChildAccount", {
+        name,
+        addr,
+        hdRootAddr,
+        hdAccountIndex,
+        network: this.state.config.env,
+      });
+      await dispatch("saveWallet");
+      return addr;
+    } catch (error) {
+      console.error("error", error);
+      dispatch(
+        "toast/openError",
+        "Account has not been created: " + toErrorMessage(error),
+        {
+          root: true,
+        }
+      );
+      throw error;
+    }
+  },
   async addMultiAccount(
     { dispatch, commit },
     { params, name }: { params: MultisigMetadata; name: string }
@@ -1070,6 +1284,75 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     await commit("setPrivateAccount", { info, network: this.state.config.env });
     await dispatch("saveWallet");
   },
+  // Detects whether the account's on-chain auth-addr (rekey target) differs
+  // from what is stored locally, keeps rekeyedTo in sync (including clearing
+  // it once a rekey is reversed), and warns if the account that is now
+  // authoritative for signing is missing or lacks signing material in the
+  // wallet. Works for every account type (sk, msig, ledger, wc).
+  async syncAccountSigner(
+    { dispatch, commit },
+    { addr, silent }: { addr: string; silent?: boolean }
+  ) {
+    const network = String(this.state.config.env);
+    const acc = this.state.wallet.privateAccounts.find((a) => a.addr == addr);
+    if (!acc) return;
+    const networkData = acc.data?.[network];
+    const authAddr = networkData?.["auth-addr"];
+    const currentRekey =
+      typeof authAddr === "string" && authAddr.length > 0 && authAddr !== addr
+        ? authAddr
+        : undefined;
+
+    if ((networkData?.rekeyedTo ?? undefined) !== currentRekey) {
+      await commit("setAccountRekey", {
+        addr,
+        network,
+        rekeyedTo: currentRekey,
+      });
+      await dispatch("saveWallet");
+      if (currentRekey) {
+        await dispatch(
+          "toast/openSuccess",
+          `Information about rekeying to address ${currentRekey} has been stored`,
+          { root: true }
+        );
+      } else {
+        await dispatch(
+          "toast/openSuccess",
+          "Account is no longer rekeyed. Local rekey information has been cleared.",
+          { root: true }
+        );
+      }
+    }
+
+    const signatorAddr = currentRekey ?? addr;
+    const signatorAccount = this.state.wallet.privateAccounts.find(
+      (a) => a.addr == signatorAddr
+    );
+    if (!signatorAccount) {
+      if (!silent) {
+        await dispatch(
+          "toast/openError",
+          `This account is currently signed by ${signatorAddr}, which is not present in your wallet. Add that account (e.g. import its multisig configuration) so you are able to sign transactions.`,
+          { root: true }
+        );
+      }
+      return;
+    }
+    const hasSigningMaterial =
+      Boolean(signatorAccount.sk) ||
+      Boolean(signatorAccount.params) ||
+      signatorAccount.type === "ledger" ||
+      signatorAccount.type === "wc" ||
+      signatorAccount.type === "hd";
+    if (!hasSigningMaterial && !silent) {
+      await dispatch(
+        "toast/openError",
+        `Signing information for ${signatorAddr} is incomplete in your wallet.`,
+        { root: true }
+      );
+    }
+  },
   async changePassword(
     { dispatch },
     {
@@ -1183,7 +1466,6 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return;
     }
 
-    await wc.restore();
     return true;
   },
   async checkPassword({ dispatch }, { pass }: { pass: string }) {
@@ -1221,23 +1503,17 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     );
     const dataencoded = CryptoJS.AES.encrypt(data, pass);
 
-    dbAny.wallets
-      .add({ name, data: dataencoded.toString() })
-      .then(function () {
-        return true;
-      })
-      .catch((error: unknown) => {
-        const stack = (error as Error).stack;
-        dispatch(
-          "toast/openError",
-          "Error: " + (stack || toErrorMessage(error)),
-          {
-            root: true,
-          }
-        );
+    try {
+      await dbAny.wallets.add({ name, data: dataencoded.toString() });
+    } catch (error: unknown) {
+      const stack = (error as Error).stack;
+      dispatch("toast/openError", "Error: " + (stack || toErrorMessage(error)), {
+        root: true,
       });
-    await dispatch("saveWallet");
+      return false;
+    }
     await commit("setIsOpen", { name, pass });
+    await dispatch("saveWallet");
     return true;
   },
   async getWallets() {

@@ -11,7 +11,24 @@ const { t } = useI18n();
   <MainLayout>
     <h1>{{ t("newacc.title") }}</h1>
     <TabView>
-      <TabPanel :header="t('newacc.basic_options')" headerClass="mr-2">
+      <TabPanel
+        value="0"
+        :header="t('newacc.basic_options')"
+        headerClass="mr-2"
+      >
+        <div class="field grid">
+          <RouterLink
+            to="/new-account/hd-wallet"
+            class="col-12 mb-2 md:col-2 md:mb-0"
+          >
+            <Button class="w-full">
+              {{ t("newacc.hd_wallet_account") }}
+            </Button>
+          </RouterLink>
+          <div class="col-12 md:col-10">
+            {{ t("newacc.hd_wallet_account_help") }}
+          </div>
+        </div>
         <div class="field grid">
           <RouterLink
             to="/new-account/ed25519"
@@ -39,7 +56,24 @@ const { t } = useI18n();
           </div>
         </div>
       </TabPanel>
-      <TabPanel :header="t('newacc.advanced_options')" headerClass="mr-2">
+      <TabPanel
+        value="1"
+        :header="t('newacc.advanced_options')"
+        headerClass="mr-2"
+      >
+        <div class="field grid">
+          <RouterLink
+            to="/new-account/hd-wallet"
+            class="col-12 mb-2 md:col-2 md:mb-0"
+          >
+            <Button class="w-full">
+              {{ t("newacc.hd_wallet_account") }}
+            </Button>
+          </RouterLink>
+          <div class="col-12 md:col-10">
+            {{ t("newacc.hd_wallet_account_help") }}
+          </div>
+        </div>
         <div class="field grid">
           <RouterLink
             to="/new-account/ed25519"

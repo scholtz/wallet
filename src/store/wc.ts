@@ -1,5 +1,5 @@
 import { Core } from "@walletconnect/core";
-import { Web3Wallet } from "@walletconnect/web3wallet";
+import { WalletKit } from "@reown/walletkit";
 import { parseUri } from "@walletconnect/utils";
 import algosdk from "algosdk";
 import type { ActionTree, MutationTree } from "vuex";
@@ -7,8 +7,8 @@ import wc from "../shared/wc";
 import WCKeyValueStore from "../shared/WCKeyValueStore";
 import type { RootState } from "./index";
 
-type Web3WalletInstance = Awaited<ReturnType<typeof Web3Wallet.init>>;
-type Web3WalletInitOptions = Parameters<typeof Web3Wallet.init>[0];
+type Web3WalletInstance = Awaited<ReturnType<typeof WalletKit.init>>;
+type Web3WalletInitOptions = Parameters<typeof WalletKit.init>[0];
 type DecodedAlgorandTransaction = ReturnType<
   typeof algosdk.decodeUnsignedTransaction
 > &
@@ -67,6 +67,17 @@ const ensureNumericId = (value: number | string): number => {
   return parsed;
 };
 
+export interface ActiveSessionRecord {
+  topic: string;
+  peer?: {
+    icons: string[];
+    url: string;
+    description: string;
+    name: string;
+  };
+  accounts: string[];
+}
+
 export interface WcState {
   connectors: ConnectorRecord[];
   requests: StoredRequest[];
@@ -77,6 +88,8 @@ export interface WcState {
   callRequests: unknown[];
   subscriptions: unknown[];
   algoSignTxns: unknown[];
+  activeSessions: ActiveSessionRecord[];
+  wc1Enabled: boolean;
 }
 
 const state = (): WcState => ({
@@ -89,6 +102,8 @@ const state = (): WcState => ({
   callRequests: [],
   subscriptions: [],
   algoSignTxns: [],
+  activeSessions: [],
+  wc1Enabled: false,
 });
 
 const mutations: MutationTree<WcState> = {
@@ -154,6 +169,12 @@ const mutations: MutationTree<WcState> = {
   addAlgoSignTxn(currentState, algoSignTxn: unknown) {
     currentState.algoSignTxns.push(algoSignTxn);
   },
+  setActiveSessions(currentState, sessions: ActiveSessionRecord[]) {
+    currentState.activeSessions = sessions;
+  },
+  setWc1Enabled(currentState, enabled: boolean) {
+    currentState.wc1Enabled = enabled;
+  },
 };
 
 const actions: ActionTree<WcState, RootState> = {
@@ -171,15 +192,21 @@ const actions: ActionTree<WcState, RootState> = {
       storage: store,
     });
 
-    const web3wallet = await Web3Wallet.init({
+    const web3wallet = await WalletKit.init({
       core: core as unknown as Web3WalletInitOptions["core"],
       metadata: walletConnectMetadata,
     });
 
     commit("setWeb3wallet", web3wallet);
 
+    await dispatch("refreshActiveSessions");
+
     web3wallet.on("session_proposal", async (sessionProposal) => {
       commit("addSessionProposal", sessionProposal);
+    });
+
+    web3wallet.on("session_delete", async () => {
+      await dispatch("refreshActiveSessions");
     });
 
     web3wallet.on("session_request", async (sessionRequest: any) => {
@@ -354,6 +381,48 @@ const actions: ActionTree<WcState, RootState> = {
     });
 
     commit("removeSessionProposal", payload.id);
+    await dispatch("refreshActiveSessions");
+  },
+  async refreshActiveSessions({ commit, state }) {
+    const { web3wallet } = state;
+    if (!web3wallet) {
+      commit("setActiveSessions", []);
+      return;
+    }
+    const sessions = web3wallet.getActiveSessions();
+    const records: ActiveSessionRecord[] = Object.values(sessions).map(
+      (session: any) => ({
+        topic: session.topic,
+        peer: session.peer?.metadata
+          ? {
+              icons: session.peer.metadata.icons ?? [],
+              url: session.peer.metadata.url ?? "",
+              description: session.peer.metadata.description ?? "",
+              name: session.peer.metadata.name ?? "",
+            }
+          : undefined,
+        accounts: session.namespaces?.algorand?.accounts ?? [],
+      })
+    );
+    commit("setActiveSessions", records);
+  },
+  async disconnectSession({ dispatch, state }, { topic }: { topic: string }) {
+    const { web3wallet } = state;
+    if (!web3wallet) {
+      throw new Error("WalletConnect session is not initialized");
+    }
+    await web3wallet.disconnectSession({
+      topic,
+      reason: {
+        code: 6000,
+        message: "User disconnected.",
+      },
+    });
+    await dispatch("refreshActiveSessions");
+  },
+  async enableWc1({ commit }) {
+    await wc.restore();
+    commit("setWc1Enabled", true);
   },
   async rejectSession({ commit, state }, payload: RejectSessionPayload) {
     const { web3wallet } = state;

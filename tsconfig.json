@@ -3,6 +3,7 @@
     "target": "esnext",
     "module": "esnext",
     "strict": true,
+    "ignoreDeprecations": "6.0",
     "jsx": "preserve",
     "importHelpers": true,
     "moduleResolution": "node",
@@ -16,7 +17,10 @@
     "baseUrl": ".",
     "types": ["vite/client"],
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@primeuix/themes/aura": [
+        "node_modules/@primeuix/themes/dist/aura/index.d.ts"
+      ]
     },
     "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
   },

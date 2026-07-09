@@ -51,8 +51,12 @@
           <div class="field grid">
             <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
             <div class="col-12 md:col-10">
-              <div v-if="account">
-                {{ $t("new_account_wc.address") }}: {{ account }}
+              <div
+                v-if="account"
+                class="flex align-items-center flex-wrap gap-1"
+              >
+                {{ $t("new_account_wc.address") }}:
+                <AlgorandAddress :address="account" />
               </div>
             </div>
           </div>
@@ -73,6 +77,7 @@
 
 <script>
 import MainLayout from "../../layouts/Main.vue";
+import AlgorandAddress from "@/components/AlgorandAddress.vue";
 import QRCodeVue3 from "qrcode-vue3";
 import copy from "copy-to-clipboard";
 
@@ -82,6 +87,7 @@ export default {
   components: {
     MainLayout,
     QRCodeVue3,
+    AlgorandAddress,
   },
   data() {
     return {
@@ -132,7 +138,7 @@ export default {
     }),
     onSessionEvent() {},
     async clickCopy() {
-      if (copy(this.uri)) {
+      if (await copy(this.uri)) {
         this.openSuccess(this.$t("global.copied_to_clipboard"));
       }
     },

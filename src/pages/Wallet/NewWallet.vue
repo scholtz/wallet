@@ -4,7 +4,7 @@ import NewWallet from "../../components/NewWallet.vue";
 </script>
 
 <template>
-  <PublicLayout>
+  <PublicLayout no-shell>
     <NewWallet />
   </PublicLayout>
 </template>

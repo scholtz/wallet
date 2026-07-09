@@ -67,7 +67,7 @@ export default {
     async generate() {
       this.results = "";
       for (let index = 0; index < this.amount; index++) {
-        let account = algosdk.generateAccount();
+        const account = algosdk.generateAccount();
         this.results +=
           algosdk.secretKeyToMnemonic(account.sk) + " " + account.addr + "\n";
       }

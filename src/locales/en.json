@@ -32,6 +32,7 @@
     "copy_address": "Copy address",
     "copied": "Copied",
     "copied_to_clipboard": "Copied to clipboard",
+    "address_copied": "Address {address} has been copied to the clipboard",
     "stop_camera": "Stop camera",
     "cancel": "Cancel",
     "yes": "Yes",
@@ -44,16 +45,21 @@
     "logo": "A Wallet",
     "toggle_nav": "Toggle navigation",
     "list_accounts": "List my accounts",
+    "assets_overview": "Assets Overview",
     "new_account": "New account",
     "settings": "Settings",
     "asset": "Asset",
     "asset_create": "Create NFT",
     "faq": "FAQ",
     "privacy_policy": "Privacy policy",
+    "changelog": "Changelog",
     "logout": "Logout",
     "vote": "Voting",
     "swap": "SWAP",
-    "connect": "WalletConnect"
+    "connect": "WalletConnect",
+    "wallet": "Wallet",
+    "help": "Help",
+    "recover_wallet": "Recover Wallet"
   },
   "swap": {
     "title": "Swap assets",
@@ -182,9 +188,12 @@
     "rekeyedTo": "Rekeyed to account",
     "account0": "Ledger primary account",
     "slot": "Account at ledger slot",
-    "connect": "WalletConnect",
+    "connect": "Connect App",
     "payment_gateway": "Payment gateway",
     "export": "Export",
+    "not_funded": "Account {addr} at the network {network} is not funded yet.",
+    "generate_next_hd": "Generate next HD account",
+    "generate_next_hd_help": "Derive another account from the same HD wallet mnemonic at the next iteration.",
     "no_assets": "There are no assets yet on this account",
     "actions": "Actions",
     "pay_help": "Send money or tokens to other accounts in the network.",
@@ -234,6 +243,34 @@
     "amount": "Amount",
     "search_by_amount": "Search by amount",
     "actions": "Actions"
+  },
+  "assets_overview": {
+    "title": "Assets Overview",
+    "account": "Account",
+    "name": "Name",
+    "type": "Type",
+    "id": "Id",
+    "amount": "Amount",
+    "no_assets": "No assets found",
+    "search_by_account": "Search by account",
+    "search_by_name": "Search by name",
+    "search_by_type": "Search by asset type",
+    "search_by_id": "Search by asset id",
+    "search_by_amount": "Search by amount",
+    "default_profile": "Default (show all)",
+    "manage_profiles": "Manage profiles",
+    "profile_name": "Profile name",
+    "profile_mode": "Mode",
+    "blacklist": "Blacklist (hide selected)",
+    "whitelist": "Whitelist (show only selected)",
+    "new_profile": "New profile",
+    "add_rule": "Add rule",
+    "any_account": "Any account",
+    "any_asset": "Any asset",
+    "save_profile": "Save profile",
+    "delete_profile": "Delete profile",
+    "delete_profile_confirm": "Are you sure you want to delete this profile?",
+    "close": "Close"
   },
   "optin": {
     "title": "Accept transfers of asset in account",
@@ -311,6 +348,7 @@
     "show_qr_code": "Show QR Code",
     "email_pass_account": "Email & Password account",
     "shamir_account": "Shamir backup recovery",
+    "hd_wallet_account": "HD Wallet account",
     "overview": "New account actions",
     "create_basic_help": "Algorand basic account is ED25519 account with private key. This method uses your computer random number generator to create secret for your account.",
     "ledger_account_help": "One of most secure solutions is to handle the secret key generation by specialized device. This account utilizes Ledger device to create your account and handle the signing operations.",
@@ -322,6 +360,7 @@
     "watch_account_help": "You can track any account on the network.",
     "import_account_help": "You can recover the account from the algorand recovery mnemonic.",
     "shamir_account_help": "You can recover the account from the shamir backup recovery mnemonics.",
+    "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
     "create_first": "Create your first account",
     "no_accounts_at_network": "There are no accounts for selected network",
     "basic_options": "Basic options",
@@ -342,6 +381,29 @@
     "password_not_stored": "Watch out. We do not store your password. We will store only the account public address and email to the secure storage. When you will be doing transactions with this account you will be prompted to enter the password.",
     "gui_not_implemented": "GUI for signing transaction without stored password is not currently implemented."
   },
+  "hdaccount": {
+    "title": "HD Wallet account (ARC-52)",
+    "description": "HD (hierarchical deterministic) wallets use a single 24-word BIP-39 mnemonic to derive an unlimited number of independent Algorand accounts, following the ARC-52 (BIP32-Ed25519) standard. Create a new mnemonic or import an existing one to add its first account.",
+    "mode": "Mode",
+    "mode_create": "Create new mnemonic",
+    "mode_import": "Import existing mnemonic",
+    "master_mnemonic": "HD Master Mnemonic",
+    "backup_warning": "This mnemonic backs up every account derived from this HD wallet, not just this one. Keep it safe and never share it.",
+    "confirm_backup": "I have safely backed up my mnemonic",
+    "write_mnemonic": "Write down your 24 word BIP-39 mnemonic phrase",
+    "iteration": "Iteration (account index)",
+    "account_index_help": "Optional. The hardened account index (m'/44'/283'/index'/0/0) used to derive this wallet's first account from the mnemonic. Leave at 0 unless you specifically need to recover a non-default iteration.",
+    "generate_next": "Generate next account",
+    "generate_next_help": "Pick the iteration (account index) to derive the next account from this HD wallet's mnemonic. Each iteration produces a distinct, independent account address.",
+    "export_child_help": "This account does not store its own secret. It is derived from the master mnemonic of its HD wallet root account. Back up the mnemonic from the root account instead.",
+    "export_go_to_root": "Go to root account backup",
+    "default_account_name": "Main account",
+    "not_backed_up_title": "This account is not backed up!",
+    "not_backed_up_body": "This HD wallet account was created automatically and its recovery mnemonic has not been backed up yet. If you lose access to this device without a backup, you risk losing your funds permanently.",
+    "back_up_now": "Back up now",
+    "mark_as_backed_up": "Mark account as backed up",
+    "backed_up_success": "Account marked as backed up"
+  },
   "import": {
     "title": "Import wallet",
     "wallet_name": "Wallet name",
@@ -355,7 +417,8 @@
     "public_account": "Public account",
     "rekeyed": "Rekeyed account",
     "ledger_account": "HW ledger account",
-    "wc_account": "WalletConnect account"
+    "wc_account": "WalletConnect account",
+    "hd_account": "HD wallet account"
   },
   "account": {
     "select_account": "Select account"
@@ -453,6 +516,7 @@
     "protocol_button": "Register web+algorand:// handler",
     "protocol_change_success": "Successfully updated the protocol handler",
     "dev_settings": "Show information for developers",
+    "multiaccount_ops": "Enable multiaccount operations",
     "update_password": "Update password"
   },
   "transaction": {
@@ -571,6 +635,9 @@
     "a8_3": "Select all accounts that can sign the transactions and select how many signatures that adhere to the minimum for the network to accept the multisig payment.",
     "a8_4": "After you create the multisignature account, you can access it from the accounts list page."
   },
+  "changelog": {
+    "title": "Changelog"
+  },
   "connect": {
     "title": "Connect to DApps using WalletConnect",
     "uri": "WalletConnect URI",
@@ -619,7 +686,12 @@
     "init_wc": "Initialize connection to Wallet Connect",
     "sign_all": "Sign all",
     "proposer": "Proposer",
-    "all_accounts": "Use all wallet accounts"
+    "all_accounts": "Use all wallet accounts",
+    "wc1_tab": "WalletConnect v1",
+    "wc2_tab": "WalletConnect v2",
+    "enable_wc1": "Enable WalletConnect v1",
+    "active_sessions": "Active sessions",
+    "all_addresses": "All addresses selected"
   },
   "new_account_wc": {
     "title": "Add WalletConnect account",

@@ -32,6 +32,7 @@
     "copy_address": "Kopieer adres",
     "copied": "Copied",
     "copied_to_clipboard": "Gekopieerd naar uw klembord",
+    "address_copied": "Adres {address} is gekopieerd naar uw klembord",
     "stop_camera": "Stop camera",
     "cancel": "Cancel",
     "yes": "Yes",
@@ -44,16 +45,21 @@
     "logo": "Een portemonnee",
     "toggle_nav": "Navigatie schakel",
     "list_accounts": "Toon mijn accounts",
+    "assets_overview": "Overzicht van activa",
     "new_account": "Nieuw account",
     "settings": "Instellingen",
     "asset": "activa",
     "asset_create": "Maak NTF",
     "faq": "Veelgestelde Vragen",
     "privacy_policy": "Privacy beleid",
+    "changelog": "Wijzigingslogboek",
     "logout": "Uitloggen",
     "vote": "Voting",
     "swap": "SWAP",
-    "connect": "WalletConnect"
+    "connect": "WalletConnect",
+    "wallet": "Portemonnee",
+    "help": "Help",
+    "recover_wallet": "Portemonnee herstellen"
   },
   "swap": {
     "title": "Swap assets",
@@ -182,9 +188,12 @@
     "rekeyedTo": "Rekeyed to account",
     "account0": "Ledger primary account",
     "slot": "Account at ledger slot",
-    "connect": "WalletConnect",
+    "connect": "App verbinden",
     "payment_gateway": "Payment gateway",
     "export": "Export",
+    "not_funded": "Account {addr} op het netwerk {network} is nog niet gefinancierd.",
+    "generate_next_hd": "Generate next HD account",
+    "generate_next_hd_help": "Derive another account from the same HD wallet mnemonic at the next iteration.",
     "no_assets": "There are no assets yet on this account",
     "actions": "Actions",
     "pay_help": "Send money or tokens to other accounts in the network.",
@@ -234,6 +243,34 @@
     "amount": "Amount",
     "search_by_amount": "Search by amount",
     "actions": "Actions"
+  },
+  "assets_overview": {
+    "title": "Overzicht van activa",
+    "account": "Account",
+    "name": "Naam",
+    "type": "Type",
+    "id": "Id",
+    "amount": "Bedrag",
+    "no_assets": "Geen activa gevonden",
+    "search_by_account": "Zoeken op account",
+    "search_by_name": "Zoeken op naam",
+    "search_by_type": "Zoeken op type activa",
+    "search_by_id": "Zoeken op id van activa",
+    "search_by_amount": "Zoeken op bedrag",
+    "default_profile": "Standaard (alles tonen)",
+    "manage_profiles": "Profielen beheren",
+    "profile_name": "Profielnaam",
+    "profile_mode": "Modus",
+    "blacklist": "Zwarte lijst (geselecteerde verbergen)",
+    "whitelist": "Witte lijst (alleen geselecteerde tonen)",
+    "new_profile": "Nieuw profiel",
+    "add_rule": "Regel toevoegen",
+    "any_account": "Elk account",
+    "any_asset": "Elk activum",
+    "save_profile": "Profiel opslaan",
+    "delete_profile": "Profiel verwijderen",
+    "delete_profile_confirm": "Weet je zeker dat je dit profiel wilt verwijderen?",
+    "close": "Sluiten"
   },
   "optin": {
     "title": "Accept transfers of asset in account",
@@ -311,6 +348,7 @@
     "show_qr_code": "Show QR Code",
     "email_pass_account": "Email & Password account",
     "shamir_account": "Shamir backup recovery",
+    "hd_wallet_account": "HD Wallet account",
     "overview": "New account actions",
     "create_basic_help": "Algorand basic account is ED25519 account with private key. This method uses your computer random number generator to create secret for your account.",
     "ledger_account_help": "One of most secure solutions is to handle the secret key generation by specialized device. This account utilizes Ledger device to create your account and handle the signing operations.",
@@ -322,6 +360,7 @@
     "watch_account_help": "You can track any account on the network.",
     "import_account_help": "You can recover the account from the algorand recovery mnemonic.",
     "shamir_account_help": "You can recover the account from the shamir backup recovery mnemonics.",
+    "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
     "create_first": "Create your first account",
     "no_accounts_at_network": "There are no accounts for selected network",
     "basic_options": "Basic options",
@@ -341,7 +380,30 @@
     "save_password_switch": "Save password",
     "password_not_stored": "Watch out. We do not store your password. We will store only the account public address and email to the secure storage. When you will be doing transactions with this account you will be prompted to enter the password.",
     "gui_not_implemented": "GUI for signing transaction without stored password is not currently implemented."
+  },  "hdaccount": {
+    "title": "HD Wallet account (ARC-52)",
+    "description": "HD (hierarchical deterministic) wallets use a single 24-word BIP-39 mnemonic to derive an unlimited number of independent Algorand accounts, following the ARC-52 (BIP32-Ed25519) standard. Create a new mnemonic or import an existing one to add its first account.",
+    "mode": "Mode",
+    "mode_create": "Create new mnemonic",
+    "mode_import": "Import existing mnemonic",
+    "master_mnemonic": "HD Master Mnemonic",
+    "backup_warning": "This mnemonic backs up every account derived from this HD wallet, not just this one. Keep it safe and never share it.",
+    "confirm_backup": "I have safely backed up my mnemonic",
+    "write_mnemonic": "Write down your 24 word BIP-39 mnemonic phrase",
+    "iteration": "Iteration (account index)",
+    "account_index_help": "Optional. The hardened account index (m'/44'/283'/index'/0/0) used to derive this wallet's first account from the mnemonic. Leave at 0 unless you specifically need to recover a non-default iteration.",
+    "generate_next": "Generate next account",
+    "generate_next_help": "Pick the iteration (account index) to derive the next account from this HD wallet's mnemonic. Each iteration produces a distinct, independent account address.",
+    "export_child_help": "This account does not store its own secret. It is derived from the master mnemonic of its HD wallet root account. Back up the mnemonic from the root account instead.",
+    "export_go_to_root": "Go to root account backup",
+    "default_account_name": "Hoofdaccount",
+    "not_backed_up_title": "Dit account is niet geback-upt!",
+    "not_backed_up_body": "Dit HD-walletaccount is automatisch aangemaakt en de herstelmnemonic is nog niet geback-upt. Als u zonder back-up de toegang tot dit apparaat verliest, loopt u het risico uw tegoeden permanent te verliezen.",
+    "back_up_now": "Nu back-uppen",
+    "mark_as_backed_up": "Account markeren als geback-upt",
+    "backed_up_success": "Account gemarkeerd als geback-upt"
   },
+
   "import": {
     "title": "Importeer portemonee",
     "wallet_name": "Portemonnee naam",
@@ -355,7 +417,8 @@
     "public_account": "Publiek account",
     "rekeyed": "Rekeyed account",
     "ledger_account": "HW ledger account",
-    "wc_account": "WalletConnect account"
+    "wc_account": "WalletConnect account",
+    "hd_account": "HD wallet account"
   },
   "account": {
     "select_account": "Select account"
@@ -453,6 +516,7 @@
     "protocol_button": "Register web+algorand:// handler",
     "protocol_change_success": "Successfully updated the protocol handler",
     "dev_settings": "Show information for developers",
+    "multiaccount_ops": "Multi-accountbewerkingen inschakelen",
     "update_password": "Update password"
   },
   "transaction": {
@@ -571,6 +635,9 @@
     "a8_3": "Selecteer alle accounts die de transacties kunnen ondertekenen en selecteer hoeveel handtekeningen minimaal zijn voor het netwerk om de multisig-betaling te accepteren.",
     "a8_4": "Nadat u de multisignature-rekening hebt aangemaakt, kunt u deze openen via de rekeningenlijstpagina."
   },
+  "changelog": {
+    "title": "Ontwikkel- en functiegeschiedenis"
+  },
   "connect": {
     "title": "Connect to DApps using WalletConnect",
     "uri": "WalletConnect URI",
@@ -619,7 +686,12 @@
     "init_wc": "Initialize connection to Wallet Connect",
     "sign_all": "Sign all",
     "proposer": "Proposer",
-    "all_accounts": "Use all wallet accounts"
+    "all_accounts": "Use all wallet accounts",
+    "wc1_tab": "WalletConnect v1",
+    "wc2_tab": "WalletConnect v2",
+    "enable_wc1": "WalletConnect v1 inschakelen",
+    "active_sessions": "Actieve sessies",
+    "all_addresses": "Alle adressen geselecteerd"
   },
   "new_account_wc": {
     "title": "Add WalletConnect account",

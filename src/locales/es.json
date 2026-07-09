@@ -32,6 +32,7 @@
     "copy_address": "Copiar dirección",
     "copied": "Copied",
     "copied_to_clipboard": "Copiado al porta papeles!",
+    "address_copied": "La dirección {address} se ha copiado al portapapeles",
     "stop_camera": "Detener cámara",
     "cancel": "Cancelar",
     "yes": "Si",
@@ -44,16 +45,21 @@
     "logo": "A Wallet",
     "toggle_nav": "Alternar la navegación",
     "list_accounts": "Listar mis cuentas",
+    "assets_overview": "Resumen de activos",
     "new_account": "Nueva cuenta",
     "settings": "Configuraciones",
     "asset": "Activos",
     "asset_create": "Crear NFT",
     "faq": "FAQ",
     "privacy_policy": "Política de privacidad",
+    "changelog": "Registro de cambios",
     "logout": "Cerrar sesión",
     "vote": "Votar",
     "swap": "INTERCAMBIO",
-    "connect": "WalletConnect"
+    "connect": "WalletConnect",
+    "wallet": "Monedero",
+    "help": "Ayuda",
+    "recover_wallet": "Recuperar monedero"
   },
   "swap": {
     "title": "Intercambiar activos",
@@ -182,9 +188,12 @@
     "rekeyedTo": "Llaves re asignadas a la cuenta (Rekeyed)",
     "account0": "Cuenta primaria del Ledger",
     "slot": "Cuenta en la ranura del ledger",
-    "connect": "WalletConnect",
+    "connect": "Conectar aplicación",
     "payment_gateway": "Pasarela de pagos",
     "export": "Exportar",
+    "not_funded": "La cuenta {addr} en la red {network} aún no tiene fondos.",
+    "generate_next_hd": "Generate next HD account",
+    "generate_next_hd_help": "Derive another account from the same HD wallet mnemonic at the next iteration.",
     "no_assets": "There are no assets yet on this account",
     "actions": "Actions",
     "pay_help": "Send money or tokens to other accounts in the network.",
@@ -234,6 +243,34 @@
     "amount": "Amount",
     "search_by_amount": "Search by amount",
     "actions": "Actions"
+  },
+  "assets_overview": {
+    "title": "Resumen de activos",
+    "account": "Cuenta",
+    "name": "Nombre",
+    "type": "Tipo",
+    "id": "Id",
+    "amount": "Cantidad",
+    "no_assets": "No se encontraron activos",
+    "search_by_account": "Buscar por cuenta",
+    "search_by_name": "Buscar por nombre",
+    "search_by_type": "Buscar por tipo de activo",
+    "search_by_id": "Buscar por id del activo",
+    "search_by_amount": "Buscar por cantidad",
+    "default_profile": "Predeterminado (mostrar todo)",
+    "manage_profiles": "Administrar perfiles",
+    "profile_name": "Nombre del perfil",
+    "profile_mode": "Modo",
+    "blacklist": "Lista negra (ocultar seleccionados)",
+    "whitelist": "Lista blanca (mostrar solo seleccionados)",
+    "new_profile": "Nuevo perfil",
+    "add_rule": "Añadir regla",
+    "any_account": "Cualquier cuenta",
+    "any_asset": "Cualquier activo",
+    "save_profile": "Guardar perfil",
+    "delete_profile": "Eliminar perfil",
+    "delete_profile_confirm": "¿Estás seguro de que quieres eliminar este perfil?",
+    "close": "Cerrar"
   },
   "optin": {
     "title": "Aceptar transferencias de activos en cuenta",
@@ -311,6 +348,7 @@
     "show_qr_code": "Mostrar código QR",
     "email_pass_account": "Cuenta de correo y contraseña",
     "shamir_account": "Shamir copia de seguridad de recuperación",
+    "hd_wallet_account": "HD Wallet account",
     "overview": "New account actions",
     "create_basic_help": "Algorand basic account is ED25519 account with private key. This method uses your computer random number generator to create secret for your account.",
     "ledger_account_help": "One of most secure solutions is to handle the secret key generation by specialized device. This account utilizes Ledger device to create your account and handle the signing operations.",
@@ -322,6 +360,7 @@
     "watch_account_help": "You can track any account on the network.",
     "import_account_help": "You can recover the account from the algorand recovery mnemonic.",
     "shamir_account_help": "You can recover the account from the shamir backup recovery mnemonics.",
+    "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
     "create_first": "Create your first account",
     "no_accounts_at_network": "There are no accounts for selected network",
     "basic_options": "Basic options",
@@ -341,7 +380,30 @@
     "save_password_switch": "Guardar contraseña",
     "password_not_stored": "Cuidado. No almacenamos su contraseña. Sólo almacenaremos la dirección pública de la cuenta y el correo electrónico en el almacenamiento seguro. Cuando realice transacciones con esta cuenta, se le pedirá que introduzca la contraseña.",
     "gui_not_implemented": "La interfaz gráfica de usuario para firmar transacciones sin contraseña almacenada no está implementada actualmente."
+  },  "hdaccount": {
+    "title": "HD Wallet account (ARC-52)",
+    "description": "HD (hierarchical deterministic) wallets use a single 24-word BIP-39 mnemonic to derive an unlimited number of independent Algorand accounts, following the ARC-52 (BIP32-Ed25519) standard. Create a new mnemonic or import an existing one to add its first account.",
+    "mode": "Mode",
+    "mode_create": "Create new mnemonic",
+    "mode_import": "Import existing mnemonic",
+    "master_mnemonic": "HD Master Mnemonic",
+    "backup_warning": "This mnemonic backs up every account derived from this HD wallet, not just this one. Keep it safe and never share it.",
+    "confirm_backup": "I have safely backed up my mnemonic",
+    "write_mnemonic": "Write down your 24 word BIP-39 mnemonic phrase",
+    "iteration": "Iteration (account index)",
+    "account_index_help": "Optional. The hardened account index (m'/44'/283'/index'/0/0) used to derive this wallet's first account from the mnemonic. Leave at 0 unless you specifically need to recover a non-default iteration.",
+    "generate_next": "Generate next account",
+    "generate_next_help": "Pick the iteration (account index) to derive the next account from this HD wallet's mnemonic. Each iteration produces a distinct, independent account address.",
+    "export_child_help": "This account does not store its own secret. It is derived from the master mnemonic of its HD wallet root account. Back up the mnemonic from the root account instead.",
+    "export_go_to_root": "Go to root account backup",
+    "default_account_name": "Cuenta principal",
+    "not_backed_up_title": "¡Esta cuenta no está respaldada!",
+    "not_backed_up_body": "Esta cuenta de billetera HD se creó automáticamente y su frase mnemotécnica de recuperación aún no se ha respaldado. Si pierde el acceso a este dispositivo sin una copia de seguridad, corre el riesgo de perder sus fondos de forma permanente.",
+    "back_up_now": "Respaldar ahora",
+    "mark_as_backed_up": "Marcar cuenta como respaldada",
+    "backed_up_success": "Cuenta marcada como respaldada"
   },
+
   "import": {
     "title": "Importar billetera",
     "wallet_name": "Nombre de la billetera",
@@ -355,7 +417,8 @@
     "public_account": "Cuenta pública",
     "rekeyed": "Cuenta con llaves re asignada (Rekeyed)",
     "ledger_account": "Cuenta HW ledger",
-    "wc_account": "Cuenta WalletConnect"
+    "wc_account": "Cuenta WalletConnect",
+    "hd_account": "HD wallet account"
   },
   "account": {
     "select_account": "Seleccionar cuenta"
@@ -453,6 +516,7 @@
     "protocol_button": "Registrar web+algorand:// controlador",
     "protocol_change_success": "Se ha actualizado correctamente el controlador de protocolor",
     "dev_settings": "Mostrar información para desarrolladores",
+    "multiaccount_ops": "Habilitar operaciones multicuenta",
     "update_password": "Actualizar contraseña"
   },
   "transaction": {
@@ -571,6 +635,9 @@
     "a8_3": "Seleccione todas las cuentas que pueden firmar las transacciones y seleccione cuántas firmas se necesitan mínimo para que la red acepte el pago multifirma.",
     "a8_4": "Una vez creada la cuenta multifirma, puede acceder a ella desde la página de la lista de cuentas."
   },
+  "changelog": {
+    "title": "Historial de desarrollo y funciones"
+  },
   "connect": {
     "title": "Conectar con las DApps mediante WalletConnect",
     "uri": "WalletConnect URI",
@@ -619,7 +686,12 @@
     "init_wc": "Inicializar la conexión con WalletConnect",
     "sign_all": "Firmar todo",
     "proposer": "Proposer",
-    "all_accounts": "Use all wallet accounts"
+    "all_accounts": "Use all wallet accounts",
+    "wc1_tab": "WalletConnect v1",
+    "wc2_tab": "WalletConnect v2",
+    "enable_wc1": "Habilitar WalletConnect v1",
+    "active_sessions": "Sesiones activas",
+    "all_addresses": "Todas las direcciones seleccionadas"
   },
   "new_account_wc": {
     "title": "Añadir cuenta WalletConnect",

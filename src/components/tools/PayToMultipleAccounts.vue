@@ -112,7 +112,7 @@ export default {
       let toSend = 0;
       let sent = 0;
       const arrayOfLines = this.accounts.split(/\r?\n/);
-      for (let index in arrayOfLines) {
+      for (const index in arrayOfLines) {
         const line = arrayOfLines[index];
 
         if (line) {
@@ -122,7 +122,7 @@ export default {
               "Line does not conaint mnemonic phrase: " + line + "\n";
             continue;
           }
-          let account = "";
+          let account;
           if (words.length > 1) {
             // mnemonic import
             let mn = "";
@@ -143,12 +143,12 @@ export default {
 
           const enc = new TextEncoder();
 
-          let noteEnc = enc.encode("");
-          let amount = Math.round(this.amount * 1000000);
-          let payFrom = this.payFromDirect;
-          let payTo = account;
-          let fee = 1000;
-          let asset = null;
+          const noteEnc = enc.encode("");
+          const amount = Math.round(this.amount * 1000000);
+          const payFrom = this.payFromDirect;
+          const payTo = account;
+          const fee = 1000;
+          const asset = null;
           toSend++;
           try {
             this.makePayment({

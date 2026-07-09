@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["es5", "dom"],
+    "target": "es2019",
+    "lib": ["es2019", "dom"],
     "types": ["cypress", "node"],
     "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
     "allowSyntheticDefaultImports": true,
     "strict": false,
     "skipLibCheck": true,

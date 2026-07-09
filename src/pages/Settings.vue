@@ -10,7 +10,7 @@
             {{ $t("settings.environment") }}
           </label>
           <div class="col-12 md:col-10">
-            <Dropdown
+            <Select
               id="env2"
               v-model="env"
               class="w-full"
@@ -18,7 +18,7 @@
               optionLabel="name"
               optionValue="network"
             >
-            </Dropdown>
+            </Select>
           </div>
         </div>
         <div
@@ -29,7 +29,7 @@
             Public AlgoD provider
           </label>
           <div class="col-12 md:col-10">
-            <Dropdown
+            <Select
               id="algodProvider"
               v-model="algodHost"
               class="w-full"
@@ -37,7 +37,7 @@
               optionLabel="providerName"
               optionValue="host"
             >
-            </Dropdown>
+            </Select>
           </div>
         </div>
         <div class="field grid">
@@ -80,7 +80,7 @@
             Public participation provider
           </label>
           <div class="col-12 md:col-10">
-            <Dropdown
+            <Select
               id="participationProvider"
               v-model="participationHost"
               class="w-full"
@@ -88,7 +88,7 @@
               optionLabel="providerName"
               optionValue="host"
             >
-            </Dropdown>
+            </Select>
           </div>
         </div>
         <div class="field grid">
@@ -116,7 +116,7 @@
             Public Indexer provider
           </label>
           <div class="col-12 md:col-10">
-            <Dropdown
+            <Select
               id="indexerProvider"
               v-model="indexerHost"
               class="w-full"
@@ -124,7 +124,7 @@
               optionLabel="providerName"
               optionValue="host"
             >
-            </Dropdown>
+            </Select>
           </div>
         </div>
         <div class="field grid">
@@ -165,37 +165,28 @@
 
         <h2>{{ $t("settings.language") }}</h2>
 
-        <Dropdown
+        <Select
           v-model="$i18n.locale"
           :options="$store.state.config.languages"
           style="min-width: 100px"
           @change="languageUpdated"
         >
           <template #value="slotProps">
-            <div v-if="slotProps.value" class="border-dark">
-              <img
-                :alt="slotProps.value"
-                class="border-dark"
-                :src="'/flags/3x2/' + slotProps.value + '.svg'"
-                height="15"
-              />
-              <span class="m-1">{{ slotProps.value }}</span>
+            <div v-if="slotProps.value" class="flex align-items-center">
+              <LanguageFlag :locale="slotProps.value" size="1.25rem" />
+              <span class="ml-2">{{ slotProps.value }}</span>
             </div>
             <span v-else>
               {{ slotProps.placeholder }}
             </span>
           </template>
           <template #option="slotProps">
-            <div class="border-dark">
-              <img
-                :alt="slotProps.option"
-                :src="'/flags/3x2/' + slotProps.option + '.svg'"
-                height="15"
-              />
-              <span class="m-1">{{ slotProps.option }}</span>
+            <div class="flex align-items-center">
+              <LanguageFlag :locale="slotProps.option" size="1.25rem" />
+              <span class="ml-2">{{ slotProps.option }}</span>
             </div>
           </template>
-        </Dropdown>
+        </Select>
         <h2>{{ $t("settings.pass") }}</h2>
         <form @submit="changePasswordClick">
           <div class="field grid">
@@ -208,6 +199,7 @@
                 v-model="passw1"
                 inputClass="w-full"
                 class="w-full"
+                :feedback="false"
               />
             </div>
           </div>
@@ -221,6 +213,7 @@
                 v-model="passw2"
                 inputClass="w-full"
                 class="w-full"
+                :feedback="false"
               />
             </div>
           </div>
@@ -234,6 +227,7 @@
                 v-model="passw3"
                 inputClass="w-full"
                 class="w-full"
+                :feedback="false"
               />
             </div>
           </div>
@@ -248,7 +242,14 @@
         </form>
         <h2>{{ $t("settings.dev_settings") }}</h2>
         <div>
-          <InputSwitch v-model="dev" aria-label="Enable dev output" />
+          <ToggleSwitch v-model="dev" aria-label="Enable dev output" />
+        </div>
+        <h2>{{ $t("settings.multiaccount_ops") }}</h2>
+        <div>
+          <ToggleSwitch
+            v-model="multiaccountOps"
+            aria-label="Enable multiaccount ops"
+          />
         </div>
         <h2>{{ $t("settings.backup") }}</h2>
         <p>{{ $t("settings.backup_help") }}</p>
@@ -294,7 +295,8 @@ export default {
   },
   data() {
     return {
-      env: "mainnet",
+      env: "mainnet-v1.0",
+      isInitializing: true,
       passw1: "",
       passw2: "",
       passw3: "",
@@ -306,11 +308,7 @@ export default {
       indexerHost: "",
       indexerToken: "",
       dev: false,
-      publicList: [],
-      publicListItem: null,
-      algodList: [],
-      participationList: [],
-      indexerList: [],
+      multiaccountOps: false,
     };
   },
   computed: {
@@ -335,6 +333,27 @@ export default {
     indexerTokenConfig() {
       return this.$store.state.config.indexerToken;
     },
+    publicList() {
+      return [
+        ...this.$store.state.publicData.genesisList,
+        { name: "Custom", network: "custom" },
+      ];
+    },
+    algodList() {
+      return (this.$store.state.publicData.algodList[this.env] || []).filter(
+        (i) => !i.registrationRequired,
+      );
+    },
+    participationList() {
+      return (
+        this.$store.state.publicData.participationList[this.env] || []
+      ).filter((i) => !i.registrationRequired);
+    },
+    indexerList() {
+      return (
+        this.$store.state.publicData.indexerList[this.env] || []
+      ).filter((i) => !i.registrationRequired);
+    },
     downloadableWalletName() {
       return (
         this.$store.state.wallet.name.replace(" ", "") +
@@ -347,10 +366,10 @@ export default {
 
   watch: {
     async env() {
+      if (this.isInitializing) return;
       if (this.env != "custom") {
-        await this.loadPublicData();
+        await this.setEnv({ env: this.env });
       }
-      localStorage.setItem("env", this.env);
     },
     algodHostConfig() {
       if (this.algodHost != this.algodHostConfig)
@@ -399,6 +418,9 @@ export default {
     dev() {
       this.setDev({ dev: this.dev });
     },
+    multiaccountOps() {
+      this.setMultiaccountOps(this.multiaccountOps);
+    },
   },
   async mounted() {
     if (this.envConfig) {
@@ -411,16 +433,28 @@ export default {
     this.indexerHost = this.indexerHostConfig;
     this.indexerToken = this.indexerTokenConfig;
     this.dev = this.$store.state.config.dev;
-    await this.fillGenesisList();
+    this.multiaccountOps = this.$store.state.config.multiaccountOps;
+    await this.getGenesisList();
     if (this.env != "custom") {
-      await this.loadPublicData();
+      // Only fetches the provider lists for display in the override Selects
+      // below - the active network's hosts are resolved by config/setEnv,
+      // not here, so re-visiting this page never clobbers a manually picked
+      // provider.
+      await Promise.all([
+        this.getAlgodList({ chainId: this.env }),
+        this.getParticipationList({ chainId: this.env }),
+        this.getIndexerList({ chainId: this.env }),
+      ]);
     }
+    this.isInitializing = false;
   },
   methods: {
     ...mapActions({
+      setEnv: "config/setEnv",
       setHosts: "config/setHosts",
       setLanguage: "config/setLanguage",
       setDev: "config/setDev",
+      setMultiaccountOps: "config/setMultiaccountOps",
       changePassword: "wallet/changePassword",
       backupWallet: "wallet/backupWallet",
       destroyWallet: "wallet/destroyWallet",
@@ -442,14 +476,6 @@ export default {
         this.openSuccess(this.$t("settings.updated_password"));
       }
     },
-    async fillGenesisList() {
-      const list = [...(await this.getGenesisList())];
-      list.push({
-        name: "Custom",
-        network: "custom",
-      });
-      this.publicList = list;
-    },
     async makeBackupDataClick() {
       this.b64wallet = await this.backupWallet();
     },
@@ -461,7 +487,7 @@ export default {
     },
     updateConfig() {
       const publicListItem1 = this.publicList.find(
-        (pl) => pl.network == this.env
+        (pl) => pl.network == this.env,
       );
       let envName = this.env;
       if (publicListItem1) {
@@ -484,74 +510,11 @@ export default {
         navigator.registerProtocolHandler(
           "web+algorand",
           location.origin + "/pay/%s",
-          "A Wallet"
+          "A Wallet",
         );
         this.openSuccess(this.$t("settings.protocol_change_success"));
       } catch (exc) {
         this.openError(exc.message);
-      }
-    },
-    async loadPublicData() {
-      if (this.env) {
-        this.publicListItem = this.publicList.find(
-          (x) => x.network == this.env
-        );
-        if (this.publicListItem) {
-          const listAlgod = await this.getAlgodList({ chainId: this.env });
-          this.algodList = listAlgod.filter((i) => !i.registrationRequired);
-          if (this.algodList.length > 0) {
-            const alreadySet = this.algodList.find((i) =>
-              i.host ? i.host == this.algodHost : i.algodHost == this.algodHost
-            );
-            if (!alreadySet) {
-              this.algodHost = this.algodList[0].host;
-            }
-          }
-
-          const listParticipation = await this.getParticipationList({
-            chainId: this.env,
-          });
-          this.participationList = listParticipation.filter(
-            (i) => !i.registrationRequired
-          );
-          if (this.participationList.length > 0) {
-            const alreadySet = this.participationList.find((i) =>
-              i.host
-                ? i.host == this.participationHost
-                : i.participationHost == this.participationHost
-            );
-            if (!alreadySet) {
-              this.participationHost = this.participationList[0].host;
-            }
-          }
-
-          const listIndexer = await this.getIndexerList({ chainId: this.env });
-          this.indexerList = listIndexer.filter((i) => !i.registrationRequired);
-          if (this.indexerList.length > 0) {
-            const alreadySet = this.indexerList.find((i) =>
-              i.host
-                ? i.host == this.indexerHost
-                : i.indexerHost == this.indexerHost
-            );
-            if (!alreadySet) {
-              this.indexerHost = this.indexerList[0].host;
-            }
-          }
-
-          this.setHosts({
-            env: this.env,
-            algod: this.algodHost,
-            participation: this.participationHost,
-            indexer: this.indexerHost,
-            algodToken: this.algodToken,
-            participationToken: this.participationToken,
-            indexerToken: this.indexerToken,
-          });
-        } else {
-          this.algodList = [];
-          this.participationList = [];
-          this.indexerList = [];
-        }
       }
     },
   },

@@ -32,6 +32,7 @@
     "copy_address": "Скопировать address",
     "copied": "Copied",
     "copied_to_clipboard": "Скопировано в буфер обмена",
+    "address_copied": "Адрес {address} скопирован в буфер обмена",
     "stop_camera": "Остановить камеру",
     "cancel": "Отмена",
     "yes": "Да",
@@ -44,16 +45,21 @@
     "logo": "Кошелек",
     "toggle_nav": "Переключить навигацию",
     "list_accounts": "Мои аккаунты",
+    "assets_overview": "Обзор активов",
     "new_account": "Новая учетная запись",
     "settings": "Настройки",
     "asset": "Актив",
     "asset_create": "Создать NFT",
     "faq": "FAQ",
     "privacy_policy": "Политика конфиденциальности",
+    "changelog": "История изменений",
     "logout": "Выход",
     "vote": "Голосование",
     "swap": "Обмен",
-    "connect": "WalletConnect"
+    "connect": "WalletConnect",
+    "wallet": "Кошелёк",
+    "help": "Помощь",
+    "recover_wallet": "Восстановить кошелёк"
   },
   "swap": {
     "title": "Обменять активы",
@@ -182,9 +188,12 @@
     "rekeyedTo": "Ключ к аккаунту изменен",
     "account0": "Основной аккаунт книги",
     "slot": "Счет в слоте реестра",
-    "connect": "WalletConnect",
+    "connect": "Подключить приложение",
     "payment_gateway": "Платежный шлюз",
     "export": "Экспорт",
+    "not_funded": "Аккаунт {addr} в сети {network} ещё не пополнен.",
+    "generate_next_hd": "Generate next HD account",
+    "generate_next_hd_help": "Derive another account from the same HD wallet mnemonic at the next iteration.",
     "no_assets": "На этом аккаунте пока нет активов",
     "actions": "Действия",
     "pay_help": "Отправляйте деньги или токены на другие аккаунты в сети.",
@@ -234,6 +243,34 @@
     "amount": "Сумма",
     "search_by_amount": "Поиск по сумме",
     "actions": "Действия"
+  },
+  "assets_overview": {
+    "title": "Обзор активов",
+    "account": "Счёт",
+    "name": "Название",
+    "type": "Тип",
+    "id": "Id",
+    "amount": "Количество",
+    "no_assets": "Активы не найдены",
+    "search_by_account": "Поиск по счёту",
+    "search_by_name": "Поиск по названию",
+    "search_by_type": "Поиск по типу актива",
+    "search_by_id": "Поиск по id актива",
+    "search_by_amount": "Поиск по количеству",
+    "default_profile": "По умолчанию (показать все)",
+    "manage_profiles": "Управление профилями",
+    "profile_name": "Название профиля",
+    "profile_mode": "Режим",
+    "blacklist": "Чёрный список (скрыть выбранное)",
+    "whitelist": "Белый список (показать только выбранное)",
+    "new_profile": "Новый профиль",
+    "add_rule": "Добавить правило",
+    "any_account": "Любой счёт",
+    "any_asset": "Любой актив",
+    "save_profile": "Сохранить профиль",
+    "delete_profile": "Удалить профиль",
+    "delete_profile_confirm": "Вы уверены, что хотите удалить этот профиль?",
+    "close": "Закрыть"
   },
   "optin": {
     "title": "Принимать переводы активов на счет",
@@ -311,6 +348,7 @@
     "show_qr_code": "Показать QR-код",
     "email_pass_account": "Аккаунт электронной почты и пароля",
     "shamir_account": "Восстановление резервной копии Шамира",
+    "hd_wallet_account": "HD Wallet account",
     "overview": "Действия с новой учетной записью",
     "create_basic_help": "Базовая учетная запись Algorand — это учетная запись ED25519 с закрытым ключом. Этот метод использует генератор случайных чисел вашего компьютера для создания секрета для вашей учетной записи.",
     "ledger_account_help": "Одним из наиболее безопасных решений является обработка секретного ключа с помощью специального устройства. Эта учетная запись использует устройство Ledger для создания вашей учетной записи и выполнения операций подписи.",
@@ -322,6 +360,7 @@
     "watch_account_help": "Вы можете отслеживать любую учетную запись в сети.",
     "import_account_help": "Вы можете восстановить учетную запись с помощью мнемоники восстановления Algorand.",
     "shamir_account_help": "Вы можете восстановить учетную запись с помощью мнемоники восстановления резервной копии Shamir.",
+    "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
     "create_first": "Создайте свою первую учетную запись",
     "no_accounts_at_network": "Для выбранной сети нет учетных записей",
     "basic_options": "Основные параметры",
@@ -341,7 +380,30 @@
     "save_password_switch": "Сохранить пароль",
     "password_not_stored": "Осторожно. Мы не храним ваш пароль. Мы будем хранить в безопасном хранилище только публичный address учетной записи и address электронной почты. Когда вы будете совершать транзакции с этой учетной записью, вам будет предложено ввести пароль.",
     "gui_not_implemented": "Графический интерфейс для подписания транзакции без сохраненного пароля в настоящее время не реализован."
+  },  "hdaccount": {
+    "title": "HD Wallet account (ARC-52)",
+    "description": "HD (hierarchical deterministic) wallets use a single 24-word BIP-39 mnemonic to derive an unlimited number of independent Algorand accounts, following the ARC-52 (BIP32-Ed25519) standard. Create a new mnemonic or import an existing one to add its first account.",
+    "mode": "Mode",
+    "mode_create": "Create new mnemonic",
+    "mode_import": "Import existing mnemonic",
+    "master_mnemonic": "HD Master Mnemonic",
+    "backup_warning": "This mnemonic backs up every account derived from this HD wallet, not just this one. Keep it safe and never share it.",
+    "confirm_backup": "I have safely backed up my mnemonic",
+    "write_mnemonic": "Write down your 24 word BIP-39 mnemonic phrase",
+    "iteration": "Iteration (account index)",
+    "account_index_help": "Optional. The hardened account index (m'/44'/283'/index'/0/0) used to derive this wallet's first account from the mnemonic. Leave at 0 unless you specifically need to recover a non-default iteration.",
+    "generate_next": "Generate next account",
+    "generate_next_help": "Pick the iteration (account index) to derive the next account from this HD wallet's mnemonic. Each iteration produces a distinct, independent account address.",
+    "export_child_help": "This account does not store its own secret. It is derived from the master mnemonic of its HD wallet root account. Back up the mnemonic from the root account instead.",
+    "export_go_to_root": "Go to root account backup",
+    "default_account_name": "Основной аккаунт",
+    "not_backed_up_title": "Этот аккаунт не сохранён в резервной копии!",
+    "not_backed_up_body": "Этот HD-кошелёк был создан автоматически, и его мнемоническая фраза восстановления ещё не сохранена в резервной копии. Если вы потеряете доступ к этому устройству без резервной копии, вы рискуете безвозвратно потерять свои средства.",
+    "back_up_now": "Создать резервную копию сейчас",
+    "mark_as_backed_up": "Отметить аккаунт как сохранённый",
+    "backed_up_success": "Аккаунт отмечен как сохранённый"
   },
+
   "import": {
     "title": "Импорт кошелька",
     "wallet_name": "Имя кошелька",
@@ -355,7 +417,8 @@
     "public_account": "Публичная учетная запись",
     "rekeyed": "Учетная запись изменена",
     "ledger_account": "Счет главной книги HW",
-    "wc_account": "Учетная запись WalletConnect"
+    "wc_account": "Учетная запись WalletConnect",
+    "hd_account": "HD wallet account"
   },
   "account": {
     "select_account": "Выбрать аккаунт"
@@ -453,6 +516,7 @@
     "protocol_button": "Зарегистрировать обработчик web+algorand://",
     "protocol_change_success": "Обработчик протокола успешно обновлен",
     "dev_settings": "Показать информацию для разработчиков",
+    "multiaccount_ops": "Включить операции с несколькими счетами",
     "update_password": "Обновить пароль"
   },
   "transaction": {
@@ -571,6 +635,9 @@
     "a8_3": "Выберите все учетные записи, которые могут подписывать транзакции, и выберите, сколько подписей соответствует минимуму для сети, чтобы принять платеж с мультиподписью.",
     "a8_4": "После создания учетной записи с мультиподписью вы можете получить к ней доступ со страницы списка учетных записей."
   },
+  "changelog": {
+    "title": "История разработки и новых функций"
+  },
   "connect": {
     "title": "Подключайтесь к децентрализованным приложениям с помощью WalletConnect",
     "uri": "URI WalletConnect",
@@ -619,7 +686,12 @@
     "init_wc": "Инициализировать подключение к Wallet Connect",
     "sign_all": "Подписать все",
     "proposer": "Инициатор",
-    "all_accounts": "Использовать все счета кошелька"
+    "all_accounts": "Использовать все счета кошелька",
+    "wc1_tab": "WalletConnect v1",
+    "wc2_tab": "WalletConnect v2",
+    "enable_wc1": "Включить WalletConnect v1",
+    "active_sessions": "Активные сессии",
+    "all_addresses": "Выбраны все адреса"
   },
   "new_account_wc": {
     "title": "Добавить учетную запись WalletConnect",

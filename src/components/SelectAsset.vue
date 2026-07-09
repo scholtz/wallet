@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, watch } from "vue";
 import { useStore } from "vuex";
-import Dropdown from "primevue/dropdown";
+import Select from "primevue/select";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import CAsset from "../scripts/interface/CAsset";
 import IAsset from "../scripts/interface/IAsset";
@@ -34,7 +34,7 @@ watch(
       (a) => Number(a.assetId) == Number(newAssetId)
     );
     if (value) {
-      var ret: ExtendedStoredAsset = {
+      const ret: ExtendedStoredAsset = {
         assetId: value.assetId,
         amount: value.amount,
         decimals: value.decimals,
@@ -142,7 +142,7 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <Dropdown
+  <Select
     inputId="asset"
     :itemid="props.itemId"
     v-model="state.assetId"
@@ -154,5 +154,5 @@ onMounted(async () => {
     class="w-full"
     inputClass="w-full"
   >
-  </Dropdown>
+  </Select>
 </template>

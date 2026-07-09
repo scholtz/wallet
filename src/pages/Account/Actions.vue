@@ -1,11 +1,19 @@
 <script setup lang="ts">
 import MainLayout from "../../layouts/Main.vue";
+import { computed } from "vue";
 import { useStore } from "vuex";
 const store = useStore<RootState>();
 import AccountTopMenu from "../../components/AccountTopMenu.vue";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 const { t } = useI18n(); // use as global scope
+
+const isHdAccount = computed(() => {
+  const account = store.state.wallet.privateAccounts.find(
+    (a) => a.addr === store.state.wallet.lastActiveAccount
+  );
+  return account?.type === "hd";
+});
 </script>
 
 <template>
@@ -128,6 +136,20 @@ const { t } = useI18n(); // use as global scope
           </RouterLink>
           <div class="col-12 md:col-10 h-full vertical-align-middle">
             {{ t("acc_overview.export_help") }}
+          </div>
+        </div>
+        <div class="field grid" v-if="isHdAccount">
+          <RouterLink
+            :to="'/account/hd-next/' + store.state.wallet.lastActiveAccount"
+            class="col-12 mb-2 md:col-2 md:mb-0"
+          >
+            <Button class="w-full">
+              <i class="pi pi-sitemap mr-2"></i>
+              {{ t("acc_overview.generate_next_hd") }}
+            </Button>
+          </RouterLink>
+          <div class="col-12 md:col-10 h-full vertical-align-middle">
+            {{ t("acc_overview.generate_next_hd_help") }}
           </div>
         </div>
         <div class="field grid">

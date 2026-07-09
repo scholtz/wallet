@@ -17,7 +17,8 @@
         <div v-if="b64decode && !b64decode.error" class="my-3">
           {{ $t("merchant.pay") }} {{ b64decode.payamount }}
           <span v-if="asset">{{ asset["unit-name"] }}</span>
-          {{ $t("merchant.to_address") }} {{ b64decode.payTo }}
+          {{ $t("merchant.to_address") }}
+          <AlgorandAddress :address="b64decode.payTo" />
           {{ $t("merchant.please") }}
           <table class="w-100">
             <tbody>
@@ -118,11 +119,7 @@
               role="button"
               @click="setLanguage(lang)"
             >
-              <img
-                :src="'/flags/3x2/' + lang + '.svg'"
-                height="50"
-                class="border border-3 rounded rounded-3"
-              />
+              <LanguageFlag :locale="lang" size="2rem" />
             </a>
           </div>
         </div>
@@ -133,6 +130,7 @@
 
 <script>
 import PublicLayout from "../layouts/Public.vue";
+import AlgorandAddress from "../components/AlgorandAddress.vue";
 import QRCodeVue3 from "qrcode-vue3";
 import { mapActions } from "vuex";
 import aprotocol from "../shared/algorand-protocol-parse";
@@ -143,6 +141,7 @@ export default {
   components: {
     PublicLayout,
     QRCodeVue3,
+    AlgorandAddress,
   },
   data() {
     return {

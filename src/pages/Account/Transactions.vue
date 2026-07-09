@@ -26,13 +26,13 @@
     >
       <template #header>
         <div class="flex justify-content-end" v-if="tableFilters['global']">
-          <span class="p-input-icon-left">
-            <i class="pi pi-search" />
+          <IconField>
+            <InputIcon class="pi pi-search" />
             <InputText
               v-model="tableFilters['global'].value"
               :placeholder="$t('placeholders.keyword_search')"
             />
-          </span>
+          </IconField>
         </div>
       </template>
       <template #empty>
@@ -193,14 +193,14 @@ import {
   watch,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { FilterMatchMode } from "primevue/api";
+import { FilterMatchMode } from "@primevue/core/api";
 import MainLayout from "../../layouts/Main.vue";
 import AccountTopMenu from "../../components/AccountTopMenu.vue";
 import { useStore } from "../../store";
 import type { StoredAsset } from "../../store/indexer";
 import type { WalletAccount, IAccountData } from "../../store/wallet";
 import algosdk from "algosdk";
-import {
+import type {
   TransactionAssetTransfer,
   TransactionPayment,
 } from "algosdk/dist/types/client/v2/indexer/models/types";
@@ -431,23 +431,7 @@ const reloadAccount = async () => {
     });
     if (info) {
       await store.dispatch("wallet/updateAccount", { info });
-      const data = accountData.value;
-      if (data && data.rekeyedTo !== data["auth-addr"]) {
-        const rekeyedTo = data["auth-addr"] as string | undefined;
-        console.error(
-          `New rekey information detected: ${data.rekeyedTo} -> ${rekeyedTo}`
-        );
-        if (rekeyedTo) {
-          const info2: Partial<IAccountData> = {};
-          info2.address = data.addr;
-          info2.rekeyedTo = rekeyedTo;
-          await store.dispatch("wallet/updateAccount", { info: info2 });
-          await store.dispatch(
-            "toast/openSuccess",
-            `Information about rekeying to address ${rekeyedTo} has been stored`
-          );
-        }
-      }
+      await store.dispatch("wallet/syncAccountSigner", { addr });
     }
 
     const searchData = (await store.dispatch("indexer/searchForTransactions", {

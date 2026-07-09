@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useStore } from "vuex";
-import Dropdown from "primevue/dropdown";
+import Select from "primevue/select";
 import { useI18n } from "vue-i18n";
 import { RootState } from "@/store";
 
@@ -34,7 +34,7 @@ if (options && options.length == 1) {
 }
 </script>
 <template>
-  <Dropdown
+  <Select
     v-model="model"
     filter
     :options="options"
@@ -50,5 +50,5 @@ if (options && options.length == 1) {
         <div>2FA service by {{ slotProps.option.providerName }}</div>
       </div>
     </template>
-  </Dropdown>
+  </Select>
 </template>

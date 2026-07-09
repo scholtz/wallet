@@ -39,7 +39,7 @@
             $t("pay.asset")
           }}</label>
           <div class="col-12 md:col-10">
-            <Dropdown
+            <Select
               id="asset"
               :options="assets"
               option-value="assetId"
@@ -54,7 +54,7 @@
                   </div>
                 </div>
               </template>
-            </Dropdown>
+            </Select>
           </div>
         </div>
         <div class="field grid">

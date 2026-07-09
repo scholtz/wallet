@@ -1,5 +1,5 @@
 <template>
-  <PublicLayout>
+  <PublicLayout no-shell>
     <div
       class="flex flex-column align-items-center justify-content-center h-full m-2"
     >

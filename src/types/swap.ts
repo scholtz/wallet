@@ -1,5 +1,5 @@
 // types/swap.ts - Type definitions for the Swap component
-/* eslint-disable no-unused-vars */
+ 
 
 import { StoredAsset } from "@/store/indexer";
 import algosdk from "algosdk";
@@ -97,4 +97,4 @@ export interface SwapMethods {
   checkNetwork: () => string | false;
 }
 
-/* eslint-enable no-unused-vars */
+ 

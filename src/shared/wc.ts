@@ -13,7 +13,7 @@ interface WalletConnectRecord {
   data: string;
 }
 
-/* eslint-disable no-unused-vars */
+ 
 type WalletConnectConnector = InstanceType<typeof WalletConnect> & {
   clientId: string;
   connected: boolean;
@@ -30,7 +30,7 @@ type WalletConnectConnector = InstanceType<typeof WalletConnect> & {
   }): void;
   transportClose(): void;
 };
-/* eslint-enable no-unused-vars */
+ 
 
 interface WalletConnectPeerMeta {
   url?: string;

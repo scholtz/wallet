@@ -15,13 +15,13 @@
     >
       <template #header>
         <div class="flex justify-content-end" v-if="filters['global']">
-          <span class="p-input-icon-left">
-            <i class="pi pi-search" />
+          <IconField>
+            <InputIcon class="pi pi-search" />
             <InputText
               v-model="filters['global'].value"
               :placeholder="$t('global.keyword_search')"
             />
-          </span>
+          </IconField>
         </div>
       </template>
       <template #empty>
@@ -129,7 +129,7 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { FilterMatchMode } from "primevue/api";
+import { FilterMatchMode } from "@primevue/core/api";
 import Badge from "primevue/badge";
 import MainLayout from "../../layouts/Main.vue";
 import AccountTopMenu from "../../components/AccountTopMenu.vue";
@@ -211,8 +211,6 @@ const getAssetAction = (payload: {
 }): Promise<StoredAsset | undefined> =>
   store.dispatch("indexer/getAsset", payload);
 const prolongAction = () => store.dispatch("wallet/prolong");
-const openSuccessAction = (message: string) =>
-  store.dispatch("toast/openSuccess", message);
 const getAlgodAction = () => store.dispatch("algod/getAlgod");
 const getIndexerAction = () => store.dispatch("indexer/getIndexer");
 const updateArc200BalanceAction = (payload: {
@@ -302,7 +300,7 @@ const reloadArc200AccountBalance = async (data: AssetListItem) => {
     const algodClient = await getAlgodAction();
     const indexerClient = await getIndexerAction();
 
-    var algoClient = AlgorandClient.fromClients({
+    const algoClient = AlgorandClient.fromClients({
       algod: algodClient,
       indexer: indexerClient,
     });
@@ -348,17 +346,9 @@ const reloadAccount = async () => {
   });
   if (!info) return;
   await updateAccountAction({ info });
-  const data = accountData.value;
-  if (data && data.rekeyedTo !== data["auth-addr"]) {
-    const rekeyedTo = data["auth-addr"];
-    const info2: Record<string, unknown> = {};
-    info2.address = data.addr;
-    info2.rekeyedTo = rekeyedTo;
-    await updateAccountAction({ info: info2 });
-    await openSuccessAction(
-      `Information about rekeying to address ${rekeyedTo} has been stored`
-    );
-  }
+  await store.dispatch("wallet/syncAccountSigner", {
+    addr: accountAddressParam.value,
+  });
 };
 
 const refresh = async (data: AssetListItem) => {

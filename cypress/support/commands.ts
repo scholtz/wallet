@@ -37,6 +37,9 @@ Cypress.Commands.add('createTestWallet', (walletName: string = 'Test Wallet', pa
     .scrollIntoView()
     .click({ force: true });
   
-  // Wait for navigation after wallet creation
-  cy.url().should('not.include', '/new-wallet');
+  // Wait for navigation after wallet creation. This involves BIP-39 mnemonic
+  // generation, BIP32-Ed25519 key derivation, and password-based encryption
+  // before the first HD account is created and persisted to IndexedDB, which
+  // can take well over the default 10s command timeout on CI runners.
+  cy.url({ timeout: 30000 }).should('not.include', '/new-wallet');
 });

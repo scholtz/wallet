@@ -8,18 +8,21 @@ workflows:
 jobs:
   test-job:
     docker:
-      - image: cimg/node:20.19.0-browsers  # Use image with browsers for Cypress
+      - image: cimg/node:26.0.0-browsers  # Use image with browsers for Cypress
     steps:
       - checkout
       - run:
+          name: Install pnpm
+          command: npm install -g pnpm@11.10.0
+      - run:
           name: Install dependencies
-          command: npm ci
+          command: pnpm install --frozen-lockfile
       - run:
           name: Build application
-          command: npm run build
+          command: pnpm run build
       - run:
           name: Run tests with intelligent runner
-          command: npm run test
+          command: pnpm run test
       - store_artifacts:
           path: cypress/videos
       - store_artifacts:
