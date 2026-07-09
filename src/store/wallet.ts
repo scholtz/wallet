@@ -1503,23 +1503,17 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     );
     const dataencoded = CryptoJS.AES.encrypt(data, pass);
 
-    dbAny.wallets
-      .add({ name, data: dataencoded.toString() })
-      .then(function () {
-        return true;
-      })
-      .catch((error: unknown) => {
-        const stack = (error as Error).stack;
-        dispatch(
-          "toast/openError",
-          "Error: " + (stack || toErrorMessage(error)),
-          {
-            root: true,
-          }
-        );
+    try {
+      await dbAny.wallets.add({ name, data: dataencoded.toString() });
+    } catch (error: unknown) {
+      const stack = (error as Error).stack;
+      dispatch("toast/openError", "Error: " + (stack || toErrorMessage(error)), {
+        root: true,
       });
-    await dispatch("saveWallet");
+      return false;
+    }
     await commit("setIsOpen", { name, pass });
+    await dispatch("saveWallet");
     return true;
   },
   async getWallets() {
