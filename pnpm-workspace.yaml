@@ -1,3 +1,5 @@
+packages:
+  - '.'
 allowBuilds:
   core-js: false
   cypress: true
