@@ -4,10 +4,15 @@
     "text": "Die webwerf wat jy soek, kan nie gevind word nie."
   },
   "footer": {
-    "text": "A-Wallet - Oopbron PWA Algorand gemeenskap beursie",
+    "text": "{name} - Oopbron Algorand gemeenskap beursie{envStatus}. Ons gee om vir sekuriteit - {auditsLink}. Beursie is deel van {groupLink}. Sluit aan by ons Discord-kanaal om steun te wys of hulp te kry - {discordLink}.",
+    "audits_link": "Oudits",
+    "group_link": "Biatec Group",
+    "discord_link": "Biatec Discord",
     "session_timeout_header": "Sessie tydlimiet waarskuwing",
     "session_timeout_message": "Jou sessie sal binnekort verval. Wil jy voortgaan?",
-    "session_timeout_continue": "Gaan voort met sessie"
+    "session_timeout_continue": "Gaan voort met sessie",
+    "version_built": "Bou {commit} · {date}",
+    "version_local": "Plaaslike bou · {date} ({commit})"
   },
   "login": {
     "new_wallet": "Nuwe beursie",
@@ -114,7 +119,7 @@
     "you_make_details": "Jy maak die betalingsbesonderhede. Jy stel die suksesvolle en kanselleer URL-adres op. Ons stel jou in kennis wanneer die betaling gedoen is. Jy moet in jou agterkant kontroleer waar jy die betaling aanvaar het dat dit ontvang is en jy die kliënt in kennis stel.",
     "opensource": "Hierdie projek is oopbron. Jy kan dit kloon, wysig, of in jou eie privaat omgewing vir kommersiële doeleindes uitvoer",
     "just_website": "Die betaalpoort is net 'n HTML-webwerf met javascript. Geen ander agterkant word gebruik nie, behalwe amptelike algorand-nodes.",
-    "no_restrictions": "Jy hoef nie 'n AWallet-rekening te hê om die betaalpoort te gebruik nie.",
+    "no_restrictions": "Jy hoef nie 'n {name}-rekening te hê om die betaalpoort te gebruik nie.",
     "allowed_parameters": "Toegelate parameters",
     "parameters_perex": "Jy kan enige van hierdie parameters instel. Die enigste verpligte velde sluit die adres waar jy jou betaling wil ontvang en die transaksiebedrag in. Die betalingsadres bestaan uit twee dele: betalingsinligting, en poortinstellings. Beide velde is base64 gekodeer en geskei deur \"/\". Maak asseblief seker dat jy hulle korrek url-kodeer. Betalingsinligting is die basiese algorand-protokoladres wat byvoorbeeld in die QR-kodes gebruik word.",
     "payment_info_params": "Toegelate parameters",
@@ -616,8 +621,8 @@
   },
   "faq": {
     "title": "Frequently asked questions",
-    "q1": "About AWallet",
-    "a1": "Algo wallet was initially created by Scholtz & Company, jsa. Open source, HTML only, corporate friendly, and security are the main advantages for its usage. Algorand logo, the words \"algo\" and \"algorand\" are trademarked by Algorand, Inc., and are used with algorand media guidelines https://www.algorand.com/about/media-kit/ .",
+    "q1": "About {name}",
+    "a1": "{name} was initially created by Scholtz & Company, jsa. Open source, HTML only, corporate friendly, and security are the main advantages for its usage. Algorand logo, the words \"algo\" and \"algorand\" are trademarked by Algorand, Inc., and are used with algorand media guidelines https://www.algorand.com/about/media-kit/ .",
     "q2": "How is my wallet data secured?",
     "a2": "Your data is in the browser only. It is stored in persistent IndexedDB. Every wallet is encrypted using aes256 with your password. If you make a strong enough password, your wallet will never be brute-forced. Your password does not leave your computer and resides only in the browser cache. The cache is destroyed in 5 minutes after login.",
     "q3": "Does my wallet password go to the internet?",
@@ -834,9 +839,9 @@
     "no_middleman": "wat geen finansiële tussenganger benodig nie, ons het oop bron gedesentraliseerde stemstelsel gebou op die algorand netwerk, en ons het die gedesentraliseerde",
     "donation_web": "skenking web",
     "future_vision": "Ons het verskeie visies waar ons die algorand gemeenskap kan help groei.",
-    "graphics_designer": "Ons sou graag 'n grafiese ontwerper wil huur om die voorkoms van AWallet te verbeter. Ons verwag koste van ongeveer 1000 USDt.",
+    "graphics_designer": "Ons sou graag 'n grafiese ontwerper wil huur om die voorkoms van {name} te verbeter. Ons verwag koste van ongeveer 1000 USDt.",
     "donate_now": "Skenk nou",
-    "translation_cost": "Vertaling na ander taal kos ongeveer 50 USD. Stuur ons asseblief in die nota inligting na watter taal jy AWallet vertaal wil hê.",
+    "translation_cost": "Vertaling na ander taal kos ongeveer 50 USD. Stuur ons asseblief in die nota inligting na watter taal jy {name} vertaal wil hê.",
     "magento_gateway": "Betaling hek implementering vir Magento - Geen tussenganger, jy aanvaar betalings na jou rekening, koppel met fakture",
     "accept_donations": "Ons aanvaar skenkings na hierdie rekening:",
     "thank_you": "Dankie",

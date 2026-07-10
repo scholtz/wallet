@@ -12,6 +12,12 @@ COPY pnpm-workspace.yaml pnpm-workspace.yaml
 COPY package.json package.json
 RUN pnpm install --frozen-lockfile
 COPY . .
+# Build identity, supplied by the CI/build script (.git is excluded from the
+# build context by .dockerignore, so it can't be derived inside the image).
+ARG GIT_COMMIT=unknown
+ARG BUILD_DATE
+ENV VITE_GIT_COMMIT=$GIT_COMMIT
+ENV VITE_BUILD_DATE=$BUILD_DATE
 RUN pnpm run build
 RUN cd /src/dist && ls
 #RUN pnpm run test

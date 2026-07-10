@@ -42,7 +42,7 @@
             </p>
             <ol>
               <li>
-                {{ $t("donation.graphics_designer") }}
+                {{ $t("donation.graphics_designer", { name: brandName }) }}
                 <a
                   href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9MTAwMDAwMDAwMCZhc3NldD0zMTI3Njk/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0L3N1Y2Nlc3MiLCJjYW5jZWwiOiJodHRwczovL3d3dy5hLXdhbGxldC5uZXQvZG9uYXRlIn0"
                 >
@@ -50,7 +50,7 @@
                 </a>
               </li>
               <li>
-                {{ $t("donation.translation_cost") }}
+                {{ $t("donation.translation_cost", { name: brandName }) }}
                 <a
                   href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9NTAwMDAwMDAmYXNzZXQ9MzEyNzY5/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0L3N1Y2Nlc3MiLCJjYW5jZWwiOiJodHRwczovL3d3dy5hLXdhbGxldC5uZXQvZG9uYXRlIn0"
                 >
@@ -107,10 +107,16 @@
 <script>
 import QRCodeVue3 from "qrcode-vue3";
 import PublicLayout from "../layouts/Public.vue";
+import { getWalletBrandName } from "@/scripts/branding";
 export default {
   components: {
     PublicLayout,
     QRCodeVue3,
+  },
+  computed: {
+    brandName() {
+      return getWalletBrandName();
+    },
   },
 };
 </script>

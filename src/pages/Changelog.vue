@@ -3,6 +3,12 @@
     <Card>
       <template #title>{{ $t("changelog.title") }}</template>
       <template #content>
+        <p
+          v-tooltip.top="versionTooltip"
+          class="m-0 mb-3 text-sm text-color-secondary"
+        >
+          {{ versionLabel }}
+        </p>
         <div class="changelog-content" v-html="html" />
       </template>
     </Card>
@@ -11,8 +17,23 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import PublicLayout from "../layouts/Public.vue";
 import changelogSource from "../../CHANGELOG.md?raw";
+
+const { t } = useI18n();
+
+const isLocalBuild = import.meta.env.VITE_BUILD_SOURCE === "local";
+const versionLabel = computed(() => {
+  const commit = import.meta.env.VITE_GIT_COMMIT;
+  const date = new Date(import.meta.env.VITE_BUILD_DATE).toLocaleDateString();
+  return isLocalBuild
+    ? t("footer.version_local", { commit, date })
+    : t("footer.version_built", { commit, date });
+});
+const versionTooltip = new Date(
+  import.meta.env.VITE_BUILD_DATE
+).toLocaleString();
 
 // Minimal markdown-to-HTML conversion, only covering the syntax actually
 // used in CHANGELOG.md (headings, bullet lists, paragraphs, inline code).

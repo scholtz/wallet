@@ -1,23 +1,21 @@
 <template>
   <footer v-if="$store.state.wallet.isOpen" class="my-4">
-    <div class="grid">
-      <div class="col" />
-      <div class="col">
-        <p class="text-center m-0">
-          {{ $t("footer.text") + envStatus }}
-        </p>
-      </div>
-      <div class="col align-content-end text-right">
-        <Button
-          v-if="t"
-          size="small"
-          severity="secondary"
-          :style="'background:' + b + '; color: black'"
-          @click="prolong"
-        >
-          {{ t }}
-        </Button>
-      </div>
+    <div class="flex align-items-center gap-2">
+      <p
+        v-tooltip.top="versionTooltip"
+        class="flex-grow-1 text-center m-0 text-sm footer-text"
+        v-html="brandLineHtml"
+      />
+      <Button
+        v-if="t"
+        size="small"
+        severity="secondary"
+        class="footer-timer-btn flex-shrink-0"
+        :style="'background:' + b + '; color: black'"
+        @click="prolong"
+      >
+        {{ t }}
+      </Button>
     </div>
     <Dialog
       v-model:visible="displayTimeoutDialog"
@@ -37,9 +35,13 @@
 <script>
 import { mapActions } from "vuex";
 import moment from "moment";
+import { getWalletBrandName } from "@/scripts/branding";
 
 const SESSION_TIMEOUT_MS = 300000; // 5 minutes
 const WARNING_THRESHOLD_MS = 30000; // 30 seconds
+const AUDITS_URL = "https://github.com/scholtz/wallet/tree/master/audits/reports";
+const BIATEC_GROUP_URL = "https://www.biatec.io";
+const DISCORD_URL = "https://discord.gg/gBsts5bPAd";
 
 export default {
   data() {
@@ -49,6 +51,35 @@ export default {
       envStatus: "",
       displayTimeoutDialog: false,
     };
+  },
+  computed: {
+    isLocalBuild() {
+      return import.meta.env.VITE_BUILD_SOURCE === "local";
+    },
+    versionLabel() {
+      const commit = import.meta.env.VITE_GIT_COMMIT;
+      const date = new Date(
+        import.meta.env.VITE_BUILD_DATE
+      ).toLocaleDateString();
+      return this.isLocalBuild
+        ? this.$t("footer.version_local", { commit, date })
+        : this.$t("footer.version_built", { commit, date });
+    },
+    versionTooltip() {
+      return new Date(import.meta.env.VITE_BUILD_DATE).toLocaleString();
+    },
+    brandLineHtml() {
+      const link = (url, label) =>
+        `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+      const text = this.$t("footer.text", {
+        name: getWalletBrandName(),
+        envStatus: this.envStatus,
+        auditsLink: link(AUDITS_URL, this.$t("footer.audits_link")),
+        groupLink: link(BIATEC_GROUP_URL, this.$t("footer.group_link")),
+        discordLink: link(DISCORD_URL, this.$t("footer.discord_link")),
+      });
+      return `${text} ${this.versionLabel}`;
+    },
   },
   mounted() {
     this.setTime();
@@ -134,3 +165,14 @@ export default {
   },
 };
 </script>
+<style scoped>
+.footer-text,
+.footer-text :deep(a) {
+  color: #fff;
+}
+.footer-timer-btn {
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  min-width: 0;
+}
+</style>

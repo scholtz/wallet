@@ -4,10 +4,15 @@
     "text": "El sitio web que buscas no pudo ser encontrado."
   },
   "footer": {
-    "text": "Algo Wallet",
+    "text": "{name} - Billetera Algorand de código abierto{envStatus}. Nos preocupamos por la seguridad - {auditsLink}. La billetera es parte de {groupLink}. Únete a nuestro canal de Discord para mostrar tu apoyo u obtener ayuda - {discordLink}.",
+    "audits_link": "Auditorías",
+    "group_link": "Biatec Group",
+    "discord_link": "Biatec Discord",
     "session_timeout_header": "Advertencia de tiempo de espera de sesión",
     "session_timeout_message": "Su sesión expirará pronto. ¿Desea continuar?",
-    "session_timeout_continue": "Continuar sesión"
+    "session_timeout_continue": "Continuar sesión",
+    "version_built": "Compilación {commit} · {date}",
+    "version_local": "Compilación local · {date} ({commit})"
   },
   "login": {
     "new_wallet": "Nueva billetera",
@@ -114,7 +119,7 @@
     "you_make_details": "Usted establece los detalles del pago. Usted configura la dirección URL de éxito y la de cancelación. Le notificamos cuando el pago se ha realizado. Tienes que comprobar en tu backend (donde aceptas el pago) que el pago se ha recibido y se lo notificas al cliente.",
     "opensource": "Este proyecto es de código abierto. Puedes clonarlo, modificarlo o ejecutarlo en tu entorno privado con fines comerciales.",
     "just_website": "La pasarela de pago es sólo un sitio web HTML con javascript. No se utiliza ningún otro backend que no sean los nodos oficiales de algorand.",
-    "no_restrictions": "No es necesario tener una cuenta AWallet para utilizar la pasarela.",
+    "no_restrictions": "No es necesario tener una cuenta {name} para utilizar la pasarela.",
     "allowed_parameters": "Parámetros permitidos",
     "parameters_perex": "Puedes configurar cualquiera de estos parámetros. Los únicos campos obligatorios son la dirección en la que deseas recibir el pago y el monto de la transacción. La dirección de pago consta de dos partes: información de pago y configuración de la pasarela. Ambos campos están codificados en base64 separados por \"/\". Por favor, asegúrese de que los codifica correctamente. La información del pago que se utiliza, es la dirección básica del protocolo Algorand, por ejemplo, la que se usa  en los códigos QR.",
     "payment_info_params": "Parámetros permitidos",
@@ -616,8 +621,8 @@
   },
   "faq": {
     "title": "Preguntas frecuentes",
-    "q1": "Acerca de AWallet",
-    "a1": "Algo Waltera fue creada inicialmente por Scholtz & Company, jsa. Código abierto, sólo HTML, amigable para las empresas, y la seguridad son las principales ventajas para su uso. El logotipo de Algorand, las palabras \"algo\" y \"algorand\" son marcas registradas de Algorand, Inc. y se utilizan con las directrices de algorand media https://www.algorand.com/about/media-kit/ .",
+    "q1": "Acerca de {name}",
+    "a1": "{name} fue creada inicialmente por Scholtz & Company, jsa. Código abierto, sólo HTML, amigable para las empresas, y la seguridad son las principales ventajas para su uso. El logotipo de Algorand, las palabras \"algo\" y \"algorand\" son marcas registradas de Algorand, Inc. y se utilizan con las directrices de algorand media https://www.algorand.com/about/media-kit/ .",
     "q2": "¿Cómo se protegen los datos de mi billetera?",
     "a2": "Sus datos sólo están en el navegador. Se almacenan en IndexedDB persistente. Cada billetera es encriptada usando aes256 con tu contraseña. Si creas una contraseña lo suficientemente fuerte, tu billetera nunca será vulnerada por un ataque de fuerza bruta. Su contraseña no sale de su ordenador y sólo reside en la caché del navegador. La caché se destruye en 5 minutos después del inicio de sesión.",
     "q3": "¿La contraseña de mi billetera sale a Internet?",
@@ -834,9 +839,9 @@
     "no_middleman": "que no requiere intermediario financiero, hemos creado sistema de votación descentralizado de código abierto construido en la red algorand, y hemos construido el",
     "donation_web": "web de donaciones",
     "future_vision": "Tenemos varias visiones donde podemos ayudar a crecer a la comunidad algorand.",
-    "graphics_designer": "Nos gustaría contratar diseñador gráfico para mejorar la apariencia de AWallet. Esperamos costos de aproximadamente 1000 USDt.",
+    "graphics_designer": "Nos gustaría contratar diseñador gráfico para mejorar la apariencia de {name}. Esperamos costos de aproximadamente 1000 USDt.",
     "donate_now": "Donar ahora",
-    "translation_cost": "La traducción a otro idioma cuesta aproximadamente 50 USD. Por favor envíanos en la nota información sobre a qué idioma te gustaría que AWallet fuera traducido.",
+    "translation_cost": "La traducción a otro idioma cuesta aproximadamente 50 USD. Por favor envíanos en la nota información sobre a qué idioma te gustaría que {name} fuera traducido.",
     "magento_gateway": "Implementación de pasarela de pago para Magento - Sin intermediario, aceptas pagos en tu cuenta, empareja con facturas",
     "accept_donations": "Aceptamos donaciones en esta cuenta:",
     "thank_you": "Gracias",

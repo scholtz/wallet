@@ -288,6 +288,7 @@
 <script>
 import { mapActions } from "vuex";
 import MainLayout from "../layouts/Main.vue";
+import { getWalletBrandName } from "@/scripts/branding";
 
 export default {
   components: {
@@ -510,7 +511,7 @@ export default {
         navigator.registerProtocolHandler(
           "web+algorand",
           location.origin + "/pay/%s",
-          "A Wallet",
+          getWalletBrandName(),
         );
         this.openSuccess(this.$t("settings.protocol_change_success"));
       } catch (exc) {

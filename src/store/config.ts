@@ -2,6 +2,11 @@ import { Buffer } from "buffer";
 import type { ActionTree, MutationTree } from "vuex";
 import type { RootState } from "./index";
 import type { GenesisNetwork, ProviderEntry } from "./publicData";
+import {
+  getWalletBrandName,
+  getWalletBrandUrl,
+  getWalletLogo,
+} from "@/scripts/branding";
 
 export interface WalletConnectMetadata {
   name: string;
@@ -71,7 +76,7 @@ export interface SetHostsPayload {
 
 const state = (): ConfigState => ({
   debug: false,
-  LOGO: "/img/logo.svg",
+  LOGO: getWalletLogo(),
   env: "mainnet-v1.0",
   envName: "Mainnet",
   tokenSymbol: "Algo",
@@ -87,9 +92,9 @@ const state = (): ConfigState => ({
   twoFactorServer: "",
   walletConnectProjectId: "372941d972266817e1a8d1e403769ac0",
   walletConnectMetadata: {
-    name: "AWallet",
+    name: getWalletBrandName(),
     description: "Open source community algorand wallet",
-    url: "www.a-wallet.net",
+    url: getWalletBrandUrl(),
     icons: [],
   },
   languages: ["en", "hu", "it", "nl", "sk", "cs", "es", "tr"],
@@ -153,7 +158,7 @@ const mutations: MutationTree<ConfigState> = {
   setConfig(currentState, value: RemoteConfig) {
     const removeConsoleLogs = !value.debug;
 
-    console.info("Welcome to AWallet");
+    console.info(`Welcome to ${getWalletBrandName()}`);
     if (removeConsoleLogs) {
       console.info("Logs has been removed in production environment");
       disableConsoleLogs();

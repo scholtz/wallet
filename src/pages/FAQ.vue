@@ -3,9 +3,9 @@
     <h1>{{ $t("faq.title") }}</h1>
 
     <Accordion :active-index="0">
-      <AccordionTab :header="$t('faq.q1')">
+      <AccordionTab :header="$t('faq.q1', { name: brandName })">
         <p>
-          {{ $t("faq.a1") }}
+          {{ $t("faq.a1", { name: brandName }) }}
         </p> </AccordionTab
       ><AccordionTab :header="$t('faq.q2')">
         <p>
@@ -74,9 +74,15 @@
 
 <script>
 import PublicLayout from "../layouts/Public.vue";
+import { getWalletBrandName } from "@/scripts/branding";
 export default {
   components: {
     PublicLayout,
+  },
+  computed: {
+    brandName() {
+      return getWalletBrandName();
+    },
   },
 };
 </script>

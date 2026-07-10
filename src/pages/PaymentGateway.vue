@@ -63,7 +63,7 @@
                   checked
                   disabled
                 />
-                {{ $t("gateway.no_restrictions") }}
+                {{ $t("gateway.no_restrictions", { name: brandName }) }}
               </li>
             </ul>
           </div>
@@ -364,6 +364,7 @@
 import PublicLayout from "../layouts/Public.vue";
 import base64url from "base64url";
 import { Buffer } from "buffer";
+import { getWalletBrandName } from "@/scripts/branding";
 window.Buffer = Buffer;
 
 export default {
@@ -400,6 +401,9 @@ export default {
     };
   },
   computed: {
+    brandName() {
+      return getWalletBrandName();
+    },
     dataOk() {
       return !!this.payTo && !!this.amount;
     },

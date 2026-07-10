@@ -4,10 +4,15 @@
     "text": "De pagina die je zoekt is niet gevonden"
   },
   "footer": {
-    "text": "A-Wallet - Open source PWA Algorand community wallet",
+    "text": "{name} - Open source Algorand community wallet{envStatus}. Wij hechten waarde aan veiligheid - {auditsLink}. De wallet maakt deel uit van {groupLink}. Sluit je aan bij ons Discord-kanaal om je steun te tonen of hulp te krijgen - {discordLink}.",
+    "audits_link": "Audits",
+    "group_link": "Biatec Group",
+    "discord_link": "Biatec Discord",
     "session_timeout_header": "Sessie time-out waarschuwing",
     "session_timeout_message": "Uw sessie verloopt binnenkort. Wilt u doorgaan?",
-    "session_timeout_continue": "Sessie voortzetten"
+    "session_timeout_continue": "Sessie voortzetten",
+    "version_built": "Build {commit} · {date}",
+    "version_local": "Lokale build · {date} ({commit})"
   },
   "login": {
     "new_wallet": "Nieuwe portemonnee",
@@ -114,7 +119,7 @@
     "you_make_details": "You make the payment details. You setup the successful and cancel URL address. We notify you when the payment is done. You have to check in your backend where you accept the payment that it has been received and you notify the customer.",
     "opensource": "This project is open source. You can clone, modify it, or run in your private environment for commercial purposes",
     "just_website": "The payment gateway is just HTML website with javascript. No other backend is used other than official algorand nodes.",
-    "no_restrictions": "You do not have AWallet account in order to use the gateway.",
+    "no_restrictions": "U heeft geen {name}-account nodig om de gateway te gebruiken.",
     "allowed_parameters": "Allowed parameters",
     "parameters_perex": "You can set any of these parameters. Only required field is the address where you want to receive your payment and transaction amount. The payment address consits of 2 parts. Payment info, and gateway settings. Both fields are base64 encoded separated by /. Please make sure that you url encode them properly. Payment info is the basic algorand protocol address used for example in the QR codes.",
     "payment_info_params": "Allowed parameters",
@@ -616,8 +621,8 @@
   },
   "faq": {
     "title": "Veelgestelde vragen",
-    "q1": "Over de portemonnee",
-    "a1": "Algo wallet applicatie is in eerste instantie gemaakt door Scholtz & Company, jsa. Open source, html only, coroporate vriendelijk, en veiligheid zijn de belangrijkste voordelen voor het gebruik ervan.",
+    "q1": "Over {name}",
+    "a1": "{name} is in eerste instantie gemaakt door Scholtz & Company, jsa. Open source, html only, coroporate vriendelijk, en veiligheid zijn de belangrijkste voordelen voor het gebruik ervan.",
     "q2": "Hoe is mijn wallet data beveiligd?",
     "a2": "Uw gegevens zijn alleen in de browser. Het wordt opgeslagen in een persistente index db. Elke portemonnee is versleuteld met aes256 met uw wachtwoord. Als u een sterk genoeg wachtwoord maakt, zal uw portemonnee nooit worden gebruteforceerd. Het wachtwoord verlaat uw computer niet en bevindt zich alleen in de cache van de browser. Na 5 minuten na het inloggen wordt de cache vernietigd.",
     "q3": "Gaat het wachtwoord van mijn portemonnee naar het internet?",
@@ -834,9 +839,9 @@
     "no_middleman": "which does not require any financial middleman, we have created open source decentralized voting system built on the algorand network, and we have built the decentralized",
     "donation_web": "donation web",
     "future_vision": "We have several visions where we can help the algorand community grow.",
-    "graphics_designer": "We would like to hire graphics designer to improve the Look&Feel of the AWallet. We expect costs approximately 1000 USDt.",
+    "graphics_designer": "We willen graag een grafisch ontwerper inhuren om de look&feel van {name} te verbeteren. We verwachten kosten van ongeveer 1000 USDt.",
     "donate_now": "Donate now",
-    "translation_cost": "Translation to other language costs approx 50 USD. Please send us in the note info to which language you would like the AWallet to be translated.",
+    "translation_cost": "Vertaling naar een andere taal kost ongeveer 50 USD. Stuur ons in de notitie naar welke taal je {name} vertaald zou willen hebben.",
     "magento_gateway": "Payment gateway implementation to Magento - No middleman, you accept the payments to your account, match with invoices",
     "accept_donations": "We accept donations to this account:",
     "thank_you": "Thank you",

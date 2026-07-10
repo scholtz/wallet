@@ -4,10 +4,15 @@
     "text": "A keresett weboldal nem található."
   },
   "footer": {
-    "text": "A-Wallet -  Nyílt forráskódú PWA Algorand közösségi pénztárca",
+    "text": "{name} - Nyílt forráskódú Algorand közösségi pénztárca{envStatus}. Fontos számunkra a biztonság - {auditsLink}. A pénztárca a {groupLink} része. Csatlakozz Discord csatornánkhoz, hogy támogass minket vagy segítséget kapj - {discordLink}.",
+    "audits_link": "Auditok",
+    "group_link": "Biatec Group",
+    "discord_link": "Biatec Discord",
     "session_timeout_header": "Munkamenet-időtúllépés, figyelmeztetés",
     "session_timeout_message": "A munkamenet hamarosan lejár. Szeretné folytatni?",
-    "session_timeout_continue": "Munkamenet folytatása"
+    "session_timeout_continue": "Munkamenet folytatása",
+    "version_built": "Build {commit} · {date}",
+    "version_local": "Helyi build · {date} ({commit})"
   },
   "login": {
     "new_wallet": "Új pénztárca",
@@ -114,7 +119,7 @@
     "you_make_details": "Te határozod meg a tranzakció részleteit. Te állítod be a sikeres és a törölt tranzakcióhoz tartozó URL címeket. Értesítést kapsz, ha a tranzakció végbement. A háttérrendszeredben, ahol az átutalást fogadod, ellenőrizned kell, hogy megérkezett-e az összeg, majd értesítened kell a vásárlót.",
     "opensource": "A projekt nyílt forráskódú. Klónozhatod, módosíthatod, vagy a saját környezetedben üzleti céllal futtathatod.",
     "just_website": "A fizetési átjáró csupán egy HTML weboldal, amely JavaScript-et futtat. A hivatalos Algorand csomópontokon kívül semmilyen más háttérrendszert nem használ.",
-    "no_restrictions": "Az átjáró használatához nem szükséges AWallet számlával rendelkezned.",
+    "no_restrictions": "Az átjáró használatához nem szükséges {name} számlával rendelkezned.",
     "allowed_parameters": "Megengedett paraméterek",
     "parameters_perex": "A paraméterek bármelyike állítható. Kötelező megadnod azt a címet, ahol fogadni szeretnéd a fizetséget, valamint a tranzakció összegét. A fizetési cím két részből áll: a fizetési adatokból, valamint az átjáró beállításaiból. Mindkét mező base64 kódolású, és egy / jel választja el őket egymástól. Győződj meg róla, hogy mindkettőt megfelelő módon kódolod. A fizetési adat nem más, mint pl. a QR-kódokban használt Algorand cím.",
     "payment_info_params": "A tranzakció megengedett paraméterei",
@@ -616,8 +621,8 @@
   },
   "faq": {
     "title": "Gyakran ismételt kérdések",
-    "q1": "Az AWallet-ről",
-    "a1": "Az AWallet-et eredetileg a Scholtz & Company készítette. Nyílt forráskódú, tisztán HTML-ben íródott, fő előnye a könnyű használhatóság és a biztonság. Az Algorand logó, az \"algo\" és \"algorand\" szavak az Algorand, Inc. védjegyei. Használatuk az Algorand előírásai szerint történt, lásd https://www.algorand.com/about/media-kit/ .",
+    "q1": "A {name}-ról",
+    "a1": "A {name}-et eredetileg a Scholtz & Company készítette. Nyílt forráskódú, tisztán HTML-ben íródott, fő előnye a könnyű használhatóság és a biztonság. Az Algorand logó, az \"algo\" és \"algorand\" szavak az Algorand, Inc. védjegyei. Használatuk az Algorand előírásai szerint történt, lásd https://www.algorand.com/about/media-kit/ .",
     "q2": "Mennyire biztonságos a pénztárca adatainak a tárolása?",
     "a2": "Az adatok kizárólag a böngészőn belül tárolódnak, egy perzisztens index db-ben. A pénztárcák titkosítása aes256-tal, jelszó segítségével történik. Ha elég erős a jelszó, akkor a pénztárca nyers erővel feltörhetetlen. A jelszó soha sem hagyja el a számítógépedet, és csak a böngésző gyorsítótárában van meg. A bejelentkezés után 5 perccel a böngésző gyorsítótára törlődik.",
     "q3": "Kikerül-e a pénztárcám jelszava az Internetre?",
@@ -834,9 +839,9 @@
     "no_middleman": "amely nem igényel semmilyen pénzügyi közvetítőt; kifejlesztettünk egy nyílt forráskódú, decentralizált szavazó rendszert, amely az Algorand hálózaton alapul, és felépítettünk egy decentralizált ",
     "donation_web": "adományozási weboldalt.",
     "future_vision": "Számos elképzelésünk van, amellyel hozzá tudunk járulni az Algorand közösség növekedéséhez.",
-    "graphics_designer": "Szeretnénk megbízni egy grafikust, hogy jobb legyen az AWallet kinézete és kezelhetősége. Ennek becsült költsége kb. 1000 USDt.",
+    "graphics_designer": "Szeretnénk megbízni egy grafikust, hogy jobb legyen a {name} kinézete és kezelhetősége. Ennek becsült költsége kb. 1000 USDt.",
     "donate_now": "Támogass most",
-    "translation_cost": "Minden további nyelvre történő fordítás költége kb. 50 USD. Kérjük, a megjegyzésben add meg, hogy milyen nyelvre szeretnéd lefordíttatni az AWallet-et.",
+    "translation_cost": "Minden további nyelvre történő fordítás költége kb. 50 USD. Kérjük, a megjegyzésben add meg, hogy milyen nyelvre szeretnéd lefordíttatni a {name}-et.",
     "magento_gateway": "Fizetési átjáró megvalósítása a Magento-hoz - nincs közvetítő, a bevételek a számláknak megfelelően kerülnek a címedre.",
     "accept_donations": "Adományokat ezen a számlán fogadunk:",
     "thank_you": "Köszönjük",

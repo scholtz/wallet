@@ -360,32 +360,29 @@ const items = computed<any>(() => {
       //   route: "/payment-gateway",
       // },
       {
-        label: store.state.config.envName,
+        label: t("navbar.faq"),
         icon: "pi pi-question-circle",
+        route: "/faq",
+      },
+      {
+        label: t("navbar.changelog"),
+        icon: "pi pi-book",
+        route: "/changelog",
+      },
+      {
+        label: t("navbar.privacy_policy"),
+        icon: "pi pi-shield",
+        route: "/privacy-policy",
+      },
+      {
+        label: store.state.config.envName,
+        icon: "pi pi-cog",
         items: [
           ...networkMenuItems(),
           {
             label: t("navbar.settings"),
             icon: "pi pi-cog",
             route: "/settings",
-          },
-          {
-            label: t("navbar.help"),
-            icon: "pi pi-question-circle",
-            items: [
-              {
-                label: t("navbar.faq"),
-                route: "/faq",
-              },
-              {
-                label: t("navbar.changelog"),
-                route: "/changelog",
-              },
-              {
-                label: t("navbar.privacy_policy"),
-                route: "/privacy-policy",
-              },
-            ],
           },
           {
             label: "GitHub",

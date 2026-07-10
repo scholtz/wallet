@@ -12,6 +12,9 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 - Added an in-app Changelog page (linked from the Help menu) so users can see the wallet's feature history at a glance.
 - Fixed the navbar staying in English after switching language on the login screen.
 - Fixed the WalletConnect signature-request notification badge not appearing for incoming requests unless the Connect page had already been visited in that session; WalletConnect now connects as soon as the wallet is opened.
+- The footer now shows the wallet's build version (git commit and build date), so you can always see exactly which version you're running — including a clear "local build" label when running the wallet from source. The build version is also shown at the top of the Changelog page.
+- Redesigned the footer into a single line highlighting our security audits, Biatec Group, and our Discord community, with the wallet automatically branding itself as "Biatec Wallet" when accessed on a biatec.io domain.
+- The FAQ, Changelog and Privacy Policy pages are now directly accessible from the top-level navigation menu before logging in.
 
 ## 2026-01
 

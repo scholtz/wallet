@@ -4,10 +4,15 @@
     "text": "Aradığınız web sitesi bulunamıyor."
   },
   "footer": {
-    "text": "A-Wallet - Açık kaynak PWA Algorand topluluk cüzdanı",
+    "text": "{name} - Açık kaynaklı Algorand topluluk cüzdanı{envStatus}. Güvenliğe önem veriyoruz - {auditsLink}. Cüzdan, {groupLink} topluluğunun bir parçasıdır. Destek göstermek veya yardım almak için Discord kanalımıza katılın - {discordLink}.",
+    "audits_link": "Denetimler",
+    "group_link": "Biatec Group",
+    "discord_link": "Biatec Discord",
     "session_timeout_header": "Oturum zaman aşımı uyarısı",
     "session_timeout_message": "Oturumunuz yakında sona erecek. Devam etmek istiyor musunuz?",
-    "session_timeout_continue": "Oturuma devam et"
+    "session_timeout_continue": "Oturuma devam et",
+    "version_built": "Sürüm {commit} · {date}",
+    "version_local": "Yerel sürüm · {date} ({commit})"
   },
   "login": {
     "new_wallet": "Yeni cüzdan",
@@ -114,7 +119,7 @@
     "you_make_details": "Ödeme ayrıntılarını siz yaparsınız. Başarılı URL adresini ayarlarsınız ve URL adresini iptal edersiniz. Ödeme yapıldığında sizi bilgilendiririz. Ödemeyi kabul ettiğiniz arka uçta kontrol etmeniz ve ödemenin alındığını bildirmeniz gerekir. müşteri.",
     "opensource": "Bu proje açık kaynaktır. Ticari amaçlarla kopyalayabilir, değiştirebilir veya kendi özel ortamınızda çalıştırabilirsiniz",
     "just_website": "Ödeme ağ geçidi yalnızca javascript içeren bir HTML web sitesidir. Resmi algoritma düğümleri dışında başka hiçbir arka uç kullanılmaz.",
-    "no_restrictions": "Ağ geçidini kullanmak için bir AWallet hesabına ihtiyacınız yok.",
+    "no_restrictions": "Ağ geçidini kullanmak için bir {name} hesabına ihtiyacınız yok.",
     "allowed_parameters": "İzin verilen parametreler",
     "parameters_perex": "Bu parametrelerden herhangi birini ayarlayabilirsiniz. Gerekli alanlar yalnızca ödemenizi almak istediğiniz adresi ve işlem tutarını içerir. Ödeme adresi iki bölümden oluşur: ödeme bilgileri ve ağ geçidi ayarları. Her iki alan da base64, \"/\" ile ayrılmış olarak kodlanmıştır. Lütfen URL'yi doğru şekilde kodladığınızdan emin olun. Ödeme bilgisi, örneğin QR kodlarında kullanılan temel algoritma ve protokol adresidir.",
     "payment_info_params": "İzin verilen parametreler",
@@ -616,8 +621,8 @@
   },
   "faq": {
     "title": "Sık sorulan sorular",
-    "q1": "Bir Cüzdan Hakkında",
-    "a1": "Algo cüzdanı başlangıçta Scholtz & Company, jsa tarafından oluşturuldu. Açık kaynak, yalnızca HTML, kurumsal dostu ve güvenlik, kullanımının ana avantajlarıdır. Algorand logosu, -algo- ve -algorand kelimeleri  Algorand, Inc.'in ticari markasıdır ve https://www.algorand.com/about/media-kit/ algorand medya yönergeleriyle birlikte kullanılır.",
+    "q1": "{name} Hakkında",
+    "a1": "{name}, başlangıçta Scholtz & Company, jsa tarafından oluşturuldu. Açık kaynak, yalnızca HTML, kurumsal dostu ve güvenlik, kullanımının ana avantajlarıdır. Algorand logosu, -algo- ve -algorand kelimeleri  Algorand, Inc.'in ticari markasıdır ve https://www.algorand.com/about/media-kit/ algorand medya yönergeleriyle birlikte kullanılır.",
     "q2": "Cüzdan verilerimin güvenliği nasıl sağlanıyor?",
     "a2": "Verileriniz yalnızca tarayıcıdadır. Kalıcı IndexedDB'de depolanır. Her cüzdan, şifrenizle birlikte aes256 kullanılarak şifrelenir. Yeterince güçlü bir şifre oluşturursanız, cüzdanınız asla kaba kuvvete maruz kalmaz. Şifreniz bilgisayarınızdan ayrılmayın ve yalnızca tarayıcı önbelleğinde bulunur. Önbellek, giriş yaptıktan sonra 5 dakika içinde yok edilir.",
     "q3": "Cüzdan şifrem internete giriyor mu?",
@@ -834,9 +839,9 @@
     "no_middleman": "which does not require any financial middleman, we have created open source decentralized voting system built on the algorand network, and we have built the decentralized",
     "donation_web": "donation web",
     "future_vision": "We have several visions where we can help the algorand community grow.",
-    "graphics_designer": "We would like to hire graphics designer to improve the Look&Feel of the AWallet. We expect costs approximately 1000 USDt.",
+    "graphics_designer": "{name} görünümünü ve kullanılabilirliğini iyileştirmek için bir grafik tasarımcı işe almak istiyoruz. Maliyetin yaklaşık 1000 USDt olmasını bekliyoruz.",
     "donate_now": "Donate now",
-    "translation_cost": "Translation to other language costs approx 50 USD. Please send us in the note info to which language you would like the AWallet to be translated.",
+    "translation_cost": "Başka bir dile çeviri yaklaşık 50 USD'ye mal olur. Lütfen {name} uygulamasının hangi dile çevrilmesini istediğinizi notta bize bildirin.",
     "magento_gateway": "Payment gateway implementation to Magento - No middleman, you accept the payments to your account, match with invoices",
     "accept_donations": "We accept donations to this account:",
     "thank_you": "Thank you",

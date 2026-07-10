@@ -11,7 +11,7 @@
     <div v-else class="flex flex-column flex-grow-1">
       <Login />
     </div>
-    <Footer />
+    <Footer v-if="$store.state.wallet.isOpen" />
   </div>
 </template>
 

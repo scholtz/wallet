@@ -4,10 +4,15 @@
     "text": "Stránka ktorú hľadáte nie je bohužiaľ k dispozícii. Skúste prejsť na hlavnú stránku."
   },
   "footer": {
-    "text": "A-Wallet - Komunitná algorand peňaženka s otvoreným kódom",
+    "text": "{name} - Komunitná Algorand peňaženka s otvoreným kódom{envStatus}. Záleží nám na bezpečnosti - {auditsLink}. Peňaženka je súčasťou {groupLink}. Pripojte sa k nášmu Discord kanálu a ukážte podporu alebo získajte pomoc - {discordLink}.",
+    "audits_link": "Audity",
+    "group_link": "Biatec Group",
+    "discord_link": "Biatec Discord",
     "session_timeout_header": "Upozornenie na vypršanie relácie",
     "session_timeout_message": "Vaša relácia čoskoro vyprší. Chcete pokračovať?",
-    "session_timeout_continue": "Pokračovať v relácii"
+    "session_timeout_continue": "Pokračovať v relácii",
+    "version_built": "Zostavenie {commit} · {date}",
+    "version_local": "Lokálne zostavenie · {date} ({commit})"
   },
   "login": {
     "new_wallet": "Nová peňaženka",
@@ -114,7 +119,7 @@
     "you_make_details": "You make the payment details. You setup the successful and cancel URL address. We notify you when the payment is done. You have to check in your backend where you accept the payment that it has been received and you notify the customer.",
     "opensource": "This project is open source. You can clone, modify it, or run in your private environment for commercial purposes",
     "just_website": "The payment gateway is just HTML website with javascript. No other backend is used other than official algorand nodes.",
-    "no_restrictions": "You do not have AWallet account in order to use the gateway.",
+    "no_restrictions": "Na použitie brány nepotrebujete účet {name}.",
     "allowed_parameters": "Allowed parameters",
     "parameters_perex": "You can set any of these parameters. Only required field is the address where you want to receive your payment and transaction amount. The payment address consits of 2 parts. Payment info, and gateway settings. Both fields are base64 encoded separated by /. Please make sure that you url encode them properly. Payment info is the basic algorand protocol address used for example in the QR codes.",
     "payment_info_params": "Allowed parameters",
@@ -616,8 +621,8 @@
   },
   "faq": {
     "title": "Často kladené otázky",
-    "q1": "O peňaženke",
-    "a1": "Aplikáciu peňaženky Algo pôvodne vytvorila spoločnosť Scholtz & Company, jsa. Hlavnými výhodami jeho používania je otvorený zdrojový kód, čisté html, kompatibilný s korporátnymi požiadavkami a zabezpečenie.",
+    "q1": "O {name}",
+    "a1": "{name} pôvodne vytvorila spoločnosť Scholtz & Company, jsa. Hlavnými výhodami jeho používania je otvorený zdrojový kód, čisté html, kompatibilný s korporátnymi požiadavkami a zabezpečenie.",
     "q2": "Ako sú zabezpečené moje údaje v peňaženke?",
     "a2": "Vaše údaje sú iba v prehliadači. Sú uložené v trvalom úložisku indexdb. Každá peňaženka je šifrovaná pomocou aes256 pomocou hesla peňaženky. Ak nastavíte dostatočne silné heslo, Vaša peňaženka nebude nikdy prelomená hrubou silou. Heslo neopustí váš počítač a nachádza sa iba v medzipamäti prehliadača. Po 5 minútach od prihlásenia je cache zničená.",
     "q3": "Ide moje heslo k peňaženke na internet?",
@@ -834,9 +839,9 @@
     "no_middleman": "ktorá nevyžaduje žiadneho finančného sprostredkovateľa, vytvorili sme open source decentralizovaný volebný systém postavený na sieti algorand a vybudovali sme decentralizovaný",
     "donation_web": "darcovský web",
     "future_vision": "Máme niekoľko vízií, kde môžeme pomôcť rastu algorand komunity.",
-    "graphics_designer": "Radi by sme najali grafického dizajnéra na vylepšenie vzhľadu AWallet. Očakávame náklady približne 1000 USDt.",
+    "graphics_designer": "Radi by sme najali grafického dizajnéra na vylepšenie vzhľadu {name}. Očakávame náklady približne 1000 USDt.",
     "donate_now": "Darovať teraz",
-    "translation_cost": "Preklad do iného jazyka stojí cca 50 USD. Prosím, pošlite nám v poznámke info, do ktorého jazyka by ste chceli AWallet preložiť.",
+    "translation_cost": "Preklad do iného jazyka stojí cca 50 USD. Prosím, pošlite nám v poznámke info, do ktorého jazyka by ste chceli {name} preložiť.",
     "magento_gateway": "Implementácia platobnej brány do Magento - Žiadny sprostredkovateľ, prijímate platby na svoj účet, párovanie s faktúrami",
     "accept_donations": "Prijímame dary na tento účet:",
     "thank_you": "Ďakujeme",

@@ -4,6 +4,31 @@ import { nodePolyfills } from "vite-plugin-node-polyfills";
 import { VitePWA } from "vite-plugin-pwa";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import { execSync } from "child_process";
+
+// In Docker builds, VITE_GIT_COMMIT/VITE_BUILD_DATE are supplied as build
+// args (see docker/Dockerfile) since .dockerignore excludes .git, so `git`
+// isn't available inside the build context. Outside Docker (local dev/build),
+// fall back to reading the commit straight from the working tree.
+//
+// These are set on process.env (rather than passed via `define`) so they
+// flow through Vite's built-in import.meta.env.VITE_* mechanism, which
+// (unlike a custom `define` entry) is reliably substituted in both the dev
+// server and the production build.
+const isDockerBuild = !!process.env.VITE_GIT_COMMIT;
+if (!process.env.VITE_GIT_COMMIT) {
+  try {
+    process.env.VITE_GIT_COMMIT = execSync("git rev-parse --short HEAD")
+      .toString()
+      .trim();
+  } catch {
+    process.env.VITE_GIT_COMMIT = "unknown";
+  }
+}
+if (!process.env.VITE_BUILD_DATE) {
+  process.env.VITE_BUILD_DATE = new Date().toISOString();
+}
+process.env.VITE_BUILD_SOURCE = isDockerBuild ? "docker" : "local";
 
 export default defineConfig({
   plugins: [
