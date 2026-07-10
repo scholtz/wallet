@@ -69,11 +69,22 @@ export default {
       return new Date(import.meta.env.VITE_BUILD_DATE).toLocaleString();
     },
     brandLineHtml() {
+      // Every value interpolated into this v-html sink must be escaped or
+      // built entirely from hardcoded constants — name/envStatus are
+      // app-controlled today, but escaping here means a future change that
+      // threads a less-trusted value (e.g. a configurable brand name) through
+      // this helper doesn't silently reopen a stored-XSS sink (audit finding
+      // AW-2026-036).
+      const escapeHtml = (text) =>
+        String(text)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
       const link = (url, label) =>
-        `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+        `<a href="${url}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
       const text = this.$t("footer.text", {
-        name: getWalletBrandName(),
-        envStatus: this.envStatus,
+        name: escapeHtml(getWalletBrandName()),
+        envStatus: escapeHtml(this.envStatus),
         auditsLink: link(AUDITS_URL, this.$t("footer.audits_link")),
         groupLink: link(BIATEC_GROUP_URL, this.$t("footer.group_link")),
         discordLink: link(DISCORD_URL, this.$t("footer.discord_link")),

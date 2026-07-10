@@ -38,8 +38,19 @@ const versionTooltip = new Date(
 // Minimal markdown-to-HTML conversion, only covering the syntax actually
 // used in CHANGELOG.md (headings, bullet lists, paragraphs, inline code).
 // Not a general-purpose markdown renderer.
+//
+// escapeHtml runs first on every line, before any tag is added, so raw
+// "<"/">"/"&" in the source text (e.g. a bullet mentioning a component like
+// "<Password>", or a pasted HTML/code snippet) can never be interpreted as
+// markup by the v-html sink below (audit finding AW-2026-036).
+const escapeHtml = (text: string) =>
+  text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
 const renderInline = (text: string) =>
-  text.replace(/`([^`]+)`/g, "<code>$1</code>");
+  escapeHtml(text).replace(/`([^`]+)`/g, "<code>$1</code>");
 
 const toHtml = (markdown: string) => {
   const lines = markdown.replace(/\r\n/g, "\n").split("\n");
