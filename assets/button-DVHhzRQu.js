@@ -1,4 +1,4 @@
-import{Ar as e,Cr as t,H as n,I as r,Sr as i,Tr as a,Wr as o,ar as s,ci as c,cr as l,dn as u,gr as d,hn as f,ir as p,k as m,kr as h,mr as g,nn as _,or as v,ri as y,tt as b,wr as x,yr as S}from"./select-EWIwNq2G.js";var C=b.extend({name:`badge`,style:`
+import{Ar as e,Cr as t,H as n,I as r,Sr as i,Tr as a,Wr as o,ar as s,ci as c,cr as l,dn as u,gr as d,hn as f,ir as p,k as m,kr as h,mr as g,nn as _,or as v,ri as y,tt as b,wr as x,yr as S}from"./select-B5GMOEQg.js";var C=b.extend({name:`badge`,style:`
     .p-badge {
         display: inline-flex;
         border-radius: dt('badge.border.radius');
