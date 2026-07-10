@@ -255,23 +255,17 @@ const actions: ActionTree<WcState, RootState> = {
               asset = "ALGO";
               break;
             case "axfer":
-              asset = decoded.assetIndex ?? "";
-              if (typeof decoded.assetIndex === "bigint") {
-                asset = decoded.assetIndex.toString();
-              }
+              asset = decoded.assetTransfer?.assetIndex?.toString() ?? "";
               break;
             default:
               asset = decoded.type ?? "";
               break;
           }
 
-          let amount: number | string | undefined = decoded.amount as
-            | number
-            | string
-            | undefined;
-          if (typeof decoded.amount === "bigint") {
-            amount = decoded.amount.toString();
-          }
+          const rawAmount =
+            decoded.payment?.amount ?? decoded.assetTransfer?.amount;
+          let amount: number | string | undefined =
+            typeof rawAmount === "bigint" ? rawAmount.toString() : rawAmount;
           if (decoded.type === "pay" || decoded.type === "axfer") {
             if (!amount) {
               amount = "0";

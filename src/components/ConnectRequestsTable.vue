@@ -173,7 +173,7 @@
               </template>
             </Column>
             <template #expansion="txProps">
-              <div class="p-3">
+              <div class="p-3 detail-scroll">
                 <table>
                   <tbody>
                     <tr v-if="txProps.data.txn.sender">
@@ -200,6 +200,45 @@
                             )
                           "
                         />
+                      </td>
+                    </tr>
+                    <tr v-if="txProps.data.txn.type == 'axfer'">
+                      <td>{{ $t("connect.asset") }}:</td>
+                      <td>
+                        {{ txProps.data.txn.assetTransfer?.assetIndex }}
+                        <span v-if="getAssetName(txProps.data.txn.assetTransfer?.assetIndex)">
+                          ({{ getAssetName(txProps.data.txn.assetTransfer?.assetIndex) }})
+                        </span>
+                      </td>
+                    </tr>
+                    <tr
+                      v-if="
+                        txProps.data.txn.type == 'pay' ||
+                        txProps.data.txn.type == 'axfer'
+                      "
+                    >
+                      <td>{{ $t("connect.amount") }}:</td>
+                      <td>
+                        <div v-if="txProps.data.txn.type == 'pay'">
+                          {{
+                            $filters.formatCurrency(
+                              txProps.data.txn.payment?.amount
+                            )
+                          }}
+                        </div>
+                        <div v-else>
+                          {{
+                            $filters.formatCurrency(
+                              txProps.data.txn.assetTransfer?.amount,
+                              getAssetName(
+                                txProps.data.txn.assetTransfer?.assetIndex
+                              ),
+                              getAssetDecimals(
+                                txProps.data.txn.assetTransfer?.assetIndex
+                              )
+                            )
+                          }}
+                        </div>
                       </td>
                     </tr>
                     <tr v-if="txProps.data.txn.rekeyTo">
@@ -789,3 +828,9 @@ const getAssetName = (id: bigint | number | string) => getAssetSync(id)?.name;
 const getAssetDecimals = (id: bigint | number | string) =>
   getAssetSync(id)?.decimals ?? 0;
 </script>
+
+<style scoped>
+.detail-scroll {
+  overflow-x: auto;
+}
+</style>
