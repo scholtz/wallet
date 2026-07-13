@@ -15,6 +15,7 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 - The footer now shows the wallet's build version (git commit and build date), so you can always see exactly which version you're running — including a clear "local build" label when running the wallet from source. The build version is also shown at the top of the Changelog page.
 - Redesigned the footer into a single line highlighting our security audits, Biatec Group, and our Discord community, with the wallet automatically branding itself as "Biatec Wallet" when accessed on a biatec.io domain.
 - The FAQ, Changelog and Privacy Policy pages are now directly accessible from the top-level navigation menu before logging in.
+- Redesigned the login, new-wallet and import-wallet screens into a compact centered card with clearer labels and full-width buttons, keeping the form fully visible and centered on any screen size.
 
 ## 2026-01
 

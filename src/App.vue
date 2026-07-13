@@ -233,6 +233,69 @@ html.p-dark {
   padding: 0;
 }
 
+/* Auth screens (Login / NewWallet / ImportWallet): a single narrow
+   glass card centered on the gradient, echoing the navbar's and
+   .language-footer's blurred-translucent treatment so the three chrome
+   surfaces on these screens read as one system. The auto margins on the
+   panel (rather than relying on the container's justify-content-center
+   alone) make centering overflow-safe: when the viewport is shorter than
+   the form, auto margins collapse to 0 and the container scrolls from the
+   top instead of clipping the panel's top edge off-screen. */
+.auth-screen {
+  overflow-y: auto;
+  /* keep scrolled content clear of the absolute .language-footer */
+  padding-bottom: 4.5rem;
+}
+
+.auth-screen .auth-panel {
+  width: 100%;
+  max-width: 30rem;
+  margin-top: auto;
+  margin-bottom: auto;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(16px);
+  background: color-mix(in srgb, var(--p-content-background) 88%, transparent);
+  overflow: hidden;
+}
+
+/* Let the glass background above show through the Panel's own surfaces. */
+.auth-screen .auth-panel .p-panel-header,
+.auth-screen .auth-panel .p-panel-content {
+  background: transparent;
+  border: none;
+}
+
+.auth-screen .auth-panel .p-panel-header {
+  font-family: var(--font-family-heading);
+  font-size: 1.35rem;
+  padding: 1.75rem 1.75rem 0.25rem;
+}
+
+.auth-screen .auth-panel .p-panel-content {
+  padding: 0.75rem 1.75rem 1.75rem;
+}
+
+/* Inside the narrow auth card the app-wide "statement row" treatment
+   (hairline separators between .field.grid rows) reads as clutter —
+   plain stacked label-over-input rows instead. */
+.auth-screen .auth-panel .field.grid {
+  border-bottom: none;
+  padding: 0.4rem 0;
+}
+
+.auth-screen .auth-panel label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--p-text-muted-color);
+}
+
+.auth-screen .auth-panel .auth-help {
+  font-size: 0.875rem;
+  color: var(--p-text-muted-color);
+}
+
 /* Language switcher on the Login/New-Wallet screens, pinned to the bottom
    of the (relatively-positioned) centering container as its own translucent
    footer bar — same blurred-glass treatment as the sticky navbar — instead

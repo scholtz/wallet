@@ -1,27 +1,27 @@
 <template>
   <PublicLayout no-shell>
     <div
-      class="flex flex-column align-items-center justify-content-center h-full m-2"
+      class="auth-screen flex flex-column align-items-center justify-content-center h-full m-2"
     >
-      <Panel class="col-12 md:col-8 lg:col-6">
+      <Panel class="auth-panel">
         <template #header>
           {{ $t("import.title") }}
         </template>
 
         <form @submit="createWalletClick">
           <div class="field grid">
-            <label for="newwallet-name" class="col-12 mb-2 md:col-2 md:mb-0">
+            <label for="newwallet-name" class="col-12 mb-1">
               {{ $t("import.wallet_name") }}
             </label>
-            <div class="col-12 md:col-10">
+            <div class="col-12">
               <InputText id="newwallet-name" v-model="name" class="w-full" />
             </div>
           </div>
           <div class="field grid">
-            <label for="newwallet-file" class="col-12 mb-2 md:col-2 md:mb-0">
+            <label for="newwallet-file" class="col-12 mb-1">
               {{ $t("import.wallet_file") }}
             </label>
-            <div class="col-12 md:col-10">
+            <div class="col-12">
               <FileUpload
                 mode="basic"
                 id="newwallet-file"
@@ -31,17 +31,16 @@
             </div>
           </div>
           <div class="field grid">
-            <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
-            <div class="col-12 md:col-10">
-              <Button type="submit" :disabled="!name || !file">
+            <div class="col-12">
+              <Button type="submit" :disabled="!name || !file" class="w-full">
                 {{ $t("import.import_wallet_button") }}
               </Button>
-              <RouterLink to="/">
-                <Button variant="secondary" class="mx-2">
+              <RouterLink to="/" class="block mt-2">
+                <Button severity="secondary" class="w-full">
                   {{ $t("global.go_home") }}
                 </Button>
               </RouterLink>
-              <p class="my-2">
+              <p class="my-2 auth-help">
                 {{ $t("import.help") }}
               </p>
             </div>
