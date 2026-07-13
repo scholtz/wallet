@@ -222,6 +222,7 @@ onMounted(async () => {
               </Button>
               <QRCodeVue3
                 v-if="state.showQR"
+                imgclass="qr-code"
                 :width="400"
                 :height="400"
                 :value="state.mnemonic"
@@ -244,7 +245,7 @@ onMounted(async () => {
         </div>
 
         <div v-else class="grid">
-          <div :class="state.scanMnemonic ? 'col-8' : 'col-12'">
+          <div :class="state.scanMnemonic ? 'col-12 md:col-8' : 'col-12'">
             <div class="field grid">
               <label for="mn" class="col-12 mb-2 md:col-2 md:mb-0">
                 {{ t("hdaccount.write_mnemonic") }}
@@ -283,7 +284,7 @@ onMounted(async () => {
               </div>
             </div>
           </div>
-          <div v-if="state.scanMnemonic" class="col-4">
+          <div v-if="state.scanMnemonic" class="col-12 md:col-4">
             <QrcodeStream @decode="onDecodeQRMnemonic" />
           </div>
         </div>

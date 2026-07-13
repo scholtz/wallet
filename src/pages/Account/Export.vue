@@ -419,6 +419,7 @@ const markBackedUp = async () => {
           </div>
           <div v-if="state.qr" class="m-3">
             <QRCodeVue3
+              imgclass="qr-code"
               :width="400"
               :height="400"
               :value="state.mn"

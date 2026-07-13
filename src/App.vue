@@ -321,6 +321,42 @@ html.p-dark {
   border-top: 1px solid var(--p-content-border-color);
 }
 
+/* Responsive QR codes: qrcode-vue3 renders a raster <img> from a data URL
+   at the natural pixel size given via :width (275-500px across the app)
+   with no sizing attributes of its own, so on narrow phone screens the
+   image overflows the viewport and forces horizontal scrolling (most
+   visibly the 400px account QR on the page shown right after login).
+   Every <QRCodeVue3> in the app passes imgclass="qr-code": the generated
+   bitmap keeps its resolution (scan quality) but never renders wider than
+   its container. */
+img.qr-code {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Long single-token strings (encoded payment URIs, 25-word mnemonics,
+   58-char Algorand addresses) rendered in <code> blocks (ReceivePayment,
+   Export, ...) cannot wrap and force horizontal scrolling on mobile. */
+code {
+  overflow-wrap: anywhere;
+}
+
+/* Same escape hatch for long tokens in non-code inline elements
+   (e.g. the donation address link). */
+.break-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+/* Wide DataTables (transactions, asset lists...) scroll inside their own
+   container instead of stretching the whole page horizontally on mobile.
+   PrimeVue v4 only gives .p-datatable-table-container `position: relative`
+   unless the table is `scrollable`, so a table wider than a phone viewport
+   otherwise forces page-level horizontal scrolling. */
+.p-datatable-table-container {
+  overflow-x: auto;
+}
+
 /* Bolded Panel headers: several Panels (Login/NewWallet/ImportWallet/...)
    supply the #header slot as plain text rather than via the scoped
    `:class` the slot exposes (which would apply .p-panel-title, already

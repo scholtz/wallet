@@ -103,6 +103,7 @@
             <QRCodeVue3
               v-if="!isPaid"
               :title="origcode"
+              imgclass="qr-code"
               :width="400"
               :height="400"
               :value="origcode"

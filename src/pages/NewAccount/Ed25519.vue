@@ -316,6 +316,7 @@ onMounted(async () => {
           </Button>
           <QRCodeVue3
             v-if="state.showQR"
+            imgclass="qr-code"
             :width="500"
             :height="500"
             :value="state.w"

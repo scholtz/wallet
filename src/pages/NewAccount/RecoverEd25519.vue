@@ -64,7 +64,7 @@ const onDecodeQRMnemonic = (result: string) => {
     <Card>
       <template #content>
         <div class="grid">
-          <div :class="state.scanMnemonic ? 'col-8' : 'col-12'">
+          <div :class="state.scanMnemonic ? 'col-12 md:col-8' : 'col-12'">
             <div class="field grid">
               <label for="mn" class="col-12 mb-2 md:col-2 md:mb-0">
                 {{ t("newacc.write_mnemonic") }}
@@ -118,7 +118,7 @@ const onDecodeQRMnemonic = (result: string) => {
               </div>
             </div>
           </div>
-          <div v-if="state.scanMnemonic" class="col-4">
+          <div v-if="state.scanMnemonic" class="col-12 md:col-4">
             <QrcodeStream @decode="onDecodeQRMnemonic" />
           </div>
         </div>

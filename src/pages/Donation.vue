@@ -5,7 +5,7 @@
     <Card>
       <template #content>
         <div class="grid">
-          <div class="col-9">
+          <div class="col-12 md:col-9">
             <p>
               {{ $t("donation.project_intro") }}
             </p>
@@ -73,6 +73,7 @@
                 target="_blank"
                 rel="noreferrer"
                 href="https://allo.info/address/AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
+                class="break-anywhere"
                 ><b
                   >AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y</b
                 ></a
@@ -82,13 +83,14 @@
             <p>&nbsp;&nbsp;{{ $t("donation.ludo_scholtz") }}</p>
             <p>&nbsp;&nbsp;{{ $t("donation.company_name") }}</p>
           </div>
-          <div class="col-3">
+          <div class="col-12 md:col-3">
             <p>
               <a
                 href="https://www.a-wallet.net/gateway/YWxnb3JhbmQ6Ly9QNjVMWEhBNU1FRE1PSjJaQUlUTFpXWVNVNlcyNUJGMkZDWEo1S1FSRFVCMk5UMlQ3RFBBQUZZVDNVPyZhbW91bnQ9MTAwMDAwMDA/eyJzdWNjZXNzIjoiaHR0cHM6Ly93d3cuYS13YWxsZXQubmV0L3N1Y2Nlc3MiLCJjYW5jZWwiOiJodHRwczovL3d3dy5hLXdhbGxldC5uZXQvZG9uYXRlIn0"
                 class="d-md-none d-lg-block"
               >
                 <QRCodeVue3
+                  imgclass="qr-code"
                   :width="400"
                   :height="400"
                   value="AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"

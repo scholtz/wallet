@@ -2,6 +2,7 @@
   <div class="col-12 lg:col-3 lg:text-right d-md-none d-lg-block account-qr">
     <QRCodeVue3
       myclass="account-qr"
+      imgclass="qr-code"
       :width="400"
       :height="400"
       :value="address"

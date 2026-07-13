@@ -610,6 +610,8 @@ const items = computed<any>(() => {
 .p-menubar-submenu {
   min-width: 300px;
   width: max-content;
+  /* never wider than a small phone viewport (minus #app's m-2 gutters) */
+  max-width: calc(100vw - 1rem);
 }
 
 .p-menubar-item-label {

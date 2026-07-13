@@ -76,7 +76,7 @@
               </div>
             </div>
             <div v-if="showDesignScreen" class="grid">
-              <div :class="scan ? 'col-8' : 'col-12'">
+              <div :class="scan ? 'col-12 md:col-8' : 'col-12'">
                 <div v-if="route.params.toAccount">
                   <InputText
                     v-if="!payTo"
@@ -344,7 +344,7 @@
                 </div>
               </div>
 
-              <div v-if="scan" class="col-4">
+              <div v-if="scan" class="col-12 md:col-4">
                 <QrcodeStream @decode="onDecodeQR" />
               </div>
             </div>

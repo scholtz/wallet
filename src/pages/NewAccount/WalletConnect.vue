@@ -16,6 +16,7 @@
         <div v-if="scannable">
           <h3>{{ $t("new_account_wc.scan") }}</h3>
           <QRCodeVue3
+            imgclass="qr-code"
             :width="275"
             :height="275"
             :value="uri"

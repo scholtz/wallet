@@ -16,6 +16,7 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 - Redesigned the footer into a single line highlighting our security audits, Biatec Group, and our Discord community, with the wallet automatically branding itself as "Biatec Wallet" when accessed on a biatec.io domain.
 - The FAQ, Changelog and Privacy Policy pages are now directly accessible from the top-level navigation menu before logging in.
 - Redesigned the login, new-wallet and import-wallet screens into a compact centered card with clearer labels and full-width buttons, keeping the form fully visible and centered on any screen size.
+- Improved the mobile experience across the app: QR codes now scale to fit the screen instead of forcing horizontal scrolling, wide transaction/asset tables scroll within their own area, long addresses and payment links wrap instead of overflowing, and the camera view for scanning a mnemonic stacks below the form on small screens.
 
 ## 2026-01
 
