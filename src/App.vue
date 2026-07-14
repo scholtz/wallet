@@ -39,16 +39,10 @@ export default {
     setTimeout(() => {
       this.gradient.initGradient("#gradient-canvas");
     }, 100);
-    if (this.walletIsOpen) {
-      this.initWc();
-    }
   },
   computed: {
     theme() {
       return this.$store.state.config.theme;
-    },
-    walletIsOpen() {
-      return this.$store.state.wallet.isOpen;
     },
   },
   watch: {
@@ -58,36 +52,17 @@ export default {
         this.gradient.initGradient("#gradient-canvas");
       }, 100);
     },
-    walletIsOpen(isOpen) {
-      if (isOpen) {
-        this.initWc();
-      }
-    },
   },
   methods: {
     ...mapActions({
       getConfig: "config/getConfig",
       setTheme: "config/setTheme",
-      dispatchWcInit: "wc/init",
     }),
     applyTheme() {
       document.documentElement.classList.toggle(
         "p-dark",
         this.theme === "dark"
       );
-    },
-    async initWc() {
-      // Bootstraps the WalletKit client + its session_request listener as soon
-      // as the wallet is open, so incoming signature requests from already
-      // approved DApp sessions are received (and the navbar badge updated)
-      // regardless of which page the user is on. Previously this only ran
-      // when the user visited /account/connect and clicked "Connect".
-      if (this.$store.state.wc.web3wallet) return;
-      try {
-        await this.dispatchWcInit();
-      } catch (e) {
-        console.error("Failed to initialize WalletConnect", e);
-      }
     },
   },
 };
