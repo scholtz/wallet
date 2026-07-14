@@ -3,50 +3,61 @@
     <div
       class="auth-screen flex flex-column align-items-center justify-content-center h-full m-2"
     >
-      <Panel class="auth-panel">
-        <template #header>
-          {{ $t("import.title") }}
-        </template>
+      <div
+        class="auth-content flex flex-column lg:flex-row align-items-center justify-content-center gap-6"
+      >
+        <div class="hidden lg:block auth-illustration" aria-hidden="true">
+          <img :src="heroImage" alt="" />
+        </div>
+        <Panel class="auth-panel">
+          <template #header>
+            {{ $t("import.title") }}
+          </template>
 
-        <form @submit="createWalletClick">
-          <div class="field grid">
-            <label for="newwallet-name" class="col-12 mb-1">
-              {{ $t("import.wallet_name") }}
-            </label>
-            <div class="col-12">
-              <InputText id="newwallet-name" v-model="name" class="w-full" />
+          <form @submit="createWalletClick">
+            <div class="field grid">
+              <label for="newwallet-name" class="col-12 mb-1">
+                {{ $t("import.wallet_name") }}
+              </label>
+              <div class="col-12">
+                <InputText id="newwallet-name" v-model="name" class="w-full" />
+              </div>
             </div>
-          </div>
-          <div class="field grid">
-            <label for="newwallet-file" class="col-12 mb-1">
-              {{ $t("import.wallet_file") }}
-            </label>
-            <div class="col-12">
-              <FileUpload
-                mode="basic"
-                id="newwallet-file"
-                type="file"
-                @select="fileChanged"
-              />
+            <div class="field grid">
+              <label for="newwallet-file" class="col-12 mb-1">
+                {{ $t("import.wallet_file") }}
+              </label>
+              <div class="col-12">
+                <FileUpload
+                  mode="basic"
+                  id="newwallet-file"
+                  type="file"
+                  @select="fileChanged"
+                />
+              </div>
             </div>
-          </div>
-          <div class="field grid">
-            <div class="col-12">
-              <Button type="submit" :disabled="!name || !file" class="w-full">
-                {{ $t("import.import_wallet_button") }}
-              </Button>
-              <RouterLink to="/" class="block mt-2">
-                <Button severity="secondary" class="w-full">
-                  {{ $t("global.go_home") }}
+            <div class="field grid">
+              <div class="col-12">
+                <Button
+                  type="submit"
+                  :disabled="!name || !file"
+                  class="w-full"
+                >
+                  {{ $t("import.import_wallet_button") }}
                 </Button>
-              </RouterLink>
-              <p class="my-2 auth-help">
-                {{ $t("import.help") }}
-              </p>
+                <RouterLink to="/" class="block mt-2">
+                  <Button severity="secondary" class="w-full">
+                    {{ $t("global.go_home") }}
+                  </Button>
+                </RouterLink>
+                <p class="my-2 auth-help">
+                  {{ $t("import.help") }}
+                </p>
+              </div>
             </div>
-          </div>
-        </form>
-      </Panel>
+          </form>
+        </Panel>
+      </div>
     </div>
   </PublicLayout>
 </template>
@@ -56,6 +67,7 @@ import { ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import FileUpload, { type FileUploadSelectEvent } from "primevue/fileupload";
 import PublicLayout from "../../layouts/Public.vue";
+import heroImage from "../../assets/img/hero-import-wallet.jpg";
 import { useStore } from "../../store";
 
 const store = useStore();

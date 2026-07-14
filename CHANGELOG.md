@@ -17,6 +17,7 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 - The FAQ, Changelog and Privacy Policy pages are now directly accessible from the top-level navigation menu before logging in.
 - Redesigned the login, new-wallet and import-wallet screens into a compact centered card with clearer labels and full-width buttons, keeping the form fully visible and centered on any screen size.
 - Improved the mobile experience across the app: QR codes now scale to fit the screen instead of forcing horizontal scrolling, wide transaction/asset tables scroll within their own area, long addresses and payment links wrap instead of overflowing, and the camera view for scanning a mnemonic stacks below the form on small screens.
+- Added professional imagery to the login, new-wallet, import-wallet and "page not found" screens on desktop, and made the bottom status bar match the top navigation bar's rounded, translucent styling for a more consistent look.
 
 ## 2026-01
 

@@ -247,11 +247,48 @@ html.p-dark {
   padding-bottom: 4.5rem;
 }
 
+/* On desktop the illustration and the auth panel sit side by side; on
+   mobile only the panel is shown (see .auth-illustration below), so the
+   content block never needs to be wider than the panel itself there. */
+.auth-screen .auth-content {
+  width: 100%;
+  max-width: 64rem;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+/* Photographic hero next to the auth panel (desktop only) — rendered as a
+   card matching the glass panel's radius/border/shadow so the pair reads as
+   one composition. Images are AI-generated, royalty-free (see
+   src/assets/img/README.md for provenance and replacement guidance). */
+/* Stretched wrapper + absolutely-filled img: the wrapper contributes no
+   intrinsic height of its own (the img is out of flow), so the flex row's
+   height is dictated solely by the auth panel, and the photo cover-crops
+   to exactly match it — one two-column composition regardless of each
+   image's native aspect ratio. */
+.auth-screen .auth-illustration {
+  position: relative;
+  flex: 1 1 24rem;
+  max-width: 26rem;
+  align-self: stretch;
+  overflow: hidden;
+  border-radius: var(--p-content-border-radius);
+  border: 1px solid var(--p-content-border-color);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+}
+
+.auth-screen .auth-illustration img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .auth-screen .auth-panel {
   width: 100%;
   max-width: 30rem;
-  margin-top: auto;
-  margin-bottom: auto;
+  flex: 1 1 30rem;
   border: 1px solid var(--p-content-border-color);
   border-radius: var(--p-content-border-radius);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);

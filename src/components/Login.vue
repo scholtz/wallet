@@ -2,7 +2,13 @@
   <div
     class="auth-screen relative flex flex-column align-items-center justify-content-center h-full m-2"
   >
-    <Panel v-if="newWalletForm" class="auth-panel">
+    <div
+      class="auth-content flex flex-column lg:flex-row align-items-center justify-content-center gap-6"
+    >
+      <div class="hidden lg:block auth-illustration" aria-hidden="true">
+        <img :src="heroImage" alt="" />
+      </div>
+      <Panel v-if="newWalletForm" class="auth-panel">
       <template #header>
         {{ $t("login.new_wallet") }}
       </template>
@@ -117,6 +123,7 @@
         </div>
       </form>
     </Panel>
+    </div>
     <div class="language-footer">
       <a
         v-for="lang in $store.state.config.languages"
@@ -156,10 +163,12 @@
 </template>
 <script>
 import { mapActions } from "vuex";
+import heroImage from "../assets/img/hero-login.jpg";
 
 export default {
   data() {
     return {
+      heroImage,
       newname: "",
       newWalletForm: false,
       pass: "",

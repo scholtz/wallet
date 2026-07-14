@@ -1,6 +1,6 @@
 <template>
-  <footer v-if="$store.state.wallet.isOpen" class="my-4">
-    <div class="flex align-items-center gap-2">
+  <footer v-if="$store.state.wallet.isOpen" class="app-footer-bar my-2">
+    <div class="flex align-items-center gap-2 px-3 py-2">
       <p
         v-tooltip.top="versionTooltip"
         class="flex-grow-1 text-center m-0 text-sm footer-text"
@@ -177,9 +177,23 @@ export default {
 };
 </script>
 <style scoped>
+/* Same glass-chrome treatment as the navbar (.card > .p-menubar in
+   Navbar2.vue) — blurred translucent surface, identical border-radius
+   token — so the two chrome bars that bookend the page read as one
+   consistent system instead of a rounded navbar over a bare-text footer. */
+.app-footer-bar {
+  backdrop-filter: blur(10px);
+  background-color: color-mix(
+    in srgb,
+    var(--p-content-background) 80%,
+    transparent
+  );
+  border-radius: var(--p-content-border-radius);
+}
+
 .footer-text,
 .footer-text :deep(a) {
-  color: #fff;
+  color: var(--p-text-color);
 }
 .footer-timer-btn {
   padding: 0.15rem 0.5rem;
