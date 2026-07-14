@@ -121,6 +121,9 @@
         :sortable="true"
         style-class="not-show-at-start"
       >
+        <template #body="slotProps">
+          <AlgorandAddress :address="slotProps.data['sender']" />
+        </template>
         <template #filter="{ filterModel, filterCallback }">
           <InputText
             v-model="filterModel.value"
@@ -137,6 +140,12 @@
         :sortable="true"
         style-class="not-show-at-start"
       >
+        <template #body="slotProps">
+          <AlgorandAddress
+            v-if="slotProps.data['receiver']"
+            :address="slotProps.data['receiver']"
+          />
+        </template>
         <template #filter="{ filterModel, filterCallback }">
           <InputText
             v-model="filterModel.value"
@@ -196,6 +205,7 @@ import { useRoute, useRouter } from "vue-router";
 import { FilterMatchMode } from "@primevue/core/api";
 import MainLayout from "../../layouts/Main.vue";
 import AccountTopMenu from "../../components/AccountTopMenu.vue";
+import AlgorandAddress from "../../components/AlgorandAddress.vue";
 import { useStore } from "../../store";
 import type { StoredAsset } from "../../store/indexer";
 import type { WalletAccount, IAccountData } from "../../store/wallet";
