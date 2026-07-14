@@ -265,36 +265,56 @@ html.p-dark {
    intrinsic height of its own (the img is out of flow), so the flex row's
    height is dictated solely by the auth panel, and the photo cover-crops
    to exactly match it — one two-column composition regardless of each
-   image's native aspect ratio. */
+   image's native aspect ratio. Sizing is scoped to the lg breakpoint
+   (matching the .hidden.lg:block on the <img> itself and .auth-content's
+   lg:flex-row) because flex-basis applies along the flex axis: below lg,
+   .auth-content is flex-column, so an unscoped "flex: 1 1 26rem" here would
+   be read as a *height* basis and force the panel column that tall too,
+   leaving a large blank gap under a short form (this happened in
+   production — the fix is scoping, not just removing the illustration's
+   own rule, since .auth-panel has the same footgun below). */
 .auth-screen .auth-illustration {
-  position: relative;
-  flex: 1 1 24rem;
-  max-width: 26rem;
-  align-self: stretch;
   overflow: hidden;
-  border-radius: var(--p-content-border-radius);
-  border: 1px solid var(--p-content-border-color);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
 }
 
 .auth-screen .auth-illustration img {
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
+@media (min-width: 992px) {
+  .auth-screen .auth-illustration {
+    position: relative;
+    flex: 1 1 24rem;
+    max-width: 26rem;
+    align-self: stretch;
+    border-radius: var(--p-content-border-radius);
+    border: 1px solid var(--p-content-border-color);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+  }
+
+  .auth-screen .auth-illustration img {
+    position: absolute;
+    inset: 0;
+  }
+}
+
 .auth-screen .auth-panel {
   width: 100%;
   max-width: 30rem;
-  flex: 1 1 30rem;
   border: 1px solid var(--p-content-border-color);
   border-radius: var(--p-content-border-radius);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
   backdrop-filter: blur(16px);
   background: color-mix(in srgb, var(--p-content-background) 88%, transparent);
   overflow: hidden;
+}
+
+@media (min-width: 992px) {
+  .auth-screen .auth-panel {
+    flex: 1 1 30rem;
+  }
 }
 
 /* Let the glass background above show through the Panel's own surfaces. */
