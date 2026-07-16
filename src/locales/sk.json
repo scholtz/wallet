@@ -638,20 +638,28 @@
         "q4": "Na akých zariadeniach a prehliadačoch {name} funguje?",
         "a4": "{name} je responzívna webová aplikácia, ktorá funguje v akomkoľvek modernom desktopovom alebo mobilnom prehliadači (Chrome, Firefox, Edge, Safari) bez nutnosti inštalácie. Keďže ide o jednostránkovú aplikáciu bez natívneho binárneho súboru, tá istá peňaženka funguje rovnako na Windows, macOS, Linuxe, Androide aj iOS.",
         "q5": "Kto vytvoril {name} a Biatec?",
-        "a5": "{name} pôvodne vytvorila spoločnosť Scholtz & Company, jsa. a teraz sa vyvíja pod značkou <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a>. Projekt je open source a ktokoľvek si môže kód na <a href=\"https://github.com/scholtz/wallet/\" target=\"_blank\" rel=\"noopener noreferrer\">GitHube</a> prezrieť, auditovať alebo doň prispieť."
+        "a5": "{name} pôvodne vytvorila spoločnosť Scholtz & Company, jsa. a teraz sa vyvíja pod značkou {link1}. Projekt je open source a ktokoľvek si môže kód na {link2} prezrieť, auditovať alebo doň prispieť.",
+        "a5_link1": "Biatec",
+        "a5_link2": "GitHube"
       },
       "biatec": {
         "title": "Biatec Wallet a ekosystém",
         "q1": "Čo je Biatec?",
-        "a1": "<a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> je spoločnosť a značka stojaca za {name}, ktorá vytvára súbor otvorených nástrojov okolo blockchainu Algorand, vrátane tejto peňaženky, služby na smerovanie swapov/výmen a služby na plánované platby - všetko navrhnuté tak, aby bolo používanie Algorandu jednoduchšie a bezpečnejšie.",
+        "a1": "{link1} je spoločnosť a značka stojaca za {name}, ktorá vytvára súbor otvorených nástrojov okolo blockchainu Algorand, vrátane tejto peňaženky, služby na smerovanie swapov/výmen a služby na plánované platby - všetko navrhnuté tak, aby bolo používanie Algorandu jednoduchšie a bezpečnejšie.",
+        "a1_link1": "Biatec",
         "q2": "Ako súvisí Biatec Wallet s ostatnými službami Biatecu?",
-        "a2": "Biatec Wallet je vstupným bodom: uchováva vaše kľúče a podpisuje transakcie lokálne, zatiaľ čo ostatné <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">služby Biatecu</a> (napríklad router pre swapy použitý na stránke Swap alebo API pre plánované platby použité pri opakovaných prevodoch) dostávajú vždy len nepodpísané transakčné dáta alebo verejné informácie - nikdy vaše súkromné kľúče.",
+        "a2": "Biatec Wallet je vstupným bodom: uchováva vaše kľúče a podpisuje transakcie lokálne, zatiaľ čo ostatné {link1} (napríklad router pre swapy použitý na stránke Swap alebo API pre plánované platby použité pri opakovaných prevodoch) dostávajú vždy len nepodpísané transakčné dáta alebo verejné informácie - nikdy vaše súkromné kľúče.",
+        "a2_link1": "služby Biatecu",
         "q3": "Prevádzkuje Biatec vlastnú infraštruktúru Algorand?",
-        "a3": "Áno. <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> prevádzkuje vlastný uzol (node), indexer a participačnú infraštruktúru Algorand, ku ktorej sa {name} môže pripojiť, popri verejných uzloch Algorand, čo vám priamo v nastaveniach peňaženky dáva na výber medzi viacerými poskytovateľmi siete.",
+        "a3": "Áno. {link1} prevádzkuje vlastný uzol (node), indexer a participačnú infraštruktúru Algorand, ku ktorej sa {name} môže pripojiť, popri verejných uzloch Algorand, čo vám priamo v nastaveniach peňaženky dáva na výber medzi viacerými poskytovateľmi siete.",
+        "a3_link1": "Biatec",
         "q4": "Na čo slúži router pre swapy od Biatecu?",
-        "a4": "Keď použijete funkciu Swap v {name}, vaša požiadavka sa smeruje cez agregátor <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatecu</a>, ktorý porovnáva ceny naprieč viacerými decentralizovanými burzami (DEX) na Algorande, aby vám našiel najvýhodnejší dostupný kurz, a následne vráti nepodpísanú transakciu, ktorú si sami skontrolujete a podpíšete.",
+        "a4": "Keď použijete funkciu Swap v {name}, vaša požiadavka sa smeruje cez agregátor {link1}, ktorý porovnáva ceny naprieč viacerými decentralizovanými burzami (DEX) na Algorande, aby vám našiel najvýhodnejší dostupný kurz, a následne vráti nepodpísanú transakciu, ktorú si sami skontrolujete a podpíšete.",
+        "a4_link1": "Biatecu",
         "q5": "Je Biatec financovaný spoločnosťou Algorand Inc. alebo nadáciou Algorand Foundation?",
-        "a5": "Biatec je nezávislý, komunitou vedený projekt - nie je vlastnený spoločnosťou Algorand Inc. ani nadáciou Algorand Foundation a nezískava od nich priebežné financovanie. Napriek tomu získal niekoľko jednorazových grantov v rámci programu komunitných grantov <a href=\"https://github.com/algorandfoundation/xGov\" target=\"_blank\" rel=\"noopener noreferrer\">xGov</a> nadácie Algorand Foundation, vrátane grantu na samotný {name}, na <a href=\"https://github.com/algorandfoundation/xGov/pull/9/files\" target=\"_blank\" rel=\"noopener noreferrer\">účty s dvojfaktorovým overením (2FA)</a> a na Biatec DEX. Názov a logo Algorand sa používajú v súlade s oficiálnymi mediálnymi pravidlami Algorandu, výlučne na označenie kompatibility s blockchainom."
+        "a5": "Biatec je nezávislý, komunitou vedený projekt - nie je vlastnený spoločnosťou Algorand Inc. ani nadáciou Algorand Foundation a nezískava od nich priebežné financovanie. Napriek tomu získal niekoľko jednorazových grantov v rámci programu komunitných grantov {link1} nadácie Algorand Foundation, vrátane grantu na samotný {name}, na {link2} a na Biatec DEX. Názov a logo Algorand sa používajú v súlade s oficiálnymi mediálnymi pravidlami Algorandu, výlučne na označenie kompatibility s blockchainom.",
+        "a5_link1": "xGov",
+        "a5_link2": "účty s dvojfaktorovým overením (2FA)"
       },
       "blockchain": {
         "title": "Základy Algorandu a blockchainu",
@@ -701,7 +709,8 @@
         "q3": "Čo je prekľúčovanie (rekeying) a na čo sa používa?",
         "a3": "Prekľúčovanie vám umožňuje zmeniť súkromný kľúč, ktorý ovláda účet, bez zmeny adresy účtu - napríklad na presun oprávnenia z bežného kľúča na multisig skupinu alebo na zariadenie Ledger - pričom všetky vaše aktíva, aplikácie a história transakcií zostávajú presne tam, kde boli. Je to mocná, nevratná akcia, preto si pred podpísaním vždy dôkladne overte novú autorizovanú adresu.",
         "q4": "Ako naplánujem budúcu alebo opakovanú platbu?",
-        "a4": "Na stránke účtu použite funkciu Plánované platby na definovanie šablóny transakcie a budúceho dátumu alebo opakovaného intervalu; {name} prostredníctvom plánovacej služby <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatecu</a> pripraví nepodpísanú transakciu a keď nastane jej splatnosť, vyzve vás na jej podpísanie a odoslanie.",
+        "a4": "Na stránke účtu použite funkciu Plánované platby na definovanie šablóny transakcie a budúceho dátumu alebo opakovaného intervalu; {name} prostredníctvom plánovacej služby {link1} pripraví nepodpísanú transakciu a keď nastane jej splatnosť, vyzve vás na jej podpísanie a odoslanie.",
+        "a4_link1": "Biatecu",
         "q5": "Ako komunikujem so smart kontraktom alebo DApp z {name}?",
         "a5": "Pripojte {name} k DApp pomocou WalletConnect, buď naskenovaním QR kódu, alebo vložením pripojovacieho URI, a každá transakcia, ktorú DApp vyžiada, sa zobrazí v {name}, aby ste si ju mohli podrobne skontrolovať a pred akýmkoľvek odoslaním výslovne podpísať."
       },
@@ -721,7 +730,8 @@
       "swap": {
         "title": "Swapy a DeFi",
         "q1": "Ako funguje swapovanie v {name}?",
-        "a1": "Stránka Swap vám umožňuje vymeniť jedno aktívum Algorand za iné priamo z vašej peňaženky. {name} sa dopytuje na router <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatecu</a>, aby našiel najlepšiu cenu naprieč viacerými on-chain decentralizovanými burzami, a následne zostaví skupinu nepodpísaných transakcií, ktoré si sami skontrolujete a podpíšete - prostriedky nikdy neprechádzajú cez kustodiálneho sprostredkovateľa.",
+        "a1": "Stránka Swap vám umožňuje vymeniť jedno aktívum Algorand za iné priamo z vašej peňaženky. {name} sa dopytuje na router {link1}, aby našiel najlepšiu cenu naprieč viacerými on-chain decentralizovanými burzami, a následne zostaví skupinu nepodpísaných transakcií, ktoré si sami skontrolujete a podpíšete - prostriedky nikdy neprechádzajú cez kustodiálneho sprostredkovateľa.",
+        "a1_link1": "Biatecu",
         "q2": "Čo je sklz (slippage) a prečo ma stránka swapu žiada, aby som ho nastavil?",
         "a2": "Tolerancia sklzu je maximálny pohyb ceny, ktorý ste ochotní akceptovať medzi momentom, keď si vyžiadate cenovú ponuku, a momentom, keď sa vaša transakcia skutočne vysporiada on-chain; príliš nízke nastavenie môže spôsobiť zlyhanie swapu v rýchlo sa meniacom trhu, zatiaľ čo príliš vysoké nastavenie môže viesť k horšej cene, než ste očakávali.",
         "q3": "Čo sú likviditné pooly a prečo určujú cenu môjho swapu?",
@@ -753,9 +763,12 @@
         "q3": "Čo sa stane, ak zabudnem heslo peňaženky?",
         "a3": "Heslo odomyká iba zašifrovanú kópiu uloženú v danom konkrétnom prehliadači - inde neexistuje, takže ak nemáte zálohu a zabudnete ho, prostriedky sú podľa návrhu neobnoviteľné, čo je práve to, čo robí peňaženku bezpečnou. Preto je nevyhnutné mať nezávislú zálohu mnemotechnických fráz svojich účtov.",
         "q4": "Ako môžem zobraziť zdrojový kód alebo doň prispieť?",
-        "a4": "{name} je plne open source na <a href=\"https://github.com/scholtz/wallet/\" target=\"_blank\" rel=\"noopener noreferrer\">github.com/scholtz/wallet</a>; ktokoľvek si kód môže prečítať, auditovať, forknúť alebo poslať pull request, a obzvlášť vítané sú príspevky s prekladmi cez priečinok src/locales.",
+        "a4": "{name} je plne open source na {link1}; ktokoľvek si kód môže prečítať, auditovať, forknúť alebo poslať pull request, a obzvlášť vítané sú príspevky s prekladmi cez priečinok src/locales.",
+        "a4_link1": "github.com/scholtz/wallet",
         "q5": "Ako môžem získať pomoc alebo podporiť projekt?",
-        "a5": "Môžete sa pripojiť na <a href=\"https://discord.gg/gBsts5bPAd\" target=\"_blank\" rel=\"noopener noreferrer\">Discord</a> projektu pre komunitnú podporu, otvoriť issue na <a href=\"https://github.com/scholtz/wallet/issues\" target=\"_blank\" rel=\"noopener noreferrer\">GitHube</a> pre chyby alebo návrhy na nové funkcie, prispieť kódom alebo prekladmi, alebo podporiť pokračujúci vývoj darom na algorandskú adresu projektu uvedenú v päte aplikácie. {name} nie je financovaná spoločnosťou Algorand Inc. ani nadáciou Algorand Foundation, hoci na konkrétne funkcie získala komunitné xGov granty od Algorand Foundation."
+        "a5": "Môžete sa pripojiť na {link1} projektu pre komunitnú podporu, otvoriť issue na {link2} pre chyby alebo návrhy na nové funkcie, prispieť kódom alebo prekladmi, alebo podporiť pokračujúci vývoj darom na algorandskú adresu projektu uvedenú v päte aplikácie. {name} nie je financovaná spoločnosťou Algorand Inc. ani nadáciou Algorand Foundation, hoci na konkrétne funkcie získala komunitné xGov granty od Algorand Foundation.",
+        "a5_link1": "Discord",
+        "a5_link2": "GitHube"
       }
     }
   },

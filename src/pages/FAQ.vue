@@ -59,10 +59,27 @@
               <AccordionTab
                 v-for="item in category.items"
                 :key="item.q"
-                :header="renderText(item.q, category.key)"
+                :header="renderText(item.q)"
               >
-                <!-- eslint-disable-next-line vue/no-v-html -- answer copy is static, developer-authored locale content (not user input); only the {name} interpolation is dynamic, and it is HTML-escaped in renderHtml() before substitution. -->
-                <p class="faq-answer" v-html="renderHtml(item.a)" />
+                <i18n-t :keypath="item.a" tag="p" class="faq-answer">
+                  <template #name>{{ brandName }}</template>
+                  <template v-if="linksFor(item.a)[0]" #link1>
+                    <a
+                      :href="linksFor(item.a)[0].url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      >{{ $t(linksFor(item.a)[0].labelKey) }}</a
+                    >
+                  </template>
+                  <template v-if="linksFor(item.a)[1]" #link2>
+                    <a
+                      :href="linksFor(item.a)[1].url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      >{{ $t(linksFor(item.a)[1].labelKey) }}</a
+                    >
+                  </template>
+                </i18n-t>
               </AccordionTab>
             </Accordion>
           </template>
@@ -104,6 +121,68 @@ const CATEGORY_DEFS = [
   { key: "backup", icon: "pi-save", count: 5 },
 ];
 
+// A handful of FAQ answers link out to Biatec/GitHub/Discord resources.
+// URLs are hardcoded here (not translatable, not attacker-influenceable);
+// only the visible link label is translated, via the locale-file
+// "<answerKey>_link1"/"_link2" keys referenced below. The answer string
+// itself (src/locales/*.json) only ever contains the placeholder tokens
+// {link1}/{link2}, rendered as real anchor elements by <i18n-t>'s named
+// slots below (never as an HTML string), so translated locale content can
+// never be interpreted as markup — see audit finding AW-2026-037.
+const FAQ_LINKS = {
+  "faq.categories.general.a5": [
+    { url: "https://www.biatec.io", labelKey: "faq.categories.general.a5_link1" },
+    {
+      url: "https://github.com/scholtz/wallet/",
+      labelKey: "faq.categories.general.a5_link2",
+    },
+  ],
+  "faq.categories.biatec.a1": [
+    { url: "https://www.biatec.io", labelKey: "faq.categories.biatec.a1_link1" },
+  ],
+  "faq.categories.biatec.a2": [
+    { url: "https://www.biatec.io", labelKey: "faq.categories.biatec.a2_link1" },
+  ],
+  "faq.categories.biatec.a3": [
+    { url: "https://www.biatec.io", labelKey: "faq.categories.biatec.a3_link1" },
+  ],
+  "faq.categories.biatec.a4": [
+    { url: "https://www.biatec.io", labelKey: "faq.categories.biatec.a4_link1" },
+  ],
+  "faq.categories.biatec.a5": [
+    {
+      url: "https://github.com/algorandfoundation/xGov",
+      labelKey: "faq.categories.biatec.a5_link1",
+    },
+    {
+      url: "https://github.com/algorandfoundation/xGov/pull/9/files",
+      labelKey: "faq.categories.biatec.a5_link2",
+    },
+  ],
+  "faq.categories.actions.a4": [
+    { url: "https://www.biatec.io", labelKey: "faq.categories.actions.a4_link1" },
+  ],
+  "faq.categories.swap.a1": [
+    { url: "https://www.biatec.io", labelKey: "faq.categories.swap.a1_link1" },
+  ],
+  "faq.categories.backup.a4": [
+    {
+      url: "https://github.com/scholtz/wallet/",
+      labelKey: "faq.categories.backup.a4_link1",
+    },
+  ],
+  "faq.categories.backup.a5": [
+    {
+      url: "https://discord.gg/gBsts5bPAd",
+      labelKey: "faq.categories.backup.a5_link1",
+    },
+    {
+      url: "https://github.com/scholtz/wallet/issues",
+      labelKey: "faq.categories.backup.a5_link2",
+    },
+  ],
+};
+
 export default {
   components: {
     PublicLayout,
@@ -133,8 +212,8 @@ export default {
         .map((category) => ({
           ...category,
           items: category.items.filter((item) => {
-            const q = this.renderText(item.q, category.key).toLowerCase();
-            const a = this.renderText(item.a, category.key).toLowerCase();
+            const q = this.renderText(item.q).toLowerCase();
+            const a = this.renderText(item.a).toLowerCase();
             const title = this.$t(
               `faq.categories.${category.key}.title`
             ).toLowerCase();
@@ -147,20 +226,22 @@ export default {
     },
   },
   methods: {
+    // Link config (if any) for a given question/answer translation key.
+    linksFor(key) {
+      return FAQ_LINKS[key] ?? [];
+    },
+    // Plain-text rendering used for the accordion header and for search
+    // matching. Fills in {name} and any {link1}/{link2} placeholders with
+    // plain strings (the translated link label), so search can match on
+    // link text too. The live answer body itself is rendered separately via
+    // <i18n-t> with real anchor elements in the #link1/#link2 slots, never
+    // as an HTML string (see FAQ_LINKS comment above / audit AW-2026-037).
     renderText(key) {
-      return this.$t(key, { name: this.brandName });
-    },
-    escapeHtml(text) {
-      return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-    },
-    // Answers may contain static, developer-authored <a> links to other
-    // Biatec products/resources; escape the only dynamic part ({name})
-    // before it is substituted into HTML rendered via v-html.
-    renderHtml(key) {
-      return this.$t(key, { name: this.escapeHtml(this.brandName) });
+      const params = { name: this.brandName };
+      this.linksFor(key).forEach((link, i) => {
+        params[`link${i + 1}`] = this.$t(link.labelKey);
+      });
+      return this.$t(key, params);
     },
   },
 };

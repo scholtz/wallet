@@ -14,11 +14,11 @@ Never delete a row. When a risk is fixed, set Status to `Closed` and keep the ro
 
 | Field | Value |
 |---|---|
-| Last updated by audit report | `audits/reports/2026-07-10-4483920-sonnet-5.md` |
-| Last updated (audited commit) | `44839206638dabac899feef344281c0442b31306` |
-| Last updated (commit date) | `2026-07-10` |
+| Last updated by audit report | `audits/reports/2026-07-16-6f2b077-fable-5.md` |
+| Last updated (audited commit) | `6f2b07752a05851bb64b6eccc5eb658764c45bb0` |
+| Last updated (commit date) | `2026-07-14` |
 | Last updated (AWallet package version) | `2.0.0` |
-| Last updated by | `claude-sonnet-5` |
+| Last updated by | `claude-fable-5` |
 | Instructions file version used | `ebe2059` |
 
 ## How to read this table
@@ -55,27 +55,29 @@ Never delete a row. When a risk is fixed, set Status to `Closed` and keep the ro
 | AW-2026-007 | `SignAll.vue` rekeyTo column bound to nonexistent field, always blank | Medium | Low (~5%) | Closed | `pages/SignAll.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
 | AW-2026-008 | WalletConnect `verifyContext` domain-verification signal received but never surfaced | Medium | Medium (~15%) | Closed | `store/wc.ts`, `pages/Connect.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
 | AW-2026-009 | Session approval defaults to granting all accounts across all networks | Medium | Medium (~15%) | Closed | `pages/Connect.vue`, `store/wc.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
-| AW-2026-010 | Custom algod/indexer endpoints fully user-editable, no validation/warning | Medium | Low (~8%) | Open | `store/config.ts`, `pages/Settings.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) |
-| AW-2026-011 | Auto-selected public node/indexer list fetched unauthenticated, unpinned (now also feeds the AW-2026-005 genesis cross-check) | Medium | Low (~8%, raised) | Open | `store/publicData.ts`, `store/config.ts`, `store/algod.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) |
-| AW-2026-012 | 5-min session timeout exists and auto-logs-out, but "Continue Session" needs no password re-entry (description corrected 2026-07-10 — prior wording overstated "no timeout") | Medium | Low (~10%) | Open | `components/Footer.vue`, `store/wallet.ts` (`prolong`/`logout`) | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) |
+| AW-2026-010 | Custom algod/indexer endpoints fully user-editable, no validation/warning | Medium | Low (~8%) | Open | `store/config.ts`, `pages/Settings.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) |
+| AW-2026-011 | Auto-selected public node/indexer list fetched unauthenticated, unpinned (now also feeds the AW-2026-005 genesis cross-check) | Medium | Low (~8%, raised) | Open | `store/publicData.ts`, `store/config.ts`, `store/algod.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) |
+| AW-2026-012 | 5-min session timeout exists and auto-logs-out, but "Continue Session" needs no password re-entry (description corrected 2026-07-10 — prior wording overstated "no timeout") | Medium | Low (~10%) | Open | `components/Footer.vue`, `store/wallet.ts` (`prolong`/`logout`) | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) |
 | AW-2026-013 | Reverse tabnabbing: WC v2 peer links lack `rel="noopener noreferrer"` | Medium | Low (~5%) | Closed | `pages/Connect.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
 | AW-2026-014 | Rekey warning styling inconsistent; WC batch table lacks visual emphasis | Low | Low (~5%) | Closed | `components/ConnectRequestsTable.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
-| AW-2026-015 | No Content-Security-Policy anywhere in the deployment stack | Low–Medium | Low (~8%) | Open | `index.html`, K8s ingress, no vercel.json | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) |
-| AW-2026-016 | `approveSession` grants all networks regardless of DApp's requested namespaces | Low | Very Low (<2%) | Open | `store/wc.ts`, `store/wcClient.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) |
-| AW-2026-017 | WC v1 path hardcodes mainnet chainId 4160 regardless of active network | Low | Very Low (<2%) | Open | `shared/wc.ts:236` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) |
+| AW-2026-015 | No Content-Security-Policy anywhere in the deployment stack | Low–Medium | Low (~8%) | Open | `index.html`, K8s ingress, no vercel.json | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) |
+| AW-2026-016 | `approveSession` grants all networks regardless of DApp's requested namespaces | Low | Very Low (<2%) | Open | `store/wc.ts`, `store/wcClient.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) |
+| AW-2026-017 | WC v1 path hardcodes mainnet chainId 4160 regardless of active network | Low | Very Low (<2%) | Open | `shared/wc.ts:236` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) |
 | AW-2026-018 | Genesis hash/ID shown in WC detail view but not actively cross-validated | Low | Very Low (<2%) | Closed | `components/ConnectRequestsTable.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
 | AW-2026-019 | Unbounded recursion in `getSK` on multi-hop rekey cycle (DoS) | Low | Very Low (<2%) | Closed | `store/wallet.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
 | AW-2026-020 | Dev-mode raw `sk` JSON dump on Export page, ambiguously labeled | Low | Very Low (<2%) | Closed | `pages/Account/Export.vue` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
-| AW-2026-021 | ARC-14 auth token lacks explicit endpoint/audience/timestamp binding | Medium | Needs verification | Open | `store/arc14.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) |
-| AW-2026-022 | Production deploy workflow has no build/test gate of its own | Medium | Low (~5%) | Open | `.github/workflows/awallet-main.yml` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) |
+| AW-2026-021 | ARC-14 auth token lacks explicit endpoint/audience/timestamp binding | Medium | Needs verification | Open | `store/arc14.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) |
+| AW-2026-022 | Production deploy workflow has no build/test gate of its own | Medium | Low (~5%) | Open | `.github/workflows/awallet-main.yml` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) |
 | AW-2026-023 | Unused, name-confusable dependency `cryptojs@2.5.3` | Low | Very Low (<2%) | Closed | `package.json` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) |
-| AW-2026-024 | Legacy WalletConnect v1 client still a direct dependency (now confirmed source of 2 high + 1 moderate `pnpm audit` advisories) | Low | Low (~5%, raised) | Open | `package.json`, `shared/wc.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) |
+| AW-2026-024 | Legacy WalletConnect v1 client still a direct dependency (now confirmed source of 2 high + 1 moderate `pnpm audit` advisories) | Low | Low (~5%, raised) | Open | `package.json`, `shared/wc.ts` | `2026-07-09-4f915d4.md` @ `4f915d4` (2026-07-09) | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) |
 | AW-2026-025 | `changePassword` silently reverts: old password remains in session state and re-encrypts wallet on next auto-save | High | Medium (~25%, triggered by normal use, no attacker needed) | Closed | `store/wallet.ts` (`changePassword`/`saveWallet`/`setIsOpen`), `pages/Settings.vue` | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) — fix commit `770dc8d`, re-verified |
-| AW-2026-026 | In-memory session password wrapped with legacy CryptoJS keyed from localStorage (obfuscation only); dead `rs2` key | Low | Very Low (<2%) | Open | `store/wallet.ts`, localStorage `rs1`/`rs2` | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) |
+| AW-2026-026 | In-memory session password wrapped with legacy CryptoJS keyed from localStorage (obfuscation only); dead `rs2` key | Low | Very Low (<2%) | Open | `store/wallet.ts`, localStorage `rs1`/`rs2` | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) |
 | AW-2026-027 | PBKDF2 derived-key cache never cleared on logout (decryption capability outlives session) | Low | Very Low (<2%) | Closed | `scripts/encoding/walletCrypto.ts`, `store/wallet.ts` (`logout`, `destroyWallet`) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) — fix commit `770dc8d`, re-verified |
-| AW-2026-028 | Known CVEs in transitive deps (mostly via WC v1 chain) + unused `page` package with high ReDoS advisory | Low | Low (~3%) | Open | `package.json`, `pnpm-lock.yaml` | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) |
-| AW-2026-035 | `pnpm run build` fails at HEAD: `typescript@7.0.2` bump breaks `vue-tsc` (`exports` map) and bare `tsc` (removed `moduleResolution`/`baseUrl`) | High | Low (~5%, availability not exploit risk) | Closed | `package.json`, `tsconfig.json`, `docker/Dockerfile` | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) | fix applied 2026-07-10 (uncommitted, on top of `4483920`) |
-| AW-2026-036 | New `/changelog` page renders `CHANGELOG.md` via unescaped markdown-to-HTML into `v-html` (latent stored XSS if the file ever contains `<`/`>`/`&`); sibling `v-html` sink added in `Footer.vue` is currently inert but shares the pattern | Medium | Low (~8%) | Closed | `pages/Changelog.vue`, `components/Footer.vue` | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) | fix applied 2026-07-10 (uncommitted, on top of `4483920`) |
+| AW-2026-028 | Known CVEs in transitive deps (mostly via WC v1 chain) + unused `page` package with high ReDoS advisory | Low | Low (~3%) | Open | `package.json`, `pnpm-lock.yaml` | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) |
+| AW-2026-035 | `pnpm run build` fails at HEAD: `typescript@7.0.2` bump breaks `vue-tsc` (`exports` map) and bare `tsc` (removed `moduleResolution`/`baseUrl`) | High | Low (~5%, availability not exploit risk) | Closed | `package.json`, `tsconfig.json`, `docker/Dockerfile` | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) — fix commit `57a1002`, build re-run clean |
+| AW-2026-036 | New `/changelog` page renders `CHANGELOG.md` via unescaped markdown-to-HTML into `v-html` (latent stored XSS if the file ever contains `<`/`>`/`&`); sibling `v-html` sink added in `Footer.vue` is currently inert but shares the pattern | Medium | Low (~8%) | Closed | `pages/Changelog.vue`, `components/Footer.vue` | `2026-07-10-4483920-sonnet-5.md` @ `4483920` (2026-07-10) | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) — fix commit `57a1002`, re-verified in source |
+| AW-2026-037 | Redesigned `/faq` renders locale-file answer strings (with intentional embedded `<a>` HTML) through `v-html` — all 10 `src/locales/*.json` files join the XSS trust boundary; translation PRs are a realistic low-scrutiny vector; no live payload today (all anchors hardcoded trusted domains + `noopener noreferrer`) | Medium | Low (~5%) | Closed | `pages/FAQ.vue`, `src/locales/*.json` (`faq.categories.*.a*`) | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) | fix applied 2026-07-16 (uncommitted, on top of `6f2b077`) |
+| AW-2026-038 | WalletConnect client no longer auto-initializes (commit `9471074` removed `App.vue` bootstrap): approved-session sign requests silently unreceived until user clicks "Init WC" on `/account/connect`; regression of documented intent, possibly accidental | Low | Very Low (<2%, functional regression not exploit path) | Closed | `App.vue` (removal), `pages/Connect.vue:521-523` | `2026-07-16-6f2b077-fable-5.md` @ `6f2b077` (2026-07-16) | fix applied 2026-07-16 (uncommitted, on top of `6f2b077`) |
 | AW-2026-029 | Password sharing / weak or reused user passwords | Critical (impact) | Medium (~20%) | Accepted | User behavior — no code surface; `store/wallet.ts` KDF is the only mitigating lever | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | same |
 | AW-2026-030 | Shared/unattended device or stolen device with an unlocked or persistently-decrypted session | High (impact) | Medium (~15%) | Accepted | User behavior + `store/wallet.ts` (no auto-lock, see AW-2026-012 for the one in-scope lever) | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | same |
 | AW-2026-031 | Phishing of the wallet's own UI (fake AWallet site/app, fake update, fake support) | Critical (impact) | High (~40%) | Accepted | Outside the app itself — domain/app-store/distribution integrity, user vigilance | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09) | same |
@@ -142,6 +144,78 @@ copy, confirmation friction, education) can be evaluated against them over time.
 _(Closed rows stay in the table above with Status = Closed; this section is for any
 narrative context on closures — e.g. "fixed by commit `abc1234`, verified in audit
 `audits/reports/YYYY-MM-DD-....md`" — that doesn't fit in the table.)_
+
+**2026-07-16 — fix pass following `audits/reports/2026-07-16-6f2b077-fable-5.md`**
+(applied on top of `6f2b077`, uncommitted at time of this registry update; to be
+independently re-verified by the next audit run):
+
+- **AW-2026-037 (Closed):** removed the `v-html` sink in `src/pages/FAQ.vue`
+  entirely, rather than escaping it (escaping wasn't viable here since the
+  answers deliberately embed real links). The 10 FAQ answer keys that
+  contained `<a href="...">label</a>` markup (`general.a5`, `biatec.a1`-`a5`,
+  `actions.a4`, `swap.a1`, `backup.a4`, `backup.a5` — 13 anchors total) were
+  migrated across all 10 `src/locales/*.json` files: the answer string now
+  contains only plain `{link1}`/`{link2}` placeholder tokens, and the
+  translated visible label moved to a new sibling key
+  (`<answerKey>_link1`/`_link2`). `FAQ.vue` renders each answer via
+  vue-i18n's `<i18n-t :keypath="item.a">` component with `#name`/`#link1`/
+  `#link2` named slots; the slot content is a real `<a>` element with a
+  hardcoded URL (never translated, never attacker-influenceable) and
+  `target="_blank" rel="noopener noreferrer"`, so translated locale content
+  is interpolated as vue-i18n message parameters, never parsed as an HTML
+  string. `scripts/check-locales.ts` gained a second check
+  (`collectHtmlLikeValues`/`HTML_TAG_PATTERN`) that fails the build if any
+  locale value (in any of the 10 files) matches an HTML-tag shape, so a
+  future translation PR or feature can't silently reopen this or a similar
+  sink. Verified: `pnpm run build` (vue-tsc + vite) and `pnpm run
+  check-locales` both pass; a headless Playwright check against the running
+  dev server confirmed all 13 links render as real anchors with correct
+  href/label pairs and `rel="noopener noreferrer"`, search-by-link-text still
+  works, and — the key regression test — injecting a
+  `<img src=x onerror="...">` payload into a locale value and reloading the
+  page rendered it as inert escaped text (`&lt;img ... &gt;`) with zero
+  script execution and zero console errors, then the test file was restored.
+- **AW-2026-038 (Closed):** restored `App.vue`'s `initWc()` bootstrap
+  (`mounted()` call + `walletIsOpen` watcher dispatching `wc/init`, guarded
+  by `if (state.wc.web3wallet) return`) that commit `9471074` had removed.
+  This is a straight revert to the previously-working, CHANGELOG-documented
+  behavior ("WalletConnect now connects as soon as the wallet is opened");
+  `CLAUDE.md` gained a note marking this bootstrap load-bearing so a future
+  refactor doesn't drop it silently again. Verified via `pnpm run build`
+  (no type errors) and by confirming the dev server produces no console
+  errors on load with the restored watcher/mounted-hook wiring.
+- `CHANGELOG.md` and `CLAUDE.md` updated to document both fixes for future
+  readers/audits.
+
+**2026-07-16 — audit `audits/reports/2026-07-16-6f2b077-fable-5.md` @ `6f2b077`
+(independent re-verification of the `57a1002` fix pass, plus review of the
+auth/FAQ/mobile redesign and WC-summary fix landed since `4483920`):**
+
+- **AW-2026-035 / AW-2026-036 (Closed, confirmed):** the fix pass the previous
+  registry update described as "uncommitted" is now committed as `57a1002`.
+  AW-2026-035 re-verified end-to-end: `typescript` pinned back to `^6.0.3` and
+  the full `pnpm run build` (vue-tsc + vite + PWA) re-run clean at `6f2b077`.
+  AW-2026-036 re-verified in source: `Changelog.vue` escapes every line before
+  tag construction; `Footer.vue` escapes all interpolated values in
+  `brandLineHtml`.
+- New findings: **AW-2026-037** (Medium — the redesigned `/faq` renders locale
+  answer strings containing intentional `<a>` HTML via `v-html`, adding all 10
+  locale files to the XSS trust boundary; no live payload today) and
+  **AW-2026-038** (Low — commit `9471074` removed the `App.vue` WalletConnect
+  bootstrap, so approved-session sign requests are silently not received until
+  the user manually clicks "Init WC" on `/account/connect`; functional
+  regression of documented intent, not an exploit path). Full writeups in the
+  new report.
+- Positive changes verified (no finding ID): commit `cac4537` fixed the
+  WalletConnect request summary to read asset/amount from
+  `decoded.assetTransfer`/`decoded.payment` (previously blank on every real
+  transaction) and added asset/amount rows to the per-transaction detail
+  expansion; commit `6f2b077` renders transaction-table sender/receiver through
+  the tap-to-reveal `AlgorandAddress` component (extends the AW-2026-004 fix).
+- All other Open/Mitigated rows re-verified, none regressed, none newly
+  resolved (backing files unchanged since `4483920`). `pnpm run check-locales`
+  passes (including ~170 new `faq.*` keys); `pnpm audit --prod` advisory set
+  identical to the prior audit (AW-2026-024/-028 unchanged).
 
 **2026-07-10 — fix pass following `audits/reports/2026-07-10-4483920-sonnet-5.md`**
 (applied on top of `4483920`, uncommitted at time of this registry update; to be

@@ -638,20 +638,28 @@
         "q4": "Op welke apparaten en browsers werkt {name}?",
         "a4": "{name} is een responsieve webapplicatie die werkt op elke moderne desktop- of mobiele browser (Chrome, Firefox, Edge, Safari) zonder installatie. Omdat het een single-page app is zonder native binary, werkt dezelfde wallet identiek op Windows, macOS, Linux, Android en iOS.",
         "q5": "Wie heeft {name} en Biatec gemaakt?",
-        "a5": "{name} is oorspronkelijk gemaakt door Scholtz & Company, jsa. en wordt nu ontwikkeld onder het merk <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a>. Het project is open source, en iedereen kan de code op <a href=\"https://github.com/scholtz/wallet/\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a> bekijken, auditen of eraan bijdragen."
+        "a5": "{name} is oorspronkelijk gemaakt door Scholtz & Company, jsa. en wordt nu ontwikkeld onder het merk {link1}. Het project is open source, en iedereen kan de code op {link2} bekijken, auditen of eraan bijdragen.",
+        "a5_link1": "Biatec",
+        "a5_link2": "GitHub"
       },
       "biatec": {
         "title": "Biatec Wallet & ecosysteem",
         "q1": "Wat is Biatec?",
-        "a1": "<a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> is het bedrijf en merk achter {name}, dat een reeks open tools rond de Algorand-blockchain bouwt, waaronder deze wallet, een swap-/exchange-routeringsdienst en een dienst voor geplande betalingen, allemaal ontworpen om het gebruik van Algorand eenvoudiger en veiliger te maken.",
+        "a1": "{link1} is het bedrijf en merk achter {name}, dat een reeks open tools rond de Algorand-blockchain bouwt, waaronder deze wallet, een swap-/exchange-routeringsdienst en een dienst voor geplande betalingen, allemaal ontworpen om het gebruik van Algorand eenvoudiger en veiliger te maken.",
+        "a1_link1": "Biatec",
         "q2": "Hoe verhoudt Biatec Wallet zich tot de andere diensten van Biatec?",
-        "a2": "Biatec Wallet is het toegangspunt: het bewaart uw sleutels en ondertekent transacties lokaal, terwijl andere <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec-diensten</a> (zoals de swap-router die op de Swap-pagina wordt gebruikt, of de API voor geplande betalingen die voor terugkerende overschrijvingen wordt gebruikt) alleen ooit ongetekende transactiegegevens of openbare informatie ontvangen - nooit uw privésleutels.",
+        "a2": "Biatec Wallet is het toegangspunt: het bewaart uw sleutels en ondertekent transacties lokaal, terwijl andere {link1} (zoals de swap-router die op de Swap-pagina wordt gebruikt, of de API voor geplande betalingen die voor terugkerende overschrijvingen wordt gebruikt) alleen ooit ongetekende transactiegegevens of openbare informatie ontvangen - nooit uw privésleutels.",
+        "a2_link1": "Biatec-diensten",
         "q3": "Beheert Biatec zijn eigen Algorand-infrastructuur?",
-        "a3": "Ja. <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> beheert zijn eigen Algorand-node, indexer en participatie-infrastructuur waarmee {name} verbinding kan maken, naast openbare Algorand-nodes, waardoor u rechtstreeks in de instellingen van de wallet kunt kiezen uit meerdere netwerkproviders.",
+        "a3": "Ja. {link1} beheert zijn eigen Algorand-node, indexer en participatie-infrastructuur waarmee {name} verbinding kan maken, naast openbare Algorand-nodes, waardoor u rechtstreeks in de instellingen van de wallet kunt kiezen uit meerdere netwerkproviders.",
+        "a3_link1": "Biatec",
         "q4": "Waarvoor wordt de Biatec swap-router gebruikt?",
-        "a4": "Wanneer u de Swap-functie in {name} gebruikt, wordt uw aanvraag via de aggregator van <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> geleid, die prijzen vergelijkt op meerdere gedecentraliseerde exchanges (DEXs) van Algorand om de beste beschikbare koers voor u te vinden, en vervolgens een ongetekende transactie terugstuurt die u zelf beoordeelt en ondertekent.",
+        "a4": "Wanneer u de Swap-functie in {name} gebruikt, wordt uw aanvraag via de aggregator van {link1} geleid, die prijzen vergelijkt op meerdere gedecentraliseerde exchanges (DEXs) van Algorand om de beste beschikbare koers voor u te vinden, en vervolgens een ongetekende transactie terugstuurt die u zelf beoordeelt en ondertekent.",
+        "a4_link1": "Biatec",
         "q5": "Wordt Biatec gefinancierd door Algorand Inc. of de Algorand Foundation?",
-        "a5": "Biatec is een onafhankelijk, door de gemeenschap gedreven project - het is geen eigendom van Algorand Inc. of de Algorand Foundation en ontvangt van hen geen structurele financiering. Het heeft echter wel meerdere eenmalige subsidies ontvangen via het <a href=\"https://github.com/algorandfoundation/xGov\" target=\"_blank\" rel=\"noopener noreferrer\">xGov community grants-programma</a> van de Algorand Foundation, waaronder subsidies voor {name} zelf, voor <a href=\"https://github.com/algorandfoundation/xGov/pull/9/files\" target=\"_blank\" rel=\"noopener noreferrer\">tweefactorauthenticatie (2FA)-accounts</a>, en voor Biatec DEX. De naam en het logo van Algorand worden gebruikt volgens de officiële mediarichtlijnen van Algorand, uitsluitend om compatibiliteit met de blockchain aan te geven."
+        "a5": "Biatec is een onafhankelijk, door de gemeenschap gedreven project - het is geen eigendom van Algorand Inc. of de Algorand Foundation en ontvangt van hen geen structurele financiering. Het heeft echter wel meerdere eenmalige subsidies ontvangen via het {link1} van de Algorand Foundation, waaronder subsidies voor {name} zelf, voor {link2}, en voor Biatec DEX. De naam en het logo van Algorand worden gebruikt volgens de officiële mediarichtlijnen van Algorand, uitsluitend om compatibiliteit met de blockchain aan te geven.",
+        "a5_link1": "xGov community grants-programma",
+        "a5_link2": "tweefactorauthenticatie (2FA)-accounts"
       },
       "blockchain": {
         "title": "Basisprincipes van Algorand & blockchain",
@@ -701,7 +709,8 @@
         "q3": "Wat is rekeying en waarvoor wordt het gebruikt?",
         "a3": "Rekeying laat u wijzigen welke privésleutel een account beheert zonder het adres van het account te veranderen, bijvoorbeeld om de zeggenschap van een gewone sleutel over te dragen aan een multisig-groep, of aan een Ledger-apparaat, terwijl al uw assets, apps en transactiegeschiedenis precies blijven waar ze zijn. Het is een krachtige, onomkeerbare actie, dus controleer altijd het nieuwe geautoriseerde adres voordat u ondertekent.",
         "q4": "Hoe plan ik een toekomstige of terugkerende betaling?",
-        "a4": "Gebruik de functie Geplande betalingen op een accountpagina om een transactiesjabloon en een toekomstige datum of terugkerend interval te definiëren; {name} bereidt via de scheduler-service van <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> de ongetekende transactie voor en vraagt u deze te ondertekenen en uit te zenden zodra deze verschuldigd is.",
+        "a4": "Gebruik de functie Geplande betalingen op een accountpagina om een transactiesjabloon en een toekomstige datum of terugkerend interval te definiëren; {name} bereidt via de scheduler-service van {link1} de ongetekende transactie voor en vraagt u deze te ondertekenen en uit te zenden zodra deze verschuldigd is.",
+        "a4_link1": "Biatec",
         "q5": "Hoe interacteer ik met een smart contract of DApp vanuit {name}?",
         "a5": "Verbind {name} met de DApp via WalletConnect, door ofwel de QR-code van de DApp te scannen ofwel de verbindings-URI \"wc:\" te plakken, en elke transactie die de DApp aanvraagt, verschijnt in {name} zodat u deze volledig in detail kunt beoordelen en expliciet kunt ondertekenen voordat er iets wordt uitgezonden."
       },
@@ -721,7 +730,8 @@
       "swap": {
         "title": "Swappen & DeFi",
         "q1": "Hoe werkt swappen in {name}?",
-        "a1": "Op de Swap-pagina kunt u rechtstreeks vanuit uw wallet een Algorand-asset ruilen voor een andere. {name} raadpleegt de router van <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> om de beste prijs te vinden over meerdere on-chain gedecentraliseerde exchanges, en bouwt vervolgens een ongetekende transactiegroep die u zelf beoordeelt en ondertekent - tegoeden passeren nooit een custodial tussenpersoon.",
+        "a1": "Op de Swap-pagina kunt u rechtstreeks vanuit uw wallet een Algorand-asset ruilen voor een andere. {name} raadpleegt de router van {link1} om de beste prijs te vinden over meerdere on-chain gedecentraliseerde exchanges, en bouwt vervolgens een ongetekende transactiegroep die u zelf beoordeelt en ondertekent - tegoeden passeren nooit een custodial tussenpersoon.",
+        "a1_link1": "Biatec",
         "q2": "Wat is slippage en waarom vraagt de swap-pagina mij deze in te stellen?",
         "a2": "Slippagetolerantie is de maximale prijsbeweging die u accepteert tussen het moment waarop u een koers opvraagt en het moment waarop uw transactie daadwerkelijk on-chain wordt afgehandeld; als u dit te laag instelt, kan uw swap mislukken in een snel bewegende markt, terwijl een te hoge instelling kan resulteren in een slechtere prijs dan verwacht.",
         "q3": "Wat zijn liquiditeitspools en waarom bepalen ze mijn swapprijs?",
@@ -753,9 +763,12 @@
         "q3": "Wat gebeurt er als ik mijn walletwachtwoord vergeet?",
         "a3": "Het wachtwoord ontgrendelt alleen de versleutelde kopie die in die specifieke browser is opgeslagen - het bestaat nergens anders, dus als u geen back-up heeft en het vergeet, zijn de tegoeden per ontwerp onherstelbaar, wat juist de wallet veilig maakt. Daarom is het essentieel om een onafhankelijke back-up van uw accountmnemonics te bewaren.",
         "q4": "Hoe kan ik de broncode bekijken of eraan bijdragen?",
-        "a4": "{name} is volledig open source op <a href=\"https://github.com/scholtz/wallet/\" target=\"_blank\" rel=\"noopener noreferrer\">github.com/scholtz/wallet</a>; iedereen mag de code lezen, auditen, forken of een pull request indienen, en vertaalbijdragen zijn vooral welkom via de map src/locales.",
+        "a4": "{name} is volledig open source op {link1}; iedereen mag de code lezen, auditen, forken of een pull request indienen, en vertaalbijdragen zijn vooral welkom via de map src/locales.",
+        "a4_link1": "github.com/scholtz/wallet",
         "q5": "Hoe kan ik hulp krijgen of het project steunen?",
-        "a5": "U kunt lid worden van de <a href=\"https://discord.gg/gBsts5bPAd\" target=\"_blank\" rel=\"noopener noreferrer\">Discord</a> van het project voor community-ondersteuning, een issue openen op <a href=\"https://github.com/scholtz/wallet/issues\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a> voor bugs of functieverzoeken, code of vertalingen bijdragen, of de voortgaande ontwikkeling steunen met een donatie aan het Algorand-adres van het project dat in de voettekst van de app staat vermeld. {name} wordt niet gefinancierd door Algorand Inc. of de Algorand Foundation, hoewel het Algorand Foundation xGov community grants heeft ontvangen voor specifieke functies."
+        "a5": "U kunt lid worden van de {link1} van het project voor community-ondersteuning, een issue openen op {link2} voor bugs of functieverzoeken, code of vertalingen bijdragen, of de voortgaande ontwikkeling steunen met een donatie aan het Algorand-adres van het project dat in de voettekst van de app staat vermeld. {name} wordt niet gefinancierd door Algorand Inc. of de Algorand Foundation, hoewel het Algorand Foundation xGov community grants heeft ontvangen voor specifieke functies.",
+        "a5_link1": "Discord",
+        "a5_link2": "GitHub"
       }
     }
   },

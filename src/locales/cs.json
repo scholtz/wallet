@@ -638,20 +638,28 @@
         "q4": "Na jakých zařízeních a v jakých prohlížečích {name} funguje?",
         "a4": "{name} je responzivní webová aplikace, která funguje na jakémkoli moderním počítačovém či mobilním prohlížeči (Chrome, Firefox, Edge, Safari) bez nutnosti instalace. Protože jde o jednostránkovou aplikaci bez nativního instalačního balíčku, stejná peněženka funguje identicky na Windows, macOS, Linuxu, Androidu i iOS.",
         "q5": "Kdo vytvořil {name} a Biatec?",
-        "a5": "{name} byla původně vytvořena společností Scholtz & Company, jsa., a nyní je vyvíjena pod značkou <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a>. Projekt má otevřený zdrojový kód a kdokoli může kód kontrolovat, auditovat nebo do něj přispívat na <a href=\"https://github.com/scholtz/wallet/\" target=\"_blank\" rel=\"noopener noreferrer\">GitHubu</a>."
+        "a5": "{name} byla původně vytvořena společností Scholtz & Company, jsa., a nyní je vyvíjena pod značkou {link1}. Projekt má otevřený zdrojový kód a kdokoli může kód kontrolovat, auditovat nebo do něj přispívat na {link2}.",
+        "a5_link1": "Biatec",
+        "a5_link2": "GitHubu"
       },
       "biatec": {
         "title": "Biatec Wallet a ekosystém",
         "q1": "Co je Biatec?",
-        "a1": "<a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> je společnost a značka stojící za {name}, která vytváří sadu otevřených nástrojů kolem blockchainu Algorand, včetně této peněženky, služby pro směrování swapů/směny a služby plánovaných plateb, to vše s cílem zjednodušit a zabezpečit používání Algorandu.",
+        "a1": "{link1} je společnost a značka stojící za {name}, která vytváří sadu otevřených nástrojů kolem blockchainu Algorand, včetně této peněženky, služby pro směrování swapů/směny a služby plánovaných plateb, to vše s cílem zjednodušit a zabezpečit používání Algorandu.",
+        "a1_link1": "Biatec",
         "q2": "Jak Biatec Wallet souvisí s dalšími službami Biatec?",
-        "a2": "Biatec Wallet je vstupní bod: uchovává vaše klíče a podepisuje transakce lokálně, zatímco ostatní <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">služby Biatec</a> (například router pro swapy použitý na stránce Swap nebo API plánovaných plateb používané pro opakované převody) vždy dostávají pouze nepodepsaná transakční data nebo veřejné informace - nikdy vaše soukromé klíče.",
+        "a2": "Biatec Wallet je vstupní bod: uchovává vaše klíče a podepisuje transakce lokálně, zatímco ostatní {link1} (například router pro swapy použitý na stránce Swap nebo API plánovaných plateb používané pro opakované převody) vždy dostávají pouze nepodepsaná transakční data nebo veřejné informace - nikdy vaše soukromé klíče.",
+        "a2_link1": "služby Biatec",
         "q3": "Provozuje Biatec vlastní infrastrukturu Algorand?",
-        "a3": "Ano. <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> provozuje vlastní uzel, indexer a participační infrastrukturu Algorand, ke které se {name} může připojit, vedle veřejných uzlů Algorand, takže máte přímo v nastavení peněženky na výběr z více poskytovatelů sítě.",
+        "a3": "Ano. {link1} provozuje vlastní uzel, indexer a participační infrastrukturu Algorand, ke které se {name} může připojit, vedle veřejných uzlů Algorand, takže máte přímo v nastavení peněženky na výběr z více poskytovatelů sítě.",
+        "a3_link1": "Biatec",
         "q4": "K čemu slouží router pro swapy Biatec?",
-        "a4": "Když použijete funkci Swap v {name}, váš požadavek je směrován přes agregátor <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a>, který porovnává ceny napříč více decentralizovanými burzami (DEX) Algorandu, aby vám našel nejlepší dostupný kurz, a poté vrátí nepodepsanou transakci, kterou si sami zkontrolujete a podepíšete.",
+        "a4": "Když použijete funkci Swap v {name}, váš požadavek je směrován přes agregátor {link1}, který porovnává ceny napříč více decentralizovanými burzami (DEX) Algorandu, aby vám našel nejlepší dostupný kurz, a poté vrátí nepodepsanou transakci, kterou si sami zkontrolujete a podepíšete.",
+        "a4_link1": "Biatec",
         "q5": "Je Biatec financován společností Algorand Inc. nebo Algorand Foundation?",
-        "a5": "Biatec je nezávislý, komunitou řízený projekt - není vlastněn společností Algorand Inc. ani Algorand Foundation a nezískává od nich průběžné financování. Přesto obdržel několik jednorázových grantů prostřednictvím <a href=\"https://github.com/algorandfoundation/xGov\" target=\"_blank\" rel=\"noopener noreferrer\">programu komunitních grantů xGov</a> Algorand Foundation, včetně grantů na projekt {name}, na <a href=\"https://github.com/algorandfoundation/xGov/pull/9/files\" target=\"_blank\" rel=\"noopener noreferrer\">účty s dvoufaktorovým ověřením (2FA)</a> a na Biatec DEX. Název a logo Algorand jsou používány v souladu s oficiálními mediálními pokyny Algorandu, výhradně za účelem označení kompatibility s blockchainem."
+        "a5": "Biatec je nezávislý, komunitou řízený projekt - není vlastněn společností Algorand Inc. ani Algorand Foundation a nezískává od nich průběžné financování. Přesto obdržel několik jednorázových grantů prostřednictvím {link1} Algorand Foundation, včetně grantů na projekt {name}, na {link2} a na Biatec DEX. Název a logo Algorand jsou používány v souladu s oficiálními mediálními pokyny Algorandu, výhradně za účelem označení kompatibility s blockchainem.",
+        "a5_link1": "programu komunitních grantů xGov",
+        "a5_link2": "účty s dvoufaktorovým ověřením (2FA)"
       },
       "blockchain": {
         "title": "Algorand a základy blockchainu",
@@ -701,7 +709,8 @@
         "q3": "Co je rekey a k čemu se používá?",
         "a3": "Rekey umožňuje změnit, který soukromý klíč ovládá účet, aniž by se změnila adresa účtu - například pro přesun pravomoci z běžného klíče na multisig skupinu nebo na zařízení Ledger, přičemž všechny vaše assety, aplikace a historie transakcí zůstávají přesně tam, kde byly. Jde o mocnou, nevratnou akci, takže si před podepsáním vždy dvakrát zkontrolujte novou autorizovanou adresu.",
         "q4": "Jak naplánuji budoucí nebo opakovanou platbu?",
-        "a4": "Na stránce účtu použijte funkci Plánované platby a definujte šablonu transakce a budoucí datum nebo opakovaný interval; {name} prostřednictvím plánovací služby <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> připraví nepodepsanou transakci a vyzve vás k jejímu podpisu a odeslání, jakmile nastane splatnost.",
+        "a4": "Na stránce účtu použijte funkci Plánované platby a definujte šablonu transakce a budoucí datum nebo opakovaný interval; {name} prostřednictvím plánovací služby {link1} připraví nepodepsanou transakci a vyzve vás k jejímu podpisu a odeslání, jakmile nastane splatnost.",
+        "a4_link1": "Biatec",
         "q5": "Jak komunikuji s chytrým kontraktem nebo DApp z {name}?",
         "a5": "Připojte {name} k DApp pomocí WalletConnect, buď naskenováním QR kódu, nebo vložením connect URI, a každá transakce, kterou DApp požaduje, se zobrazí v {name}, kde si ji můžete v plném detailu zkontrolovat a před jakýmkoli odesláním výslovně podepsat."
       },
@@ -721,7 +730,8 @@
       "swap": {
         "title": "Swapy a DeFi",
         "q1": "Jak funguje swapování v {name}?",
-        "a1": "Stránka Swap vám umožňuje vyměnit jeden asset Algorandu za jiný přímo z vaší peněženky. {name} dotazuje router <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a>, aby našel nejlepší cenu napříč více on-chain decentralizovanými burzami, a poté sestaví skupinu nepodepsaných transakcí, kterou si sami zkontrolujete a podepíšete - prostředky nikdy neprochází přes kustodiálního prostředníka.",
+        "a1": "Stránka Swap vám umožňuje vyměnit jeden asset Algorandu za jiný přímo z vaší peněženky. {name} dotazuje router {link1}, aby našel nejlepší cenu napříč více on-chain decentralizovanými burzami, a poté sestaví skupinu nepodepsaných transakcí, kterou si sami zkontrolujete a podepíšete - prostředky nikdy neprochází přes kustodiálního prostředníka.",
+        "a1_link1": "Biatec",
         "q2": "Co je skluz (slippage) a proč mě stránka swapu žádá o jeho nastavení?",
         "a2": "Tolerance skluzu je maximální pohyb ceny, který akceptujete mezi okamžikem, kdy si vyžádáte kurz, a okamžikem, kdy se vaše transakce skutečně vypořádá on-chain; příliš nízké nastavení může způsobit selhání swapu na rychle se měnícím trhu, zatímco příliš vysoké nastavení může vést k horší než očekávané ceně.",
         "q3": "Co jsou likviditní pooly a proč určují cenu mého swapu?",
@@ -753,9 +763,12 @@
         "q3": "Co se stane, když zapomenu heslo k peněžence?",
         "a3": "Heslo odemyká pouze šifrovanou kopii uloženou v daném konkrétním prohlížeči - nikde jinde neexistuje, takže pokud nemáte zálohu a heslo zapomenete, prostředky jsou záměrně nenávratně ztraceny, což je právě to, co peněženku činí bezpečnou. Proto je nezbytné mít nezávislou zálohu mnemotechnických frází svých účtů.",
         "q4": "Jak mohu zobrazit zdrojový kód nebo do něj přispět?",
-        "a4": "{name} má plně otevřený zdrojový kód na <a href=\"https://github.com/scholtz/wallet/\" target=\"_blank\" rel=\"noopener noreferrer\">github.com/scholtz/wallet</a>; kdokoli si jej může přečíst, auditovat, forknout nebo poslat pull request, přičemž obzvláště vítány jsou příspěvky s překlady prostřednictvím složky src/locales.",
+        "a4": "{name} má plně otevřený zdrojový kód na {link1}; kdokoli si jej může přečíst, auditovat, forknout nebo poslat pull request, přičemž obzvláště vítány jsou příspěvky s překlady prostřednictvím složky src/locales.",
+        "a4_link1": "github.com/scholtz/wallet",
         "q5": "Jak mohu získat pomoc nebo podpořit projekt?",
-        "a5": "Můžete se připojit k projektovému <a href=\"https://discord.gg/gBsts5bPAd\" target=\"_blank\" rel=\"noopener noreferrer\">Discordu</a> pro podporu komunity, otevřít issue na <a href=\"https://github.com/scholtz/wallet/issues\" target=\"_blank\" rel=\"noopener noreferrer\">GitHubu</a> ohledně chyb nebo požadavků na nové funkce, přispět kódem nebo překlady, nebo podpořit další vývoj darem na Algorand adresu projektu uvedenou v patičce aplikace. {name} není financována společností Algorand Inc. ani Algorand Foundation, i když obdržela komunitní granty xGov od Algorand Foundation na konkrétní funkce."
+        "a5": "Můžete se připojit k projektovému {link1} pro podporu komunity, otevřít issue na {link2} ohledně chyb nebo požadavků na nové funkce, přispět kódem nebo překlady, nebo podpořit další vývoj darem na Algorand adresu projektu uvedenou v patičce aplikace. {name} není financována společností Algorand Inc. ani Algorand Foundation, i když obdržela komunitní granty xGov od Algorand Foundation na konkrétní funkce.",
+        "a5_link1": "Discordu",
+        "a5_link2": "GitHubu"
       }
     }
   },

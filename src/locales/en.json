@@ -638,20 +638,28 @@
         "q4": "Which devices and browsers does {name} work on?",
         "a4": "{name} is a responsive web application that works on any modern desktop or mobile browser (Chrome, Firefox, Edge, Safari) without installation. Because it is a single-page app with no native binary, the same wallet works identically on Windows, macOS, Linux, Android and iOS.",
         "q5": "Who created {name} and Biatec?",
-        "a5": "{name} was originally created by Scholtz & Company, jsa. and is now developed under the <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> brand. The project is open source, and anyone can review, audit or contribute to the code on <a href=\"https://github.com/scholtz/wallet/\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>."
+        "a5": "{name} was originally created by Scholtz & Company, jsa. and is now developed under the {link1} brand. The project is open source, and anyone can review, audit or contribute to the code on {link2}.",
+        "a5_link1": "Biatec",
+        "a5_link2": "GitHub"
       },
       "biatec": {
         "title": "Biatec Wallet & Ecosystem",
         "q1": "What is Biatec?",
-        "a1": "<a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> is the company and brand behind {name}, building a suite of open tools around the Algorand blockchain, including this wallet, a swap/exchange routing service, and a scheduled-payments service, all designed to make using Algorand simpler and safer.",
+        "a1": "{link1} is the company and brand behind {name}, building a suite of open tools around the Algorand blockchain, including this wallet, a swap/exchange routing service, and a scheduled-payments service, all designed to make using Algorand simpler and safer.",
+        "a1_link1": "Biatec",
         "q2": "How does Biatec Wallet relate to Biatec's other services?",
-        "a2": "Biatec Wallet is the entry point: it holds your keys and signs transactions locally, while other <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec services</a> (such as the swap router used on the Swap page, or the scheduled-payments API used for recurring transfers) only ever receive unsigned transaction data or public information - never your private keys.",
+        "a2": "Biatec Wallet is the entry point: it holds your keys and signs transactions locally, while other {link1} (such as the swap router used on the Swap page, or the scheduled-payments API used for recurring transfers) only ever receive unsigned transaction data or public information - never your private keys.",
+        "a2_link1": "Biatec services",
         "q3": "Does Biatec run its own Algorand infrastructure?",
-        "a3": "Yes. <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> operates its own Algorand node, indexer and participation infrastructure that {name} can connect to, in addition to public Algorand nodes, giving you a choice of network providers directly in the wallet's settings.",
+        "a3": "Yes. {link1} operates its own Algorand node, indexer and participation infrastructure that {name} can connect to, in addition to public Algorand nodes, giving you a choice of network providers directly in the wallet's settings.",
+        "a3_link1": "Biatec",
         "q4": "What is the Biatec swap router used for?",
-        "a4": "When you use the Swap feature in {name}, your request is routed through <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec's</a> aggregator, which compares prices across multiple Algorand decentralized exchanges (DEXs) to find you the best available rate, then returns an unsigned transaction for you to review and sign yourself.",
+        "a4": "When you use the Swap feature in {name}, your request is routed through {link1} aggregator, which compares prices across multiple Algorand decentralized exchanges (DEXs) to find you the best available rate, then returns an unsigned transaction for you to review and sign yourself.",
+        "a4_link1": "Biatec's",
         "q5": "Is Biatec funded by Algorand Inc. or the Algorand Foundation?",
-        "a5": "Biatec is an independent, community-driven project - it is not owned by, and does not receive ongoing funding from, Algorand Inc. or the Algorand Foundation. It has, however, received several one-off grants through the Algorand Foundation's <a href=\"https://github.com/algorandfoundation/xGov\" target=\"_blank\" rel=\"noopener noreferrer\">xGov community grants program</a>, including grants for {name} itself, for <a href=\"https://github.com/algorandfoundation/xGov/pull/9/files\" target=\"_blank\" rel=\"noopener noreferrer\">two-factor authentication (2FA) accounts</a>, and for Biatec DEX. The Algorand name and logo are used under Algorand's official media guidelines, purely to indicate blockchain compatibility."
+        "a5": "Biatec is an independent, community-driven project - it is not owned by, and does not receive ongoing funding from, Algorand Inc. or the Algorand Foundation. It has, however, received several one-off grants through the Algorand Foundation's {link1}, including grants for {name} itself, for {link2}, and for Biatec DEX. The Algorand name and logo are used under Algorand's official media guidelines, purely to indicate blockchain compatibility.",
+        "a5_link1": "xGov community grants program",
+        "a5_link2": "two-factor authentication (2FA) accounts"
       },
       "blockchain": {
         "title": "Algorand & Blockchain Basics",
@@ -701,7 +709,8 @@
         "q3": "What is rekeying and what is it used for?",
         "a3": "Rekeying lets you change which private key controls an account without changing the account's address, for example to move authority from a plain key to a multisig group, or to a Ledger device, while keeping all your assets, apps and transaction history exactly where they are. It is a powerful, irreversible action, so always double-check the new authorized address before signing.",
         "q4": "How do I schedule a future or recurring payment?",
-        "a4": "Use the Scheduled Payments feature on an account page to define a transaction template and a future date or recurring interval; {name}, via <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec's</a> scheduler service, will prepare the unsigned transaction and prompt you to sign and broadcast it when it becomes due.",
+        "a4": "Use the Scheduled Payments feature on an account page to define a transaction template and a future date or recurring interval; {name}, via {link1} scheduler service, will prepare the unsigned transaction and prompt you to sign and broadcast it when it becomes due.",
+        "a4_link1": "Biatec's",
         "q5": "How do I interact with a smart contract or DApp from {name}?",
         "a5": "Connect {name} to the DApp using WalletConnect, either by scanning a QR code or pasting a connect URI, and every transaction the DApp requests will appear in {name} for you to review in full detail and explicitly sign before anything is broadcast."
       },
@@ -721,7 +730,8 @@
       "swap": {
         "title": "Swapping & DeFi",
         "q1": "How does swapping work in {name}?",
-        "a1": "The Swap page lets you exchange one Algorand asset for another directly from your wallet. {name} queries <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec's</a> router to find the best price across multiple on-chain decentralized exchanges, then builds an unsigned transaction group that you review and sign yourself - funds never pass through a custodial intermediary.",
+        "a1": "The Swap page lets you exchange one Algorand asset for another directly from your wallet. {name} queries {link1} router to find the best price across multiple on-chain decentralized exchanges, then builds an unsigned transaction group that you review and sign yourself - funds never pass through a custodial intermediary.",
+        "a1_link1": "Biatec's",
         "q2": "What is slippage and why does the swap page ask me to set it?",
         "a2": "Slippage tolerance is the maximum price movement you accept between the moment you request a quote and the moment your transaction actually settles on-chain; setting it too low can cause your swap to fail in a fast-moving market, while setting it too high can result in a worse-than-expected price.",
         "q3": "What are liquidity pools and why do they determine my swap price?",
@@ -753,9 +763,12 @@
         "q3": "What happens if I forget my wallet password?",
         "a3": "The password only unlocks the encrypted copy stored in that specific browser - it does not exist anywhere else, so if you have no backup and forget it, the funds are unrecoverable by design, which is what makes the wallet secure. This is why keeping an independent backup of your account mnemonics is essential.",
         "q4": "How can I view or contribute to the source code?",
-        "a4": "{name} is fully open source at <a href=\"https://github.com/scholtz/wallet/\" target=\"_blank\" rel=\"noopener noreferrer\">github.com/scholtz/wallet</a>; anyone may read, audit, fork or submit a pull request, and translation contributions are especially welcome via the src/locales folder.",
+        "a4": "{name} is fully open source at {link1}; anyone may read, audit, fork or submit a pull request, and translation contributions are especially welcome via the src/locales folder.",
+        "a4_link1": "github.com/scholtz/wallet",
         "q5": "How can I get help or support the project?",
-        "a5": "You can join the project's <a href=\"https://discord.gg/gBsts5bPAd\" target=\"_blank\" rel=\"noopener noreferrer\">Discord</a> for community support, open an issue on <a href=\"https://github.com/scholtz/wallet/issues\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a> for bugs or feature requests, contribute code or translations, or support ongoing development with a donation to the project's Algorand address listed in the app footer. {name} is not funded by Algorand Inc. or the Algorand Foundation, though it has received Algorand Foundation xGov community grants for specific features."
+        "a5": "You can join the project's {link1} for community support, open an issue on {link2} for bugs or feature requests, contribute code or translations, or support ongoing development with a donation to the project's Algorand address listed in the app footer. {name} is not funded by Algorand Inc. or the Algorand Foundation, though it has received Algorand Foundation xGov community grants for specific features.",
+        "a5_link1": "Discord",
+        "a5_link2": "GitHub"
       }
     }
   },

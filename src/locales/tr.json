@@ -638,20 +638,28 @@
         "q4": "{name} hangi cihazlarda ve tarayıcılarda çalışır?",
         "a4": "{name}, kurulum gerektirmeden herhangi bir modern masaüstü veya mobil tarayıcıda (Chrome, Firefox, Edge, Safari) çalışan duyarlı (responsive) bir web uygulamasıdır. Yerel bir ikili dosyası olmayan tek sayfalık bir uygulama olduğundan, aynı cüzdan Windows, macOS, Linux, Android ve iOS'ta birebir aynı şekilde çalışır.",
         "q5": "{name} ve Biatec'i kim oluşturdu?",
-        "a5": "{name}, başlangıçta Scholtz & Company, jsa. tarafından oluşturulmuştur ve artık <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> markası altında geliştirilmektedir. Proje açık kaynaklıdır ve herkes kodu <a href=\"https://github.com/scholtz/wallet/\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a> üzerinden inceleyebilir, denetleyebilir veya katkıda bulunabilir."
+        "a5": "{name}, başlangıçta Scholtz & Company, jsa. tarafından oluşturulmuştur ve artık {link1} markası altında geliştirilmektedir. Proje açık kaynaklıdır ve herkes kodu {link2} üzerinden inceleyebilir, denetleyebilir veya katkıda bulunabilir.",
+        "a5_link1": "Biatec",
+        "a5_link2": "GitHub"
       },
       "biatec": {
         "title": "Biatec Wallet ve Ekosistemi",
         "q1": "Biatec nedir?",
-        "a1": "<a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a>, {name}'in arkasındaki şirket ve markadır; Algorand blok zinciri etrafında bu cüzdan, bir takas/borsa yönlendirme hizmeti ve zamanlanmış ödemeler hizmeti dahil olmak üzere bir dizi açık kaynaklı araç geliştirir; tümü Algorand'ı kullanmayı daha basit ve daha güvenli hale getirmek için tasarlanmıştır.",
+        "a1": "{link1}, {name}'in arkasındaki şirket ve markadır; Algorand blok zinciri etrafında bu cüzdan, bir takas/borsa yönlendirme hizmeti ve zamanlanmış ödemeler hizmeti dahil olmak üzere bir dizi açık kaynaklı araç geliştirir; tümü Algorand'ı kullanmayı daha basit ve daha güvenli hale getirmek için tasarlanmıştır.",
+        "a1_link1": "Biatec",
         "q2": "Biatec Wallet, Biatec'in diğer hizmetleriyle nasıl ilişkilidir?",
-        "a2": "Biatec Wallet giriş noktasıdır: anahtarlarınızı tutar ve işlemleri yerel olarak imzalar; diğer <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec hizmetleri</a> ise (Swap sayfasında kullanılan takas yönlendiricisi veya tekrarlayan transferler için kullanılan zamanlanmış ödemeler API'si gibi) yalnızca imzasız işlem verilerini veya genel bilgileri alır - asla özel anahtarlarınızı almaz.",
+        "a2": "Biatec Wallet giriş noktasıdır: anahtarlarınızı tutar ve işlemleri yerel olarak imzalar; diğer {link1} ise (Swap sayfasında kullanılan takas yönlendiricisi veya tekrarlayan transferler için kullanılan zamanlanmış ödemeler API'si gibi) yalnızca imzasız işlem verilerini veya genel bilgileri alır - asla özel anahtarlarınızı almaz.",
+        "a2_link1": "Biatec hizmetleri",
         "q3": "Biatec kendi Algorand altyapısını mı çalıştırıyor?",
-        "a3": "Evet. <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a>, herkese açık Algorand düğümlerine ek olarak {name}'in bağlanabileceği kendi Algorand düğümünü, indeksleyicisini ve katılım altyapısını işletir; böylece cüzdanın ayarlarında doğrudan bir ağ sağlayıcısı seçme imkanı sunar.",
+        "a3": "Evet. {link1}, herkese açık Algorand düğümlerine ek olarak {name}'in bağlanabileceği kendi Algorand düğümünü, indeksleyicisini ve katılım altyapısını işletir; böylece cüzdanın ayarlarında doğrudan bir ağ sağlayıcısı seçme imkanı sunar.",
+        "a3_link1": "Biatec",
         "q4": "Biatec takas yönlendiricisi ne için kullanılır?",
-        "a4": "{name} içindeki Swap özelliğini kullandığınızda, isteğiniz <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec'in</a> toplayıcısı (aggregator) üzerinden yönlendirilir; bu toplayıcı size en iyi kuru bulmak için birden fazla Algorand merkeziyetsiz borsasındaki (DEX) fiyatları karşılaştırır ve ardından incelemeniz ve kendiniz imzalamanız için imzasız bir işlem döndürür.",
+        "a4": "{name} içindeki Swap özelliğini kullandığınızda, isteğiniz {link1} toplayıcısı (aggregator) üzerinden yönlendirilir; bu toplayıcı size en iyi kuru bulmak için birden fazla Algorand merkeziyetsiz borsasındaki (DEX) fiyatları karşılaştırır ve ardından incelemeniz ve kendiniz imzalamanız için imzasız bir işlem döndürür.",
+        "a4_link1": "Biatec'in",
         "q5": "Biatec, Algorand Inc. veya Algorand Foundation tarafından mı finanse ediliyor?",
-        "a5": "Biatec, bağımsız ve topluluk odaklı bir projedir - Algorand Inc. veya Algorand Foundation'a ait değildir ve bu kurumlardan sürekli bir finansman almamaktadır. Ancak, Algorand Foundation'ın <a href=\"https://github.com/algorandfoundation/xGov\" target=\"_blank\" rel=\"noopener noreferrer\">xGov topluluk hibe programı</a> aracılığıyla, {name}'in kendisi, <a href=\"https://github.com/algorandfoundation/xGov/pull/9/files\" target=\"_blank\" rel=\"noopener noreferrer\">iki faktörlü kimlik doğrulama (2FA) hesapları</a> ve Biatec DEX için olanlar da dahil olmak üzere birkaç kerelik hibeler almıştır. Algorand adı ve logosu, yalnızca blok zinciri uyumluluğunu belirtmek amacıyla Algorand'ın resmi medya kurallarına uygun olarak kullanılmaktadır."
+        "a5": "Biatec, bağımsız ve topluluk odaklı bir projedir - Algorand Inc. veya Algorand Foundation'a ait değildir ve bu kurumlardan sürekli bir finansman almamaktadır. Ancak, Algorand Foundation'ın {link1} aracılığıyla, {name}'in kendisi, {link2} ve Biatec DEX için olanlar da dahil olmak üzere birkaç kerelik hibeler almıştır. Algorand adı ve logosu, yalnızca blok zinciri uyumluluğunu belirtmek amacıyla Algorand'ın resmi medya kurallarına uygun olarak kullanılmaktadır.",
+        "a5_link1": "xGov topluluk hibe programı",
+        "a5_link2": "iki faktörlü kimlik doğrulama (2FA) hesapları"
       },
       "blockchain": {
         "title": "Algorand ve Blok Zinciri Temelleri",
@@ -701,7 +709,8 @@
         "q3": "Yeniden anahtarlama (rekeying) nedir ve ne için kullanılır?",
         "a3": "Yeniden anahtarlama, bir hesabın adresini değiştirmeden hangi özel anahtarın o hesabı kontrol ettiğini değiştirmenizi sağlar; örneğin yetkiyi standart bir anahtardan bir multisig grubuna veya bir Ledger cihazına taşırken tüm varlıklarınızı, uygulamalarınızı ve işlem geçmişinizi tam olarak olduğu yerde tutabilirsiniz. Bu, güçlü ve geri alınamaz bir işlemdir, bu nedenle imzalamadan önce yeni yetkili adresi mutlaka iki kez kontrol edin.",
         "q4": "Gelecekte yapılacak veya tekrarlayan bir ödemeyi nasıl planlayabilirim?",
-        "a4": "Bir işlem şablonu ve gelecekteki bir tarih veya tekrarlama aralığı tanımlamak için hesap sayfasındaki Zamanlanmış Ödemeler özelliğini kullanın; {name}, <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec'in</a> zamanlayıcı hizmeti aracılığıyla imzasız işlemi hazırlar ve vadesi geldiğinde imzalamanızı ve yayınlamanızı ister.",
+        "a4": "Bir işlem şablonu ve gelecekteki bir tarih veya tekrarlama aralığı tanımlamak için hesap sayfasındaki Zamanlanmış Ödemeler özelliğini kullanın; {name}, {link1} zamanlayıcı hizmeti aracılığıyla imzasız işlemi hazırlar ve vadesi geldiğinde imzalamanızı ve yayınlamanızı ister.",
+        "a4_link1": "Biatec'in",
         "q5": "{name} üzerinden bir akıllı sözleşme veya DApp ile nasıl etkileşime girebilirim?",
         "a5": "{name}'i WalletConnect kullanarak bir DApp'e bağlayın; bunu bir QR kodu tarayarak veya bir bağlantı URI'si yapıştırarak yapabilirsiniz. DApp'in talep ettiği her işlem, tam olarak inceleyip açıkça imzalamanız için {name} içinde görünecektir ve hiçbir şey imzalanmadan yayınlanmaz."
       },
@@ -721,7 +730,8 @@
       "swap": {
         "title": "Takas (Swap) ve DeFi",
         "q1": "{name} içinde takas işlemi nasıl çalışır?",
-        "a1": "Swap sayfası, bir Algorand varlığını doğrudan cüzdanınızdan başka bir varlıkla değiştirmenizi sağlar. {name}, birden fazla zincir üstü merkeziyetsiz borsada en iyi fiyatı bulmak için <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec'in</a> yönlendiricisini sorgular, ardından incelemeniz ve kendiniz imzalamanız için imzasız bir işlem grubu oluşturur - fonlar hiçbir zaman saklayıcı bir aracıdan geçmez.",
+        "a1": "Swap sayfası, bir Algorand varlığını doğrudan cüzdanınızdan başka bir varlıkla değiştirmenizi sağlar. {name}, birden fazla zincir üstü merkeziyetsiz borsada en iyi fiyatı bulmak için {link1} yönlendiricisini sorgular, ardından incelemeniz ve kendiniz imzalamanız için imzasız bir işlem grubu oluşturur - fonlar hiçbir zaman saklayıcı bir aracıdan geçmez.",
+        "a1_link1": "Biatec'in",
         "q2": "Kayma (slippage) nedir ve takas sayfası neden bunu ayarlamamı istiyor?",
         "a2": "Kayma toleransı, bir teklif talep ettiğiniz an ile işleminizin zincir üzerinde fiilen tamamlandığı an arasında kabul ettiğiniz en yüksek fiyat hareketidir; bunu çok düşük ayarlamak hızlı hareket eden bir piyasada takasınızın başarısız olmasına neden olabilirken, çok yüksek ayarlamak beklenenden daha kötü bir fiyatla sonuçlanabilir.",
         "q3": "Likidite havuzları nedir ve takas fiyatımı nasıl belirler?",
@@ -753,9 +763,12 @@
         "q3": "Cüzdan parolamı unutursam ne olur?",
         "a3": "Parola yalnızca o belirli tarayıcıda saklanan şifrelenmiş kopyanın kilidini açar - başka hiçbir yerde bulunmaz; bu nedenle bir yedeğiniz yoksa ve parolayı unutursanız, fonlar tasarım gereği kurtarılamaz hale gelir ki cüzdanı güvenli yapan da budur. Bu nedenle hesap anımsatıcılarınızın bağımsız bir yedeğini tutmak son derece önemlidir.",
         "q4": "Kaynak kodu nasıl görüntüleyebilir veya katkıda bulunabilirim?",
-        "a4": "{name}, <a href=\"https://github.com/scholtz/wallet/\" target=\"_blank\" rel=\"noopener noreferrer\">github.com/scholtz/wallet</a> adresinde tamamen açık kaynaklıdır; herkes kodu okuyabilir, denetleyebilir, çatallayabilir (fork) veya bir pull request gönderebilir; src/locales klasörü aracılığıyla yapılacak çeviri katkıları özellikle memnuniyetle karşılanır.",
+        "a4": "{name}, {link1} adresinde tamamen açık kaynaklıdır; herkes kodu okuyabilir, denetleyebilir, çatallayabilir (fork) veya bir pull request gönderebilir; src/locales klasörü aracılığıyla yapılacak çeviri katkıları özellikle memnuniyetle karşılanır.",
+        "a4_link1": "github.com/scholtz/wallet",
         "q5": "Nasıl yardım alabilir veya projeye destek olabilirim?",
-        "a5": "Topluluk desteği için projenin <a href=\"https://discord.gg/gBsts5bPAd\" target=\"_blank\" rel=\"noopener noreferrer\">Discord</a> kanalına katılabilir, hatalar veya özellik istekleri için <a href=\"https://github.com/scholtz/wallet/issues\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a> üzerinde bir konu (issue) açabilir, kod veya çeviri katkısında bulunabilir ya da uygulamanın alt bilgisinde yer alan projenin Algorand adresine bağış yaparak devam eden geliştirmeyi destekleyebilirsiniz. {name}, Algorand Inc. veya Algorand Foundation tarafından finanse edilmemektedir; ancak belirli özellikler için Algorand Foundation xGov topluluk hibeleri almıştır."
+        "a5": "Topluluk desteği için projenin {link1} kanalına katılabilir, hatalar veya özellik istekleri için {link2} üzerinde bir konu (issue) açabilir, kod veya çeviri katkısında bulunabilir ya da uygulamanın alt bilgisinde yer alan projenin Algorand adresine bağış yaparak devam eden geliştirmeyi destekleyebilirsiniz. {name}, Algorand Inc. veya Algorand Foundation tarafından finanse edilmemektedir; ancak belirli özellikler için Algorand Foundation xGov topluluk hibeleri almıştır.",
+        "a5_link1": "Discord",
+        "a5_link2": "GitHub"
       }
     }
   },

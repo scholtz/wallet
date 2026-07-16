@@ -638,20 +638,28 @@
         "q4": "Mely eszközökön és böngészőkben működik a(z) {name}?",
         "a4": "A(z) {name} egy reszponzív webalkalmazás, amely bármely modern asztali vagy mobil böngészőben (Chrome, Firefox, Edge, Safari) telepítés nélkül működik. Mivel egyoldalas alkalmazásról van szó natív bináris nélkül, ugyanaz a pénztárca azonosan működik Windows, macOS, Linux, Android és iOS rendszereken.",
         "q5": "Ki hozta létre a(z) {name}-t és a Biatecet?",
-        "a5": "A(z) {name}-t eredetileg a Scholtz & Company, jsa. hozta létre, jelenleg pedig a <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> márkanév alatt fejlesztik tovább. A projekt nyílt forráskódú, bárki átnézheti, auditálhatja vagy hozzájárulhat a kódhoz a <a href=\"https://github.com/scholtz/wallet/\" target=\"_blank\" rel=\"noopener noreferrer\">GitHubon</a>."
+        "a5": "A(z) {name}-t eredetileg a Scholtz & Company, jsa. hozta létre, jelenleg pedig a {link1} márkanév alatt fejlesztik tovább. A projekt nyílt forráskódú, bárki átnézheti, auditálhatja vagy hozzájárulhat a kódhoz a {link2}.",
+        "a5_link1": "Biatec",
+        "a5_link2": "GitHubon"
       },
       "biatec": {
         "title": "Biatec Wallet és ökoszisztéma",
         "q1": "Mi a Biatec?",
-        "a1": "A <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> az a vállalat és márka, amely a(z) {name} mögött áll, és nyílt eszközök sorát építi az Algorand blokklánc köré, beleértve ezt a pénztárcát, egy swap/csereirányítási szolgáltatást és egy ütemezett fizetési szolgáltatást, mindezt azért, hogy az Algorand használata egyszerűbb és biztonságosabb legyen.",
+        "a1": "A {link1} az a vállalat és márka, amely a(z) {name} mögött áll, és nyílt eszközök sorát építi az Algorand blokklánc köré, beleértve ezt a pénztárcát, egy swap/csereirányítási szolgáltatást és egy ütemezett fizetési szolgáltatást, mindezt azért, hogy az Algorand használata egyszerűbb és biztonságosabb legyen.",
+        "a1_link1": "Biatec",
         "q2": "Hogyan kapcsolódik a Biatec Wallet a Biatec többi szolgáltatásához?",
-        "a2": "A Biatec Wallet a belépési pont: helyben tárolja a kulcsaidat és helyben írja alá a tranzakcióidat, míg a többi <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec szolgáltatás</a> (például a Swap oldalon használt swap-router, vagy az ismétlődő átutalásokhoz használt ütemezett fizetési API) mindig csak alá nem írt tranzakciós adatokat vagy nyilvános információkat kap - soha nem a privát kulcsaidat.",
+        "a2": "A Biatec Wallet a belépési pont: helyben tárolja a kulcsaidat és helyben írja alá a tranzakcióidat, míg a többi {link1} (például a Swap oldalon használt swap-router, vagy az ismétlődő átutalásokhoz használt ütemezett fizetési API) mindig csak alá nem írt tranzakciós adatokat vagy nyilvános információkat kap - soha nem a privát kulcsaidat.",
+        "a2_link1": "Biatec szolgáltatás",
         "q3": "A Biatec üzemeltet saját Algorand infrastruktúrát?",
-        "a3": "Igen. A <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> saját Algorand node-ot, indexert és részvételi (participation) infrastruktúrát üzemeltet, amelyhez a(z) {name} csatlakozhat a nyilvános Algorand node-ok mellett, így a pénztárca beállításaiban közvetlenül választhatsz a hálózati szolgáltatók közül.",
+        "a3": "Igen. A {link1} saját Algorand node-ot, indexert és részvételi (participation) infrastruktúrát üzemeltet, amelyhez a(z) {name} csatlakozhat a nyilvános Algorand node-ok mellett, így a pénztárca beállításaiban közvetlenül választhatsz a hálózati szolgáltatók közül.",
+        "a3_link1": "Biatec",
         "q4": "Mire szolgál a Biatec swap-router?",
-        "a4": "Amikor a Swap funkciót használod a(z) {name}-ban, a kérésed a <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> aggregátorán keresztül halad, amely több Algorand decentralizált tőzsdén (DEX-en) hasonlítja össze az árakat, hogy megtalálja számodra a legjobb elérhető árfolyamot, majd egy alá nem írt tranzakciót ad vissza, amelyet neked kell átnézned és aláírnod.",
+        "a4": "Amikor a Swap funkciót használod a(z) {name}-ban, a kérésed a {link1} aggregátorán keresztül halad, amely több Algorand decentralizált tőzsdén (DEX-en) hasonlítja össze az árakat, hogy megtalálja számodra a legjobb elérhető árfolyamot, majd egy alá nem írt tranzakciót ad vissza, amelyet neked kell átnézned és aláírnod.",
+        "a4_link1": "Biatec",
         "q5": "A Biatec az Algorand Inc. vagy az Algorand Foundation finanszírozásából működik?",
-        "a5": "A Biatec egy független, közösség vezérelte projekt - nem az Algorand Inc. vagy az Algorand Foundation tulajdona, és nem is részesül tőlük folyamatos finanszírozásban. Ugyanakkor több alkalmi támogatást is kapott már az Algorand Foundation <a href=\"https://github.com/algorandfoundation/xGov\" target=\"_blank\" rel=\"noopener noreferrer\">xGov közösségi támogatási programján</a> keresztül, többek között magára a(z) {name}-ra, a <a href=\"https://github.com/algorandfoundation/xGov/pull/9/files\" target=\"_blank\" rel=\"noopener noreferrer\">kétfaktoros hitelesítést (2FA) használó fiókokra</a>, valamint a Biatec DEX-re. Az Algorand nevet és logót az Algorand hivatalos médiaszabályzata szerint használjuk, kizárólag a blokklánc-kompatibilitás jelzésére."
+        "a5": "A Biatec egy független, közösség vezérelte projekt - nem az Algorand Inc. vagy az Algorand Foundation tulajdona, és nem is részesül tőlük folyamatos finanszírozásban. Ugyanakkor több alkalmi támogatást is kapott már az Algorand Foundation {link1} keresztül, többek között magára a(z) {name}-ra, a {link2}, valamint a Biatec DEX-re. Az Algorand nevet és logót az Algorand hivatalos médiaszabályzata szerint használjuk, kizárólag a blokklánc-kompatibilitás jelzésére.",
+        "a5_link1": "xGov közösségi támogatási programján",
+        "a5_link2": "kétfaktoros hitelesítést (2FA) használó fiókokra"
       },
       "blockchain": {
         "title": "Algorand és blokklánc alapok",
@@ -701,7 +709,8 @@
         "q3": "Mi az a rekey (átkulcsozás), és mire szolgál?",
         "a3": "A rekey lehetővé teszi, hogy megváltoztasd, melyik privát kulcs irányítja a fiókot, anélkül hogy a fiók címe megváltozna - például egy egyszerű kulcsról egy multisig csoportra, vagy egy Ledger eszközre ruházhatod át a jogosultságot, miközben minden eszközöd, alkalmazásod és tranzakciós előzményed pontosan ott marad, ahol volt. Ez egy erőteljes, visszafordíthatatlan művelet, ezért mindig ellenőrizd kétszer az új jogosult címet aláírás előtt.",
         "q4": "Hogyan ütemezhetek jövőbeli vagy ismétlődő fizetést?",
-        "a4": "Használd az Ütemezett fizetések funkciót a fiókoldalon egy tranzakciósablon és egy jövőbeli dátum vagy ismétlődési időköz meghatározásához; a(z) {name} a <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> ütemezőszolgáltatásán keresztül elkészíti az alá nem írt tranzakciót, és felkér, hogy írd alá és küldd el, amikor esedékessé válik.",
+        "a4": "Használd az Ütemezett fizetések funkciót a fiókoldalon egy tranzakciósablon és egy jövőbeli dátum vagy ismétlődési időköz meghatározásához; a(z) {name} a {link1} ütemezőszolgáltatásán keresztül elkészíti az alá nem írt tranzakciót, és felkér, hogy írd alá és küldd el, amikor esedékessé válik.",
+        "a4_link1": "Biatec",
         "q5": "Hogyan léphetek kapcsolatba egy okosszerződéssel vagy DApp-pal a(z) {name}-ból?",
         "a5": "Csatlakoztasd a(z) {name}-t a DApp-hoz WalletConnect segítségével, akár QR-kód beolvasásával, akár egy csatlakozási URI beillesztésével, és a DApp által kért minden tranzakció megjelenik a(z) {name}-ban, hogy részletesen átnézd és kifejezetten aláírd, mielőtt bármi elküldésre kerülne."
       },
@@ -721,7 +730,8 @@
       "swap": {
         "title": "Swap és DeFi",
         "q1": "Hogyan működik a swap a(z) {name}-ban?",
-        "a1": "A Swap oldal lehetővé teszi, hogy egy Algorand eszközt közvetlenül a pénztárcádból egy másikra cserélj. A(z) {name} lekérdezi a <a href=\"https://www.biatec.io\" target=\"_blank\" rel=\"noopener noreferrer\">Biatec</a> routerét, hogy megtalálja a legjobb árat több láncon belüli decentralizált tőzsdén, majd egy alá nem írt tranzakciócsoportot állít össze, amelyet te nézel át és írsz alá - a pénzeszközök soha nem haladnak át letétkezelő közvetítőn.",
+        "a1": "A Swap oldal lehetővé teszi, hogy egy Algorand eszközt közvetlenül a pénztárcádból egy másikra cserélj. A(z) {name} lekérdezi a {link1} routerét, hogy megtalálja a legjobb árat több láncon belüli decentralizált tőzsdén, majd egy alá nem írt tranzakciócsoportot állít össze, amelyet te nézel át és írsz alá - a pénzeszközök soha nem haladnak át letétkezelő közvetítőn.",
+        "a1_link1": "Biatec",
         "q2": "Mi az a slippage (árcsúszás), és miért kéri a swap oldal, hogy állítsam be?",
         "a2": "A slippage-tolerancia a maximális árelmozdulás, amelyet elfogadsz az árajánlat lekérésének pillanata és a tranzakciód tényleges láncon történő teljesülésének pillanata között; ha túl alacsonyra állítod, a swapod meghiúsulhat egy gyorsan mozgó piacon, míg ha túl magasra, a vártnál rosszabb áron köthetsz üzletet.",
         "q3": "Mik azok a likviditási poolok, és miért határozzák meg a swap árát?",
@@ -753,9 +763,12 @@
         "q3": "Mi történik, ha elfelejtem a pénztárca jelszavát?",
         "a3": "A jelszó kizárólag az adott böngészőben tárolt titkosított másolatot oldja fel - máshol nem létezik, így ha nincs biztonsági mentésed és elfelejted a jelszót, a pénzeszközök tervezésüknél fogva helyreállíthatatlanok, és éppen ez teszi biztonságossá a pénztárcát. Ezért elengedhetetlen a fiókjaid mnemonikjairól független biztonsági mentést készíteni.",
         "q4": "Hogyan tekinthetem meg vagy járulhatok hozzá a forráskódhoz?",
-        "a4": "A(z) {name} teljesen nyílt forráskódú, elérhető a <a href=\"https://github.com/scholtz/wallet/\" target=\"_blank\" rel=\"noopener noreferrer\">github.com/scholtz/wallet</a> címen; bárki elolvashatja, auditálhatja, forkolhatja vagy pull requestet küldhet, és a fordítási hozzájárulásokat különösen szívesen fogadjuk az src/locales mappán keresztül.",
+        "a4": "A(z) {name} teljesen nyílt forráskódú, elérhető a {link1} címen; bárki elolvashatja, auditálhatja, forkolhatja vagy pull requestet küldhet, és a fordítási hozzájárulásokat különösen szívesen fogadjuk az src/locales mappán keresztül.",
+        "a4_link1": "github.com/scholtz/wallet",
         "q5": "Hogyan kérhetek segítséget, vagy hogyan támogathatom a projektet?",
-        "a5": "Csatlakozhatsz a projekt <a href=\"https://discord.gg/gBsts5bPAd\" target=\"_blank\" rel=\"noopener noreferrer\">Discord</a> szerveréhez közösségi támogatásért, nyithatsz egy issue-t a <a href=\"https://github.com/scholtz/wallet/issues\" target=\"_blank\" rel=\"noopener noreferrer\">GitHubon</a> hibák vagy funkciókérések esetén, hozzájárulhatsz kóddal vagy fordításokkal, vagy támogathatod a folyamatos fejlesztést egy adománnyal a projekt alkalmazás láblécében feltüntetett Algorand címére. A(z) {name}-t nem finanszírozza sem az Algorand Inc., sem az Algorand Foundation, bár kapott már Algorand Foundation xGov közösségi támogatásokat egyes funkciókhoz."
+        "a5": "Csatlakozhatsz a projekt {link1} szerveréhez közösségi támogatásért, nyithatsz egy issue-t a {link2} hibák vagy funkciókérések esetén, hozzájárulhatsz kóddal vagy fordításokkal, vagy támogathatod a folyamatos fejlesztést egy adománnyal a projekt alkalmazás láblécében feltüntetett Algorand címére. A(z) {name}-t nem finanszírozza sem az Algorand Inc., sem az Algorand Foundation, bár kapott már Algorand Foundation xGov közösségi támogatásokat egyes funkciókhoz.",
+        "a5_link1": "Discord",
+        "a5_link2": "GitHubon"
       }
     }
   },
