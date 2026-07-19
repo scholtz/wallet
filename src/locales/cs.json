@@ -97,7 +97,15 @@
     "routes_steps": "Kroky provedení",
     "routes_copy_json": "Kopírovat surovou kotaci",
     "routes_note_no-detailed-route": "Tento agregátor pro tuto kotaci nevrátil podrobný rozpis jednotlivých poolů.",
-    "routes_note_no-pool-breakdown": "Folks Router neodhaluje, které jednotlivé pooly používá – uvedené částky jsou jeho souhrnným výsledkem."
+    "routes_note_no-pool-breakdown": "Folks Router neodhaluje, které jednotlivé pooly používá – uvedené částky jsou jeho souhrnným výsledkem.",
+    "hide_routes": "Skrýt trasy",
+    "simulation_title": "Simulovaný výsledek",
+    "simulation_loading": "Simuluje se skutečný výsledek...",
+    "simulation_sent": "Skutečně zaplatíte",
+    "simulation_received": "Skutečně obdržíte",
+    "simulation_failed": "Simulace selhala",
+    "simulation_unavailable": "Pro simulaci této trasy zatím není dostatek dat o transakcích.",
+    "simulation_disclaimer": "Vypočteno zkušebním spuštěním přesně připravených transakcí proti aktuálnímu stavu ledgeru - žádné prostředky se nepřesouvají a podpis není potřeba."
   },
   "govtoolsmenu": {
     "gen": "Generate accounts",

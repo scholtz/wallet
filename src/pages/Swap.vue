@@ -67,11 +67,13 @@
             :deflexQuotes="deflexQuotes"
             :deflexTxs="deflexTxs"
             :folksQuote="folksQuote"
+            :folksTxns="folksTxns"
             :biatecQuotes="biatecQuotes"
             :fromAssetObj="fromAssetObj"
             :toAssetObj="toAssetObj"
             :payamount="payamount"
             :fromAssetDecimals="fromAssetDecimals"
+            :accountAddr="account?.addr"
           />
           <SwapExecuteButtons
             :useDeflex="useDeflex"
@@ -208,6 +210,7 @@ const processingTradeBiatec = computed(
 const deflexQuotes = computed(() => aggregatorData.deflexQuotes.value);
 const deflexTxs = computed(() => aggregatorData.deflexTxs.value);
 const folksQuote = computed(() => aggregatorData.folksQuote.value);
+const folksTxns = computed(() => aggregatorData.folksTxns.value);
 const biatecQuotes = computed(() => aggregatorData.biatecQuotes.value);
 
 // Watchers

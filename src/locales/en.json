@@ -97,7 +97,15 @@
     "routes_steps": "Execution steps",
     "routes_copy_json": "Copy raw quote",
     "routes_note_no-detailed-route": "This aggregator did not return a detailed pool-by-pool breakdown for this swap.",
-    "routes_note_no-pool-breakdown": "Folks Router does not expose which individual pools it uses - the amounts below are its aggregated total."
+    "routes_note_no-pool-breakdown": "Folks Router does not expose which individual pools it uses - the amounts below are its aggregated total.",
+    "hide_routes": "Hide routes",
+    "simulation_title": "Simulated result",
+    "simulation_loading": "Simulating the real outcome...",
+    "simulation_sent": "You would actually pay",
+    "simulation_received": "You would actually receive",
+    "simulation_failed": "Simulation failed",
+    "simulation_unavailable": "Not enough transaction data to simulate this route yet.",
+    "simulation_disclaimer": "Computed by dry-running the exact prepared transactions against the current ledger state - no funds are moved and no signature is required."
   },
   "govtoolsmenu": {
     "gen": "Generate accounts",

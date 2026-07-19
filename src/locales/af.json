@@ -97,7 +97,15 @@
     "routes_steps": "Uitvoeringstappe",
     "routes_copy_json": "Kopieer rou kwotasie",
     "routes_note_no-detailed-route": "Hierdie aggregeerder het nie 'n gedetailleerde pool-vir-pool uiteensetting vir hierdie kwotasie teruggestuur nie.",
-    "routes_note_no-pool-breakdown": "Folks Router openbaar nie watter individuele pools dit gebruik nie - die bedrae hieronder is sy saamgestelde totaal."
+    "routes_note_no-pool-breakdown": "Folks Router openbaar nie watter individuele pools dit gebruik nie - die bedrae hieronder is sy saamgestelde totaal.",
+    "hide_routes": "Versteek roetes",
+    "simulation_title": "Gesimuleerde resultaat",
+    "simulation_loading": "Simuleer die werklike resultaat...",
+    "simulation_sent": "Jy sal werklik betaal",
+    "simulation_received": "Jy sal werklik ontvang",
+    "simulation_failed": "Simulasie het misluk",
+    "simulation_unavailable": "Nog nie genoeg transaksiedata om hierdie roete te simuleer nie.",
+    "simulation_disclaimer": "Bereken deur die presiese voorbereide transaksies proef te loop teen die huidige grootboekstaat - geen fondse word geskuif nie en geen handtekening word vereis nie."
   },
   "govtoolsmenu": {
     "gen": "Genereer rekeninge",

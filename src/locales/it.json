@@ -97,7 +97,15 @@
     "routes_steps": "Fasi di esecuzione",
     "routes_copy_json": "Copia preventivo grezzo",
     "routes_note_no-detailed-route": "Questo aggregatore non ha restituito una ripartizione dettagliata per pool per questo preventivo.",
-    "routes_note_no-pool-breakdown": "Folks Router non rivela quali singoli pool utilizza: gli importi qui sotto sono il suo totale aggregato."
+    "routes_note_no-pool-breakdown": "Folks Router non rivela quali singoli pool utilizza: gli importi qui sotto sono il suo totale aggregato.",
+    "hide_routes": "Nascondi percorsi",
+    "simulation_title": "Risultato simulato",
+    "simulation_loading": "Simulazione del risultato reale...",
+    "simulation_sent": "Pagheresti realmente",
+    "simulation_received": "Riceveresti realmente",
+    "simulation_failed": "Simulazione non riuscita",
+    "simulation_unavailable": "Non ci sono ancora abbastanza dati di transazione per simulare questo percorso.",
+    "simulation_disclaimer": "Calcolato eseguendo in prova le transazioni esatte preparate rispetto allo stato attuale del ledger - non viene spostato alcun fondo e non è richiesta alcuna firma."
   },
   "govtoolsmenu": {
     "gen": "Generate accounts",

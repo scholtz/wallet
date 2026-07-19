@@ -97,7 +97,15 @@
     "routes_steps": "Uitvoeringsstappen",
     "routes_copy_json": "Ruwe offerte kopiëren",
     "routes_note_no-detailed-route": "Deze aggregator heeft voor deze offerte geen gedetailleerde uitsplitsing per pool geretourneerd.",
-    "routes_note_no-pool-breakdown": "Folks Router onthult niet welke afzonderlijke pools worden gebruikt - de bedragen hieronder zijn het geaggregeerde totaal."
+    "routes_note_no-pool-breakdown": "Folks Router onthult niet welke afzonderlijke pools worden gebruikt - de bedragen hieronder zijn het geaggregeerde totaal.",
+    "hide_routes": "Routes verbergen",
+    "simulation_title": "Gesimuleerd resultaat",
+    "simulation_loading": "Het werkelijke resultaat wordt gesimuleerd...",
+    "simulation_sent": "U zou daadwerkelijk betalen",
+    "simulation_received": "U zou daadwerkelijk ontvangen",
+    "simulation_failed": "Simulatie mislukt",
+    "simulation_unavailable": "Nog niet genoeg transactiegegevens om deze route te simuleren.",
+    "simulation_disclaimer": "Berekend door de exact voorbereide transacties proefondervindelijk uit te voeren tegen de huidige ledgerstatus - er worden geen middelen verplaatst en er is geen handtekening vereist."
   },
   "govtoolsmenu": {
     "gen": "Generate accounts",

@@ -6,20 +6,15 @@
         class="my-2"
         severity="secondary"
         outlined
-        icon="pi pi-sitemap"
-        :label="$t('swap.explore_routes')"
+        :icon="expanded ? 'pi pi-chevron-up' : 'pi pi-sitemap'"
+        :label="expanded ? $t('swap.hide_routes') : $t('swap.explore_routes')"
         :disabled="!hasAnyQuote"
-        @click="visible = true"
+        @click="expanded = !expanded"
       />
     </div>
   </div>
 
-  <Dialog
-    v-model:visible="visible"
-    modal
-    :header="$t('swap.routes_dialog_title')"
-    :style="{ width: '52rem', maxWidth: '95vw' }"
-  >
+  <div v-if="expanded" class="route-explorer-panel">
     <Message v-if="tabs.length === 0" severity="secondary" :closable="false">
       {{ $t("swap.routes_no_quote") }}
     </Message>
@@ -35,11 +30,12 @@
             :route-info="tab.info"
             :asset-meta="assetMeta"
             :raw-quote="tab.rawQuote"
+            :simulation="simulationResults[tab.name]"
           />
         </TabPanel>
       </TabPanels>
     </Tabs>
-  </Dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -59,6 +55,13 @@ import {
   collectRouteAssetIds,
   type AggregatorRouteInfo,
 } from "@/scripts/aggregators/routeInfo";
+import {
+  extractDeflexSimulateGroups,
+  extractFolksSimulateGroups,
+  extractBiatecSimulateGroups,
+  summarizeSimulation,
+  type SimulatedOutcome,
+} from "@/scripts/aggregators/simulate";
 import type { StoredAsset } from "@/store/indexer";
 import type { RootState } from "@/store";
 
@@ -69,17 +72,19 @@ const props = defineProps<{
   deflexQuotes: unknown;
   deflexTxs: unknown;
   folksQuote: unknown;
+  folksTxns: unknown;
   biatecQuotes: unknown;
   fromAssetObj?: StoredAsset;
   toAssetObj?: StoredAsset;
   payamount: number;
   fromAssetDecimals: number;
+  accountAddr?: string;
 }>();
 
 const store = useStore<RootState>();
 const { t } = useI18n();
 
-const visible = ref(false);
+const expanded = ref(false);
 const activeTab = ref("");
 
 const fromAssetId = computed(() => Number(props.fromAssetObj?.assetId ?? 0));
@@ -196,4 +201,75 @@ watch(
   },
   { immediate: true }
 );
+
+// Dry-runs each aggregator's prepared transactions against current ledger
+// state to show the real (not just quoted/estimated) swap outcome. Requires
+// no secret key and never broadcasts anything, so it's safe to run
+// automatically as soon as the route panel is opened.
+const simulationResults = ref<Record<string, SimulatedOutcome | "loading" | undefined>>(
+  {}
+);
+
+const simulateTab = async (tab: RouteTab): Promise<void> => {
+  if (!props.accountAddr || !tab.info.available) return;
+
+  let groups: Uint8Array[][] = [];
+  if (tab.name === "deflex") {
+    groups = extractDeflexSimulateGroups(props.deflexTxs);
+  } else if (tab.name === "folks") {
+    groups = extractFolksSimulateGroups(props.folksTxns);
+  } else if (tab.name === "biatec") {
+    groups = extractBiatecSimulateGroups(props.biatecQuotes);
+  }
+  if (groups.length === 0 || groups.every((group) => group.length === 0)) return;
+
+  simulationResults.value[tab.name] = "loading";
+  try {
+    const response = await store.dispatch("algod/simulateTransactionGroups", {
+      groups,
+    });
+    simulationResults.value[tab.name] = summarizeSimulation(
+      response,
+      props.accountAddr,
+      fromAssetId.value,
+      toAssetId.value
+    );
+  } catch (error) {
+    simulationResults.value[tab.name] = {
+      success: false,
+      failureMessage: error instanceof Error ? error.message : String(error),
+    };
+  }
+};
+
+watch(tabs, (newTabs) => {
+  for (const tab of newTabs) {
+    if (!tab.info.available) {
+      simulationResults.value[tab.name] = undefined;
+    }
+  }
+  if (!expanded.value) return;
+  for (const tab of newTabs) {
+    if (tab.info.available) simulateTab(tab);
+  }
+});
+
+watch(expanded, (isExpanded) => {
+  if (!isExpanded) return;
+  for (const tab of tabs.value) {
+    if (tab.info.available && simulationResults.value[tab.name] === undefined) {
+      simulateTab(tab);
+    }
+  }
+});
 </script>
+
+<style scoped>
+.route-explorer-panel {
+  margin: 0.5rem 0 1rem;
+  padding: 1rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+  background: var(--p-content-background);
+}
+</style>

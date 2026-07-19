@@ -97,7 +97,15 @@
     "routes_steps": "Végrehajtási lépések",
     "routes_copy_json": "Nyers ajánlat másolása",
     "routes_note_no-detailed-route": "Ez az aggregátor nem adott vissza részletes, poolonkénti bontást ehhez az ajánlathoz.",
-    "routes_note_no-pool-breakdown": "A Folks Router nem árulja el, mely poolokat használja - az alábbi összegek az összesített végeredményt mutatják."
+    "routes_note_no-pool-breakdown": "A Folks Router nem árulja el, mely poolokat használja - az alábbi összegek az összesített végeredményt mutatják.",
+    "hide_routes": "Útvonalak elrejtése",
+    "simulation_title": "Szimulált eredmény",
+    "simulation_loading": "A tényleges eredmény szimulálása...",
+    "simulation_sent": "Valójában ennyit fizetnél",
+    "simulation_received": "Valójában ennyit kapnál",
+    "simulation_failed": "A szimuláció sikertelen",
+    "simulation_unavailable": "Még nincs elég tranzakciós adat ennek az útvonalnak a szimulálásához.",
+    "simulation_disclaimer": "A pontosan előkészített tranzakciók próbafuttatásával számolva az aktuális könyvelési állapot alapján - nem mozog pénz, és aláírás sem szükséges."
   },
   "govtoolsmenu": {
     "gen": "Számlák generálása",

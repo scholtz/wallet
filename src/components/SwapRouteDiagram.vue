@@ -68,6 +68,62 @@
         {{ $t(`swap.routes_note_${routeInfo.note}`) }}
       </Message>
 
+      <div class="route-simulation">
+        <div class="route-simulation-title">
+          <i class="pi pi-bolt" />
+          {{ $t("swap.simulation_title") }}
+        </div>
+        <div v-if="simulation === 'loading'" class="route-simulation-loading">
+          <ProgressSpinner style="width: 1rem; height: 1rem" strokeWidth="6" />
+          {{ $t("swap.simulation_loading") }}
+        </div>
+        <Message
+          v-else-if="simulation && !simulation.success"
+          severity="error"
+          :closable="false"
+        >
+          {{ $t("swap.simulation_failed") }}: {{ simulation.failureMessage }}
+        </Message>
+        <div v-else-if="simulation && simulation.success" class="route-simulation-values">
+          <div class="route-summary-item">
+            <span class="route-summary-label">{{ $t("swap.simulation_sent") }}</span>
+            <span class="route-summary-value">
+              {{ formatAmount(simulation.netSent, routeInfo.fromAssetId) }}
+              <Button
+                icon="pi pi-copy"
+                text
+                rounded
+                size="small"
+                :aria-label="$t('global.copy_address')"
+                @click="copyValue(rawAmount(simulation.netSent, routeInfo.fromAssetId))"
+              />
+            </span>
+          </div>
+          <div class="route-summary-item">
+            <span class="route-summary-label">{{ $t("swap.simulation_received") }}</span>
+            <span class="route-summary-value">
+              {{ formatAmount(simulation.netReceived, routeInfo.toAssetId) }}
+              <Button
+                icon="pi pi-copy"
+                text
+                rounded
+                size="small"
+                :aria-label="$t('global.copy_address')"
+                @click="
+                  copyValue(rawAmount(simulation.netReceived, routeInfo.toAssetId))
+                "
+              />
+            </span>
+          </div>
+        </div>
+        <div v-else class="route-simulation-unavailable">
+          {{ $t("swap.simulation_unavailable") }}
+        </div>
+        <div class="route-simulation-disclaimer">
+          {{ $t("swap.simulation_disclaimer") }}
+        </div>
+      </div>
+
       <div v-for="(path, pIdx) in routeInfo.paths" :key="pIdx" class="route-path">
         <Tag
           v-if="routeInfo.paths.length > 1 || (path.percentage ?? 100) < 100"
@@ -153,11 +209,13 @@ import copy from "copy-to-clipboard";
 import Tag from "primevue/tag";
 import formatCurrency from "@/scripts/numbers/formatCurrency";
 import type { AggregatorRouteInfo } from "@/scripts/aggregators/routeInfo";
+import type { SimulatedOutcome } from "@/scripts/aggregators/simulate";
 
 const props = defineProps<{
   routeInfo: AggregatorRouteInfo;
   assetMeta: Record<number, { symbol: string; decimals: number }>;
   rawQuote?: unknown;
+  simulation?: SimulatedOutcome | "loading";
 }>();
 
 const { t } = useI18n();
@@ -290,10 +348,9 @@ const poolStyle = (protocol?: string) => {
 
 .route-flow {
   display: flex;
-  align-items: stretch;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.25rem;
 }
 
 .route-node {
@@ -366,6 +423,48 @@ html.p-dark .route-pool {
   font-size: 0.85rem;
 }
 
+.route-simulation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--p-primary-color);
+  border-radius: var(--p-content-border-radius);
+  background: var(--p-content-background);
+}
+
+.route-simulation-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: var(--p-primary-color);
+}
+
+.route-simulation-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--p-text-muted-color);
+  font-size: 0.85rem;
+}
+
+.route-simulation-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.route-simulation-unavailable {
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+}
+
+.route-simulation-disclaimer {
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+}
+
 .route-steps {
   border-top: 1px dashed var(--p-content-border-color);
   padding-top: 0.5rem;
@@ -381,5 +480,30 @@ html.p-dark .route-pool {
   padding-left: 1.1rem;
   font-size: 0.85rem;
   color: var(--p-text-muted-color);
+}
+
+@media (max-width: 40rem) {
+  .route-flow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .route-node {
+    align-self: center;
+  }
+
+  .route-arrow {
+    align-self: center;
+    transform: rotate(90deg);
+  }
+
+  .route-hop,
+  .route-pool {
+    width: 100%;
+  }
+
+  .route-pool {
+    min-width: 0;
+  }
 }
 </style>

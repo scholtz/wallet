@@ -97,7 +97,15 @@
     "routes_steps": "Pasos de ejecución",
     "routes_copy_json": "Copiar cotización sin procesar",
     "routes_note_no-detailed-route": "Este agregador no devolvió un desglose detallado por pool para esta cotización.",
-    "routes_note_no-pool-breakdown": "Folks Router no revela qué pools individuales utiliza; los importes mostrados son su total agregado."
+    "routes_note_no-pool-breakdown": "Folks Router no revela qué pools individuales utiliza; los importes mostrados son su total agregado.",
+    "hide_routes": "Ocultar rutas",
+    "simulation_title": "Resultado simulado",
+    "simulation_loading": "Simulando el resultado real...",
+    "simulation_sent": "Realmente pagarías",
+    "simulation_received": "Realmente recibirías",
+    "simulation_failed": "La simulación falló",
+    "simulation_unavailable": "Aún no hay suficientes datos de transacción para simular esta ruta.",
+    "simulation_disclaimer": "Calculado ejecutando en modo de prueba las transacciones exactas preparadas contra el estado actual del libro mayor - no se mueven fondos ni se requiere firma."
   },
   "govtoolsmenu": {
     "gen": "Generar cuentas",

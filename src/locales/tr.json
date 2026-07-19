@@ -97,7 +97,15 @@
     "routes_steps": "Yürütme adımları",
     "routes_copy_json": "Ham teklifi kopyala",
     "routes_note_no-detailed-route": "Bu agregatör bu teklif için havuz bazında ayrıntılı bir döküm döndürmedi.",
-    "routes_note_no-pool-breakdown": "Folks Router hangi bireysel havuzları kullandığını göstermez - aşağıdaki tutarlar toplam birleşik değeridir."
+    "routes_note_no-pool-breakdown": "Folks Router hangi bireysel havuzları kullandığını göstermez - aşağıdaki tutarlar toplam birleşik değeridir.",
+    "hide_routes": "Rotaları gizle",
+    "simulation_title": "Simüle edilmiş sonuç",
+    "simulation_loading": "Gerçek sonuç simüle ediliyor...",
+    "simulation_sent": "Gerçekte ödeyeceğiniz tutar",
+    "simulation_received": "Gerçekte alacağınız tutar",
+    "simulation_failed": "Simülasyon başarısız oldu",
+    "simulation_unavailable": "Bu rotayı simüle etmek için henüz yeterli işlem verisi yok.",
+    "simulation_disclaimer": "Tam olarak hazırlanan işlemlerin mevcut defter durumuna karşı deneme çalıştırmasıyla hesaplanmıştır - herhangi bir fon hareket etmez ve imza gerekmez."
   },
   "govtoolsmenu": {
     "gen": "Hesap oluştur",

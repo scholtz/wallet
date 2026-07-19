@@ -325,6 +325,27 @@ const actions: ActionTree<AlgodState, RootState> = {
       return undefined;
     }
   },
+  // Dry-runs one or more atomic transaction groups against current ledger
+  // state without requiring signatures or broadcasting anything - used to
+  // preview the real, ledger-computed outcome of a swap route before signing.
+  async simulateTransactionGroups(
+    { rootState },
+    { groups }: { groups: Uint8Array[][] }
+  ): Promise<algosdk.modelsv2.SimulateResponse> {
+    const algodClient = createAlgodClient(rootState);
+    const txnGroups = groups.map(
+      (group) =>
+        new algosdk.modelsv2.SimulateRequestTransactionGroup({
+          txns: group.map((bytes) => algosdk.decodeSignedTransaction(bytes)),
+        })
+    );
+    const request = new algosdk.modelsv2.SimulateRequest({
+      txnGroups,
+      allowEmptySignatures: true,
+      allowUnnamedResources: true,
+    });
+    return algodClient.simulateTransactions(request).do();
+  },
 };
 
 export default {
