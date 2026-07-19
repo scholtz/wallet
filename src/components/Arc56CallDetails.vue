@@ -194,6 +194,116 @@ const isAddressArrayArg = (arg: DecodedArc56Arg): boolean =>
   arg.type === "address[]" &&
   Array.isArray(arg.value) &&
   arg.value.every((v) => typeof v === "string");
+
+// Many ARC-56 contracts pass an asset/app ID as a plain uint64 rather than
+// the ARC-4 "asset"/"application" reference type (reference types are
+// capped at 8 entries in the foreign-apps/assets arrays, so contracts that
+// need more just take a raw ID). We can't decode those as references, but
+// the argument's own name/description usually says what it is — e.g.
+// "assetId", "collateral asset", "appIndex" — so pattern-match on that text
+// to still offer the same friendly, clickable treatment.
+const tokenize = (text: string): string[] =>
+  text
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .split(/[^a-zA-Z0-9]+/)
+    .map((w) => w.toLowerCase())
+    .filter(Boolean);
+
+const looksLikeAssetField = (arg: DecodedArc56Arg): boolean =>
+  tokenize(`${arg.name ?? ""} ${arg.desc ?? ""}`).some((w) =>
+    w.startsWith("asset"),
+  );
+
+const APP_FIELD_TOKENS = new Set([
+  "app",
+  "apps",
+  "application",
+  "applications",
+  "appid",
+  "appindex",
+]);
+
+const looksLikeAppField = (arg: DecodedArc56Arg): boolean =>
+  tokenize(`${arg.name ?? ""} ${arg.desc ?? ""}`).some((w) =>
+    APP_FIELD_TOKENS.has(w),
+  );
+
+const isNumericLike = (v: unknown): v is bigint | number =>
+  typeof v === "bigint" || typeof v === "number";
+
+const isAssetLikeScalar = (arg: DecodedArc56Arg): boolean =>
+  arg.kind === "value" && isNumericLike(arg.value) && looksLikeAssetField(arg);
+
+const isAssetLikeArray = (arg: DecodedArc56Arg): boolean =>
+  arg.kind === "value" &&
+  Array.isArray(arg.value) &&
+  arg.value.length > 0 &&
+  arg.value.every((v) => isNumericLike(v)) &&
+  looksLikeAssetField(arg);
+
+const isAppLikeScalar = (arg: DecodedArc56Arg): boolean =>
+  arg.kind === "value" && isNumericLike(arg.value) && looksLikeAppField(arg);
+
+const isAppLikeArray = (arg: DecodedArc56Arg): boolean =>
+  arg.kind === "value" &&
+  Array.isArray(arg.value) &&
+  arg.value.length > 0 &&
+  arg.value.every((v) => isNumericLike(v)) &&
+  looksLikeAppField(arg);
+
+const getAssetInfo = (id: bigint | number | undefined) => {
+  if (id === undefined) return undefined;
+  const normalized = BigInt(id);
+  return store.state.indexer.assets.find(
+    (a) => BigInt(a.assetId) === normalized,
+  );
+};
+
+const assetLabel = (id: bigint | number | undefined): string => {
+  const info = getAssetInfo(id);
+  if (!info) return "";
+  return info.unitName ? `${info.name ?? ""} (${info.unitName})` : info.name ?? "";
+};
+
+// Loads ASA details (name/unit/decimals) for every asset-like argument so
+// the template can show them inline instead of a bare numeric ID — mirrors
+// the existing `indexer/getAsset` caching pattern used by
+// ConnectRequestsTable.vue/SignAll.vue for pay/axfer transactions. Re-runs
+// whenever `displayArgs` changes (e.g. once the user applies an unverified
+// candidate's argument names, which is the only time selector-only/
+// verified-other-method calls have any names to pattern-match against).
+const loadedAssetIds = new Set<string>();
+const ensureAssetInfoLoaded = async (args: DecodedArc56Arg[]) => {
+  const ids = new Set<bigint>();
+  for (const arg of args) {
+    if (isAssetLikeScalar(arg)) {
+      ids.add(BigInt(arg.value as bigint | number));
+    } else if (isAssetLikeArray(arg)) {
+      for (const v of arg.value as (bigint | number)[]) {
+        ids.add(BigInt(v));
+      }
+    } else if (arg.kind === "asset" && arg.assetId !== undefined) {
+      ids.add(BigInt(arg.assetId));
+    }
+  }
+  const toFetch = Array.from(ids).filter(
+    (id) => !loadedAssetIds.has(id.toString()),
+  );
+  toFetch.forEach((id) => loadedAssetIds.add(id.toString()));
+  await Promise.all(
+    toFetch.map((assetIndex) =>
+      store.dispatch("indexer/getAsset", { assetIndex }),
+    ),
+  );
+};
+
+watch(
+  displayArgs,
+  (args) => {
+    void ensureAssetInfoLoaded(args);
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -278,6 +388,7 @@ const isAddressArrayArg = (arg: DecodedArc56Arg): boolean =>
                   rel="noopener noreferrer"
                 >
                   {{ arg.assetId }}
+                  <span v-if="assetLabel(arg.assetId)"> ({{ assetLabel(arg.assetId) }})</span>
                   <i class="pi pi-external-link" />
                 </a>
               </template>
@@ -296,6 +407,54 @@ const isAddressArrayArg = (arg: DecodedArc56Arg): boolean =>
                 <span v-if="arg.matchedGroupTxn">
                   — {{ t("arc56.matched_group_txn", { index: arg.matchedGroupTxn.index + 1 }) }}
                 </span>
+              </template>
+              <template v-else-if="isAssetLikeScalar(arg)">
+                <a
+                  :href="`https://algorand.scan.biatec.io/asset/${arg.value}`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ arg.value }}
+                  <span v-if="assetLabel(arg.value as bigint | number)">
+                    ({{ assetLabel(arg.value as bigint | number) }})</span
+                  >
+                  <i class="pi pi-external-link" />
+                </a>
+              </template>
+              <template v-else-if="isAssetLikeArray(arg)">
+                <div v-for="(id, i) in (arg.value as (bigint | number)[])" :key="i">
+                  <a
+                    :href="`https://algorand.scan.biatec.io/asset/${id}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {{ id }}
+                    <span v-if="assetLabel(id)"> ({{ assetLabel(id) }})</span>
+                    <i class="pi pi-external-link" />
+                  </a>
+                </div>
+              </template>
+              <template v-else-if="isAppLikeScalar(arg)">
+                <a
+                  :href="`https://algorand.scan.biatec.io/application/${arg.value}`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ arg.value }}
+                  <i class="pi pi-external-link" />
+                </a>
+              </template>
+              <template v-else-if="isAppLikeArray(arg)">
+                <div v-for="(id, i) in (arg.value as (bigint | number)[])" :key="i">
+                  <a
+                    :href="`https://algorand.scan.biatec.io/application/${id}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {{ id }}
+                    <i class="pi pi-external-link" />
+                  </a>
+                </div>
               </template>
               <template v-else-if="isPlainAddressArg(arg)">
                 <AlgorandAddress :address="arg.value as string" link-explorer />
