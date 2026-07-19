@@ -1,0 +1,148 @@
+name: Promote main build to stable
+on:
+  workflow_dispatch:
+    inputs:
+      from_tag:
+        description: "Docker Hub tag of the already-deployed main image to promote, e.g. 1.2026.07.19-main"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  promote-image:
+    name: "Stage: retag & push stable image"
+    runs-on: ubuntu-latest
+    # No approval gate here -- retagging/pushing an image doesn't touch anything live.
+    environment: Stage
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Compute version
+        id: version
+        run: |
+          VERSION="1.$(date -u +%Y.%m.%d)-stable"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.HARBOR_REGISTRY }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      # Same tag naming as the old deploy-stable.sh: retag the chosen already-published
+      # main image as this run's stable version, plus `latest`, on both registries.
+      - name: Retag and push stable image
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          from="scholtz2/a-wallet:${{ inputs.from_tag }}"
+          harbor_repo="${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/a-wallet"
+
+          docker pull "$from"
+
+          docker tag "$from" "scholtz2/a-wallet:$version"
+          docker push "scholtz2/a-wallet:$version"
+          docker tag "$from" "scholtz2/a-wallet:latest"
+          docker push "scholtz2/a-wallet:latest"
+
+          docker tag "$from" "$harbor_repo:$version"
+          docker push "$harbor_repo:$version"
+          docker tag "$from" "$harbor_repo:latest"
+          docker push "$harbor_repo:latest"
+
+  deploy-production:
+    name: "Production: deploy stable"
+    needs: promote-image
+    runs-on: ubuntu-latest
+    # Production has a required-reviewer rule configured in repo settings, so this
+    # job pauses for manual approval before it touches the live cluster.
+    environment: Production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Update deployment image tags
+        run: |
+          version="${{ needs.promote-image.outputs.version }}"
+          search=scholtz2/a-wallet
+          sed -i "s~$search.*~$search:$version~g" k8s/deployment-stable.yaml
+          sed -i "s~$search.*~$search:$version~g" k8s/deployment-stable-biatec.yaml
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p "$RUNNER_TEMP/.kube"
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > "$RUNNER_TEMP/.kube/config"
+          chmod 600 "$RUNNER_TEMP/.kube/config"
+          echo "KUBECONFIG=$RUNNER_TEMP/.kube/config" >> "$GITHUB_ENV"
+
+      - name: Clear stray probe handlers
+        # See k8s/README.md -- clears any httpGet/exec/grpc handler left over from a
+        # past out-of-band kubectl edit before every apply, across all 4 deployments.
+        run: |
+          for d in awallet-arc56-registry-stable-deployment:arc56-registry \
+                   awallet-stable-deployment:awallet-stable \
+                   biatec-wallet-arc56-registry-deployment:arc56-registry \
+                   biatec-wallet-stable-deployment:biatec-wallet-stable; do
+            deployment="${d%%:*}"
+            container="${d##*:}"
+            kubectl patch deployment "$deployment" -n awallet --type strategic -p \
+              "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"$container\",\"readinessProbe\":{\"httpGet\":null,\"exec\":null,\"grpc\":null},\"livenessProbe\":{\"httpGet\":null,\"exec\":null,\"grpc\":null}}]}}}}" \
+              2>/dev/null || true
+          done
+
+      - name: Apply k8s manifests
+        run: |
+          kubectl apply -f k8s/deployment-stable.yaml -n awallet
+          kubectl apply -f k8s/deployment-stable-biatec.yaml -n awallet
+
+      - name: Update awallet stable config
+        # k8s/stable/ is gitignored (unlike k8s/stable-biatec/, which is committed),
+        # so its content only ever lived on the old deploy server -- sourced from a
+        # secret instead.
+        run: |
+          mkdir -p k8s/stable
+          printf '%s' "${{ secrets.AWALLET_STABLE_CONFIG_JSON }}" > k8s/stable/config.json
+          kubectl delete configmap awallet-stable-conf -n awallet --ignore-not-found=true
+          kubectl create configmap awallet-stable-conf --from-file=k8s/stable -n awallet
+
+      - name: Update biatec wallet stable config
+        # Overrides the committed k8s/stable-biatec/config.json for this run only (not
+        # committed back) when BIATEC_STABLE_CONFIG_JSON is set, so config changes can
+        # be rolled out via secret without a repo commit. Falls back to the committed
+        # file as-is if the secret is empty.
+        run: |
+          if [ -n "${{ secrets.BIATEC_STABLE_CONFIG_JSON }}" ]; then
+            printf '%s' "${{ secrets.BIATEC_STABLE_CONFIG_JSON }}" > k8s/stable-biatec/config.json
+          fi
+          kubectl delete configmap biatec-wallet-stable-conf -n awallet --ignore-not-found=true
+          kubectl create configmap biatec-wallet-stable-conf --from-file=k8s/stable-biatec -n awallet
+
+      - name: Roll out
+        run: |
+          kubectl rollout restart deployment/awallet-stable-deployment -n awallet
+          kubectl rollout status deployment/awallet-stable-deployment -n awallet
+          kubectl rollout restart deployment/biatec-wallet-stable-deployment -n awallet
+          kubectl rollout status deployment/biatec-wallet-stable-deployment -n awallet
+
+      - name: Commit updated image tags
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add k8s/deployment-stable.yaml k8s/deployment-stable-biatec.yaml
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "cicd deploy stable ${{ needs.promote-image.outputs.version }} [skip ci]"
+            git push
+          fi

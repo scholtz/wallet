@@ -3,27 +3,118 @@ on:
   push:
     branches:
       - master
+
+permissions:
+  contents: write
+
 jobs:
   deploy:
     name: "Deploy main branch"
     runs-on: ubuntu-latest
+    # GitHub Environment holding this stage's secrets (Settings > Environments > Stage).
+    # See k8s/README.md for the full list of secrets it must contain.
+    environment: Stage
     steps:
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh/
-          echo "$SSH_KEY" > ~/.ssh/staging.key
-          chmod 600 ~/.ssh/staging.key
-          cat >>~/.ssh/config <<END
-          Host staging
-            HostName $SSH_HOST
-            User $SSH_USER
-            IdentityFile ~/.ssh/staging.key
-            StrictHostKeyChecking no
-          END
-        env:
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_KEY: ${{ secrets.SSH_KEY }}
-          SSH_HOST: ${{ secrets.SSH_HOST }}
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Deploy
-        run: ssh staging 'cd ~/AWallet && ./deploy.sh'
+      - name: Compute version
+        id: version
+        run: |
+          VER="1.$(date -u +%Y.%m.%d)"
+          VERSION="$VER-main"
+          GIT_COMMIT="$(git rev-parse --short HEAD)"
+          BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "ver=$VER" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "git_commit=$GIT_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "build_date=$BUILD_DATE" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.HARBOR_REGISTRY }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      # Same repository name and tag format as the old compose.sh
+      # ("scholtz2/a-wallet:1.YYYY.MM.DD-main") -- only the registry host/project
+      # differs between the two push destinations.
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          build-args: |
+            GIT_COMMIT=${{ steps.version.outputs.git_commit }}
+            BUILD_DATE=${{ steps.version.outputs.build_date }}
+          tags: |
+            scholtz2/a-wallet:${{ steps.version.outputs.version }}
+            ${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/a-wallet:${{ steps.version.outputs.version }}
+
+      - name: Update deployment-main.yaml image tag
+        run: |
+          search=scholtz2/a-wallet
+          sed -i "s~$search.*~$search:${{ steps.version.outputs.version }}~g" k8s/deployment-main.yaml
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p "$RUNNER_TEMP/.kube"
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > "$RUNNER_TEMP/.kube/config"
+          chmod 600 "$RUNNER_TEMP/.kube/config"
+          echo "KUBECONFIG=$RUNNER_TEMP/.kube/config" >> "$GITHUB_ENV"
+
+      - name: Clear stray probe handlers
+        # deployment-main.yaml only ever declares tcpSocket probes, but `kubectl apply`'s
+        # 3-way merge can't remove a handler (httpGet/exec/grpc) left over from a past
+        # out-of-band `kubectl edit`/`kubectl set probe` -- a stray handler alongside
+        # tcpSocket gets rejected by the API server with "may not specify more than 1
+        # handler type". This pre-patch clears both before every apply. No-op if the
+        # deployment is already clean; `|| true` covers first-ever deploy where it
+        # doesn't exist yet (the apply step below creates it).
+        run: |
+          for d in awallet-arc56-registry-main-deployment:arc56-registry \
+                   awallet-web-main-landing-deployment:awallet-web-main-landing; do
+            deployment="${d%%:*}"
+            container="${d##*:}"
+            kubectl patch deployment "$deployment" -n awallet --type strategic -p \
+              "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"$container\",\"readinessProbe\":{\"httpGet\":null,\"exec\":null,\"grpc\":null},\"livenessProbe\":{\"httpGet\":null,\"exec\":null,\"grpc\":null}}]}}}}" \
+              2>/dev/null || true
+          done
+
+      - name: Apply k8s manifests
+        run: kubectl apply -f k8s/deployment-main.yaml -n awallet
+
+      - name: Update app config
+        run: |
+          mkdir -p k8s/conf
+          printf '%s' "${{ secrets.AWALLET_MAIN_CONFIG_JSON }}" > k8s/conf/config.json
+          kubectl delete configmap awallet-main-conf -n awallet --ignore-not-found=true
+          kubectl create configmap awallet-main-conf --from-file=k8s/conf -n awallet
+
+      - name: Roll out
+        run: |
+          kubectl rollout restart deployment/awallet-web-main-landing-deployment -n awallet
+          kubectl rollout status deployment/awallet-web-main-landing-deployment -n awallet
+
+      - name: Commit updated image tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add k8s/deployment-main.yaml
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "cicd deploy ${{ steps.version.outputs.version }} [skip ci]"
+            git push
+          fi
