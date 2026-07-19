@@ -322,14 +322,16 @@ onMounted(async () => {
       initialAsset = 0n;
     }
   } else {
+    // "0" is ALGO's real asset index (not "no saved value"), so it must not
+    // be treated the same as an empty/missing localStorage entry.
     const savedAsset = localStorage.getItem("last-swap-from-asset");
-    if (savedAsset !== null && savedAsset !== "" && savedAsset !== "0") {
+    if (savedAsset !== null && savedAsset !== "") {
       try {
         const savedAssetId = BigInt(savedAsset);
-        // Check if the saved asset is available in current assets
-        const assetExists = assets.value.some(
-          (a) => a.assetId === savedAssetId
-        );
+        // Check if the saved asset is available in current assets (ALGO, assetId 0n, always is)
+        const assetExists =
+          savedAssetId === 0n ||
+          assets.value.some((a) => a.assetId === savedAssetId);
         if (assetExists) {
           initialAsset = savedAssetId;
         }
@@ -341,32 +343,40 @@ onMounted(async () => {
   asset.value = initialAsset;
 
   let initialToAsset = 0n;
-  const vote = assets.value.find((a) => a.assetId == 452399768n);
-  if (vote) {
-    initialToAsset = 452399768n;
-  }
+  let hasToAssetPreference = false;
 
   if (route.params.toAsset) {
     try {
       initialToAsset = BigInt(route.params.toAsset as string);
+      hasToAssetPreference = true;
     } catch {
       initialToAsset = 0n;
     }
   } else {
     const savedAsset = localStorage.getItem("last-swap-to-asset");
-    if (savedAsset !== null && savedAsset !== "" && savedAsset !== "0") {
+    if (savedAsset !== null && savedAsset !== "") {
       try {
         const savedAssetId = BigInt(savedAsset);
-        // Check if the saved asset is available in current assets
-        const assetExists = assets.value.some(
-          (a) => a.assetId === savedAssetId
-        );
+        // Check if the saved asset is available in current assets (ALGO, assetId 0n, always is)
+        const assetExists =
+          savedAssetId === 0n ||
+          assets.value.some((a) => a.assetId === savedAssetId);
         if (assetExists) {
           initialToAsset = savedAssetId;
+          hasToAssetPreference = true;
         }
       } catch {
         // ignore invalid saved value
       }
+    }
+  }
+
+  // Only fall back to the default VOTE suggestion when there is no route param
+  // or saved preference at all (otherwise a saved ALGO choice would be overridden).
+  if (!hasToAssetPreference) {
+    const vote = assets.value.find((a) => a.assetId == 452399768n);
+    if (vote) {
+      initialToAsset = 452399768n;
     }
   }
   toAsset.value = initialToAsset;
