@@ -15,8 +15,8 @@ export const deflexAggregator: DexAggregator = {
       context.aggregatorData.deflexQuotes.value = {};
       const amount = BigInt(
         Math.round(
-          context.payamount.value * 10 ** context.fromAssetDecimals.value
-        )
+          context.payamount.value * 10 ** context.fromAssetDecimals.value,
+        ),
       );
       const fromAsset =
         context.asset.value !== null && context.asset.value > 0n
@@ -42,7 +42,9 @@ export const deflexAggregator: DexAggregator = {
         algodPort = 443;
       }
 
-      const apiKey = context.$store.state.config.deflex;
+      const apiKey =
+        context.$store.state.config.deflex ??
+        "1b72df7e-1131-4449-8ce1-29b79dd3f51e";
       const request = `https://deflex.txnlab.dev/api/fetchQuote?chain=${chain}&algodUri=${algodUri}&algodToken=${algodToken}&algodPort=${algodPort}&fromASAID=${fromAsset}&toASAID=${toAsset}&atomicOnly=true&amount=${amount}&type=fixed-input&disabledProtocols=&referrerAddress=AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y&apiKey=${apiKey}`;
       const quotes = await context
         .axiosGet({ url: request })
@@ -60,7 +62,7 @@ export const deflexAggregator: DexAggregator = {
         address: context.account.value?.addr,
         slippage: context.slippage.value, // 1 = 1%
         txnPayloadJSON: context.aggregatorData.deflexQuotes.value.txnPayload,
-        apiKey,
+        apiKey: "1b72df7e-1131-4449-8ce1-29b79dd3f51e",
       });
       const config = {
         headers: {
@@ -93,7 +95,7 @@ export const deflexAggregator: DexAggregator = {
       context.txsDetails.value = context.txsDetails.value.trim();
     } catch (e) {
       context.openError(
-        "Error fetching quote from deflex: " + (e as Error).message
+        "Error fetching quote from deflex: " + (e as Error).message,
       );
     }
   },
@@ -113,7 +115,7 @@ export const deflexAggregator: DexAggregator = {
     const byGroup = context.aggregatorData.deflexTxs.value.txns.reduce(
       (entryMap: any, e: any) =>
         entryMap.set(e.group, [...(entryMap.get(e.group) || []), e]),
-      new Map()
+      new Map(),
     );
     const byGroupMap = [...byGroup].map((m) => m[1]);
 
@@ -185,7 +187,7 @@ export const deflexAggregator: DexAggregator = {
       // Compare with other aggregators
       const others = context.dexAggregators.filter(
         (a: any) =>
-          a.name !== "deflex" && context.aggregatorData[a.enabledKey].value
+          a.name !== "deflex" && context.aggregatorData[a.enabledKey].value,
       );
       for (const other of others) {
         const otherQuote =
@@ -193,7 +195,7 @@ export const deflexAggregator: DexAggregator = {
           context.aggregatorData[other.quotesKey].value?.quote;
         if (otherQuote) {
           const deflex = BigInt(
-            context.aggregatorData.deflexQuotes.value.quote
+            context.aggregatorData.deflexQuotes.value.quote,
           ).toString();
           const otherVal = BigInt(otherQuote).toString();
           if (otherVal.length > deflex.length) return false;
