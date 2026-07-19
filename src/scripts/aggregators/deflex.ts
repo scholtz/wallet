@@ -2,6 +2,8 @@ import type { DexAggregator, SwapContext } from "./types";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
 
+const DEFAULT_DEFLEX_API_KEY = "1b72df7e-1131-4449-8ce1-29b79dd3f51e";
+
 export const deflexAggregator: DexAggregator = {
   name: "deflex",
   displayName: "Deflex",
@@ -43,8 +45,7 @@ export const deflexAggregator: DexAggregator = {
       }
 
       const apiKey =
-        context.$store.state.config.deflex ??
-        "1b72df7e-1131-4449-8ce1-29b79dd3f51e";
+        context.$store.state.config.deflex.trim() || DEFAULT_DEFLEX_API_KEY;
       const request = `https://deflex.txnlab.dev/api/fetchQuote?chain=${chain}&algodUri=${algodUri}&algodToken=${algodToken}&algodPort=${algodPort}&fromASAID=${fromAsset}&toASAID=${toAsset}&atomicOnly=true&amount=${amount}&type=fixed-input&disabledProtocols=&referrerAddress=AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y&apiKey=${apiKey}`;
       const quotes = await context
         .axiosGet({ url: request })
@@ -62,7 +63,7 @@ export const deflexAggregator: DexAggregator = {
         address: context.account.value?.addr,
         slippage: context.slippage.value, // 1 = 1%
         txnPayloadJSON: context.aggregatorData.deflexQuotes.value.txnPayload,
-        apiKey: "1b72df7e-1131-4449-8ce1-29b79dd3f51e",
+        apiKey,
       });
       const config = {
         headers: {
