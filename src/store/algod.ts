@@ -88,25 +88,25 @@ const createAlgodClient = (rootState: RootState): algosdk.Algodv2 => {
 // the UI. Mirrors the guard Sign.vue applies to externally supplied txns.
 const assertParamsMatchNetwork = (
   rootState: RootState,
-  params: algosdk.SuggestedParams
+  params: algosdk.SuggestedParams,
 ): void => {
   const env = rootState.config.env;
   if (!env) return;
   const genesisId = params.genesisID;
   if (genesisId && genesisId !== env) {
     throw new Error(
-      `The configured node returned genesis id "${genesisId}" which does not match the selected network "${env}". Refusing to build the transaction.`
+      `The configured node returned genesis id "${genesisId}" which does not match the selected network "${env}". Refusing to build the transaction.`,
     );
   }
   const knownNetwork = rootState.publicData?.genesisList?.find(
-    (network) => network.network === env
+    (network) => network.network === env,
   );
   const caip10 = knownNetwork?.CAIP10;
   if (typeof caip10 === "string" && caip10 && params.genesisHash) {
     const hashB64 = Buffer.from(params.genesisHash).toString("base64");
     if (!hashB64.startsWith(caip10)) {
       throw new Error(
-        `The configured node returned a genesis hash that does not match the selected network "${env}". Refusing to build the transaction.`
+        `The configured node returned a genesis hash that does not match the selected network "${env}". Refusing to build the transaction.`,
       );
     }
   }
@@ -117,7 +117,7 @@ const resolveSenderAddress = (account: PaymentAccount): string => {
 };
 
 const normalizeAssetId = (
-  asset?: number | string | bigint
+  asset?: number | string | bigint,
 ): number | undefined => {
   if (asset === undefined) {
     return undefined;
@@ -128,7 +128,7 @@ const normalizeAssetId = (
 
 const buildAssetCreateTransaction = (
   asset: AssetDefinition,
-  params: algosdk.SuggestedParams
+  params: algosdk.SuggestedParams,
 ): algosdk.Transaction => {
   if (!asset.manager) {
     asset.manager = asset.addr;
@@ -139,7 +139,7 @@ const buildAssetCreateTransaction = (
   const issuePower = BigInt(Math.pow(10, asset.decimals));
   const issueBigInt = issueBase * issuePower;
   const metadataHash = new Uint8Array(
-    Buffer.from(asset.assetMetadataHash ?? "", "base64")
+    Buffer.from(asset.assetMetadataHash ?? "", "base64"),
   );
 
   return algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
@@ -173,7 +173,10 @@ const actions: ActionTree<AlgodState, RootState> = {
       return undefined;
     }
   },
-  async preparePayment({ dispatch, rootState }, payload: PreparePaymentPayload) {
+  async preparePayment(
+    { dispatch, rootState },
+    payload: PreparePaymentPayload,
+  ) {
     try {
       const algodClient = createAlgodClient(rootState);
       const fromAcct = resolveSenderAddress(payload.payFrom);
@@ -216,8 +219,7 @@ const actions: ActionTree<AlgodState, RootState> = {
   async makePayment({ dispatch, rootState }, payload: PaymentPayload) {
     try {
       const txn = (await dispatch("preparePayment", payload)) as
-        | algosdk.Transaction
-        | undefined;
+        algosdk.Transaction | undefined;
       if (!txn) {
         return undefined;
       }
@@ -225,7 +227,7 @@ const actions: ActionTree<AlgodState, RootState> = {
       const signedTxn = (await dispatch(
         "signer/signTransaction",
         { from: payload.payFrom, tx: txn },
-        { root: true }
+        { root: true },
       )) as Uint8Array | Buffer;
 
       const algodClient = createAlgodClient(rootState);
@@ -234,7 +236,7 @@ const actions: ActionTree<AlgodState, RootState> = {
         await dispatch(
           "wallet/lastPayTo",
           { addr: payload.payTo },
-          { root: true }
+          { root: true },
         );
         return (ret.txid as string) ?? undefined;
       } catch (error) {
@@ -256,14 +258,14 @@ const actions: ActionTree<AlgodState, RootState> = {
   },
   async sendRawTransaction(
     { rootState },
-    { signedTxn }: SendRawTransactionPayload
+    { signedTxn }: SendRawTransactionPayload,
   ): Promise<algosdk.modelsv2.PostTransactionsResponse> {
     const algodClient = createAlgodClient(rootState);
     return algodClient.sendRawTransaction(signedTxn).do();
   },
   async makeAssetCreateTxnWithSuggestedParamsTx(
     { rootState },
-    { asset }: AssetPayload
+    { asset }: AssetPayload,
   ) {
     const algodClient = createAlgodClient(rootState);
     const params = await algodClient.getTransactionParams().do();
@@ -273,7 +275,7 @@ const actions: ActionTree<AlgodState, RootState> = {
   },
   async makeAssetCreateTxnWithSuggestedParams(
     { dispatch, rootState },
-    { asset }: AssetPayload
+    { asset }: AssetPayload,
   ) {
     const algodClient = createAlgodClient(rootState);
     const params = await algodClient.getTransactionParams().do();
@@ -283,7 +285,7 @@ const actions: ActionTree<AlgodState, RootState> = {
     const signedTxn = (await dispatch(
       "signer/signTransaction",
       { from: asset.addr, tx: txn },
-      { root: true }
+      { root: true },
     )) as Uint8Array | Buffer;
 
     return algodClient.sendRawTransaction(signedTxn).do();
@@ -312,7 +314,7 @@ const actions: ActionTree<AlgodState, RootState> = {
   },
   async waitForConfirmation(
     { rootState },
-    { txId, timeout }: WaitForConfirmationPayload
+    { txId, timeout }: WaitForConfirmationPayload,
   ): Promise<algosdk.modelsv2.PendingTransactionResponse | undefined> {
     try {
       if (!txId || timeout < 0) {
@@ -330,7 +332,7 @@ const actions: ActionTree<AlgodState, RootState> = {
   // preview the real, ledger-computed outcome of a swap route before signing.
   async simulateTransactionGroups(
     { rootState },
-    { groups }: { groups: Uint8Array[][] }
+    { groups }: { groups: Uint8Array[][] },
   ): Promise<algosdk.modelsv2.SimulateResponse> {
     const algodClient = createAlgodClient(rootState);
     const txnGroups = groups.map(
@@ -339,10 +341,10 @@ const actions: ActionTree<AlgodState, RootState> = {
           txns: group.map((bytes) => {
             const { txn } = algosdk.decodeSignedTransaction(bytes);
             return algosdk.decodeSignedTransaction(
-              algosdk.encodeUnsignedSimulateTransaction(txn)
+              algosdk.encodeUnsignedSimulateTransaction(txn),
             );
           }),
-        })
+        }),
     );
     const request = new algosdk.modelsv2.SimulateRequest({
       txnGroups,
