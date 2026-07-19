@@ -338,18 +338,14 @@ const actions: ActionTree<AlgodState, RootState> = {
     const txnGroups = groups.map(
       (group) =>
         new algosdk.modelsv2.SimulateRequestTransactionGroup({
-          txns: group.map((bytes) => {
-            const { txn } = algosdk.decodeSignedTransaction(bytes);
-            return algosdk.decodeSignedTransaction(
-              algosdk.encodeUnsignedSimulateTransaction(txn),
-            );
-          }),
+          txns: group.map((bytes) => algosdk.decodeSignedTransaction(bytes)),
         }),
     );
     const request = new algosdk.modelsv2.SimulateRequest({
       txnGroups,
       allowEmptySignatures: true,
       allowUnnamedResources: true,
+      fixSigners: true,
     });
     return algodClient.simulateTransactions(request).do();
   },
