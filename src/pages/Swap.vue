@@ -60,6 +60,19 @@
             :note="note"
             :error="error"
           />
+          <SwapRouteExplorer
+            :useDeflex="useDeflex"
+            :useFolks="useFolks"
+            :useBiatec="useBiatec"
+            :deflexQuotes="deflexQuotes"
+            :deflexTxs="deflexTxs"
+            :folksQuote="folksQuote"
+            :biatecQuotes="biatecQuotes"
+            :fromAssetObj="fromAssetObj"
+            :toAssetObj="toAssetObj"
+            :payamount="payamount"
+            :fromAssetDecimals="fromAssetDecimals"
+          />
           <SwapExecuteButtons
             :useDeflex="useDeflex"
             :useFolks="useFolks"
@@ -103,6 +116,7 @@ import SwapOptions from "../components/SwapOptions.vue";
 import SwapQuoteButton from "../components/SwapQuoteButton.vue";
 import SwapOptIn from "../components/SwapOptIn.vue";
 import SwapTransactionDetails from "../components/SwapTransactionDetails.vue";
+import SwapRouteExplorer from "../components/SwapRouteExplorer.vue";
 import SwapExecuteButtons from "../components/SwapExecuteButtons.vue";
 import { dexAggregators } from "../scripts/dexAggregators";
 import { useSwap } from "../composables/useSwap";
@@ -192,6 +206,7 @@ const processingTradeBiatec = computed(
   () => aggregatorData.processingTradeBiatec.value
 );
 const deflexQuotes = computed(() => aggregatorData.deflexQuotes.value);
+const deflexTxs = computed(() => aggregatorData.deflexTxs.value);
 const folksQuote = computed(() => aggregatorData.folksQuote.value);
 const biatecQuotes = computed(() => aggregatorData.biatecQuotes.value);
 
