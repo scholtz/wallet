@@ -18,6 +18,7 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 - Redesigned the login, new-wallet and import-wallet screens into a compact centered card with clearer labels and full-width buttons, keeping the form fully visible and centered on any screen size.
 - Improved the mobile experience across the app: QR codes now scale to fit the screen instead of forcing horizontal scrolling, wide transaction/asset tables scroll within their own area, long addresses and payment links wrap instead of overflowing, and the camera view for scanning a mnemonic stacks below the form on small screens.
 - Added professional imagery to the login, new-wallet, import-wallet and "page not found" screens on desktop, and made the bottom status bar match the top navigation bar's rounded, translucent styling for a more consistent look.
+- Added ARC-56 smart contract call decoding to the transaction-review screens (WalletConnect requests and multi-signature signing): when you're about to sign a call to a smart contract, the wallet now looks up the contract's method and argument names/descriptions from the public ARC-56 registry and shows them to you in plain language instead of raw bytes, with addresses linking to the Biatec Algorand explorer. Every explanation is clearly labeled as either verified against the exact contract you're calling, only a suggestion from a similarly-named contract, or completely unrecognized, so you always know how much to trust it — the raw, unmodified call data is still shown alongside it either way.
 
 ## 2026-01
 

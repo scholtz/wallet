@@ -6,7 +6,15 @@ import copy from "copy-to-clipboard";
 
 const props = defineProps<{
   address?: string | null;
+  // Opt-in only (default false) so existing call sites keep their current
+  // look — enabled explicitly where a link out to a block explorer is
+  // actually useful, e.g. the ARC-56 decoded-call argument list.
+  linkExplorer?: boolean;
 }>();
+
+const explorerUrl = computed(() =>
+  props.address ? `https://algorand.scan.biatec.io/address/${props.address}` : ""
+);
 
 const { t } = useI18n();
 const store = useStore();
@@ -64,6 +72,17 @@ const copyAddress = async () => {
       v-tooltip="t('global.copy_address')"
       @click.stop.prevent="copyAddress"
     />
+    <a
+      v-if="props.address && props.linkExplorer"
+      :href="explorerUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="algorand-address-explorer-link"
+      v-tooltip="t('global.view_on_explorer')"
+      @click.stop
+    >
+      <i class="pi pi-external-link" />
+    </a>
   </span>
 </template>
 
@@ -93,6 +112,17 @@ const copyAddress = async () => {
 }
 
 .algorand-address-copy:hover {
+  opacity: 1;
+}
+
+.algorand-address-explorer-link {
+  display: inline-flex;
+  cursor: pointer;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.algorand-address-explorer-link:hover {
   opacity: 1;
 }
 </style>

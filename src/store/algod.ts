@@ -56,6 +56,15 @@ interface WaitForConfirmationPayload {
   timeout: number;
 }
 
+interface GetApplicationPayload {
+  appIndex: bigint | number;
+}
+
+export interface ApplicationPrograms {
+  approvalProgram: Uint8Array;
+  clearStateProgram: Uint8Array;
+}
+
 const state = (): AlgodState => ({});
 
 const getAlgodConfig = (rootState: RootState): AlgodConfig => {
@@ -278,6 +287,28 @@ const actions: ActionTree<AlgodState, RootState> = {
     )) as Uint8Array | Buffer;
 
     return algodClient.sendRawTransaction(signedTxn).do();
+  },
+  // Fetches an app's compiled programs so callers (the ARC-56 registry
+  // lookup, see src/scripts/arc56/) can hash them and identify the contract
+  // being called. Returns undefined rather than throwing on failure — a
+  // registry lookup that can't resolve a program just falls back to
+  // showing the raw, undecoded call, it's never fatal to signing.
+  async getApplicationPrograms(
+    { rootState },
+    { appIndex }: GetApplicationPayload,
+  ): Promise<ApplicationPrograms | undefined> {
+    try {
+      const algodClient = createAlgodClient(rootState);
+      const app = await algodClient.getApplicationByID(appIndex).do();
+      if (!app.params) return undefined;
+      return {
+        approvalProgram: app.params.approvalProgram,
+        clearStateProgram: app.params.clearStateProgram,
+      };
+    } catch (error) {
+      console.error("Failed to fetch application programs", error);
+      return undefined;
+    }
   },
   async waitForConfirmation(
     { rootState },

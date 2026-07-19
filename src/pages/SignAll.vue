@@ -4,6 +4,7 @@ import { useStore } from "vuex";
 import { onMounted, reactive } from "vue";
 import MainLayout from "../layouts/Main.vue";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
+import Arc56CallDetails from "../components/Arc56CallDetails.vue";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import { RootState } from "@/store";
@@ -592,6 +593,19 @@ const getAssetDecimals = (id: number) => {
                     <td>{{ t("connect.app") }}:</td>
                     <td>
                       {{ Number(txProps.data.txn.applicationCall?.appIndex) }}
+                    </td>
+                  </tr>
+
+                  <tr v-if="txProps.data.type == 'appl'">
+                    <td colspan="2">
+                      <Arc56CallDetails
+                        :app-index="
+                          BigInt(txProps.data.txn.applicationCall?.appIndex ?? 0)
+                        "
+                        :txn="txProps.data.txn"
+                        :current-index="txProps.data.index"
+                        :group-transactions="state.transactions"
+                      />
                     </td>
                   </tr>
 

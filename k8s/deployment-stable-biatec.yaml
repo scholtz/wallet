@@ -6,6 +6,58 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: biatec-wallet-arc56-registry-deployment
+  namespace: awallet
+spec:
+  selector:
+    matchLabels:
+      app: biatec-wallet-arc56-registry
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: biatec-wallet-arc56-registry
+    spec:
+      containers:
+        - name: arc56-registry
+          image: scholtz2/arc56-registry:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 2
+            terminationGracePeriodSeconds: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: biatec-wallet-arc56-registry-service
+  namespace: awallet
+spec:
+  type: ClusterIP
+  selector:
+    app: biatec-wallet-arc56-registry
+  ports:
+    - name: http
+      protocol: TCP
+      appProtocol: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: biatec-wallet-stable-deployment
   namespace: awallet
 spec:
@@ -85,6 +137,13 @@ spec:
     - host: www.wallet.biatec.io
       http:
         paths:
+          - path: /arc56-registry/(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: biatec-wallet-arc56-registry-service
+                port:
+                  number: 8080
           - path: /(.*)
             pathType: Prefix
             backend:
@@ -112,6 +171,13 @@ spec:
     - host: wallet.biatec.io
       http:
         paths:
+          - path: /arc56-registry/(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: biatec-wallet-arc56-registry-service
+                port:
+                  number: 8080
           - path: /(.*)
             pathType: Prefix
             backend:
