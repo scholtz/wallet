@@ -35,6 +35,27 @@ export interface Arc56Method {
   readonly?: boolean;
 }
 
+// A single global/local/box storage slot's on-chain key plus its ABI (or
+// AVM pseudo-, see decodeArc56StateValue) type - keyed by the human-readable
+// variable name in Arc56State.keys.
+export interface Arc56StorageKey {
+  desc?: string;
+  // base64-encoded on-chain key.
+  key: string;
+  keyType: string;
+  valueType: string;
+}
+
+export interface Arc56StateKeys {
+  global?: Record<string, Arc56StorageKey>;
+  local?: Record<string, Arc56StorageKey>;
+  box?: Record<string, Arc56StorageKey>;
+}
+
+export interface Arc56State {
+  keys?: Arc56StateKeys;
+}
+
 export interface Arc56Contract {
   arcs?: number[];
   name: string;
@@ -43,6 +64,7 @@ export interface Arc56Contract {
   methods: Arc56Method[];
   networks?: Record<string, { appID: number }>;
   byteCode?: { approval?: string; clear?: string };
+  state?: Arc56State;
 }
 
 // abi-signatures/<selector>.json — the ecosystem-wide index of every known

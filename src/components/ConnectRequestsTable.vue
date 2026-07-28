@@ -448,6 +448,9 @@
               </div>
             </template>
           </DataTable>
+          <TransactionGroupSimulation
+            :transactions="slotProps.data.transactions.map((t: TransactionWrapper) => t.txn)"
+          />
         </div>
       </template>
     </DataTable>
@@ -467,6 +470,7 @@ import {
 import { useRouter } from "vue-router";
 import AlgorandAddress from "./AlgorandAddress.vue";
 import Arc56CallDetails from "./Arc56CallDetails.vue";
+import TransactionGroupSimulation from "./TransactionGroupSimulation.vue";
 import { useStore } from "../store";
 
 type GlobalFilters = {

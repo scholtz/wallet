@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { onMounted, reactive } from "vue";
+import { computed, onMounted, reactive } from "vue";
 import MainLayout from "../layouts/Main.vue";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
 import Arc56CallDetails from "../components/Arc56CallDetails.vue";
+import TransactionGroupSimulation from "../components/TransactionGroupSimulation.vue";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import { RootState } from "@/store";
@@ -340,6 +341,10 @@ const getAssetDecimals = (id: number) => {
   const asset = getAssetSync(id) as { decimals?: number } | undefined;
   return Number(asset?.decimals ?? 0);
 };
+
+const simulationTransactions = computed<algosdk.Transaction[]>(() =>
+  state.transactions.map((entry) => entry.txn as algosdk.Transaction),
+);
 </script>
 <template>
   <MainLayout>
@@ -708,6 +713,7 @@ const getAssetDecimals = (id: number) => {
             </div>
           </template>
         </DataTable>
+        <TransactionGroupSimulation :transactions="simulationTransactions" />
       </template>
     </Card>
   </MainLayout>
