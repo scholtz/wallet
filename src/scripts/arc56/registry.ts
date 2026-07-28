@@ -2,8 +2,10 @@
 // (https://github.com/scholtz/ARC56Registry). Tries this deployment's
 // self-hosted mirror (served at /arc56-registry by the scholtz2/arc56-registry
 // docker image, see k8s/*.yaml) first, then falls back to the public GitHub
-// Pages mirror — so lookups keep working on deployment targets that can't
-// host a sidecar container (Vercel, GitHub Pages, local `pnpm run serve`).
+// Pages mirror, then to the raw GitHub content of the same repo — so lookups
+// keep working on deployment targets that can't host a sidecar container
+// (Vercel, GitHub Pages, local `pnpm run serve`), and even if the Pages site
+// itself is temporarily unavailable/misconfigured.
 import type {
   Arc56AbiSignatureEntry,
   Arc56Contract,
@@ -12,10 +14,12 @@ import type {
 
 // Same-origin path first (works whenever this wallet build is served behind
 // the ingress rule that proxies /arc56-registry/* to the registry
-// container), public mirror second.
+// container), public Pages mirror second, raw githubusercontent.com of the
+// same repo/branch as the final fallback.
 export const REGISTRY_BASE_URLS: readonly string[] = [
   "/arc56-registry",
   "https://scholtz.github.io/ARC56Registry",
+  "https://raw.githubusercontent.com/scholtz/ARC56Registry/refs/heads/main",
 ];
 
 const jsonCache = new Map<string, Promise<unknown | null>>();
