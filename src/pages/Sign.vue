@@ -384,7 +384,11 @@
                   @click="signTxClick"
                   class="m-2"
                 >
-                  Sign transaction
+                  {{
+                    isArc14
+                      ? $t("pay.arc14_authenticate", { realm: arc14RealmDisplay })
+                      : "Sign transaction"
+                  }}
                 </Button>
                 <Button
                   v-if="!isMultisig"

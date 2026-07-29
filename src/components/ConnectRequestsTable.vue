@@ -78,7 +78,13 @@
                   :disabled="!store.state.wallet.isOpen"
                   @click="clickSign(slotProps.data)"
                 >
-                  {{ $t("connect.sign") }}
+                  {{
+                    isArc14Auth(slotProps.data.txn)
+                      ? $t("connect.arc14_authenticate", {
+                          realm: arc14Realm(slotProps.data.txn),
+                        })
+                      : $t("connect.sign")
+                  }}
                 </Button>
                 <Badge
                   severity="success"
@@ -473,7 +479,8 @@
             </template>
           </DataTable>
           <TransactionGroupSimulation
-            :transactions="slotProps.data.transactions.map((t: TransactionWrapper) => t.txn)"
+            v-if="simulatableTransactions(slotProps.data).length > 0"
+            :transactions="simulatableTransactions(slotProps.data)"
           />
         </div>
       </template>
@@ -860,6 +867,15 @@ const genesisMismatch = (txn: algosdk.Transaction): boolean => {
 const isArc14Auth = (txn: algosdk.Transaction) => isArc14AuthTransaction(txn);
 
 const arc14Realm = (txn: algosdk.Transaction) => getArc14Realm(txn?.note) ?? "";
+
+// ARC14 auth transactions are signed with fee=0 and are never broadcast, so
+// simulating them against algod would always fail on minimum-fee validation.
+// Excluded here rather than passed through so any other, real transactions
+// in the same request still get simulated normally.
+const simulatableTransactions = (data: RequestItem): algosdk.Transaction[] =>
+  (data.transactions ?? [])
+    .filter((t: TransactionWrapper) => !isArc14Auth(t.txn))
+    .map((t: TransactionWrapper) => t.txn);
 
 const getAssetSync = (id: bigint | number | string) => {
   try {
