@@ -81,6 +81,28 @@ const createAlgodClient = (rootState: RootState): algosdk.Algodv2 => {
   return new algosdk.Algodv2(algodToken, algod, url.port);
 };
 
+// AlgorandPublicData's genesis-list.json publishes CAIP10 as a CAIP-2
+// chain-reference: the genesis hash, base64url-encoded (RFC 4648 §5, "-"/"_"
+// instead of "+"/"/", no "=" padding) and truncated to 32 chars, since CAIP-2
+// references are restricted to `[-a-zA-Z0-9]{1,32}`. e.g. for voimain-v1.0,
+// genesisHash "r20fSQI8gWe/kFZziNonSPCXLwcQmH/nxROvnnueWOk=" (standard
+// base64) is published as CAIP10 "r20fSQI8gWe_kFZziNonSPCXLwcQmH_n" - same
+// bytes, different alphabet. Must convert with the same alphabet before
+// comparing, or every genesis hash whose relevant prefix contains a "+"/"/"
+// (as this one does) always fails the check even when it's exactly correct.
+const bytesToBase64Url = (bytes: Uint8Array): string =>
+  Buffer.from(bytes)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
+const base64UrlToBase64 = (input: string): string => {
+  const standard = input.replace(/-/g, "+").replace(/_/g, "/");
+  const pad = standard.length % 4;
+  return pad ? standard + "=".repeat(4 - pad) : standard;
+};
+
 // Cross-checks the suggested params returned by the configured node against
 // the network the user believes they are on (audit finding AW-2026-005) —
 // a malicious/compromised node must not be able to have the wallet sign a
@@ -103,10 +125,15 @@ const assertParamsMatchNetwork = (
   );
   const caip10 = knownNetwork?.CAIP10;
   if (typeof caip10 === "string" && caip10 && params.genesisHash) {
-    const hashB64 = Buffer.from(params.genesisHash).toString("base64");
-    if (!hashB64.startsWith(caip10)) {
+    const hashB64Url = bytesToBase64Url(params.genesisHash);
+    if (!hashB64Url.startsWith(caip10)) {
+      const receivedHex = Buffer.from(params.genesisHash).toString("hex");
+      const expectedHex = Buffer.from(
+        base64UrlToBase64(caip10),
+        "base64",
+      ).toString("hex");
       throw new Error(
-        `The configured node returned a genesis hash that does not match the selected network "${env}". Refusing to build the transaction.`,
+        `The configured node returned a genesis hash that does not match the selected network "${env}". Expected (from CAIP10) hex: ${expectedHex}. Received (from node) hex: ${receivedHex}. Refusing to build the transaction.`,
       );
     }
   }
