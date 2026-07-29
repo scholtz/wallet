@@ -866,6 +866,10 @@
     "simulation_failed": "Simülasyon çalıştırılamadı",
     "simulation_txn_failed": "Bu işlem grubu başarısız olur",
     "simulation_success": "Simülasyon başarılı oldu - hata yok",
+    "simulation_asset_changes_title": "Net varlık değişiklikleri",
+    "simulation_net_change": "Net değişim",
+    "simulation_no_asset_changes": "Herhangi bir net varlık hareketi tespit edilmedi",
+    "simulation_state_changes_title": "Uygulama durumu değişiklikleri",
     "simulation_scope": "Kapsam",
     "simulation_scope_global": "Genel durum",
     "simulation_scope_local": "Yerel durum",
@@ -876,7 +880,8 @@
     "simulation_action_delete": "Sil",
     "simulation_value": "Yeni değer",
     "simulation_no_state_changes": "Uygulama durumunda herhangi bir değişiklik tespit edilmedi",
-    "simulation_disclaimer": "İmzalanacak işlemlerin tam olarak mevcut ağ durumuna karşı deneme (dry-run) olarak çalıştırılmasıyla hesaplanır - hiçbir fon hareket etmez ve imza gerekmez."
+    "simulation_disclaimer": "İmzalanacak işlemlerin tam olarak mevcut ağ durumuna karşı deneme (dry-run) olarak çalıştırılmasıyla hesaplanır - hiçbir fon hareket etmez ve imza gerekmez.",
+    "simulation_defi_disclaimer": "Simüle edilen sonuç garanti edilmez - işleminiz onaylanmadan önce ağ koşulları değişirse gerçek sonuç farklı olabilir. DeFi protokollerini kullanırken, yalnızca bu önizlemeye güvenmek yerine, uygulamanın kendisinde her zaman minimum alınacak tutarı veya başka bir slippage koruma mekanizmasını ayarlayın."
   },
   "arc56": {
     "loading": "Bu çağrı ARC-56 sözleşme kayıt defterinde aranıyor…",

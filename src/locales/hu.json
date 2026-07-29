@@ -866,6 +866,10 @@
     "simulation_failed": "A szimulációt nem sikerült lefuttatni",
     "simulation_txn_failed": "Ez a tranzakciócsoport meghiúsulna",
     "simulation_success": "A szimuláció sikeres volt - nincs hiba",
+    "simulation_asset_changes_title": "Nettó eszközváltozások",
+    "simulation_net_change": "Nettó változás",
+    "simulation_no_asset_changes": "Nem észleltünk nettó eszközmozgást",
+    "simulation_state_changes_title": "Alkalmazásállapot-változások",
     "simulation_scope": "Hatókör",
     "simulation_scope_global": "Globális állapot",
     "simulation_scope_local": "Helyi állapot",
@@ -876,7 +880,8 @@
     "simulation_action_delete": "Törlés",
     "simulation_value": "Új érték",
     "simulation_no_state_changes": "Nem észleltünk alkalmazásállapot-változást",
-    "simulation_disclaimer": "A pontosan az aláírandó tranzakciók próbafuttatásával (dry-run) számítva, a jelenlegi hálózati állapot alapján - nem kerül pénzeszköz mozgatásra, és aláírás sem szükséges."
+    "simulation_disclaimer": "A pontosan az aláírandó tranzakciók próbafuttatásával (dry-run) számítva, a jelenlegi hálózati állapot alapján - nem kerül pénzeszköz mozgatásra, és aláírás sem szükséges.",
+    "simulation_defi_disclaimer": "A szimulált eredmény nem garantált - a tényleges eredmény eltérhet, ha a hálózati körülmények megváltoznak a tranzakció megerősítése előtt. DeFi protokollok használatakor mindig állíts be minimális fogadott összeget vagy más csúszásvédelmi (slippage) mechanizmust magában az alkalmazásban, ne csak erre az előnézetre hagyatkozz."
   },
   "arc56": {
     "loading": "A hívás keresése az ARC-56 szerződésregiszterben…",

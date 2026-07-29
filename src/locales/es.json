@@ -866,6 +866,10 @@
     "simulation_failed": "No se pudo ejecutar la simulación",
     "simulation_txn_failed": "Este grupo de transacciones fallaría",
     "simulation_success": "Simulación exitosa - sin errores",
+    "simulation_asset_changes_title": "Cambios netos de activos",
+    "simulation_net_change": "Cambio neto",
+    "simulation_no_asset_changes": "No se detectó ningún movimiento neto de activos",
+    "simulation_state_changes_title": "Cambios de estado de la aplicación",
     "simulation_scope": "Alcance",
     "simulation_scope_global": "Estado global",
     "simulation_scope_local": "Estado local",
@@ -876,7 +880,8 @@
     "simulation_action_delete": "Eliminar",
     "simulation_value": "Nuevo valor",
     "simulation_no_state_changes": "No se detectaron cambios en el estado de la aplicación",
-    "simulation_disclaimer": "Calculado ejecutando en modo de prueba (dry-run) exactamente las transacciones a firmar contra el estado actual de la red - no se mueven fondos y no se requiere firma."
+    "simulation_disclaimer": "Calculado ejecutando en modo de prueba (dry-run) exactamente las transacciones a firmar contra el estado actual de la red - no se mueven fondos y no se requiere firma.",
+    "simulation_defi_disclaimer": "El resultado simulado no está garantizado - el resultado real puede diferir si las condiciones de la red cambian antes de que se confirme tu transacción. Al usar protocolos DeFi, establece siempre un monto mínimo a recibir u otro mecanismo de protección contra el deslizamiento (slippage) en la propia aplicación, en lugar de confiar únicamente en esta vista previa."
   },
   "arc56": {
     "loading": "Buscando esta llamada en el registro de contratos ARC-56…",

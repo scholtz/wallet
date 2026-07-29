@@ -866,6 +866,10 @@
     "simulation_failed": "Simulatie kon niet worden uitgevoerd",
     "simulation_txn_failed": "Deze transactiegroep zou mislukken",
     "simulation_success": "Simulatie geslaagd - geen fouten",
+    "simulation_asset_changes_title": "Netto activaveranderingen",
+    "simulation_net_change": "Netto verandering",
+    "simulation_no_asset_changes": "Er is geen netto activabeweging gedetecteerd",
+    "simulation_state_changes_title": "Applicatiestatuswijzigingen",
     "simulation_scope": "Bereik",
     "simulation_scope_global": "Globale status",
     "simulation_scope_local": "Lokale status",
@@ -876,7 +880,8 @@
     "simulation_action_delete": "Verwijderen",
     "simulation_value": "Nieuwe waarde",
     "simulation_no_state_changes": "Er zijn geen wijzigingen in de applicatiestatus gedetecteerd",
-    "simulation_disclaimer": "Berekend door de exacte te ondertekenen transacties als dry-run uit te voeren tegen de huidige netwerkstatus - er worden geen tegoeden verplaatst en er is geen handtekening vereist."
+    "simulation_disclaimer": "Berekend door de exacte te ondertekenen transacties als dry-run uit te voeren tegen de huidige netwerkstatus - er worden geen tegoeden verplaatst en er is geen handtekening vereist.",
+    "simulation_defi_disclaimer": "De gesimuleerde uitkomst is niet gegarandeerd - het werkelijke resultaat kan afwijken als de netwerkomstandigheden veranderen voordat je transactie is bevestigd. Stel bij het gebruik van DeFi-protocollen altijd een minimaal te ontvangen bedrag of een ander slippage-beschermingsmechanisme in de app zelf in, in plaats van uitsluitend op deze voorvertoning te vertrouwen."
   },
   "arc56": {
     "loading": "Deze aanroep wordt opgezocht in het ARC-56-contractregister…",

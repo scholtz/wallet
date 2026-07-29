@@ -866,6 +866,10 @@
     "simulation_failed": "Simulaci se nepodařilo spustit",
     "simulation_txn_failed": "Tato skupina transakcí by selhala",
     "simulation_success": "Simulace proběhla úspěšně - žádné chyby",
+    "simulation_asset_changes_title": "Čisté změny aktiv",
+    "simulation_net_change": "Čistá změna",
+    "simulation_no_asset_changes": "Nebyl zjištěn žádný čistý pohyb aktiv",
+    "simulation_state_changes_title": "Změny stavu aplikace",
     "simulation_scope": "Rozsah",
     "simulation_scope_global": "Globální stav",
     "simulation_scope_local": "Lokální stav",
@@ -876,7 +880,8 @@
     "simulation_action_delete": "Smazat",
     "simulation_value": "Nová hodnota",
     "simulation_no_state_changes": "Nebyly zjištěny žádné změny stavu aplikace",
-    "simulation_disclaimer": "Vypočítáno zkušebním spuštěním (dry-run) přesně těchto transakcí k podpisu vůči aktuálnímu stavu sítě - nepřevádí se žádné prostředky a podpis není vyžadován."
+    "simulation_disclaimer": "Vypočítáno zkušebním spuštěním (dry-run) přesně těchto transakcí k podpisu vůči aktuálnímu stavu sítě - nepřevádí se žádné prostředky a podpis není vyžadován.",
+    "simulation_defi_disclaimer": "Simulovaný výsledek není zaručen - skutečný výsledek se může lišit, pokud se podmínky sítě změní před potvrzením transakce. Při používání DeFi protokolů vždy nastavte minimální přijímanou částku nebo jiný mechanismus ochrany proti prokluzu (slippage) přímo v aplikaci, nespoléhejte se pouze na tento náhled."
   },
   "arc56": {
     "loading": "Vyhledávám toto volání v registru kontraktů ARC-56…",

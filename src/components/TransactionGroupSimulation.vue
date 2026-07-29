@@ -31,6 +31,46 @@
         {{ $t("connect.simulation_success") }}
       </Message>
 
+      <div class="sim-panel-subtitle">
+        {{ $t("connect.simulation_asset_changes_title") }}
+      </div>
+      <DataTable
+        v-if="assetDisplayRows.length"
+        :value="assetDisplayRows"
+        size="small"
+        class="sim-panel-table"
+      >
+        <Column v-if="hasMultipleAssetAddresses" :header="$t('connect.simulation_account')">
+          <template #body="slotProps">
+            <AlgorandAddress :address="slotProps.data.address" />
+          </template>
+        </Column>
+        <Column :header="$t('connect.asset')">
+          <template #body="slotProps">
+            {{ slotProps.data.symbol }}
+          </template>
+        </Column>
+        <Column :header="$t('connect.simulation_net_change')">
+          <template #body="slotProps">
+            <span
+              :class="
+                slotProps.data.netAmount > 0n
+                  ? 'sim-asset-positive'
+                  : 'sim-asset-negative'
+              "
+            >
+              {{ slotProps.data.netAmount > 0n ? "+" : "" }}{{ slotProps.data.formatted }}
+            </span>
+          </template>
+        </Column>
+      </DataTable>
+      <div v-else class="sim-panel-empty">
+        {{ $t("connect.simulation_no_asset_changes") }}
+      </div>
+
+      <div class="sim-panel-subtitle">
+        {{ $t("connect.simulation_state_changes_title") }}
+      </div>
       <DataTable
         v-if="displayRows.length"
         :value="displayRows"
@@ -94,6 +134,7 @@
 
     <div class="sim-panel-disclaimer">
       {{ $t("connect.simulation_disclaimer") }}
+      {{ $t("connect.simulation_defi_disclaimer") }}
     </div>
   </div>
 </template>
@@ -110,6 +151,11 @@ import {
   summarizeAppStateChanges,
   type AppStateChangeRow,
 } from "../scripts/simulateStateChanges";
+import {
+  summarizeAssetDeltas,
+  type AssetDeltaRow,
+} from "../scripts/simulateAssetChanges";
+import formatCurrency from "../scripts/numbers/formatCurrency";
 import {
   fetchArc56SpecByProgramHash,
   sha256Hex,
@@ -128,11 +174,59 @@ const status = ref<"idle" | "loading" | "success" | "error">("idle");
 const errorMessage = ref("");
 const failureMessage = ref("");
 const rows = ref<AppStateChangeRow[]>([]);
+const assetRows = ref<AssetDeltaRow[]>([]);
 // appIndex.toString() -> resolved contract, or null once a lookup found nothing.
 const arc56Contracts = ref<Record<string, Arc56Contract | null>>({});
 
 const hasLocalRows = computed(() =>
   rows.value.some((row) => row.scope === "local"),
+);
+
+const hasMultipleAssetAddresses = computed(
+  () => new Set(assetRows.value.map((row) => row.address)).size > 1,
+);
+
+const getAssetSync = (assetId: number) => {
+  if (assetId === 0) return undefined;
+  return store.state.indexer.assets.find(
+    (asset) => Number(asset.assetId) === assetId,
+  );
+};
+
+interface AssetDisplayRow extends AssetDeltaRow {
+  symbol: string;
+  formatted: string;
+}
+
+// formatCurrency renders the sign itself (via Intl.NumberFormat) for
+// negative bigints - only a "+" prefix for positive amounts needs adding
+// separately, which the template does.
+const assetDisplayRows = computed<AssetDisplayRow[]>(() =>
+  assetRows.value.map((row) => {
+    if (row.assetId === 0) {
+      return { ...row, symbol: "ALGO", formatted: formatCurrency(row.netAmount, "ALGO", 6) };
+    }
+    const asset = getAssetSync(row.assetId) as
+      | { name?: string; unitName?: string; decimals?: number }
+      | undefined;
+    const symbol = asset?.unitName || asset?.name || `#${row.assetId}`;
+    const decimals = asset?.decimals ?? 0;
+    return { ...row, symbol, formatted: formatCurrency(row.netAmount, symbol, decimals) };
+  }),
+);
+
+watch(
+  assetRows,
+  (list) => {
+    const assetIndexes = new Set<bigint>();
+    for (const row of list) {
+      if (row.assetId !== 0) assetIndexes.add(BigInt(row.assetId));
+    }
+    for (const assetIndex of assetIndexes) {
+      void store.dispatch("indexer/getAsset", { assetIndex });
+    }
+  },
+  { immediate: true },
 );
 
 interface DisplayRow extends AppStateChangeRow {
@@ -215,12 +309,14 @@ const runSimulation = async () => {
   if (props.transactions.length === 0) {
     status.value = "idle";
     rows.value = [];
+    assetRows.value = [];
     return;
   }
   status.value = "loading";
   errorMessage.value = "";
   failureMessage.value = "";
   rows.value = [];
+  assetRows.value = [];
   try {
     const groups = groupTransactionsByGroupId(props.transactions);
     const encodedGroups = groups.map((group) =>
@@ -234,6 +330,11 @@ const runSimulation = async () => {
     failureMessage.value = summary.failureMessage ?? "";
     status.value = "success";
     void ensureArc56Loaded(summary.rows.map((row) => row.appIndex));
+
+    // Net asset delta for the group's own top-level senders - deliberately
+    // not the AMM/app account, since that's not "the user"'s balance.
+    const interestedAddresses = props.transactions.map((txn) => txn.sender.toString());
+    assetRows.value = summarizeAssetDeltas(response, interestedAddresses);
   } catch (ex) {
     errorMessage.value = ex instanceof Error ? ex.message : String(ex);
     status.value = "error";
@@ -273,8 +374,25 @@ defineExpose({ runSimulation });
   font-size: 0.85rem;
 }
 
+.sim-panel-subtitle {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
 .sim-panel-table {
   font-size: 0.85rem;
+}
+
+.sim-asset-positive {
+  color: var(--p-green-600);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.sim-asset-negative {
+  color: var(--p-red-600);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .sim-panel-contract-name,
