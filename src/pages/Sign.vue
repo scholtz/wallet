@@ -20,6 +20,9 @@
         <Card v-else>
           <template #content>
             <p>{{ $t("pay.review_payment_help") }}</p>
+            <Message severity="info" v-if="isArc14" class="mb-3">
+              {{ $t("pay.arc14_auth_notice", { realm: arc14RealmDisplay }) }}
+            </Message>
             <div class="grid">
               <div class="col">
                 <div v-if="!multisigTxn" class="w-100">
@@ -669,6 +672,7 @@ import type {
   WalletAccount,
 } from "@/store/wallet";
 import type { PreparePaymentPayload } from "@/store/algod";
+import { getArc14Realm, isArc14AuthTransaction } from "@/scripts/encoding/arc14";
 
 const store = useStore();
 const route = useRoute();
@@ -951,8 +955,20 @@ const isRawSignedTxnSigned = computed(
 const msigNote = computed(() => {
   const txValue = multisigDecoded.value?.txn;
   if (!txValue?.note) return "";
+  if (isArc14AuthTransaction(txValue as LooseTransaction)) {
+    return getArc14Realm(txValue.note) ?? "";
+  }
   return Buffer.from(txValue.note).toString("utf8");
 });
+const arc14Txn = computed(
+  () => (multisigTxn.value ?? txn.value) as LooseTransaction | null
+);
+const isArc14 = computed(() =>
+  isArc14AuthTransaction(arc14Txn.value ?? undefined)
+);
+const arc14RealmDisplay = computed(
+  () => getArc14Realm(arc14Txn.value?.note) ?? ""
+);
 
 const setNoRedirectAction = (payload?: unknown) =>
   store.dispatch("config/setNoRedirect", payload);
@@ -1812,6 +1828,9 @@ onMounted(async () => {
       }
       if (txn.value?.note) {
         note.value = Buffer.from(txn.value.note).toString("utf8");
+        paynote.value = isArc14AuthTransaction(txn.value)
+          ? (getArc14Realm(txn.value.note) ?? note.value)
+          : note.value;
       }
       await makeAssets();
       if (txn.value?.genesisID && txn.value.genesisID !== envName.value) {

@@ -97,7 +97,16 @@
               field="type"
               :header="$t('connect.type')"
               :sortable="true"
-            />
+            >
+              <template #body="slotProps">
+                {{ slotProps.data.type }}
+                <Badge
+                  v-if="isArc14Auth(slotProps.data.txn)"
+                  severity="info"
+                  :value="$t('connect.arc14_auth_badge')"
+                />
+              </template>
+            </Column>
             <Column
               field="sender"
               :header="$t('connect.from')"
@@ -176,6 +185,17 @@
               <div class="p-3 detail-scroll">
                 <table>
                   <tbody>
+                    <tr v-if="isArc14Auth(txProps.data.txn)">
+                      <td colspan="2">
+                        <Message severity="info" class="m-0">
+                          {{
+                            $t("connect.arc14_auth_notice", {
+                              realm: arc14Realm(txProps.data.txn),
+                            })
+                          }}
+                        </Message>
+                      </td>
+                    </tr>
                     <tr v-if="txProps.data.txn.sender">
                       <td>{{ $t("connect.from") }}:</td>
                       <td>
@@ -292,7 +312,11 @@
                           <tbody>
                             <tr>
                               <td>
-                                {{ formatData(txProps.data.txn.note, "Text") }}
+                                {{
+                                  isArc14Auth(txProps.data.txn)
+                                    ? arc14Realm(txProps.data.txn)
+                                    : formatData(txProps.data.txn.note, "Text")
+                                }}
                               </td>
                               <td>
                                 {{ formatData(txProps.data.txn.note, "UInt") }}
@@ -472,6 +496,7 @@ import AlgorandAddress from "./AlgorandAddress.vue";
 import Arc56CallDetails from "./Arc56CallDetails.vue";
 import TransactionGroupSimulation from "./TransactionGroupSimulation.vue";
 import { useStore } from "../store";
+import { getArc14Realm, isArc14AuthTransaction } from "../scripts/encoding/arc14";
 
 type GlobalFilters = {
   formatCurrencyBigInt: (
@@ -831,6 +856,10 @@ const genesisMismatch = (txn: algosdk.Transaction): boolean => {
   const env = store.state.config.env;
   return Boolean(genesisId && env && genesisId !== env);
 };
+
+const isArc14Auth = (txn: algosdk.Transaction) => isArc14AuthTransaction(txn);
+
+const arc14Realm = (txn: algosdk.Transaction) => getArc14Realm(txn?.note) ?? "";
 
 const getAssetSync = (id: bigint | number | string) => {
   try {
