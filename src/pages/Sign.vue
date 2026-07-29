@@ -767,7 +767,6 @@ const accountFor2FARealm = ref("");
 const accountFor2FAAuthToken = ref("");
 const showFormSend = ref(false);
 const showFormCombine = ref(false);
-const fatal = ref("");
 const b64decode = ref<AlgorandProtocolParameters | null>(null);
 const note = ref("");
 
@@ -776,6 +775,15 @@ const walletAccounts = computed<WalletAccount[]>(
 );
 const envName = computed(() => store.state.config.env);
 const tokenSymbol = computed(() => store.state.config.tokenSymbol);
+// Reactive so that switching the active network (e.g. correcting a mistaken
+// selection) immediately reflects whether the tx now matches - it must not
+// stay stuck showing (or hiding) a mismatch computed once at page load.
+const fatal = computed(() => {
+  if (txn.value?.genesisID && txn.value.genesisID !== envName.value) {
+    return `Genesis id of the tx ${txn.value.genesisID} does not match current network ${envName.value}`;
+  }
+  return "";
+});
 
 const payFrom = computed(() => {
   const accountParam = toSingleParam(
@@ -1772,6 +1780,19 @@ watch(asset, async (assetValue) => {
   }
 });
 
+// A signature (or a submitted-tx result) produced while on one network is
+// stale the moment the user switches to another - the underlying tx still
+// embeds the previous network's genesis, so it must not linger and block a
+// fresh sign attempt (via isRawSignedTxnSigned) once the user has corrected
+// the network. signer/setEnv also clears the store-level signed cache; this
+// clears the page-local review state to match.
+watch(envName, () => {
+  rawSignedTxn.value = null;
+  confirmedRound.value = null;
+  tx.value = null;
+  error.value = "";
+});
+
 watch(isAuth, (auth) => {
   if (
     auth &&
@@ -1837,9 +1858,6 @@ onMounted(async () => {
           : note.value;
       }
       await makeAssets();
-      if (txn.value?.genesisID && txn.value.genesisID !== envName.value) {
-        fatal.value = `Genesis id of the tx ${txn.value.genesisID} does not match current network ${envName.value}`;
-      }
       page.value = "review";
     } catch (err) {
       console.error("Input is not valid base64-url format ", err);

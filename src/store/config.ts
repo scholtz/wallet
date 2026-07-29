@@ -460,7 +460,8 @@ const actions: ActionTree<ConfigState, RootState> = {
   // "mainnet-v1.0") so it's consistent everywhere env is used as a cache key
   // (wallet.ts per-network account data, the Settings network Select, etc.)
   // regardless of which alias was passed in.
-  async setEnv({ dispatch }, { env }: EnvPayload) {
+  async setEnv({ dispatch, commit, state }, { env }: EnvPayload) {
+    const previousEnv = state.env;
     const preset = findPreset(env);
     const canonicalEnv = preset?.env ?? env;
 
@@ -535,6 +536,15 @@ const actions: ActionTree<ConfigState, RootState> = {
       participationToken,
       indexerToken,
     });
+
+    // A signature (or a pending unsigned tx) produced while on one network
+    // must never be mistaken for "already signed" once the user has switched
+    // to another - the tx it applies to is stale the moment the network
+    // changes, since it embeds the previous network's genesis. See
+    // signer.ts's clearSignedCache.
+    if (canonicalEnv !== previousEnv) {
+      commit("signer/clearSignedCache", undefined, { root: true });
+    }
   },
   async setNoRedirect({ commit }) {
     commit("setNoRedirect");

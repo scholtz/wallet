@@ -68,6 +68,25 @@ const ensureEnv = (rootState: RootState): string => {
   return rootState.config.env;
 };
 
+// Rekey mappings are per-network (an account can be rekeyed to a different
+// signer on each chain), so which mapping applies must follow the network the
+// transaction itself was built for, not whatever network happens to be
+// selected in the UI right now. A tx keeps its embedded genesisID even after
+// the user switches the app's active network, so resolving via
+// rootState.config.env here would pick the wrong rekeyed signer (and produce
+// a signature that's invalid for the network the tx actually targets) any
+// time the two differ - e.g. a tx built while on the wrong network, or an
+// externally supplied (WalletConnect/pasted) tx for a network other than the
+// one currently selected. Falls back to the selected network only when the
+// tx has no genesisID at all.
+const resolveTxEnv = (rootState: RootState, tx: Transaction): string => {
+  const genesisId = (tx as unknown as { genesisID?: string })?.genesisID;
+  if (typeof genesisId === "string" && genesisId.length > 0) {
+    return genesisId;
+  }
+  return ensureEnv(rootState);
+};
+
 const ensureAccount = (
   rootState: RootState,
   address: string,
@@ -129,6 +148,15 @@ const mutations: MutationTree<SignerState> = {
   clearToSign(currentState) {
     currentState.toSign = undefined;
   },
+
+  // Invoked on a confirmed network switch (see config/setEnv) so that a
+  // signature produced while on one network can never linger and be mistaken
+  // for "already signed" once the user has moved to another network.
+  clearSignedCache(currentState) {
+    currentState.signed = {};
+    currentState.toSign = undefined;
+    currentState.toSignArray = [];
+  },
 };
 
 const actions: ActionTree<SignerState, RootState> = {
@@ -140,7 +168,7 @@ const actions: ActionTree<SignerState, RootState> = {
     payload: SignTransactionPayload,
   ): Promise<undefined | Uint8Array<ArrayBufferLike>> {
     try {
-      const env = ensureEnv(rootState);
+      const env = resolveTxEnv(rootState, payload.tx);
       const baseAccount = ensureAccount(rootState, payload.from);
       const signerAccount = resolveEnvRekey(
         rootState,
@@ -219,10 +247,10 @@ const actions: ActionTree<SignerState, RootState> = {
   },
   getSignerType(
     { dispatch, rootState },
-    { from }: { from: string },
+    { from, tx }: { from: string; tx?: Transaction },
   ): "ledger" | "msig" | "sk" | "hd" | "?" {
     try {
-      const env = ensureEnv(rootState);
+      const env = tx ? resolveTxEnv(rootState, tx) : ensureEnv(rootState);
       const baseAccount = ensureAccount(rootState, from);
       const resolvedAccount = resolveEnvRekey(
         rootState,
@@ -388,7 +416,7 @@ const actions: ActionTree<SignerState, RootState> = {
     if (!txn || !txn.sender?.publicKey) {
       throw new Error("Transaction object is not correct");
     }
-    const env = ensureEnv(rootState);
+    const env = resolveTxEnv(rootState, txn);
     const from = algosdk.encodeAddress(txn.sender.publicKey);
     const baseAccount = ensureAccount(rootState, from);
     const signerAccount = resolveEnvRekey(rootState, baseAccount, env, from);

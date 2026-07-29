@@ -720,7 +720,7 @@ watch(asset, async (assetValue) => {
     };
   }
   state.payamount = 0;
-  parseToAccount();
+  await parseToAccount();
 });
 
 watch(isAuth, (auth) => {
@@ -748,7 +748,7 @@ onMounted(async () => {
     state.asset = assetParam;
   }
 
-  parseToAccount();
+  await parseToAccount();
   const toAccountDirect = toSingleParam(
     route.params.toAccountDirect as string | string[] | undefined,
   );
@@ -945,11 +945,11 @@ const makeAssets = async () => {
     route.params.toAccount as string | string[] | undefined,
   );
   if (toAccountParam) {
-    parseToAccount(toAccountParam);
+    await parseToAccount(toAccountParam);
   }
 };
 
-const parseToAccount = (encodedValue?: string) => {
+const parseToAccount = async (encodedValue?: string) => {
   const encoded =
     encodedValue ??
     toSingleParam(route.params.toAccount as string | string[] | undefined);
@@ -960,18 +960,25 @@ const parseToAccount = (encodedValue?: string) => {
   if (parsed.payamountbase !== undefined) {
     state.payamount = Number(parsed.payamountbase) / decimalsPower.value;
   }
-  if (parsed.asset) {
-    state.asset = parsed.asset;
-    state.forceAsset = true;
-  }
   if (parsed.paynote) {
     state.paynote = parsed.paynote;
   }
   if (parsed.fee) {
     state.fee = Number(parsed.fee);
   }
+  // Must resolve before the asset is selected/preselected below: the asset
+  // list, balances, and the asset lookup itself are all keyed by the active
+  // network (accountData.value / getAsset both read store.state.config.env
+  // /indexer), so switching network and picking the asset need to happen in
+  // this order, not fired-and-forgotten in parallel - otherwise the asset id
+  // from the URL gets looked up against the network we're leaving, not the
+  // one the link actually points at.
   if (parsed.network && parsed.network != envName.value) {
-    setEnv({ env: parsed.network });
+    await setEnv({ env: parsed.network });
+  }
+  if (parsed.asset) {
+    state.asset = parsed.asset;
+    state.forceAsset = true;
   }
 };
 
@@ -1024,6 +1031,11 @@ const redirectToASAPayment = async () => {
       asset: assetId,
       reKeyTo: state.rekeyTo ? state.rekeyTo : undefined,
     });
+    if (!txData) {
+      // preparePayment already reported the failure (e.g. genesis mismatch)
+      // via toast/openError - nothing left to encode.
+      return;
+    }
     const encodedTx = algosdk.encodeUnsignedTransaction(txData);
     const b64 = Buffer.from(encodedTx).toString("base64");
     const b64Url = base642base64url(b64);
@@ -1048,6 +1060,11 @@ const redirectToNativePayment = async () => {
       asset: undefined,
       reKeyTo: state.rekeyTo ? state.rekeyTo : undefined,
     });
+    if (!txData) {
+      // preparePayment already reported the failure (e.g. genesis mismatch)
+      // via toast/openError - nothing left to encode.
+      return;
+    }
     const encodedTx = algosdk.encodeUnsignedTransaction(txData);
     const b64 = Buffer.from(encodedTx).toString("base64");
     const b64Url = base642base64url(b64);

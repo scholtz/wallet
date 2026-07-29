@@ -658,8 +658,8 @@ const formatGenesisHash = (genesisHash: Uint8Array | string) => {
   }
 };
 
-const getSignerTypeLocal = (from: string): SignerType => {
-  const env = store.state.config.env;
+const getSignerTypeLocal = (from: string, genesisId?: string): SignerType => {
+  const env = genesisId || store.state.config.env;
   if (!env) return "?";
   const baseAccount = store.state.wallet.privateAccounts.find(
     (item) => item.addr === from
@@ -732,6 +732,7 @@ const clickSign = async (data: TransactionWrapper) => {
     }
     const signerType = (await store.dispatch("signer/getSignerType", {
       from: data.txn.sender.toString(),
+      tx: data.txn,
     })) as SignerType;
     if (signerType === "msig") {
       await store.dispatch("signer/toSign", { tx: txn });
@@ -817,7 +818,7 @@ const toBeSigned = (data: TransactionWrapper) => {
     return true;
   }
   const fromAddress = encodeAddress(txn.sender);
-  const signerType = getSignerTypeLocal(fromAddress);
+  const signerType = getSignerTypeLocal(fromAddress, txn.genesisID);
   if (signerType === "msig") {
     const signedTx = algosdk.decodeSignedTransaction(signedMap[txId]);
     const subsig = signedTx.msig?.subsig ?? [];

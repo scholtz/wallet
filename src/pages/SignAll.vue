@@ -117,6 +117,7 @@ const toBeSigned = async (txn: algosdk.Transaction): Promise<boolean> => {
     : "-";
   const type = await store.dispatch("signer/getSignerType", {
     from: from,
+    tx: txn,
   });
   if (type == "msig") {
     // check sign threshold
@@ -172,6 +173,7 @@ const clickSign = async (data: TransactionTableEntry) => {
   }
   const type = await store.dispatch("signer/getSignerType", {
     from: data.from,
+    tx: data.txn,
   });
   if (type == "msig") {
     await store.dispatch("signer/returnTo", "SignAll");
