@@ -858,6 +858,7 @@
     "toggle_camera": "Kamera be/ki",
     "init_wc": "WalletConnect kapcsolat inicializálása",
     "sign_all": "Az összes aláírása",
+    "sign_single": "Tranzakció aláírása",
     "proposer": "Javaslattevő (Proposer)",
     "all_accounts": "Az összes számla használata",
     "wc1_tab": "WalletConnect v1",

@@ -35,7 +35,7 @@
             v-if="!atLeastOneSigned(slotProps.data)"
             @click="clickSignAll(slotProps.data)"
           >
-            {{ $t("connect.sign_all") }}
+            {{ signAllLabel(slotProps.data) }}
           </Button>
           <Button
             class="m-1"
@@ -499,6 +499,7 @@ import {
   watch,
 } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import AlgorandAddress from "./AlgorandAddress.vue";
 import Arc56CallDetails from "./Arc56CallDetails.vue";
 import TransactionGroupSimulation from "./TransactionGroupSimulation.vue";
@@ -560,6 +561,7 @@ const props = defineProps<{
 const requests = computed(() => props.requests);
 
 const store = useStore();
+const { t } = useI18n();
 const router = useRouter();
 
 const instance = getCurrentInstance();
@@ -874,8 +876,18 @@ const arc14Realm = (txn: algosdk.Transaction) => getArc14Realm(txn?.note) ?? "";
 // in the same request still get simulated normally.
 const simulatableTransactions = (data: RequestItem): algosdk.Transaction[] =>
   (data.transactions ?? [])
-    .filter((t: TransactionWrapper) => !isArc14Auth(t.txn))
-    .map((t: TransactionWrapper) => t.txn);
+    .filter((tx: TransactionWrapper) => !isArc14Auth(tx.txn))
+    .map((tx: TransactionWrapper) => tx.txn);
+
+const signAllLabel = (data: RequestItem): string => {
+  const list = data.transactions ?? [];
+  if (list.length !== 1) return t("connect.sign_all");
+  const txn = list[0].txn;
+  if (isArc14Auth(txn)) {
+    return t("connect.arc14_authenticate", { realm: arc14Realm(txn) });
+  }
+  return t("connect.sign_single");
+};
 
 const getAssetSync = (id: bigint | number | string) => {
   try {

@@ -858,6 +858,7 @@
     "toggle_camera": "Toggle camera",
     "init_wc": "Initialize connection to Wallet Connect",
     "sign_all": "Sign all",
+    "sign_single": "Teken transaksie",
     "proposer": "Proposer",
     "all_accounts": "Use all wallet accounts",
     "wc1_tab": "WalletConnect v1",

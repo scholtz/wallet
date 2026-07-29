@@ -858,6 +858,7 @@
     "toggle_camera": "Переключить камеру",
     "init_wc": "Инициализировать подключение к Wallet Connect",
     "sign_all": "Подписать все",
+    "sign_single": "Подписать транзакцию",
     "proposer": "Инициатор",
     "all_accounts": "Использовать все счета кошелька",
     "wc1_tab": "WalletConnect v1",

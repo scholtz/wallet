@@ -858,6 +858,7 @@
     "toggle_camera": "Cambiar de cámara",
     "init_wc": "Inicializar la conexión con WalletConnect",
     "sign_all": "Firmar todo",
+    "sign_single": "Firmar transacción",
     "proposer": "Proposer",
     "all_accounts": "Use all wallet accounts",
     "wc1_tab": "WalletConnect v1",
