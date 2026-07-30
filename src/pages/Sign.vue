@@ -769,6 +769,10 @@ const showFormSend = ref(false);
 const showFormCombine = ref(false);
 const b64decode = ref<AlgorandProtocolParameters | null>(null);
 const note = ref("");
+// Raw base-unit amount from a decoded axfer, held until the asset's real
+// decimals load (see watch(asset) below) - the ASA's decimals aren't known
+// synchronously, so payamount can't be scaled correctly until then.
+const decodedRawAmount = ref<bigint | undefined>(undefined);
 
 const walletAccounts = computed<WalletAccount[]>(
   () => store.state.wallet.privateAccounts
@@ -1774,7 +1778,12 @@ watch(asset, async (assetValue) => {
       assetObj.value = { ...fetched, amount: undefined };
     }
   }
-  payamount.value = 0;
+  if (decodedRawAmount.value !== undefined) {
+    payamount.value = Number(decodedRawAmount.value) / decimalsPower.value;
+    decodedRawAmount.value = undefined;
+  } else {
+    payamount.value = 0;
+  }
   if (route.params.toAccount) {
     parseToAccount();
   }
@@ -1845,9 +1854,10 @@ onMounted(async () => {
       }
       if (txn.value?.assetTransfer?.receiver) {
         payTo.value = txn.value.assetTransfer.receiver.toString();
+        const rawAssetAmount = BigInt(txn.value.assetTransfer.amount ?? 0);
+        decodedRawAmount.value = rawAssetAmount;
         asset.value = BigInt(txn.value.assetTransfer.assetIndex ?? 0);
-        payamount.value =
-          Number(txn.value.assetTransfer.amount ?? 0) / decimalsPower.value;
+        payamount.value = Number(rawAssetAmount) / decimalsPower.value;
       } else {
         asset.value = undefined;
       }
