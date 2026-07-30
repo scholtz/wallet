@@ -2,6 +2,10 @@ import type { DexAggregator, SwapContext } from "./types";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
 
+// Public/shared fallback key for users who have not set their own Deflex key in
+// Settings. It is intentionally not secret (shipped in client source, visible on
+// the wire) — treat it as an anonymous/shared identifier, not a credential.
+// Swap activity under this key is not distinguishable between different users.
 const DEFAULT_DEFLEX_API_KEY = "1b72df7e-1131-4449-8ce1-29b79dd3f51e";
 
 export const deflexAggregator: DexAggregator = {

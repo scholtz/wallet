@@ -328,6 +328,14 @@ watch(
       <div v-if="decoded.method?.desc" class="arc56-method-desc">
         {{ decoded.method.desc }}
       </div>
+      <div v-if="decoded.selectorHex || decoded.approvalHash" class="arc56-raw-identity">
+        <div v-if="decoded.selectorHex">
+          <strong>{{ t("arc56.raw_selector") }}:</strong> {{ decoded.selectorHex }}
+        </div>
+        <div v-if="decoded.approvalHash">
+          <strong>{{ t("arc56.program_hash") }}:</strong> {{ decoded.approvalHash }}
+        </div>
+      </div>
 
       <div
         v-if="decoded.candidates && decoded.candidates.length > 0"
@@ -505,6 +513,14 @@ watch(
 .arc56-method-desc {
   margin-bottom: 0.5rem;
   opacity: 0.85;
+}
+
+.arc56-raw-identity {
+  margin-bottom: 0.5rem;
+  font-family: monospace;
+  font-size: 0.85em;
+  opacity: 0.75;
+  word-break: break-all;
 }
 
 .arc56-candidates {

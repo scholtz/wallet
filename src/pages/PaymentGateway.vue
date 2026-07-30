@@ -327,7 +327,7 @@
               </div>
             </div>
             <br />
-            <a :href="url" target="_blank" rel="noreferrer">
+            <a :href="url" target="_blank" rel="noopener noreferrer">
               <Button>{{ $t("buttons.try_it_out") }}</Button>
             </a>
           </div>

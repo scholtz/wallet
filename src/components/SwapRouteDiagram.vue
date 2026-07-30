@@ -119,6 +119,9 @@
         <div v-else class="route-simulation-unavailable">
           {{ $t("swap.simulation_unavailable") }}
         </div>
+        <div v-if="simulation && simulation !== 'loading'" class="route-simulation-source">
+          {{ $t("connect.simulation_source") }}: <strong>{{ algodHost }}</strong>
+        </div>
         <div class="route-simulation-disclaimer">
           {{ $t("swap.simulation_disclaimer") }}
         </div>
@@ -207,9 +210,11 @@ import { useI18n } from "vue-i18n";
 import { useToast } from "primevue/usetoast";
 import copy from "copy-to-clipboard";
 import Tag from "primevue/tag";
+import { computed } from "vue";
 import formatCurrency from "@/scripts/numbers/formatCurrency";
 import type { AggregatorRouteInfo } from "@/scripts/aggregators/routeInfo";
 import type { SimulatedOutcome } from "@/scripts/aggregators/simulate";
+import { useStore } from "@/store";
 
 const props = defineProps<{
   routeInfo: AggregatorRouteInfo;
@@ -220,6 +225,17 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const toast = useToast();
+const store = useStore();
+
+// Shown so the user can see which node this preview was reported by - the
+// simulation result is only as trustworthy as this node (AW-2026-039).
+const algodHost = computed(() => {
+  try {
+    return new URL(store.state.config.algod).host;
+  } catch {
+    return store.state.config.algod;
+  }
+});
 
 const metaFor = (id: number) => props.assetMeta[id] ?? { symbol: `#${id}`, decimals: 6 };
 const symbolFor = (id: number) => metaFor(id).symbol;
@@ -457,6 +473,11 @@ html.p-dark .route-pool {
 
 .route-simulation-unavailable {
   font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+}
+
+.route-simulation-source {
+  font-size: 0.75rem;
   color: var(--p-text-muted-color);
 }
 

@@ -71,7 +71,7 @@
 
               <a
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 href="https://allo.info/address/AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
                 class="break-anywhere"
                 ><b

@@ -30,6 +30,9 @@
       <Message v-else severity="success" :closable="false">
         {{ $t("connect.simulation_success") }}
       </Message>
+      <div class="sim-panel-source">
+        {{ $t("connect.simulation_source") }}: <strong>{{ algodHost }}</strong>
+      </div>
 
       <div class="sim-panel-subtitle">
         {{ $t("connect.simulation_asset_changes_title") }}
@@ -185,6 +188,16 @@ const hasLocalRows = computed(() =>
 const hasMultipleAssetAddresses = computed(
   () => new Set(assetRows.value.map((row) => row.address)).size > 1,
 );
+
+// Shown so the user can see which node this preview was reported by - the
+// simulation result is only as trustworthy as this node (AW-2026-039).
+const algodHost = computed(() => {
+  try {
+    return new URL(store.state.config.algod).host;
+  } catch {
+    return store.state.config.algod;
+  }
+});
 
 const getAssetSync = (assetId: number) => {
   if (assetId === 0) return undefined;
@@ -403,6 +416,11 @@ defineExpose({ runSimulation });
 
 .sim-panel-empty {
   font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+}
+
+.sim-panel-source {
+  font-size: 0.75rem;
   color: var(--p-text-muted-color);
 }
 

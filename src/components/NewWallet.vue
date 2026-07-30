@@ -72,6 +72,7 @@
       <a
         href="https://github.com/scholtz/wallet/wiki/I-want-to-help-to-translate"
         target="_blank"
+        rel="noopener noreferrer"
         role="button"
       >
         <Button size="small" severity="secondary" link class="m-1">
