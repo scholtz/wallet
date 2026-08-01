@@ -92,6 +92,21 @@ function walkAssetDelta(
   }
 }
 
+// The amount an aggregator's quote/route selection and displayed price
+// should be based on: the ledger-computed simulated amount when available,
+// falling back to the aggregator API's self-reported quote only while
+// simulation is pending/unavailable (e.g. right after "Get Quote" resolves,
+// before the simulate round-trip completes).
+export function getEffectiveQuoteAmount(
+  quoteData: any
+): number | string | bigint | undefined {
+  if (!quoteData) return undefined;
+  if (quoteData.simulatedQuoteAmount !== undefined) {
+    return quoteData.simulatedQuoteAmount;
+  }
+  return quoteData.quoteAmount ?? quoteData.quote;
+}
+
 export function summarizeSimulation(
   response: algosdk.modelsv2.SimulateResponse,
   address: string,

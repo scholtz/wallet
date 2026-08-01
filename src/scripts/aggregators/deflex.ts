@@ -1,6 +1,7 @@
 import type { DexAggregator, SwapContext } from "./types";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
+import { getEffectiveQuoteAmount } from "./simulate";
 
 // Public/shared fallback key for users who have not set their own Deflex key in
 // Settings. It is intentionally not secret (shipped in client source, visible on
@@ -183,29 +184,28 @@ export const deflexAggregator: DexAggregator = {
 
   get isQuoteBetter() {
     return function (context: SwapContext) {
-      if (!context.aggregatorData.deflexQuotes.value) {
-        return false;
-      }
-      if (!context.aggregatorData.deflexQuotes.value.quote) {
-        return false;
-      }
-      // Compare with other aggregators
+      const own = getEffectiveQuoteAmount(
+        context.aggregatorData.deflexQuotes.value,
+      );
+      if (own === undefined || own === null) return false;
+      const ownValue = BigInt(own);
+      // Compare against every other enabled aggregator - must check all of
+      // them (not stop at the first one that's smaller) or a smaller quote
+      // encountered earlier in the list can hide a larger one later in it.
       const others = context.dexAggregators.filter(
         (a: any) =>
           a.name !== "deflex" && context.aggregatorData[a.enabledKey].value,
       );
       for (const other of others) {
-        const otherQuote =
-          context.aggregatorData[other.quotesKey].value?.quoteAmount ||
-          context.aggregatorData[other.quotesKey].value?.quote;
-        if (otherQuote) {
-          const deflex = BigInt(
-            context.aggregatorData.deflexQuotes.value.quote,
-          ).toString();
-          const otherVal = BigInt(otherQuote).toString();
-          if (otherVal.length > deflex.length) return false;
-          if (deflex.length > otherVal.length) return true;
-          if (otherVal > deflex) return false;
+        const otherQuote = getEffectiveQuoteAmount(
+          context.aggregatorData[other.quotesKey].value,
+        );
+        if (
+          otherQuote !== undefined &&
+          otherQuote !== null &&
+          BigInt(otherQuote) > ownValue
+        ) {
+          return false;
         }
       }
       return true;

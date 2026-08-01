@@ -2,6 +2,7 @@ import type { DexAggregator, SwapContext } from "./types";
 import { FolksRouterClient, Network, SwapMode } from "@folks-router/js-sdk";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
+import { getEffectiveQuoteAmount } from "./simulate";
 
 const getFolksClient = (context: SwapContext): FolksRouterClient | null => {
   if (context.$store.state.config.env == "mainnet-v1.0") {
@@ -169,29 +170,28 @@ export const folksAggregator: DexAggregator = {
 
   get isQuoteBetter() {
     return function (context: SwapContext) {
-      if (!context.aggregatorData.folksQuote.value) {
-        return false;
-      }
-      if (!context.aggregatorData.folksQuote.value.quoteAmount) {
-        return false;
-      }
-      // Compare with other aggregators
+      const own = getEffectiveQuoteAmount(
+        context.aggregatorData.folksQuote.value
+      );
+      if (own === undefined || own === null) return false;
+      const ownValue = BigInt(own);
+      // Compare against every other enabled aggregator - must check all of
+      // them (not stop at the first one that's smaller) or a smaller quote
+      // encountered earlier in the list can hide a larger one later in it.
       const others = context.dexAggregators.filter(
         (a: any) =>
           a.name !== "folks" && context.aggregatorData[a.enabledKey].value
       );
       for (const other of others) {
-        const otherQuote =
-          context.aggregatorData[other.quotesKey].value?.quoteAmount ||
-          context.aggregatorData[other.quotesKey].value?.quote;
-        if (otherQuote) {
-          const folks = BigInt(
-            context.aggregatorData.folksQuote.value.quoteAmount
-          ).toString();
-          const otherVal = BigInt(otherQuote).toString();
-          if (otherVal.length > folks.length) return false;
-          if (folks.length > otherVal.length) return true;
-          if (otherVal > folks) return false;
+        const otherQuote = getEffectiveQuoteAmount(
+          context.aggregatorData[other.quotesKey].value
+        );
+        if (
+          otherQuote !== undefined &&
+          otherQuote !== null &&
+          BigInt(otherQuote) > ownValue
+        ) {
+          return false;
         }
       }
       return true;

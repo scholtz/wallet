@@ -18,21 +18,25 @@
           />
           {{ $t("swap.execute_button_deflex") }}
         </div>
-        <div v-if="deflexQuotes.quote">{{ $t("labels.quote") }}</div>
-        <div v-if="folksQuote.quoteAmount">
+        <div v-if="deflexEffectiveAmount !== undefined">
+          {{ $t("labels.quote") }}
+        </div>
+        <div v-if="deflexEffectiveAmount !== undefined">
           {{
             $filters.formatCurrency(
-              Number(deflexQuotes.quote),
+              Number(deflexEffectiveAmount),
               "",
               toAssetDecimals
             )
           }}
         </div>
-        <div v-if="deflexQuotes.quote">{{ $t("labels.price") }}</div>
-        <div v-if="deflexQuotes.quote">
+        <div v-if="deflexEffectiveAmount !== undefined">
+          {{ $t("labels.price") }}
+        </div>
+        <div v-if="deflexEffectiveAmount !== undefined">
           {{
             $filters.formatCurrency(
-              (10 ** 6 * Number(deflexQuotes.quote)) /
+              (10 ** 6 * Number(deflexEffectiveAmount)) /
                 10 ** toAssetDecimals /
                 payamount,
               pair,
@@ -40,11 +44,11 @@
             )
           }}
         </div>
-        <div v-if="deflexQuotes.quote">
+        <div v-if="deflexEffectiveAmount !== undefined">
           {{
             $filters.formatCurrency(
               10 ** 6 /
-                ((10 ** 6 * Number(deflexQuotes.quote)) /
+                ((10 ** 6 * Number(deflexEffectiveAmount)) /
                   10 ** toAssetDecimals /
                   payamount /
                   10 ** 6),
@@ -74,21 +78,25 @@
           {{ $t("swap.execute_button_folks") }}
           <br />
         </div>
-        <div v-if="deflexQuotes.quote">{{ $t("labels.quote") }}</div>
-        <div v-if="folksQuote.quoteAmount">
+        <div v-if="folksEffectiveAmount !== undefined">
+          {{ $t("labels.quote") }}
+        </div>
+        <div v-if="folksEffectiveAmount !== undefined">
           {{
             $filters.formatCurrency(
-              Number(folksQuote.quoteAmount),
+              Number(folksEffectiveAmount),
               "",
               toAssetDecimals
             )
           }}
         </div>
-        <div v-if="deflexQuotes.quote">{{ $t("labels.price") }}</div>
-        <div v-if="folksQuote.quoteAmount">
+        <div v-if="folksEffectiveAmount !== undefined">
+          {{ $t("labels.price") }}
+        </div>
+        <div v-if="folksEffectiveAmount !== undefined">
           {{
             $filters.formatCurrency(
-              (10 ** 6 * Number(folksQuote.quoteAmount)) /
+              (10 ** 6 * Number(folksEffectiveAmount)) /
                 10 ** toAssetDecimals /
                 payamount,
               pair,
@@ -96,11 +104,11 @@
             )
           }}
         </div>
-        <div v-if="folksQuote.quoteAmount">
+        <div v-if="folksEffectiveAmount !== undefined">
           {{
             $filters.formatCurrency(
               10 ** 6 /
-                ((10 ** 6 * Number(folksQuote.quoteAmount)) /
+                ((10 ** 6 * Number(folksEffectiveAmount)) /
                   10 ** toAssetDecimals /
                   payamount /
                   10 ** 6),
@@ -130,21 +138,25 @@
           {{ $t("swap.execute_button_biatec") }}
           <br />
         </div>
-        <div v-if="biatecQuotes?.quoteAmount">{{ $t("labels.quote") }}</div>
-        <div v-if="biatecQuotes?.quoteAmount">
+        <div v-if="biatecEffectiveAmount !== undefined">
+          {{ $t("labels.quote") }}
+        </div>
+        <div v-if="biatecEffectiveAmount !== undefined">
           {{
             $filters.formatCurrency(
-              Number(biatecQuotes.quoteAmount),
+              Number(biatecEffectiveAmount),
               "",
               toAssetDecimals
             )
           }}
         </div>
-        <div v-if="biatecQuotes?.quoteAmount">{{ $t("labels.price") }}</div>
-        <div v-if="biatecQuotes?.quoteAmount">
+        <div v-if="biatecEffectiveAmount !== undefined">
+          {{ $t("labels.price") }}
+        </div>
+        <div v-if="biatecEffectiveAmount !== undefined">
           {{
             $filters.formatCurrency(
-              (10 ** 6 * Number(biatecQuotes.quoteAmount)) /
+              (10 ** 6 * Number(biatecEffectiveAmount)) /
                 10 ** toAssetDecimals /
                 payamount,
               pair,
@@ -152,11 +164,11 @@
             )
           }}
         </div>
-        <div v-if="biatecQuotes?.quoteAmount">
+        <div v-if="biatecEffectiveAmount !== undefined">
           {{
             $filters.formatCurrency(
               10 ** 6 /
-                ((10 ** 6 * Number(biatecQuotes.quoteAmount)) /
+                ((10 ** 6 * Number(biatecEffectiveAmount)) /
                   10 ** toAssetDecimals /
                   payamount /
                   10 ** 6),
@@ -188,21 +200,25 @@
           {{ $t("swap.execute_button_biatec_stage") }}
           <br />
         </div>
-        <div v-if="biatecStageQuotes?.quoteAmount">{{ $t("labels.quote") }}</div>
-        <div v-if="biatecStageQuotes?.quoteAmount">
+        <div v-if="biatecStageEffectiveAmount !== undefined">
+          {{ $t("labels.quote") }}
+        </div>
+        <div v-if="biatecStageEffectiveAmount !== undefined">
           {{
             $filters.formatCurrency(
-              Number(biatecStageQuotes.quoteAmount),
+              Number(biatecStageEffectiveAmount),
               "",
               toAssetDecimals
             )
           }}
         </div>
-        <div v-if="biatecStageQuotes?.quoteAmount">{{ $t("labels.price") }}</div>
-        <div v-if="biatecStageQuotes?.quoteAmount">
+        <div v-if="biatecStageEffectiveAmount !== undefined">
+          {{ $t("labels.price") }}
+        </div>
+        <div v-if="biatecStageEffectiveAmount !== undefined">
           {{
             $filters.formatCurrency(
-              (10 ** 6 * Number(biatecStageQuotes.quoteAmount)) /
+              (10 ** 6 * Number(biatecStageEffectiveAmount)) /
                 10 ** toAssetDecimals /
                 payamount,
               pair,
@@ -210,11 +226,11 @@
             )
           }}
         </div>
-        <div v-if="biatecStageQuotes?.quoteAmount">
+        <div v-if="biatecStageEffectiveAmount !== undefined">
           {{
             $filters.formatCurrency(
               10 ** 6 /
-                ((10 ** 6 * Number(biatecStageQuotes.quoteAmount)) /
+                ((10 ** 6 * Number(biatecStageEffectiveAmount)) /
                   10 ** toAssetDecimals /
                   payamount /
                   10 ** 6),
@@ -229,6 +245,8 @@
 </template>
 
 <script>
+import { getEffectiveQuoteAmount } from "@/scripts/aggregators/simulate";
+
 export default {
   name: "SwapExecuteButtons",
   props: {
@@ -263,5 +281,22 @@ export default {
     "execute-biatec",
     "execute-biatec-stage",
   ],
+  computed: {
+    // The simulated (dry-run) amount when available, falling back to the
+    // aggregator API's self-reported quote only while simulation is
+    // pending/unavailable - see useSwap.ts's simulateAggregatorQuote.
+    deflexEffectiveAmount() {
+      return getEffectiveQuoteAmount(this.deflexQuotes);
+    },
+    folksEffectiveAmount() {
+      return getEffectiveQuoteAmount(this.folksQuote);
+    },
+    biatecEffectiveAmount() {
+      return getEffectiveQuoteAmount(this.biatecQuotes);
+    },
+    biatecStageEffectiveAmount() {
+      return getEffectiveQuoteAmount(this.biatecStageQuotes);
+    },
+  },
 };
 </script>

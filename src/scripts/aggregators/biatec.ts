@@ -2,6 +2,7 @@ import type { DexAggregator, SwapContext } from "./types";
 import { biatecRouter } from "biatec-router";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
+import { getEffectiveQuoteAmount } from "./simulate";
 
 export interface BiatecAggregatorOptions {
   name: string;
@@ -232,25 +233,29 @@ export function createBiatecAggregator(
 
     get isQuoteBetter() {
       return function (context: SwapContext) {
-        if (!context.aggregatorData[quotesKey].value?.quoteAmount) {
-          return false;
-        }
-        // Compare with other aggregators
+        const own = getEffectiveQuoteAmount(
+          context.aggregatorData[quotesKey].value
+        );
+        if (own === undefined || own === null) return false;
+        const ownValue = BigInt(own);
+        // Compare against every other enabled aggregator - must check all of
+        // them (not stop at the first one that's smaller) or a smaller quote
+        // encountered earlier in the list can hide a larger one later in it
+        // (e.g. the regular Biatec route being checked before the Stage
+        // route, even when Stage is the actual best quote).
         const others = context.dexAggregators.filter(
           (a: any) => a.name !== name && context.aggregatorData[a.enabledKey].value
         );
         for (const other of others) {
-          const otherQuote =
-            context.aggregatorData[other.quotesKey].value?.quoteAmount ||
-            context.aggregatorData[other.quotesKey].value?.quote;
-          if (otherQuote) {
-            const biatec = BigInt(
-              context.aggregatorData[quotesKey].value.quoteAmount
-            ).toString();
-            const otherVal = BigInt(otherQuote).toString();
-            if (otherVal.length > biatec.length) return false;
-            if (biatec.length > otherVal.length) return true;
-            if (otherVal > biatec) return false;
+          const otherQuote = getEffectiveQuoteAmount(
+            context.aggregatorData[other.quotesKey].value
+          );
+          if (
+            otherQuote !== undefined &&
+            otherQuote !== null &&
+            BigInt(otherQuote) > ownValue
+          ) {
+            return false;
           }
         }
         return true;

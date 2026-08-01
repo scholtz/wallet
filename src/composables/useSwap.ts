@@ -3,7 +3,13 @@ import { ref, computed, Ref } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { getActiveDexAggregators } from "../scripts/dexAggregators";
-import type { SwapContext } from "../scripts/aggregators/types";
+import type { DexAggregator, SwapContext } from "../scripts/aggregators/types";
+import {
+  extractDeflexSimulateGroups,
+  extractFolksSimulateGroups,
+  extractBiatecSimulateGroups,
+  summarizeSimulation,
+} from "../scripts/aggregators/simulate";
 import type { Account, SwapStore } from "../types/swap";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
@@ -387,6 +393,55 @@ export function useSwap() {
     loadingAssets.value = false;
   };
 
+  // The aggregator APIs only ever return an *advertised* quote - the real
+  // outcome depends on other activity hitting the same pools between quoting
+  // and execution. Dry-running each aggregator's actual prepared transactions
+  // via algod's simulate endpoint (no signature/funds movement required)
+  // gives the ledger-computed amount instead, which is what route-selection
+  // (isQuoteBetter) and the on-screen quote/price figures should be based on
+  // - the API-reported quote is only a fallback while simulation is pending
+  // or unavailable (e.g. asset not opted in yet).
+  const simulateAggregatorQuote = async (agg: DexAggregator): Promise<void> => {
+    const addr = account.value?.addr;
+    const quoteData = aggregatorData[agg.quotesKey].value;
+    if (!addr || !quoteData) return;
+
+    let groups: Uint8Array[][] = [];
+    if (agg.name === "deflex") {
+      groups = extractDeflexSimulateGroups(aggregatorData.deflexTxs.value);
+    } else if (agg.name === "folks") {
+      groups = extractFolksSimulateGroups(aggregatorData.folksTxns.value);
+    } else if (agg.name === "biatec" || agg.name === "biatecStage") {
+      groups = extractBiatecSimulateGroups(quoteData);
+    }
+    if (groups.length === 0 || groups.every((group) => group.length === 0)) {
+      return;
+    }
+
+    try {
+      const response = await store.dispatch("algod/simulateTransactionGroups", {
+        groups,
+      });
+      const outcome = summarizeSimulation(
+        response,
+        addr,
+        Number(asset.value ?? 0n),
+        Number(toAsset.value ?? 0n)
+      );
+      aggregatorData[agg.quotesKey].value = {
+        ...aggregatorData[agg.quotesKey].value,
+        simulatedQuoteAmount: outcome.success ? outcome.netReceived : undefined,
+        simulationFailed: !outcome.success,
+      };
+    } catch (e) {
+      aggregatorData[agg.quotesKey].value = {
+        ...aggregatorData[agg.quotesKey].value,
+        simulatedQuoteAmount: undefined,
+        simulationFailed: true,
+      };
+    }
+  };
+
   const clickGetQuote = async (): Promise<void> => {
     await store.dispatch("wallet/prolong");
     note.value = "";
@@ -401,11 +456,17 @@ export function useSwap() {
         agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
     });
 
-    const promises = dexAggregators
-      .filter((agg) => aggregatorData[agg.enabledKey].value)
-      .map((agg) => agg.getQuote(context));
+    const enabledAggregators = dexAggregators.filter(
+      (agg) => aggregatorData[agg.enabledKey].value
+    );
 
-    await Promise.all(promises);
+    await Promise.all(enabledAggregators.map((agg) => agg.getQuote(context)));
+    // Route-selection and the on-screen quote/price must reflect the
+    // simulated outcome, so wait for it before releasing the "processing"
+    // state that unblocks the execute buttons.
+    await Promise.all(
+      enabledAggregators.map((agg) => simulateAggregatorQuote(agg))
+    );
     processingQuote.value = false;
   };
 
