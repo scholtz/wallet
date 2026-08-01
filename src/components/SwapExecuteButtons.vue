@@ -167,6 +167,64 @@
         </div>
       </div>
     </Button>
+    <Button
+      v-if="useBiatecStage"
+      class="my-2 mx-1"
+      :disabled="!allowExecuteBiatecStage || processingTradeBiatecStage"
+      :severity="
+        allowExecuteBiatecStage && isBiatecStageQuoteBetter
+          ? 'primary'
+          : 'secondary'
+      "
+      @click="$emit('execute-biatec-stage')"
+    >
+      <div>
+        <div>
+          <ProgressSpinner
+            v-if="processingTradeBiatecStage"
+            style="width: 1em; height: 1em"
+            strokeWidth="5"
+          />
+          {{ $t("swap.execute_button_biatec_stage") }}
+          <br />
+        </div>
+        <div v-if="biatecStageQuotes?.quoteAmount">{{ $t("labels.quote") }}</div>
+        <div v-if="biatecStageQuotes?.quoteAmount">
+          {{
+            $filters.formatCurrency(
+              Number(biatecStageQuotes.quoteAmount),
+              "",
+              toAssetDecimals
+            )
+          }}
+        </div>
+        <div v-if="biatecStageQuotes?.quoteAmount">{{ $t("labels.price") }}</div>
+        <div v-if="biatecStageQuotes?.quoteAmount">
+          {{
+            $filters.formatCurrency(
+              (10 ** 6 * Number(biatecStageQuotes.quoteAmount)) /
+                10 ** toAssetDecimals /
+                payamount,
+              pair,
+              6
+            )
+          }}
+        </div>
+        <div v-if="biatecStageQuotes?.quoteAmount">
+          {{
+            $filters.formatCurrency(
+              10 ** 6 /
+                ((10 ** 6 * Number(biatecStageQuotes.quoteAmount)) /
+                  10 ** toAssetDecimals /
+                  payamount /
+                  10 ** 6),
+              pairReversed,
+              6
+            )
+          }}
+        </div>
+      </div>
+    </Button>
   </div>
 </template>
 
@@ -177,23 +235,33 @@ export default {
     useDeflex: Boolean,
     useFolks: Boolean,
     useBiatec: Boolean,
+    useBiatecStage: Boolean,
     allowExecuteDeflex: Boolean,
     allowExecuteFolks: Boolean,
     allowExecuteBiatec: Boolean,
+    allowExecuteBiatecStage: Boolean,
     processingTradeDeflex: Boolean,
     processingTradeFolks: Boolean,
     processingTradeBiatec: Boolean,
+    processingTradeBiatecStage: Boolean,
     isDeflexQuoteBetter: Boolean,
     isFolksQuoteBetter: Boolean,
     isBiatecQuoteBetter: Boolean,
+    isBiatecStageQuoteBetter: Boolean,
     deflexQuotes: Object,
     folksQuote: Object,
     biatecQuotes: Object,
+    biatecStageQuotes: Object,
     toAssetDecimals: Number,
     payamount: Number,
     pair: String,
     pairReversed: String,
   },
-  emits: ["execute-deflex", "execute-folks", "execute-biatec"],
+  emits: [
+    "execute-deflex",
+    "execute-folks",
+    "execute-biatec",
+    "execute-biatec-stage",
+  ],
 };
 </script>

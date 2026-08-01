@@ -81,6 +81,7 @@
     "execute_button_deflex": "Execute using Haystack",
     "execute_button_folks": "Execute using Folks router",
     "execute_button_biatec": "Provést pomocí Biatec routeru",
+    "execute_button_biatec_stage": "Provést pomocí Biatec routeru (Stage)",
     "slippage": "Slippage percentage",
     "explore_routes": "Prozkoumat trasy",
     "routes_dialog_title": "Detaily trasy swapu",
@@ -88,6 +89,7 @@
     "aggregator_name_deflex": "Haystack",
     "aggregator_name_folks": "Folks Router",
     "aggregator_name_biatec": "Biatec Router",
+    "aggregator_name_biatec_stage": "Biatec Router (Stage)",
     "routes_input": "Vstup",
     "routes_output": "Výstup",
     "routes_price_impact": "Cenový dopad",
@@ -552,6 +554,8 @@
     "protocol_change_success": "Protokol byl úspěšně zaregistrován",
     "dev_settings": "Zobrazovat informace pro vývojáře",
     "multiaccount_ops": "Povolit operace s více účty",
+    "stage_router_enabled": "Povolit stage routery",
+    "stage_router_enabled_help": "Také načítat směnné trasy ze stage routeru Biatec (stage.router.api.biatec.io) společně s produkčním, pro testování připravovaných vylepšení směrování před jejich nasazením.",
     "update_password": "Aktualizovat heslo"
   },
   "transaction": {
@@ -1085,6 +1089,7 @@
     "use_folks": "Používat Folks router",
     "use_deflex": "Používat Haystack",
     "use_biatec": "Používat Biatec router",
+    "use_biatecStage": "Používat Biatec router (Stage)",
     "quote": "Kotace:",
     "price": "Cena:"
   },

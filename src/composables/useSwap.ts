@@ -2,7 +2,7 @@
 import { ref, computed, Ref } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
-import { dexAggregators } from "../scripts/dexAggregators";
+import { getActiveDexAggregators } from "../scripts/dexAggregators";
 import type { SwapContext } from "../scripts/aggregators/types";
 import type { Account, SwapStore } from "../types/swap";
 import algosdk from "algosdk";
@@ -21,6 +21,13 @@ const normalizeAmount = (value: number | bigint | undefined | null): number => {
 export function useSwap() {
   const store = useStore<RootState>();
   const route = useRoute();
+
+  // Fixed for the lifetime of this composable instance (Swap.vue is
+  // remounted on route navigation, so a Settings toggle change is picked up
+  // on the next visit to the swap page).
+  const dexAggregators = getActiveDexAggregators(
+    store.state.config.stageRouterEnabled
+  );
 
   // Reactive state
   const assets: Ref<ExtendedStoredAsset[]> = ref([]);
@@ -50,7 +57,10 @@ export function useSwap() {
     );
     aggregatorData[agg.processingKey] = ref(false);
     aggregatorData[agg.enabledKey] = ref(
-      agg.name === "folks" || agg.name === "deflex" || agg.name === "biatec"
+      agg.name === "folks" ||
+        agg.name === "deflex" ||
+        agg.name === "biatec" ||
+        agg.name === "biatecStage"
     );
   });
 
@@ -280,6 +290,11 @@ export function useSwap() {
     return agg ? agg.allowExecute(context) : false;
   });
 
+  const allowExecuteBiatecStage = computed<boolean>(() => {
+    const agg = dexAggregators.find((a) => a.name === "biatecStage");
+    return agg ? agg.allowExecute(context) : false;
+  });
+
   const isFolksQuoteBetter = computed<boolean>(() => {
     const agg = dexAggregators.find((a) => a.name === "folks");
     return agg ? agg.isQuoteBetter(context) : false;
@@ -287,6 +302,11 @@ export function useSwap() {
 
   const isBiatecQuoteBetter = computed<boolean>(() => {
     const agg = dexAggregators.find((a) => a.name === "biatec");
+    return agg ? agg.isQuoteBetter(context) : false;
+  });
+
+  const isBiatecStageQuoteBetter = computed<boolean>(() => {
+    const agg = dexAggregators.find((a) => a.name === "biatecStage");
     return agg ? agg.isQuoteBetter(context) : false;
   });
 
@@ -405,6 +425,14 @@ export function useSwap() {
     }
   };
 
+  const clickExecuteBiatecStage = async (): Promise<void> => {
+    const agg = dexAggregators.find((a) => a.name === "biatecStage");
+    if (agg) {
+      await agg.execute(context);
+      await reloadAccount();
+    }
+  };
+
   const clickExecuteDeflex = async (): Promise<void> => {
     const agg = dexAggregators.find((a) => a.name === "deflex");
     if (agg) {
@@ -479,6 +507,7 @@ export function useSwap() {
     fee,
     aggregatorData,
     loadingAssets,
+    dexAggregators,
 
     // Computed
     formInvalid,
@@ -491,6 +520,7 @@ export function useSwap() {
     allowExecuteDeflex,
     allowExecuteFolks,
     allowExecuteBiatec,
+    allowExecuteBiatecStage,
     appsToOptIn,
     requiresOptIn,
     unit,
@@ -498,6 +528,7 @@ export function useSwap() {
     pairReversed,
     isFolksQuoteBetter,
     isBiatecQuoteBetter,
+    isBiatecStageQuoteBetter,
     isDeflexQuoteBetter,
 
     // Methods
@@ -507,6 +538,7 @@ export function useSwap() {
     checkNetwork,
     clickExecuteFolks,
     clickExecuteBiatec,
+    clickExecuteBiatecStage,
     clickExecuteDeflex,
     swapTokens,
     clickOptInToApps,

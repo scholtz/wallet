@@ -251,6 +251,14 @@
             aria-label="Enable multiaccount ops"
           />
         </div>
+        <h2>{{ $t("settings.stage_router_enabled") }}</h2>
+        <p>{{ $t("settings.stage_router_enabled_help") }}</p>
+        <div>
+          <ToggleSwitch
+            v-model="stageRouterEnabled"
+            aria-label="Enable stage routers"
+          />
+        </div>
         <h2>{{ $t("settings.backup") }}</h2>
         <p>{{ $t("settings.backup_help") }}</p>
         <p>
@@ -310,6 +318,7 @@ export default {
       indexerToken: "",
       dev: false,
       multiaccountOps: false,
+      stageRouterEnabled: false,
     };
   },
   computed: {
@@ -422,6 +431,9 @@ export default {
     multiaccountOps() {
       this.setMultiaccountOps(this.multiaccountOps);
     },
+    stageRouterEnabled() {
+      this.setStageRouterEnabled(this.stageRouterEnabled);
+    },
   },
   async mounted() {
     if (this.envConfig) {
@@ -435,6 +447,7 @@ export default {
     this.indexerToken = this.indexerTokenConfig;
     this.dev = this.$store.state.config.dev;
     this.multiaccountOps = this.$store.state.config.multiaccountOps;
+    this.stageRouterEnabled = this.$store.state.config.stageRouterEnabled;
     await this.getGenesisList();
     if (this.env != "custom") {
       // Only fetches the provider lists for display in the override Selects
@@ -456,6 +469,7 @@ export default {
       setLanguage: "config/setLanguage",
       setDev: "config/setDev",
       setMultiaccountOps: "config/setMultiaccountOps",
+      setStageRouterEnabled: "config/setStageRouterEnabled",
       changePassword: "wallet/changePassword",
       backupWallet: "wallet/backupWallet",
       destroyWallet: "wallet/destroyWallet",

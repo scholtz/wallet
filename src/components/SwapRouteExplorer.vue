@@ -69,11 +69,13 @@ const props = defineProps<{
   useDeflex: boolean;
   useFolks: boolean;
   useBiatec: boolean;
+  useBiatecStage: boolean;
   deflexQuotes: unknown;
   deflexTxs: unknown;
   folksQuote: unknown;
   folksTxns: unknown;
   biatecQuotes: unknown;
+  biatecStageQuotes: unknown;
   fromAssetObj?: StoredAsset;
   toAssetObj?: StoredAsset;
   payamount: number;
@@ -135,6 +137,18 @@ const tabs = computed<RouteTab[]>(() => {
       displayName: t("swap.aggregator_name_biatec"),
       info: buildBiatecRouteInfo(props.biatecQuotes, fromAssetId.value, toAssetId.value),
       rawQuote: props.biatecQuotes,
+    });
+  }
+  if (props.useBiatecStage) {
+    list.push({
+      name: "biatecStage",
+      displayName: t("swap.aggregator_name_biatec_stage"),
+      info: buildBiatecRouteInfo(
+        props.biatecStageQuotes,
+        fromAssetId.value,
+        toAssetId.value
+      ),
+      rawQuote: props.biatecStageQuotes,
     });
   }
   return list;
@@ -220,6 +234,8 @@ const simulateTab = async (tab: RouteTab): Promise<void> => {
     groups = extractFolksSimulateGroups(props.folksTxns);
   } else if (tab.name === "biatec") {
     groups = extractBiatecSimulateGroups(props.biatecQuotes);
+  } else if (tab.name === "biatecStage") {
+    groups = extractBiatecSimulateGroups(props.biatecStageQuotes);
   }
   if (groups.length === 0 || groups.every((group) => group.length === 0)) return;
 

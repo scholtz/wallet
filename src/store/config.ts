@@ -51,6 +51,7 @@ export interface ConfigState {
   language: string;
   theme: string;
   multiaccountOps: boolean;
+  stageRouterEnabled: boolean;
   assetProfiles: AssetProfile[];
   activeAssetProfileId: string;
 }
@@ -104,6 +105,7 @@ const state = (): ConfigState => ({
   language: "en-US",
   theme: "",
   multiaccountOps: false,
+  stageRouterEnabled: false,
   assetProfiles: [],
   activeAssetProfileId: "",
 });
@@ -135,6 +137,10 @@ const mutations: MutationTree<ConfigState> = {
   setMultiaccountOps(currentState, value: boolean) {
     localStorage.setItem("multiaccountOps", String(value));
     currentState.multiaccountOps = value;
+  },
+  setStageRouterEnabled(currentState, value: boolean) {
+    localStorage.setItem("stageRouterEnabled", String(value));
+    currentState.stageRouterEnabled = value;
   },
   setAssetProfiles(currentState, value: AssetProfile[]) {
     localStorage.setItem("assetProfiles", JSON.stringify(value));
@@ -207,6 +213,10 @@ const mutations: MutationTree<ConfigState> = {
     const multiaccountOps = localStorage.getItem("multiaccountOps");
     if (multiaccountOps && multiaccountOps !== "false") {
       currentState.multiaccountOps = true;
+    }
+    const stageRouterEnabled = localStorage.getItem("stageRouterEnabled");
+    if (stageRouterEnabled && stageRouterEnabled !== "false") {
+      currentState.stageRouterEnabled = true;
     }
     const algodHost = localStorage.getItem("algodHost");
     if (algodHost) {
@@ -554,6 +564,9 @@ const actions: ActionTree<ConfigState, RootState> = {
   },
   async setMultiaccountOps({ commit }, value: boolean) {
     commit("setMultiaccountOps", value);
+  },
+  async setStageRouterEnabled({ commit }, value: boolean) {
+    commit("setStageRouterEnabled", value);
   },
   async upsertAssetProfile({ commit, state }, profile: AssetProfile) {
     const existing = state.assetProfiles.filter((p) => p.id !== profile.id);

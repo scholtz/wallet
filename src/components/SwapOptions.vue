@@ -28,12 +28,14 @@ export default {
     useFolks: Boolean,
     useDeflex: Boolean,
     useBiatec: Boolean,
+    useBiatecStage: Boolean,
   },
   methods: {
     getValue(aggregator) {
       if (aggregator.name === "folks") return this.useFolks;
       if (aggregator.name === "deflex") return this.useDeflex;
       if (aggregator.name === "biatec") return this.useBiatec;
+      if (aggregator.name === "biatecStage") return this.useBiatecStage;
       return false;
     },
     updateValue(aggregator, value) {
@@ -43,9 +45,16 @@ export default {
         this.$emit("update:useDeflex", value);
       } else if (aggregator.name === "biatec") {
         this.$emit("update:useBiatec", value);
+      } else if (aggregator.name === "biatecStage") {
+        this.$emit("update:useBiatecStage", value);
       }
     },
   },
-  emits: ["update:useFolks", "update:useDeflex", "update:useBiatec"],
+  emits: [
+    "update:useFolks",
+    "update:useDeflex",
+    "update:useBiatec",
+    "update:useBiatecStage",
+  ],
 };
 </script>

@@ -81,6 +81,7 @@
     "execute_button_deflex": "Uitvoer met Haystack",
     "execute_button_folks": "Uitvoer met Folks router",
     "execute_button_biatec": "Voer uit met Biatec router",
+    "execute_button_biatec_stage": "Voer uit met Biatec router (Stadium)",
     "slippage": "Slippage persentasie",
     "explore_routes": "Verken roetes",
     "routes_dialog_title": "Ruil-roete besonderhede",
@@ -88,6 +89,7 @@
     "aggregator_name_deflex": "Haystack",
     "aggregator_name_folks": "Folks Router",
     "aggregator_name_biatec": "Biatec Router",
+    "aggregator_name_biatec_stage": "Biatec Router (Stage)",
     "routes_input": "Toevoer",
     "routes_output": "Afvoer",
     "routes_price_impact": "Prysimpak",
@@ -552,6 +554,8 @@
     "protocol_change_success": "Successfully updated the protocol handler",
     "dev_settings": "Show information for developers",
     "multiaccount_ops": "Enable multiaccount operations",
+    "stage_router_enabled": "Aktiveer stadium-roeteerders",
+    "stage_router_enabled_help": "Haal ook ruilroetes van Biatec se stadium-roeteerder (stage.router.api.biatec.io) langs produksie, om komende roeteringsverbeterings te toets voordat dit regstreeks gaan.",
     "update_password": "Update password"
   },
   "transaction": {
@@ -1085,6 +1089,7 @@
     "use_folks": "Gebruik Folks router",
     "use_deflex": "Gebruik Haystack",
     "use_biatec": "Gebruik Biatec router",
+    "use_biatecStage": "Gebruik Biatec router (Stadium)",
     "quote": "Kwotasie:",
     "price": "Prys:"
   },

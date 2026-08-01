@@ -81,6 +81,7 @@
     "execute_button_deflex": "Выполнить с использованием маршрутизатора Haystack",
     "execute_button_folks": "Выполнить с использованием маршрутизатора Folks",
     "execute_button_biatec": "Выполнить с использованием маршрутизатора Biatec",
+    "execute_button_biatec_stage": "Выполнить с использованием тестового маршрутизатора Biatec (Stage)",
     "slippage": "Процент проскальзывания",
     "explore_routes": "Изучить маршруты",
     "routes_dialog_title": "Детали маршрута обмена",
@@ -88,6 +89,7 @@
     "aggregator_name_deflex": "Haystack",
     "aggregator_name_folks": "Folks Router",
     "aggregator_name_biatec": "Biatec Router",
+    "aggregator_name_biatec_stage": "Biatec Router (Stage)",
     "routes_input": "Вход",
     "routes_output": "Выход",
     "routes_price_impact": "Влияние на цену",
@@ -552,6 +554,8 @@
     "protocol_change_success": "Обработчик протокола успешно обновлен",
     "dev_settings": "Показать информацию для разработчиков",
     "multiaccount_ops": "Включить операции с несколькими счетами",
+    "stage_router_enabled": "Включить тестовые маршрутизаторы",
+    "stage_router_enabled_help": "Также получать маршруты обмена от тестового маршрутизатора Biatec (stage.router.api.biatec.io) наряду с рабочим, чтобы протестировать предстоящие улучшения маршрутизации до их выхода в продакшн.",
     "update_password": "Обновить пароль"
   },
   "transaction": {
@@ -1085,6 +1089,7 @@
     "use_folks": "Use Folks router",
     "use_deflex": "Use Haystack router",
     "use_biatec": "Use Biatec router",
+    "use_biatecStage": "Использовать Biatec router (Stage)",
     "quote": "Quote:",
     "price": "Price:"
   },

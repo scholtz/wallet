@@ -81,6 +81,7 @@
     "execute_button_deflex": "Defex'i kullanarak uygulayın",
     "execute_button_folks": "Folks yönlendiricisini kullanarak uygulayın",
     "execute_button_biatec": "Biatec yönlendiricisini kullanarak yürüt",
+    "execute_button_biatec_stage": "Biatec yönlendiricisini kullanarak yürüt (Stage)",
     "slippage": "Kayma(fiyat) farkı yüzdesi",
     "explore_routes": "Rotaları keşfet",
     "routes_dialog_title": "Takas rota ayrıntıları",
@@ -88,6 +89,7 @@
     "aggregator_name_deflex": "Haystack",
     "aggregator_name_folks": "Folks Router",
     "aggregator_name_biatec": "Biatec Router",
+    "aggregator_name_biatec_stage": "Biatec Router (Stage)",
     "routes_input": "Girdi",
     "routes_output": "Çıktı",
     "routes_price_impact": "Fiyat etkisi",
@@ -552,6 +554,8 @@
     "protocol_change_success": "Protokol işleyicisi başarıyla güncellendi",
     "dev_settings": "Geliştiriciler için bilgileri göster",
     "multiaccount_ops": "Çoklu hesap işlemlerini etkinleştir",
+    "stage_router_enabled": "Stage yönlendiricilerini etkinleştir",
+    "stage_router_enabled_help": "Üretime ek olarak Biatec'in stage yönlendiricisinden (stage.router.api.biatec.io) de takas rotaları getir; yayına girmeden önce yaklaşan yönlendirme iyileştirmelerini test etmek için.",
     "update_password": "Şifreyi güncelle"
   },
   "transaction": {
@@ -1085,6 +1089,7 @@
     "use_folks": "Use Folks router",
     "use_deflex": "Use Haystack router",
     "use_biatec": "Use Biatec router",
+    "use_biatecStage": "Biatec router (Stage) kullan",
     "quote": "Quote:",
     "price": "Price:"
   },

@@ -81,6 +81,7 @@
     "execute_button_deflex": "Végrehajtás Haystack-kel",
     "execute_button_folks": "Végrehajtás Folks router-rel",
     "execute_button_biatec": "Végrehajtás Biatec router-rel",
+    "execute_button_biatec_stage": "Végrehajtás Biatec router-rel (Stage)",
     "slippage": "Csúszás (slippage) százalékban",
     "explore_routes": "Útvonalak felfedezése",
     "routes_dialog_title": "Csere útvonal részletei",
@@ -88,6 +89,7 @@
     "aggregator_name_deflex": "Haystack",
     "aggregator_name_folks": "Folks Router",
     "aggregator_name_biatec": "Biatec Router",
+    "aggregator_name_biatec_stage": "Biatec Router (Stage)",
     "routes_input": "Bemenet",
     "routes_output": "Kimenet",
     "routes_price_impact": "Árhatás",
@@ -552,6 +554,8 @@
     "protocol_change_success": "A protokollkezelő módosítása sikeres volt",
     "dev_settings": "Fejlesztői információk megjelenítése",
     "multiaccount_ops": "Több fiókos műveletek engedélyezése",
+    "stage_router_enabled": "Stage routerek engedélyezése",
+    "stage_router_enabled_help": "A csereútvonalak lekérése a Biatec stage routeréről is (stage.router.api.biatec.io) az éles mellett, hogy tesztelhesd a közelgő útvonalválasztási fejlesztéseket, mielőtt élesbe kerülnének.",
     "update_password": "Jelszó módosítás"
   },
   "transaction": {
@@ -1085,6 +1089,7 @@
     "use_folks": "Folks router használata",
     "use_deflex": "Haystack router használata",
     "use_biatec": "Biatec router használata",
+    "use_biatecStage": "Biatec router (Stage) használata",
     "quote": "Ajánlat:",
     "price": "Ár:"
   },

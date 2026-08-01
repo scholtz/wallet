@@ -41,6 +41,7 @@
             v-model:useFolks="useFolks"
             v-model:useDeflex="useDeflex"
             v-model:useBiatec="useBiatec"
+            v-model:useBiatecStage="useBiatecStage"
           />
           <SwapQuoteButton
             :formInvalid="formInvalid"
@@ -64,11 +65,13 @@
             :useDeflex="useDeflex"
             :useFolks="useFolks"
             :useBiatec="useBiatec"
+            :useBiatecStage="useBiatecStage"
             :deflexQuotes="deflexQuotes"
             :deflexTxs="deflexTxs"
             :folksQuote="folksQuote"
             :folksTxns="folksTxns"
             :biatecQuotes="biatecQuotes"
+            :biatecStageQuotes="biatecStageQuotes"
             :fromAssetObj="fromAssetObj"
             :toAssetObj="toAssetObj"
             :payamount="payamount"
@@ -79,18 +82,23 @@
             :useDeflex="useDeflex"
             :useFolks="useFolks"
             :useBiatec="useBiatec"
+            :useBiatecStage="useBiatecStage"
             :allowExecuteDeflex="allowExecuteDeflex"
             :allowExecuteFolks="allowExecuteFolks"
             :allowExecuteBiatec="allowExecuteBiatec"
+            :allowExecuteBiatecStage="allowExecuteBiatecStage"
             :processingTradeDeflex="processingTradeDeflex"
             :processingTradeFolks="processingTradeFolks"
             :processingTradeBiatec="processingTradeBiatec"
+            :processingTradeBiatecStage="processingTradeBiatecStage"
             :isDeflexQuoteBetter="isDeflexQuoteBetter"
             :isFolksQuoteBetter="isFolksQuoteBetter"
             :isBiatecQuoteBetter="isBiatecQuoteBetter"
+            :isBiatecStageQuoteBetter="isBiatecStageQuoteBetter"
             :deflexQuotes="deflexQuotes"
             :folksQuote="folksQuote"
             :biatecQuotes="biatecQuotes"
+            :biatecStageQuotes="biatecStageQuotes"
             :toAssetDecimals="toAssetDecimals"
             :payamount="payamount"
             :pair="pair"
@@ -98,6 +106,7 @@
             @execute-deflex="clickExecuteDeflex"
             @execute-folks="clickExecuteFolks"
             @execute-biatec="clickExecuteBiatec"
+            @execute-biatec-stage="clickExecuteBiatecStage"
           />
         </div>
       </template>
@@ -120,7 +129,6 @@ import SwapOptIn from "../components/SwapOptIn.vue";
 import SwapTransactionDetails from "../components/SwapTransactionDetails.vue";
 import SwapRouteExplorer from "../components/SwapRouteExplorer.vue";
 import SwapExecuteButtons from "../components/SwapExecuteButtons.vue";
-import { dexAggregators } from "../scripts/dexAggregators";
 import { useSwap } from "../composables/useSwap";
 import { RootState } from "@/store";
 import { StoredAsset } from "@/store/indexer";
@@ -147,6 +155,7 @@ const {
   slippage,
   aggregatorData,
   loadingAssets,
+  dexAggregators,
 
   // Computed
   formInvalid,
@@ -156,6 +165,7 @@ const {
   allowExecuteDeflex,
   allowExecuteFolks,
   allowExecuteBiatec,
+  allowExecuteBiatecStage,
   appsToOptIn,
   requiresOptIn,
   unit,
@@ -165,6 +175,7 @@ const {
   pairReversed,
   isFolksQuoteBetter,
   isBiatecQuoteBetter,
+  isBiatecStageQuoteBetter,
   isDeflexQuoteBetter,
 
   // Methods
@@ -174,6 +185,7 @@ const {
   checkNetwork,
   clickExecuteFolks,
   clickExecuteBiatec,
+  clickExecuteBiatecStage,
   clickExecuteDeflex,
   swapTokens,
   clickOptInToApps,
@@ -198,6 +210,12 @@ const useBiatec = computed({
     aggregatorData.useBiatec.value = value;
   },
 });
+const useBiatecStage = computed({
+  get: () => aggregatorData.useBiatecStage?.value ?? false,
+  set: (value: boolean) => {
+    if (aggregatorData.useBiatecStage) aggregatorData.useBiatecStage.value = value;
+  },
+});
 const processingTradeDeflex = computed(
   () => aggregatorData.processingTradeDeflex.value
 );
@@ -207,11 +225,17 @@ const processingTradeFolks = computed(
 const processingTradeBiatec = computed(
   () => aggregatorData.processingTradeBiatec.value
 );
+const processingTradeBiatecStage = computed(
+  () => aggregatorData.processingTradeBiatecStage?.value ?? false
+);
 const deflexQuotes = computed(() => aggregatorData.deflexQuotes.value);
 const deflexTxs = computed(() => aggregatorData.deflexTxs.value);
 const folksQuote = computed(() => aggregatorData.folksQuote.value);
 const folksTxns = computed(() => aggregatorData.folksTxns.value);
 const biatecQuotes = computed(() => aggregatorData.biatecQuotes.value);
+const biatecStageQuotes = computed(
+  () => aggregatorData.biatecStageQuotes?.value ?? {}
+);
 
 // Watchers
 watch(asset, async (newAsset) => {

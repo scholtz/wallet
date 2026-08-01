@@ -81,6 +81,7 @@
     "execute_button_deflex": "Execute using Haystack router",
     "execute_button_folks": "Execute using Folks router",
     "execute_button_biatec": "Uitvoeren met Biatec router",
+    "execute_button_biatec_stage": "Uitvoeren met Biatec router (Stage)",
     "slippage": "Slippage percentage",
     "explore_routes": "Routes verkennen",
     "routes_dialog_title": "Details van de swaproute",
@@ -88,6 +89,7 @@
     "aggregator_name_deflex": "Haystack",
     "aggregator_name_folks": "Folks Router",
     "aggregator_name_biatec": "Biatec Router",
+    "aggregator_name_biatec_stage": "Biatec Router (Stage)",
     "routes_input": "Invoer",
     "routes_output": "Uitvoer",
     "routes_price_impact": "Prijsimpact",
@@ -552,6 +554,8 @@
     "protocol_change_success": "Successfully updated the protocol handler",
     "dev_settings": "Show information for developers",
     "multiaccount_ops": "Multi-accountbewerkingen inschakelen",
+    "stage_router_enabled": "Stage routers inschakelen",
+    "stage_router_enabled_help": "Haal ook wisselroutes op van Biatec's stage router (stage.router.api.biatec.io) naast productie, om aankomende routeringsverbeteringen te testen voordat ze live gaan.",
     "update_password": "Update password"
   },
   "transaction": {
@@ -1085,6 +1089,7 @@
     "use_folks": "Use Folks router",
     "use_deflex": "Use Haystack router",
     "use_biatec": "Use Biatec router",
+    "use_biatecStage": "Gebruik Biatec router (Stage)",
     "quote": "Quote:",
     "price": "Price:"
   },
