@@ -33,6 +33,9 @@
         }}
       </p>
       <template #footer>
+        <Button size="small" severity="secondary" @click="logoutNow">
+          {{ $t("footer.session_timeout_logout_now") }}
+        </Button>
         <Button size="small" @click="continueSession">
           {{ $t("footer.session_timeout_continue") }}
         </Button>
@@ -124,6 +127,10 @@ export default {
         console.error("Failed to prolong session:", error);
         // Keep dialog open if prolong fails
       }
+    },
+    logoutNow() {
+      this.displayTimeoutDialog = false;
+      this.logout();
     },
     setTime() {
       const elapsed = new Date() - this.$store.state.wallet.time;

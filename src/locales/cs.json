@@ -11,6 +11,7 @@
     "session_timeout_header": "Upozornění na vypršení relace",
     "session_timeout_message": "Z bezpečnostních důvodů vás za {seconds} sekundu automaticky odhlásíme. Chcete pokračovat? | Z bezpečnostních důvodů vás za {seconds} sekundy automaticky odhlásíme. Chcete pokračovat? | Z bezpečnostních důvodů vás za {seconds} sekund automaticky odhlásíme. Chcete pokračovat?",
     "session_timeout_continue": "Pokračovat v relaci",
+    "session_timeout_logout_now": "Odhlásit se nyní",
     "version_built": "Sestavení {commit} · {date}",
     "version_local": "Lokální sestavení · {date} ({commit})"
   },

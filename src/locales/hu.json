@@ -11,6 +11,7 @@
     "session_timeout_header": "Munkamenet-időtúllépés, figyelmeztetés",
     "session_timeout_message": "Biztonsági okokból {seconds} másodperc múlva automatikusan kijelentkeztetjük. Szeretné folytatni?",
     "session_timeout_continue": "Munkamenet folytatása",
+    "session_timeout_logout_now": "Kijelentkezés most",
     "version_built": "Build {commit} · {date}",
     "version_local": "Helyi build · {date} ({commit})"
   },

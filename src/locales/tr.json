@@ -11,6 +11,7 @@
     "session_timeout_header": "Oturum zaman aşımı uyarısı",
     "session_timeout_message": "Güvenlik nedeniyle {seconds} saniye içinde oturumunuz otomatik olarak kapatılacaktır. Devam etmek istiyor musunuz?",
     "session_timeout_continue": "Oturuma devam et",
+    "session_timeout_logout_now": "Şimdi çıkış yap",
     "version_built": "Sürüm {commit} · {date}",
     "version_local": "Yerel sürüm · {date} ({commit})"
   },

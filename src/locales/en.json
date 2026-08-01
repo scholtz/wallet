@@ -11,6 +11,7 @@
     "session_timeout_header": "Session Timeout Warning",
     "session_timeout_message": "For security reasons we will automatically log you out in {seconds} second. Would you like to continue? | For security reasons we will automatically log you out in {seconds} seconds. Would you like to continue?",
     "session_timeout_continue": "Continue Session",
+    "session_timeout_logout_now": "Log Out Now",
     "version_built": "Build {commit} · {date}",
     "version_local": "Local build · {date} ({commit})"
   },

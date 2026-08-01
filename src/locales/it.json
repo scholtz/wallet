@@ -11,6 +11,7 @@
     "session_timeout_header": "Avviso di timeout della sessione",
     "session_timeout_message": "Per motivi di sicurezza, ti disconnetteremo automaticamente tra {seconds} secondo. Vuoi continuare? | Per motivi di sicurezza, ti disconnetteremo automaticamente tra {seconds} secondi. Vuoi continuare?",
     "session_timeout_continue": "Continua sessione",
+    "session_timeout_logout_now": "Esci ora",
     "version_built": "Build {commit} · {date}",
     "version_local": "Build locale · {date} ({commit})"
   },
