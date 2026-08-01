@@ -9,7 +9,7 @@
     "group_link": "Biatec Group",
     "discord_link": "Biatec Discord",
     "session_timeout_header": "Sessie tydlimiet waarskuwing",
-    "session_timeout_message": "Jou sessie sal binnekort verval. Wil jy voortgaan?",
+    "session_timeout_message": "Om veiligheidsredes sal ons u outomaties afmeld oor {seconds} sekonde. Wil u voortgaan? | Om veiligheidsredes sal ons u outomaties afmeld oor {seconds} sekondes. Wil u voortgaan?",
     "session_timeout_continue": "Gaan voort met sessie",
     "version_built": "Bou {commit} · {date}",
     "version_local": "Plaaslike bou · {date} ({commit})"

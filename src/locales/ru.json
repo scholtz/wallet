@@ -9,7 +9,7 @@
     "group_link": "Biatec Group",
     "discord_link": "Biatec Discord",
     "session_timeout_header": "Предупреждение об истечении времени сеанса",
-    "session_timeout_message": "Ваш сеанс скоро истечет. Хотите продолжить?",
+    "session_timeout_message": "В целях безопасности мы автоматически завершим ваш сеанс через {seconds} секунду. Хотите продолжить? | В целях безопасности мы автоматически завершим ваш сеанс через {seconds} секунды. Хотите продолжить? | В целях безопасности мы автоматически завершим ваш сеанс через {seconds} секунд. Хотите продолжить?",
     "session_timeout_continue": "Продолжить сеанс",
     "version_built": "Сборка {commit} · {date}",
     "version_local": "Локальная сборка · {date} ({commit})"

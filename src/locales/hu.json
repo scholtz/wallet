@@ -9,7 +9,7 @@
     "group_link": "Biatec Group",
     "discord_link": "Biatec Discord",
     "session_timeout_header": "Munkamenet-időtúllépés, figyelmeztetés",
-    "session_timeout_message": "A munkamenet hamarosan lejár. Szeretné folytatni?",
+    "session_timeout_message": "Biztonsági okokból {seconds} másodperc múlva automatikusan kijelentkeztetjük. Szeretné folytatni?",
     "session_timeout_continue": "Munkamenet folytatása",
     "version_built": "Build {commit} · {date}",
     "version_local": "Helyi build · {date} ({commit})"

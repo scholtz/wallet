@@ -9,7 +9,7 @@
     "group_link": "Biatec Group",
     "discord_link": "Biatec Discord",
     "session_timeout_header": "Advertencia de tiempo de espera de sesión",
-    "session_timeout_message": "Su sesión expirará pronto. ¿Desea continuar?",
+    "session_timeout_message": "Por motivos de seguridad, cerraremos su sesión automáticamente en {seconds} segundo. ¿Desea continuar? | Por motivos de seguridad, cerraremos su sesión automáticamente en {seconds} segundos. ¿Desea continuar?",
     "session_timeout_continue": "Continuar sesión",
     "version_built": "Compilación {commit} · {date}",
     "version_local": "Compilación local · {date} ({commit})"

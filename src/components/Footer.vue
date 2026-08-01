@@ -23,7 +23,15 @@
       :modal="true"
       class="m-5"
     >
-      <p>{{ $t("footer.session_timeout_message") }}</p>
+      <p>
+        {{
+          $t(
+            "footer.session_timeout_message",
+            { seconds: timeoutSecondsRemaining },
+            timeoutSecondsRemaining
+          )
+        }}
+      </p>
       <template #footer>
         <Button size="small" @click="continueSession">
           {{ $t("footer.session_timeout_continue") }}
@@ -50,6 +58,7 @@ export default {
       b: "white",
       envStatus: "",
       displayTimeoutDialog: false,
+      timeoutSecondsRemaining: 0,
     };
   },
   computed: {
@@ -136,6 +145,9 @@ export default {
       // Show dialog at warning threshold
       if (t <= WARNING_THRESHOLD_MS && t > 0 && !this.displayTimeoutDialog) {
         this.displayTimeoutDialog = true;
+      }
+      if (this.displayTimeoutDialog) {
+        this.timeoutSecondsRemaining = Math.max(0, Math.ceil(t / 1000));
       }
       if (t < 0) {
         this.displayTimeoutDialog = false;
