@@ -19,10 +19,17 @@ export interface BiatecAggregatorOptions {
 // variants from the same code, since the stage router is API-compatible with
 // production and only exists to test routing improvements before they ship.
 export function createBiatecAggregator(
-  options: BiatecAggregatorOptions
+  options: BiatecAggregatorOptions,
 ): DexAggregator {
-  const { name, displayName, baseUrl, enabledKey, quotesKey, txnsKey, processingKey } =
-    options;
+  const {
+    name,
+    displayName,
+    baseUrl,
+    enabledKey,
+    quotesKey,
+    txnsKey,
+    processingKey,
+  } = options;
 
   return {
     name,
@@ -54,16 +61,15 @@ export function createBiatecAggregator(
               ? Number(context.toAsset.value)
               : 0,
           swapAmount: Math.round(
-            context.payamount.value * 10 ** context.fromAssetDecimals.value
+            context.payamount.value * 10 ** context.fromAssetDecimals.value,
           ),
           receiveMinimum: 0,
-          routesCount: 1,
+          routesCount: 3,
           maxHops: 3,
         };
 
-        const response = await biatecRouter.RouterService.postApiV1RouterRouteTxs(
-          requestBody
-        );
+        const response =
+          await biatecRouter.RouterService.postApiV1RouterRouteTxs(requestBody);
 
         if (!response.routes || response.routes.length === 0) {
           context.error.value = `No ${displayName} routes available`;
@@ -87,7 +93,7 @@ export function createBiatecAggregator(
         context.error.value =
           `Error fetching quote from ${displayName}: ` + (e as Error).message;
         context.openError(
-          `Error fetching quote from ${displayName}: ` + (e as Error).message
+          `Error fetching quote from ${displayName}: ` + (e as Error).message,
         );
       }
     },
@@ -121,7 +127,7 @@ export function createBiatecAggregator(
         const minimumReceiveAmount = Math.floor(
           (context.aggregatorData[quotesKey].value.route.route.outputAmount *
             (10000 - context.slippage.value * 100)) / // component.slippage is in percentage (e.g., 1 = 1%)
-            10000
+            10000,
         );
 
         const requestBody = {
@@ -135,16 +141,15 @@ export function createBiatecAggregator(
               ? Number(context.toAsset.value)
               : 0,
           swapAmount: Math.round(
-            context.payamount.value * 10 ** context.fromAssetDecimals.value
+            context.payamount.value * 10 ** context.fromAssetDecimals.value,
           ),
           receiveMinimum: minimumReceiveAmount, // ensure the minimum receive amount is set appropriately
-          routesCount: 1,
+          routesCount: 3,
           maxHops: 3,
         };
 
-        const response = await biatecRouter.RouterService.postApiV1RouterRouteTxs(
-          requestBody
-        );
+        const response =
+          await biatecRouter.RouterService.postApiV1RouterRouteTxs(requestBody);
         if (!response.routes || response.routes.length === 0) {
           context.error.value = `No ${displayName} routes available`;
           return;
@@ -161,7 +166,9 @@ export function createBiatecAggregator(
           !context.aggregatorData[quotesKey].value?.route?.txsToSign ||
           context.aggregatorData[quotesKey].value.route.txsToSign.length === 0
         ) {
-          throw new Error(`No transactions to sign in the ${displayName} route.`);
+          throw new Error(
+            `No transactions to sign in the ${displayName} route.`,
+          );
         }
 
         // Decode and group transactions
@@ -171,7 +178,7 @@ export function createBiatecAggregator(
           const txBytes = new Uint8Array(Buffer.from(txBase64, "base64"));
           // Check for "TX" prefix (0x54, 0x58)
           const tx = algosdk.decodeUnsignedTransaction(
-            txBytes
+            txBytes,
           ) as algosdk.Transaction;
           transactions.push(tx);
         }
@@ -234,7 +241,7 @@ export function createBiatecAggregator(
     get isQuoteBetter() {
       return function (context: SwapContext) {
         const own = getEffectiveQuoteAmount(
-          context.aggregatorData[quotesKey].value
+          context.aggregatorData[quotesKey].value,
         );
         if (own === undefined || own === null) return false;
         const ownValue = BigInt(own);
@@ -244,11 +251,12 @@ export function createBiatecAggregator(
         // (e.g. the regular Biatec route being checked before the Stage
         // route, even when Stage is the actual best quote).
         const others = context.dexAggregators.filter(
-          (a: any) => a.name !== name && context.aggregatorData[a.enabledKey].value
+          (a: any) =>
+            a.name !== name && context.aggregatorData[a.enabledKey].value,
         );
         for (const other of others) {
           const otherQuote = getEffectiveQuoteAmount(
-            context.aggregatorData[other.quotesKey].value
+            context.aggregatorData[other.quotesKey].value,
           );
           if (
             otherQuote !== undefined &&
