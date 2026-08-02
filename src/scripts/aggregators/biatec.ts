@@ -14,6 +14,52 @@ export interface BiatecAggregatorOptions {
   processingKey: string;
 }
 
+// With routesCount <= 1 (the default, and what this file now requests - see the getQuote/execute
+// request bodies below), Biatec Router's response.routes holds the LEGS of one combined swap: the
+// router may split the requested amount across up to 3 structurally distinct paths to beat any
+// single path's price (e.g. part of the trade direct, part via an intermediate asset), and all
+// legs share ONE Algorand atomic transaction group server-side. That means the total output is
+// the SUM across legs (not just routes[0]'s own output) and the transactions to sign are the
+// CONCATENATION of every leg's txsToSign, in order (signing just one leg's slice would submit an
+// incomplete/invalid group, since the group hash covers every transaction across every leg).
+// requesting routesCount: 3 previously disabled this splitting entirely (BiatecRouter's legacy
+// "N independent full-amount alternatives" mode) - always leaving real output on the table
+// whenever the router had a genuinely better split available, sometimes by 10%+.
+// Wrapped into the same { route: { route, txsToSign } } shape the rest of this file (and
+// buildBiatecRouteInfo's hop/pool display) already expects, so downstream code is unchanged.
+// Known limitation: the hop/pool breakdown shown to the user still only reflects the FIRST leg
+// when the router actually splits - a display gap, not a correctness one (the total quoted
+// amount and the transactions actually submitted are both correct across all legs).
+function combineRouteResponse(response: {
+  routes?: Array<{
+    route?: {
+      outputAmount?: number;
+      totalNetworkFeeMicroAlgos?: number;
+      [key: string]: unknown;
+    };
+    txsToSign?: string[] | null;
+  }> | null;
+}) {
+  const routes = response.routes ?? [];
+  const totalOutputAmount = routes.reduce(
+    (sum, r) => sum + (r.route?.outputAmount || 0),
+    0,
+  );
+  const totalFees = routes.reduce(
+    (sum, r) => sum + (r.route?.totalNetworkFeeMicroAlgos || 0),
+    0,
+  );
+  const combinedTxsToSign = routes.flatMap((r) => r.txsToSign || []);
+  return {
+    route: {
+      ...routes[0]?.route,
+      outputAmount: totalOutputAmount,
+      totalNetworkFeeMicroAlgos: totalFees,
+    },
+    txsToSign: combinedTxsToSign,
+  };
+}
+
 // Shared implementation for the Biatec Router aggregator - used to build both
 // the production (router.api.biatec.io) and stage (stage.router.api.biatec.io)
 // variants from the same code, since the stage router is API-compatible with
@@ -64,7 +110,7 @@ export function createBiatecAggregator(
             context.payamount.value * 10 ** context.fromAssetDecimals.value,
           ),
           receiveMinimum: 0,
-          routesCount: 3,
+          routesCount: 1,
           maxHops: 3,
         };
 
@@ -76,7 +122,7 @@ export function createBiatecAggregator(
           return;
         }
 
-        const route = response.routes[0];
+        const route = combineRouteResponse(response);
         context.aggregatorData[quotesKey].value = {
           route: route,
           quoteAmount: route.route?.outputAmount || 0,
@@ -144,7 +190,7 @@ export function createBiatecAggregator(
             context.payamount.value * 10 ** context.fromAssetDecimals.value,
           ),
           receiveMinimum: minimumReceiveAmount, // ensure the minimum receive amount is set appropriately
-          routesCount: 3,
+          routesCount: 1,
           maxHops: 3,
         };
 
@@ -155,7 +201,7 @@ export function createBiatecAggregator(
           return;
         }
 
-        const route = response.routes[0];
+        const route = combineRouteResponse(response);
         context.aggregatorData[quotesKey].value = {
           route: route,
           quoteAmount: route.route?.outputAmount || 0,
