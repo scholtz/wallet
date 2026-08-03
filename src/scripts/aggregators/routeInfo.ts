@@ -150,6 +150,43 @@ export function buildFolksRouteInfo(
   };
 }
 
+// Biatec's "combined-split" router returns the whole route as one flat
+// `hops` array, but that array can encode several independent legs that
+// share the same start/end asset (e.g. Gold->Algo->USDC run alongside
+// Gold->GoldDAO->Vote->USDC) rather than a single linear chain. Each hop
+// only carries its own fromAsset/toAsset, not which leg it belongs to, so a
+// leg boundary has to be inferred: whenever a hop's fromAsset doesn't match
+// the previous hop's toAsset, it can't be a continuation of that chain and
+// must start a new leg instead.
+function splitHopsIntoPaths(hops: RouteHopInfo[]): RoutePathInfo[] {
+  const legs: RouteHopInfo[][] = [];
+  let current: RouteHopInfo[] = [];
+  let expectedFrom: number | undefined;
+
+  for (const hop of hops) {
+    if (current.length > 0 && hop.fromAssetId !== expectedFrom) {
+      legs.push(current);
+      current = [];
+    }
+    current.push(hop);
+    expectedFrom = hop.toAssetId;
+  }
+  if (current.length > 0) legs.push(current);
+
+  const totalInput = legs.reduce(
+    (sum, leg) => sum + (leg[0]?.inputAmount ?? 0),
+    0
+  );
+
+  return legs.map((legHops) => ({
+    percentage:
+      legs.length > 1 && totalInput > 0
+        ? ((legHops[0]?.inputAmount ?? 0) / totalInput) * 100
+        : undefined,
+    hops: legHops,
+  }));
+}
+
 export function buildBiatecRouteInfo(
   biatecQuotes: any,
   fromAssetId: number,
@@ -198,7 +235,7 @@ export function buildBiatecRouteInfo(
     inputAmount: route.inputAmount,
     outputAmount: route.outputAmount,
     networkFeeMicroAlgos: route.totalNetworkFeeMicroAlgos,
-    paths: hops.length > 0 ? [{ percentage: 100, hops }] : [],
+    paths: splitHopsIntoPaths(hops),
   };
 }
 
