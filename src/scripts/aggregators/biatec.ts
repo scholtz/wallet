@@ -27,14 +27,14 @@ export interface BiatecAggregatorOptions {
 // whenever the router had a genuinely better split available, sometimes by 10%+.
 // Wrapped into the same { route: { route, txsToSign } } shape the rest of this file (and
 // buildBiatecRouteInfo's hop/pool display) already expects, so downstream code is unchanged.
-// Known limitation: the hop/pool breakdown shown to the user still only reflects the FIRST leg
-// when the router actually splits - a display gap, not a correctness one (the total quoted
-// amount and the transactions actually submitted are both correct across all legs).
+// hops are merged across every leg too (see below), so the displayed breakdown covers the full
+// split, not just the first leg.
 function combineRouteResponse(response: {
   routes?: Array<{
     route?: {
       outputAmount?: number;
       totalNetworkFeeMicroAlgos?: number;
+      hops?: unknown[] | null;
       [key: string]: unknown;
     };
     txsToSign?: string[] | null;
@@ -49,10 +49,15 @@ function combineRouteResponse(response: {
     (sum, r) => sum + (r.route?.totalNetworkFeeMicroAlgos || 0),
     0,
   );
+  // Each leg carries its own hops; spreading only routes[0]?.route would silently drop every
+  // other leg's hops even though outputAmount/txsToSign are (correctly) summed/concatenated
+  // across all legs - merge them so the displayed route accounts for the full split.
+  const combinedHops = routes.flatMap((r) => r.route?.hops || []);
   const combinedTxsToSign = routes.flatMap((r) => r.txsToSign || []);
   return {
     route: {
       ...routes[0]?.route,
+      hops: combinedHops,
       outputAmount: totalOutputAmount,
       totalNetworkFeeMicroAlgos: totalFees,
     },
