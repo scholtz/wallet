@@ -387,6 +387,8 @@ export function useSwap() {
         }
       }
     }
+    // Older assets (lower ASA id) first; ALGO (id 0n) always sorts to the top.
+    assets.value.sort((a, b) => (a.assetId < b.assetId ? -1 : a.assetId > b.assetId ? 1 : 0));
     loadingAssets.value = false;
   };
 
