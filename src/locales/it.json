@@ -893,7 +893,17 @@
     "simulation_value": "Nuovo valore",
     "simulation_no_state_changes": "Non è stata rilevata alcuna modifica dello stato dell'applicazione",
     "simulation_disclaimer": "Calcolato eseguendo in modalità simulata (dry-run) esattamente le transazioni da firmare rispetto allo stato attuale della rete, come segnalato dal tuo nodo algod configurato - non viene spostato alcun fondo e non è richiesta alcuna firma. Questa anteprima non è verificata in modo indipendente; un nodo compromesso o malevolo potrebbe segnalare un risultato fuorviante. Controlla sempre i campi grezzi della transazione sopra, decodificati localmente e non ottenuti dal nodo.",
-    "simulation_defi_disclaimer": "Il risultato simulato non è garantito - il risultato reale può differire se le condizioni di rete cambiano prima della conferma della transazione. Quando utilizzi protocolli DeFi, imposta sempre un importo minimo da ricevere o un altro meccanismo di protezione dallo slippage direttamente nell'app, invece di affidarti solo a questa anteprima."
+    "simulation_defi_disclaimer": "Il risultato simulato non è garantito - il risultato reale può differire se le condizioni di rete cambiano prima della conferma della transazione. Quando utilizzi protocolli DeFi, imposta sempre un importo minimo da ricevere o un altro meccanismo di protezione dallo slippage direttamente nell'app, invece di affidarti solo a questa anteprima.",
+    "arc60": {
+      "requests": "Richieste di firma dati (ARC-60)",
+      "sign": "Firma dati",
+      "domain": "Dominio",
+      "domain_mismatch": "I dati dell'autenticatore di questa richiesta non corrispondono al dominio richiedente - la firma è stata bloccata",
+      "signer": "Firmatario",
+      "scope": "Scopo",
+      "data": "Dati",
+      "data_base64": "Dati (base64)"
+    }
   },
   "arc56": {
     "loading": "Ricerca di questa chiamata nel registro dei contratti ARC-56…",

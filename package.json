@@ -88,6 +88,7 @@
     "qrcode-vue3": "^1.7.1",
     "register-service-worker": "^1.7.2",
     "stream-browserify": "^3.0.0",
+    "tweetnacl": "^1.0.3",
     "universal-provider-with-algorand": "^2.14.0",
     "util": "^0.12.5",
     "uuid": "^14.0.1",

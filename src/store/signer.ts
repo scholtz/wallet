@@ -5,6 +5,13 @@ import WalletConnect from "@walletconnect/client";
 import type { ActionTree, MutationTree } from "vuex";
 import type { RootState } from "./index";
 import { hdSignTransactionBytes } from "../scripts/encoding/hdWallet";
+import {
+  Arc60Error,
+  computeArc60Digest,
+  signArc60DigestWithHd,
+  signArc60DigestWithSk,
+  validateAuthenticatorDataDomain,
+} from "../scripts/encoding/arc60";
 
 const missingAccountMessage =
   "The from address is not in the list of accounts.";
@@ -44,6 +51,13 @@ interface MultisigPayload {
   msigTx: Uint8Array;
   signator: string;
   txn?: Transaction;
+}
+
+interface SignArc60DataPayload {
+  from: string;
+  data: Uint8Array;
+  authenticatorData: Uint8Array;
+  domain: string;
 }
 
 export interface SignerState {
@@ -408,6 +422,61 @@ const actions: ActionTree<SignerState, RootState> = {
     const signedBytes = payload.tx.signTxn(sk);
     commit("setSigned", signedBytes);
     return signedBytes;
+  },
+  // ARC-60 arbitrary data signing (AUTH scope). Only sk and hd account types
+  // are supported: ledger/msig/wc signers have no defined ARC-60 signing
+  // path, and msig combination doesn't make sense for a single auth
+  // signature. Domain-binding validation runs here (not just in the caller)
+  // so it can never be skipped regardless of call site.
+  async signArc60Data(
+    { dispatch, rootState },
+    payload: SignArc60DataPayload,
+  ): Promise<Uint8Array> {
+    const domainValid = await validateAuthenticatorDataDomain(
+      payload.authenticatorData,
+      payload.domain,
+    );
+    if (!domainValid) {
+      throw new Arc60Error(
+        "ERROR_FAILED_DOMAIN_AUTH",
+        "authenticatorData does not match the requesting domain.",
+      );
+    }
+    const digest = await computeArc60Digest(
+      payload.data,
+      payload.authenticatorData,
+    );
+    const baseAccount = ensureAccount(rootState, payload.from);
+    const env = ensureEnv(rootState);
+    const signerAccount = resolveEnvRekey(rootState, baseAccount, env, payload.from);
+    if (signerAccount.type === "hd") {
+      if (!signerAccount.hdRootAddr) {
+        throw new Error("HD wallet root account address was not found");
+      }
+      const rootAccount = ensureAccount(rootState, signerAccount.hdRootAddr);
+      if (!rootAccount.hdMnemonic) {
+        throw new Error("HD wallet master mnemonic was not found");
+      }
+      return await signArc60DigestWithHd(
+        rootAccount.hdMnemonic,
+        signerAccount.hdAccountIndex ?? 0,
+        digest,
+      );
+    }
+    if (signerAccount.sk) {
+      const sk: Uint8Array | null = await dispatch(
+        "wallet/getSK",
+        { addr: signerAccount.addr },
+        { root: true },
+      );
+      if (!sk) {
+        throw new Error("Private key not found");
+      }
+      return signArc60DigestWithSk(digest, sk);
+    }
+    throw new Error(
+      `Arbitrary data signing is not supported for account ${signerAccount.addr}`,
+    );
   },
   async createMultisigTransaction(
     { rootState },

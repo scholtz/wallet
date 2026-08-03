@@ -127,10 +127,10 @@
               <template #header>
                 {{ $t("connect.wc2_tab") }}
                 <Badge
-                  v-if="wc2Requests.length > 0"
+                  v-if="wc2Requests.length + signDataRequests.length > 0"
                   severity="danger"
                   class="ml-2"
-                  :value="wc2Requests.length"
+                  :value="wc2Requests.length + signDataRequests.length"
                 />
               </template>
               <div v-if="!$store.state.wc.web3wallet">
@@ -143,6 +143,10 @@
               v-if="wc2Requests.length > 0"
               :requests="wc2Requests"
               :account-address="accountAddress"
+            />
+            <ConnectSignDataRequestsTable
+              v-else-if="signDataRequests.length > 0"
+              :requests="signDataRequests"
             />
             <div v-else-if="sessionProposals && sessionProposals.length > 0">
               <h2 id="session_proposals">
@@ -377,8 +381,10 @@ import TabPanel from "primevue/tabpanel";
 import MainLayout from "../layouts/Main.vue";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
 import ConnectRequestsTable from "../components/ConnectRequestsTable.vue";
+import ConnectSignDataRequestsTable from "../components/ConnectSignDataRequestsTable.vue";
 import wc from "../shared/wc";
 import { useStore } from "../store";
+import type { StoredSignDataRequest } from "../store/wc";
 
 interface TransactionWrapper {
   index: number;
@@ -467,6 +473,11 @@ const wc1Requests = computed<RequestItem[]>(() =>
 );
 const wc2Requests = computed<RequestItem[]>(() =>
   requests.value.filter((request) => String(request.ver) === "2")
+);
+const signDataRequests = computed<StoredSignDataRequest[]>(
+  () =>
+    (store.state.wc.signDataRequests as StoredSignDataRequest[] | undefined) ??
+    []
 );
 const sessionProposals = computed<SessionProposal[]>(
   () => (store.state.wc.sessionProposals as SessionProposal[] | undefined) ?? []

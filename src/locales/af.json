@@ -893,7 +893,17 @@
     "simulation_value": "New value",
     "simulation_no_state_changes": "No application state changes were detected",
     "simulation_disclaimer": "Computed by dry-running the exact transactions to sign against the current ledger state, as reported by your configured algod node - no funds are moved and no signature is required. This preview is not independently verified; a compromised or malicious node could report a misleading outcome. Always review the raw transaction fields above, which are decoded locally, not fetched from the node.",
-    "simulation_defi_disclaimer": "The simulated outcome is not guaranteed - the actual result can differ if network conditions change before your transaction is confirmed. When using DeFi protocols, always set a minimum-received amount or other slippage protection in the app itself rather than relying solely on this preview."
+    "simulation_defi_disclaimer": "The simulated outcome is not guaranteed - the actual result can differ if network conditions change before your transaction is confirmed. When using DeFi protocols, always set a minimum-received amount or other slippage protection in the app itself rather than relying solely on this preview.",
+    "arc60": {
+      "requests": "Data signing requests (ARC-60)",
+      "sign": "Sign data",
+      "domain": "Domain",
+      "domain_mismatch": "This request's authenticator data does not match the requesting domain - signing has been blocked",
+      "signer": "Signer",
+      "scope": "Purpose",
+      "data": "Data",
+      "data_base64": "Data (base64)"
+    }
   },
   "arc56": {
     "loading": "Looking up this call in the ARC-56 contract registry…",

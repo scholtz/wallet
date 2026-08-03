@@ -893,7 +893,17 @@
     "simulation_value": "Új érték",
     "simulation_no_state_changes": "Nem észleltünk alkalmazásállapot-változást",
     "simulation_disclaimer": "A pontosan az aláírandó tranzakciók próbafuttatásával (dry-run) számítva, a beállított algod csomópont által jelentett jelenlegi hálózati állapot alapján - nem kerül pénzeszköz mozgatásra, és aláírás sem szükséges. Ez az előnézet nincs függetlenül ellenőrizve; egy kompromittált vagy rosszindulatú csomópont félrevezető eredményt jelenthet. Mindig ellenőrizd a fent található, helyben dekódolt nyers tranzakciómezőket, amelyeket nem a csomóponttól kapunk.",
-    "simulation_defi_disclaimer": "A szimulált eredmény nem garantált - a tényleges eredmény eltérhet, ha a hálózati körülmények megváltoznak a tranzakció megerősítése előtt. DeFi protokollok használatakor mindig állíts be minimális fogadott összeget vagy más csúszásvédelmi (slippage) mechanizmust magában az alkalmazásban, ne csak erre az előnézetre hagyatkozz."
+    "simulation_defi_disclaimer": "A szimulált eredmény nem garantált - a tényleges eredmény eltérhet, ha a hálózati körülmények megváltoznak a tranzakció megerősítése előtt. DeFi protokollok használatakor mindig állíts be minimális fogadott összeget vagy más csúszásvédelmi (slippage) mechanizmust magában az alkalmazásban, ne csak erre az előnézetre hagyatkozz.",
+    "arc60": {
+      "requests": "Adat aláírási kérések (ARC-60)",
+      "sign": "Adat aláírása",
+      "domain": "Domain",
+      "domain_mismatch": "Ennek a kérésnek a hitelesítési adatai nem egyeznek a kérő domainnel - az aláírás blokkolva lett",
+      "signer": "Aláíró",
+      "scope": "Cél",
+      "data": "Adat",
+      "data_base64": "Adat (base64)"
+    }
   },
   "arc56": {
     "loading": "A hívás keresése az ARC-56 szerződésregiszterben…",

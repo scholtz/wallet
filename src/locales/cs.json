@@ -893,7 +893,17 @@
     "simulation_value": "Nová hodnota",
     "simulation_no_state_changes": "Nebyly zjištěny žádné změny stavu aplikace",
     "simulation_disclaimer": "Vypočítáno zkušebním spuštěním (dry-run) přesně těchto transakcí k podpisu vůči aktuálnímu stavu sítě, jak jej hlásí váš nakonfigurovaný algod uzel - nepřevádí se žádné prostředky a podpis není vyžadován. Tento náhled není nezávisle ověřen; kompromitovaný nebo škodlivý uzel může nahlásit zavádějící výsledek. Vždy zkontrolujte surová pole transakce výše, která jsou dekódována lokálně, nikoli načtena z uzlu.",
-    "simulation_defi_disclaimer": "Simulovaný výsledek není zaručen - skutečný výsledek se může lišit, pokud se podmínky sítě změní před potvrzením transakce. Při používání DeFi protokolů vždy nastavte minimální přijímanou částku nebo jiný mechanismus ochrany proti prokluzu (slippage) přímo v aplikaci, nespoléhejte se pouze na tento náhled."
+    "simulation_defi_disclaimer": "Simulovaný výsledek není zaručen - skutečný výsledek se může lišit, pokud se podmínky sítě změní před potvrzením transakce. Při používání DeFi protokolů vždy nastavte minimální přijímanou částku nebo jiný mechanismus ochrany proti prokluzu (slippage) přímo v aplikaci, nespoléhejte se pouze na tento náhled.",
+    "arc60": {
+      "requests": "Žádosti o podpis dat (ARC-60)",
+      "sign": "Podepsat data",
+      "domain": "Doména",
+      "domain_mismatch": "Autentizační data tohoto požadavku neodpovídají požadované doméně - podepsání bylo zablokováno",
+      "signer": "Podepisující",
+      "scope": "Účel",
+      "data": "Data",
+      "data_base64": "Data (base64)"
+    }
   },
   "arc56": {
     "loading": "Vyhledávám toto volání v registru kontraktů ARC-56…",

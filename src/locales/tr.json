@@ -893,7 +893,17 @@
     "simulation_value": "Yeni değer",
     "simulation_no_state_changes": "Uygulama durumunda herhangi bir değişiklik tespit edilmedi",
     "simulation_disclaimer": "İmzalanacak işlemlerin tam olarak, yapılandırılmış algod düğümünüz tarafından bildirilen mevcut ağ durumuna karşı deneme (dry-run) olarak çalıştırılmasıyla hesaplanır - hiçbir fon hareket etmez ve imza gerekmez. Bu önizleme bağımsız olarak doğrulanmaz; ele geçirilmiş veya kötü niyetli bir düğüm yanıltıcı bir sonuç bildirebilir. Yukarıdaki, düğümden alınmayıp yerel olarak çözümlenen ham işlem alanlarını her zaman inceleyin.",
-    "simulation_defi_disclaimer": "Simüle edilen sonuç garanti edilmez - işleminiz onaylanmadan önce ağ koşulları değişirse gerçek sonuç farklı olabilir. DeFi protokollerini kullanırken, yalnızca bu önizlemeye güvenmek yerine, uygulamanın kendisinde her zaman minimum alınacak tutarı veya başka bir slippage koruma mekanizmasını ayarlayın."
+    "simulation_defi_disclaimer": "Simüle edilen sonuç garanti edilmez - işleminiz onaylanmadan önce ağ koşulları değişirse gerçek sonuç farklı olabilir. DeFi protokollerini kullanırken, yalnızca bu önizlemeye güvenmek yerine, uygulamanın kendisinde her zaman minimum alınacak tutarı veya başka bir slippage koruma mekanizmasını ayarlayın.",
+    "arc60": {
+      "requests": "Veri imzalama istekleri (ARC-60)",
+      "sign": "Veriyi imzala",
+      "domain": "Alan adı",
+      "domain_mismatch": "Bu isteğin kimlik doğrulama verileri istenen alan adıyla eşleşmiyor - imzalama engellendi",
+      "signer": "İmzalayan",
+      "scope": "Amaç",
+      "data": "Veri",
+      "data_base64": "Veri (base64)"
+    }
   },
   "arc56": {
     "loading": "Bu çağrı ARC-56 sözleşme kayıt defterinde aranıyor…",

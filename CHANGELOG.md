@@ -2,6 +2,10 @@
 
 This document tracks the evolution of AWallet, an open-source Algorand wallet, since its first commit in May 2021. It is a running history of the features that have shipped over time, written for people who use the wallet rather than people who build it.
 
+## 2026-08
+
+- Added support for ARC-60 arbitrary data signing over WalletConnect: connected DApps can now request an authentication signature over arbitrary data (not just transactions), which the wallet displays with the requesting domain, purpose, and full data preview before signing — and refuses to sign if the request's domain binding doesn't match, to protect against spoofed sign-in requests.
+
 ## 2026-07
 
 - Added HD wallet support (BIP32-Ed25519 / ARC-52), allowing a single 24-word recovery phrase to generate multiple independent accounts ("iterations"), with the ability to generate additional accounts on demand.

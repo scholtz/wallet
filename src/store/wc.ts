@@ -6,6 +6,12 @@ import type { ActionTree, MutationTree } from "vuex";
 import wc from "../shared/wc";
 import WCKeyValueStore from "../shared/WCKeyValueStore";
 import type { RootState } from "./index";
+import {
+  bytesToBase64,
+  decodeArc60Request,
+  validateAuthenticatorDataDomain,
+  type Arc60StdSigData,
+} from "../scripts/encoding/arc60";
 
 type Web3WalletInstance = Awaited<ReturnType<typeof WalletKit.init>>;
 type Web3WalletInitOptions = Parameters<typeof WalletKit.init>[0];
@@ -59,6 +65,38 @@ interface RequestPayload {
   data: StoredRequest;
 }
 
+/** One decoded item from an ARC-60 `algo_signData` WalletConnect request. */
+export interface StoredSignDataItem {
+  index: number;
+  data: string; // base64
+  dataText?: string;
+  signer: string; // resolved Algorand address
+  domain: string;
+  requestId?: string;
+  authenticatorData: string; // base64
+  hdPath?: string;
+  scope: number;
+  encoding: string;
+  domainValid: boolean;
+  signature?: string; // base64, set once signed
+}
+
+export interface StoredSignDataRequest {
+  id: number | string;
+  method: string;
+  items: StoredSignDataItem[];
+  topic: string;
+}
+
+interface SignDataRequestPayload {
+  data: StoredSignDataRequest;
+}
+
+interface SignDataItemPayload {
+  requestId: number | string;
+  index: number;
+}
+
 type SignedTxnMap = Record<string, Uint8Array | null | undefined>;
 
 const ensureNumericId = (value: number | string): number => {
@@ -83,6 +121,7 @@ export interface ActiveSessionRecord {
 export interface WcState {
   connectors: ConnectorRecord[];
   requests: StoredRequest[];
+  signDataRequests: StoredSignDataRequest[];
   web3wallet: Web3WalletInstance | null;
   sessionProposals: unknown[];
   sessionRequests: unknown[];
@@ -97,6 +136,7 @@ export interface WcState {
 const state = (): WcState => ({
   connectors: [],
   requests: [],
+  signDataRequests: [],
   web3wallet: null,
   sessionProposals: [],
   sessionRequests: [],
@@ -140,6 +180,36 @@ const mutations: MutationTree<WcState> = {
     );
     if (index !== -1) {
       currentState.requests.splice(index, 1);
+    }
+  },
+  addSignDataRequest(
+    currentState,
+    { request }: { request: StoredSignDataRequest }
+  ) {
+    currentState.signDataRequests.push(request);
+  },
+  removeSignDataRequest(currentState, id: number | string) {
+    const index = currentState.signDataRequests.findIndex(
+      (r) => String(r.id) === String(id)
+    );
+    if (index !== -1) {
+      currentState.signDataRequests.splice(index, 1);
+    }
+  },
+  setSignDataItemSignature(
+    currentState,
+    {
+      requestId,
+      index,
+      signature,
+    }: { requestId: number | string; index: number; signature: string }
+  ) {
+    const request = currentState.signDataRequests.find(
+      (r) => String(r.id) === String(requestId)
+    );
+    const item = request?.items.find((i) => i.index === index);
+    if (item) {
+      item.signature = signature;
     }
   },
   setWeb3wallet(currentState, web3wallet: Web3WalletInstance | null) {
@@ -215,6 +285,67 @@ const actions: ActionTree<WcState, RootState> = {
       commit("addSessionRequest", sessionRequest);
 
       const request = sessionRequest?.params?.request;
+
+      if (request?.method === "algo_signData") {
+        const rawItems: Arc60StdSigData[] = Array.isArray(request.params?.[0])
+          ? request.params[0]
+          : [];
+
+        const items: StoredSignDataItem[] = [];
+        for (let index = 0; index < rawItems.length; index += 1) {
+          const rawItem = rawItems[index];
+          try {
+            const decoded = decodeArc60Request(rawItem);
+            const domainValid = await validateAuthenticatorDataDomain(
+              decoded.authenticatorData,
+              decoded.domain
+            );
+            let dataText: string | undefined;
+            try {
+              const text = Buffer.from(decoded.data).toString("utf-8");
+              if (/^[\x20-\x7E\s]*$/.test(text)) {
+                dataText = text;
+              }
+            } catch {
+              dataText = undefined;
+            }
+            let signer = rawItem.signer;
+            try {
+              signer = algosdk.encodeAddress(
+                Buffer.from(rawItem.signer, "base64")
+              );
+            } catch {
+              signer = rawItem.signer;
+            }
+            items.push({
+              index,
+              data: rawItem.data,
+              dataText,
+              signer,
+              domain: decoded.domain,
+              requestId: decoded.requestId,
+              authenticatorData: rawItem.authenticatorData,
+              hdPath: decoded.hdPath,
+              scope: decoded.scope,
+              encoding: decoded.encoding,
+              domainValid,
+            });
+          } catch (error) {
+            console.error("Failed to decode algo_signData item", error);
+          }
+        }
+
+        const signDataRequest: StoredSignDataRequest = {
+          id: ensureNumericId(sessionRequest.id),
+          method: request.method,
+          items,
+          topic: sessionRequest.topic,
+        };
+
+        commit("addSignDataRequest", { request: signDataRequest });
+        return;
+      }
+
       if (request?.method !== "algo_signTxn") {
         console.error("request.method not implemented", request?.method);
         return;
@@ -378,7 +509,7 @@ const actions: ActionTree<WcState, RootState> = {
       namespaces: {
         algorand: {
           accounts,
-          methods: ["algo_signTxn"],
+          methods: ["algo_signTxn", "algo_signData"],
           chains,
           events: ["chainChanged", "accountsChanged"],
         },
@@ -542,6 +673,97 @@ const actions: ActionTree<WcState, RootState> = {
       });
     } finally {
       commit("removeRequest", data.id);
+    }
+  },
+  async signSignDataItem(
+    { commit, dispatch, state },
+    { requestId, index }: SignDataItemPayload
+  ) {
+    const request = state.signDataRequests.find(
+      (r) => String(r.id) === String(requestId)
+    );
+    const item = request?.items.find((i) => i.index === index);
+    if (!item) {
+      throw new Error("Sign data request item was not found");
+    }
+    if (!item.domainValid) {
+      throw new Error(
+        "authenticatorData does not match the requesting domain — refusing to sign."
+      );
+    }
+    const signature: Uint8Array = await dispatch(
+      "signer/signArc60Data",
+      {
+        from: item.signer,
+        data: new Uint8Array(Buffer.from(item.data, "base64")),
+        authenticatorData: new Uint8Array(
+          Buffer.from(item.authenticatorData, "base64")
+        ),
+        domain: item.domain,
+      },
+      { root: true }
+    );
+    commit("setSignDataItemSignature", {
+      requestId,
+      index,
+      signature: bytesToBase64(signature),
+    });
+  },
+  async sendSignDataResult(
+    { commit, state },
+    { data }: SignDataRequestPayload
+  ) {
+    const { web3wallet } = state;
+    if (!web3wallet) {
+      throw new Error("WalletConnect session is not initialized");
+    }
+
+    const result = data.items.map((item) => {
+      if (!item.signature) {
+        console.error(`Sign data item ${item.index} has not been signed yet, skipped`);
+        return null;
+      }
+      return { signature: item.signature };
+    });
+
+    const response = {
+      id: ensureNumericId(data.id),
+      result,
+      jsonrpc: "2.0",
+    };
+
+    await web3wallet.respondSessionRequest({
+      topic: data.topic,
+      response,
+    });
+
+    commit("removeSignDataRequest", data.id);
+  },
+  async cancelSignDataRequest(
+    { commit, state },
+    { data }: SignDataRequestPayload
+  ) {
+    const { web3wallet } = state;
+    if (!web3wallet) {
+      throw new Error("WalletConnect session is not initialized");
+    }
+
+    const response = {
+      id: ensureNumericId(data.id),
+      jsonrpc: "2.0",
+      error: {
+        code: 5000,
+        message: "User rejected.",
+      },
+    };
+
+    try {
+      await web3wallet.respondSessionRequest({
+        topic: data.topic,
+        response,
+      });
+    } finally {
+      commit("removeSignDataRequest", data.id);
     }
   },
 };

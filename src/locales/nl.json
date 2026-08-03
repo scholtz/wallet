@@ -893,7 +893,17 @@
     "simulation_value": "Nieuwe waarde",
     "simulation_no_state_changes": "Er zijn geen wijzigingen in de applicatiestatus gedetecteerd",
     "simulation_disclaimer": "Berekend door de exacte te ondertekenen transacties als dry-run uit te voeren tegen de huidige netwerkstatus, zoals gerapporteerd door uw geconfigureerde algod-node - er worden geen tegoeden verplaatst en er is geen handtekening vereist. Deze voorvertoning is niet onafhankelijk geverifieerd; een gecompromitteerde of kwaadwillende node kan een misleidend resultaat rapporteren. Controleer altijd de ruwe transactievelden hierboven, die lokaal worden gedecodeerd en niet van de node worden opgehaald.",
-    "simulation_defi_disclaimer": "De gesimuleerde uitkomst is niet gegarandeerd - het werkelijke resultaat kan afwijken als de netwerkomstandigheden veranderen voordat je transactie is bevestigd. Stel bij het gebruik van DeFi-protocollen altijd een minimaal te ontvangen bedrag of een ander slippage-beschermingsmechanisme in de app zelf in, in plaats van uitsluitend op deze voorvertoning te vertrouwen."
+    "simulation_defi_disclaimer": "De gesimuleerde uitkomst is niet gegarandeerd - het werkelijke resultaat kan afwijken als de netwerkomstandigheden veranderen voordat je transactie is bevestigd. Stel bij het gebruik van DeFi-protocollen altijd een minimaal te ontvangen bedrag of een ander slippage-beschermingsmechanisme in de app zelf in, in plaats van uitsluitend op deze voorvertoning te vertrouwen.",
+    "arc60": {
+      "requests": "Aanvragen voor gegevensondertekening (ARC-60)",
+      "sign": "Gegevens ondertekenen",
+      "domain": "Domein",
+      "domain_mismatch": "De authenticatiegegevens van dit verzoek komen niet overeen met het aanvragende domein - ondertekenen is geblokkeerd",
+      "signer": "Ondertekenaar",
+      "scope": "Doel",
+      "data": "Gegevens",
+      "data_base64": "Gegevens (base64)"
+    }
   },
   "arc56": {
     "loading": "Deze aanroep wordt opgezocht in het ARC-56-contractregister…",
