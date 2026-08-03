@@ -212,15 +212,12 @@ export function useSwap() {
   };
 
   const reloadAccount = async (): Promise<void> => {
-    await store
-      .dispatch("indexer/accountInformation", {
-        addr: route.params.account,
-      })
-      .then((info: any) => {
-        if (info) {
-          store.dispatch("wallet/updateAccount", { info });
-        }
-      });
+    const info = await store.dispatch("indexer/accountInformation", {
+      addr: route.params.account,
+    });
+    if (info) {
+      await store.dispatch("wallet/updateAccount", { info });
+    }
     const senderSK = await store.dispatch("wallet/getSK", {
       addr: route.params.account,
     });
