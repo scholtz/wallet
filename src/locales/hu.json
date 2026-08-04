@@ -899,6 +899,8 @@
       "sign": "Adat aláírása",
       "domain": "Domain",
       "domain_mismatch": "Ennek a kérésnek a hitelesítési adatai nem egyeznek a kérő domainnel - az aláírás blokkolva lett",
+      "connected_app": "Csatlakoztatott alkalmazás",
+      "connected_app_unknown": "Ismeretlen (nem található aktív WalletConnect munkamenet ehhez a kéréshez)",
       "signer": "Aláíró",
       "scope": "Cél",
       "data": "Adat",

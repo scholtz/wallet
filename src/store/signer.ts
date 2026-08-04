@@ -8,6 +8,7 @@ import { hdSignTransactionBytes } from "../scripts/encoding/hdWallet";
 import {
   Arc60Error,
   computeArc60Digest,
+  domainMatchesSessionOrigin,
   signArc60DigestWithHd,
   signArc60DigestWithSk,
   validateAuthenticatorDataDomain,
@@ -58,6 +59,10 @@ interface SignArc60DataPayload {
   data: Uint8Array;
   authenticatorData: Uint8Array;
   domain: string;
+  /** The requesting WalletConnect session's real peer origin (session.peer.metadata.url), not DApp-supplied - see AW-2026-044. */
+  sessionOrigin: string | undefined;
+  /** Addresses approved for the WalletConnect session the request arrived on - see AW-2026-046. */
+  approvedAccounts: string[];
 }
 
 export interface SignerState {
@@ -440,6 +445,23 @@ const actions: ActionTree<SignerState, RootState> = {
       throw new Arc60Error(
         "ERROR_FAILED_DOMAIN_AUTH",
         "authenticatorData does not match the requesting domain.",
+      );
+    }
+    // AW-2026-044: the check above is self-referential (both halves come
+    // from the same DApp request) and cannot be trusted on its own - cross
+    // check the claimed domain against the actual WalletConnect session peer.
+    if (!domainMatchesSessionOrigin(payload.domain, payload.sessionOrigin)) {
+      throw new Arc60Error(
+        "ERROR_FAILED_DOMAIN_AUTH",
+        "Requested domain does not match the connected DApp's origin.",
+      );
+    }
+    // AW-2026-046: don't let a session approved for one account request a
+    // signature from an account it was never granted.
+    if (!payload.approvedAccounts.includes(payload.from)) {
+      throw new Arc60Error(
+        "ERROR_UNAUTHORIZED_SIGNER",
+        "The requested signer account is not part of this WalletConnect session.",
       );
     }
     const digest = await computeArc60Digest(

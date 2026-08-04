@@ -899,6 +899,8 @@
       "sign": "Podepsat data",
       "domain": "Doména",
       "domain_mismatch": "Autentizační data tohoto požadavku neodpovídají požadované doméně - podepsání bylo zablokováno",
+      "connected_app": "Připojená aplikace",
+      "connected_app_unknown": "Neznámá (pro tento požadavek nebyla nalezena žádná aktivní relace WalletConnect)",
       "signer": "Podepisující",
       "scope": "Účel",
       "data": "Data",

@@ -89,8 +89,13 @@ export async function buildAuthenticatorData(domain: string): Promise<Uint8Array
 
 /**
  * ARC-60 requires wallets to validate that the first 32 bytes of
- * authenticatorData are SHA-256(domain) before signing (domain binding),
- * so a malicious dApp cannot claim a different domain than it actually is.
+ * authenticatorData are SHA-256(domain) before signing (domain binding).
+ * This only proves the request is internally self-consistent - both
+ * `domain` and `authenticatorData` come from the same DApp-controlled
+ * request, so a malicious dApp can trivially satisfy it for any domain it
+ * names (AW-2026-044). It must always be paired with
+ * `domainMatchesSessionOrigin` below, which checks against the actual
+ * WalletConnect session peer.
  */
 export async function validateAuthenticatorDataDomain(
   authenticatorData: Uint8Array,
@@ -99,6 +104,28 @@ export async function validateAuthenticatorDataDomain(
   if (authenticatorData.length < 32) return false;
   const expected = await sha256(new TextEncoder().encode(domain));
   return bytesEqual(authenticatorData.slice(0, 32), expected);
+}
+
+/**
+ * AW-2026-044: the self-consistency check above cannot detect a DApp lying
+ * about its own domain, since it only checks the request against itself.
+ * This compares the claimed `domain` against the hostname of the actual
+ * WalletConnect session peer (`session.peer.metadata.url`), which is set by
+ * the DApp at connect time but reported to the wallet by the WalletConnect
+ * relay/session record - not something a single malicious request can spoof
+ * after the fact.
+ */
+export function domainMatchesSessionOrigin(
+  domain: string,
+  sessionOriginUrl: string | undefined | null,
+): boolean {
+  if (!domain || !sessionOriginUrl) return false;
+  try {
+    const originHost = new URL(sessionOriginUrl).hostname.toLowerCase();
+    return domain.trim().toLowerCase() === originHost;
+  } catch {
+    return false;
+  }
 }
 
 /** EdDSA(SHA256(data) + SHA256(authenticatorData)), per ARC-60's AUTH scope. */

@@ -899,6 +899,8 @@
       "sign": "Veriyi imzala",
       "domain": "Alan adı",
       "domain_mismatch": "Bu isteğin kimlik doğrulama verileri istenen alan adıyla eşleşmiyor - imzalama engellendi",
+      "connected_app": "Bağlı uygulama",
+      "connected_app_unknown": "Bilinmiyor (bu istek için etkin bir WalletConnect oturumu bulunamadı)",
       "signer": "İmzalayan",
       "scope": "Amaç",
       "data": "Veri",

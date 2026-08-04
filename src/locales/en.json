@@ -899,6 +899,8 @@
       "sign": "Sign data",
       "domain": "Domain",
       "domain_mismatch": "This request's authenticator data does not match the requesting domain - signing has been blocked",
+      "connected_app": "Connected app",
+      "connected_app_unknown": "Unknown (no active WalletConnect session found for this request)",
       "signer": "Signer",
       "scope": "Purpose",
       "data": "Data",

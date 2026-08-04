@@ -3,6 +3,7 @@ import { biatecRouter } from "biatec-router";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
 import { getEffectiveQuoteAmount } from "./simulate";
+import { assertSwapTransactionsSafe } from "./validate";
 
 export interface BiatecAggregatorOptions {
   name: string;
@@ -222,6 +223,19 @@ export function createBiatecAggregator(
           );
         }
 
+        // AW-2026-045: this second route request (issued to bake the real
+        // receiveMinimum into the route, unlike getQuote's receiveMinimum: 0
+        // preview) is never re-simulated or re-displayed, so it's the last
+        // point at which the router's own claimed output can be cross-checked
+        // against the slippage-adjusted minimum the user actually approved
+        // before the transactions get signed.
+        const executedOutputAmount = route.route?.outputAmount || 0;
+        if (executedOutputAmount < minimumReceiveAmount) {
+          throw new Error(
+            `${displayName} returned a route worse than the quote you approved (expected at least ${minimumReceiveAmount}, got ${executedOutputAmount}). Aborting - please refresh the quote and try again.`,
+          );
+        }
+
         // Decode and group transactions
         const transactions = [];
         for (const txBase64 of context.aggregatorData[quotesKey].value.route
@@ -233,6 +247,10 @@ export function createBiatecAggregator(
           ) as algosdk.Transaction;
           transactions.push(tx);
         }
+        assertSwapTransactionsSafe(
+          transactions,
+          context.account.value?.addr || "",
+        );
         // Clear group and compute new group ID
         transactions.forEach((tx) => {
           tx.group = undefined;

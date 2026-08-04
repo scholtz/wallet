@@ -691,6 +691,17 @@ const actions: ActionTree<WcState, RootState> = {
         "authenticatorData does not match the requesting domain — refusing to sign."
       );
     }
+    // AW-2026-044 / AW-2026-046: resolve the request's actual session so the
+    // signer action can check the claimed domain and signer account against
+    // it, rather than trusting values the DApp put in the request itself.
+    const { web3wallet } = state;
+    const session = web3wallet
+      ? web3wallet.getActiveSessions()[request!.topic]
+      : undefined;
+    const sessionOrigin = session?.peer?.metadata?.url;
+    const approvedAccounts = (
+      session?.namespaces?.algorand?.accounts ?? []
+    ).map((entry: string) => entry.split(":").pop());
     const signature: Uint8Array = await dispatch(
       "signer/signArc60Data",
       {
@@ -700,6 +711,8 @@ const actions: ActionTree<WcState, RootState> = {
           Buffer.from(item.authenticatorData, "base64")
         ),
         domain: item.domain,
+        sessionOrigin,
+        approvedAccounts,
       },
       { root: true }
     );

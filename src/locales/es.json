@@ -899,6 +899,8 @@
       "sign": "Firmar datos",
       "domain": "Dominio",
       "domain_mismatch": "Los datos del autenticador de esta solicitud no coinciden con el dominio solicitante - la firma ha sido bloqueada",
+      "connected_app": "Aplicación conectada",
+      "connected_app_unknown": "Desconocida (no se encontró ninguna sesión activa de WalletConnect para esta solicitud)",
       "signer": "Firmante",
       "scope": "Propósito",
       "data": "Datos",

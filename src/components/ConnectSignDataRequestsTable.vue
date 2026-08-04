@@ -75,6 +75,17 @@
                     </Message>
                   </div>
                   <div>
+                    <strong>{{ $t("connect.arc60.connected_app") }}:</strong>
+                    {{
+                      sessionPeer(slotProps.data.topic)?.name ||
+                      sessionPeer(slotProps.data.topic)?.url ||
+                      $t("connect.arc60.connected_app_unknown")
+                    }}
+                    <span v-if="sessionPeer(slotProps.data.topic)?.url">
+                      ({{ sessionPeer(slotProps.data.topic)?.url }})
+                    </span>
+                  </div>
+                  <div>
                     <strong>{{ $t("connect.arc60.signer") }}:</strong>
                     <AlgorandAddress :address="item.signer" />
                   </div>
@@ -126,6 +137,13 @@ const prolong = async () => {
 
 const scopeLabel = (scope: number): string =>
   scope === Arc60ScopeType.AUTH ? "AUTH" : String(scope);
+
+// AW-2026-044: the request's own `domain` field is DApp-supplied and cannot
+// be trusted on its own (see signer/signArc60Data's real check) - show the
+// WalletConnect session's actual peer identity alongside it so the user has
+// something independent to compare against.
+const sessionPeer = (topic: string) =>
+  store.state.wc.activeSessions.find((s) => s.topic === topic)?.peer;
 
 const atLeastOneSigned = (data: StoredSignDataRequest) =>
   data.items.some((item) => Boolean(item.signature));

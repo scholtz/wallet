@@ -2,6 +2,7 @@ import type { DexAggregator, SwapContext } from "./types";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
 import { getEffectiveQuoteAmount } from "./simulate";
+import { assertSwapTransactionSafe } from "./validate";
 
 // Public/shared fallback key for users who have not set their own Deflex key in
 // Settings. It is intentionally not secret (shipped in client source, visible on
@@ -127,15 +128,27 @@ export const deflexAggregator: DexAggregator = {
 
     let ret = "Processed in txs: ";
     for (const group of byGroupMap) {
-      const signedTxns = group.map((txn: any) => {
-        if (txn.logicSigBlob !== false) {
-          return Uint8Array.from(Object.values(txn.logicSigBlob));
-        } else {
-          const bytes = new Uint8Array(Buffer.from(txn.data, "base64"));
-          const decoded = algosdk.decodeUnsignedTransaction(bytes);
-          return algosdk.signTransaction(decoded, senderSK).blob;
-        }
-      });
+      let signedTxns;
+      try {
+        signedTxns = group.map((txn: any) => {
+          if (txn.logicSigBlob !== false) {
+            return Uint8Array.from(Object.values(txn.logicSigBlob));
+          } else {
+            const bytes = new Uint8Array(Buffer.from(txn.data, "base64"));
+            const decoded = algosdk.decodeUnsignedTransaction(bytes);
+            assertSwapTransactionSafe(
+              decoded,
+              context.account.value?.addr || "",
+            );
+            return algosdk.signTransaction(decoded, senderSK).blob;
+          }
+        });
+      } catch (e) {
+        context.error.value = (e as Error).message;
+        context.aggregatorData.processingTradeDeflex.value = false;
+        context.openError((e as Error).message);
+        return;
+      }
       if (!signedTxns) {
         context.aggregatorData.processingTradeDeflex.value = false;
         return;

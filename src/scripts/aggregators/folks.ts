@@ -3,6 +3,7 @@ import { FolksRouterClient, Network, SwapMode } from "@folks-router/js-sdk";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
 import { getEffectiveQuoteAmount } from "./simulate";
+import { assertSwapTransactionsSafe } from "./validate";
 
 const getFolksClient = (context: SwapContext): FolksRouterClient | null => {
   if (context.$store.state.config.env == "mainnet-v1.0") {
@@ -120,6 +121,17 @@ export const folksAggregator: DexAggregator = {
           new Uint8Array(Buffer.from(txn, "base64"))
         )
     );
+    try {
+      assertSwapTransactionsSafe(
+        unsignedTxns,
+        context.account.value?.addr || ""
+      );
+    } catch (e) {
+      context.error.value = (e as Error).message;
+      context.aggregatorData.processingTradeFolks.value = false;
+      context.openError((e as Error).message);
+      return;
+    }
     const signedTxns = unsignedTxns.map((txn: any) => txn.signTxn(senderSK));
     if (!signedTxns) {
       context.aggregatorData.processingTradeFolks.value = false;

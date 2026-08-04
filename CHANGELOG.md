@@ -5,6 +5,7 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 ## 2026-08
 
 - Added support for ARC-60 arbitrary data signing over WalletConnect: connected DApps can now request an authentication signature over arbitrary data (not just transactions), which the wallet displays with the requesting domain, purpose, and full data preview before signing — and refuses to sign if the request's domain binding doesn't match, to protect against spoofed sign-in requests.
+- Improved DEX aggregator swaps (Deflex, Folks Router, Biatec Router, Biatec Stage Router)
 
 ## 2026-07
 

@@ -899,6 +899,8 @@
       "sign": "Gegevens ondertekenen",
       "domain": "Domein",
       "domain_mismatch": "De authenticatiegegevens van dit verzoek komen niet overeen met het aanvragende domein - ondertekenen is geblokkeerd",
+      "connected_app": "Verbonden app",
+      "connected_app_unknown": "Onbekend (geen actieve WalletConnect-sessie gevonden voor dit verzoek)",
       "signer": "Ondertekenaar",
       "scope": "Doel",
       "data": "Gegevens",
