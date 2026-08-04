@@ -864,6 +864,9 @@ const getCloseTo = (txn: algosdk.Transaction): string => {
 const genesisMismatch = (txn: algosdk.Transaction): boolean => {
   const genesisId = txn?.genesisID;
   const env = store.state.config.env;
+  // "custom" is a UI placeholder, not a genesis id - a manually configured
+  // node has no expected network to compare the transaction's genesis to.
+  if (env === "custom") return false;
   return Boolean(genesisId && env && genesisId !== env);
 };
 

@@ -113,7 +113,10 @@ const assertParamsMatchNetwork = (
   params: algosdk.SuggestedParams,
 ): void => {
   const env = rootState.config.env;
-  if (!env) return;
+  // "custom" is a UI placeholder, not a genesis id — the user has manually
+  // configured their own node endpoints, so there is no selected network to
+  // cross-check the node's genesis against.
+  if (!env || env === "custom") return;
   const genesisId = params.genesisID;
   if (genesisId && genesisId !== env) {
     throw new Error(

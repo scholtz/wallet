@@ -783,7 +783,13 @@ const tokenSymbol = computed(() => store.state.config.tokenSymbol);
 // selection) immediately reflects whether the tx now matches - it must not
 // stay stuck showing (or hiding) a mismatch computed once at page load.
 const fatal = computed(() => {
-  if (txn.value?.genesisID && txn.value.genesisID !== envName.value) {
+  // "custom" is a UI placeholder, not a genesis id - a manually configured
+  // node has no expected network to compare the transaction's genesis to.
+  if (
+    envName.value !== "custom" &&
+    txn.value?.genesisID &&
+    txn.value.genesisID !== envName.value
+  ) {
     return `Genesis id of the tx ${txn.value.genesisID} does not match current network ${envName.value}`;
   }
   return "";
