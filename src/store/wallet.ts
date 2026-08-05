@@ -766,7 +766,11 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     }
   },
   async logout({ commit, dispatch }) {
-    wc.clear();
+    try {
+      wc.clear();
+    } catch (err) {
+      console.error("Failed to clear WalletConnect v1 state", err);
+    }
     clearDerivedKeys();
     // Must fully tear down the live WalletConnect v2 clients (wc + wcClient
     // modules) on logout, not just this module's own state: those modules
@@ -774,9 +778,19 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     // wallet's sessions/pairings/keys cached in memory, and only read
     // storage once at init() — leaving them running would let a different
     // wallet opened afterwards inherit stale WalletConnect state instead of
-    // starting clean.
-    await dispatch("wc/reset", null, { root: true });
-    await dispatch("wcClient/reset", null, { root: true });
+    // starting clean. Each reset is best-effort and must never block the
+    // rest of logout (e.g. state.pass/privateAccounts still being cleared)
+    // if WalletConnect's own teardown throws.
+    try {
+      await dispatch("wc/reset", null, { root: true });
+    } catch (err) {
+      console.error("Failed to reset wc module state", err);
+    }
+    try {
+      await dispatch("wcClient/reset", null, { root: true });
+    } catch (err) {
+      console.error("Failed to reset wcClient module state", err);
+    }
     await commit("logout");
   },
   async prolong({ commit }) {
@@ -1619,6 +1633,16 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       const walletRecord = await dbAny.wallets.get({ name });
       await dbAny.wallets.delete(walletRecord.id);
       clearDerivedKeys();
+      try {
+        await dispatch("wc/reset", null, { root: true });
+      } catch (err) {
+        console.error("Failed to reset wc module state", err);
+      }
+      try {
+        await dispatch("wcClient/reset", null, { root: true });
+      } catch (err) {
+        console.error("Failed to reset wcClient module state", err);
+      }
       commit("logout");
     }
   },

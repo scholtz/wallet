@@ -768,16 +768,22 @@ const actions: ActionTree<WcState, RootState> = {
    * stale, never-cleared instance skipped re-init entirely.
    */
   async reset({ commit, state }) {
+    // Commit the reset unconditionally and first: state must be wiped even
+    // if best-effort teardown below throws or (worse) hangs on a network
+    // call, since a stuck relay-close must never block logout / leave the
+    // stale instance sitting in state.
     const { web3wallet } = state;
+    commit("reset");
     if (web3wallet) {
       try {
         const core: any = (web3wallet as any).core;
-        await core?.relayer?.transportClose?.();
+        core?.relayer?.transportClose?.()?.catch?.((err: unknown) => {
+          console.error("Failed to close WalletConnect relay transport", err);
+        });
       } catch (err) {
         console.error("Failed to close WalletConnect relay transport", err);
       }
     }
-    commit("reset");
   },
   async cancelSignDataRequest(
     { commit, state },

@@ -241,15 +241,17 @@ const actions: ActionTree<WcClientState, RootState> = {
   /** See wc.ts's `reset` action — same reasoning applies to this module's UniversalProvider instance. */
   async reset({ commit, state }) {
     const { web3wallet } = state;
+    commit("reset");
     if (web3wallet) {
       try {
         const core: any = (web3wallet as any).client?.core;
-        await core?.relayer?.transportClose?.();
+        core?.relayer?.transportClose?.()?.catch?.((err: unknown) => {
+          console.error("Failed to close WalletConnect relay transport", err);
+        });
       } catch (err) {
         console.error("Failed to close WalletConnect relay transport", err);
       }
     }
-    commit("reset");
   },
 };
 
