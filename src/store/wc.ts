@@ -247,6 +247,9 @@ const mutations: MutationTree<WcState> = {
   setWc1Enabled(currentState, enabled: boolean) {
     currentState.wc1Enabled = enabled;
   },
+  reset(currentState) {
+    Object.assign(currentState, state());
+  },
 };
 
 const actions: ActionTree<WcState, RootState> = {
@@ -751,6 +754,30 @@ const actions: ActionTree<WcState, RootState> = {
     });
 
     commit("removeSignDataRequest", data.id);
+  },
+  /**
+   * Tears down the live WalletKit/Core instance and wipes every piece of
+   * in-memory WalletConnect state. Must run on logout (and before a
+   * different wallet is opened) — otherwise the already-initialized
+   * WalletKit instance keeps the previous wallet's sessions/pairings/keys
+   * cached in memory even after `state.wallet.wc` (its on-disk storage) is
+   * swapped for the newly opened wallet's own blob, since WalletKit only
+   * reads storage once at `init()` time. That desync is what made
+   * WalletConnect "unavailable" after logout+login: the Connect page only
+   * gates its Enable button on `state.wc.web3wallet` being null, so a
+   * stale, never-cleared instance skipped re-init entirely.
+   */
+  async reset({ commit, state }) {
+    const { web3wallet } = state;
+    if (web3wallet) {
+      try {
+        const core: any = (web3wallet as any).core;
+        await core?.relayer?.transportClose?.();
+      } catch (err) {
+        console.error("Failed to close WalletConnect relay transport", err);
+      }
+    }
+    commit("reset");
   },
   async cancelSignDataRequest(
     { commit, state },

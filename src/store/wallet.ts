@@ -673,6 +673,10 @@ const mutations: MutationTree<WalletState> = {
     state.privateAccounts = [];
     state.lastActiveAccount = "";
     state.lastActiveAccountName = "";
+    // Wallet-scoped WalletConnect key/value storage (see WCKeyValueStore) —
+    // must not linger in memory once the wallet closes, so it can't leak
+    // into a differently-opened wallet before openWallet's setWC runs.
+    state.wc = {};
   },
   prolong(state) {
     state.time = new Date();
@@ -761,9 +765,18 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return undefined;
     }
   },
-  async logout({ commit }) {
+  async logout({ commit, dispatch }) {
     wc.clear();
     clearDerivedKeys();
+    // Must fully tear down the live WalletConnect v2 clients (wc + wcClient
+    // modules) on logout, not just this module's own state: those modules
+    // keep a WalletKit/UniversalProvider instance alive with the previous
+    // wallet's sessions/pairings/keys cached in memory, and only read
+    // storage once at init() — leaving them running would let a different
+    // wallet opened afterwards inherit stale WalletConnect state instead of
+    // starting clean.
+    await dispatch("wc/reset", null, { root: true });
+    await dispatch("wcClient/reset", null, { root: true });
     await commit("logout");
   },
   async prolong({ commit }) {

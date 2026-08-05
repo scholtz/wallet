@@ -53,6 +53,9 @@ const mutations: MutationTree<WcClientState> = {
     currentState.connectors.length = 0;
     currentState.requests.length = 0;
   },
+  reset(currentState) {
+    Object.assign(currentState, state());
+  },
   addConnector(currentState, connector: ConnectorRecord) {
     currentState.connectors.push(connector);
   },
@@ -234,6 +237,19 @@ const actions: ActionTree<WcClientState, RootState> = {
     } catch (err) {
       console.error("unable to pair", err);
     }
+  },
+  /** See wc.ts's `reset` action — same reasoning applies to this module's UniversalProvider instance. */
+  async reset({ commit, state }) {
+    const { web3wallet } = state;
+    if (web3wallet) {
+      try {
+        const core: any = (web3wallet as any).client?.core;
+        await core?.relayer?.transportClose?.();
+      } catch (err) {
+        console.error("Failed to close WalletConnect relay transport", err);
+      }
+    }
+    commit("reset");
   },
 };
 
