@@ -25,7 +25,10 @@
         </div>
       </template>
       <template #empty>
-        {{ $t("acc_overview.no_assets") }}
+        <div class="empty-state">
+          <i class="pi pi-inbox" aria-hidden="true" />
+          <span>{{ $t("acc_overview.no_assets") }}</span>
+        </div>
       </template>
       <Column
         field="name"

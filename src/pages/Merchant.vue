@@ -8,6 +8,9 @@
     </template>
 
     <h1>
+      <span class="page-title-icon"
+        ><i class="pi pi-credit-card" aria-hidden="true"
+      /></span>
       {{ $t("merchant.make_payment") }}
       <span v-if="asset">{{ asset.name }}</span>
     </h1>

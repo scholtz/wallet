@@ -9,7 +9,12 @@ const { t } = useI18n();
 
 <template>
   <MainLayout>
-    <h1>{{ t("newacc.title") }}</h1>
+    <h1>
+      <span class="page-title-icon"
+        ><i class="pi pi-user-plus" aria-hidden="true"
+      /></span>
+      {{ t("newacc.title") }}
+    </h1>
     <TabView>
       <TabPanel
         value="0"
@@ -22,6 +27,7 @@ const { t } = useI18n();
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
+              <i class="pi pi-sitemap mr-2"></i>
               {{ t("newacc.hd_wallet_account") }}
             </Button>
           </RouterLink>
@@ -35,6 +41,7 @@ const { t } = useI18n();
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
+              <i class="pi pi-key mr-2"></i>
               {{ t("newacc.create_basic") }}
             </Button>
           </RouterLink>
@@ -48,6 +55,7 @@ const { t } = useI18n();
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
+              <i class="pi pi-download mr-2"></i>
               {{ t("newacc.import_account") }}
             </Button>
           </RouterLink>
@@ -67,6 +75,7 @@ const { t } = useI18n();
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
+              <i class="pi pi-sitemap mr-2"></i>
               {{ t("newacc.hd_wallet_account") }}
             </Button>
           </RouterLink>
@@ -80,6 +89,7 @@ const { t } = useI18n();
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
+              <i class="pi pi-key mr-2"></i>
               {{ t("newacc.create_basic") }}
             </Button>
           </RouterLink>
@@ -94,6 +104,7 @@ const { t } = useI18n();
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
+              <i class="pi pi-microchip mr-2"></i>
               {{ t("newacc.ledger_account") }}
             </Button>
           </RouterLink>
@@ -105,6 +116,7 @@ const { t } = useI18n();
         <div class="field grid">
           <RouterLink to="/new-account/wc" class="col-12 mb-2 md:col-2 md:mb-0">
             <Button class="w-full">
+              <i class="pi pi-link mr-2"></i>
               {{ t("newacc.wc_account") }}
             </Button>
           </RouterLink>
@@ -118,6 +130,7 @@ const { t } = useI18n();
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
+              <i class="pi pi-mobile mr-2"></i>
               {{ t("newacc.twofa_account") }}
             </Button>
           </RouterLink>
@@ -131,6 +144,7 @@ const { t } = useI18n();
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
+              <i class="pi pi-envelope mr-2"></i>
               {{ t("newacc.email_pass_account") }}
             </Button>
           </RouterLink>
@@ -144,6 +158,7 @@ const { t } = useI18n();
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
+              <i class="pi pi-sparkles mr-2"></i>
               {{ t("newacc.create_vanity") }}
             </Button>
           </RouterLink>
@@ -157,6 +172,7 @@ const { t } = useI18n();
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
+              <i class="pi pi-users mr-2"></i>
               {{ t("newacc.create_multisign_account") }}
             </Button>
           </RouterLink>
@@ -170,6 +186,7 @@ const { t } = useI18n();
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
+              <i class="pi pi-eye mr-2"></i>
               {{ t("newacc.watch_account") }}
             </Button>
           </RouterLink>
@@ -184,6 +201,7 @@ const { t } = useI18n();
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
+              <i class="pi pi-download mr-2"></i>
               {{ t("newacc.import_account") }}
             </Button>
           </RouterLink>
@@ -198,6 +216,7 @@ const { t } = useI18n();
             class="col-12 mb-2 md:col-2 md:mb-0"
           >
             <Button class="w-full">
+              <i class="pi pi-share-alt mr-2"></i>
               {{ t("newacc.shamir_account") }}
             </Button>
           </RouterLink>

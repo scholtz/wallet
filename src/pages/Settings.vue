@@ -1,6 +1,11 @@
 <template>
   <main-layout>
-    <h1>{{ $t("settings.title") }}</h1>
+    <h1>
+      <span class="page-title-icon"
+        ><i class="pi pi-cog" aria-hidden="true"
+      /></span>
+      {{ $t("settings.title") }}
+    </h1>
 
     <Card>
       <template #content>

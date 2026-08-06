@@ -36,7 +36,10 @@
         </div>
       </template>
       <template #empty>
-        {{ $t("acc_overview.no_transactions") }}
+        <div class="empty-state">
+          <i class="pi pi-history" aria-hidden="true" />
+          <span>{{ $t("acc_overview.no_transactions") }}</span>
+        </div>
       </template>
       <Column field="txType" :header="$t('acc_overview.type')" :sortable="true">
         <template #filter="{ filterModel, filterCallback }">

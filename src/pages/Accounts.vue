@@ -2,7 +2,12 @@
   <main-layout>
     <div class="grid">
       <div class="col">
-        <h1>{{ t("accounts.title") }}</h1>
+        <h1>
+          <span class="page-title-icon"
+            ><i class="pi pi-wallet" aria-hidden="true"
+          /></span>
+          {{ t("accounts.title") }}
+        </h1>
       </div>
     </div>
     <Message severity="warn" v-if="showNoAccountsForNetworkWarning">
@@ -11,6 +16,7 @@
     <div v-if="accounts.length == 0">
       <RouterLink to="/new-account/ed25519">
         <Button class="my-5" id="create-first">
+          <i class="pi pi-user-plus mr-2"></i>
           {{ t("newacc.create_first") }}
         </Button>
       </RouterLink>
@@ -59,7 +65,10 @@
             </div>
           </template>
           <template #empty>
-            {{ t("accounts.no_accounts") }}
+            <div class="empty-state">
+              <i class="pi pi-wallet" aria-hidden="true" />
+              <span>{{ t("accounts.no_accounts") }}</span>
+            </div>
           </template>
           <Column
             field="name"

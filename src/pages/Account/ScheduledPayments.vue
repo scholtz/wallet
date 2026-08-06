@@ -569,8 +569,11 @@ watch(
             </div>
           </template>
           <template #empty>
-            {{ t("scheduled_payments.no_payment_found") }}</template
-          >
+            <div class="empty-state">
+              <i class="pi pi-calendar" aria-hidden="true" />
+              <span>{{ t("scheduled_payments.no_payment_found") }}</span>
+            </div>
+          </template>
           <Column
             field="appId"
             :header="t('scheduled_payments.app_id')"

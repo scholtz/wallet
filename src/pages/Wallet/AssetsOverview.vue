@@ -2,7 +2,12 @@
   <MainLayout>
     <div class="grid">
       <div class="col">
-        <h1>{{ t("assets_overview.title") }}</h1>
+        <h1>
+          <span class="page-title-icon"
+            ><i class="pi pi-chart-pie" aria-hidden="true"
+          /></span>
+          {{ t("assets_overview.title") }}
+        </h1>
       </div>
     </div>
 
@@ -61,7 +66,10 @@
             </div>
           </template>
           <template #empty>
-            {{ t("assets_overview.no_assets") }}
+            <div class="empty-state">
+              <i class="pi pi-inbox" aria-hidden="true" />
+              <span>{{ t("assets_overview.no_assets") }}</span>
+            </div>
           </template>
           <Column
             field="accountName"

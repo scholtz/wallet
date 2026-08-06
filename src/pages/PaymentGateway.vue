@@ -1,6 +1,11 @@
 <template>
   <PublicLayout>
-    <h1>{{ $t("gateway.title") }}</h1>
+    <h1>
+      <span class="page-title-icon"
+        ><i class="pi pi-shopping-cart" aria-hidden="true"
+      /></span>
+      {{ $t("gateway.title") }}
+    </h1>
 
     <Card>
       <template #content>

@@ -1,6 +1,11 @@
 <template>
   <PublicLayout>
-    <h1>{{ $t("privacy.title") }}</h1>
+    <h1>
+      <span class="page-title-icon"
+        ><i class="pi pi-lock" aria-hidden="true"
+      /></span>
+      {{ $t("privacy.title") }}
+    </h1>
     <Accordion :active-index="0">
       <AccordionTab :header="$t('privacy.q1')">
         <p>

@@ -1,6 +1,11 @@
 <template>
   <PublicLayout>
-    <h1>{{ $t("donation.title") }}</h1>
+    <h1>
+      <span class="page-title-icon"
+        ><i class="pi pi-heart" aria-hidden="true"
+      /></span>
+      {{ $t("donation.title") }}
+    </h1>
 
     <Card>
       <template #content>

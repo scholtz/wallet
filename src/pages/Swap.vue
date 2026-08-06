@@ -1,6 +1,11 @@
 <template>
   <MainLayout>
-    <h1>{{ t("swap.title") }}</h1>
+    <h1>
+      <span class="page-title-icon"
+        ><i class="pi pi-arrow-right-arrow-left" aria-hidden="true"
+      /></span>
+      {{ t("swap.title") }}
+    </h1>
     <Card>
       <template #content>
         <div v-if="checkNetwork()">

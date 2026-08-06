@@ -15,6 +15,7 @@ the source, license, and download date for every asset.
 | `hero-new-wallet.jpg` | New wallet | <https://stockcake.com/i/biometric-security-unlocked_3335038_1704571> | 2026-07-14 |
 | `hero-import-wallet.jpg` | Import wallet | <https://stockcake.com/i/digital-banking-moment_1599315_1198798> | 2026-07-14 |
 | `hero-404.jpg` | 404 page | <https://stockcake.com/i/compass-guided-journey_390241_590975> | 2026-07-14 |
+| `success-check.svg` | Payment success page | Original vector artwork authored in-repo (brand teal palette), no external source — covered by the project license | 2026-08-06 |
 
 ## Rules for adding or replacing images
 

@@ -1,7 +1,12 @@
 <template>
   <MainLayout>
     <div>
-      <h1>{{ $t("connect.title") }}</h1>
+      <h1>
+        <span class="page-title-icon"
+          ><i class="pi pi-link" aria-hidden="true"
+        /></span>
+        {{ $t("connect.title") }}
+      </h1>
 
       <Card>
         <template #content>

@@ -1,7 +1,12 @@
 <template>
   <MainLayout>
     <div class="container-fluid">
-      <h1>{{ $t("asset.title") }}</h1>
+      <h1>
+        <span class="page-title-icon"
+          ><i class="pi pi-database" aria-hidden="true"
+        /></span>
+        {{ $t("asset.title") }}
+      </h1>
       <router-link to="/asset/create">
         <Button severity="secondary"> Create ASA </Button>
       </router-link>

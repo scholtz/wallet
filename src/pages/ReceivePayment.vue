@@ -1,6 +1,9 @@
 <template>
   <main-layout>
     <h1>
+      <span class="page-title-icon"
+        ><i class="pi pi-qrcode" aria-hidden="true"
+      /></span>
       {{ $t("receive.title") }} <span v-if="account">{{ account.name }}</span>
     </h1>
 

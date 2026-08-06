@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" fill="none" role="img" aria-label="Payment successful">
+  <!-- Original artwork created for AWallet (Biatec Wallet); brand teal #14b8a6.
+       Authored in-repo, released under the project's license. -->
+  <circle cx="120" cy="120" r="110" fill="#14b8a6" opacity="0.08"/>
+  <circle cx="120" cy="120" r="88" fill="#14b8a6" opacity="0.14"/>
+  <circle cx="120" cy="120" r="66" fill="url(#g)"/>
+  <path d="M92 121.5l19.5 19.5L150 102" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="205" cy="72" r="6" fill="#2dd4bf"/>
+  <circle cx="38" cy="96" r="4.5" fill="#2dd4bf" opacity="0.8"/>
+  <circle cx="188" cy="182" r="5" fill="#0d9488" opacity="0.7"/>
+  <path d="M56 44l3.2 8.8L68 56l-8.8 3.2L56 68l-3.2-8.8L44 56l8.8-3.2z" fill="#5eead4"/>
+  <path d="M186 24l2.4 6.6 6.6 2.4-6.6 2.4-2.4 6.6-2.4-6.6-6.6-2.4 6.6-2.4z" fill="#5eead4" opacity="0.85"/>
+  <defs>
+    <linearGradient id="g" x1="54" y1="54" x2="186" y2="186" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2dd4bf"/>
+      <stop offset="1" stop-color="#0d9488"/>
+    </linearGradient>
+  </defs>
+</svg>

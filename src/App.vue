@@ -104,6 +104,48 @@ h6 {
   letter-spacing: -0.01em;
 }
 
+/* Shared page-title icon badge: a small rounded teal chip holding a
+   PrimeIcons glyph, placed inside a page's <h1> before the title text
+   (e.g. <h1><span class="page-title-icon"><i class="pi pi-cog"/></span>...).
+   Gives every major screen an instant visual anchor without per-page CSS.
+   aria-hidden the <i> — the adjacent title text is the accessible name. */
+.page-title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  margin-right: 0.65rem;
+  border-radius: 0.65rem;
+  background: color-mix(in srgb, var(--p-primary-color) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--p-primary-color) 30%, transparent);
+  color: var(--p-primary-color);
+  vertical-align: -0.55rem;
+  flex-shrink: 0;
+}
+
+.page-title-icon .pi {
+  font-size: 1.2rem;
+}
+
+/* Shared empty-state treatment for DataTable #empty slots and similar
+   "nothing here yet" placeholders: a large muted glyph above the message
+   instead of a bare line of text lost inside an empty table. */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--p-text-muted-color);
+}
+
+.empty-state .pi {
+  font-size: 2.5rem;
+  opacity: 0.55;
+}
+
 /* Bridges the old theme-CSS variable name (still used by the inline brand
    SVGs) to PrimeVue v4's design-token variable, so the logo tracks the
    Biatec preset's primary color without editing every inlined SVG. */

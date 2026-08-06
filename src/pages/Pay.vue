@@ -1,7 +1,12 @@
 <template>
   <main-layout>
     <div v-if="!route.params.account">
-      <h1>{{ t("pay.select_account_for_payment") }}</h1>
+      <h1>
+        <span class="page-title-icon"
+          ><i class="pi pi-send" aria-hidden="true"
+        /></span>
+        {{ t("pay.select_account_for_payment") }}
+      </h1>
 
       <Card>
         <template #content>
@@ -12,9 +17,15 @@
     <div v-if="account">
       <form v-if="page == 'design'" @submit="previewPaymentClick">
         <h1 v-if="!isRekey">
+          <span class="page-title-icon"
+            ><i class="pi pi-send" aria-hidden="true"
+          /></span>
           {{ t("pay.title") }} <span v-if="account">{{ account.name }}</span>
         </h1>
         <h1 v-if="isRekey">
+          <span class="page-title-icon"
+            ><i class="pi pi-shield" aria-hidden="true"
+          /></span>
           {{ t("pay.rekey_title") }}
           <span v-if="account">{{ account.name }}</span>
         </h1>
