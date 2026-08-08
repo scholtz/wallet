@@ -49,7 +49,10 @@
                       {{ $t("pay.tx_type") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ txn.type }}
+                      <template v-if="isAssetOptIn(txn)">
+                        {{ $t("pay.asset_optin") }}
+                      </template>
+                      <template v-else>{{ txn.type }}</template>
                     </div>
                   </div>
                   <div class="field grid" v-if="payTo">
@@ -203,7 +206,10 @@
                       {{ $t("pay.type") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ multisigTxn?.type }}
+                      <template v-if="isAssetOptIn(multisigTxn)">
+                        {{ $t("pay.asset_optin") }}
+                      </template>
+                      <template v-else>{{ multisigTxn?.type }}</template>
                     </div>
                   </div>
                   <div class="field grid">
@@ -677,6 +683,7 @@ import type {
 } from "@/store/wallet";
 import type { PreparePaymentPayload } from "@/store/algod";
 import { getArc14Realm, isArc14AuthTransaction } from "@/scripts/encoding/arc14";
+import { isAssetOptIn } from "@/scripts/transactionTypes";
 
 const store = useStore();
 const route = useRoute();

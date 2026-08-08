@@ -525,7 +525,8 @@
     "toggle_send_to_others_form": "Переключить форму отправки другим",
     "toggle_combine_with_others_form": "Переключить форму объединения с другими",
     "process_payment": "Обработать платеж",
-    "tx_type": "Тип транзакции"
+    "tx_type": "Тип транзакции",
+    "asset_optin": "Подписка на актив (opt-in)"
   },
   "settings": {
     "title": "Настройки",

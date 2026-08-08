@@ -105,7 +105,11 @@
               :sortable="true"
             >
               <template #body="slotProps">
-                {{ slotProps.data.type }}
+                {{
+                  isAssetOptIn(slotProps.data.txn)
+                    ? $t("pay.asset_optin")
+                    : slotProps.data.type
+                }}
                 <Badge
                   v-if="isArc14Auth(slotProps.data.txn)"
                   severity="info"
@@ -309,7 +313,13 @@
                     </tr>
                     <tr>
                       <td>{{ $t("connect.type") }}:</td>
-                      <td>{{ txProps.data.type }}</td>
+                      <td>
+                        {{
+                          isAssetOptIn(txProps.data.txn)
+                            ? $t("pay.asset_optin")
+                            : txProps.data.type
+                        }}
+                      </td>
                     </tr>
                     <tr>
                       <td>{{ $t("connect.note") }}:</td>
@@ -505,6 +515,7 @@ import Arc56CallDetails from "./Arc56CallDetails.vue";
 import TransactionGroupSimulation from "./TransactionGroupSimulation.vue";
 import { useStore } from "../store";
 import { getArc14Realm, isArc14AuthTransaction } from "../scripts/encoding/arc14";
+import { isAssetOptIn } from "../scripts/transactionTypes";
 
 type GlobalFilters = {
   formatCurrencyBigInt: (

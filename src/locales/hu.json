@@ -525,7 +525,8 @@
     "toggle_send_to_others_form": "Átkapcsolás a 'Küldés a többeknek' űrlapra",
     "toggle_combine_with_others_form": "Átkapcsolás a 'Többi aláírás bedolgozása' űrlapra",
     "process_payment": "Fizetési művelet feldolgozása",
-    "tx_type": "Tranzakció típus"
+    "tx_type": "Tranzakció típus",
+    "asset_optin": "Eszköz opt-in"
   },
   "settings": {
     "title": "Beállítások",

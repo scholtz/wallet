@@ -525,7 +525,8 @@
     "toggle_send_to_others_form": "Başkalarına Gönder formunu aç/kapat",
     "toggle_combine_with_others_form": "Diğerleriyle birleştirme formunu aç/kapat",
     "process_payment": "Ödemeyi işle",
-    "tx_type": "İşlem türü"
+    "tx_type": "İşlem türü",
+    "asset_optin": "Varlık kaydı (opt-in)"
   },
   "settings": {
     "title": "Ayarlar",

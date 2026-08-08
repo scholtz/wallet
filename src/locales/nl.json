@@ -525,7 +525,8 @@
     "toggle_send_to_others_form": "Toggle Send to others form",
     "toggle_combine_with_others_form": "Toggle Combine with others form",
     "process_payment": "Process payment",
-    "tx_type": "Transaction type"
+    "tx_type": "Transaction type",
+    "asset_optin": "Asset opt-in"
   },
   "settings": {
     "title": "Instellingen",

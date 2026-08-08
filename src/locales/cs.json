@@ -525,7 +525,8 @@
     "toggle_send_to_others_form": "Přepnout formulář Odeslat ostatním",
     "toggle_combine_with_others_form": "Přepnout formulář Kombinovat s ostatními",
     "process_payment": "Zpracovat platbu",
-    "tx_type": "Typ transakce"
+    "tx_type": "Typ transakce",
+    "asset_optin": "Přihlášení k assetu (opt-in)"
   },
   "settings": {
     "title": "Nastavení",

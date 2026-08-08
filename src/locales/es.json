@@ -525,7 +525,8 @@
     "toggle_send_to_others_form": "Alternar el formulario Enviar a otros",
     "toggle_combine_with_others_form": "Alternar formulario Combinar con otros",
     "process_payment": "Procesar pago",
-    "tx_type": "Tipo de transacción"
+    "tx_type": "Tipo de transacción",
+    "asset_optin": "Alta en el activo (opt-in)"
   },
   "settings": {
     "title": "Configuraciones",

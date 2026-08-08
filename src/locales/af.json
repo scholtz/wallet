@@ -525,7 +525,8 @@
     "toggle_send_to_others_form": "Wissel stuur na ander vorm",
     "toggle_combine_with_others_form": "Wissel kombineer met ander vorm",
     "process_payment": "Verwerk betaling",
-    "tx_type": "Transaksie tipe"
+    "tx_type": "Transaksie tipe",
+    "asset_optin": "Asset opt-in"
   },
   "settings": {
     "title": "Settings",

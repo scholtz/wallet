@@ -8,6 +8,7 @@ import Arc56CallDetails from "../components/Arc56CallDetails.vue";
 import TransactionGroupSimulation from "../components/TransactionGroupSimulation.vue";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
+import { isAssetOptIn } from "../scripts/transactionTypes";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 
@@ -429,7 +430,15 @@ const simulationTransactions = computed<algosdk.Transaction[]>(() =>
             </template>
           </Column>
           <Column field="index" :header="t('connect.index')" :sortable="true" />
-          <Column field="type" :header="t('connect.type')" :sortable="true" />
+          <Column field="type" :header="t('connect.type')" :sortable="true">
+            <template #body="slotProps">
+              {{
+                isAssetOptIn(slotProps.data.txn)
+                  ? t("pay.asset_optin")
+                  : slotProps.data.type
+              }}
+            </template>
+          </Column>
           <Column field="from" :header="t('connect.from')" :sortable="true">
             <template #body="slotProps">
               <AlgorandAddress :address="slotProps.data.from" />
@@ -565,7 +574,13 @@ const simulationTransactions = computed<algosdk.Transaction[]>(() =>
                   </tr>
                   <tr>
                     <td>{{ t("connect.type") }}:</td>
-                    <td>{{ txProps.data.type }}</td>
+                    <td>
+                      {{
+                        isAssetOptIn(txProps.data.txn)
+                          ? t("pay.asset_optin")
+                          : txProps.data.type
+                      }}
+                    </td>
                   </tr>
                   <tr>
                     <td>{{ t("connect.note") }}:</td>
