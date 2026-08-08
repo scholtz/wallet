@@ -8,7 +8,10 @@ import { assertSwapTransactionsSafe } from "./validate";
 export interface BiatecAggregatorOptions {
   name: string;
   displayName: string;
-  baseUrl: string;
+  // Keyed by the string checkNetwork() returns ("mainnet"/"testnet"). A
+  // network with no entry here means this aggregator variant isn't offered
+  // on that network (e.g. the stage router is mainnet-only).
+  baseUrls: Partial<Record<"mainnet" | "testnet", string>>;
   enabledKey: string;
   quotesKey: string;
   txnsKey: string;
@@ -76,12 +79,23 @@ export function createBiatecAggregator(
   const {
     name,
     displayName,
-    baseUrl,
+    baseUrls,
     enabledKey,
     quotesKey,
     txnsKey,
     processingKey,
   } = options;
+
+  // Resolves the router base URL for the wallet's currently selected network,
+  // or returns undefined if this aggregator variant isn't available there
+  // (e.g. the stage router has no testnet deployment).
+  const resolveBaseUrl = (context: SwapContext): string | undefined => {
+    const network = context.checkNetwork();
+    if (network === "mainnet" || network === "testnet") {
+      return baseUrls[network];
+    }
+    return undefined;
+  };
 
   return {
     name,
@@ -95,12 +109,18 @@ export function createBiatecAggregator(
       try {
         context.aggregatorData[quotesKey].value = {};
 
+        const effectiveBaseUrl = resolveBaseUrl(context);
+        if (!effectiveBaseUrl) {
+          context.error.value = `${displayName} is not available on this network`;
+          return;
+        }
+
         const authHeader = await context.signAuthTx({
           account: context.account.value?.addr || "",
           realm: "BiatecRouter#ARC14",
         });
         biatecRouter.OpenAPI.HEADERS = { Authorization: authHeader };
-        biatecRouter.OpenAPI.BASE = baseUrl;
+        biatecRouter.OpenAPI.BASE = effectiveBaseUrl;
 
         const requestBody = {
           sender: context.account.value?.addr || "",
@@ -169,12 +189,16 @@ export function createBiatecAggregator(
         ) {
           throw new Error("Cannot calculate the minimum amount to receive.");
         }
+        const effectiveBaseUrl = resolveBaseUrl(context);
+        if (!effectiveBaseUrl) {
+          throw new Error(`${displayName} is not available on this network`);
+        }
         const authHeader = await context.signAuthTx({
           account: context.account.value?.addr || "",
           realm: "BiatecRouter#ARC14",
         });
         biatecRouter.OpenAPI.HEADERS = { Authorization: authHeader };
-        biatecRouter.OpenAPI.BASE = baseUrl;
+        biatecRouter.OpenAPI.BASE = effectiveBaseUrl;
 
         const minimumReceiveAmount = Math.floor(
           (context.aggregatorData[quotesKey].value.route.route.outputAmount *
@@ -344,7 +368,10 @@ export function createBiatecAggregator(
 export const biatecAggregator: DexAggregator = createBiatecAggregator({
   name: "biatec",
   displayName: "Biatec Router",
-  baseUrl: "https://router.api.biatec.io",
+  baseUrls: {
+    mainnet: "https://router.api.biatec.io",
+    testnet: "https://testnet.router.api.biatec.io",
+  },
   enabledKey: "useBiatec",
   quotesKey: "biatecQuotes",
   txnsKey: "biatecTxns",
@@ -353,11 +380,14 @@ export const biatecAggregator: DexAggregator = createBiatecAggregator({
 
 // Same API as production, but points at Biatec's stage environment - used to
 // test routing improvements before they're promoted to production. Only
-// queried when the user opts in via Settings ("Enable stage routers").
+// queried when the user opts in via Settings ("Enable stage routers"). Stage
+// only exists on mainnet - there is no testnet stage deployment.
 export const biatecStageAggregator: DexAggregator = createBiatecAggregator({
   name: "biatecStage",
   displayName: "Biatec Router (Stage)",
-  baseUrl: "https://stage.router.api.biatec.io",
+  baseUrls: {
+    mainnet: "https://stage.router.api.biatec.io",
+  },
   enabledKey: "useBiatecStage",
   quotesKey: "biatecStageQuotes",
   txnsKey: "biatecStageTxns",

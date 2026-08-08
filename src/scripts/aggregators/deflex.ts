@@ -41,14 +41,18 @@ export const deflexAggregator: DexAggregator = {
         context.processingQuote.value = false;
         return;
       }
-      let algodUri = encodeURIComponent("https://mainnet-api.algonode.cloud");
-      let algodToken = "";
-      let algodPort = 443;
-      if (chain == "testnet") {
-        algodUri = encodeURIComponent("https://testnet-api.algonode.cloud");
-        algodToken = "";
-        algodPort = 443;
+      // Deflex only has a mainnet deployment - there is no testnet router to
+      // call, so don't send it a request for testnet (or a custom network the
+      // user has marked as behaving like testnet).
+      if (chain !== "mainnet") {
+        context.txsDetails.value += "\nDEFLEX: Only available on Mainnet";
+        context.txsDetails.value = context.txsDetails.value.trim();
+        context.processingQuote.value = false;
+        return;
       }
+      const algodUri = encodeURIComponent("https://mainnet-api.algonode.cloud");
+      const algodToken = "";
+      const algodPort = 443;
 
       const apiKey =
         context.$store.state.config.deflex.trim() || DEFAULT_DEFLEX_API_KEY;

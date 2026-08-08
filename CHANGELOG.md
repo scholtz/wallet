@@ -6,6 +6,8 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 
 - Added support for ARC-60 arbitrary data signing over WalletConnect: connected DApps can now request an authentication signature over arbitrary data (not just transactions), which the wallet displays with the requesting domain, purpose, and full data preview before signing — and refuses to sign if the request's domain binding doesn't match, to protect against spoofed sign-in requests.
 - Improved DEX aggregator swaps (Deflex, Folks Router, Biatec Router, Biatec Stage Router)
+- Biatec Router swaps are now available on Testnet, not just Mainnet.
+- When using a custom network (Settings > Network > Custom), the Swap page now asks whether your custom network behaves like Mainnet or Testnet, so swaps can be enabled there too.
 - Transaction review screens (the sign page, sign-all page, and WalletConnect requests) now label an asset opt-in for what it is: a zero-amount asset transfer you send to yourself to start accepting a token is shown as "Asset opt-in" instead of a generic asset transfer, so it's clearer what a DApp is actually asking you to sign.
 - Made the app easier to scan visually: major screens (accounts, payments, swap, settings, WalletConnect, asset lists and more) now have a teal icon badge next to their title, every account-creation option shows a distinctive icon, empty lists show a friendly illustration-style placeholder instead of a bare text line, and the payment-success screen got a celebratory checkmark illustration.
 

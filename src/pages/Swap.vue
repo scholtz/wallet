@@ -8,11 +8,33 @@
     </h1>
     <Card>
       <template #content>
+        <div
+          v-if="isCustomEnv"
+          class="field grid"
+        >
+          <label class="col-12 mb-2 md:col-2 md:mb-0">
+            {{ t("swap.custom_network_kind_label") }}
+          </label>
+          <div class="col-12 md:col-10">
+            <Select
+              :modelValue="customNetworkKind"
+              @update:modelValue="setCustomNetworkKind"
+              :options="customNetworkKindOptions"
+              optionLabel="label"
+              optionValue="value"
+              :placeholder="t('swap.custom_network_kind_placeholder')"
+            />
+          </div>
+        </div>
         <div v-if="checkNetwork()">
           {{ t("swap.network") }}: {{ checkNetwork() }}
         </div>
         <Message severity="error" v-else>
-          {{ t("swap.network_not_supported") }}
+          {{
+            isCustomEnv
+              ? t("swap.custom_network_kind_required")
+              : t("swap.network_not_supported")
+          }}
         </Message>
         <Message severity="error" v-if="hasSK === false">
           {{ t("swap.has_sk") }}
@@ -161,6 +183,7 @@ const {
   aggregatorData,
   loadingAssets,
   dexAggregators,
+  customNetworkKind,
 
   // Computed
   formInvalid,
@@ -188,6 +211,7 @@ const {
   makeAssets,
   clickGetQuote,
   checkNetwork,
+  setCustomNetworkKind,
   clickExecuteFolks,
   clickExecuteBiatec,
   clickExecuteBiatecStage,
@@ -195,6 +219,16 @@ const {
   swapTokens,
   clickOptInToApps,
 } = useSwap();
+
+// "Custom" network (Settings > Network > Custom) points at user-supplied
+// algod/indexer URLs with no fixed chain identity, so checkNetwork() can't
+// tell whether it behaves like mainnet or testnet on its own - the swap page
+// asks the user to pick explicitly (see customNetworkKind in useSwap).
+const isCustomEnv = computed(() => store.state.config.env === "custom");
+const customNetworkKindOptions = [
+  { label: t("swap.custom_network_kind_mainnet"), value: "mainnet" },
+  { label: t("swap.custom_network_kind_testnet"), value: "testnet" },
+];
 
 // Computed properties for template access to aggregator data (must be writable for v-model)
 const useFolks = computed({

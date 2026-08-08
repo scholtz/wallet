@@ -53,6 +53,18 @@ export function useSwap() {
   const slippage: Ref<number> = ref(0.1);
   const fee: Ref<number> = ref(0);
   const loadingAssets: Ref<boolean> = ref(true);
+  // A "custom" network (Settings > Network > Custom, user-supplied algod/indexer
+  // URLs) has no fixed identity - it could be pointing at a mainnet fork, a
+  // testnet fork, or a private network. checkNetwork() can't infer which chain
+  // it behaves like from the env string alone, so the user picks it explicitly
+  // here (persisted so it's not re-asked every visit) and this stands in for
+  // the network only for swap purposes (DEX aggregator routing/base URLs).
+  const customNetworkKind: Ref<"mainnet" | "testnet" | null> = ref(
+    (localStorage.getItem("swap-custom-network-kind") as
+      | "mainnet"
+      | "testnet"
+      | null) || null
+  );
 
   // Initialize aggregator data dynamically with proper typing
   const aggregatorData: Record<string, Ref<any>> = {};
@@ -208,7 +220,19 @@ export function useSwap() {
     if (env == "testnet-v1.0" || env == "testnet") {
       return "testnet";
     }
+    if (env == "custom" && customNetworkKind.value) {
+      return customNetworkKind.value;
+    }
     return false;
+  };
+
+  const setCustomNetworkKind = (kind: "mainnet" | "testnet" | null) => {
+    customNetworkKind.value = kind;
+    if (kind) {
+      localStorage.setItem("swap-custom-network-kind", kind);
+    } else {
+      localStorage.removeItem("swap-custom-network-kind");
+    }
   };
 
   const reloadAccount = async (): Promise<void> => {
@@ -568,6 +592,7 @@ export function useSwap() {
     aggregatorData,
     loadingAssets,
     dexAggregators,
+    customNetworkKind,
 
     // Computed
     formInvalid,
@@ -596,6 +621,7 @@ export function useSwap() {
     makeAssets,
     clickGetQuote,
     checkNetwork,
+    setCustomNetworkKind,
     clickExecuteFolks,
     clickExecuteBiatec,
     clickExecuteBiatecStage,

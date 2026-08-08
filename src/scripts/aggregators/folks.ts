@@ -5,18 +5,14 @@ import { Buffer } from "buffer";
 import { getEffectiveQuoteAmount } from "./simulate";
 import { assertSwapTransactionsSafe } from "./validate";
 
+// Folks Router only has a mainnet deployment - there is no testnet router to
+// call, so any other network (including testnet) must not be sent a request.
 const getFolksClient = (context: SwapContext): FolksRouterClient | null => {
-  if (context.$store.state.config.env == "mainnet-v1.0") {
+  if (
+    context.$store.state.config.env == "mainnet-v1.0" ||
+    context.$store.state.config.env == "mainnet"
+  ) {
     return new FolksRouterClient(Network.MAINNET);
-  }
-  if (context.$store.state.config.env == "mainnet") {
-    return new FolksRouterClient(Network.MAINNET);
-  }
-  if (context.$store.state.config.env == "testnet-v1.0") {
-    return new FolksRouterClient(Network.TESTNET);
-  }
-  if (context.$store.state.config.env == "testnet") {
-    return new FolksRouterClient(Network.TESTNET);
   }
   return null;
 };
@@ -32,8 +28,17 @@ export const folksAggregator: DexAggregator = {
   getFolksClient,
 
   async getQuote(context: SwapContext) {
+    context.aggregatorData.folksQuote.value = {};
+    // Folks Router is Mainnet-only - on any other network (Testnet, or a
+    // custom network not marked as behaving like Mainnet), skip the request
+    // entirely instead of surfacing an error toast for an aggregator that was
+    // never going to be usable here.
+    if (!getFolksClient(context)) {
+      context.txsDetails.value += "\nFOLKS ROUTER: Only available on Mainnet";
+      context.txsDetails.value = context.txsDetails.value.trim();
+      return;
+    }
     try {
-      context.aggregatorData.folksQuote.value = {};
       const amount = BigInt(
         Math.round(
           context.payamount.value *
