@@ -12,6 +12,7 @@ import {
   type Arc56CandidateMatch,
 } from "@/scripts/arc56/decode";
 import type { ApplicationPrograms } from "@/store/algod";
+import { explorerAssetUrl, explorerApplicationUrl } from "@/scripts/explorer";
 
 // Deliberately narrow (just index + type, not the full algosdk.Transaction)
 // so this prop stays structurally compatible with both
@@ -33,6 +34,11 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const store = useStore();
+
+const assetUrl = (id: bigint | number | string) =>
+  explorerAssetUrl(store.state.config.env, id);
+const applicationUrl = (id: bigint | number | string) =>
+  explorerApplicationUrl(store.state.config.env, id);
 
 const loading = ref(false);
 const decoded = ref<DecodedArc56Call | null>(null);
@@ -391,7 +397,7 @@ watch(
               </template>
               <template v-else-if="arg.kind === 'asset'">
                 <a
-                  :href="`https://algorand.scan.biatec.io/asset/${arg.assetId}`"
+                  :href="assetUrl(arg.assetId!)"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -402,7 +408,7 @@ watch(
               </template>
               <template v-else-if="arg.kind === 'application'">
                 <a
-                  :href="`https://algorand.scan.biatec.io/application/${arg.applicationId}`"
+                  :href="applicationUrl(arg.applicationId!)"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -418,7 +424,7 @@ watch(
               </template>
               <template v-else-if="isAssetLikeScalar(arg)">
                 <a
-                  :href="`https://algorand.scan.biatec.io/asset/${arg.value}`"
+                  :href="assetUrl(arg.value as bigint | number)"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -432,7 +438,7 @@ watch(
               <template v-else-if="isAssetLikeArray(arg)">
                 <div v-for="(id, i) in (arg.value as (bigint | number)[])" :key="i">
                   <a
-                    :href="`https://algorand.scan.biatec.io/asset/${id}`"
+                    :href="assetUrl(id)"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -444,7 +450,7 @@ watch(
               </template>
               <template v-else-if="isAppLikeScalar(arg)">
                 <a
-                  :href="`https://algorand.scan.biatec.io/application/${arg.value}`"
+                  :href="applicationUrl(arg.value as bigint | number)"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -455,7 +461,7 @@ watch(
               <template v-else-if="isAppLikeArray(arg)">
                 <div v-for="(id, i) in (arg.value as (bigint | number)[])" :key="i">
                   <a
-                    :href="`https://algorand.scan.biatec.io/application/${id}`"
+                    :href="applicationUrl(id)"
                     target="_blank"
                     rel="noopener noreferrer"
                   >

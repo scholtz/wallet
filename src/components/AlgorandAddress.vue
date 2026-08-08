@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useStore } from "@/store";
 import copy from "copy-to-clipboard";
+import { explorerAddressUrl } from "@/scripts/explorer";
 
 const props = defineProps<{
   address?: string | null;
@@ -12,12 +13,14 @@ const props = defineProps<{
   linkExplorer?: boolean;
 }>();
 
-const explorerUrl = computed(() =>
-  props.address ? `https://algorand.scan.biatec.io/address/${props.address}` : ""
-);
-
 const { t } = useI18n();
 const store = useStore();
+
+const explorerUrl = computed(() =>
+  props.address
+    ? explorerAddressUrl(store.state.config.env, props.address)
+    : ""
+);
 
 // Truncated addresses are trivially spoofable via vanity addresses (audit
 // finding AW-2026-004), so the full value must be reachable without hover:
