@@ -1,4 +1,11 @@
-import type { DexAggregator, SwapContext } from "./types";
+import type {
+  AggregatorQuoteData,
+  DeflexQuoteState,
+  DeflexTxnEntry,
+  DeflexTxsData,
+  DexAggregator,
+  SwapContext,
+} from "./types";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
 import { getEffectiveQuoteAmount } from "./simulate";
@@ -59,9 +66,10 @@ export const deflexAggregator: DexAggregator = {
       const request = `https://deflex.txnlab.dev/api/fetchQuote?chain=${chain}&algodUri=${algodUri}&algodToken=${algodToken}&algodPort=${algodPort}&fromASAID=${fromAsset}&toASAID=${toAsset}&atomicOnly=true&amount=${amount}&type=fixed-input&disabledProtocols=&referrerAddress=AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y&apiKey=${apiKey}`;
       const quotes = await context
         .axiosGet({ url: request })
-        .catch((e: any) => {
-          context.error.value = "No deflex quotes available " + e.message;
-          return;
+        .catch((e: unknown) => {
+          context.error.value =
+            "No deflex quotes available " + (e as Error).message;
+          return undefined;
         });
 
       if (!quotes || !quotes.txnPayload) {
@@ -78,7 +86,7 @@ export const deflexAggregator: DexAggregator = {
       const params = JSON.stringify({
         address: context.account.value?.addr,
         slippage,
-        txnPayloadJSON: context.aggregatorData.deflexQuotes.value.txnPayload,
+        txnPayloadJSON: quotes.txnPayload,
         apiKey,
       });
       const config = {
@@ -93,10 +101,10 @@ export const deflexAggregator: DexAggregator = {
           body: params,
           config,
         })
-        .catch((e: any) => {
+        .catch((e: unknown) => {
           context.error.value +=
-            "No deflex quotes available " + e.message + "\n";
-          return;
+            "No deflex quotes available " + (e as Error).message + "\n";
+          return undefined;
         });
       if (!txs) {
         context.error.value = "No deflex quotes available\n";
@@ -105,8 +113,8 @@ export const deflexAggregator: DexAggregator = {
       }
       context.aggregatorData.deflexTxs.value = txs;
 
-      const ret2 = context.aggregatorData.deflexTxs.value.groupMetadata
-        .map((tx: any) => tx.labelText)
+      const ret2 = txs.groupMetadata
+        .map((tx) => tx.labelText)
         .join(",\n");
       context.txsDetails.value += "\nDEFLEX: " + ret2;
       context.txsDetails.value = context.txsDetails.value.trim();
@@ -129,18 +137,21 @@ export const deflexAggregator: DexAggregator = {
       context.aggregatorData.processingTradeDeflex.value = false;
       return;
     }
-    const byGroup = context.aggregatorData.deflexTxs.value.txns.reduce(
-      (entryMap: any, e: any) =>
+    // deflexTxs always holds this aggregator's own DeflexTxsData - written by
+    // getQuote() above, the only writer of this key.
+    const deflexTxsData = context.aggregatorData.deflexTxs.value as DeflexTxsData;
+    const byGroup = deflexTxsData.txns.reduce(
+      (entryMap: Map<string, DeflexTxnEntry[]>, e: DeflexTxnEntry) =>
         entryMap.set(e.group, [...(entryMap.get(e.group) || []), e]),
-      new Map(),
+      new Map<string, DeflexTxnEntry[]>(),
     );
-    const byGroupMap = [...byGroup].map((m) => m[1]);
+    const byGroupMap = [...byGroup.values()];
 
     let ret = "Processed in txs: ";
     for (const group of byGroupMap) {
-      let signedTxns;
+      let signedTxns: Uint8Array[] | undefined;
       try {
-        signedTxns = group.map((txn: any) => {
+        signedTxns = group.map((txn) => {
           if (txn.logicSigBlob !== false) {
             return Uint8Array.from(Object.values(txn.logicSigBlob));
           } else {
@@ -167,11 +178,11 @@ export const deflexAggregator: DexAggregator = {
         .sendRawTransaction({
           signedTxn: signedTxns,
         })
-        .catch((e: any) => {
-          context.error.value = e.message;
+        .catch((e: unknown) => {
+          context.error.value = (e as Error).message;
           context.aggregatorData.processingTradeDeflex.value = false;
-          context.openError(e.message);
-          return;
+          context.openError((e as Error).message);
+          return undefined;
         });
       if (!tx || !tx.txid) return;
       const confirmation = await context.waitForConfirmation({
@@ -193,11 +204,12 @@ export const deflexAggregator: DexAggregator = {
 
   get allowExecute() {
     return function (context: SwapContext) {
+      const deflexTxsData = context.aggregatorData.deflexTxs
+        .value as Partial<DeflexTxsData>;
       if (
-        !context.aggregatorData.deflexTxs.value ||
-        !context.aggregatorData.deflexTxs.value.txns ||
-        Object.values(context.aggregatorData.deflexTxs.value.groupMetadata)
-          .length <= 0
+        !deflexTxsData ||
+        !deflexTxsData.txns ||
+        Object.values(deflexTxsData.groupMetadata ?? {}).length <= 0
       ) {
         return false;
       }
@@ -208,7 +220,7 @@ export const deflexAggregator: DexAggregator = {
   get isQuoteBetter() {
     return function (context: SwapContext) {
       const own = getEffectiveQuoteAmount(
-        context.aggregatorData.deflexQuotes.value,
+        context.aggregatorData.deflexQuotes.value as DeflexQuoteState,
       );
       if (own === undefined || own === null) return false;
       const ownValue = BigInt(own);
@@ -216,12 +228,12 @@ export const deflexAggregator: DexAggregator = {
       // them (not stop at the first one that's smaller) or a smaller quote
       // encountered earlier in the list can hide a larger one later in it.
       const others = context.dexAggregators.filter(
-        (a: any) =>
+        (a: DexAggregator) =>
           a.name !== "deflex" && context.aggregatorData[a.enabledKey].value,
       );
       for (const other of others) {
         const otherQuote = getEffectiveQuoteAmount(
-          context.aggregatorData[other.quotesKey].value,
+          context.aggregatorData[other.quotesKey].value as AggregatorQuoteData,
         );
         if (
           otherQuote !== undefined &&

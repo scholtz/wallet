@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import algosdk from "algosdk";
 import { useStore } from "@/store";
@@ -9,6 +9,7 @@ import {
   applyCandidateToArgs,
   type DecodedArc56Call,
   type DecodedArc56Arg,
+  type DecodedAbiValue,
   type Arc56CandidateMatch,
 } from "@/scripts/arc56/decode";
 import type { ApplicationPrograms } from "@/store/algod";
@@ -41,7 +42,11 @@ const applicationUrl = (id: bigint | number | string) =>
   explorerApplicationUrl(store.state.config.env, id);
 
 const loading = ref(false);
-const decoded = ref<DecodedArc56Call | null>(null);
+// shallowRef, not ref: `decoded` is always replaced wholesale (never
+// mutated in place), and DecodedArc56Call's recursive DecodedAbiValue
+// field makes Vue's deep UnwrapRef type transform hit TS's recursion limit
+// ("Type instantiation is excessively deep") when wrapped in a normal ref.
+const decoded = shallowRef<DecodedArc56Call | null>(null);
 const selectedCandidateHash = ref<string>("");
 
 const encodeAddressSafe = (
@@ -173,7 +178,7 @@ const candidateOptions = computed(
     })) ?? [],
 );
 
-const stringifyValue = (value: unknown): string => {
+const stringifyValue = (value: DecodedAbiValue | undefined): string => {
   if (value === undefined || value === null) return "";
   if (typeof value === "bigint") return value.toString();
   if (typeof value === "boolean") return value ? "true" : "false";
@@ -181,15 +186,19 @@ const stringifyValue = (value: unknown): string => {
   if (value instanceof Uint8Array) {
     return `0x${Buffer.from(value).toString("hex")}`;
   }
+  if (value instanceof algosdk.Address) {
+    return value.toString();
+  }
   if (Array.isArray(value)) {
     return `[${value.map((v) => stringifyValue(v)).join(", ")}]`;
   }
-  if (typeof value === "object") {
-    return `{ ${Object.entries(value as Record<string, unknown>)
-      .map(([k, v]) => `${k}: ${stringifyValue(v)}`)
-      .join(", ")} }`;
-  }
-  return String(value);
+  if (typeof value === "number") return String(value);
+  // Only the struct-naming plain-object shape (see DecodedAbiValue in
+  // scripts/arc56/decode.ts) can reach this point, since every other member
+  // of the union is handled above.
+  return `{ ${Object.entries(value)
+    .map(([k, v]) => `${k}: ${stringifyValue(v)}`)
+    .join(", ")} }`;
 };
 
 const isPlainAddressArg = (arg: DecodedArc56Arg): boolean =>
@@ -234,7 +243,7 @@ const looksLikeAppField = (arg: DecodedArc56Arg): boolean =>
     APP_FIELD_TOKENS.has(w),
   );
 
-const isNumericLike = (v: unknown): v is bigint | number =>
+const isNumericLike = (v: DecodedAbiValue | undefined): v is bigint | number =>
   typeof v === "bigint" || typeof v === "number";
 
 const isAssetLikeScalar = (arg: DecodedArc56Arg): boolean =>

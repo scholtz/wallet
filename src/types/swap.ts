@@ -1,5 +1,4 @@
 // types/swap.ts - Type definitions for the Swap component
- 
 
 import { StoredAsset } from "@/store/indexer";
 import algosdk from "algosdk";
@@ -19,30 +18,16 @@ export interface Account {
   };
 }
 
+// Minimal slice of the app's real Vuex store (see src/store/index.ts's
+// RootState) that the swap aggregators actually read - only
+// state.config.{env,tokenSymbol,deflex} are ever accessed via context.$store
+// in src/scripts/aggregators/*.ts.
 export interface SwapStore {
   state: {
     config: {
       env: string;
       tokenSymbol: string;
       deflex: string;
-    };
-    algod: {
-      client: any;
-    };
-    wallet: {
-      privateAccounts: Account[];
-    };
-  };
-  getters: {
-    algosdk: {
-      decodeUnsignedTransaction: (_bytes: Uint8Array) => any;
-      signTransaction: (_tx: any, _sk: Uint8Array) => any;
-      computeGroupID: (_txs: any[]) => Uint8Array;
-      waitForConfirmation: (
-        _client: any,
-        _txId: string,
-        _timeout: number
-      ) => Promise<any>;
     };
   };
 }
@@ -70,19 +55,11 @@ export interface SwapComponentData {
   error: string;
   slippage: number;
   fee: number;
-  // Dynamic aggregator properties
-  [key: string]: any;
 }
 
 export interface SwapMethods {
   openSuccess: (_message: string) => void;
   openError: (_message: string) => void;
-  axiosGet: (_config: { url: string }) => Promise<any>;
-  axiosPost: (_config: {
-    url: string;
-    body?: any;
-    config?: any;
-  }) => Promise<any>;
   getSK: (_config: { addr: string }) => Promise<Uint8Array>;
   getAsset: (_config: { assetIndex: number }) => Promise<StoredAsset>;
   sendRawTransaction: (_config: {
@@ -91,10 +68,8 @@ export interface SwapMethods {
   waitForConfirmation: (_config: {
     txId: string;
     timeout: number;
-  }) => Promise<any>;
+  }) => Promise<algosdk.modelsv2.PendingTransactionResponse | undefined>;
   prolong: () => Promise<void>;
   reloadAccount: () => Promise<void>;
   checkNetwork: () => string | false;
 }
-
- 

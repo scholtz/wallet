@@ -219,6 +219,10 @@ import { useStore } from "@/store";
 const props = defineProps<{
   routeInfo: AggregatorRouteInfo;
   assetMeta: Record<number, { symbol: string; decimals: number }>;
+  // Raw quote blob from whichever aggregator produced this tab (see
+  // SwapRouteExplorer.vue's RouteTab.rawQuote) - only ever JSON.stringify'd
+  // verbatim below for the user to inspect/copy, never field-accessed, so
+  // there's no more precise type to give it here.
   rawQuote?: unknown;
   simulation?: SimulatedOutcome | "loading";
 }>();
@@ -254,6 +258,9 @@ const rawAmount = (value: number | undefined, assetId: number): string => {
 
 const round = (value: number): number => Math.round(value * 100) / 100;
 
+// JSON.stringify's replacer visits every value in an arbitrary nested object
+// graph (rawQuote, of unknown aggregator-specific shape) - `unknown` is the
+// precise type here, narrowed via typeof before use.
 const jsonReplacer = (_key: string, value: unknown) =>
   typeof value === "bigint" ? value.toString() : value;
 

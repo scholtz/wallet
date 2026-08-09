@@ -7,6 +7,7 @@ import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { RootState } from "@/store";
+import { getErrorMessage } from "@/scripts/errors";
 
 interface HdNextState {
   name: string;
@@ -38,8 +39,8 @@ async function generateAccount() {
       hdAccountIndex: state.accountIndex,
     });
     router.push("/account/" + addr);
-  } catch (err: any) {
-    state.lastError = err.message ?? err;
+  } catch (err: unknown) {
+    state.lastError = getErrorMessage(err);
     console.error("failed to generate hd account", err);
   }
 }

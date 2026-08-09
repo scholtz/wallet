@@ -64,12 +64,25 @@ import {
 } from "@/scripts/aggregators/simulate";
 import type { StoredAsset } from "@/store/indexer";
 import type { RootState } from "@/store";
+import type {
+  BiatecQuoteData,
+  DeflexQuoteData,
+  DeflexTxsData,
+  FolksQuoteData,
+  FolksTxnsData,
+} from "@/scripts/aggregators/types";
 
 const props = defineProps<{
   useDeflex: boolean;
   useFolks: boolean;
   useBiatec: boolean;
   useBiatecStage: boolean;
+  // Raw quote/txn blobs are typed `unknown` at this prop boundary: the parent
+  // (Swap.vue) forwards them straight from useSwap.ts's dynamically-keyed
+  // aggregatorData store (AggregatorDataValue in scripts/aggregators/types.ts),
+  // whose exact member depends on which aggregator produced it - not knowable
+  // here. Narrowed to the aggregator-specific interface via an `as` cast
+  // immediately before use below (buildDeflexRouteInfo, extract*SimulateGroups).
   deflexQuotes: unknown;
   deflexTxs: unknown;
   folksQuote: unknown;
@@ -99,6 +112,9 @@ interface RouteTab {
   name: string;
   displayName: string;
   info: AggregatorRouteInfo;
+  // Opaque raw quote for this tab, forwarded to SwapRouteDiagram purely for
+  // JSON-stringified display/copy - never field-accessed here either, see
+  // the `unknown` props above for why this can't be narrower.
   rawQuote: unknown;
 }
 
@@ -109,8 +125,8 @@ const tabs = computed<RouteTab[]>(() => {
       name: "deflex",
       displayName: t("swap.aggregator_name_deflex"),
       info: buildDeflexRouteInfo(
-        props.deflexQuotes,
-        props.deflexTxs,
+        props.deflexQuotes as Partial<DeflexQuoteData> | undefined,
+        props.deflexTxs as Partial<DeflexTxsData> | undefined,
         fromAssetId.value,
         toAssetId.value,
         inputAmountBase.value
@@ -123,7 +139,7 @@ const tabs = computed<RouteTab[]>(() => {
       name: "folks",
       displayName: t("swap.aggregator_name_folks"),
       info: buildFolksRouteInfo(
-        props.folksQuote,
+        props.folksQuote as Partial<FolksQuoteData> | undefined,
         fromAssetId.value,
         toAssetId.value,
         inputAmountBase.value
@@ -135,7 +151,11 @@ const tabs = computed<RouteTab[]>(() => {
     list.push({
       name: "biatec",
       displayName: t("swap.aggregator_name_biatec"),
-      info: buildBiatecRouteInfo(props.biatecQuotes, fromAssetId.value, toAssetId.value),
+      info: buildBiatecRouteInfo(
+        props.biatecQuotes as Partial<BiatecQuoteData> | undefined,
+        fromAssetId.value,
+        toAssetId.value
+      ),
       rawQuote: props.biatecQuotes,
     });
   }
@@ -144,7 +164,7 @@ const tabs = computed<RouteTab[]>(() => {
       name: "biatecStage",
       displayName: t("swap.aggregator_name_biatec_stage"),
       info: buildBiatecRouteInfo(
-        props.biatecStageQuotes,
+        props.biatecStageQuotes as Partial<BiatecQuoteData> | undefined,
         fromAssetId.value,
         toAssetId.value
       ),
@@ -229,13 +249,21 @@ const simulateTab = async (tab: RouteTab): Promise<void> => {
 
   let groups: Uint8Array[][] = [];
   if (tab.name === "deflex") {
-    groups = extractDeflexSimulateGroups(props.deflexTxs);
+    groups = extractDeflexSimulateGroups(
+      props.deflexTxs as Partial<DeflexTxsData> | undefined
+    );
   } else if (tab.name === "folks") {
-    groups = extractFolksSimulateGroups(props.folksTxns);
+    groups = extractFolksSimulateGroups(
+      props.folksTxns as FolksTxnsData | undefined
+    );
   } else if (tab.name === "biatec") {
-    groups = extractBiatecSimulateGroups(props.biatecQuotes);
+    groups = extractBiatecSimulateGroups(
+      props.biatecQuotes as Partial<BiatecQuoteData> | undefined
+    );
   } else if (tab.name === "biatecStage") {
-    groups = extractBiatecSimulateGroups(props.biatecStageQuotes);
+    groups = extractBiatecSimulateGroups(
+      props.biatecStageQuotes as Partial<BiatecQuoteData> | undefined
+    );
   }
   if (groups.length === 0 || groups.every((group) => group.length === 0)) return;
 

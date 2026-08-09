@@ -9,6 +9,7 @@ import Select2FAServer from "@/components/Select2FAServer.vue";
 
 import { useRouter } from "vue-router";
 import { RootState } from "@/store";
+import { getErrorMessage } from "@/scripts/errors";
 const state = reactive({
   lastError: "",
   account1: "",
@@ -45,8 +46,8 @@ async function arc14Request() {
       secondaryAccount: state.account2,
       twoFactorAuthProvider: state.server,
     });
-  } catch (err: any) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = getErrorMessage(err);
     console.error("failed to do arc14Request", error, err);
     await store.dispatch("toast/openError", error);
   }
@@ -71,8 +72,8 @@ async function confirmRequest() {
       });
       router.push({ name: "Accounts" });
     }
-  } catch (err: any) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = getErrorMessage(err);
     console.error("failed to confirmRequest", error, err);
     await store.dispatch("toast/openError", error);
   }

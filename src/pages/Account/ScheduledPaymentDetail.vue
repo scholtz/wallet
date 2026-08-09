@@ -25,6 +25,7 @@ import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 import { Buffer } from "buffer";
 import { StoredAsset } from "@/store/indexer";
+import { getErrorMessage } from "@/scripts/errors";
 
 type FilterMode = (typeof FilterMatchMode)[keyof typeof FilterMatchMode];
 
@@ -77,9 +78,7 @@ const normalizeAccountAssets = (
 ): AccountAssetEntry[] => {
   if (!assets) return [];
   return assets.map((asset) => ({
-    assetId: BigInt(
-      (asset as unknown as AccountAssetEntry).assetId ?? asset.assetId ?? 0n
-    ),
+    assetId: BigInt(asset.assetId ?? 0n),
     amount: Number(asset.amount ?? 0),
   }));
 };
@@ -337,8 +336,8 @@ onMounted(async () => {
       newAssetData.unitName = deserialized.assetData.unitName;
       state.assetData = newAssetData;
     }
-  } catch (exc: any) {
-    console.error(exc.message ?? exc);
+  } catch (exc: unknown) {
+    console.error(getErrorMessage(exc));
   }
 });
 
@@ -525,13 +524,13 @@ const withdrawFromEscrow = async () => {
   }
 };
 
-const deposit = (data: any) => {
+const deposit = (data: EscrowAssetRow) => {
   router.push({
     name: "PayToAccountAndAsset",
     params: {
       account: route.params.account,
       toAccountDirect: state.appInfo.appAddress,
-      asset: data.assetId,
+      asset: String(data.assetId),
     },
   });
 };

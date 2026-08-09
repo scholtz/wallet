@@ -7,13 +7,15 @@ import type { LocaleMessage } from "@intlify/core-base";
 type LocaleMessages = Record<string, LocaleMessage<VueMessageType>>;
 
 function loadLocaleMessages(): LocaleMessages {
-  const locales = import.meta.glob("./locales/**/*.json", { eager: true });
+  const locales = import.meta.glob<{
+    default: LocaleMessage<VueMessageType>;
+  }>("./locales/**/*.json", { eager: true });
   const messages: LocaleMessages = {};
   for (const path in locales) {
     const matched = path.match(/([A-Za-z0-9-_]+)\.json$/i);
     if (matched && matched.length > 1) {
       const locale = matched[1];
-      messages[locale] = (locales[path] as any).default;
+      messages[locale] = locales[path].default;
     }
   }
   return messages;

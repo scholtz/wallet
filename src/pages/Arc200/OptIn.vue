@@ -10,6 +10,7 @@ import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import { BoxReference } from "@algorandfoundation/algokit-utils/types/app-manager";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
+import { getErrorMessage } from "@/scripts/errors";
 const store = useStore<RootState>();
 const route = useRoute();
 const router = useRouter();
@@ -153,8 +154,8 @@ const fetchAsset = async () => {
     ));
 
     state.loading = false;
-  } catch (err: any) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = getErrorMessage(err);
     console.error("failed to fetch arc200", error, err);
     await store.dispatch("toast/openError", error);
   }
@@ -173,8 +174,21 @@ const accountIsOptedInToArc200Asset = async (addr: string) => {
       .lookupApplicationBoxByIDandName(state.arc200Info.arc200id, boxName)
       .do();
     return true;
-  } catch (exc: any) {
-    if (exc.message?.indexOf("no application boxes found")) {
+  } catch (exc: unknown) {
+    // Preserves the pre-existing (truthy, not "found") check exactly:
+    // exc.message?.indexOf(...) is undefined (falsy) when exc has no string
+    // message, and otherwise a number that's falsy only when the match is at
+    // index 0 - not a strict "was it found" check, but left as-is since
+    // fixing the condition itself is a behavior change out of scope here.
+    const rawMessage =
+      exc && typeof exc === "object" && "message" in exc
+        ? (exc as { message?: unknown }).message
+        : undefined;
+    if (
+      typeof rawMessage === "string"
+        ? rawMessage.indexOf("no application boxes found")
+        : undefined
+    ) {
       return false;
     } else {
       console.error(exc);
@@ -192,8 +206,8 @@ const save = async () => {
       name: "AccountAssets",
       params: { account: state.account.addr },
     });
-  } catch (err: any) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = getErrorMessage(err);
     console.error("failed to addArc200Asset", error, err);
     await store.dispatch("toast/openError", error);
   }
@@ -268,14 +282,14 @@ const createBoxClick = async () => {
       txs: await makeOptInTxs(),
     });
     await router.push("/signAll");
-  } catch (err: any) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = getErrorMessage(err);
     console.error("failed to addArc200Asset", error, err);
     await store.dispatch("toast/openError", error);
   }
 };
 
-const delay = (ms: any) => {
+const delay = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 </script>

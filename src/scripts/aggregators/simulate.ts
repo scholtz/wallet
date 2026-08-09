@@ -5,6 +5,13 @@
 // the aggregator's own advertised quote, which is only an estimate.
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
+import type {
+  AggregatorQuoteData,
+  BiatecQuoteData,
+  DeflexTxnEntry,
+  DeflexTxsData,
+  FolksTxnsData,
+} from "./types";
 
 export interface SimulatedOutcome {
   success: boolean;
@@ -18,9 +25,11 @@ export interface SimulatedOutcome {
 // deflex/Haystack execute txns may span multiple atomic groups (e.g. an
 // opt-in group followed by the swap group) - mirrors the grouping logic in
 // aggregators/deflex.ts's execute().
-export function extractDeflexSimulateGroups(txs: any): Uint8Array[][] {
+export function extractDeflexSimulateGroups(
+  txs: Partial<DeflexTxsData> | undefined
+): Uint8Array[][] {
   if (!Array.isArray(txs?.txns) || txs.txns.length === 0) return [];
-  const byGroup = new Map<string, any[]>();
+  const byGroup = new Map<string, DeflexTxnEntry[]>();
   for (const txn of txs.txns) {
     const list = byGroup.get(txn.group) ?? [];
     list.push(txn);
@@ -29,7 +38,7 @@ export function extractDeflexSimulateGroups(txs: any): Uint8Array[][] {
   return [...byGroup.values()].map((group) =>
     group.map((txn) => {
       if (txn.logicSigBlob !== false) {
-        return Uint8Array.from(Object.values(txn.logicSigBlob) as number[]);
+        return Uint8Array.from(Object.values(txn.logicSigBlob));
       }
       const bytes = new Uint8Array(Buffer.from(txn.data, "base64"));
       const decoded = algosdk.decodeUnsignedTransaction(bytes);
@@ -38,7 +47,9 @@ export function extractDeflexSimulateGroups(txs: any): Uint8Array[][] {
   );
 }
 
-export function extractFolksSimulateGroups(folksTxns: any): Uint8Array[][] {
+export function extractFolksSimulateGroups(
+  folksTxns: FolksTxnsData | undefined
+): Uint8Array[][] {
   if (!Array.isArray(folksTxns) || folksTxns.length === 0) return [];
   const group = folksTxns.map((txn: string) => {
     const decoded = algosdk.decodeUnsignedTransaction(
@@ -49,8 +60,10 @@ export function extractFolksSimulateGroups(folksTxns: any): Uint8Array[][] {
   return [group];
 }
 
-export function extractBiatecSimulateGroups(biatecQuotes: any): Uint8Array[][] {
-  const txsToSign: string[] | undefined = biatecQuotes?.route?.txsToSign;
+export function extractBiatecSimulateGroups(
+  biatecQuotes: Partial<BiatecQuoteData> | undefined
+): Uint8Array[][] {
+  const txsToSign = biatecQuotes?.route?.txsToSign;
   if (!Array.isArray(txsToSign) || txsToSign.length === 0) return [];
   const group = txsToSign.map((txBase64) => {
     const decoded = algosdk.decodeUnsignedTransaction(
@@ -98,13 +111,16 @@ function walkAssetDelta(
 // simulation is pending/unavailable (e.g. right after "Get Quote" resolves,
 // before the simulate round-trip completes).
 export function getEffectiveQuoteAmount(
-  quoteData: any
+  quoteData: AggregatorQuoteData | undefined
 ): number | string | bigint | undefined {
   if (!quoteData) return undefined;
   if (quoteData.simulatedQuoteAmount !== undefined) {
     return quoteData.simulatedQuoteAmount;
   }
-  return quoteData.quoteAmount ?? quoteData.quote;
+  const quoteAmount =
+    "quoteAmount" in quoteData ? quoteData.quoteAmount : undefined;
+  const quote = "quote" in quoteData ? quoteData.quote : undefined;
+  return quoteAmount ?? quote;
 }
 
 export function summarizeSimulation(

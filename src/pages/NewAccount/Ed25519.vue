@@ -8,6 +8,7 @@ import { useStore } from "vuex";
 import algosdk from "algosdk";
 import QRCodeVue3 from "qrcode-vue3";
 import { RootState } from "@/store";
+import { getErrorMessage } from "@/scripts/errors";
 
 const state = reactive({
   lastError: "",
@@ -61,8 +62,8 @@ const createAccount = async () => {
     state.a = account.addr.toString();
     state.w = algosdk.secretKeyToMnemonic(account.sk);
     state.words = state.w.split(" ");
-  } catch (err: any) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = getErrorMessage(err);
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);
   }
@@ -85,8 +86,8 @@ async function skipChallange() {
     ) {
       router.push("/account/" + state.a);
     }
-  } catch (err: any) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = getErrorMessage(err);
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);
   }
@@ -108,8 +109,8 @@ async function confirmCreate() {
     }
 
     router.push({ name: "Accounts" });
-  } catch (err: any) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = getErrorMessage(err);
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);
   }

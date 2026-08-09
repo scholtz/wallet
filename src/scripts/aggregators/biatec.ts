@@ -1,4 +1,15 @@
-import type { DexAggregator, SwapContext } from "./types";
+import type {
+  AggregatorQuoteData,
+  BiatecCombinedRoute,
+  BiatecQuoteData,
+  DexAggregator,
+  SwapContext,
+} from "./types";
+// biatecRouter is a namespace object (both value and type namespace) - the
+// generated client's individual response types (QuoteRoute, HopExecution,
+// RouteOutputCover, ...) are only reachable as members of it
+// (biatecRouter.QuoteRoute etc.), not as top-level named exports of the
+// package.
 import { biatecRouter } from "biatec-router";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
@@ -33,17 +44,9 @@ export interface BiatecAggregatorOptions {
 // buildBiatecRouteInfo's hop/pool display) already expects, so downstream code is unchanged.
 // hops are merged across every leg too (see below), so the displayed breakdown covers the full
 // split, not just the first leg.
-function combineRouteResponse(response: {
-  routes?: Array<{
-    route?: {
-      outputAmount?: number;
-      totalNetworkFeeMicroAlgos?: number;
-      hops?: unknown[] | null;
-      [key: string]: unknown;
-    };
-    txsToSign?: string[] | null;
-  }> | null;
-}) {
+function combineRouteResponse(
+  response: biatecRouter.RouteOutputCover,
+): BiatecCombinedRoute {
   const routes = response.routes ?? [];
   const totalOutputAmount = routes.reduce(
     (sum, r) => sum + (r.route?.outputAmount || 0),
@@ -56,15 +59,18 @@ function combineRouteResponse(response: {
   // Each leg carries its own hops; spreading only routes[0]?.route would silently drop every
   // other leg's hops even though outputAmount/txsToSign are (correctly) summed/concatenated
   // across all legs - merge them so the displayed route accounts for the full split.
-  const combinedHops = routes.flatMap((r) => r.route?.hops || []);
-  const combinedTxsToSign = routes.flatMap((r) => r.txsToSign || []);
+  const combinedHops: biatecRouter.HopExecution[] = routes.flatMap(
+    (r) => r.route?.hops || [],
+  );
+  const combinedTxsToSign: string[] = routes.flatMap((r) => r.txsToSign || []);
+  const route: biatecRouter.QuoteRoute = {
+    ...routes[0]?.route,
+    hops: combinedHops,
+    outputAmount: totalOutputAmount,
+    totalNetworkFeeMicroAlgos: totalFees,
+  };
   return {
-    route: {
-      ...routes[0]?.route,
-      hops: combinedHops,
-      outputAmount: totalOutputAmount,
-      totalNetworkFeeMicroAlgos: totalFees,
-    },
+    route,
     txsToSign: combinedTxsToSign,
   };
 }
@@ -184,9 +190,11 @@ export function createBiatecAggregator(
           context.aggregatorData[processingKey].value = false;
           return;
         }
-        if (
-          !context.aggregatorData[quotesKey].value?.route?.route?.outputAmount
-        ) {
+        // quotesKey always holds this aggregator's own BiatecQuoteData - see
+        // getQuote()/execute() below, the only writers of this key.
+        const existingQuote = context.aggregatorData[quotesKey]
+          .value as BiatecQuoteData;
+        if (!existingQuote?.route?.route?.outputAmount) {
           throw new Error("Cannot calculate the minimum amount to receive.");
         }
         const effectiveBaseUrl = resolveBaseUrl(context);
@@ -205,8 +213,7 @@ export function createBiatecAggregator(
         // computing one from context.slippage.
         const minimumReceiveAmount = context.slippageProtectionEnabled.value
           ? Math.floor(
-              (context.aggregatorData[quotesKey].value.route.route
-                .outputAmount *
+              ((existingQuote.route?.route?.outputAmount ?? 0) *
                 (10000 - context.slippage.value * 100)) / // component.slippage is in percentage (e.g., 1 = 1%)
                 10000,
             )
@@ -244,10 +251,7 @@ export function createBiatecAggregator(
           fees: route.route?.totalNetworkFeeMicroAlgos || 0,
         };
 
-        if (
-          !context.aggregatorData[quotesKey].value?.route?.txsToSign ||
-          context.aggregatorData[quotesKey].value.route.txsToSign.length === 0
-        ) {
+        if (!route.txsToSign || route.txsToSign.length === 0) {
           throw new Error(
             `No transactions to sign in the ${displayName} route.`,
           );
@@ -267,9 +271,8 @@ export function createBiatecAggregator(
         }
 
         // Decode and group transactions
-        const transactions = [];
-        for (const txBase64 of context.aggregatorData[quotesKey].value.route
-          .txsToSign) {
+        const transactions: algosdk.Transaction[] = [];
+        for (const txBase64 of route.txsToSign) {
           const txBytes = new Uint8Array(Buffer.from(txBase64, "base64"));
           // Check for "TX" prefix (0x54, 0x58)
           const tx = algosdk.decodeUnsignedTransaction(
@@ -289,7 +292,7 @@ export function createBiatecAggregator(
         transactions.forEach((tx) => (tx.group = groupId));
 
         // Sign transactions
-        const signedTxs = [];
+        const signedTxs: Uint8Array[] = [];
         for (const tx of transactions) {
           const signedTx = tx.signTxn(senderSK);
           signedTxs.push(signedTx);
@@ -298,10 +301,10 @@ export function createBiatecAggregator(
           .sendRawTransaction({
             signedTxn: signedTxs,
           })
-          .catch((e: any) => {
-            context.error.value = e.message;
+          .catch((e: unknown) => {
+            context.error.value = (e as Error).message;
             context.aggregatorData[processingKey].value = false;
-            context.openError(e.message);
+            context.openError((e as Error).message);
             return;
           });
         let ret = "Processed in txs: ";
@@ -330,9 +333,11 @@ export function createBiatecAggregator(
 
     get allowExecute() {
       return function (context: SwapContext) {
+        const quoteState = context.aggregatorData[quotesKey]
+          .value as BiatecQuoteData;
         return (
-          context.aggregatorData[quotesKey].value?.route?.txsToSign?.length >
-            0 && !context.requiresOptIn.value
+          (quoteState?.route?.txsToSign?.length ?? 0) > 0 &&
+          !context.requiresOptIn.value
         );
       };
     },
@@ -340,7 +345,7 @@ export function createBiatecAggregator(
     get isQuoteBetter() {
       return function (context: SwapContext) {
         const own = getEffectiveQuoteAmount(
-          context.aggregatorData[quotesKey].value,
+          context.aggregatorData[quotesKey].value as BiatecQuoteData,
         );
         if (own === undefined || own === null) return false;
         const ownValue = BigInt(own);
@@ -350,12 +355,12 @@ export function createBiatecAggregator(
         // (e.g. the regular Biatec route being checked before the Stage
         // route, even when Stage is the actual best quote).
         const others = context.dexAggregators.filter(
-          (a: any) =>
+          (a: DexAggregator) =>
             a.name !== name && context.aggregatorData[a.enabledKey].value,
         );
         for (const other of others) {
           const otherQuote = getEffectiveQuoteAmount(
-            context.aggregatorData[other.quotesKey].value,
+            context.aggregatorData[other.quotesKey].value as AggregatorQuoteData,
           );
           if (
             otherQuote !== undefined &&

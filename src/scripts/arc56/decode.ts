@@ -97,13 +97,24 @@ export type DecodedArgKind =
   | "application"
   | "transaction";
 
+// A decoded ABI value. Extends algosdk's own `ABIValue` union (boolean |
+// number | bigint | string | Uint8Array | ABIValue[] | Address) with a
+// plain-object shape, because `applyStructNaming`/`namedFromFields` below
+// rename a struct-typed tuple's positional array entries into a
+// field-name-keyed object for display — a transformation algosdk itself
+// never performs, so its own type doesn't cover the result.
+export type DecodedAbiValue =
+  | algosdk.ABIValue
+  | DecodedAbiValue[]
+  | { [fieldName: string]: DecodedAbiValue };
+
 export interface DecodedArc56Arg {
   argIndex: number;
   type: string;
   name?: string;
   desc?: string;
   kind: DecodedArgKind;
-  value?: unknown;
+  value?: DecodedAbiValue;
   address?: string;
   assetId?: bigint;
   applicationId?: bigint;
@@ -158,20 +169,20 @@ const findMethodBySelector = (
   });
 
 const namedFromFields = (
-  tupleValues: unknown[],
+  tupleValues: DecodedAbiValue[],
   fields: Arc56StructField[],
   structs: Arc56Structs,
-): Record<string, unknown> => {
-  const out: Record<string, unknown> = {};
+): { [fieldName: string]: DecodedAbiValue } => {
+  const out: { [fieldName: string]: DecodedAbiValue } = {};
   fields.forEach((field, i) => {
     const v = tupleValues?.[i];
     if (Array.isArray(field.type)) {
       out[field.name] = Array.isArray(v)
-        ? namedFromFields(v as unknown[], field.type, structs)
+        ? namedFromFields(v, field.type, structs)
         : v;
     } else if (typeof field.type === "string" && structs[field.type]) {
       out[field.name] = Array.isArray(v)
-        ? namedFromFields(v as unknown[], structs[field.type], structs)
+        ? namedFromFields(v, structs[field.type], structs)
         : v;
     } else {
       out[field.name] = v;
@@ -181,17 +192,17 @@ const namedFromFields = (
 };
 
 export const applyStructNaming = (
-  value: unknown,
+  value: DecodedAbiValue | undefined,
   typeStr: string,
   structName: string | undefined,
   structs: Arc56Structs,
-): unknown => {
+): DecodedAbiValue | undefined => {
   if (!structName || !structs[structName]) return value;
   const fields = structs[structName];
   const isArrayType = /\[\d*\]$/.test(typeStr);
   if (isArrayType && Array.isArray(value)) {
     return value.map((v) =>
-      Array.isArray(v) ? namedFromFields(v as unknown[], fields, structs) : v,
+      Array.isArray(v) ? namedFromFields(v, fields, structs) : v,
     );
   }
   if (Array.isArray(value)) {
@@ -214,7 +225,7 @@ const decodeRawArgs = (
     if (!TRANSACTION_TYPES.has(spec.type)) nonTxnIndices.push(i);
   });
 
-  let packedValues: unknown[] | undefined;
+  let packedValues: DecodedAbiValue[] | undefined;
   let packedError: string | undefined;
   if (nonTxnIndices.length > MAX_DIRECT_APP_ARGS + 1) {
     const tailArgIndices = nonTxnIndices.slice(MAX_DIRECT_APP_ARGS);
@@ -226,7 +237,12 @@ const decodeRawArgs = (
     try {
       const raw = appArgs[MAX_DIRECT_APP_ARGS + 1];
       if (!raw) throw new Error("missing packed tail argument");
-      packedValues = algosdk.ABIType.from(tailTypeStr).decode(raw) as unknown[];
+      // tailTypeStr is always a tuple type `(...)`, so ABIType.decode's
+      // actual result is an array, even though its declared return type is
+      // the broader ABIValue (algosdk types decode() by the base class, not
+      // per-instance shape — see ABITupleType.decode in
+      // node_modules/algosdk/dist/types/abi/abi_type.d.ts).
+      packedValues = algosdk.ABIType.from(tailTypeStr).decode(raw) as algosdk.ABIValue[];
     } catch (err) {
       packedError = err instanceof Error ? err.message : String(err);
     }
@@ -267,7 +283,7 @@ const decodeRawArgs = (
     const isPacked = rank >= MAX_DIRECT_APP_ARGS && nonTxnIndices.length > MAX_DIRECT_APP_ARGS + 1;
     const raw = isPacked ? undefined : appArgs[rank + 1];
 
-    let rawValue: unknown;
+    let rawValue: DecodedAbiValue | undefined;
     let error: string | undefined;
     if (isPacked) {
       if (packedError) {

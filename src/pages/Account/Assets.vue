@@ -218,7 +218,7 @@ const getIndexerAction = () => store.dispatch("indexer/getIndexer");
 const updateArc200BalanceAction = (payload: {
   addr: string;
   arc200Id: string;
-  balance: unknown;
+  balance: bigint | number | string;
 }) => store.dispatch("wallet/updateArc200Balance", payload);
 
 const makeAssets = async () => {
@@ -332,7 +332,7 @@ const reloadArc200AccountBalance = async (data: AssetListItem) => {
       balance: balance,
     });
     await makeAssets();
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("Failed to reload ARC200 balance", e);
   }
 };

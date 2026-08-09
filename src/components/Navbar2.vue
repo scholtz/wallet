@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useStore } from "vuex";
 const { t, locale } = useI18n();
 import { PrimeIcons } from "@primevue/core/api";
+import type { MenuItem } from "primevue/menuitem";
 import { RootState } from "@/store";
 const store = useStore<RootState>();
 
@@ -41,10 +42,10 @@ const networkMenuItems = () => [
   },
 ];
 
-const items = computed<any>(() => {
+const items = computed<MenuItem[]>(() => {
   void locale.value;
   if (store.state.wallet.isOpen) {
-    const menu: any = [];
+    const menu: MenuItem[] = [];
     menu.push({
       label: t("navbar.wallet"),
       icon: PrimeIcons.HOME,

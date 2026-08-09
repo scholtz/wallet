@@ -2,11 +2,15 @@ import type { ActionTree, MutationTree } from "vuex";
 import type { RootState } from "./index";
 
 export interface Fa2State {
+  // Realm data is an opaque per-provider response from an external 2FA
+  // provider's own API (no fields of it are read here, only cached/returned
+  // as-is to the caller), so there's no fixed shape to model.
   provider2realm: Record<string, unknown>;
 }
 
 interface StoreRealmPayload {
   provider: string;
+  // Opaque external-provider response, see Fa2State.provider2realm above.
   realm: unknown;
 }
 
@@ -35,6 +39,9 @@ interface SignTwoFactorPayload extends ConfirmAuthenticatorPayload {
 interface TwoFactorProvider {
   id: string;
   host: string;
+  // The public 2FA provider list (publicData/getTwoFactorAuthList) is
+  // externally-sourced JSON; only id/host are ever read here, so other
+  // provider-supplied fields are left untyped rather than guessed at.
   [key: string]: unknown;
 }
 

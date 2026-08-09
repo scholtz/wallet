@@ -147,6 +147,12 @@ Write new one-off/repo-tooling scripts in TypeScript, not plain `.js` — the so
 
 **Update `CHANGELOG.md` whenever you ship an important, user-visible change** — a new feature, a new supported account/asset type, a significant UI redesign, a new integration (swap provider, WalletConnect, etc.), or a notable fix that changes behavior users would notice. Add a bullet under the current `## YYYY-MM` section (create it if this is the first change of the month). Skip the changelog for pure refactors, dependency bumps, test-only changes, or internal tooling changes with no user-visible effect.
 
+## Type safety
+
+Do not use `any` or `unknown` unless truly unavoidable. This includes `: any`, `as any`, `<any>`, `any[]`, `Record<string, any>`, `: unknown`, and `as unknown`. Always prefer the real, specific type — import it from `algosdk`, the relevant generated client, a library's own `.d.ts`, or define a proper interface/type in `src/types/` or alongside the code if none exists. If a case genuinely cannot be typed precisely (e.g. bridging a third-party library with bad/missing types), `any`/`unknown` may be used but MUST carry an inline comment immediately above or beside it explaining specifically why a proper type isn't possible.
+
+The only blanket exception is generated client code (e.g. ARC-56/OpenAPI-generated clients) — don't hand-fix `any`/`unknown` there.
+
 ## Notes
 
 - ESLint config is defined inline in `package.json` (`eslintConfig` key), not a standalone `.eslintrc` for the main app rules (though `.eslintrc.js` also exists).

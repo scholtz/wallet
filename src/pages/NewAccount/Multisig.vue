@@ -7,6 +7,7 @@ import { useStore } from "vuex";
 import MultiSelect from "primevue/multiselect";
 import Slider from "primevue/slider";
 import { RootState } from "@/store";
+import { getErrorMessage } from "@/scripts/errors";
 
 const multisigaccts: string[] = [];
 const state = reactive({
@@ -56,8 +57,8 @@ const createMultisignClick = async () => {
       name: state.name,
     });
     router.push({ name: "Accounts" });
-  } catch (err: any) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = getErrorMessage(err);
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);
   }

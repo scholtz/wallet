@@ -1,7 +1,16 @@
-import algosdk, { Transaction } from "algosdk";
+import algosdk, { Transaction, type EncodedMultisig } from "algosdk";
 import Algorand from "@ledgerhq/hw-app-algorand";
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 import WalletConnect from "@walletconnect/client";
+import UniversalProvider from "universal-provider-with-algorand";
+
+// @walletconnect/client (v1) depends on its own @walletconnect/types@1.8.0,
+// which isn't hoisted to (and is incompatible with) the top-level
+// @walletconnect/types@2.x this project depends on for WalletConnect v2 - so
+// its option/session types are derived structurally off WalletConnect's own
+// constructor rather than imported by package name.
+type WcV1ConnectorOptions = ConstructorParameters<typeof WalletConnect>[0];
+type WcV1Session = NonNullable<WcV1ConnectorOptions["session"]>;
 import type { ActionTree, MutationTree } from "vuex";
 import type { RootState } from "./index";
 import { hdSignTransactionBytes } from "../scripts/encoding/hdWallet";
@@ -133,8 +142,42 @@ const resolveEnvRekey = (
   return account;
 };
 
+// Raw wire-format decode of a (possibly partially-signed) multisig
+// transaction blob. algosdk.decodeObj() only returns `unknown` (it's a raw
+// msgpack decode, not routed through any of algosdk's own Encoded*/Transaction
+// classes), so this is the actual shape of what comes back: the multisig
+// envelope (msig) is a real algosdk type, while `txn` stays in its raw
+// wire-encoded field-name form (re-encoded/decoded into a proper
+// algosdk.Transaction only where needed, via encodeObj + decodeUnsignedTransaction).
+interface DecodedMultisigTxn {
+  txn: Record<string, unknown>;
+  msig: EncodedMultisig;
+  sig?: Uint8Array;
+}
+
 const decodeMultisigTxn = (msigTx: Uint8Array) =>
-  algosdk.decodeObj(msigTx) as Record<string, any>;
+  algosdk.decodeObj(msigTx) as DecodedMultisigTxn;
+
+// Mirrors the historical `error?.response ? error.response : error?.message
+// ?? String(error)` shape used by every signing action's catch block, but
+// works from `unknown` (the type TS actually gives caught errors) instead of
+// `any`. `response` is read off dynamically since it comes from arbitrary
+// signing-transport errors (WalletConnect/Ledger/network) with no shared
+// error type in this codebase.
+const describeSignerError = (error: unknown): string => {
+  if (error && typeof error === "object") {
+    const withDetails = error as { response?: unknown; message?: unknown };
+    if (withDetails.response !== undefined) {
+      return typeof withDetails.response === "string"
+        ? withDetails.response
+        : JSON.stringify(withDetails.response);
+    }
+    if (typeof withDetails.message === "string") {
+      return withDetails.message;
+    }
+  }
+  return String(error);
+};
 
 const state = (): SignerState => ({
   signed: {},
@@ -238,11 +281,9 @@ const actions: ActionTree<SignerState, RootState> = {
           tx: payload.tx,
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("error", error, dispatch);
-      const msg = error?.response
-        ? error.response
-        : error?.message ?? String(error);
+      const msg = describeSignerError(error);
       dispatch("toast/openError", msg, {
         root: true,
       });
@@ -290,11 +331,9 @@ const actions: ActionTree<SignerState, RootState> = {
         return "sk";
       }
       return "?";
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("error", error, dispatch);
-      const msg = error?.response
-        ? error.response
-        : error?.message ?? String(error);
+      const msg = describeSignerError(error);
       dispatch("toast/openError", msg, {
         root: true,
       });
@@ -330,11 +369,18 @@ const actions: ActionTree<SignerState, RootState> = {
   ): Promise<Uint8Array<ArrayBufferLike>> {
     const fromAccount = ensureAccount(rootState, payload.from);
     const connector = new WalletConnect({
-      session: fromAccount.session,
+      // WalletAccount["session"] is kept as `unknown` (see src/store/wallet.ts)
+      // since WC-specific session typing is owned by a separate, concurrent
+      // change; this is the shape WalletConnect v1 itself expects it to be.
+      session: fromAccount.session as WcV1Session | undefined,
+      // Note: the connector options' real storage-override key is "storage",
+      // not "sessionStorage" - this mismatched key is pre-existing behavior
+      // (effectively a no-op) preserved as-is; renaming it would change
+      // runtime behavior, which is out of scope for a types-only pass.
       sessionStorage: {
         getSession: () => null,
       },
-    } as any);
+    } as WcV1ConnectorOptions & { sessionStorage: { getSession: () => null } });
     const request = {
       method: "algo_signTxn",
       params: [
@@ -357,9 +403,13 @@ const actions: ActionTree<SignerState, RootState> = {
     { dispatch, commit },
     payload: SignByPayload,
   ): Promise<Uint8Array<ArrayBufferLike>> {
+    // wcClient's own "init" action returns exactly this type (see
+    // src/store/wcClient.ts's UniversalProviderInstance), but vuex's
+    // dispatch() return type isn't tied to the action name, so it still
+    // needs an explicit assertion here.
     const provider = (await dispatch("wcClient/init", null, {
       root: true,
-    })) as any;
+    })) as UniversalProvider;
     const currentChain = await dispatch("publicData/getCurrentChainId", null, {
       root: true,
     });
@@ -554,7 +604,7 @@ const actions: ActionTree<SignerState, RootState> = {
     const sigInnerTx = algosdk.signTransaction(payload.txn, skBytes);
     const sigInnerTxObj = algosdk.decodeSignedTransaction(sigInnerTx.blob);
     let keyExist = false;
-    signedTxn.msig.subsig.forEach((subsig: any, index: number) => {
+    signedTxn.msig.subsig.forEach((subsig, index: number) => {
       const subsigAddr = algosdk.encodeAddress(subsig.pk);
       if (subsigAddr === payload.signator) {
         keyExist = true;
@@ -584,7 +634,7 @@ const actions: ActionTree<SignerState, RootState> = {
     });
     const sigInnerTxObj = algosdk.decodeSignedTransaction(sigInnerTx);
     let keyExist = false;
-    signedTxn.msig.subsig.forEach((subsig: any, index: number) => {
+    signedTxn.msig.subsig.forEach((subsig, index: number) => {
       const subsigAddr = algosdk.encodeAddress(subsig.pk);
       if (subsigAddr === payload.signator) {
         keyExist = true;
@@ -623,7 +673,7 @@ const actions: ActionTree<SignerState, RootState> = {
     }
     const sigInnerTxObj = algosdk.decodeSignedTransaction(sigInnerTx);
     let keyExist = false;
-    signedTxn.msig.subsig.forEach((subsig: any, index: number) => {
+    signedTxn.msig.subsig.forEach((subsig, index: number) => {
       const subsigAddr = algosdk.encodeAddress(subsig.pk);
       if (subsigAddr === payload.signator) {
         keyExist = true;

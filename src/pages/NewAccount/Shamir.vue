@@ -12,6 +12,7 @@ import algosdk from "algosdk";
 import { useRouter } from "vue-router";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
+import { getErrorMessage } from "@/scripts/errors";
 const { t } = useI18n();
 const store = useStore<RootState>();
 const router = useRouter();
@@ -128,8 +129,8 @@ const recover = async () => {
     ) {
       router.push({ name: "Accounts" });
     }
-  } catch (err: any) {
-    const error = err?.message ?? err;
+  } catch (err: unknown) {
+    const error = getErrorMessage(err);
     await store.dispatch("toast/openError", error);
   }
 };

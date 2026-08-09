@@ -5,6 +5,7 @@ import { onMounted, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
+import { getErrorMessage } from "@/scripts/errors";
 const { t } = useI18n();
 
 const state = reactive({
@@ -30,8 +31,8 @@ async function watchAccountClick() {
       addr: state.addr,
     });
     router.push({ name: "Accounts" });
-  } catch (err: any) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = getErrorMessage(err);
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);
   }

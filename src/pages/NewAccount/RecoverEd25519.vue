@@ -6,6 +6,7 @@ import { useStore } from "vuex";
 import { QrcodeStream } from "qrcode-reader-vue3";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
+import { getErrorMessage } from "@/scripts/errors";
 
 interface RecoverState {
   addr: string;
@@ -42,8 +43,8 @@ async function importAccountClick() {
     if (added) {
       router.push({ name: "Accounts" });
     }
-  } catch (err: any) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = getErrorMessage(err);
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);
   }

@@ -294,8 +294,21 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const instance = getCurrentInstance();
+// $filters is a global mixin property (src/main.ts) not declared in
+// shims-vue.d.ts's ComponentCustomProperties, so it isn't visible on
+// globalProperties' own type; the shape below mirrors main.ts's actual
+// formatCurrency(value, currency?, minimumFractionDigits?, multiply?,
+// language?) signature for the one method this component calls.
 const $filters = instance?.appContext.config.globalProperties.$filters as
-  | { formatCurrency?: (...args: any[]) => unknown }
+  | {
+      formatCurrency?: (
+        value?: number | bigint,
+        currency?: string,
+        minimumFractionDigits?: number,
+        multiply?: boolean,
+        language?: string | string[]
+      ) => string;
+    }
   | undefined;
 
 const rekeyedParams = computed(() => props.rekeyedToInfo?.params ?? null);

@@ -29,7 +29,7 @@ const { t } = useI18n();
 
 function getAccountName() {
   const ret = store.state.wallet.privateAccounts.find(
-    (a: any) => a.addr == props.modelValue
+    (a) => a.addr == props.modelValue
   );
   if (!ret) return props.modelValue;
   return ret.name;

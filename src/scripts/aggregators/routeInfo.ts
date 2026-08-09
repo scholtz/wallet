@@ -2,6 +2,14 @@
 // response into a common shape the swap route visualization can render, without
 // any Vue/store dependency so it stays easy to unit-reason about and reuse.
 
+import type {
+  BiatecQuoteData,
+  DeflexQuoteData,
+  DeflexRoute,
+  DeflexTxsData,
+  FolksQuoteData,
+} from "./types";
+
 export interface RoutePoolInfo {
   label: string;
   protocol?: string;
@@ -48,8 +56,8 @@ function emptyRoute(fromAssetId: number, toAssetId: number): AggregatorRouteInfo
 }
 
 export function buildDeflexRouteInfo(
-  quotes: any,
-  txs: any,
+  quotes: Partial<DeflexQuoteData> | undefined,
+  txs: Partial<DeflexTxsData> | undefined,
   fromAssetId: number,
   toAssetId: number,
   inputAmount: number
@@ -59,14 +67,16 @@ export function buildDeflexRouteInfo(
   }
 
   const steps: string[] = Array.isArray(txs?.groupMetadata)
-    ? txs.groupMetadata.map((g: any) => g?.labelText).filter(Boolean)
+    ? txs.groupMetadata
+        .map((g) => g?.labelText)
+        .filter((label): label is string => Boolean(label))
     : [];
 
-  const rawRoutes = Array.isArray(quotes.route) ? quotes.route : [];
-  const paths: RoutePathInfo[] = rawRoutes.map((r: any) => ({
+  const rawRoutes: DeflexRoute[] = Array.isArray(quotes.route) ? quotes.route : [];
+  const paths: RoutePathInfo[] = rawRoutes.map((r) => ({
     percentage: typeof r?.percentage === "number" ? r.percentage : undefined,
     hops: Array.isArray(r?.path)
-      ? r.path.map((el: any) => {
+      ? r.path.map((el) => {
           const hopFrom = typeof el?.in?.id === "number" ? el.in.id : fromAssetId;
           const hopTo = typeof el?.out?.id === "number" ? el.out.id : toAssetId;
           return {
@@ -102,7 +112,7 @@ export function buildDeflexRouteInfo(
 }
 
 export function buildFolksRouteInfo(
-  quote: any,
+  quote: Partial<FolksQuoteData> | undefined,
   fromAssetId: number,
   toAssetId: number,
   inputAmount: number
@@ -188,7 +198,7 @@ function splitHopsIntoPaths(hops: RouteHopInfo[]): RoutePathInfo[] {
 }
 
 export function buildBiatecRouteInfo(
-  biatecQuotes: any,
+  biatecQuotes: Partial<BiatecQuoteData> | undefined,
   fromAssetId: number,
   toAssetId: number
 ): AggregatorRouteInfo {
@@ -198,11 +208,11 @@ export function buildBiatecRouteInfo(
   }
 
   const hops: RouteHopInfo[] = Array.isArray(route.hops)
-    ? route.hops.map((hop: any) => {
+    ? route.hops.map((hop) => {
         const hopFrom = typeof hop?.fromAsset === "number" ? hop.fromAsset : fromAssetId;
         const hopTo = typeof hop?.toAsset === "number" ? hop.toAsset : toAssetId;
         const pools: RoutePoolInfo[] = Array.isArray(hop?.pools)
-          ? hop.pools.map((p: any) => ({
+          ? hop.pools.map((p) => ({
               label: p?.protocol || "Pool",
               protocol: p?.protocol,
               poolAppId: p?.poolAppId,

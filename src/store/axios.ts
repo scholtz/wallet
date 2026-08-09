@@ -11,16 +11,22 @@ interface GetPayload {
   silent?: boolean;
 }
 
+// Query/form param values: whatever a caller hands the axios wrapper for a
+// GET query string or a multipart form field - primitives only, coerced to
+// string via String() wherever they end up in a FormData.append() call
+// (FormData field values must be string | Blob).
+type ParamValue = string | number | boolean;
+
 interface DownloadPayload {
   url: string;
-  params?: Record<string, any>;
+  params?: Record<string, ParamValue>;
   type?: "post" | "get";
   name: string;
 }
 
 interface PostPayload {
   url: string;
-  params?: Record<string, any>;
+  params?: Record<string, ParamValue>;
   body?: FormData;
   config?: Record<string, unknown>;
 }
@@ -169,7 +175,7 @@ const actions: ActionTree<AxiosState, RootState> = {
         const formData = new FormData();
         if (params) {
           Object.keys(params).forEach((key) => {
-            formData.append(key, params[key]);
+            formData.append(key, String(params[key]));
           });
         }
         const response = await axios.post(url, formData, {
@@ -224,7 +230,7 @@ const actions: ActionTree<AxiosState, RootState> = {
       let formData = new FormData();
       if (params) {
         Object.keys(params).forEach((key) => {
-          formData.append(key, params[key]);
+          formData.append(key, String(params[key]));
         });
       }
       if (body) {

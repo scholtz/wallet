@@ -16,6 +16,7 @@ import {
   generateHdMnemonic,
   isValidHdMnemonic,
 } from "@/scripts/encoding/hdWallet";
+import { getErrorMessage } from "@/scripts/errors";
 
 type HdWalletMode = "create" | "import";
 
@@ -117,8 +118,8 @@ async function createAccount() {
       backedUp: state.mode === "import" ? true : state.confirmedBackup,
     });
     router.push("/account/" + addr);
-  } catch (err: any) {
-    state.lastError = err.message ?? err;
+  } catch (err: unknown) {
+    state.lastError = getErrorMessage(err);
     console.error("failed to create hd wallet account", err);
   }
 }

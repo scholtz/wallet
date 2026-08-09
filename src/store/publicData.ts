@@ -4,9 +4,16 @@ import type { RootState } from "./index";
 export interface GenesisNetwork {
   network: string;
   CAIP10: string;
+  // Fetched from an externally-hosted static JSON list
+  // (AlgorandPublicData/genesis/genesis-list.json); only network/CAIP10 are
+  // read here, other fields pass through untyped.
   [key: string]: unknown;
 }
 
+// Externally-hosted static JSON list entries (algod/participation/indexer/2fa
+// provider lists) - no fields of these are read by this module itself, they
+// are only cached and handed back to callers (e.g. fa2.ts reads id/host off
+// them via its own narrower TwoFactorProvider type).
 export type ProviderEntry = Record<string, unknown>;
 
 export interface PublicDataState {

@@ -59,7 +59,11 @@
       >
         <template #body="slotProps">
           <div v-if="hasSlotField(slotProps)">
-            {{ uiFilters.formatDateTime(getSlotFieldValue(slotProps)) }}
+            {{
+              uiFilters.formatDateTime(
+                getSlotFieldValue(slotProps) as number | undefined
+              )
+            }}
           </div>
         </template>
         <template #filter="{ filterModel, filterCallback }">
@@ -103,7 +107,9 @@
                   slotProps.data["assetTransferTransaction"]["assetId"]
                 ),
 
-                getAssetDecimals(asset["assetId"])
+                getAssetDecimals(
+                  asset['assetId'] as bigint | number | string | undefined,
+                )
               )
             }}
           </div>
@@ -162,7 +168,11 @@
       <Column field="fee" :header="$t('acc_overview.fee')" :sortable="true">
         <template #body="slotProps">
           <div v-if="hasSlotField(slotProps)" class="text-right">
-            {{ uiFilters.formatCurrency(getSlotFieldValue(slotProps)) }}
+            {{
+              uiFilters.formatCurrency(
+                getSlotFieldValue(slotProps) as number | bigint | undefined
+              )
+            }}
           </div>
         </template>
 
@@ -288,9 +298,12 @@ interface AssetSummary {
 }
 
 type DataTableSlotProps = {
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   column?: {
     props?: {
+      // Mirrors PrimeVue's own ColumnProps["field"] type exactly
+      // (node_modules/primevue/column/index.d.ts) - PrimeVue itself types
+      // the function-field variant's parameter as `any`.
       field?: string | ((item: any) => string);
     };
   };
@@ -312,7 +325,7 @@ const route = useRoute();
 const transactions = ref<TransactionRow[]>([]);
 const selection = ref<TransactionRow | null>(null);
 const assets = ref<AssetSummary[]>([]);
-const asset = ref<Record<string, any>>({});
+const asset = ref<Record<string, unknown>>({});
 const loading = ref(true);
 const tableFilters = ref<TableFilters>({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },

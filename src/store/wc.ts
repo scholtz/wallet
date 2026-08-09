@@ -1,11 +1,13 @@
 import { Core } from "@walletconnect/core";
-import { WalletKit } from "@reown/walletkit";
+import { WalletKit, type WalletKitTypes } from "@reown/walletkit";
 import { parseUri } from "@walletconnect/utils";
+import type { SessionTypes } from "@walletconnect/types";
 import algosdk from "algosdk";
 import type { ActionTree, MutationTree } from "vuex";
 import wc from "../shared/wc";
 import WCKeyValueStore from "../shared/WCKeyValueStore";
 import type { RootState } from "./index";
+import type { GenesisNetwork } from "./publicData";
 import {
   bytesToBase64,
   decodeArc60Request,
@@ -14,18 +16,38 @@ import {
 } from "../scripts/encoding/arc60";
 
 type Web3WalletInstance = Awaited<ReturnType<typeof WalletKit.init>>;
-type Web3WalletInitOptions = Parameters<typeof WalletKit.init>[0];
+// algosdk.decodeUnsignedTransaction()'s declared return type doesn't expose
+// the type-specific fields (payment.*, assetTransfer.*, etc.) even though
+// they exist on the actual decoded object at runtime (see CLAUDE.md's
+// "algosdk.decodeUnsignedTransaction()" gotcha) - algosdk's own
+// `Transaction` class carries these as optional properties, so intersecting
+// with it (rather than `Record<string, any>`) gives real field types.
 type DecodedAlgorandTransaction = ReturnType<
   typeof algosdk.decodeUnsignedTransaction
 > &
-  Record<string, any>;
+  algosdk.Transaction & {
+    // algosdk.Transaction only exposes the sender as `.sender: Address`, not
+    // `.from` - this optional field preserves the pre-existing (and, at
+    // runtime, always-undefined) `.from` read below rather than changing
+    // behavior; a real fix would switch that read to `.sender`.
+    from?: { publicKey: Uint8Array };
+  };
 
-interface ConnectorRecord {
+/** WalletConnect v1 session/connector metadata, keyed by client id. */
+export interface ConnectorRecord {
   id?: number | string;
-  [key: string]: unknown;
+  address?: string;
+  connected?: boolean;
+  requests?: string[];
+  peer?: {
+    icons: string[];
+    url: string;
+    description: string;
+    name: string;
+  };
 }
 
-interface DecodedTransactionSummary {
+export interface DecodedTransactionSummary {
   index: number;
   type: string;
   from?: string;
@@ -39,7 +61,7 @@ interface DecodedTransactionSummary {
   txnB64: string;
 }
 
-interface StoredRequest {
+export interface StoredRequest {
   id: number | string;
   method: string;
   transactions: DecodedTransactionSummary[];
@@ -97,6 +119,25 @@ interface SignDataItemPayload {
   index: number;
 }
 
+/** One entry of the `algo_signTxn` WalletConnect request's params array. */
+interface AlgoSignTxnParam {
+  txn: string;
+}
+
+/**
+ * Shape of the raw msgpack-decoded object returned by `algosdk.decodeObj()`
+ * for a transaction that may or may not already be signature-wrapped
+ * (`{ txn: {...}, sig: ... }`) - `algosdk.decodeObj()` itself is typed to
+ * return `unknown` since it can decode arbitrary msgpack, so this describes
+ * only the envelope fields this code actually reads before re-encoding and
+ * passing the inner txn through `algosdk.decodeUnsignedTransaction()`.
+ */
+type RawDecodedTxnEnvelope = Record<string, unknown> & {
+  type?: string;
+  txn?: RawDecodedTxnEnvelope;
+  sig?: Uint8Array;
+};
+
 type SignedTxnMap = Record<string, Uint8Array | null | undefined>;
 
 const ensureNumericId = (value: number | string): number => {
@@ -123,8 +164,16 @@ export interface WcState {
   requests: StoredRequest[];
   signDataRequests: StoredSignDataRequest[];
   web3wallet: Web3WalletInstance | null;
-  sessionProposals: unknown[];
-  sessionRequests: unknown[];
+  sessionProposals: WalletKitTypes.EventArguments["session_proposal"][];
+  sessionRequests: WalletKitTypes.EventArguments["session_request"][];
+  // "auth_request" / "call_request" / "subscription_created" / "algo_signTxn"
+  // are not part of WalletKitTypes.Event - WalletKit (@reown/walletkit) only
+  // declares session_proposal/session_request/session_delete/proposal_expire/
+  // session_request_expire/session_authenticate (see
+  // node_modules/@reown/walletkit/dist/types/types/client.d.ts). These
+  // listeners are speculative/legacy hooks for events the library never
+  // actually emits (nothing in this codebase reads these four state arrays
+  // back out), so there is no real event payload type to reference.
   authRequests: unknown[];
   callRequests: unknown[];
   subscriptions: unknown[];
@@ -215,18 +264,24 @@ const mutations: MutationTree<WcState> = {
   setWeb3wallet(currentState, web3wallet: Web3WalletInstance | null) {
     currentState.web3wallet = web3wallet;
   },
-  addSessionProposal(currentState, sessionProposal: unknown) {
+  addSessionProposal(
+    currentState,
+    sessionProposal: WalletKitTypes.EventArguments["session_proposal"]
+  ) {
     currentState.sessionProposals.push(sessionProposal);
   },
   removeSessionProposal(currentState, id: number | string) {
     const index = currentState.sessionProposals.findIndex(
-      (proposal: any) => String(proposal?.id) === String(id)
+      (proposal) => String(proposal?.id) === String(id)
     );
     if (index !== -1) {
       currentState.sessionProposals.splice(index, 1);
     }
   },
-  addSessionRequest(currentState, sessionRequest: unknown) {
+  addSessionRequest(
+    currentState,
+    sessionRequest: WalletKitTypes.EventArguments["session_request"]
+  ) {
     currentState.sessionRequests.push(sessionRequest);
   },
   addAuthRequest(currentState, authRequest: unknown) {
@@ -268,7 +323,7 @@ const actions: ActionTree<WcState, RootState> = {
     });
 
     const web3wallet = await WalletKit.init({
-      core: core as unknown as Web3WalletInitOptions["core"],
+      core,
       metadata: walletConnectMetadata,
     });
 
@@ -284,11 +339,16 @@ const actions: ActionTree<WcState, RootState> = {
       await dispatch("refreshActiveSessions");
     });
 
-    web3wallet.on("session_request", async (sessionRequest: any) => {
+    web3wallet.on("session_request", async (sessionRequest) => {
       commit("addSessionRequest", sessionRequest);
 
       const request = sessionRequest?.params?.request;
 
+      // @walletconnect/types declares session_request's `request.params` as
+      // `any` (see node_modules/@walletconnect/types/dist/types/sign-client/
+      // client.d.ts, EventArguments.session_request) - it's opaque JSON-RPC
+      // params whose shape depends entirely on the DApp-chosen `method`, so
+      // it's narrowed manually per method below rather than at the source.
       if (request?.method === "algo_signData") {
         const rawItems: Arc60StdSigData[] = Array.isArray(request.params?.[0])
           ? request.params[0]
@@ -354,20 +414,21 @@ const actions: ActionTree<WcState, RootState> = {
         return;
       }
 
-      const firstParam = Array.isArray(request.params)
+      const firstParam: unknown = Array.isArray(request.params)
         ? request.params[0]
         : undefined;
 
-      const rawTransactions = Array.isArray(firstParam) ? firstParam : [];
+      const rawTransactions: AlgoSignTxnParam[] = Array.isArray(firstParam)
+        ? firstParam
+        : [];
 
       const transactions: DecodedTransactionSummary[] = rawTransactions.map(
-        (item: Record<string, any>, index: number) => {
+        (item, index) => {
           const txnB64 = String(item?.txn ?? "");
           const txnBuffer = Buffer.from(txnB64, "base64");
-          const decodedObj = algosdk.decodeObj(txnBuffer) as Record<
-            string,
-            any
-          >;
+          const decodedObj = algosdk.decodeObj(
+            txnBuffer
+          ) as RawDecodedTxnEnvelope;
           let decodedTx = decodedObj;
           if (!decodedTx.type && decodedTx.txn?.type) {
             if (decodedTx.sig) {
@@ -455,20 +516,27 @@ const actions: ActionTree<WcState, RootState> = {
       commit("addRequest", { request: requestToStore });
     });
 
-    const walletWithEvents: any = web3wallet;
-    walletWithEvents.on("auth_request", async (authRequest: unknown) => {
+    // "auth_request" / "call_request" / "subscription_created" /
+    // "algo_signTxn" aren't part of WalletKitTypes.Event (WalletKit only
+    // emits session_proposal/session_request/session_delete/proposal_expire/
+    // session_request_expire/session_authenticate - see
+    // node_modules/@reown/walletkit/dist/types/types/client.d.ts), so the
+    // strictly-typed `on()` overload rejects these event names at compile
+    // time. Cast to bypass that check for these speculative/legacy listeners
+    // (nothing in this codebase reads the resulting state back out).
+    const walletWithEvents = web3wallet as unknown as {
+      on(event: string, listener: (payload: unknown) => void): void;
+    };
+    walletWithEvents.on("auth_request", (authRequest) => {
       commit("addAuthRequest", authRequest);
     });
-    walletWithEvents.on("call_request", async (callRequest: unknown) => {
+    walletWithEvents.on("call_request", (callRequest) => {
       commit("addCallRequest", callRequest);
     });
-    walletWithEvents.on(
-      "subscription_created",
-      async (subscription: unknown) => {
-        commit("addSubscription", subscription);
-      }
-    );
-    walletWithEvents.on("algo_signTxn", async (algoSignTxn: unknown) => {
+    walletWithEvents.on("subscription_created", (subscription) => {
+      commit("addSubscription", subscription);
+    });
+    walletWithEvents.on("algo_signTxn", (algoSignTxn) => {
       commit("addAlgoSignTxn", algoSignTxn);
     });
   },
@@ -481,10 +549,10 @@ const actions: ActionTree<WcState, RootState> = {
     const genesisList = rootState.publicData.genesisList ?? [];
     const lastActive = rootState.wallet.lastActiveAccount;
     const chains = genesisList.map(
-      (network: any) => `algorand:${network.CAIP10}`
+      (network: GenesisNetwork) => `algorand:${network.CAIP10}`
     );
     const accounts = genesisList.map(
-      (network: any) => `algorand:${network.CAIP10}:${lastActive}`
+      (network: GenesisNetwork) => `algorand:${network.CAIP10}:${lastActive}`
     );
 
     if (payload.allAccounts) {
@@ -530,7 +598,7 @@ const actions: ActionTree<WcState, RootState> = {
     }
     const sessions = web3wallet.getActiveSessions();
     const records: ActiveSessionRecord[] = Object.values(sessions).map(
-      (session: any) => ({
+      (session: SessionTypes.Struct) => ({
         topic: session.topic,
         peer: session.peer?.metadata
           ? {
@@ -776,8 +844,7 @@ const actions: ActionTree<WcState, RootState> = {
     commit("reset");
     if (web3wallet) {
       try {
-        const core: any = (web3wallet as any).core;
-        core?.relayer?.transportClose?.()?.catch?.((err: unknown) => {
+        web3wallet.core.relayer.transportClose().catch((err: unknown) => {
           console.error("Failed to close WalletConnect relay transport", err);
         });
       } catch (err) {

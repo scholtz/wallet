@@ -59,7 +59,7 @@
               <IconField>
                 <InputIcon class="pi pi-search" />
                 <InputText
-                  v-model="(filters['global'] as any).value"
+                  v-model="filters['global'].value"
                   :placeholder="$t('global.keyword_search')"
                 />
               </IconField>

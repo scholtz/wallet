@@ -24,6 +24,7 @@ import axios from "axios";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 import { StoredAsset } from "@/store/indexer";
+import { getErrorMessage } from "@/scripts/errors";
 
 type FilterMode = (typeof FilterMatchMode)[keyof typeof FilterMatchMode];
 
@@ -427,8 +428,8 @@ onMounted(async () => {
     if (deserialized.fee) {
       state.fee = deserialized.fee;
     }
-  } catch (exc: any) {
-    console.error(exc.message ?? exc);
+  } catch (exc: unknown) {
+    console.error(getErrorMessage(exc));
   }
 
   if (state.action === "tx-deploy") {

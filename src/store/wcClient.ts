@@ -6,15 +6,30 @@ import type { ActionTree, MutationTree } from "vuex";
 import wc from "../shared/wc";
 import WCKeyValueStore from "../shared/WCKeyValueStore";
 import type { RootState } from "./index";
+import type { GenesisNetwork } from "./publicData";
 
 type UniversalProviderInstance = Awaited<
   ReturnType<typeof UniversalProvider.init>
 >;
 
+/** WalletConnect v1 session/connector metadata, keyed by client id. */
 type ConnectorRecord = {
   id?: number | string;
-  [key: string]: unknown;
+  address?: string;
+  connected?: boolean;
+  requests?: string[];
+  peer?: {
+    icons: string[];
+    url: string;
+    description: string;
+    name: string;
+  };
 };
+
+/** Minimal shape read back out of a stored `wc/addRequest` request. */
+interface StoredWcRequest {
+  id: number | string;
+}
 
 const ensureNumericId = (value: number | string): number => {
   const parsed = typeof value === "string" ? Number(value) : value;
@@ -26,8 +41,11 @@ const ensureNumericId = (value: number | string): number => {
 
 export interface WcClientState {
   connectors: ConnectorRecord[];
-  requests: unknown[];
+  requests: StoredWcRequest[];
   web3wallet: UniversalProviderInstance | null;
+  // UniversalProvider's `.on()` is untyped (`any` event/listener - see the
+  // comment in the `init` action below), so these event payloads have no
+  // real type to reference; `unknown` is the honest representation.
   sessionProposals: unknown[];
   sessionRequests: unknown[];
   authRequests: unknown[];
@@ -74,12 +92,12 @@ const mutations: MutationTree<WcClientState> = {
       Object.assign(connector, payload.update);
     }
   },
-  addRequest(currentState, { request }: { request: unknown }) {
+  addRequest(currentState, { request }: { request: StoredWcRequest }) {
     currentState.requests.push(request);
   },
   removeRequest(currentState, id: number | string) {
     const index = currentState.requests.findIndex(
-      (request: any) => request?.id === id
+      (request) => request?.id === id
     );
     if (index !== -1) {
       currentState.requests.splice(index, 1);
@@ -135,35 +153,42 @@ const actions: ActionTree<WcClientState, RootState> = {
       logger: "debug",
       projectId: walletConnectProjectId,
       metadata: walletConnectMetadata,
-      client: client as any,
+      // `universal-provider-with-algorand` depends on its own transitive
+      // copy of @walletconnect/sign-client (2.14.0) while this app's own
+      // dependency graph resolves a newer one (2.23.10, via pnpm's strict,
+      // non-hoisted node_modules - see two separate `.pnpm/@walletconnect+
+      // sign-client@*` trees). Both are structurally the real `SignClient`
+      // class, just with an internal (pino logger) type nominally
+      // incompatible between the two copies, so a same-shape cast (not
+      // `any`) is the accurate way to bridge them.
+      client: client as unknown as Parameters<
+        typeof UniversalProvider.init
+      >[0]["client"],
     });
 
-    const providerWithEvents: any = provider;
-    providerWithEvents.on(
-      "session_proposal",
-      async (sessionProposal: unknown) => {
-        commit("addSessionProposal", sessionProposal);
-      }
-    );
-    providerWithEvents.on(
-      "session_request",
-      async (sessionRequest: unknown) => {
-        commit("addSessionRequest", sessionRequest);
-      }
-    );
-    providerWithEvents.on("auth_request", async (authRequest: unknown) => {
+    // UniversalProvider's own `.on(event, listener)` is typed
+    // `(event: any, listener: any) => void` by the library itself (see
+    // node_modules/universal-provider-with-algorand/dist/types/
+    // UniversalProvider.d.ts) - it defines no per-event payload types at
+    // all, unlike WalletKit/SignClient's `EventArguments` map, so listener
+    // params below are annotated `unknown` (the honest "could be anything"
+    // type) rather than trusting an unverifiable shape.
+    provider.on("session_proposal", async (sessionProposal: unknown) => {
+      commit("addSessionProposal", sessionProposal);
+    });
+    provider.on("session_request", async (sessionRequest: unknown) => {
+      commit("addSessionRequest", sessionRequest);
+    });
+    provider.on("auth_request", async (authRequest: unknown) => {
       commit("addAuthRequest", authRequest);
     });
-    providerWithEvents.on("call_request", async (callRequest: unknown) => {
+    provider.on("call_request", async (callRequest: unknown) => {
       commit("addCallRequest", callRequest);
     });
-    providerWithEvents.on(
-      "subscription_created",
-      async (subscription: unknown) => {
-        commit("addSubscription", subscription);
-      }
-    );
-    providerWithEvents.on("algo_signTxn", async (algoSignTxn: unknown) => {
+    provider.on("subscription_created", async (subscription: unknown) => {
+      commit("addSubscription", subscription);
+    });
+    provider.on("algo_signTxn", async (algoSignTxn: unknown) => {
       commit("addAlgoSignTxn", algoSignTxn);
     });
 
@@ -184,10 +209,10 @@ const actions: ActionTree<WcClientState, RootState> = {
     const genesisList = rootState.publicData.genesisList ?? [];
     const lastActive = rootState.wallet.lastActiveAccount;
     const chains = genesisList.map(
-      (network: any) => `algorand:${network.CAIP10}`
+      (network: GenesisNetwork) => `algorand:${network.CAIP10}`
     );
     const accounts = genesisList.map(
-      (network: any) => `algorand:${network.CAIP10}:${lastActive}`
+      (network: GenesisNetwork) => `algorand:${network.CAIP10}:${lastActive}`
     );
 
     if (allAccounts) {
@@ -244,8 +269,7 @@ const actions: ActionTree<WcClientState, RootState> = {
     commit("reset");
     if (web3wallet) {
       try {
-        const core: any = (web3wallet as any).client?.core;
-        core?.relayer?.transportClose?.()?.catch?.((err: unknown) => {
+        web3wallet.client.core.relayer.transportClose().catch((err: unknown) => {
           console.error("Failed to close WalletConnect relay transport", err);
         });
       } catch (err) {

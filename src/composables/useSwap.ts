@@ -3,7 +3,16 @@ import { ref, computed, Ref } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { getActiveDexAggregators } from "../scripts/dexAggregators";
-import type { DexAggregator, SwapContext } from "../scripts/aggregators/types";
+import type {
+  AggregatorDataMap,
+  AggregatorQuoteData,
+  BiatecQuoteData,
+  DeflexQuoteState,
+  DeflexTxsData,
+  DexAggregator,
+  FolksTxnsData,
+  SwapContext,
+} from "../scripts/aggregators/types";
 import {
   extractDeflexSimulateGroups,
   extractFolksSimulateGroups,
@@ -15,7 +24,7 @@ import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import { RootState } from "@/store";
 import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
-import { AccountAssetHolding } from "@/store/wallet";
+import { AccountAssetHolding, WalletAccount } from "@/store/wallet";
 
 const normalizeAmount = (value: number | bigint | undefined | null): number => {
   if (typeof value === "bigint") return Number(value);
@@ -71,8 +80,11 @@ export function useSwap() {
       | null) || null
   );
 
-  // Initialize aggregator data dynamically with proper typing
-  const aggregatorData: Record<string, Ref<any>> = {};
+  // Initialize aggregator data dynamically with proper typing. Populated
+  // immediately below (one Ref per key, for every configured aggregator)
+  // before anything reads it - see AggregatorDataMap in aggregators/types.ts
+  // for why an upfront cast (rather than an inline literal) is used here.
+  const aggregatorData = {} as AggregatorDataMap;
   dexAggregators.forEach((agg) => {
     aggregatorData[agg.quotesKey] = ref({});
     aggregatorData[agg.txnsKey] = ref(
@@ -100,7 +112,7 @@ export function useSwap() {
 
   const account = computed(() =>
     store.state.wallet.privateAccounts.find(
-      (a: any) => a.addr == route.params.account
+      (a) => a.addr == route.params.account
     )
   );
 
@@ -168,14 +180,24 @@ export function useSwap() {
   );
 
   const appsToOptIn = computed<number[]>(() => {
-    const requiredAppOptIns =
-      aggregatorData.deflexQuotes?.value?.requiredAppOptIns ?? [];
+    const deflexQuotes = aggregatorData.deflexQuotes?.value as
+      | DeflexQuoteState
+      | undefined;
+    const requiredAppOptIns = deflexQuotes?.requiredAppOptIns ?? [];
     const ret: number[] = [];
     if (!account.value) return [];
+    // WalletAccount doesn't normally carry "apps-local-state" (that's
+    // per-network indexer data, see IAccountData in store/wallet.ts) - this
+    // is a defensive legacy check for an older/merged account shape that may
+    // have had it attached directly.
+    const accountWithLegacyAppsField = account.value as WalletAccount & {
+      "apps-local-state"?: Array<{ id: string | number }>;
+    };
     const optedInAppIds =
-      "apps-local-state" in account.value
-        ? account.value["apps-local-state"].map((state: any) =>
-            parseInt(state.id)
+      "apps-local-state" in accountWithLegacyAppsField &&
+      accountWithLegacyAppsField["apps-local-state"]
+        ? accountWithLegacyAppsField["apps-local-state"].map((state) =>
+            parseInt(String(state.id))
           )
         : [];
 
@@ -260,6 +282,13 @@ export function useSwap() {
     asset,
     toAsset,
     payamount,
+    // Bridges the app-wide WalletAccount (src/store/wallet.ts - many more
+    // fields, and money amounts typed number|bigint) into SwapContext's own
+    // minimal Account shape (used only for swap decimal math). The two are
+    // compatible in practice but not provably so structurally - WalletAccount's
+    // `data` values (IAccountData) have every field optional, while Account's
+    // AccountData requires amount/assets - hence the `unknown` bridge rather
+    // than a single direct cast.
     account: account as unknown as Ref<Account | undefined>,
     fromAssetObj,
     toAssetObj,
@@ -279,8 +308,12 @@ export function useSwap() {
     requiresOptIn,
 
     // Store and route access (for SwapComponent interface)
-    $store: store as unknown as SwapStore,
-    $route: route as any,
+    $store: store as SwapStore,
+    $route: {
+      params: {
+        account: route.params.account as string,
+      },
+    },
     dexAggregators,
     aggregatorData,
 
@@ -289,8 +322,11 @@ export function useSwap() {
       store.dispatch("toast/openSuccess", message),
     openError: (message: string) => store.dispatch("toast/openError", message),
     axiosGet: (config: { url: string }) => store.dispatch("axios/get", config),
-    axiosPost: (config: { url: string; body?: any; config?: any }) =>
-      store.dispatch("axios/post", config),
+    axiosPost: (config: {
+      url: string;
+      body?: string;
+      config?: { headers: Record<string, string> };
+    }) => store.dispatch("axios/post", config),
     getSK: (config: { addr: string }) => store.dispatch("wallet/getSK", config),
     getAsset: (config: { assetIndex: number | bigint }) =>
       store.dispatch("indexer/getAsset", config),
@@ -386,7 +422,14 @@ export function useSwap() {
         (asset: AccountAssetHolding) =>
           store
             .dispatch("indexer/getAsset", {
-              assetIndex: BigInt(asset.assetId ?? (asset as any)["asset-id"]),
+              // Legacy/pre-migration cached wallet data may still carry the
+              // old raw indexer snake_case key instead of assetId.
+              assetIndex: BigInt(
+                asset.assetId ??
+                  (asset as AccountAssetHolding & { "asset-id"?: number | bigint })[
+                    "asset-id"
+                  ]!
+              ),
             })
             .catch(() => null) // Ignore errors for individual assets
       );
@@ -437,11 +480,15 @@ export function useSwap() {
 
     let groups: Uint8Array[][] = [];
     if (agg.name === "deflex") {
-      groups = extractDeflexSimulateGroups(aggregatorData.deflexTxs.value);
+      groups = extractDeflexSimulateGroups(
+        aggregatorData.deflexTxs.value as Partial<DeflexTxsData>
+      );
     } else if (agg.name === "folks") {
-      groups = extractFolksSimulateGroups(aggregatorData.folksTxns.value);
+      groups = extractFolksSimulateGroups(
+        aggregatorData.folksTxns.value as FolksTxnsData
+      );
     } else if (agg.name === "biatec" || agg.name === "biatecStage") {
-      groups = extractBiatecSimulateGroups(quoteData);
+      groups = extractBiatecSimulateGroups(quoteData as Partial<BiatecQuoteData>);
     }
     if (groups.length === 0 || groups.every((group) => group.length === 0)) {
       return;
@@ -458,13 +505,13 @@ export function useSwap() {
         Number(toAsset.value ?? 0n)
       );
       aggregatorData[agg.quotesKey].value = {
-        ...aggregatorData[agg.quotesKey].value,
+        ...(aggregatorData[agg.quotesKey].value as AggregatorQuoteData),
         simulatedQuoteAmount: outcome.success ? outcome.netReceived : undefined,
         simulationFailed: !outcome.success,
       };
     } catch (e) {
       aggregatorData[agg.quotesKey].value = {
-        ...aggregatorData[agg.quotesKey].value,
+        ...(aggregatorData[agg.quotesKey].value as AggregatorQuoteData),
         simulatedQuoteAmount: undefined,
         simulationFailed: true,
       };

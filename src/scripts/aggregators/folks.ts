@@ -1,4 +1,10 @@
-import type { DexAggregator, SwapContext } from "./types";
+import type {
+  AggregatorQuoteData,
+  DexAggregator,
+  FolksQuoteState,
+  FolksTxnsData,
+  SwapContext,
+} from "./types";
 import { FolksRouterClient, Network, SwapMode } from "@folks-router/js-sdk";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
@@ -62,8 +68,8 @@ export const folksAggregator: DexAggregator = {
       const quote = await folksRouterClient.fetchSwapQuote(
         {
           amount,
-          fromAssetId: fromAsset as any,
-          toAssetId: toAsset as any,
+          fromAssetId: Number(fromAsset),
+          toAssetId: Number(toAsset),
           swapMode: SwapMode.FIXED_INPUT,
         },
         15,
@@ -82,8 +88,8 @@ export const folksAggregator: DexAggregator = {
         await folksRouterClient.prepareSwapTransactions(
           {
             amount,
-            fromAssetId: fromAsset as any,
-            toAssetId: toAsset as any,
+            fromAssetId: Number(fromAsset),
+            toAssetId: Number(toAsset),
             swapMode: SwapMode.FIXED_INPUT,
           },
           context.$route.params.account,
@@ -94,15 +100,11 @@ export const folksAggregator: DexAggregator = {
         assetIndex: toAsset,
       });
       context.txsDetails.value += `\nFOLKS ROUTER: Quote Amount: ${
-        Number(context.aggregatorData.folksQuote.value.quoteAmount) /
-        10 ** (token?.decimals ?? 6)
+        Number(quote.quoteAmount) / 10 ** (token?.decimals ?? 6)
       }, Price Impact: ${
-        Math.round(
-          Number(context.aggregatorData.folksQuote.value.priceImpact) * 10000
-        ) / 100
+        Math.round(Number(quote.priceImpact) * 10000) / 100
       }%, Txs fees: ${
-        Number(context.aggregatorData.folksQuote.value.microalgoTxnsFee) /
-        10 ** 6
+        Number(quote.microalgoTxnsFee) / 10 ** 6
       } Algo`;
       context.txsDetails.value = context.txsDetails.value.trim();
     } catch (e) {
@@ -125,11 +127,13 @@ export const folksAggregator: DexAggregator = {
       return;
     }
 
-    const unsignedTxns = context.aggregatorData.folksTxns.value.map(
-      (txn: any) =>
-        algosdk.decodeUnsignedTransaction(
-          new Uint8Array(Buffer.from(txn, "base64"))
-        )
+    // folksTxns always holds this aggregator's own FolksTxnsData - written by
+    // getQuote() above, the only writer of this key.
+    const folksTxns = context.aggregatorData.folksTxns.value as FolksTxnsData;
+    const unsignedTxns = folksTxns.map((txn) =>
+      algosdk.decodeUnsignedTransaction(
+        new Uint8Array(Buffer.from(txn, "base64"))
+      )
     );
     try {
       assertSwapTransactionsSafe(
@@ -142,7 +146,7 @@ export const folksAggregator: DexAggregator = {
       context.openError((e as Error).message);
       return;
     }
-    const signedTxns = unsignedTxns.map((txn: any) => txn.signTxn(senderSK));
+    const signedTxns = unsignedTxns.map((txn) => txn.signTxn(senderSK));
     if (!signedTxns) {
       context.aggregatorData.processingTradeFolks.value = false;
       return;
@@ -151,11 +155,11 @@ export const folksAggregator: DexAggregator = {
       .sendRawTransaction({
         signedTxn: signedTxns,
       })
-      .catch((e: any) => {
-        context.error.value = e.message;
+      .catch((e: unknown) => {
+        context.error.value = (e as Error).message;
         context.aggregatorData.processingTradeFolks.value = false;
-        context.openError(e.message);
-        return;
+        context.openError((e as Error).message);
+        return undefined;
       });
 
     let ret = "Processed in txs: ";
@@ -179,10 +183,11 @@ export const folksAggregator: DexAggregator = {
 
   get allowExecute() {
     return function (context: SwapContext) {
+      const folksTxns = context.aggregatorData.folksTxns.value as FolksTxnsData;
       if (
-        context.aggregatorData.folksTxns.value &&
+        folksTxns &&
         context.aggregatorData.folksQuote.value &&
-        context.aggregatorData.folksTxns.value.length > 0
+        folksTxns.length > 0
       ) {
         return true;
       }
@@ -193,7 +198,7 @@ export const folksAggregator: DexAggregator = {
   get isQuoteBetter() {
     return function (context: SwapContext) {
       const own = getEffectiveQuoteAmount(
-        context.aggregatorData.folksQuote.value
+        context.aggregatorData.folksQuote.value as FolksQuoteState
       );
       if (own === undefined || own === null) return false;
       const ownValue = BigInt(own);
@@ -201,12 +206,12 @@ export const folksAggregator: DexAggregator = {
       // them (not stop at the first one that's smaller) or a smaller quote
       // encountered earlier in the list can hide a larger one later in it.
       const others = context.dexAggregators.filter(
-        (a: any) =>
+        (a: DexAggregator) =>
           a.name !== "folks" && context.aggregatorData[a.enabledKey].value
       );
       for (const other of others) {
         const otherQuote = getEffectiveQuoteAmount(
-          context.aggregatorData[other.quotesKey].value
+          context.aggregatorData[other.quotesKey].value as AggregatorQuoteData
         );
         if (
           otherQuote !== undefined &&

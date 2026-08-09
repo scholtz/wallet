@@ -709,13 +709,14 @@ type TwoFactorWalletAccount = WalletAccount & {
   recoveryAccount?: string;
 };
 
+// Only `formatCurrency` (of app.config.globalProperties.$filters' full set,
+// see main.ts) is used on this page - no catch-all index signature needed.
 type GlobalFilters = {
   formatCurrency: (
     value: number | string,
     symbol?: string,
     decimals?: number
   ) => string;
-  [key: string]: (...args: any[]) => unknown;
 };
 
 type LooseTransaction = algosdk.Transaction & {
@@ -737,6 +738,9 @@ type DecodedSignedTransaction = ReturnType<
 
 const toSingleParam = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] : value;
+
+const toErrorMessage = (err: unknown): string =>
+  err instanceof Error ? err.message : String(err);
 
 const payFromDirect = ref("");
 const payamount = ref(0);
@@ -892,8 +896,8 @@ const feeLong = computed(() => fee.value * 1_000_000);
 const extractCloseTo = (
   tx:
     | {
-        payment?: { closeRemainderTo?: unknown };
-        assetTransfer?: { closeRemainderTo?: unknown };
+        payment?: { closeRemainderTo?: algosdk.Address };
+        assetTransfer?: { closeRemainderTo?: algosdk.Address };
       }
     | null
     | undefined
@@ -936,8 +940,7 @@ const maxAmount = computed(() => {
   if (Number(asset.value) > 0) {
     if (!selectedAssetFromAccount.value) return 0;
     return (
-      Number((selectedAssetFromAccount.value as any).amount ?? 0) /
-      decimalsPower.value
+      Number(selectedAssetFromAccount.value.amount ?? 0) / decimalsPower.value
     );
   }
   let ret = Number(data.amount ?? 0) / 1_000_000 - 0.1;
@@ -999,8 +1002,7 @@ const arc14RealmDisplay = computed(
   () => getArc14Realm(arc14Txn.value?.note) ?? ""
 );
 
-const setNoRedirectAction = (payload?: unknown) =>
-  store.dispatch("config/setNoRedirect", payload);
+const setNoRedirectAction = () => store.dispatch("config/setNoRedirect");
 const prolongAction = () => store.dispatch("wallet/prolong");
 const makePaymentAction = (payload: Record<string, unknown>) =>
   store.dispatch("algod/makePayment", payload);
@@ -1299,9 +1301,9 @@ const signMultisig = async (e?: Event) => {
         txn: txn.value as LooseTransaction | null,
       });
       await addSignature(newTx as string);
-    } catch (err: any) {
+    } catch (err) {
       console.error("error adding signature", err);
-      await openErrorAction(err?.message ?? String(err));
+      await openErrorAction(toErrorMessage(err));
     }
   }
 };
@@ -1369,10 +1371,11 @@ const submitSignedClick = async () => {
       error.value = confirmation.poolError;
       processing.value = false;
     }
-  } catch (err: any) {
+  } catch (err) {
     console.error("submitSignedClick.error", err);
-    await openErrorAction(err?.message ?? String(err));
-    error.value = err?.message ?? String(err);
+    const message = toErrorMessage(err);
+    await openErrorAction(message);
+    error.value = message;
     processing.value = false;
   }
 };
@@ -1467,8 +1470,8 @@ const payPaymentClick = async (e?: Event) => {
       error.value = confirmation.poolError;
       processing.value = false;
     }
-  } catch (err: any) {
-    error.value = err?.message ?? String(err);
+  } catch (err) {
+    error.value = toErrorMessage(err);
   }
 };
 
@@ -1505,8 +1508,8 @@ const sendMultisig = async (e?: Event) => {
         signedTxn,
       });
       tx.value = response?.txid ?? null;
-    } catch (err: any) {
-      message = err?.message ?? String(err);
+    } catch (err) {
+      message = toErrorMessage(err);
       await openErrorAction(message);
       console.error(err);
     }
@@ -1544,8 +1547,8 @@ const sendMultisig = async (e?: Event) => {
       error.value = confirmation.poolError;
       processing.value = false;
     }
-  } catch (err: any) {
-    error.value = err?.message ?? String(err);
+  } catch (err) {
+    error.value = toErrorMessage(err);
     processing.value = false;
   }
 };
@@ -1683,8 +1686,8 @@ const combineSignatures = async (e?: Event) => {
   try {
     await addSignature(rawSignedTxnFriend.value);
     showFormCombine.value = false;
-  } catch (err: any) {
-    await openErrorAction(err?.message ?? String(err));
+  } catch (err) {
+    await openErrorAction(toErrorMessage(err));
   }
 };
 
@@ -1729,8 +1732,8 @@ const sign2FAClick = async (e?: Event) => {
       twoFactorAuthProvider: accountFor2FAProvider.value,
     })) as string;
     await addSignature(newTx);
-  } catch (err: any) {
-    const message = err?.message ?? String(err);
+  } catch (err) {
+    const message = toErrorMessage(err);
     console.error("failed to sign 2fa tx", message, err);
     await openErrorAction(message);
   }
@@ -1910,8 +1913,8 @@ onMounted(async () => {
         twoFactorAuthProvider: accountFor2FAProvider.value,
       })) as string;
       loadAuthToken();
-    } catch (err: any) {
-      const message = err?.message ?? String(err);
+    } catch (err) {
+      const message = toErrorMessage(err);
       console.error("failed to request realm", message, err);
       await openErrorAction(message);
     }

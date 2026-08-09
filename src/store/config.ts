@@ -117,6 +117,11 @@ const disableConsoleLogs = (): void => {
     (window as Window & { console: Console }).console = {} as Console;
   }
    
+  // lib.dom's Console type has no index signature and each method
+  // (log/debug/warn/info) has its own overloaded signature, so a generic
+  // "replace this method with a no-op" loop can't be typed against Console
+  // itself - this reinterprets it structurally as a plain string-keyed
+  // function map instead.
   const consoleAny = window.console as unknown as Record<
     string,
     (...args: unknown[]) => void

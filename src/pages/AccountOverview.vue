@@ -386,7 +386,7 @@ const $filters = instance?.appContext.config.globalProperties.$filters;
 
 const displayOnlineOfflineDialog = ref(false);
 const transactions = ref<algosdk.indexerModels.Transaction[]>([]);
-const selection = ref<any | null>(null);
+const selection = ref<algosdk.indexerModels.Transaction | null>(null);
 const assets = ref<ExtendedStoredAsset[]>([]);
 const changeOnline = ref(false);
 const changeOffline = ref(false);
@@ -491,8 +491,9 @@ const searchForTransactionsAction = (payload: {
   addr: string;
 }): Promise<algosdk.indexerModels.TransactionsResponse | undefined> =>
   store.dispatch("indexer/searchForTransactions", payload);
-const setTransactionAction = (payload: { transaction: unknown }) =>
-  store.dispatch("wallet/setTransaction", payload);
+const setTransactionAction = (payload: {
+  transaction: algosdk.indexerModels.Transaction;
+}) => store.dispatch("wallet/setTransaction", payload);
 const getAssetAction = (payload: {
   assetIndex: bigint;
 }): Promise<StoredAsset | undefined> =>

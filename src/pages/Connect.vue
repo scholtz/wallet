@@ -377,7 +377,7 @@
 </template>
 
 <script lang="ts" setup>
-import type algosdk from "algosdk";
+import type { WalletKitTypes } from "@reown/walletkit";
 import { QrcodeStream } from "qrcode-reader-vue3";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
@@ -389,72 +389,21 @@ import ConnectRequestsTable from "../components/ConnectRequestsTable.vue";
 import ConnectSignDataRequestsTable from "../components/ConnectSignDataRequestsTable.vue";
 import wc from "../shared/wc";
 import { useStore } from "../store";
-import type { StoredSignDataRequest } from "../store/wc";
+import type {
+  ActiveSessionRecord,
+  ConnectorRecord,
+  StoredRequest,
+  StoredSignDataRequest,
+} from "../store/wc";
 
-interface TransactionWrapper {
-  index: number;
-  type: string;
-  fee?: number;
-  asset: string | number;
-  amount?: number | string;
-  rekeyTo?: string;
-  txn: algosdk.Transaction;
-  txnB64: string;
-}
+type RequestItem = StoredRequest;
 
-interface RequestItem {
-  id: number | string;
-  method: string;
-  transactions: TransactionWrapper[];
-  fee: number;
-  ver: string;
-  topic: string;
-}
+/** WalletConnect v2 domain-verification signal (audit finding AW-2026-008). */
+type SessionProposal = WalletKitTypes.EventArguments["session_proposal"];
 
-interface SessionProposal {
-  id: number | string;
-  params: {
-    proposer: {
-      metadata: {
-        icons: string[];
-        url: string;
-        description: string;
-        name: string;
-      };
-    };
-  };
-  /** WalletConnect v2 domain-verification signal (audit finding AW-2026-008). */
-  verifyContext?: {
-    verified?: {
-      origin?: string;
-      validation?: "UNKNOWN" | "VALID" | "INVALID";
-      isScam?: boolean;
-    };
-  };
-}
+type ConnectorItem = ConnectorRecord;
 
-interface ConnectorItem {
-  id: string;
-  address: string;
-  peer?: {
-    icons: string[];
-    url: string;
-    description: string;
-    name: string;
-  };
-  connected: boolean;
-}
-
-interface ActiveSessionItem {
-  topic: string;
-  peer?: {
-    icons: string[];
-    url: string;
-    description: string;
-    name: string;
-  };
-  accounts: string[];
-}
+type ActiveSessionItem = ActiveSessionRecord;
 
 const store = useStore();
 const route = useRoute();
@@ -463,16 +412,16 @@ const $store = store;
 const uri = ref("");
 const uriWc1 = ref("");
 const addr = ref("");
-const error = ref<unknown>("");
+// Never reassigned elsewhere in this file - kept as a plain string ref
+// rather than `unknown` since its only value is this static initializer.
+const error = ref<string>("");
 const scan = ref(false);
 const scanWc1 = ref(false);
 // Default to exposing only the active account to a connecting DApp; the
 // user must opt in to sharing every account (audit finding AW-2026-009).
 const allAccounts = ref(false);
 
-const requests = computed<RequestItem[]>(
-  () => (store.state.wc.requests as RequestItem[] | undefined) ?? []
-);
+const requests = computed<RequestItem[]>(() => store.state.wc.requests);
 const wc1Requests = computed<RequestItem[]>(() =>
   requests.value.filter((request) => String(request.ver) !== "2")
 );
@@ -480,22 +429,14 @@ const wc2Requests = computed<RequestItem[]>(() =>
   requests.value.filter((request) => String(request.ver) === "2")
 );
 const signDataRequests = computed<StoredSignDataRequest[]>(
-  () =>
-    (store.state.wc.signDataRequests as StoredSignDataRequest[] | undefined) ??
-    []
+  () => store.state.wc.signDataRequests
 );
 const sessionProposals = computed<SessionProposal[]>(
-  () => (store.state.wc.sessionProposals as SessionProposal[] | undefined) ?? []
+  () => store.state.wc.sessionProposals
 );
-const connectors = computed<ConnectorItem[]>(
-  () =>
-    (store.state.wc.connectors as unknown as ConnectorItem[] | undefined) ?? []
-);
+const connectors = computed<ConnectorItem[]>(() => store.state.wc.connectors);
 const activeSessions = computed<ActiveSessionItem[]>(
-  () =>
-    (store.state.wc.activeSessions as unknown as
-      | ActiveSessionItem[]
-      | undefined) ?? []
+  () => store.state.wc.activeSessions
 );
 const wc1Enabled = computed(() => Boolean(store.state.wc.wc1Enabled));
 const connectable = computed(() => Boolean(uri.value && uri.value.trim()));
@@ -650,8 +591,9 @@ const clickApproveSession = async (id: string) => {
       id,
       allAccounts: allAccounts.value,
     });
-  } catch (err: any) {
-    const message = err?.message ?? err;
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : String(err);
     await store.dispatch("toast/openError", message);
   }
 };
@@ -659,8 +601,9 @@ const clickApproveSession = async (id: string) => {
 const clickRejectSession = async (id: string) => {
   try {
     await store.dispatch("wc/rejectSession", { id });
-  } catch (err: any) {
-    const message = err?.message ?? err;
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : String(err);
     await store.dispatch("toast/openError", message);
   }
 };

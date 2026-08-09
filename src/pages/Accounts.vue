@@ -257,8 +257,11 @@ const fillAccounts = () => {
   filteredAccounts = filteredAccounts.map((account) => {
     let addr = account.addr;
     if (typeof account.addr !== "string") {
-      // if addr is algorand address object, convert to string
-      const pk = (account.addr as any)?.publicKey;
+      // Legacy/malformed persisted data: addr was serialized as an
+      // algosdk.Address-shaped object instead of a string - see the matching
+      // handling in src/store/wallet.ts's setPrivateAccounts mutation.
+      const pk = (account.addr as unknown as { publicKey?: Uint8Array })
+        ?.publicKey;
       if (pk) {
         const buffer = Buffer.from(Object.values(pk));
         const obj = new algosdk.Address(buffer);
@@ -289,8 +292,9 @@ const fillAccounts = () => {
 
 const accountInformation = (payload: { addr: string }) =>
   store.dispatch("indexer/accountInformation", payload);
-const updateAccount = (payload: { info: unknown }) =>
-  store.dispatch("wallet/updateAccount", payload);
+const updateAccount = (payload: {
+  info: WalletAccount & { address?: string };
+}) => store.dispatch("wallet/updateAccount", payload);
 const lastActiveAccount = (payload: { addr: string }) =>
   store.dispatch("wallet/lastActiveAccount", payload);
 

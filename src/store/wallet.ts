@@ -81,13 +81,39 @@ export interface WalletAccount {
   hdAccountIndex?: number;
   /** Whether the user has confirmed backing up this account's recovery secret (mnemonic). Only meaningful for accounts holding their own secret, e.g. an hd root account. */
   backedUp?: boolean;
-  [key: string]: any;
-}
-
-interface WalletRecord {
-  id?: number;
-  name: string;
-  data: string;
+  /** Network this account entry was created under (e.g. "mainnet-v1.0"). */
+  network?: string;
+  /** Present on plain ed25519 / ARC-76 (emailPwd) accounts that store their own secret key. */
+  sk?: Uint8Array;
+  /** Top-level rekey target, set/cleared by setPrivateAccount when the account's own data no longer matches its per-network rekeyedTo. */
+  rekeyedTo?: string;
+  /** ARC-76 (emailPwd) accounts: whether the derived secret key was persisted alongside the account. */
+  savePassword?: boolean;
+  /** ARC-76 (emailPwd) accounts: the email used to derive the account. */
+  email?: string;
+  /** Hides the account from the main accounts list (e.g. the underlying multisig account of a 2FA-API account). */
+  isHidden?: boolean;
+  /** 2FA / 2FA-API accounts: the address of the account being protected. */
+  primaryAccount?: string;
+  /** 2FA accounts: the address of the second signer in the underlying multisig. */
+  twoFactorAccount?: string;
+  /** 2FA-API accounts: the address of the underlying (hidden) multisig account. */
+  multisigAccount?: string;
+  /** 2FA-API accounts: identifier of the external 2FA provider used to authorize the second signature. */
+  twoFactorAuthProvider?: string;
+  /** Ledger accounts: the address at BIP44 index 0 on the connected device, used to re-identify the device. */
+  addr0?: string;
+  /** Ledger accounts: BIP44 address index on the connected device. */
+  slot?: number;
+  /**
+   * WalletConnect ("wc") accounts: the WC session object. Kept as `unknown`
+   * here rather than importing WalletConnect's session type - WC-specific
+   * store/session typing (src/store/wc.ts, src/store/wcClient.ts) is owned
+   * by a separate, concurrent change and out of scope for this file.
+   */
+  session?: unknown;
+  /** WalletConnect ("wc") accounts: protocol version used to establish the session. */
+  ver?: "1" | "2";
 }
 
 export interface WalletState {
@@ -224,8 +250,6 @@ type SetIsOpenPayload = {
 };
 
 type WalletConnectStorage = Record<string, string>;
-
-const dbAny = db as any;
 
 const state = (): WalletState => ({
   name: "w2",
@@ -645,8 +669,13 @@ const mutations: MutationTree<WalletState> = {
     if (accts) {
       for (const acct of accts) {
         if (typeof acct.addr !== "string") {
-          // if addr is algorand address object, convert to string
-          const pk = (acct.addr as any)?.publicKey;
+          // Legacy/malformed persisted data: addr was serialized as an
+          // algosdk.Address-shaped object instead of a string. The static
+          // WalletAccount type says addr is always a string, but data loaded
+          // from IndexedDB/JSON predates that guarantee, so this reads the
+          // actual runtime shape via a local structural type rather than `any`.
+          const pk = (acct.addr as unknown as { publicKey?: Uint8Array })
+            ?.publicKey;
           if (pk) {
             const buffer = Buffer.from(Object.values(pk));
             const obj = new algosdk.Address(buffer);
@@ -710,11 +739,24 @@ const mutations: MutationTree<WalletState> = {
 };
 type WalletActionContext = ActionContext<WalletState, RootState>;
  
+// `_payload: any` is unavoidable here: actionHandlers below is a single object
+// literal mixing dozens of action methods whose concrete payload types are all
+// different and mutually incompatible under TS's contravariant
+// function-parameter checking (verified: substituting `unknown` here makes
+// every single concrete handler fail assignability against this shared
+// signature, since a method-shorthand property's type is checked strictly,
+// not bivariantly, against a plain function-typed property in a mapped
+// Record). The individually precise payload/return types are still enforced
+// on each handler's own declaration; this signature only exists to let a
+// heterogeneous set of handlers live in one Record before being cast to
+// Vuex's own ActionTree<...> (which uses the same `any`-based escape hatch
+// internally for the same structural reason).
 type WalletActionHandler = (
   this: Store<RootState>,
   _context: WalletActionContext,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _payload?: any
-) => any;
+) => unknown;
  
 
 const actionHandlers: Record<string, WalletActionHandler> = {
@@ -1422,16 +1464,22 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return;
     }
 
-    const walletRecord = await dbAny.wallets.get({
+    const walletRecord = await db.wallets.get({
       name: this.state.wallet.name,
     });
+    if (!walletRecord || walletRecord.id === undefined) {
+      dispatch("toast/openError", "Wallet record not found", {
+        root: true,
+      });
+      return;
+    }
 
     const data = JSON.stringify(
       this.state.wallet,
       (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
     );
     walletRecord.data = await encryptWalletData(data, passw2);
-    await dbAny.wallets.update(walletRecord.id, walletRecord);
+    await db.wallets.update(walletRecord.id, walletRecord);
     // openWallet above committed setIsOpen with the *old* password (passw1)
     // to verify it; without re-committing here, state.pass keeps wrapping
     // passw1, so the next saveWallet() (triggered by almost any subsequent
@@ -1464,7 +1512,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     ) {
       return false; // check not to empty the wallet
     }
-    const walletRecord = await dbAny.wallets.get({
+    const walletRecord = await db.wallets.get({
       name: this.state.wallet.name,
     });
     if (!walletRecord) return;
@@ -1482,7 +1530,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       const dataencoded = await encryptWalletData(data, pass, walletRecord.data);
       if (walletRecord && dataencoded) {
         walletRecord.data = dataencoded;
-        await dbAny.wallets.update(walletRecord.id, walletRecord);
+        await db.wallets.update(walletRecord.id, walletRecord);
       }
     }
   },
@@ -1490,7 +1538,13 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     { commit, dispatch },
     { name, pass }: { name: string; pass: string }
   ) {
-    const walletRecord = await dbAny.wallets.get({ name });
+    const walletRecord = await db.wallets.get({ name });
+    if (!walletRecord) {
+      dispatch("toast/openError", "Wrong password", {
+        root: true,
+      });
+      return;
+    }
     const encryptedData = walletRecord.data;
     try {
       const decryptedData = await decryptWalletData(encryptedData, pass);
@@ -1508,7 +1562,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
         // CryptoJS passphrase scheme (single-round-MD5 KDF, audit finding
         // AW-2026-002) to the PBKDF2 + AES-GCM format.
         walletRecord.data = await encryptWalletData(decryptedData, pass);
-        await dbAny.wallets.update(walletRecord.id, walletRecord);
+        if (walletRecord.id !== undefined) {
+          await db.wallets.update(walletRecord.id, walletRecord);
+        }
       }
     } catch (error) {
       dispatch("toast/openError", "Wrong password", {
@@ -1522,7 +1578,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
   },
   async checkPassword({ dispatch }, { pass }: { pass: string }) {
     const name = await dispatch("getName");
-    const walletRecord = await dbAny.wallets.get({ name });
+    const walletRecord = await db.wallets.get({ name });
+    if (!walletRecord) {
+      return false;
+    }
     const encryptedData = walletRecord.data;
     try {
       const decryptedData = await decryptWalletData(encryptedData, pass);
@@ -1542,7 +1601,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       });
       return false;
     }
-    const existingWallets = (await dbAny.wallets.toArray()) as WalletRecord[];
+    const existingWallets = await db.wallets.toArray();
     if (existingWallets.some((wallet) => wallet.name === name)) {
       dispatch("toast/openError", "Wallet with the same name already exists", {
         root: true,
@@ -1556,7 +1615,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     const dataencoded = await encryptWalletData(data, pass);
 
     try {
-      await dbAny.wallets.add({ name, data: dataencoded });
+      await db.wallets.add({ name, data: dataencoded });
     } catch (error: unknown) {
       const stack = (error as Error).stack;
       dispatch("toast/openError", "Error: " + (stack || toErrorMessage(error)), {
@@ -1579,10 +1638,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
         "rs2",
         cryptoRandomString({ length: 30, type: "alphanumeric" })
       );
-    //dbAny.wallets.clear();
-    //dbAny.wallets.drop();
+    //db.wallets.clear();
+    //db.wallets.drop();
     try {
-      const w = (await dbAny.wallets.toArray()) as WalletRecord[];
+      const w = await db.wallets.toArray();
       return w.map((wallet) => wallet.name);
     } catch {
       console.error("no wallet exists yet");
@@ -1598,9 +1657,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
         });
         return;
       }
-      const walletRecord = (await dbAny.wallets.get({ name })) as
-        | WalletRecord
-        | undefined;
+      const walletRecord = await db.wallets.get({ name });
       if (!walletRecord) {
         dispatch("toast/openError", "Wallet backup not found", {
           root: true,
@@ -1630,8 +1687,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
           " and all private keys within it?"
       )
     ) {
-      const walletRecord = await dbAny.wallets.get({ name });
-      await dbAny.wallets.delete(walletRecord.id);
+      const walletRecord = await db.wallets.get({ name });
+      if (walletRecord?.id !== undefined) {
+        await db.wallets.delete(walletRecord.id);
+      }
       clearDerivedKeys();
       try {
         await dispatch("wc/reset", null, { root: true });
@@ -1662,14 +1721,14 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       });
       return;
     }
-    const walletRecord = await dbAny.wallets.get({ name });
+    const walletRecord = await db.wallets.get({ name });
     if (walletRecord) {
       dispatch("toast/openError", "Wallet with the same name already exists", {
         root: true,
       });
       return;
     }
-    await dbAny.wallets.add({ name, data });
+    await db.wallets.add({ name, data });
     localStorage.setItem("lastUsedWallet", name);
     return true;
   },

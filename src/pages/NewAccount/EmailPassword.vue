@@ -8,6 +8,7 @@ import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import ToggleSwitch from "primevue/toggleswitch";
 import { RootState } from "@/store";
+import { getErrorMessage } from "@/scripts/errors";
 
 const state = reactive({
   lastError: "",
@@ -42,8 +43,8 @@ async function createAccount() {
     });
 
     router.push("/account/" + store.state.wallet.lastActiveAccount);
-  } catch (err: any) {
-    const error = err.message ?? err;
+  } catch (err: unknown) {
+    const error = getErrorMessage(err);
     console.error("failed to create account", error, err);
     await store.dispatch("toast/openError", error);
   }

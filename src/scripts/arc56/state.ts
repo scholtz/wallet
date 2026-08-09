@@ -65,13 +65,13 @@ const resolveAbiTypeString = (type: string, structs: Arc56Structs): string => {
   return type;
 };
 
-const stringifyAbiValue = (value: unknown): string => {
-  if (value === undefined || value === null) return "";
+const stringifyAbiValue = (value: algosdk.ABIValue): string => {
   if (typeof value === "bigint") return value.toString();
   if (typeof value === "boolean") return value ? "true" : "false";
   if (typeof value === "string") return value;
   if (value instanceof Uint8Array) return `0x${Buffer.from(value).toString("hex")}`;
   if (Array.isArray(value)) return `[${value.map(stringifyAbiValue).join(", ")}]`;
+  if (value instanceof algosdk.Address) return value.toString();
   return String(value);
 };
 

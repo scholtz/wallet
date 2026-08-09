@@ -13,11 +13,20 @@ interface WalletConnectRecord {
   data: string;
 }
 
- 
+// Derived from the class itself (rather than imported by name from
+// "@walletconnect/types") because pnpm's non-hoisted node_modules resolves
+// that package specifier to the v2 types used elsewhere in this app
+// (SessionTypes etc., for @walletconnect/core / WalletKit) - @walletconnect/
+// client@1.8.0's own v1 IWalletConnectOptions/IWalletConnectSession types
+// are only reachable through its nested dependency, not the top-level
+// specifier. ConstructorParameters/InstanceType sidestep that ambiguity.
+type WalletConnectV1Options = ConstructorParameters<typeof WalletConnect>[0];
+type WalletConnectV1Session = NonNullable<WalletConnectV1Options["session"]>;
+
 type WalletConnectConnector = InstanceType<typeof WalletConnect> & {
   clientId: string;
   connected: boolean;
-  session: unknown;
+  session: WalletConnectV1Session;
   killSession(): Promise<void>;
   approveSession(_response: { accounts: string[]; chainId: number }): void;
   approveRequest(_response: {
@@ -30,18 +39,12 @@ type WalletConnectConnector = InstanceType<typeof WalletConnect> & {
   }): void;
   transportClose(): void;
 };
- 
 
 interface WalletConnectPeerMeta {
   url?: string;
   name?: string;
   description?: string;
   icons?: string[];
-}
-
-interface WalletConnectSession {
-  clientId: string;
-  peerMeta: WalletConnectPeerMeta;
 }
 
 interface SessionRequestPayload {
@@ -130,7 +133,9 @@ const decodeTransactions = (
     > & {
       type?: string;
       txn?: Record<string, unknown> & { type?: string };
-      sig?: unknown;
+      // Raw msgpack-decoded signature bytes when the item is already a
+      // signed-transaction envelope, absent when it's a bare unsigned txn.
+      sig?: Uint8Array;
     };
 
     let decodedTx = decodedObj;
@@ -348,19 +353,19 @@ const addConnector = (
 
 const restoreConnector = (
   address: string,
-  session: WalletConnectSession
+  session: WalletConnectV1Session
 ): void => {
-  const connector = new WalletConnect({
-    session,
-    sessionStorage: {
-      getSession: () => null,
-    },
-  } as any);
+  // `sessionStorage` is deliberately not passed here: @walletconnect/client's
+  // WalletConnect wrapper never forwards it to the underlying Connector (see
+  // its constructor - only cryptoLib/connectorOpts/pushServerOpts reach
+  // super()), so it would have zero effect at runtime either way. This app
+  // persists/restores v1 sessions itself via `wcTable` (Dexie) instead.
+  const connector = new WalletConnect({ session });
 
   addConnector(connector as WalletConnectConnector, address);
 
   const store = requireStore();
-  const meta = session.peerMeta ?? {};
+  const meta = session.peerMeta ?? { description: "", url: "", icons: [], name: "" };
   store.commit("wc/updateConnector", {
     id: session.clientId,
     update: {
@@ -402,18 +407,19 @@ export default (() => ({
     const name = store.state.wallet.name;
     await wcTable.where({ name }).each(async ({ addr, data }) => {
       const plain = await store.dispatch("wallet/decrypt", { data });
-      const session = JSON.parse(plain) as WalletConnectSession;
+      const session = JSON.parse(plain) as WalletConnectV1Session;
       restoreConnector(addr, session);
     });
   },
   createConnector: (uri: string, address: string) => {
     const connector = new WalletConnect({
       uri,
-      session: {} as WalletConnectSession,
-      sessionStorage: {
-        getSession: () => null,
-      },
-    } as any);
+      // Empty placeholder, not a real restored session - `uri` drives the
+      // new pairing handshake instead. Cast preserves the exact pre-existing
+      // runtime value (kept for behavior parity with the code this replaced).
+      // `sessionStorage` omitted - see the comment in `restoreConnector`.
+      session: {} as WalletConnectV1Session,
+    });
 
     addConnector(connector as WalletConnectConnector, address);
   },
@@ -439,7 +445,9 @@ export default (() => ({
         > & {
           type?: string;
           txn?: Record<string, unknown> & { type?: string };
-          sig?: unknown;
+          // Raw msgpack-decoded signature bytes when the item is already a
+          // signed-transaction envelope, absent for a bare unsigned txn.
+          sig?: Uint8Array;
         };
         let decodedTx = decodedObj;
         if (!decodedTx.type && decodedTx.txn?.type) {

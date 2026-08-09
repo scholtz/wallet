@@ -647,13 +647,12 @@ const formatAppAccount = (acc: { publicKey?: Uint8Array }) => {
   }
 };
 
-const formatGroup = (group: unknown) => {
+// Only ever called with algosdk.Transaction's `group` field, which is
+// `Uint8Array | undefined` - no other shape is passed at any call site.
+const formatGroup = (group?: Uint8Array) => {
   try {
     if (group instanceof Uint8Array) {
       return Buffer.from(group).toString("base64");
-    }
-    if (typeof (group as any)?.toString === "function") {
-      return (group as any).toString("base64");
     }
   } catch {
     /* noop */

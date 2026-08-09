@@ -15,14 +15,15 @@ import copy from "copy-to-clipboard";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 import { computed } from "vue";
+import type { WalletAccount } from "@/store/wallet";
 
-interface AccountWithSecret {
+// Same as WalletAccount, but sk is additionally allowed to be a plain
+// number[] - this page defensively re-wraps it via toUint8Array() below in
+// case a stored account's key material didn't round-trip through
+// (de)serialization as an actual Uint8Array.
+type AccountWithSecret = Omit<WalletAccount, "sk"> & {
   sk?: number[] | Uint8Array;
-  type?: string;
-  hdMnemonic?: string;
-  hdRootAddr?: string;
-  [key: string]: unknown;
-}
+};
 
 type ExportStep = "step1" | "mn" | "shamir" | "shamir2";
 
@@ -75,6 +76,9 @@ const devJson = computed(() => {
   if (!state.json) return null;
   const redacted: AccountWithSecret = { ...state.json };
   if (redacted.sk) {
+    // Intentionally replacing the real key bytes with a display-only string
+    // for this dev-info panel (see AW-2026-020 above) - sk's real type
+    // (number[] | Uint8Array) has no string member, so this needs a cast.
     redacted.sk = "<redacted secret key>" as unknown as AccountWithSecret["sk"];
   }
   if (redacted.hdMnemonic) {
@@ -86,6 +90,10 @@ const devJson = computed(() => {
 const toUint8Array = (input: number[] | Uint8Array): Uint8Array => {
   return input instanceof Uint8Array ? input : new Uint8Array(input);
 };
+// @spliterati/uint8's `uint8` type is a 256-member numeric literal union
+// (0x00 | 0x01 | ... | 0xff), which can't be produced from a runtime `number`
+// (e.g. user-entered shamirCount/shamirMin) without a cast - there's no way
+// to narrow an arbitrary number to a specific literal at compile time.
 const toUint8 = (value: number): uint8 => value as unknown as uint8;
 function concatTypedArrays(a: Uint8Array, b: Uint8Array): Uint8Array {
   // a, b TypedArray of same type

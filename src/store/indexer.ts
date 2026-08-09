@@ -423,8 +423,12 @@ const actions: ActionTree<IndexerState, RootState> = {
             ? Number(amountValue) / 1_000_000
             : amountValue / 1_000_000;
       } else {
+        // Deliberately read as raw dash-cased REST fields (not algosdk's typed
+        // camelCase AssetHolding model) to preserve this lookup's existing
+        // behavior exactly - changing it to the typed shape is a behavior
+        // change out of scope for a types-only pass.
         const accountAssets = accountInfo.account.assets as
-          | Array<Record<string, any>>
+          | Array<Record<string, unknown>>
           | undefined;
         const item = accountAssets?.find(
           (a) =>

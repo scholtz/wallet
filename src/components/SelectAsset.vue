@@ -50,7 +50,7 @@ watch(
 
 const makeAccountData = (): IAccountData | undefined => {
   const account = store.state.wallet.privateAccounts.find(
-    (a: any) => a.addr == props.account
+    (a) => a.addr == props.account
   );
   if (!account) return undefined;
   if (!account.data) return undefined;

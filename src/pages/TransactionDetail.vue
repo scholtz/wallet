@@ -199,7 +199,7 @@
             >
               <div class="mb-2">
                 <span class="text-500 text-sm block capitalize">{{
-                  (key as any).replace(/-/g, " ")
+                  (key as string).replace(/-/g, " ")
                 }}</span>
                 <span class="font-medium word-break-all">{{ value }}</span>
               </div>
@@ -336,7 +336,7 @@ const loadAsset = async () => {
   }
 };
 
-const isBase64 = (raw?: any): boolean => {
+const isBase64 = (raw?: unknown): boolean => {
   if (!raw) return false;
   if (typeof raw !== "string") return false;
   const value = raw.trim();
