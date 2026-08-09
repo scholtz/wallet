@@ -69,9 +69,15 @@ export const deflexAggregator: DexAggregator = {
         return;
       }
       context.aggregatorData.deflexQuotes.value = quotes;
+      // Deflex has no explicit "disable slippage protection" flag - passing
+      // 100 (100% tolerance) collapses its minimum-received requirement to 0,
+      // which is the same effect.
+      const slippage = context.slippageProtectionEnabled.value
+        ? context.slippage.value // 1 = 1%
+        : 100;
       const params = JSON.stringify({
         address: context.account.value?.addr,
-        slippage: context.slippage.value, // 1 = 1%
+        slippage,
         txnPayloadJSON: context.aggregatorData.deflexQuotes.value.txnPayload,
         apiKey,
       });

@@ -89,6 +89,8 @@
     "execute_button_biatec": "Execute using Biatec router",
     "execute_button_biatec_stage": "Execute using Biatec router (Stage)",
     "slippage": "Slippage percentage",
+    "slippage_protection": "Slippage protection",
+    "slippage_protection_disabled_warning": "Slippage protection is disabled. Every simulated calculation of this swap's result can differ from what actually executes on-chain, due to price movement and the time delay between requesting the quote and submitting the signed transaction. Without this protection there is no minimum-received safeguard, so you could receive far less than quoted. We strongly recommend keeping slippage protection enabled.",
     "explore_routes": "Explore routes",
     "routes_dialog_title": "Swap route details",
     "routes_no_quote": "Get a quote to see the routes each aggregator would use",

@@ -89,6 +89,8 @@
     "execute_button_biatec": "Biatec yönlendiricisini kullanarak yürüt",
     "execute_button_biatec_stage": "Biatec yönlendiricisini kullanarak yürüt (Stage)",
     "slippage": "Kayma(fiyat) farkı yüzdesi",
+    "slippage_protection": "Kayma (slippage) koruması",
+    "slippage_protection_disabled_warning": "Kayma koruması devre dışı. Bu takasın simüle edilen sonucu, fiyat hareketi ve teklif isteği ile imzalı işlemin gönderilmesi arasındaki zaman gecikmesi nedeniyle zincir üzerinde gerçekleşen sonuçtan farklı olabilir. Bu koruma olmadan minimum alınacak tutar güvencesi yoktur, bu nedenle teklif edilenden çok daha azını alabilirsiniz. Kayma korumasını etkin tutmanızı kesinlikle öneririz.",
     "explore_routes": "Rotaları keşfet",
     "routes_dialog_title": "Takas rota ayrıntıları",
     "routes_no_quote": "Her agregatörün kullanacağı rotaları görmek için önce fiyat teklifi alın",

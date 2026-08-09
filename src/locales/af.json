@@ -89,6 +89,8 @@
     "execute_button_biatec": "Voer uit met Biatec router",
     "execute_button_biatec_stage": "Voer uit met Biatec router (Stadium)",
     "slippage": "Slippage persentasie",
+    "slippage_protection": "Sluiproete-beskerming",
+    "slippage_protection_disabled_warning": "Sluiproete-beskerming is gedeaktiveer. Enige gesimuleerde berekening van hierdie ruil se resultaat kan verskil van wat werklik op die ketting uitgevoer word, weens prysbeweging en die tydsvertraging tussen die aanvra van die kwotasie en die indien van die ondertekende transaksie. Sonder hierdie beskerming is daar geen minimum-ontvang-waarborg nie, so jy kan aansienlik minder ontvang as wat gekwoteer is. Ons beveel sterk aan om sluiproete-beskerming geaktiveer te hou.",
     "explore_routes": "Verken roetes",
     "routes_dialog_title": "Ruil-roete besonderhede",
     "routes_no_quote": "Kry 'n kwotasie om die roetes te sien wat elke aggregeerder sal gebruik",

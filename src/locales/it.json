@@ -89,6 +89,8 @@
     "execute_button_biatec": "Esegui usando Biatec router",
     "execute_button_biatec_stage": "Esegui usando Biatec router (Stage)",
     "slippage": "Slippage percentage",
+    "slippage_protection": "Protezione dallo slippage",
+    "slippage_protection_disabled_warning": "La protezione dallo slippage è disattivata. Qualsiasi calcolo simulato del risultato di questo scambio può differire da quanto effettivamente eseguito on-chain, a causa del movimento dei prezzi e del ritardo tra la richiesta del preventivo e l'invio della transazione firmata. Senza questa protezione non esiste alcuna garanzia sull'importo minimo ricevuto, quindi potresti ricevere molto meno di quanto preventivato. Consigliamo vivamente di mantenere attiva la protezione dallo slippage.",
     "explore_routes": "Esplora percorsi",
     "routes_dialog_title": "Dettagli del percorso di swap",
     "routes_no_quote": "Ottieni un preventivo per vedere i percorsi che ogni aggregatore utilizzerebbe",

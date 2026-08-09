@@ -89,6 +89,8 @@
     "execute_button_biatec": "Ejecutar usando Biatec router",
     "execute_button_biatec_stage": "Ejecutar usando Biatec router (Stage)",
     "slippage": "Porcentaje de desviación",
+    "slippage_protection": "Protección contra deslizamiento",
+    "slippage_protection_disabled_warning": "La protección contra deslizamiento está desactivada. Cualquier cálculo simulado del resultado de este intercambio puede diferir de lo que realmente se ejecuta en la cadena, debido al movimiento de precios y al retraso entre solicitar la cotización y enviar la transacción firmada. Sin esta protección no existe una garantía de importe mínimo recibido, por lo que podrías recibir mucho menos de lo cotizado. Recomendamos encarecidamente mantener activada la protección contra deslizamiento.",
     "explore_routes": "Explorar rutas",
     "routes_dialog_title": "Detalles de la ruta del intercambio",
     "routes_no_quote": "Obtenga una cotización para ver las rutas que usaría cada agregador",

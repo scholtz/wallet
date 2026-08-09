@@ -62,7 +62,10 @@
             :unit="unit"
             @set-max="payamount = maxAmount"
           />
-          <SwapSlippageInput v-model:slippage="slippage" />
+          <SwapSlippageInput
+            v-model:slippage="slippage"
+            v-model:slippageProtectionEnabled="slippageProtectionEnabled"
+          />
           <SwapOptions
             :aggregators="dexAggregators"
             v-model:useFolks="useFolks"
@@ -180,6 +183,7 @@ const {
   note,
   error,
   slippage,
+  slippageProtectionEnabled,
   aggregatorData,
   loadingAssets,
   dexAggregators,

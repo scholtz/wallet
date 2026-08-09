@@ -89,6 +89,8 @@
     "execute_button_biatec": "Provést pomocí Biatec routeru",
     "execute_button_biatec_stage": "Provést pomocí Biatec routeru (Stage)",
     "slippage": "Slippage percentage",
+    "slippage_protection": "Ochrana proti prokluzu",
+    "slippage_protection_disabled_warning": "Ochrana proti prokluzu je vypnutá. Jakýkoli simulovaný výpočet výsledku tohoto swapu se může lišit od skutečného provedení na blockchainu kvůli pohybu ceny a časové prodlevě mezi vyžádáním nabídky a odesláním podepsané transakce. Bez této ochrany neexistuje žádná záruka minimálního přijatého množství, takže můžete obdržet výrazně méně, než bylo nabídnuto. Důrazně doporučujeme ponechat ochranu proti prokluzu zapnutou.",
     "explore_routes": "Prozkoumat trasy",
     "routes_dialog_title": "Detaily trasy swapu",
     "routes_no_quote": "Nejprve získejte kotaci, abyste viděli trasy, které by jednotliví agregátoři použili",

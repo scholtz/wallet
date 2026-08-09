@@ -200,11 +200,17 @@ export function createBiatecAggregator(
         biatecRouter.OpenAPI.HEADERS = { Authorization: authHeader };
         biatecRouter.OpenAPI.BASE = effectiveBaseUrl;
 
-        const minimumReceiveAmount = Math.floor(
-          (context.aggregatorData[quotesKey].value.route.route.outputAmount *
-            (10000 - context.slippage.value * 100)) / // component.slippage is in percentage (e.g., 1 = 1%)
-            10000,
-        );
+        // With slippage protection off, the user has explicitly accepted
+        // whatever the router executes at - request no minimum instead of
+        // computing one from context.slippage.
+        const minimumReceiveAmount = context.slippageProtectionEnabled.value
+          ? Math.floor(
+              (context.aggregatorData[quotesKey].value.route.route
+                .outputAmount *
+                (10000 - context.slippage.value * 100)) / // component.slippage is in percentage (e.g., 1 = 1%)
+                10000,
+            )
+          : 0;
 
         const requestBody = {
           sender: context.account.value?.addr || "",

@@ -51,6 +51,11 @@ export function useSwap() {
   const note: Ref<string> = ref("");
   const error: Ref<string> = ref("");
   const slippage: Ref<number> = ref(0.1);
+  // Slippage protection guards against the simulated quote drifting from the
+  // real on-chain execution price in the time between quoting and signing.
+  // Enabled by default - disabling it is a deliberate, informed choice the
+  // user must opt into (see the warning shown in SwapSlippageInput.vue).
+  const slippageProtectionEnabled: Ref<boolean> = ref(true);
   const fee: Ref<number> = ref(0);
   const loadingAssets: Ref<boolean> = ref(true);
   // A "custom" network (Settings > Network > Custom, user-supplied algod/indexer
@@ -265,6 +270,7 @@ export function useSwap() {
     note,
     error,
     slippage,
+    slippageProtectionEnabled,
     fee,
 
     // Computed properties
@@ -588,6 +594,7 @@ export function useSwap() {
     note,
     error,
     slippage,
+    slippageProtectionEnabled,
     fee,
     aggregatorData,
     loadingAssets,

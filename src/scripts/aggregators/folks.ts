@@ -72,7 +72,12 @@ export const folksAggregator: DexAggregator = {
         "AWALLETCPHQPJGCZ6AHLIFPHWBHUEHQ7VBYJVVGQRRY4MEIGWUBKCQYP4Y"
       );
       context.aggregatorData.folksQuote.value = quote;
-      const slippage = Math.round(context.slippage.value * 100);
+      // slippageBps is basis points out of 10000 (ONE_4_DP in the SDK); at
+      // 10000 the computed minimum-received collapses to 0, which is the
+      // SDK's only way to express "no slippage protection".
+      const slippage = context.slippageProtectionEnabled.value
+        ? Math.round(context.slippage.value * 100)
+        : 10000;
       context.aggregatorData.folksTxns.value =
         await folksRouterClient.prepareSwapTransactions(
           {

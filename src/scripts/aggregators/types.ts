@@ -19,6 +19,7 @@ export interface SwapContext {
   note: Ref<string>;
   error: Ref<string>;
   slippage: Ref<number>;
+  slippageProtectionEnabled: Ref<boolean>;
   fee: Ref<number>;
 
   // Computed (Refs)

@@ -89,6 +89,8 @@
     "execute_button_biatec": "Uitvoeren met Biatec router",
     "execute_button_biatec_stage": "Uitvoeren met Biatec router (Stage)",
     "slippage": "Slippage percentage",
+    "slippage_protection": "Slippage-bescherming",
+    "slippage_protection_disabled_warning": "Slippage-bescherming is uitgeschakeld. Elke gesimuleerde berekening van het resultaat van deze wissel kan afwijken van wat daadwerkelijk on-chain wordt uitgevoerd, door prijsbeweging en de tijdsvertraging tussen het opvragen van de koers en het indienen van de ondertekende transactie. Zonder deze bescherming is er geen garantie voor een minimaal te ontvangen bedrag, waardoor u aanzienlijk minder kunt ontvangen dan geciteerd. We raden ten zeerste aan om slippage-bescherming ingeschakeld te houden.",
     "explore_routes": "Routes verkennen",
     "routes_dialog_title": "Details van de swaproute",
     "routes_no_quote": "Vraag een offerte aan om te zien welke routes elke aggregator zou gebruiken",

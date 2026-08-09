@@ -89,6 +89,8 @@
     "execute_button_biatec": "Végrehajtás Biatec router-rel",
     "execute_button_biatec_stage": "Végrehajtás Biatec router-rel (Stage)",
     "slippage": "Csúszás (slippage) százalékban",
+    "slippage_protection": "Csúszásvédelem",
+    "slippage_protection_disabled_warning": "A csúszásvédelem ki van kapcsolva. A csere eredményének minden szimulált számítása eltérhet a ténylegesen a láncon végrehajtott eredménytől az árfolyam-ingadozás és az ajánlatkérés, valamint az aláírt tranzakció beküldése közötti időbeli késleltetés miatt. E védelem nélkül nincs minimális kapott összegre vonatkozó garancia, így jelentősen kevesebbet kaphat, mint amit az árajánlat mutatott. Erősen ajánljuk, hogy tartsa bekapcsolva a csúszásvédelmet.",
     "explore_routes": "Útvonalak felfedezése",
     "routes_dialog_title": "Csere útvonal részletei",
     "routes_no_quote": "Kérj ajánlatot, hogy lásd, mely útvonalakat használná az egyes aggregátorok",

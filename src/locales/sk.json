@@ -89,6 +89,8 @@
     "execute_button_biatec": "Vykonať pomocou Biatec routera",
     "execute_button_biatec_stage": "Vykonať pomocou Biatec routera (Stage)",
     "slippage": "Slippage percentage",
+    "slippage_protection": "Ochrana pred prekĺznutím",
+    "slippage_protection_disabled_warning": "Ochrana pred prekĺznutím je vypnutá. Akýkoľvek simulovaný výpočet výsledku tohto swapu sa môže líšiť od toho, čo sa skutočne vykoná on-chain, kvôli pohybu ceny a časovému oneskoreniu medzi vyžiadaním ponuky a odoslaním podpísanej transakcie. Bez tejto ochrany neexistuje žiadna záruka minimálne prijatej sumy, takže môžete dostať výrazne menej, než bolo ponúknuté. Dôrazne odporúčame ponechať ochranu pred prekĺznutím zapnutú.",
     "explore_routes": "Preskúmať trasy",
     "routes_dialog_title": "Detaily trasy swapu",
     "routes_no_quote": "Získajte kotáciu, aby ste videli trasy, ktoré by použil každý agregátor",

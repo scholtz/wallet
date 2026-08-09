@@ -1,5 +1,21 @@
 <template>
   <div class="field grid">
+    <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+    <div class="col-12 md:col-10">
+      <Checkbox
+        binary
+        inputId="slippageProtectionEnabled"
+        type="checkbox"
+        :modelValue="slippageProtectionEnabledModel"
+        @update:modelValue="slippageProtectionEnabledModel = $event"
+      />
+      <label for="slippageProtectionEnabled" class="ml-1">
+        {{ $t("swap.slippage_protection") }}
+      </label>
+    </div>
+  </div>
+
+  <div class="field grid" v-if="slippageProtectionEnabledModel">
     <label for="slippage" class="col-12 mb-2 md:col-2 md:mb-0">
       {{ $t("swap.slippage") }}
     </label>
@@ -16,6 +32,10 @@
       />
     </div>
   </div>
+
+  <Message severity="error" v-else class="mb-3">
+    {{ $t("swap.slippage_protection_disabled_warning") }}
+  </Message>
 </template>
 
 <script>
@@ -23,6 +43,7 @@ export default {
   name: "SwapSlippageInput",
   props: {
     slippage: Number,
+    slippageProtectionEnabled: Boolean,
   },
   computed: {
     slippageModel: {
@@ -33,7 +54,15 @@ export default {
         this.$emit("update:slippage", value);
       },
     },
+    slippageProtectionEnabledModel: {
+      get() {
+        return this.slippageProtectionEnabled;
+      },
+      set(value) {
+        this.$emit("update:slippageProtectionEnabled", value);
+      },
+    },
   },
-  emits: ["update:slippage"],
+  emits: ["update:slippage", "update:slippageProtectionEnabled"],
 };
 </script>
