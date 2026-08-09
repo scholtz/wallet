@@ -39,6 +39,9 @@ export const explorerAssetUrl = (
   assetId: bigint | number | string
 ): string => `${getExplorerBaseUrl(env)}/asset/${assetId}`;
 
+export const explorerTransactionUrl = (env: string, txId: string): string =>
+  `${getExplorerBaseUrl(env)}/transaction/${txId}`;
+
 export const explorerApplicationUrl = (
   env: string,
   appId: bigint | number | string
