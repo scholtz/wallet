@@ -282,6 +282,7 @@
     "search_by_id": "Soek op bate-id",
     "amount": "Bedrag",
     "search_by_amount": "Soek op bedrag",
+    "usd_value": "USD-waarde",
     "actions": "Aksies"
   },
   "assets_overview": {
@@ -291,6 +292,7 @@
     "type": "Soort",
     "id": "Id",
     "amount": "Bedrag",
+    "usd_value": "USD-waarde",
     "no_assets": "No assets found",
     "search_by_account": "Search by account",
     "search_by_name": "Soek op naam",

@@ -11,6 +11,7 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 - The Swap page now has a slippage protection toggle, enabled by default. Turning it off shows a clear warning that a simulated quote can differ from the actual on-chain result and removes the minimum-received safeguard across all three swap providers (Deflex, Folks Router, Biatec Router).
 - Transaction review screens (the sign page, sign-all page, and WalletConnect requests) now label an asset opt-in for what it is: a zero-amount asset transfer you send to yourself to start accepting a token is shown as "Asset opt-in" instead of a generic asset transfer, so it's clearer what a DApp is actually asking you to sign.
 - Made the app easier to scan visually: major screens (accounts, payments, swap, settings, WalletConnect, asset lists and more) now have a teal icon badge next to their title, every account-creation option shows a distinctive icon, empty lists show a friendly illustration-style placeholder instead of a bare text line, and the payment-success screen got a celebratory checkmark illustration.
+- The account Assets list and the wallet-wide Assets Overview now show a USD Value column for each held asset, sorted from highest to lowest value by default, so it's easier to see what your holdings are worth at a glance.
 
 ## 2026-07
 

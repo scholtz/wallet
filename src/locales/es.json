@@ -282,6 +282,7 @@
     "search_by_id": "Search by asset id",
     "amount": "Amount",
     "search_by_amount": "Search by amount",
+    "usd_value": "Valor en USD",
     "actions": "Actions"
   },
   "assets_overview": {
@@ -291,6 +292,7 @@
     "type": "Tipo",
     "id": "Id",
     "amount": "Cantidad",
+    "usd_value": "Valor en USD",
     "no_assets": "No se encontraron activos",
     "search_by_account": "Buscar por cuenta",
     "search_by_name": "Buscar por nombre",

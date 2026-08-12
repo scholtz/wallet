@@ -282,6 +282,7 @@
     "search_by_id": "Search by asset id",
     "amount": "Amount",
     "search_by_amount": "Search by amount",
+    "usd_value": "USD-waarde",
     "actions": "Actions"
   },
   "assets_overview": {
@@ -291,6 +292,7 @@
     "type": "Type",
     "id": "Id",
     "amount": "Bedrag",
+    "usd_value": "USD-waarde",
     "no_assets": "Geen activa gevonden",
     "search_by_account": "Zoeken op account",
     "search_by_name": "Zoeken op naam",

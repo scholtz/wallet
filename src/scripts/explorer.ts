@@ -12,24 +12,32 @@
 
 const EXPLORER_DOMAIN = "scan.biatec.io";
 
-export const getExplorerBaseUrl = (env: string): string => {
+const getExplorerSubdomain = (env: string): string => {
   // The chain name is the part before the genesis version suffix
   // ("voimain-v1.0" -> "voimain").
   const chain = (env ?? "").split("-")[0].toLowerCase();
-  let subdomain: string;
   if (chain === "" || chain === "mainnet") {
     // Algorand mainnet is the historical default and lives on the
     // "algorand" subdomain rather than "mainnet".
-    subdomain = "algorand";
+    return "algorand";
   } else if (chain.endsWith("main")) {
     // "voimain" -> "voi", "aramidmain" -> "aramid"
-    subdomain = chain.slice(0, -"main".length);
-  } else {
-    // "testnet", "betanet", ...
-    subdomain = chain;
+    return chain.slice(0, -"main".length);
   }
-  return `https://${subdomain}.${EXPLORER_DOMAIN}`;
+  // "testnet", "betanet", ...
+  return chain;
 };
+
+export const getExplorerBaseUrl = (env: string): string =>
+  `https://${getExplorerSubdomain(env)}.${EXPLORER_DOMAIN}`;
+
+// The Biatec Scan API (asset prices, pools, trades, ...) is hosted on the
+// same per-chain subdomain as the explorer UI, just under an "api." prefix:
+//
+//   testnet-v1.0 -> https://api.testnet.scan.biatec.io
+//   voimain-v1.0 -> https://api.voi.scan.biatec.io
+export const getExplorerApiBaseUrl = (env: string): string =>
+  `https://api.${getExplorerSubdomain(env)}.${EXPLORER_DOMAIN}`;
 
 export const explorerAddressUrl = (env: string, address: string): string =>
   `${getExplorerBaseUrl(env)}/address/${address}`;

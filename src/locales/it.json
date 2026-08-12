@@ -282,6 +282,7 @@
     "search_by_id": "Search by asset id",
     "amount": "Amount",
     "search_by_amount": "Search by amount",
+    "usd_value": "Valore in USD",
     "actions": "Actions"
   },
   "assets_overview": {
@@ -291,6 +292,7 @@
     "type": "Tipo",
     "id": "Id",
     "amount": "Importo",
+    "usd_value": "Valore in USD",
     "no_assets": "Nessun asset trovato",
     "search_by_account": "Cerca per account",
     "search_by_name": "Cerca per nome",

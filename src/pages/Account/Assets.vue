@@ -12,6 +12,8 @@
       v-model:filters="filters"
       filterDisplay="menu"
       :globalFilterFields="['name', 'assetId', 'amount', 'type']"
+      sortField="usdValue"
+      :sortOrder="-1"
     >
       <template #header>
         <div class="flex justify-content-end" v-if="filters['global']">
@@ -106,6 +108,17 @@
           />
         </template>
       </Column>
+      <Column
+        field="usdValue"
+        :header="$t('acc_overview_assets.usd_value')"
+        :sortable="true"
+      >
+        <template #body="slotProps">
+          <div class="text-right">
+            {{ formatUsdValue(slotProps.data.usdValue) }}
+          </div>
+        </template>
+      </Column>
       <Column :header="$t('acc_overview_assets.actions')" :sortable="true">
         <template #body="slotProps">
           <Button class="m-1" size="small" @click="refresh(slotProps.data)">
@@ -141,6 +154,7 @@ import type { AccountNetworkData, PrivateAccount } from "@/types/account";
 import { StoredAsset } from "@/store/indexer";
 import { getArc200Client } from "arc200-client";
 import { AlgorandClient } from "@algorandfoundation/algokit-utils";
+import { getAssetUsdPrices } from "@/scripts/biatecScan";
 
 type AssetType = "Native" | "ASA" | "ARC200";
 
@@ -151,6 +165,7 @@ type AssetListItem = {
   decimals: number;
   unitName: string;
   type: AssetType;
+  usdValue?: number;
 };
 
 type FilterConfig = {
@@ -271,6 +286,33 @@ const makeAssets = async () => {
   loading.value = false;
 };
 
+const loadPrices = async () => {
+  const env = store.state.config.env;
+  if (!env || assets.value.length === 0) return;
+  try {
+    const prices = await getAssetUsdPrices(
+      env,
+      assets.value.map((a) => a.assetId)
+    );
+    for (const asset of assets.value) {
+      const price = prices.get(asset.assetId);
+      if (price === undefined) continue;
+      const decimalAmount = Number(asset.amount) / 10 ** asset.decimals;
+      asset.usdValue = decimalAmount * price;
+    }
+  } catch (e: unknown) {
+    console.error("Failed to load asset USD prices", e);
+  }
+};
+
+const usdFormatter = new Intl.NumberFormat(undefined, {
+  style: "currency",
+  currency: "USD",
+});
+
+const formatUsdValue = (value?: number) =>
+  value === undefined ? "" : usdFormatter.format(value);
+
 const isNumericAssetId = (
   asset: AssetListItem
 ): asset is AssetListItem & { assetId: bigint } =>
@@ -332,6 +374,7 @@ const reloadArc200AccountBalance = async (data: AssetListItem) => {
       balance: balance,
     });
     await makeAssets();
+    await loadPrices();
   } catch (e: unknown) {
     console.error("Failed to reload ARC200 balance", e);
   }
@@ -355,16 +398,19 @@ const refresh = async (data: AssetListItem) => {
   } else {
     await reloadAccount();
     await makeAssets();
+    await loadPrices();
   }
 };
 
 watch(account, async () => {
   await makeAssets();
+  await loadPrices();
 });
 
 onMounted(async () => {
   await reloadAccount();
   await makeAssets();
+  await loadPrices();
   await prolongAction();
 });
 </script>

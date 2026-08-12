@@ -282,6 +282,7 @@
     "search_by_id": "kimliğe göre ara",
     "amount": "Tutar",
     "search_by_amount": "Tutara göre ara",
+    "usd_value": "USD Değeri",
     "actions": "Eylemler"
   },
   "assets_overview": {
@@ -291,6 +292,7 @@
     "type": "Tür",
     "id": "Id",
     "amount": "Miktar",
+    "usd_value": "USD Değeri",
     "no_assets": "Varlık bulunamadı",
     "search_by_account": "Hesaba göre ara",
     "search_by_name": "Ada göre ara",

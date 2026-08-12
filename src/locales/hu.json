@@ -282,6 +282,7 @@
     "search_by_id": "Keresés eszköz azonosító szerint",
     "amount": "Összeg",
     "search_by_amount": "Keresés összeg szerint",
+    "usd_value": "USD érték",
     "actions": "Műveletek"
   },
   "assets_overview": {
@@ -291,6 +292,7 @@
     "type": "Típus",
     "id": "Id",
     "amount": "Összeg",
+    "usd_value": "USD érték",
     "no_assets": "Nem található eszköz",
     "search_by_account": "Keresés számla alapján",
     "search_by_name": "Keresés név alapján",

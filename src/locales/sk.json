@@ -282,6 +282,7 @@
     "search_by_id": "Search by asset id",
     "amount": "Amount",
     "search_by_amount": "Search by amount",
+    "usd_value": "Hodnota v USD",
     "actions": "Actions"
   },
   "assets_overview": {
@@ -291,6 +292,7 @@
     "type": "Typ",
     "id": "Id",
     "amount": "Množstvo",
+    "usd_value": "Hodnota v USD",
     "no_assets": "Neboli nájdené žiadne aktíva",
     "search_by_account": "Hľadať podľa účtu",
     "search_by_name": "Hľadať podľa názvu",

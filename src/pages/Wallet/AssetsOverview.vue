@@ -53,6 +53,8 @@
             'amount',
             'assetType',
           ]"
+          sortField="usdValue"
+          :sortOrder="-1"
         >
           <template #header>
             <div class="flex justify-content-end" v-if="filters['global']">
@@ -175,6 +177,18 @@
               />
             </template>
           </Column>
+          <Column
+            field="usdValue"
+            :header="t('assets_overview.usd_value')"
+            :sortable="true"
+            :show-filter-match-modes="false"
+          >
+            <template #body="slotProps">
+              <div class="text-right">
+                {{ formatUsdValue(slotProps.data.usdValue) }}
+              </div>
+            </template>
+          </Column>
         </DataTable>
       </template>
     </Card>
@@ -199,9 +213,10 @@ import { useStore } from "@/store";
 import type { AssetProfile } from "@/store/config";
 import {
   applyAssetProfile,
-  getCachedAssetMeta,
   type AssetOverviewRow,
 } from "@/scripts/aggregators/assetsOverview";
+import { StoredAsset } from "@/store/indexer";
+import { getAssetUsdPrices } from "@/scripts/biatecScan";
 
 const store = useStore();
 const router = useRouter();
@@ -223,6 +238,11 @@ const filters = ref<Record<string, { value: string | null; matchMode: string }>>
   assetId: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   amount: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 });
+
+const getAssetAction = (payload: {
+  assetIndex: bigint;
+}): Promise<StoredAsset | undefined> =>
+  store.dispatch("indexer/getAsset", payload);
 
 const activeProfileId = computed({
   get: () => store.state.config.activeAssetProfileId,
@@ -262,15 +282,16 @@ const formatAssetAmount = (row: AssetOverviewRow) => {
   return formatCurrencyValue(row.amount, row.unitName || row.name, row.decimals);
 };
 
-// Reads only what is already loaded in the wallet store (and the asset
-// metadata cache) -- never issues a network request. An account only shows
-// up here once its data has been loaded by visiting that account's own
-// pages at least once; this page does not fetch anything on its own.
-const buildRows = () => {
+// An account only shows up here once its data has been loaded by visiting
+// that account's own pages at least once. ASA metadata (name/decimals/unit)
+// is resolved via indexer/getAsset, which checks its localStorage/in-memory
+// cache first and only reaches out to the indexer for assets never looked
+// up before -- without this, uncached assets would silently default to
+// decimals: 0 and a blank name, wildly inflating the USD valuation below.
+const buildRows = async () => {
   loading.value = true;
   const result: AssetOverviewRow[] = [];
   const env = store.state.config.env;
-  const inMemoryAssets = store.state.indexer.assets;
   for (const account of store.state.wallet.privateAccounts) {
     const accountData = account.data?.[env];
     if (!accountData) continue;
@@ -297,7 +318,7 @@ const buildRows = () => {
     for (const accountAsset of asaAssets) {
       const assetId = BigInt(accountAsset.assetId ?? 0n);
       if (!assetId) continue;
-      const asset = getCachedAssetMeta(env, assetId, inMemoryAssets);
+      const asset = await getAssetAction({ assetIndex: assetId });
       result.push({
         accountAddr,
         accountName,
@@ -329,16 +350,52 @@ const buildRows = () => {
   loading.value = false;
 };
 
-const refresh = () => buildRows();
+const loadPrices = async () => {
+  const env = store.state.config.env;
+  if (!env || rows.value.length === 0) return;
+  try {
+    const prices = await getAssetUsdPrices(
+      env,
+      rows.value.map((row) => BigInt(row.assetId))
+    );
+    for (const row of rows.value) {
+      const price = prices.get(BigInt(row.assetId));
+      if (price === undefined) continue;
+      const decimalAmount = Number(row.amount) / 10 ** row.decimals;
+      row.usdValue = decimalAmount * price;
+    }
+  } catch (e: unknown) {
+    console.error("Failed to load asset USD prices", e);
+  }
+};
+
+const usdFormatter = new Intl.NumberFormat(undefined, {
+  style: "currency",
+  currency: "USD",
+});
+
+const formatUsdValue = (value?: number) =>
+  value === undefined ? "" : usdFormatter.format(value);
+
+const refresh = async () => {
+  await buildRows();
+  await loadPrices();
+};
 
 watch(
   () => store.state.wallet.privateAccounts,
-  () => buildRows(),
+  async () => {
+    await buildRows();
+    await loadPrices();
+  },
   { deep: true }
 );
 watch(
   () => store.state.config.env,
-  () => buildRows()
+  async () => {
+    await buildRows();
+    await loadPrices();
+  }
 );
 
 watch(
@@ -350,7 +407,8 @@ watch(
   }
 );
 
-onMounted(() => {
-  buildRows();
+onMounted(async () => {
+  await buildRows();
+  await loadPrices();
 });
 </script>

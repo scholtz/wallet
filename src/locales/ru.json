@@ -282,6 +282,7 @@
     "search_by_id": "Поиск по идентификатору актива",
     "amount": "Сумма",
     "search_by_amount": "Поиск по сумме",
+    "usd_value": "Стоимость в USD",
     "actions": "Действия"
   },
   "assets_overview": {
@@ -291,6 +292,7 @@
     "type": "Тип",
     "id": "Id",
     "amount": "Количество",
+    "usd_value": "Стоимость в USD",
     "no_assets": "Активы не найдены",
     "search_by_account": "Поиск по счёту",
     "search_by_name": "Поиск по названию",
