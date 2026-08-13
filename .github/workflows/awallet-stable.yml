@@ -3,8 +3,8 @@ on:
   workflow_dispatch:
     inputs:
       from_tag:
-        description: "Docker Hub tag of the already-deployed main image to promote, e.g. 1.2026.07.19-main"
-        required: true
+        description: "Docker Hub tag of the already-deployed main image to promote, e.g. 1.2026.07.19-main. Leave empty to promote the latest -main tag found on Docker Hub."
+        required: false
         type: string
 
 permissions:
@@ -18,7 +18,29 @@ jobs:
     environment: Stage
     outputs:
       version: ${{ steps.version.outputs.version }}
+      from_tag: ${{ steps.source.outputs.from_tag }}
     steps:
+      - name: Resolve source tag
+        id: source
+        # If no from_tag input was supplied, look up the most recently pushed
+        # 1.YYYY.MM.DD-main tag on Docker Hub (public API, no auth needed) and
+        # promote that one.
+        run: |
+          set -euo pipefail
+          from_tag="${{ inputs.from_tag }}"
+          if [ -z "$from_tag" ]; then
+            from_tag="$(curl -fsSL 'https://hub.docker.com/v2/repositories/scholtz2/a-wallet/tags?page_size=100&ordering=last_updated' \
+              | jq -r '[.results[] | select(.name | test("^1[.][0-9]{4}[.][0-9]{2}[.][0-9]{2}-main$"))] | sort_by(.last_updated) | last | .name // empty')"
+            if [ -z "$from_tag" ]; then
+              echo "::error::No from_tag supplied and no 1.YYYY.MM.DD-main tag found on Docker Hub for scholtz2/a-wallet"
+              exit 1
+            fi
+            echo "Resolved latest main tag from Docker Hub: $from_tag"
+          else
+            echo "Using supplied tag: $from_tag"
+          fi
+          echo "from_tag=$from_tag" >> "$GITHUB_OUTPUT"
+
       - name: Compute version
         id: version
         run: |
@@ -44,7 +66,7 @@ jobs:
         run: |
           set -euo pipefail
           version="${{ steps.version.outputs.version }}"
-          from="scholtz2/a-wallet:${{ inputs.from_tag }}"
+          from="scholtz2/a-wallet:${{ steps.source.outputs.from_tag }}"
           harbor_repo="${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/a-wallet"
 
           docker pull "$from"
