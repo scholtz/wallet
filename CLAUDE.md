@@ -33,7 +33,9 @@ Cypress requires its binary, which frequently fails to install in sandboxed/rest
 - Interactive: `pnpm run test:open` (starts server + opens Cypress UI)
 - Specs live under `cypress/e2e/<n-category>/*.cy.ts`, numbered by test phase (e.g. `1-basic-tests`, `2-setup-account`).
 
-There is no unit test runner in this repo — correctness is verified via type-checking, lint, and Cypress E2E flows.
+### Unit tests (Playwright, Node-only)
+
+`pnpm run test:unit` runs pure Node unit tests via Playwright's test runner (`playwright.unit.config.ts`, specs in `playwright/unit/*.spec.ts`) — no browser, no dev server, no video, so they run in under a second and also run in CI (`.github/workflows/unit-tests.yml`). Use this for pure logic under `src/scripts/` (e.g. `combineBiatecRoute.ts`): keep the module under test free of runtime imports (type-only imports are fine — they're erased, so transitive `vue`/`algosdk` imports in `types.ts` never load at runtime) and import it into the spec via a relative path. Everything browser-dependent is still verified via type-checking, lint, and Cypress/Playwright E2E flows.
 
 ## Architecture
 
