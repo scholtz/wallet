@@ -21,6 +21,7 @@
     "build:scripts": "tsc -p tsconfig.scripts.json",
     "generate:biatec-scan-client": "openapi --input https://api.testnet.scan.biatec.io/swagger/v1/swagger.json --output src/scripts/generated/biatecScan --client fetch --name BiatecScanClient --useOptions",
     "test": "pnpm run build:scripts && node scripts/run-tests.js",
+    "test:unit": "playwright test -c playwright.unit.config.ts",
     "test:parallel": "run-p server cypress:run",
     "test:video": "run-p server cypress:run-video",
     "test:prepare": "pnpm run build",
