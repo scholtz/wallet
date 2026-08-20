@@ -1,6 +1,5 @@
 import type {
   AggregatorQuoteData,
-  BiatecCombinedRoute,
   BiatecQuoteData,
   DexAggregator,
   SwapContext,
@@ -13,6 +12,7 @@ import type {
 import { biatecRouter } from "biatec-router";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
+import { combineRouteResponse } from "./combineBiatecRoute";
 import { getEffectiveQuoteAmount } from "./simulate";
 import { assertSwapTransactionsSafe } from "./validate";
 
@@ -27,52 +27,6 @@ export interface BiatecAggregatorOptions {
   quotesKey: string;
   txnsKey: string;
   processingKey: string;
-}
-
-// With routesCount <= 1 (the default, and what this file now requests - see the getQuote/execute
-// request bodies below), Biatec Router's response.routes holds the LEGS of one combined swap: the
-// router may split the requested amount across up to 3 structurally distinct paths to beat any
-// single path's price (e.g. part of the trade direct, part via an intermediate asset), and all
-// legs share ONE Algorand atomic transaction group server-side. That means the total output is
-// the SUM across legs (not just routes[0]'s own output) and the transactions to sign are the
-// CONCATENATION of every leg's txsToSign, in order (signing just one leg's slice would submit an
-// incomplete/invalid group, since the group hash covers every transaction across every leg).
-// requesting routesCount: 3 previously disabled this splitting entirely (BiatecRouter's legacy
-// "N independent full-amount alternatives" mode) - always leaving real output on the table
-// whenever the router had a genuinely better split available, sometimes by 10%+.
-// Wrapped into the same { route: { route, txsToSign } } shape the rest of this file (and
-// buildBiatecRouteInfo's hop/pool display) already expects, so downstream code is unchanged.
-// hops are merged across every leg too (see below), so the displayed breakdown covers the full
-// split, not just the first leg.
-function combineRouteResponse(
-  response: biatecRouter.RouteOutputCover,
-): BiatecCombinedRoute {
-  const routes = response.routes ?? [];
-  const totalOutputAmount = routes.reduce(
-    (sum, r) => sum + (r.route?.outputAmount || 0),
-    0,
-  );
-  const totalFees = routes.reduce(
-    (sum, r) => sum + (r.route?.totalNetworkFeeMicroAlgos || 0),
-    0,
-  );
-  // Each leg carries its own hops; spreading only routes[0]?.route would silently drop every
-  // other leg's hops even though outputAmount/txsToSign are (correctly) summed/concatenated
-  // across all legs - merge them so the displayed route accounts for the full split.
-  const combinedHops: biatecRouter.HopExecution[] = routes.flatMap(
-    (r) => r.route?.hops || [],
-  );
-  const combinedTxsToSign: string[] = routes.flatMap((r) => r.txsToSign || []);
-  const route: biatecRouter.QuoteRoute = {
-    ...routes[0]?.route,
-    hops: combinedHops,
-    outputAmount: totalOutputAmount,
-    totalNetworkFeeMicroAlgos: totalFees,
-  };
-  return {
-    route,
-    txsToSign: combinedTxsToSign,
-  };
 }
 
 // Shared implementation for the Biatec Router aggregator - used to build both

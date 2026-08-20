@@ -73,7 +73,7 @@ export type FolksTxnsData = FolksSwapTransactions;
 
 export interface BiatecCombinedRoute {
   // Hops merged across every leg of a split route - see combineRouteResponse
-  // in biatec.ts.
+  // in combineBiatecRoute.ts.
   route: biatecRouter.QuoteRoute;
   txsToSign: string[];
 }
