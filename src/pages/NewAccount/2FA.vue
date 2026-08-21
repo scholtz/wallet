@@ -114,6 +114,7 @@ async function confirmRequest() {
             <SelectAccount
               v-model="state.account1"
               class="w-full"
+              :exclude-types="['falcon1024']"
             ></SelectAccount>
           </div>
           <div class="p-field mb-2">
@@ -123,6 +124,7 @@ async function confirmRequest() {
             <SelectAccount
               v-model="state.account2"
               class="w-full"
+              :exclude-types="['falcon1024']"
             ></SelectAccount>
           </div>
           <Button

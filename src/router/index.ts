@@ -45,6 +45,7 @@ import NewAccountMultisig from "@/pages/NewAccount/Multisig.vue";
 import NewAccountWatch from "@/pages/NewAccount/Watch.vue";
 import NewAccountImport from "@/pages/NewAccount/RecoverEd25519.vue";
 import NewAccountHdWallet from "@/pages/NewAccount/HdWallet.vue";
+import NewAccountFalcon from "@/pages/NewAccount/Falcon.vue";
 import AccountExport from "@/pages/Account/Export.vue";
 import AccountHdNext from "@/pages/Account/HdNext.vue";
 
@@ -118,6 +119,11 @@ const routes = [
     path: "/new-account/hd-wallet",
     name: "NewAccountHdWallet",
     component: NewAccountHdWallet,
+  },
+  {
+    path: "/new-account/falcon-1024",
+    name: "NewAccountFalcon",
+    component: NewAccountFalcon,
   },
   {
     path: "/swap/:account",

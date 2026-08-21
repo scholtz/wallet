@@ -20,6 +20,12 @@ import {
   encryptWalletData,
   isLegacyEncryptedData,
 } from "../scripts/encoding/walletCrypto";
+import {
+  falconAddressFromPublicKey,
+  falconKeyPairFromMnemonic,
+  generateFalconMnemonic,
+  isValidFalconMnemonic,
+} from "../scripts/encoding/falcon";
 
 type WalletAccountData = Record<string, IAccountData>;
 
@@ -71,7 +77,15 @@ export interface WalletAccount {
   name?: string;
   params?: algosdk.MultisigMetadata;
   data?: WalletAccountData;
-  type?: "2faApi" | "2fa" | "msig" | "ledger" | "wc" | "emailPwd" | "hd";
+  type?:
+    | "2faApi"
+    | "2fa"
+    | "msig"
+    | "ledger"
+    | "wc"
+    | "emailPwd"
+    | "hd"
+    | "falcon1024";
   recoveryAccount?: string;
   /** ARC-52 (BIP32-Ed25519) master mnemonic. Only set on the root (iteration 0) hd account. */
   hdMnemonic?: string;
@@ -85,6 +99,12 @@ export interface WalletAccount {
   network?: string;
   /** Present on plain ed25519 / ARC-76 (emailPwd) accounts that store their own secret key. */
   sk?: Uint8Array;
+  /** Falcon-1024 (post-quantum) accounts: the 25-word Algorand mnemonic the key pair is derived from. Same trust model as sk — the whole wallet blob is encrypted before persisting. */
+  falconMnemonic?: string;
+  /** Falcon-1024 accounts: the Falcon-1024 public key (~1793 bytes). */
+  falconPublicKey?: Uint8Array;
+  /** Falcon-1024 accounts: the Falcon-1024 private key (~2305 bytes). Deterministically re-derivable from falconMnemonic; stored so signing doesn't pay WASM keygen each time. */
+  falconPrivateKey?: Uint8Array;
   /** Top-level rekey target, set/cleared by setPrivateAccount when the account's own data no longer matches its per-network rekeyedTo. */
   rekeyedTo?: string;
   /** ARC-76 (emailPwd) accounts: whether the derived secret key was persisted alongside the account. */
@@ -242,6 +262,16 @@ type AddHdWalletChildAccountMutationPayload = {
   hdRootAddr: string;
   hdAccountIndex: number;
   network: string;
+};
+
+type AddFalconAccountMutationPayload = {
+  name: string;
+  addr: string;
+  mnemonic: string;
+  publicKey: Uint8Array;
+  privateKey: Uint8Array;
+  network: string;
+  backedUp: boolean;
 };
 
 type SetIsOpenPayload = {
@@ -628,6 +658,33 @@ const mutations: MutationTree<WalletState> = {
       hdMnemonic: mnemonic,
       hdRootAddr: addr,
       hdAccountIndex,
+      backedUp,
+    };
+    state.privateAccounts.push(account);
+    state.lastActiveAccount = addr;
+    state.lastActiveAccountName = name;
+  },
+  addFalconAccount(
+    state,
+    {
+      name,
+      addr,
+      mnemonic,
+      publicKey,
+      privateKey,
+      network,
+      backedUp,
+    }: AddFalconAccountMutationPayload
+  ) {
+    const account: WalletAccount = {
+      addr,
+      address: addr,
+      name,
+      network,
+      type: "falcon1024",
+      falconMnemonic: mnemonic,
+      falconPublicKey: publicKey,
+      falconPrivateKey: privateKey,
       backedUp,
     };
     state.privateAccounts.push(account);
@@ -1092,6 +1149,57 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       throw error;
     }
   },
+  async addFalconAccount(
+    { dispatch, commit },
+    {
+      name,
+      mnemonic,
+      backedUp,
+    }: {
+      name: string;
+      mnemonic?: string;
+      backedUp?: boolean;
+    }
+  ) {
+    if (!name) {
+      throw Error("Plase set account name");
+    }
+    try {
+      const finalMnemonic = mnemonic?.trim() || generateFalconMnemonic();
+      if (!isValidFalconMnemonic(finalMnemonic)) {
+        throw Error("Mnemonic is not a valid 25-word Algorand phrase");
+      }
+      const keyPair = await falconKeyPairFromMnemonic(finalMnemonic);
+      const addr = falconAddressFromPublicKey(keyPair.publicKey);
+      const exists = this.state.wallet.privateAccounts.some(
+        (a) => a.addr === addr
+      );
+      if (exists) {
+        throw Error("This account is already present in the wallet");
+      }
+      await commit("addFalconAccount", {
+        name,
+        addr,
+        mnemonic: finalMnemonic,
+        publicKey: keyPair.publicKey,
+        privateKey: keyPair.privateKey,
+        network: this.state.config.env,
+        backedUp: backedUp ?? false,
+      });
+      await dispatch("saveWallet");
+      return addr;
+    } catch (error) {
+      console.error("error", error);
+      dispatch(
+        "toast/openError",
+        "Account has not been created: " + toErrorMessage(error),
+        {
+          root: true,
+        }
+      );
+      throw error;
+    }
+  },
   async markAccountBackedUp({ dispatch, commit }, { addr }: { addr: string }) {
     if (!addr) {
       throw Error("Plase set account address");
@@ -1425,7 +1533,8 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       Boolean(signatorAccount.params) ||
       signatorAccount.type === "ledger" ||
       signatorAccount.type === "wc" ||
-      signatorAccount.type === "hd";
+      signatorAccount.type === "hd" ||
+      signatorAccount.type === "falcon1024";
     if (!hasSigningMaterial && !silent) {
       await dispatch(
         "toast/openError",

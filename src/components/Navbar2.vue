@@ -83,6 +83,11 @@ const items = computed<MenuItem[]>(() => {
               route: "/new-account/ed25519",
             },
             {
+              label: t("newacc.falcon_account"),
+              icon: PrimeIcons.SHIELD,
+              route: "/new-account/falcon-1024",
+            },
+            {
               label: t("newacc.ledger_account"),
               icon: PrimeIcons.LOCK,
               route: "/new-account/ledger",

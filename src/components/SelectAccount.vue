@@ -1,15 +1,24 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import type { PropType } from "vue";
 import { useStore } from "vuex";
 import Select from "primevue/select";
 import { useI18n } from "vue-i18n";
 import { RootState } from "@/store";
 import AlgorandAddress from "@/components/AlgorandAddress.vue";
+import type { WalletAccount } from "@/store/wallet";
 
 const props = defineProps({
   modelValue: String,
   itemId: String,
   class: String,
+  /** Account types to hide from the list, e.g. ["falcon1024"] where the
+   * selected account becomes a multisig participant (post-quantum addresses
+   * carry no ed25519 key and can never sign a multisig subsig). */
+  excludeTypes: {
+    type: Array as PropType<NonNullable<WalletAccount["type"]>[]>,
+    default: () => [],
+  },
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -27,6 +36,12 @@ const model = computed({
 const store = useStore<RootState>();
 const { t } = useI18n();
 
+const selectableAccounts = computed(() =>
+  store.state.wallet.privateAccounts.filter(
+    (a) => !a.type || !props.excludeTypes.includes(a.type)
+  )
+);
+
 function getAccountName() {
   const ret = store.state.wallet.privateAccounts.find(
     (a) => a.addr == props.modelValue
@@ -39,7 +54,7 @@ function getAccountName() {
   <Select
     v-model="model"
     filter
-    :options="store.state.wallet.privateAccounts"
+    :options="selectableAccounts"
     optionLabel="name"
     optionValue="addr"
     :placeholder="t('account.select_account')"

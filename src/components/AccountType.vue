@@ -42,5 +42,15 @@ const props = defineProps({
     v-else-if="props.account?.type == 'wc'"
     :value="t('acc_type.wc_account')"
   />
+  <Badge
+    severity="success"
+    v-else-if="props.account?.type == 'hd'"
+    :value="t('acc_type.hd_account')"
+  />
+  <Badge
+    severity="success"
+    v-else-if="props.account?.type == 'falcon1024'"
+    :value="t('acc_type.falcon_account')"
+  />
   <Badge v-else severity="info" :value="t('acc_type.public_account')" />
 </template>

@@ -67,8 +67,12 @@ const isHdRoot = computed(
 const isHdChild = computed(
   () => currentAccount.value?.type === "hd" && !currentAccount.value?.hdMnemonic
 );
+const isFalcon = computed(
+  () => currentAccount.value?.type === "falcon1024"
+);
 const needsBackup = computed(
-  () => isHdRoot.value && !currentAccount.value?.backedUp
+  () =>
+    (isHdRoot.value || isFalcon.value) && !currentAccount.value?.backedUp
 );
 // The dev-info panel must never render raw key material — users may
 // screenshot/share it when reporting bugs (audit finding AW-2026-020).
@@ -83,6 +87,15 @@ const devJson = computed(() => {
   }
   if (redacted.hdMnemonic) {
     redacted.hdMnemonic = "<redacted mnemonic>";
+  }
+  if (redacted.falconMnemonic) {
+    redacted.falconMnemonic = "<redacted mnemonic>";
+  }
+  if (redacted.falconPrivateKey) {
+    // Display-only replacement of raw Falcon key bytes, same rationale as sk
+    // above (AW-2026-020).
+    redacted.falconPrivateKey =
+      "<redacted secret key>" as unknown as Uint8Array;
   }
   return redacted;
 });
@@ -235,6 +248,25 @@ const hdMasterMnemonic = async () => {
   }
 };
 
+const falconMnemonicExport = async () => {
+  try {
+    await store.dispatch("wallet/prolong");
+    state.json = (await store.dispatch("wallet/getAccount", {
+      addr: route.params.account,
+    })) as AccountWithSecret;
+    if (!state.json?.falconMnemonic) {
+      throw new Error("Falcon mnemonic is not stored for this account");
+    }
+    state.mn = state.json.falconMnemonic;
+    state.shIndex = -1;
+    state.state = "mn";
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err);
+    console.error("falcon mnemonic err", error, err);
+    await store.dispatch("toast/openError", error);
+  }
+};
+
 const checkPwd = async () => {
   try {
     await store.dispatch("wallet/prolong");
@@ -319,6 +351,13 @@ const markBackedUp = async () => {
                 >{{ t("hdaccount.master_mnemonic") }}</Button
               >
               <Button
+                v-else-if="isFalcon"
+                class="m-2 w-100"
+                :severity="state.state == 'step1' ? 'primary' : 'secondary'"
+                @click="falconMnemonicExport"
+                >{{ t("account_export.algo_mnemonic") }}</Button
+              >
+              <Button
                 v-else
                 class="m-2 w-100"
                 :severity="state.state == 'step1' ? 'primary' : 'secondary'"
@@ -326,7 +365,7 @@ const markBackedUp = async () => {
                 >{{ t("account_export.algo_mnemonic") }}</Button
               >
               <Button
-                v-if="!isHdRoot"
+                v-if="!isHdRoot && !isFalcon"
                 class="m-2 w-100"
                 :severity="state.state == 'step1' ? 'primary' : 'secondary'"
                 @click="state.state = 'shamir'"
@@ -336,6 +375,9 @@ const markBackedUp = async () => {
           </div>
           <Message severity="warn" v-if="isHdRoot">
             {{ t("hdaccount.backup_warning") }}
+          </Message>
+          <Message severity="warn" v-if="isFalcon">
+            {{ t("falconaccount.backup_warning") }}
           </Message>
           <div v-if="state.state == 'mn'">
             <Button

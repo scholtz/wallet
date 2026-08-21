@@ -314,7 +314,13 @@
           class="backup-warning"
         >
           <strong>{{ $t("hdaccount.not_backed_up_title") }}</strong>
-          <p class="m-0 mt-1">{{ $t("hdaccount.not_backed_up_body") }}</p>
+          <p class="m-0 mt-1">
+            {{
+              account?.type === "falcon1024"
+                ? $t("falconaccount.not_backed_up_body")
+                : $t("hdaccount.not_backed_up_body")
+            }}
+          </p>
           <RouterLink :to="'/account/export/' + account?.addr">
             <Button severity="danger" class="mt-2" id="account_overview_back_up_now">
               {{ $t("hdaccount.back_up_now") }}
@@ -424,7 +430,11 @@ const accountData = computed<AccountNetworkData | null>(() => {
 });
 
 const needsBackup = computed(
-  () => account.value?.type === "hd" && !!account.value?.hdMnemonic && !account.value?.backedUp
+  () =>
+    ((account.value?.type === "hd" && !!account.value?.hdMnemonic) ||
+      (account.value?.type === "falcon1024" &&
+        !!account.value?.falconMnemonic)) &&
+    !account.value?.backedUp
 );
 
 const isUnfunded = computed(() => {

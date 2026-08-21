@@ -403,6 +403,8 @@
     "import_account_help": "You can recover the account from the algorand recovery mnemonic.",
     "shamir_account_help": "You can recover the account from the shamir backup recovery mnemonics.",
     "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
+    "falcon_account": "Post-kwantum account (Falcon 1024)",
+    "falcon_account_help": "Maak of importeer een post-kwantumveilig account met het Falcon 1024-handtekeningschema. De handtekeningen zijn ontworpen om bestand te zijn tegen aanvallen van kwantumcomputers.",
     "create_first": "Create your first account",
     "no_accounts_at_network": "There are no accounts for selected network",
     "basic_options": "Basic options",
@@ -446,6 +448,18 @@
     "mark_as_backed_up": "Account markeren als geback-upt",
     "backed_up_success": "Account gemarkeerd als geback-upt"
   },
+  "falconaccount": {
+    "title": "Post-kwantum account (Falcon 1024)",
+    "description": "Falcon 1024-accounts gebruiken een post-kwantum handtekeningschema dat ontworpen is om ook tegen kwantumcomputers veilig te blijven. Het sleutelpaar wordt afgeleid van een standaard Algorand-mnemonic van 25 woorden. Falcon 1024-handtekeningen zijn groter dan normale, dus transacties vanaf dit account betalen hogere netwerkkosten.",
+    "mode": "Modus",
+    "mode_create": "Nieuwe mnemonic aanmaken",
+    "mode_import": "Bestaande mnemonic importeren",
+    "mnemonic": "Mnemonic van Falcon 1024-account",
+    "backup_warning": "Deze mnemonic is de enige back-up van uw post-kwantum account. Bewaar hem veilig en deel hem nooit.",
+    "confirm_backup": "Ik heb mijn mnemonic veilig geback-upt",
+    "write_mnemonic": "Noteer uw Algorand-mnemonic van 25 woorden",
+    "not_backed_up_body": "De herstel-mnemonic van dit post-kwantum account is nog niet geback-upt. Als u zonder back-up de toegang tot dit apparaat verliest, riskeert u uw tegoeden permanent te verliezen."
+  },
   "import": {
     "title": "Importeer portemonee",
     "wallet_name": "Portemonnee naam",
@@ -460,7 +474,8 @@
     "rekeyed": "Rekeyed account",
     "ledger_account": "HW ledger account",
     "wc_account": "WalletConnect account",
-    "hd_account": "HD wallet account"
+    "hd_account": "HD wallet account",
+    "falcon_account": "Falcon 1024-account"
   },
   "account": {
     "select_account": "Select account"

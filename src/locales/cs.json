@@ -403,6 +403,8 @@
     "import_account_help": "Můžete obnovit účet z algorand obnovovací mnemoniky.",
     "shamir_account_help": "Můžete obnovit účet ze shamir záložních obnovovacích mnemonik.",
     "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
+    "falcon_account": "Postkvantový účet (Falcon 1024)",
+    "falcon_account_help": "Vytvořte nebo importujte postkvantově bezpečný účet s podpisovým schématem Falcon 1024. Jeho podpisy jsou navrženy tak, aby odolaly útokům kvantových počítačů.",
     "create_first": "Vytvořte svůj první účet",
     "no_accounts_at_network": "Nejsou žádné účty pro vybranou síť",
     "basic_options": "Základní možnosti",
@@ -446,6 +448,18 @@
     "mark_as_backed_up": "Označit účet jako zálohovaný",
     "backed_up_success": "Účet byl označen jako zálohovaný"
   },
+  "falconaccount": {
+    "title": "Postkvantový účet (Falcon 1024)",
+    "description": "Účty Falcon 1024 používají postkvantové podpisové schéma navržené tak, aby zůstalo bezpečné i vůči kvantovým počítačům. Klíčový pár se odvozuje ze standardní 25slovné mnemotechnické fráze Algorand. Podpisy Falcon 1024 jsou větší než běžné, proto transakce z tohoto účtu platí vyšší síťový poplatek.",
+    "mode": "Režim",
+    "mode_create": "Vytvořit novou mnemotechnickou frázi",
+    "mode_import": "Importovat existující mnemotechnickou frázi",
+    "mnemonic": "Mnemotechnická fráze účtu Falcon 1024",
+    "backup_warning": "Tato mnemotechnická fráze je jedinou zálohou vašeho postkvantového účtu. Uchovejte ji v bezpečí a nikdy ji nikomu nesdělujte.",
+    "confirm_backup": "Bezpečně jsem si zálohoval svou mnemotechnickou frázi",
+    "write_mnemonic": "Zapište si svou 25slovnou mnemotechnickou frázi Algorand",
+    "not_backed_up_body": "Obnovovací mnemotechnická fráze tohoto postkvantového účtu ještě nebyla zálohována. Pokud ztratíte přístup k tomuto zařízení bez zálohy, riskujete trvalou ztrátu svých prostředků."
+  },
   "import": {
     "title": "Import peněženky",
     "wallet_name": "Název peněženky",
@@ -460,7 +474,8 @@
     "rekeyed": "Překódovaný účet",
     "ledger_account": "HW ledger účet",
     "wc_account": "WalletConnect účet",
-    "hd_account": "HD wallet account"
+    "hd_account": "HD wallet account",
+    "falcon_account": "Účet Falcon 1024"
   },
   "account": {
     "select_account": "Vyberte účet"

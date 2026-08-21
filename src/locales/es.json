@@ -403,6 +403,8 @@
     "import_account_help": "You can recover the account from the algorand recovery mnemonic.",
     "shamir_account_help": "You can recover the account from the shamir backup recovery mnemonics.",
     "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
+    "falcon_account": "Cuenta poscuántica (Falcon 1024)",
+    "falcon_account_help": "Cree o importe una cuenta segura frente a la computación cuántica con el esquema de firma Falcon 1024. Sus firmas están diseñadas para resistir ataques de ordenadores cuánticos.",
     "create_first": "Create your first account",
     "no_accounts_at_network": "There are no accounts for selected network",
     "basic_options": "Basic options",
@@ -446,6 +448,18 @@
     "mark_as_backed_up": "Marcar cuenta como respaldada",
     "backed_up_success": "Cuenta marcada como respaldada"
   },
+  "falconaccount": {
+    "title": "Cuenta poscuántica (Falcon 1024)",
+    "description": "Las cuentas Falcon 1024 utilizan un esquema de firma poscuántico diseñado para mantenerse seguro incluso frente a ordenadores cuánticos. El par de claves se deriva de un mnemónico estándar de Algorand de 25 palabras. Las firmas Falcon 1024 son más grandes que las normales, por lo que las transacciones de esta cuenta pagan una comisión de red más alta.",
+    "mode": "Modo",
+    "mode_create": "Crear nuevo mnemónico",
+    "mode_import": "Importar mnemónico existente",
+    "mnemonic": "Mnemónico de la cuenta Falcon 1024",
+    "backup_warning": "Este mnemónico es la única copia de seguridad de su cuenta poscuántica. Guárdelo en un lugar seguro y no lo comparta nunca.",
+    "confirm_backup": "He guardado mi mnemónico de forma segura",
+    "write_mnemonic": "Anote su frase mnemónica de Algorand de 25 palabras",
+    "not_backed_up_body": "El mnemónico de recuperación de esta cuenta poscuántica aún no se ha respaldado. Si pierde el acceso a este dispositivo sin una copia de seguridad, corre el riesgo de perder sus fondos permanentemente."
+  },
   "import": {
     "title": "Importar billetera",
     "wallet_name": "Nombre de la billetera",
@@ -460,7 +474,8 @@
     "rekeyed": "Cuenta con llaves re asignada (Rekeyed)",
     "ledger_account": "Cuenta HW ledger",
     "wc_account": "Cuenta WalletConnect",
-    "hd_account": "HD wallet account"
+    "hd_account": "HD wallet account",
+    "falcon_account": "Cuenta Falcon 1024"
   },
   "account": {
     "select_account": "Seleccionar cuenta"

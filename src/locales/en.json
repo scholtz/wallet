@@ -403,6 +403,8 @@
     "import_account_help": "You can recover the account from the algorand recovery mnemonic.",
     "shamir_account_help": "You can recover the account from the shamir backup recovery mnemonics.",
     "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
+    "falcon_account": "Post-Quantum Account (Falcon 1024)",
+    "falcon_account_help": "Create or import a post-quantum secure account using the Falcon 1024 signature scheme. Its signatures are designed to resist attacks by quantum computers.",
     "create_first": "Create your first account",
     "no_accounts_at_network": "There are no accounts for selected network",
     "basic_options": "Basic options",
@@ -446,6 +448,18 @@
     "mark_as_backed_up": "Mark account as backed up",
     "backed_up_success": "Account marked as backed up"
   },
+  "falconaccount": {
+    "title": "Post-quantum account (Falcon 1024)",
+    "description": "Falcon 1024 accounts use a post-quantum signature scheme designed to stay secure even against quantum computers. The key pair is derived from a standard 25-word Algorand mnemonic. Falcon 1024 signatures are larger than regular ones, so transactions from this account pay a higher network fee.",
+    "mode": "Mode",
+    "mode_create": "Create new mnemonic",
+    "mode_import": "Import existing mnemonic",
+    "mnemonic": "Falcon 1024 account mnemonic",
+    "backup_warning": "This mnemonic is the only backup of your post-quantum account. Keep it safe and never share it.",
+    "confirm_backup": "I have safely backed up my mnemonic",
+    "write_mnemonic": "Write down your 25 word Algorand mnemonic phrase",
+    "not_backed_up_body": "This post-quantum account's recovery mnemonic has not been backed up yet. If you lose access to this device without a backup, you risk losing your funds permanently."
+  },
   "import": {
     "title": "Import wallet",
     "wallet_name": "Wallet name",
@@ -460,7 +474,8 @@
     "rekeyed": "Rekeyed account",
     "ledger_account": "HW ledger account",
     "wc_account": "WalletConnect account",
-    "hd_account": "HD wallet account"
+    "hd_account": "HD wallet account",
+    "falcon_account": "Falcon 1024 account"
   },
   "account": {
     "select_account": "Select account"

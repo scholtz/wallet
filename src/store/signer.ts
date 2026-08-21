@@ -14,6 +14,7 @@ type WcV1Session = NonNullable<WcV1ConnectorOptions["session"]>;
 import type { ActionTree, MutationTree } from "vuex";
 import type { RootState } from "./index";
 import { hdSignTransactionBytes } from "../scripts/encoding/hdWallet";
+import { falconSignTransaction } from "../scripts/encoding/falcon";
 import {
   Arc60Error,
   computeArc60Digest,
@@ -262,6 +263,12 @@ const actions: ActionTree<SignerState, RootState> = {
           tx: payload.tx,
         });
       }
+      if (signerAccount.type === "falcon1024") {
+        return await dispatch("signByFalcon", {
+          from: signerAccount.addr,
+          tx: payload.tx,
+        });
+      }
       if (signerAccount.params) {
         if (!payload.signator) {
           throw new Error("Missing signator for multisig transaction.");
@@ -308,7 +315,7 @@ const actions: ActionTree<SignerState, RootState> = {
   getSignerType(
     { dispatch, rootState },
     { from, tx }: { from: string; tx?: Transaction },
-  ): "ledger" | "msig" | "sk" | "hd" | "?" {
+  ): "ledger" | "msig" | "sk" | "hd" | "falcon1024" | "?" {
     try {
       const env = tx ? resolveTxEnv(rootState, tx) : ensureEnv(rootState);
       const baseAccount = ensureAccount(rootState, from);
@@ -323,6 +330,9 @@ const actions: ActionTree<SignerState, RootState> = {
       }
       if (resolvedAccount.type === "hd") {
         return "hd";
+      }
+      if (resolvedAccount.type === "falcon1024") {
+        return "falcon1024";
       }
       if (resolvedAccount.params) {
         return "msig";
@@ -459,6 +469,37 @@ const actions: ActionTree<SignerState, RootState> = {
       | Uint8Array
       | Record<string, unknown>;
     const signedBytes = toSignedBytes(signedResult);
+    commit("setSigned", signedBytes);
+    return signedBytes;
+  },
+  async signByFalcon(
+    { commit, rootState },
+    payload: SignByPayload,
+  ): Promise<Uint8Array<ArrayBufferLike>> {
+    const fromAccount = ensureAccount(rootState, payload.from);
+    const rawPublicKey = fromAccount.falconPublicKey;
+    const rawPrivateKey = fromAccount.falconPrivateKey;
+    if (!rawPublicKey || !rawPrivateKey) {
+      throw new Error("Falcon key material was not found for this account");
+    }
+    // Persisted wallets round-trip through JSON, which turns Uint8Array into a
+    // plain index-keyed object (same normalization getSK/signMultisigBySk do).
+    const publicKey =
+      rawPublicKey instanceof Uint8Array
+        ? rawPublicKey
+        : Uint8Array.from(
+            Object.values(rawPublicKey as Record<string, number>),
+          );
+    const privateKey =
+      rawPrivateKey instanceof Uint8Array
+        ? rawPrivateKey
+        : Uint8Array.from(
+            Object.values(rawPrivateKey as Record<string, number>),
+          );
+    const signedBytes = await falconSignTransaction(payload.tx, {
+      publicKey,
+      privateKey,
+    });
     commit("setSigned", signedBytes);
     return signedBytes;
   },

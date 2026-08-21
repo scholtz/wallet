@@ -87,8 +87,19 @@ export default defineConfig({
   server: {
     port: 8080,
   },
+  optimizeDeps: {
+    esbuildOptions: {
+      // falcon-1024 (post-quantum signatures) instantiates its embedded WASM
+      // with a top-level await; esbuild's dev prebundle rejects TLA below
+      // es2022.
+      target: "es2022",
+    },
+  },
   build: {
     outDir: "dist",
+    // Vite's default target rejects falcon-1024's top-level await; every
+    // browser this wallet supports has shipped TLA since 2021.
+    target: "es2022",
     commonjsOptions: {
       transformMixedEsModules: true,
     },

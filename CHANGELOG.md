@@ -4,6 +4,7 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 
 ## 2026-08
 
+- Added post-quantum secure accounts using the Falcon 1024 signature scheme (New account > Advanced > Post-Quantum Account (Falcon 1024)). The key pair is derived from a standard 25-word Algorand mnemonic, which you can back up and restore like any other account; signatures are designed to resist attacks by quantum computers. Note that Falcon 1024 signatures are larger than regular ones, so transactions from these accounts pay a higher network fee.
 - Fixed the Biatec Router route summary on the Swap page: when the router splits a swap across several legs, the displayed INPUT amount now shows the total paid across all legs instead of only the first leg's input, so quotes are no longer misread as worse than they are.
 - Added support for ARC-60 arbitrary data signing over WalletConnect: connected DApps can now request an authentication signature over arbitrary data (not just transactions), which the wallet displays with the requesting domain, purpose, and full data preview before signing — and refuses to sign if the request's domain binding doesn't match, to protect against spoofed sign-in requests.
 - Improved DEX aggregator swaps (Deflex, Folks Router, Biatec Router, Biatec Stage Router)

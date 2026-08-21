@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import MainLayout from "../../layouts/Main.vue";
-import { onMounted, reactive } from "vue";
+import { computed, onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
@@ -33,6 +33,13 @@ const { t } = useI18n(); // use as global scope
 
 const store = useStore<RootState>();
 const router = useRouter();
+
+// Falcon 1024 (post-quantum) addresses cannot participate in a multisig: a
+// multisig subsig slot holds an ed25519 public key, and a post-quantum
+// address has no ed25519 key behind it, so it could never sign.
+const msigEligibleAccounts = computed(() =>
+  store.state.wallet.privateAccounts.filter((a) => a.type !== "falcon1024")
+);
 const makeAccounts = () => {
   const accounts = state.friendaccounts.split("\n");
   const accts: string[] = [];
@@ -107,7 +114,7 @@ const onAccountsChanged = () => {
               id="accounts"
               v-model="state.multisigaccts"
               class="w-full"
-              :options="store.state.wallet.privateAccounts"
+              :options="msigEligibleAccounts"
               optionLabel="name"
               optionValue="addr"
               @change="onAccountsChanged"

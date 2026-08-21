@@ -100,6 +100,21 @@ const { t } = useI18n();
 
         <div class="field grid">
           <RouterLink
+            to="/new-account/falcon-1024"
+            class="col-12 mb-2 md:col-2 md:mb-0"
+          >
+            <Button class="w-full">
+              <i class="pi pi-shield mr-2"></i>
+              {{ t("newacc.falcon_account") }}
+            </Button>
+          </RouterLink>
+          <div class="col-12 md:col-10">
+            {{ t("newacc.falcon_account_help") }}
+          </div>
+        </div>
+
+        <div class="field grid">
+          <RouterLink
             to="/new-account/ledger"
             class="col-12 mb-2 md:col-2 md:mb-0"
           >

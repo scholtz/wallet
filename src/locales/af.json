@@ -403,6 +403,8 @@
     "import_account_help": "You can recover the account from the algorand recovery mnemonic.",
     "shamir_account_help": "You can recover the account from the shamir backup recovery mnemonics.",
     "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
+    "falcon_account": "Post-kwantum rekening (Falcon 1024)",
+    "falcon_account_help": "Skep of voer 'n post-kwantum-veilige rekening in met die Falcon 1024-handtekeningskema. Die handtekeninge is ontwerp om aanvalle deur kwantumrekenaars te weerstaan.",
     "create_first": "Create your first account",
     "no_accounts_at_network": "There are no accounts for selected network",
     "basic_options": "Basic options",
@@ -446,6 +448,18 @@
     "mark_as_backed_up": "Mark account as backed up",
     "backed_up_success": "Account marked as backed up"
   },
+  "falconaccount": {
+    "title": "Post-kwantum rekening (Falcon 1024)",
+    "description": "Falcon 1024-rekeninge gebruik 'n post-kwantum handtekeningskema wat ontwerp is om selfs teen kwantumrekenaars veilig te bly. Die sleutelpaar word afgelei van 'n standaard Algorand-mnemoniek van 25 woorde. Falcon 1024-handtekeninge is groter as gewone handtekeninge, daarom betaal transaksies vanaf hierdie rekening 'n hoër netwerkfooi.",
+    "mode": "Modus",
+    "mode_create": "Skep nuwe mnemoniek",
+    "mode_import": "Voer bestaande mnemoniek in",
+    "mnemonic": "Falcon 1024-rekening se mnemoniek",
+    "backup_warning": "Hierdie mnemoniek is die enigste rugsteun van jou post-kwantum rekening. Hou dit veilig en deel dit nooit nie.",
+    "confirm_backup": "Ek het my mnemoniek veilig gerugsteun",
+    "write_mnemonic": "Skryf jou 25-woord Algorand-mnemoniekfrase neer",
+    "not_backed_up_body": "Die herstel-mnemoniek van hierdie post-kwantum rekening is nog nie gerugsteun nie. As jy sonder 'n rugsteun toegang tot hierdie toestel verloor, loop jy die risiko om jou fondse permanent te verloor."
+  },
   "import": {
     "title": "Import wallet",
     "wallet_name": "Wallet name",
@@ -460,7 +474,8 @@
     "rekeyed": "Rekeyed account",
     "ledger_account": "HW ledger account",
     "wc_account": "WalletConnect account",
-    "hd_account": "HD wallet account"
+    "hd_account": "HD wallet account",
+    "falcon_account": "Falcon 1024-rekening"
   },
   "account": {
     "select_account": "Select account"

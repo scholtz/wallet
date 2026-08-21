@@ -403,6 +403,8 @@
     "import_account_help": "You can recover the account from the algorand recovery mnemonic.",
     "shamir_account_help": "You can recover the account from the shamir backup recovery mnemonics.",
     "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
+    "falcon_account": "Account post-quantistico (Falcon 1024)",
+    "falcon_account_help": "Crea o importa un account sicuro contro i computer quantistici con lo schema di firma Falcon 1024. Le sue firme sono progettate per resistere agli attacchi dei computer quantistici.",
     "create_first": "Create your first account",
     "no_accounts_at_network": "There are no accounts for selected network",
     "basic_options": "Basic options",
@@ -446,6 +448,18 @@
     "mark_as_backed_up": "Contrassegna account come sottoposto a backup",
     "backed_up_success": "Account contrassegnato come sottoposto a backup"
   },
+  "falconaccount": {
+    "title": "Account post-quantistico (Falcon 1024)",
+    "description": "Gli account Falcon 1024 utilizzano uno schema di firma post-quantistico progettato per rimanere sicuro anche contro i computer quantistici. La coppia di chiavi deriva da un mnemonico Algorand standard di 25 parole. Le firme Falcon 1024 sono più grandi di quelle normali, quindi le transazioni da questo account pagano una commissione di rete più alta.",
+    "mode": "Modalità",
+    "mode_create": "Crea nuovo mnemonico",
+    "mode_import": "Importa mnemonico esistente",
+    "mnemonic": "Mnemonico dell'account Falcon 1024",
+    "backup_warning": "Questo mnemonico è l'unico backup del tuo account post-quantistico. Conservalo al sicuro e non condividerlo mai.",
+    "confirm_backup": "Ho salvato il mio mnemonico in modo sicuro",
+    "write_mnemonic": "Annota la tua frase mnemonica Algorand di 25 parole",
+    "not_backed_up_body": "Il mnemonico di recupero di questo account post-quantistico non è ancora stato salvato. Se perdi l'accesso a questo dispositivo senza un backup, rischi di perdere definitivamente i tuoi fondi."
+  },
   "import": {
     "title": "Importa wallet",
     "wallet_name": "Nome del Wallet",
@@ -460,7 +474,8 @@
     "rekeyed": "Rekeyed account",
     "ledger_account": "HW ledger account",
     "wc_account": "WalletConnect account",
-    "hd_account": "HD wallet account"
+    "hd_account": "HD wallet account",
+    "falcon_account": "Account Falcon 1024"
   },
   "account": {
     "select_account": "Select account"

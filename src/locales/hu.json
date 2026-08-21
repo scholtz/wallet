@@ -403,6 +403,8 @@
     "import_account_help": "Visszaállíthatod a számlát az Algorand mnemonikból.",
     "shamir_account_help": "Visszaállíthatod a számlát a Shamir biztonsági mentéshez tartozó mnemonikokból.",
     "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
+    "falcon_account": "Posztkvantum fiók (Falcon 1024)",
+    "falcon_account_help": "Hozzon létre vagy importáljon posztkvantum-biztonságos fiókot a Falcon 1024 aláírási sémával. Aláírásait úgy tervezték, hogy ellenálljanak a kvantumszámítógépes támadásoknak.",
     "create_first": "Hozd létre az első számlát",
     "no_accounts_at_network": "Nincsek számláid a kiválasztott hálózaton",
     "basic_options": "Alapbeállítások",
@@ -446,6 +448,18 @@
     "mark_as_backed_up": "Fiók megjelölése mentettként",
     "backed_up_success": "A fiók mentettként lett megjelölve"
   },
+  "falconaccount": {
+    "title": "Posztkvantum fiók (Falcon 1024)",
+    "description": "A Falcon 1024 fiókok posztkvantum aláírási sémát használnak, amelyet úgy terveztek, hogy kvantumszámítógépekkel szemben is biztonságos maradjon. A kulcspár egy szabványos, 25 szavas Algorand mnemonikból származik. A Falcon 1024 aláírások nagyobbak a szokásosnál, ezért az erről a fiókról indított tranzakciók magasabb hálózati díjat fizetnek.",
+    "mode": "Mód",
+    "mode_create": "Új mnemonik létrehozása",
+    "mode_import": "Meglévő mnemonik importálása",
+    "mnemonic": "Falcon 1024 fiók mnemonikja",
+    "backup_warning": "Ez a mnemonik a posztkvantum fiókjának egyetlen biztonsági mentése. Őrizze biztonságban, és soha ne ossza meg senkivel.",
+    "confirm_backup": "Biztonságosan elmentettem a mnemonikomat",
+    "write_mnemonic": "Írja le a 25 szavas Algorand mnemonik kifejezését",
+    "not_backed_up_body": "Ennek a posztkvantum fióknak a helyreállítási mnemonikja még nincs elmentve. Ha mentés nélkül elveszíti a hozzáférést ehhez az eszközhöz, végleg elveszítheti a pénzeszközeit."
+  },
   "import": {
     "title": "Pénztárca importálása",
     "wallet_name": "Pénztárca neve",
@@ -460,7 +474,8 @@
     "rekeyed": "Átkulcsolt számla",
     "ledger_account": "Ledger HW számla",
     "wc_account": "WalletConnect számla",
-    "hd_account": "HD pénztárca számla"
+    "hd_account": "HD pénztárca számla",
+    "falcon_account": "Falcon 1024 fiók"
   },
   "account": {
     "select_account": "Számla választás"

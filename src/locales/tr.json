@@ -403,6 +403,8 @@
     "import_account_help": "Hesabı algoritma ve kurtarma anımsatıcısından kurtarabilirsiniz.",
     "shamir_account_help": "Hesabı shamir yedekleme kurtarma anımsatıcılarından kurtarabilirsiniz.",
     "hd_wallet_account_help": "Create or import an ARC-52 HD wallet. A single mnemonic can derive many independent accounts, letting you generate as many accounts as you need from one backup.",
+    "falcon_account": "Kuantum sonrası hesap (Falcon 1024)",
+    "falcon_account_help": "Falcon 1024 imza şemasıyla kuantum sonrası güvenli bir hesap oluşturun veya içe aktarın. İmzaları kuantum bilgisayar saldırılarına dayanacak şekilde tasarlanmıştır.",
     "create_first": "İlk hesabınızı oluşturun",
     "no_accounts_at_network": "Seçili ağ için hesap yok",
     "basic_options": "Temel seçenekler",
@@ -446,6 +448,18 @@
     "mark_as_backed_up": "Hesabı yedeklendi olarak işaretle",
     "backed_up_success": "Hesap yedeklendi olarak işaretlendi"
   },
+  "falconaccount": {
+    "title": "Kuantum sonrası hesap (Falcon 1024)",
+    "description": "Falcon 1024 hesapları, kuantum bilgisayarlara karşı bile güvenli kalacak şekilde tasarlanmış kuantum sonrası bir imza şeması kullanır. Anahtar çifti, standart 25 kelimelik Algorand anımsatıcısından türetilir. Falcon 1024 imzaları normalden daha büyük olduğu için bu hesaptan yapılan işlemler daha yüksek ağ ücreti öder.",
+    "mode": "Mod",
+    "mode_create": "Yeni anımsatıcı oluştur",
+    "mode_import": "Mevcut anımsatıcıyı içe aktar",
+    "mnemonic": "Falcon 1024 hesabı anımsatıcısı",
+    "backup_warning": "Bu anımsatıcı, kuantum sonrası hesabınızın tek yedeğidir. Güvende tutun ve asla kimseyle paylaşmayın.",
+    "confirm_backup": "Anımsatıcımı güvenle yedekledim",
+    "write_mnemonic": "25 kelimelik Algorand anımsatıcı ifadenizi yazın",
+    "not_backed_up_body": "Bu kuantum sonrası hesabın kurtarma anımsatıcısı henüz yedeklenmedi. Yedek olmadan bu cihaza erişimi kaybederseniz varlıklarınızı kalıcı olarak kaybetme riskiyle karşılaşırsınız."
+  },
   "import": {
     "title": "Cüzdanı içe aktar",
     "wallet_name": "Cüzdan adı",
@@ -460,7 +474,8 @@
     "rekeyed": "Yeniden anahtarlanan hesap",
     "ledger_account": "HW genel muhasebe hesabı",
     "wc_account": "Cüzdanbağlantısı hesabı",
-    "hd_account": "HD wallet account"
+    "hd_account": "HD wallet account",
+    "falcon_account": "Falcon 1024 hesabı"
   },
   "account": {
     "select_account": "Hessap seç"
