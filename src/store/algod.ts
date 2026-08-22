@@ -1,6 +1,11 @@
 import type { ActionTree } from "vuex";
 import algosdk from "algosdk";
 import type { RootState } from "./index";
+import {
+  MAX_AUTO_FEE_MICROALGOS,
+  resolveRequiredFee,
+  type FeeEstimate,
+} from "../scripts/fees";
 
 export interface AlgodState {}
 
@@ -20,7 +25,7 @@ export interface PreparePaymentPayload {
   payFrom: PaymentAccount;
   amount: PaymentAmount;
   noteEnc?: OptionalNote;
-  fee?: number;
+  fee?: number | bigint;
   asset?: number | string | bigint;
   reKeyTo?: string;
 }
@@ -146,6 +151,26 @@ const resolveSenderAddress = (account: PaymentAccount): string => {
   return typeof account === "string" ? account : account.addr;
 };
 
+// Whether the effective signer for the given address is a Falcon-1024
+// (post-quantum) account — either directly, or via a rekey to one. Matters
+// for fees: a Falcon signature adds 2,000,000 usage (see scripts/fees.ts),
+// which simulate cannot see when run with allowEmptySignatures.
+const isFalcon1024Signer = (
+  rootState: RootState,
+  senderAddr: string,
+): boolean => {
+  const accounts = rootState.wallet.privateAccounts;
+  const account = accounts.find((a) => a.addr === senderAddr);
+  if (!account) return false;
+  if (account.type === "falcon1024") return true;
+  const env = rootState.config.env;
+  const rekeyedTo = env ? account.data?.[env]?.rekeyedTo : undefined;
+  if (!rekeyedTo) return false;
+  return accounts.some(
+    (a) => a.addr === rekeyedTo && a.type === "falcon1024",
+  );
+};
+
 const normalizeAssetId = (
   asset?: number | string | bigint,
 ): number | undefined => {
@@ -252,6 +277,28 @@ const actions: ActionTree<AlgodState, RootState> = {
         algosdk.Transaction | undefined;
       if (!txn) {
         return undefined;
+      }
+
+      const estimate = (await dispatch("estimateRequiredFee", {
+        txn,
+        senderAddr: resolveSenderAddress(payload.payFrom),
+      })) as FeeEstimate | undefined;
+      if (estimate && txn.fee < estimate.requiredFee) {
+        if (estimate.requiredFee > MAX_AUTO_FEE_MICROALGOS) {
+          dispatch(
+            "toast/openError",
+            `The network requires a fee of ${Number(estimate.requiredFee) / 1_000_000} ALGO, which exceeds the maximum allowed fee of ${Number(MAX_AUTO_FEE_MICROALGOS) / 1_000_000} ALGO. The transaction was not sent.`,
+            { root: true },
+          );
+          return undefined;
+        }
+        const previousFee = txn.fee;
+        txn.fee = estimate.requiredFee;
+        dispatch(
+          "toast/openSuccess",
+          `Transaction fee adjusted from ${Number(previousFee) / 1_000_000} to ${Number(estimate.requiredFee) / 1_000_000} ALGO based on the network fee simulation.`,
+          { root: true },
+        );
       }
 
       const signedTxn = (await dispatch(
@@ -378,6 +425,56 @@ const actions: ActionTree<AlgodState, RootState> = {
       fixSigners: true,
     });
     return algodClient.simulateTransactions(request).do();
+  },
+  // Dry-runs a single unsigned transaction to learn the fee the network
+  // actually requires (v5.0 usage-based fees: simulate reports groupUsage in
+  // millionths of a min fee). The declared fee on a transaction is always
+  // spent in full — there is no on-chain max-fee-with-refund — so callers
+  // use this to declare exactly the required fee before signing. Returns
+  // undefined only when even suggested params can't be fetched.
+  async estimateRequiredFee(
+    { rootState },
+    { txn, senderAddr }: { txn: algosdk.Transaction; senderAddr: string },
+  ): Promise<FeeEstimate | undefined> {
+    try {
+      const algodClient = createAlgodClient(rootState);
+      const params = await algodClient.getTransactionParams().do();
+      const falcon1024Signer = isFalcon1024Signer(rootState, senderAddr);
+      let groupUsage: bigint | undefined;
+      let failureMessage: string | undefined;
+      try {
+        const bytes = algosdk.encodeUnsignedSimulateTransaction(txn);
+        const request = new algosdk.modelsv2.SimulateRequest({
+          txnGroups: [
+            new algosdk.modelsv2.SimulateRequestTransactionGroup({
+              txns: [algosdk.decodeSignedTransaction(bytes)],
+            }),
+          ],
+          allowEmptySignatures: true,
+          allowUnnamedResources: true,
+          fixSigners: true,
+        });
+        const response = await algodClient.simulateTransactions(request).do();
+        const group = response.txnGroups?.[0];
+        if (group?.groupUsage !== undefined) {
+          groupUsage = BigInt(group.groupUsage);
+        }
+        failureMessage = group?.failureMessage;
+      } catch (error) {
+        // Simulation being unavailable (e.g. an older node) must not block
+        // the fee check — fall through to the signature-type floor below.
+        console.error("Fee simulation failed", error);
+      }
+      const requiredFee = resolveRequiredFee({
+        minFee: BigInt(params.minFee),
+        groupUsage,
+        falcon1024Signer,
+      });
+      return { requiredFee, groupUsage, failureMessage };
+    } catch (error) {
+      console.error("Failed to estimate required fee", error);
+      return undefined;
+    }
   },
 };
 

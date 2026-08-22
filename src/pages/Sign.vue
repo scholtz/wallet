@@ -162,6 +162,48 @@
                       {{ $filters.formatCurrency(feeLong) }}
                     </div>
                   </div>
+                  <div class="field grid" v-if="simulatedFee !== null">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.simulated_fee") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ $filters.formatCurrency(Number(simulatedFee)) }}
+                    </div>
+                  </div>
+                  <div class="field grid" v-if="simulatedFee !== null">
+                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                      {{ $t("pay.max_fee") }}
+                    </label>
+                    <div class="col-12 md:col-10">
+                      {{ $filters.formatCurrency(Number(MAX_AUTO_FEE_MICROALGOS)) }}
+                    </div>
+                  </div>
+                  <Message
+                    severity="info"
+                    v-if="feeBeforeAdjust !== null"
+                    class="my-2"
+                  >
+                    {{
+                      $t("pay.fee_adjusted", {
+                        from: $filters.formatCurrency(
+                          Number(feeBeforeAdjust)
+                        ),
+                        to: $filters.formatCurrency(Number(txn?.fee ?? 0)),
+                      })
+                    }}
+                  </Message>
+                  <Message severity="error" v-if="feeExceedsMax" class="my-2">
+                    {{
+                      $t("pay.fee_exceeds_max", {
+                        required: $filters.formatCurrency(
+                          Number(simulatedFee ?? 0)
+                        ),
+                        max: $filters.formatCurrency(
+                          Number(MAX_AUTO_FEE_MICROALGOS)
+                        ),
+                      })
+                    }}
+                  </Message>
                   <div class="field grid" v-if="!asset">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.total") }}
@@ -684,6 +726,7 @@ import type {
 import type { PreparePaymentPayload } from "@/store/algod";
 import { getArc14Realm, isArc14AuthTransaction } from "@/scripts/encoding/arc14";
 import { isAssetOptIn } from "@/scripts/transactionTypes";
+import { MAX_AUTO_FEE_MICROALGOS, type FeeEstimate } from "@/scripts/fees";
 
 const store = useStore();
 const route = useRoute();
@@ -784,6 +827,12 @@ const note = ref("");
 // decimals load (see watch(asset) below) - the ASA's decimals aren't known
 // synchronously, so payamount can't be scaled correctly until then.
 const decodedRawAmount = ref<bigint | undefined>(undefined);
+// Usage-based fee check (v5.0 consensus): the fee the network requires per
+// the simulate dry-run, the pre-adjustment fee when the wallet raised it,
+// and whether the required fee exceeds the client-side auto-adjust cap.
+const simulatedFee = ref<bigint | null>(null);
+const feeBeforeAdjust = ref<bigint | null>(null);
+const feeExceedsMax = ref(false);
 
 const walletAccounts = computed<WalletAccount[]>(
   () => store.state.wallet.privateAccounts
@@ -1067,6 +1116,11 @@ const storeArc14AuthAction = (payload: {
 }) => store.dispatch("arc14/storeArc14Auth", payload);
 const returnToAction = (payload: string) =>
   store.dispatch("signer/returnTo", payload);
+const estimateRequiredFeeAction = (payload: {
+  txn: algosdk.Transaction;
+  senderAddr: string;
+}): Promise<FeeEstimate | undefined> =>
+  store.dispatch("algod/estimateRequiredFee", payload);
 
 const arrayBufferToBase64 = (buffer: Uint8Array | ArrayBufferLike) => {
   const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
@@ -1308,9 +1362,51 @@ const signMultisig = async (e?: Event) => {
   }
 };
 
+// Simulates the decoded transaction to learn the fee the network actually
+// requires (v5.0 usage-based fees - e.g. a Falcon-1024 signature costs three
+// min fees, typically 0.003 ALGO). The declared fee is always spent in full,
+// so it must be exact: an insufficient fee is raised to the required amount,
+// but only up to MAX_AUTO_FEE_MICROALGOS - beyond that cap signing is
+// refused rather than silently spending more.
+const checkAndAdjustFee = async (): Promise<boolean> => {
+  if (!txn.value || isMultisig.value) return true;
+  const estimate = await estimateRequiredFeeAction({
+    txn: txn.value as algosdk.Transaction,
+    senderAddr: payFrom.value,
+  });
+  if (!estimate) return true;
+  simulatedFee.value = estimate.requiredFee;
+  const declaredFee = BigInt(txn.value.fee ?? 0n);
+  if (declaredFee >= estimate.requiredFee) {
+    feeExceedsMax.value = false;
+    return true;
+  }
+  if (estimate.requiredFee > MAX_AUTO_FEE_MICROALGOS) {
+    feeExceedsMax.value = true;
+    return false;
+  }
+  if (feeBeforeAdjust.value === null) {
+    feeBeforeAdjust.value = declaredFee;
+  }
+  txn.value.fee = estimate.requiredFee;
+  fee.value = Number(estimate.requiredFee) / 1_000_000;
+  feeExceedsMax.value = false;
+  return true;
+};
+
 const signTxClick = async (e?: Event) => {
   prolongAction();
   e?.preventDefault();
+  const feeOk = await checkAndAdjustFee();
+  if (!feeOk) {
+    await openErrorAction(
+      t("pay.fee_exceeds_max", {
+        required: $filters.formatCurrency(Number(simulatedFee.value ?? 0n)),
+        max: $filters.formatCurrency(Number(MAX_AUTO_FEE_MICROALGOS)),
+      }) as string
+    );
+    return;
+  }
   const signed = (await signTransactionAction({
     from: payFrom.value,
     signator: payFrom.value,
@@ -1883,8 +1979,17 @@ onMounted(async () => {
           ? (getArc14Realm(txn.value.note) ?? note.value)
           : note.value;
       }
+      // Show the decoded transaction's real fee, not the page default -
+      // the review card must reflect what will actually be spent.
+      if (txn.value?.fee !== undefined) {
+        fee.value = Number(txn.value.fee) / 1_000_000;
+      }
       await makeAssets();
       page.value = "review";
+      // Fee sufficiency is re-checked (and re-adjusted) in signTxClick;
+      // running it here too lets the review card show the simulated
+      // required fee and any adjustment before the user clicks Sign.
+      void checkAndAdjustFee();
     } catch (err) {
       console.error("Input is not valid base64-url format ", err);
     }

@@ -617,6 +617,18 @@ const payFrom = computed(() => {
 const account = computed(() =>
   walletAccounts.value.find((a) => a.addr == payFrom.value),
 );
+// Falcon-1024 signatures add 2,000,000 of fee usage (v5.0 usage-based
+// fees), so a post-quantum sender needs three min fees (0.003 ALGO) where
+// an ed25519 sender needs one. Only swap between the two defaults - a fee
+// the user typed themselves is left alone.
+watch(account, (current, previous) => {
+  if (current?.addr === previous?.addr) return;
+  if (current?.type === "falcon1024" && state.fee === 0.001) {
+    state.fee = 0.003;
+  } else if (current?.type !== "falcon1024" && state.fee === 0.003) {
+    state.fee = 0.001;
+  }
+}, { immediate: true });
 const accountData = computed<AccountNetworkData | null>(
   () => account.value?.data?.[envName.value] ?? null,
 );
