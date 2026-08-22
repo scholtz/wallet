@@ -92,7 +92,7 @@
     </div>
   </div>
 
-  <div class="field grid vertical-align-top">
+  <div class="field grid vertical-align-top" v-if="devMode">
     <label
       class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
     >
@@ -103,7 +103,7 @@
     </div>
   </div>
 
-  <div class="field grid vertical-align-top">
+  <div class="field grid vertical-align-top" v-if="devMode">
     <label
       class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
     >
@@ -114,7 +114,7 @@
     </div>
   </div>
 
-  <div class="field grid vertical-align-top">
+  <div class="field grid vertical-align-top" v-if="devMode">
     <label
       class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
     >
@@ -125,7 +125,7 @@
     </div>
   </div>
 
-  <div class="field grid vertical-align-top">
+  <div class="field grid vertical-align-top" v-if="devMode">
     <label
       class="col-12 mb-2 md:col-4 md:mb-0 font-bold vertical-align-top h-full"
     >
