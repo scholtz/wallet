@@ -13,7 +13,9 @@
 #     --from-literal=SESSION_SECRET="$(openssl rand -hex 32)" \
 #     --from-literal=DB_USERNAME=algorand \
 #     --from-literal=DB_PASSWORD="$(openssl rand -hex 24)"
-#   (or run k8s/liquid-auth-secrets.sh). Apply with k8s/update-liquid-auth.sh.
+#   (or run k8s/liquid-auth-secrets.sh stable). Applied by .github/workflows/liquid-auth.yml
+#   (Production environment, manual approval) or manually with k8s/update-liquid-auth.sh stable.
+#   The stage twin is k8s/deployment-liquid-auth-stage.yaml (stage.liquid.biatec.io).
 #
 # Image: the upstream project only publishes `ghcr.io/algorandfoundation/liquid-auth:develop`
 # (no release tags yet). Pin a digest, or mirror to scholtz2/liquid-auth, before relying on it.
@@ -300,7 +302,7 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     cert-manager.io/cluster-issuer: letsencrypt
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "https://wallet.biatec.io"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://wallet.biatec.io, https://www.wallet.biatec.io"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
     nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, DELETE, OPTIONS"
     nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type, Accept"
