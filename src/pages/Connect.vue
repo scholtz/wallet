@@ -369,6 +369,155 @@
             </Message>
               </div>
             </TabPanel>
+            <TabPanel value="2">
+              <template #header>
+                {{ $t("connect.liquid.tab") }}
+                <Badge
+                  v-if="liquidRequests.length + liquidSignDataRequests.length > 0"
+                  severity="danger"
+                  class="ml-2"
+                  :value="liquidRequests.length + liquidSignDataRequests.length"
+                />
+              </template>
+              <p>{{ $t("connect.liquid.intro") }}</p>
+              <ConnectRequestsTable
+                v-if="liquidRequests.length > 0"
+                :requests="liquidRequests"
+                :account-address="accountAddress"
+                namespace="liquid"
+              />
+              <ConnectSignDataRequestsTable
+                v-else-if="liquidSignDataRequests.length > 0"
+                :requests="liquidSignDataRequests"
+                namespace="liquid"
+              />
+              <div v-else>
+                <h2>{{ $t("connect.liquid.account") }}</h2>
+                <Select
+                  v-model="liquidAddress"
+                  :options="liquidAccounts"
+                  option-label="label"
+                  option-value="addr"
+                  class="w-full"
+                />
+                <Message
+                  v-if="liquidAccounts.length === 0"
+                  severity="warn"
+                  class="my-2"
+                >
+                  {{ $t("connect.liquid.unsupported_account") }}
+                </Message>
+                <h2>{{ $t("connect.liquid.uri") }}</h2>
+                <InputText
+                  id="uriLiquid"
+                  v-model="liquidUri"
+                  class="w-full"
+                  autocomplete="off"
+                />
+                <div v-if="scanLiquid" class="col-12 m-2">
+                  <QrcodeStream @decode="onDecodeQRLiquid" />
+                </div>
+                <div>
+                  <Button
+                    class="m-1"
+                    :disabled="!liquidConnectable || liquidBusy"
+                    @click="clickConnectLiquid(liquidUri)"
+                  >
+                    {{ $t("connect.liquid.connect") }}
+                  </Button>
+                  {{ $t("connect.or") }}
+                  <Button
+                    class="m-1"
+                    :disabled="liquidBusy"
+                    @click="clickPasteLiquid"
+                  >
+                    {{ $t("connect.clipboard") }}
+                  </Button>
+                  {{ $t("connect.or") }}
+                  <Button class="m-1" @click="scanLiquid = !scanLiquid">
+                    {{ $t("connect.toggle_camera") }}
+                  </Button>
+                </div>
+                <Message severity="info" class="my-2">
+                  {{ $t("connect.liquid.passkey_help") }}
+                </Message>
+              </div>
+
+              <div v-if="liquidSessions.length > 0">
+                <h2>{{ $t("connect.liquid.sessions") }}</h2>
+                <DataTable
+                  :value="liquidSessions"
+                  responsive-layout="scroll"
+                  :paginator="true"
+                  :rows="20"
+                >
+                  <Column
+                    field="requestId"
+                    :header="$t('connect.liquid.request_id')"
+                    :sortable="true"
+                  />
+                  <Column
+                    field="origin"
+                    :header="$t('connect.liquid.origin')"
+                    :sortable="true"
+                  />
+                  <Column :header="$t('connect.address')">
+                    <template #body="slotProps">
+                      <AlgorandAddress :address="slotProps.data.address" />
+                    </template>
+                  </Column>
+                  <Column :header="$t('connect.peer')">
+                    <template #body="slotProps">
+                      <div v-if="slotProps.data.peer">
+                        <img
+                          v-if="
+                            slotProps.data.peer.icons &&
+                            slotProps.data.peer.icons.length
+                          "
+                          :src="slotProps.data.peer.icons[0]"
+                          width="24"
+                          height="24"
+                        />
+                        <a
+                          v-if="slotProps.data.peer.url"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="m-1"
+                          :href="normalizeUrl(slotProps.data.peer.url)"
+                          :title="slotProps.data.peer.description"
+                        >
+                          {{ slotProps.data.peer.name || slotProps.data.peer.url }}
+                        </a>
+                        <span v-else>{{ slotProps.data.peer.name }}</span>
+                      </div>
+                      <span v-else>{{ $t("connect.liquid.peer_unknown") }}</span>
+                    </template>
+                  </Column>
+                  <Column :header="$t('connect.liquid.status')">
+                    <template #body="slotProps">
+                      <Badge
+                        :severity="liquidStatusSeverity(slotProps.data.status)"
+                        :value="liquidStatusLabel(slotProps.data.status)"
+                      />
+                    </template>
+                  </Column>
+                  <Column>
+                    <template #body="slotProps">
+                      <Button
+                        variant="secondary"
+                        class="m-1"
+                        @click="clickDisconnectLiquid(slotProps.data.requestId)"
+                      >
+                        {{ $t("connect.disconnect") }}
+                      </Button>
+                    </template>
+                  </Column>
+                </DataTable>
+              </div>
+              <Message severity="error" v-if="liquidError" class="my-2">
+                {{ liquidError }}
+              </Message>
+            </TabPanel>
           </TabView>
         </template>
       </Card>
@@ -381,8 +530,10 @@ import type { WalletKitTypes } from "@reown/walletkit";
 import { QrcodeStream } from "qrcode-reader-vue3";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
+import Select from "primevue/select";
 import MainLayout from "../layouts/Main.vue";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
 import ConnectRequestsTable from "../components/ConnectRequestsTable.vue";
@@ -395,6 +546,8 @@ import type {
   StoredRequest,
   StoredSignDataRequest,
 } from "../store/wc";
+import type { LiquidSessionRecord } from "../store/liquid";
+import type { LiquidRuntimeStatus } from "../shared/liquid";
 
 type RequestItem = StoredRequest;
 
@@ -407,6 +560,7 @@ type ActiveSessionItem = ActiveSessionRecord;
 
 const store = useStore();
 const route = useRoute();
+const { t } = useI18n();
 const $store = store;
 
 const uri = ref("");
@@ -439,6 +593,45 @@ const activeSessions = computed<ActiveSessionItem[]>(
   () => store.state.wc.activeSessions
 );
 const wc1Enabled = computed(() => Boolean(store.state.wc.wc1Enabled));
+
+// ---------- Liquid Auth tab ----------
+const liquidUri = ref("");
+const scanLiquid = ref(false);
+const liquidBusy = ref(false);
+const liquidError = ref("");
+const liquidAddress = ref(
+  (typeof route.params.account === "string" && route.params.account) ||
+    store.state.wallet.lastActiveAccount
+);
+// Only accounts whose signing key lives in this wallet can sign the Liquid
+// Auth passkey challenge (see signer/signLiquidChallenge).
+const liquidAccounts = computed(() =>
+  store.state.wallet.privateAccounts
+    .filter(
+      (account) =>
+        !account.isHidden &&
+        !account.params &&
+        (account.type === "hd" || Boolean(account.sk))
+    )
+    .map((account) => ({
+      addr: account.addr,
+      label: `${account.name ?? ""} (${account.addr.slice(0, 6)}...${account.addr.slice(-4)})`,
+    }))
+);
+const liquidSessions = computed<LiquidSessionRecord[]>(
+  () => store.state.liquid.sessions
+);
+const liquidRequests = computed<RequestItem[]>(
+  () => store.state.liquid.requests
+);
+const liquidSignDataRequests = computed<StoredSignDataRequest[]>(
+  () => store.state.liquid.signDataRequests
+);
+const liquidConnectable = computed(
+  () =>
+    liquidUri.value.trim().toLowerCase().startsWith("liquid://") &&
+    Boolean(liquidAddress.value)
+);
 const connectable = computed(() => Boolean(uri.value && uri.value.trim()));
 const connectableWc1 = computed(() =>
   Boolean(uriWc1.value && uriWc1.value.trim())
@@ -620,6 +813,77 @@ const onDecodeQRWc1 = (result: string) => {
     uriWc1.value = result;
     scanWc1.value = false;
   }
+};
+
+const liquidStatusLabel = (status: LiquidRuntimeStatus): string => {
+  switch (status) {
+    case "connected":
+      return t("connect.liquid.status_connected");
+    case "connecting":
+      return t("connect.liquid.status_connecting");
+    case "closed":
+      return t("connect.liquid.status_closed");
+    default:
+      return t("connect.liquid.status_disconnected");
+  }
+};
+
+const liquidStatusSeverity = (status: LiquidRuntimeStatus): string => {
+  if (status === "connected") return "success";
+  if (status === "connecting") return "info";
+  return "warn";
+};
+
+const clickConnectLiquid = async (value: string) => {
+  await prolong();
+  liquidError.value = "";
+  if (!value.trim().toLowerCase().startsWith("liquid://")) {
+    liquidError.value = t("connect.liquid.invalid_link");
+    return;
+  }
+  liquidBusy.value = true;
+  try {
+    await store.dispatch("liquid/connect", {
+      uri: value.trim(),
+      address: liquidAddress.value,
+    });
+    liquidUri.value = "";
+    await store.dispatch("toast/openSuccess", {
+      severity: "info",
+      summary: t("connect.liquid.session_added"),
+      life: 3000,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    liquidError.value = message;
+    await store.dispatch("toast/openError", message);
+  } finally {
+    liquidBusy.value = false;
+  }
+};
+
+const clickPasteLiquid = async () => {
+  await prolong();
+  const clipboardUri = await navigator.clipboard.readText();
+  liquidUri.value = clipboardUri;
+  await clickConnectLiquid(clipboardUri);
+};
+
+const onDecodeQRLiquid = (result: string) => {
+  if (result) {
+    liquidUri.value = result;
+    scanLiquid.value = false;
+  }
+};
+
+const clickDisconnectLiquid = async (requestId: string) => {
+  await prolong();
+  await store.dispatch("liquid/disconnect", { requestId });
+  await store.dispatch("toast/openSuccess", {
+    severity: "info",
+    summary: t("connect.liquid.session_removed"),
+    life: 3000,
+  });
 };
 
 watch(

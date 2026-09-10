@@ -8,31 +8,22 @@ import wc from "../shared/wc";
 import WCKeyValueStore from "../shared/WCKeyValueStore";
 import type { RootState } from "./index";
 import type { GenesisNetwork } from "./publicData";
+import { bytesToBase64, type Arc60StdSigData } from "../scripts/encoding/arc60";
 import {
-  bytesToBase64,
-  decodeArc60Request,
-  validateAuthenticatorDataDomain,
-  type Arc60StdSigData,
-} from "../scripts/encoding/arc60";
+  decodeArc60Items,
+  decodeSignTxnTransactions,
+  type AlgoSignTxnParam,
+  type DecodedTransactionSummary,
+  type StoredSignDataItem,
+} from "../shared/decodeSignRequests";
+
+export type {
+  DecodedAlgorandTransaction,
+  DecodedTransactionSummary,
+  StoredSignDataItem,
+} from "../shared/decodeSignRequests";
 
 type Web3WalletInstance = Awaited<ReturnType<typeof WalletKit.init>>;
-// algosdk.decodeUnsignedTransaction()'s declared return type doesn't expose
-// the type-specific fields (payment.*, assetTransfer.*, etc.) even though
-// they exist on the actual decoded object at runtime (see CLAUDE.md's
-// "algosdk.decodeUnsignedTransaction()" gotcha) - algosdk's own
-// `Transaction` class carries these as optional properties, so intersecting
-// with it (rather than `Record<string, any>`) gives real field types.
-type DecodedAlgorandTransaction = ReturnType<
-  typeof algosdk.decodeUnsignedTransaction
-> &
-  algosdk.Transaction & {
-    // algosdk.Transaction only exposes the sender as `.sender: Address`, not
-    // `.from` - this optional field preserves the pre-existing (and, at
-    // runtime, always-undefined) `.from` read below rather than changing
-    // behavior; a real fix would switch that read to `.sender`.
-    from?: { publicKey: Uint8Array };
-  };
-
 /** WalletConnect v1 session/connector metadata, keyed by client id. */
 export interface ConnectorRecord {
   id?: number | string;
@@ -45,20 +36,6 @@ export interface ConnectorRecord {
     description: string;
     name: string;
   };
-}
-
-export interface DecodedTransactionSummary {
-  index: number;
-  type: string;
-  from?: string;
-  fee?: number;
-  asset: string | number;
-  amount?: number | string;
-  rekeyTo?: string;
-  /** closeRemainderTo (pay) / assetCloseTo (axfer) — drains the entire remaining balance/holding. */
-  closeTo?: string;
-  txn: DecodedAlgorandTransaction;
-  txnB64: string;
 }
 
 export interface StoredRequest {
@@ -87,22 +64,6 @@ interface RequestPayload {
   data: StoredRequest;
 }
 
-/** One decoded item from an ARC-60 `algo_signData` WalletConnect request. */
-export interface StoredSignDataItem {
-  index: number;
-  data: string; // base64
-  dataText?: string;
-  signer: string; // resolved Algorand address
-  domain: string;
-  requestId?: string;
-  authenticatorData: string; // base64
-  hdPath?: string;
-  scope: number;
-  encoding: string;
-  domainValid: boolean;
-  signature?: string; // base64, set once signed
-}
-
 export interface StoredSignDataRequest {
   id: number | string;
   method: string;
@@ -118,25 +79,6 @@ interface SignDataItemPayload {
   requestId: number | string;
   index: number;
 }
-
-/** One entry of the `algo_signTxn` WalletConnect request's params array. */
-interface AlgoSignTxnParam {
-  txn: string;
-}
-
-/**
- * Shape of the raw msgpack-decoded object returned by `algosdk.decodeObj()`
- * for a transaction that may or may not already be signature-wrapped
- * (`{ txn: {...}, sig: ... }`) - `algosdk.decodeObj()` itself is typed to
- * return `unknown` since it can decode arbitrary msgpack, so this describes
- * only the envelope fields this code actually reads before re-encoding and
- * passing the inner txn through `algosdk.decodeUnsignedTransaction()`.
- */
-type RawDecodedTxnEnvelope = Record<string, unknown> & {
-  type?: string;
-  txn?: RawDecodedTxnEnvelope;
-  sig?: Uint8Array;
-};
 
 type SignedTxnMap = Record<string, Uint8Array | null | undefined>;
 
@@ -354,49 +296,7 @@ const actions: ActionTree<WcState, RootState> = {
           ? request.params[0]
           : [];
 
-        const items: StoredSignDataItem[] = [];
-        for (let index = 0; index < rawItems.length; index += 1) {
-          const rawItem = rawItems[index];
-          try {
-            const decoded = decodeArc60Request(rawItem);
-            const domainValid = await validateAuthenticatorDataDomain(
-              decoded.authenticatorData,
-              decoded.domain
-            );
-            let dataText: string | undefined;
-            try {
-              const text = Buffer.from(decoded.data).toString("utf-8");
-              if (/^[\x20-\x7E\s]*$/.test(text)) {
-                dataText = text;
-              }
-            } catch {
-              dataText = undefined;
-            }
-            let signer = rawItem.signer;
-            try {
-              signer = algosdk.encodeAddress(
-                Buffer.from(rawItem.signer, "base64")
-              );
-            } catch {
-              signer = rawItem.signer;
-            }
-            items.push({
-              index,
-              data: rawItem.data,
-              dataText,
-              signer,
-              domain: decoded.domain,
-              requestId: decoded.requestId,
-              authenticatorData: rawItem.authenticatorData,
-              hdPath: decoded.hdPath,
-              scope: decoded.scope,
-              encoding: decoded.encoding,
-              domainValid,
-            });
-          } catch (error) {
-            console.error("Failed to decode algo_signData item", error);
-          }
-        }
+        const items: StoredSignDataItem[] = await decodeArc60Items(rawItems);
 
         const signDataRequest: StoredSignDataRequest = {
           id: ensureNumericId(sessionRequest.id),
@@ -422,85 +322,10 @@ const actions: ActionTree<WcState, RootState> = {
         ? firstParam
         : [];
 
-      const transactions: DecodedTransactionSummary[] = rawTransactions.map(
-        (item, index) => {
-          const txnB64 = String(item?.txn ?? "");
-          const txnBuffer = Buffer.from(txnB64, "base64");
-          const decodedObj = algosdk.decodeObj(
-            txnBuffer
-          ) as RawDecodedTxnEnvelope;
-          let decodedTx = decodedObj;
-          if (!decodedTx.type && decodedTx.txn?.type) {
-            if (decodedTx.sig) {
-              dispatch(
-                "signer/setSigned",
-                { signed: new Uint8Array(txnBuffer) },
-                { root: true }
-              );
-            }
-            decodedTx = decodedTx.txn;
-          }
-          const decoded = algosdk.decodeUnsignedTransaction(
-            algosdk.encodeObj(decodedTx)
-          ) as DecodedAlgorandTransaction;
-
-          let asset: string | number = "";
-          switch (decoded.type) {
-            case "pay":
-              asset = "ALGO";
-              break;
-            case "axfer":
-              asset = decoded.assetTransfer?.assetIndex?.toString() ?? "";
-              break;
-            default:
-              asset = decoded.type ?? "";
-              break;
-          }
-
-          const rawAmount =
-            decoded.payment?.amount ?? decoded.assetTransfer?.amount;
-          let amount: number | string | undefined =
-            typeof rawAmount === "bigint" ? rawAmount.toString() : rawAmount;
-          if (decoded.type === "pay" || decoded.type === "axfer") {
-            if (!amount) {
-              amount = "0";
-            }
-          }
-
-          let from: string | undefined;
-          if (decoded.from?.publicKey) {
-            from = algosdk.encodeAddress(decoded.from.publicKey);
-          }
-
-          let rekeyTo: string | undefined;
-          if (decoded.rekeyTo?.publicKey) {
-            rekeyTo = algosdk.encodeAddress(decoded.rekeyTo.publicKey);
-          }
-
-          let closeTo: string | undefined;
-          const closeAddr =
-            decoded.payment?.closeRemainderTo ??
-            decoded.assetTransfer?.closeRemainderTo;
-          if (closeAddr?.publicKey) {
-            closeTo = algosdk.encodeAddress(closeAddr.publicKey);
-          }
-
-          const feeValue = decoded.fee ?? 0;
-
-          return {
-            index,
-            type: decoded.type ?? "",
-            from,
-            fee: typeof feeValue === "bigint" ? Number(feeValue) : feeValue,
-            asset,
-            amount,
-            rekeyTo,
-            closeTo,
-            txn: decoded,
-            txnB64,
-          };
-        }
-      );
+      const transactions: DecodedTransactionSummary[] =
+        decodeSignTxnTransactions(rawTransactions, (signed) => {
+          dispatch("signer/setSigned", { signed }, { root: true });
+        });
 
       const totalFee = transactions.reduce((fee, tx) => fee + (tx.fee ?? 0), 0);
 

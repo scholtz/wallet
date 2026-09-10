@@ -934,6 +934,28 @@
       "scope": "Amaç",
       "data": "Veri",
       "data_base64": "Veri (base64)"
+    },
+    "liquid": {
+      "tab": "Liquid Auth",
+      "intro": "Connect to a dApp with Liquid Auth: scan or paste the liquid:// link shown by the dApp, choose the account to expose and approve with your passkey. The dApp then talks to this wallet directly over an encrypted peer-to-peer channel.",
+      "uri": "Liquid Auth link (liquid://...)",
+      "account": "Account to connect",
+      "connect": "Connect with passkey",
+      "sessions": "Liquid Auth sessions",
+      "request_id": "Request ID",
+      "origin": "Service",
+      "status": "Status",
+      "status_connecting": "Connecting...",
+      "status_connected": "Connected",
+      "status_disconnected": "Waiting for the dApp",
+      "status_closed": "Closed",
+      "invalid_link": "This is not a valid liquid:// link",
+      "unsupported_account": "Liquid Auth needs an account whose signing key is stored in this wallet (standard or HD account). Ledger, multisig and 2FA accounts are not supported.",
+      "passkey_help": "Your browser will ask you to create or use a passkey (Windows Hello, Touch ID, security key). The passkey is registered with the Liquid Auth service and bound to the selected account; the service must be hosted under this wallet's domain.",
+      "peer_unknown": "Unknown dApp (no metadata announced)",
+      "connected_app_unknown": "Unknown (no Liquid Auth session found for this request)",
+      "session_added": "Liquid Auth session established",
+      "session_removed": "Liquid Auth session closed"
     }
   },
   "arc56": {

@@ -12,6 +12,7 @@ import type { VoteState } from "./vote";
 import type { WalletState } from "./wallet";
 import type { WcState } from "./wc";
 import type { WcClientState } from "./wcClient";
+import type { LiquidState } from "./liquid";
 import type { SignerState } from "./signer";
 import algod from "./algod";
 import axios from "./axios";
@@ -26,6 +27,7 @@ import arc14 from "./arc14";
 import signer from "./signer";
 import wc from "./wc";
 import wcClient from "./wcClient";
+import liquid from "./liquid";
 import fa2 from "./fa2";
 
 export interface RootState {
@@ -42,6 +44,7 @@ export interface RootState {
   signer: SignerState;
   wc: WcState;
   wcClient: WcClientState;
+  liquid: LiquidState;
   fa2: Fa2State;
 }
 
@@ -62,6 +65,7 @@ export const store = createStore<RootState>({
     signer,
     wc,
     wcClient,
+    liquid,
     fa2,
   },
   strict: debugStrict,

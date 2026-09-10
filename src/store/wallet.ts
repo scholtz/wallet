@@ -882,6 +882,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     // if WalletConnect's own teardown throws.
     try {
       await dispatch("wc/reset", null, { root: true });
+      await dispatch("liquid/reset", null, { root: true });
     } catch (err) {
       console.error("Failed to reset wc module state", err);
     }
@@ -1803,6 +1804,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       clearDerivedKeys();
       try {
         await dispatch("wc/reset", null, { root: true });
+      await dispatch("liquid/reset", null, { root: true });
       } catch (err) {
         console.error("Failed to reset wc module state", err);
       }

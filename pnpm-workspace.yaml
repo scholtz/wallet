@@ -1,6 +1,7 @@
 packages:
   - '.'
 allowBuilds:
+  cbor-extract: false
   core-js: false
   cypress: true
   esbuild: true
