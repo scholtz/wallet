@@ -83,6 +83,13 @@ service):
 `wallet.biatec.io` → `liquid.biatec.io` is same-site, so the default (Lax) session cookie is
 sent on the wallet's fetches; no `SameSite=None` change is needed.
 
+### Kubernetes
+
+The production deployment for `liquid.biatec.io` is `k8s/deployment-liquid-auth.yaml`
+(API + MongoDB + Redis in the `awallet` namespace, two ingresses implementing the CORS and
+WebSocket requirements above). See `k8s/README.md` → "Liquid Auth service" for the deploy
+steps and caveats.
+
 ## Testing locally
 
 1. Run the service (`docker compose` in the liquid-auth repo) behind an HTTPS hostname that is a

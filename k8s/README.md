@@ -64,6 +64,36 @@ under `HARBOR_REGISTRY/HARBOR_PROJECT`. `k8s/deployment-*.yaml` keep pulling
 from Docker Hub (unchanged); Harbor is purely an additional push destination,
 not what the cluster deploys from.
 
+## Liquid Auth service (liquid.biatec.io)
+
+`k8s/deployment-liquid-auth.yaml` deploys the Algorand Foundation's Liquid Auth server
+(`ghcr.io/algorandfoundation/liquid-auth:develop`) that backs the wallet's
+**Connect → Liquid Auth** tab and the `biatecLiquid()` dApp adapter, into the same
+`awallet` namespace: the API (2 replicas), a single-node MongoDB with a 5Gi PVC and a
+non-persistent Redis. It is not wired into the GitHub workflows — deploy manually:
+
+```bash
+cd k8s
+./liquid-auth-secrets.sh   # once: SESSION_SECRET + MongoDB root credentials
+./update-liquid-auth.sh    # apply + rollout + smoke test
+```
+
+Notes:
+
+- The RP ID is `biatec.io` and the WebAuthn origin is `https://wallet.biatec.io` only
+  (`www.wallet.biatec.io` cannot register passkeys). See `docs/LIQUID_AUTH.md`.
+- Two Ingress objects share the host on purpose: `/socket.io` (WebSockets, any dApp
+  origin, socket.io's own CORS) and everything else (REST, CORS with credentials for the
+  wallet origin added by nginx). The API ingress uses a `configuration-snippet` to add the
+  `Secure` cookie flag; if the cluster's ingress-nginx has `allow-snippet-annotations`
+  disabled, remove that annotation (the cookie is still HttpOnly + Lax over TLS).
+- MongoDB is a hard dependency of the upstream server (Mongoose models + `connect-mongo`
+  sessions); Redis alone is not enough. To avoid running MongoDB in-cluster, point
+  `DB_HOST`/`DB_ATLAS=true` at a hosted MongoDB (Atlas free tier) instead and drop the
+  mongo Deployment/PVC.
+- Upstream publishes no release tags yet — pin `develop` to a digest or mirror the image
+  before treating this as production.
+
 ## Notes
 
 - All 6 deployments (`awallet-arc56-registry-main`,
