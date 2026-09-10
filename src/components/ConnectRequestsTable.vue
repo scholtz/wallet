@@ -567,9 +567,12 @@ interface RequestItem {
 const props = defineProps<{
   requests: RequestItem[];
   accountAddress?: string;
+  /** Store module that owns these requests: WalletConnect (default) or Liquid Auth. */
+  namespace?: "wc" | "liquid";
 }>();
 
 const requests = computed(() => props.requests);
+const ns = computed(() => props.namespace ?? "wc");
 
 const store = useStore();
 const { t } = useI18n();
@@ -770,7 +773,7 @@ const clickSign = async (data: TransactionWrapper) => {
 const clickAccept = async (data: RequestItem) => {
   await prolong();
   try {
-    await store.dispatch("wc/sendResult", { data });
+    await store.dispatch(`${ns.value}/sendResult`, { data });
     await store.dispatch("toast/openSuccess", {
       severity: "info",
       summary: "Request accepted",
@@ -788,7 +791,7 @@ const clickAccept = async (data: RequestItem) => {
 
 const clickReject = async (data: RequestItem) => {
   await prolong();
-  await store.dispatch("wc/cancelRequest", { data });
+  await store.dispatch(`${ns.value}/cancelRequest`, { data });
   await store.dispatch("toast/openSuccess", {
     severity: "info",
     summary: "Request rejected",

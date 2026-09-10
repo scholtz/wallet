@@ -79,7 +79,9 @@
                     {{
                       sessionPeer(slotProps.data.topic)?.name ||
                       sessionPeer(slotProps.data.topic)?.url ||
-                      $t("connect.arc60.connected_app_unknown")
+                      (ns === "liquid"
+                        ? $t("connect.liquid.connected_app_unknown")
+                        : $t("connect.arc60.connected_app_unknown"))
                     }}
                     <span v-if="sessionPeer(slotProps.data.topic)?.url">
                       ({{ sessionPeer(slotProps.data.topic)?.url }})
@@ -123,9 +125,12 @@ import type {
 
 const props = defineProps<{
   requests: StoredSignDataRequest[];
+  /** Store module that owns these requests: WalletConnect (default) or Liquid Auth. */
+  namespace?: "wc" | "liquid";
 }>();
 
 const requests = computed(() => props.requests);
+const ns = computed(() => props.namespace ?? "wc");
 
 const store = useStore();
 
@@ -143,7 +148,9 @@ const scopeLabel = (scope: number): string =>
 // WalletConnect session's actual peer identity alongside it so the user has
 // something independent to compare against.
 const sessionPeer = (topic: string) =>
-  store.state.wc.activeSessions.find((s) => s.topic === topic)?.peer;
+  ns.value === "liquid"
+    ? store.state.liquid.sessions.find((s) => s.requestId === topic)?.peer
+    : store.state.wc.activeSessions.find((s) => s.topic === topic)?.peer;
 
 const atLeastOneSigned = (data: StoredSignDataRequest) =>
   data.items.some((item) => Boolean(item.signature));
@@ -154,7 +161,7 @@ const clickSign = async (
 ) => {
   try {
     await prolong();
-    await store.dispatch("wc/signSignDataItem", {
+    await store.dispatch(`${ns.value}/signSignDataItem`, {
       requestId: data.id,
       index: item.index,
     });
@@ -189,7 +196,7 @@ const clickSignAll = async (data: StoredSignDataRequest) => {
 const clickAccept = async (data: StoredSignDataRequest) => {
   await prolong();
   try {
-    await store.dispatch("wc/sendSignDataResult", { data });
+    await store.dispatch(`${ns.value}/sendSignDataResult`, { data });
     await store.dispatch("toast/openSuccess", {
       severity: "info",
       summary: "Request accepted",
@@ -207,7 +214,7 @@ const clickAccept = async (data: StoredSignDataRequest) => {
 
 const clickReject = async (data: StoredSignDataRequest) => {
   await prolong();
-  await store.dispatch("wc/cancelSignDataRequest", { data });
+  await store.dispatch(`${ns.value}/cancelSignDataRequest`, { data });
   await store.dispatch("toast/openSuccess", {
     severity: "info",
     summary: "Request rejected",

@@ -591,6 +591,50 @@ const actions: ActionTree<SignerState, RootState> = {
       `Arbitrary data signing is not supported for account ${signerAccount.addr}`,
     );
   },
+  /**
+   * Sign a Liquid Auth passkey challenge with the account's Algorand key (raw ed25519
+   * signature over the challenge bytes, as verified by the Liquid Auth service's
+   * "liquid" extension). Resolves rekeys the same way as signArc60Data. Only accounts whose
+   * signing key lives in this wallet (sk / HD) can be linked via Liquid Auth.
+   */
+  async signLiquidChallenge(
+    { dispatch, rootState },
+    payload: { from: string; challenge: Uint8Array },
+  ): Promise<Uint8Array> {
+    const baseAccount = ensureAccount(rootState, payload.from);
+    const env = ensureEnv(rootState);
+    const signerAccount = resolveEnvRekey(rootState, baseAccount, env, payload.from);
+    if (signerAccount.type === "hd") {
+      if (!signerAccount.hdRootAddr) {
+        throw new Error("HD wallet root account address was not found");
+      }
+      const rootAccount = ensureAccount(rootState, signerAccount.hdRootAddr);
+      if (!rootAccount.hdMnemonic) {
+        throw new Error("HD wallet master mnemonic was not found");
+      }
+      // signArc60DigestWithHd is a raw ed25519 signature over the given bytes
+      // (encoding NONE), which is exactly what the Liquid extension expects.
+      return await signArc60DigestWithHd(
+        rootAccount.hdMnemonic,
+        signerAccount.hdAccountIndex ?? 0,
+        payload.challenge,
+      );
+    }
+    if (signerAccount.sk) {
+      const sk: Uint8Array | null = await dispatch(
+        "wallet/getSK",
+        { addr: signerAccount.addr },
+        { root: true },
+      );
+      if (!sk) {
+        throw new Error("Private key not found");
+      }
+      return signArc60DigestWithSk(payload.challenge, sk);
+    }
+    throw new Error(
+      `Liquid Auth is not supported for account ${signerAccount.addr} (${signerAccount.type ?? "unknown"} account)`,
+    );
+  },
   async createMultisigTransaction(
     { rootState },
     { txn }: { txn: algosdk.Transaction },

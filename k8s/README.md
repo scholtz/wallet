@@ -64,6 +64,71 @@ under `HARBOR_REGISTRY/HARBOR_PROJECT`. `k8s/deployment-*.yaml` keep pulling
 from Docker Hub (unchanged); Harbor is purely an additional push destination,
 not what the cluster deploys from.
 
+## Liquid Auth service (stage.liquid.biatec.io / liquid.biatec.io)
+
+The Algorand Foundation's Liquid Auth server backs the wallet's **Connect → Liquid Auth**
+tab and the `biatecLiquid()` dApp adapter (see `docs/LIQUID_AUTH.md`). It is deployed by
+**`.github/workflows/liquid-auth.yml`** with the same two-stage model as the wallet:
+
+| Job | Environment | Manifest | URL | Trigger |
+| --- | --- | --- | --- | --- |
+| `deploy-stage` | **`Stage`** | `k8s/deployment-liquid-auth-stage.yaml` | `https://stage.liquid.biatec.io` | automatic on every push to `master` that touches either manifest or the workflow; also **Actions → Deploy Liquid Auth service → Run workflow** |
+| `deploy-production` | **`Production`** | `k8s/deployment-liquid-auth-stable.yaml` | `https://liquid.biatec.io` | runs after `deploy-stage` succeeded and **pauses for the `Production` required reviewer**; skipped on manual runs when *deploy_production* is unticked |
+
+Each environment gets its own API deployment (1 replica on stage, 2 on production),
+single-node MongoDB with a PVC (2Gi / 5Gi) and non-persistent Redis, all in the `awallet`
+namespace, plus two ingresses per host (`/socket.io` for WebSocket signaling from any dApp
+origin; everything else with CORS-with-credentials for the wallet origins). Image:
+`ghcr.io/algorandfoundation/liquid-auth:develop` (upstream publishes no release tags yet —
+pin a digest or mirror to Docker Hub before relying on it).
+
+### Secrets to configure
+
+Environment-scoped (Settings → Environments → *environment name* → Environment secrets),
+set in **both** `Stage` and `Production` (different values per environment):
+
+| Secret | Description |
+| --- | --- |
+| `KUBE_CONFIG` | Already exists for the wallet deployments — the same base64 kubeconfig for the `awallet` namespace is reused. |
+| `LIQUID_AUTH_SESSION_SECRET` | Secret for the service's express-session cookies. Generate with `openssl rand -hex 32`. Changing it logs every wallet out of the service (they re-authenticate with their passkey on the next connection). |
+| `LIQUID_AUTH_DB_PASSWORD` | MongoDB root password. Generate with `openssl rand -hex 24`. **Only applied when the MongoDB volume is first initialised** — to rotate it later, change it inside MongoDB (`db.changeUserPassword`) before updating the secret, or delete the PVC (drops all registered passkeys). |
+| `LIQUID_AUTH_DB_USERNAME` | *Optional.* MongoDB root user, default `algorand`. |
+
+The workflow writes these into the k8s Secret `liquid-auth-stage-secrets` /
+`liquid-auth-secrets` on every run (`kubectl apply` of a client-side dry-run), so the
+GitHub secrets are the source of truth. Nothing else is needed: TLS certificates come from
+the `letsencrypt` cluster issuer, DNS for both hosts must point at the ingress.
+
+### Domains and passkeys
+
+- RP ID (`HOSTNAME`) is `biatec.io` on both environments — passkeys work only from wallet
+  hosts under `biatec.io`, never from `*.a-wallet.net`.
+- The upstream server verifies passkey ceremonies against **one** web origin (`ORIGIN`):
+  `https://wallet.biatec.io` on production, `https://stage.wallet.biatec.io` on stage.
+  Additional wallet hosts are listed in the API ingress `cors-allow-origin` annotation
+  (stage: `stage.`, `main.`, `dev.`, `test.wallet.biatec.io`; production: `wallet.` and
+  `www.wallet.biatec.io`) so they can read the REST API, but their passkey
+  registration/authentication is rejected by the server. Edit the annotation (and, to move
+  the passkey origin, `ORIGIN`) in the manifest — the workflow picks the change up.
+- dApps test against stage with `biatecLiquid({ origin: 'https://stage.liquid.biatec.io' })`;
+  the adapter defaults to production.
+
+### Manual deploy / first-time notes
+
+`k8s/update-liquid-auth.sh stage|stable` applies a manifest by hand (it creates the k8s
+Secret with random values via `k8s/liquid-auth-secrets.sh` if it doesn't exist yet — if you
+later switch to the workflow, set the GitHub secrets to the same values or accept a
+one-time logout / fresh DB).
+
+- The API ingress uses a `configuration-snippet` (`proxy_cookie_flags ~ secure`) to add the
+  `Secure` flag to the session cookie, because the app itself runs with
+  `SESSION_SECURE=false` (TLS terminates at the ingress and the app does not trust the
+  proxy). If the cluster's ingress-nginx has `allow-snippet-annotations` disabled, remove
+  that annotation; the cookie stays HttpOnly + Lax over TLS.
+- MongoDB is a hard dependency of the upstream server (Mongoose + `connect-mongo`); Redis
+  alone is not enough. To avoid in-cluster MongoDB, set `DB_HOST`/`DB_ATLAS=true` to a
+  hosted MongoDB (Atlas free tier) and drop the mongo Deployment/PVC from the manifest.
+
 ## Notes
 
 - All 6 deployments (`awallet-arc56-registry-main`,

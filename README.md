@@ -16,6 +16,7 @@ https://forum.algorand.org/t/algorand-wallet-open-source/3497
 - Multilanguage support
 - Rekeying of standard accounts, multisig accounts and rekeyed accounts
 - Connecting to DApps using WalletConnect
+- Connecting to DApps using [Liquid Auth](docs/LIQUID_AUTH.md) (passkey-linked, peer-to-peer WebRTC; ARC-0001 and ARC-0060 signing)
 
 Source code: https://github.com/scholtz/wallet
 
