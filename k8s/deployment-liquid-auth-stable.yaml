@@ -68,6 +68,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  storageClassName: nfs-slow-retain
   resources:
     requests:
       storage: 5Gi
