@@ -23,8 +23,9 @@ case "$ENV_NAME" in
 esac
 
 ./liquid-auth-secrets.sh "$ENV_NAME"
+kubectl delete deployment "$PREFIX-mongo-deployment" -n "$NAMESPACE" --ignore-not-found
 kubectl apply -f "$MANIFEST" -n "$NAMESPACE"
-kubectl rollout status "deployment/$PREFIX-mongo-deployment" -n "$NAMESPACE"
+kubectl rollout status "statefulset/$PREFIX-mongo" -n "$NAMESPACE"
 # Redis reads REDIS_PASSWORD only at process start; restart so requirepass matches the API.
 kubectl rollout restart "deployment/$PREFIX-redis-deployment" -n "$NAMESPACE"
 kubectl rollout status "deployment/$PREFIX-redis-deployment" -n "$NAMESPACE"

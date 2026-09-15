@@ -60,31 +60,25 @@ data:
   ALGOD_TOKEN: ""
 ---
 # ---------------------------------------------------------------- MongoDB
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: liquid-auth-mongo-data
-  namespace: awallet
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: nfs-slow-retain
-  resources:
-    requests:
-      storage: 5Gi
----
+# StatefulSet so kube-controller-manager creates the nfs-slow-retain PVC
+# (`data-liquid-auth-mongo-0`). A standalone PVC is easy to lose:
+# storageClassName is immutable, kubectl apply still updates the Deployment
+# after a failed PVC patch, and the scheduler then reports
+# persistentvolumeclaim "…" not found.
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: liquid-auth-mongo-deployment
+  name: liquid-auth-mongo
   namespace: awallet
 spec:
+  serviceName: liquid-auth-mongo-service
+  replicas: 1
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
   selector:
     matchLabels:
       app: liquid-auth-mongo
-  replicas: 1
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
@@ -134,10 +128,16 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data/db
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: liquid-auth-mongo-data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: nfs-slow-retain
+        resources:
+          requests:
+            storage: 5Gi
 ---
 apiVersion: v1
 kind: Service

@@ -38,7 +38,7 @@ jobs:
       SECRET_NAME: liquid-auth-stage-secrets
       DEPLOYMENT: liquid-auth-stage-deployment
       REDIS_DEPLOYMENT: liquid-auth-stage-redis-deployment
-      MONGO_DEPLOYMENT: liquid-auth-stage-mongo-deployment
+      MONGO_STATEFULSET: liquid-auth-stage-mongo
       URL: https://stage.liquid.biatec.io
     steps:
       - name: Checkout
@@ -74,8 +74,7 @@ jobs:
         # Same safeguard as the wallet workflows (k8s/README.md): a probe handler added
         # out-of-band would make `kubectl apply` fail with "may not specify more than 1 handler".
         run: |
-          for d in liquid-auth-stage-mongo-deployment:mongo \
-                   liquid-auth-stage-redis-deployment:redis \
+          for d in liquid-auth-stage-redis-deployment:redis \
                    liquid-auth-stage-deployment:liquid-auth; do
             deployment="${d%%:*}"
             container="${d##*:}"
@@ -83,13 +82,21 @@ jobs:
               "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"$container\",\"readinessProbe\":{\"httpGet\":null,\"exec\":null,\"grpc\":null},\"livenessProbe\":{\"httpGet\":null,\"exec\":null,\"grpc\":null}}]}}}}" \
               2>/dev/null || true
           done
+          kubectl patch statefulset liquid-auth-stage-mongo -n awallet --type strategic -p \
+            '{"spec":{"template":{"spec":{"containers":[{"name":"mongo","readinessProbe":{"httpGet":null,"exec":null,"grpc":null},"livenessProbe":{"httpGet":null,"exec":null,"grpc":null}}]}}}}' \
+            2>/dev/null || true
 
       - name: Apply manifest
-        run: kubectl apply -f "$MANIFEST" -n awallet
+        run: |
+          # Drop the pre-StatefulSet Mongo Deployment: kubectl apply does not delete
+          # removed resources, and that Deployment still mounts liquid-auth-stage-mongo-data
+          # (the missing PVC that pending-schedules as "not found").
+          kubectl delete deployment liquid-auth-stage-mongo-deployment -n awallet --ignore-not-found
+          kubectl apply -f "$MANIFEST" -n awallet
 
       - name: Roll out
         run: |
-          kubectl rollout status deployment/"$MONGO_DEPLOYMENT" -n awallet --timeout=300s
+          kubectl rollout status statefulset/"$MONGO_STATEFULSET" -n awallet --timeout=300s
           # Redis reads REDIS_PASSWORD only at process start; restart it after the secret
           # upsert so requirepass matches the API before Nest connects.
           kubectl rollout restart deployment/"$REDIS_DEPLOYMENT" -n awallet
@@ -124,7 +131,7 @@ jobs:
       SECRET_NAME: liquid-auth-secrets
       DEPLOYMENT: liquid-auth-deployment
       REDIS_DEPLOYMENT: liquid-auth-redis-deployment
-      MONGO_DEPLOYMENT: liquid-auth-mongo-deployment
+      MONGO_STATEFULSET: liquid-auth-mongo
       URL: https://liquid.biatec.io
     steps:
       - name: Checkout
@@ -153,8 +160,7 @@ jobs:
 
       - name: Clear stray probe handlers
         run: |
-          for d in liquid-auth-mongo-deployment:mongo \
-                   liquid-auth-redis-deployment:redis \
+          for d in liquid-auth-redis-deployment:redis \
                    liquid-auth-deployment:liquid-auth; do
             deployment="${d%%:*}"
             container="${d##*:}"
@@ -162,13 +168,18 @@ jobs:
               "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"$container\",\"readinessProbe\":{\"httpGet\":null,\"exec\":null,\"grpc\":null},\"livenessProbe\":{\"httpGet\":null,\"exec\":null,\"grpc\":null}}]}}}}" \
               2>/dev/null || true
           done
+          kubectl patch statefulset liquid-auth-mongo -n awallet --type strategic -p \
+            '{"spec":{"template":{"spec":{"containers":[{"name":"mongo","readinessProbe":{"httpGet":null,"exec":null,"grpc":null},"livenessProbe":{"httpGet":null,"exec":null,"grpc":null}}]}}}}' \
+            2>/dev/null || true
 
       - name: Apply manifest
-        run: kubectl apply -f "$MANIFEST" -n awallet
+        run: |
+          kubectl delete deployment liquid-auth-mongo-deployment -n awallet --ignore-not-found
+          kubectl apply -f "$MANIFEST" -n awallet
 
       - name: Roll out
         run: |
-          kubectl rollout status deployment/"$MONGO_DEPLOYMENT" -n awallet --timeout=300s
+          kubectl rollout status statefulset/"$MONGO_STATEFULSET" -n awallet --timeout=300s
           kubectl rollout restart deployment/"$REDIS_DEPLOYMENT" -n awallet
           kubectl rollout status deployment/"$REDIS_DEPLOYMENT" -n awallet --timeout=120s
           kubectl rollout restart deployment/"$DEPLOYMENT" -n awallet

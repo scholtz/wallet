@@ -76,7 +76,8 @@ tab and the `biatecLiquid()` dApp adapter (see `docs/LIQUID_AUTH.md`). It is dep
 | `deploy-production` | **`Production`** | `k8s/deployment-liquid-auth-stable.yaml` | `https://liquid.biatec.io`       | runs after `deploy-stage` succeeded and **pauses for the `Production` required reviewer**; skipped on manual runs when _deploy_production_ is unticked |
 
 Each environment gets its own API deployment (1 replica on stage, 2 on production),
-single-node MongoDB with a PVC (2Gi / 5Gi) and non-persistent Redis (`requirepass` =
+single-node MongoDB as a StatefulSet (`nfs-slow-retain` PVC `data-liquid-auth-stage-mongo-0` /
+`data-liquid-auth-mongo-0`, 2Gi / 5Gi) and non-persistent Redis (`requirepass` =
 `LIQUID_AUTH_REDIS_PASSWORD`; ioredis hangs forever if `REDIS_USERNAME=default` is set with
 an empty password), all in the `awallet` namespace, plus two ingresses per host (`/socket.io`
 for WebSocket signaling from any dApp origin; everything else with CORS-with-credentials
