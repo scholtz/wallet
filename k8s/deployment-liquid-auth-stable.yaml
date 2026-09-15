@@ -84,10 +84,24 @@ spec:
       labels:
         app: liquid-auth-mongo
     spec:
+      # Official mongo:7.0 entrypoint chowns /data/db when uid=0. nfs-slow-retain
+      # is typically root_squash, so that chown fails with "Operation not permitted"
+      # and the container never starts mongod. Run as the image's mongodb user
+      # (uid/gid 999) so the entrypoint skips chown.
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: mongo
           image: mongo:7.0
           imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
           env:
             - name: MONGO_INITDB_DATABASE
               valueFrom:
