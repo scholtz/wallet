@@ -76,9 +76,12 @@ tab and the `biatecLiquid()` dApp adapter (see `docs/LIQUID_AUTH.md`). It is dep
 | `deploy-production` | **`Production`** | `k8s/deployment-liquid-auth-stable.yaml` | `https://liquid.biatec.io` | runs after `deploy-stage` succeeded and **pauses for the `Production` required reviewer**; skipped on manual runs when *deploy_production* is unticked |
 
 Each environment gets its own API deployment (1 replica on stage, 2 on production),
-single-node MongoDB with a PVC (2Gi / 5Gi) and non-persistent Redis, all in the `awallet`
-namespace, plus two ingresses per host (`/socket.io` for WebSocket signaling from any dApp
-origin; everything else with CORS-with-credentials for the wallet origins). Image:
+single-node MongoDB with a PVC (2Gi / 5Gi) and non-persistent Redis (`requirepass` =
+`LIQUID_AUTH_REDIS_PASSWORD`; ioredis hangs forever if `REDIS_USERNAME=default` is set with
+an empty password), all in the `awallet` namespace, plus two ingresses per host (`/socket.io`
+for WebSocket signaling from any dApp origin; everything else with CORS-with-credentials
+for the wallet origins). The API pod waits for Mongo/Redis via init containers and uses a
+startup probe so kubelet does not SIGTERM Nest before it binds `:3000`. Image:
 `ghcr.io/algorandfoundation/liquid-auth:develop` (upstream publishes no release tags yet —
 pin a digest or mirror to Docker Hub before relying on it).
 
@@ -91,12 +94,14 @@ set in **both** `Stage` and `Production` (different values per environment):
 | --- | --- |
 | `KUBE_CONFIG` | Already exists for the wallet deployments — the same base64 kubeconfig for the `awallet` namespace is reused. |
 | `LIQUID_AUTH_SESSION_SECRET` | Secret for the service's express-session cookies. Generate with `openssl rand -hex 32`. Changing it logs every wallet out of the service (they re-authenticate with their passkey on the next connection). |
-| `LIQUID_AUTH_DB_PASSWORD` | MongoDB root password. Generate with `openssl rand -hex 24`. **Only applied when the MongoDB volume is first initialised** — to rotate it later, change it inside MongoDB (`db.changeUserPassword`) before updating the secret, or delete the PVC (drops all registered passkeys). |
+| `LIQUID_AUTH_DB_PASSWORD` | MongoDB root password only. Generate with `openssl rand -hex 24`. **Only applied when the MongoDB volume is first initialised** — to rotate it later, change it inside MongoDB (`db.changeUserPassword`) before updating the secret, or delete the PVC (drops all registered passkeys). |
+| `LIQUID_AUTH_REDIS_PASSWORD` | Redis `requirepass` and the API's `REDIS_PASSWORD` (must match each other; independent of Mongo). Generate with `openssl rand -hex 24`. The workflow upserts this into the k8s Secret as `REDIS_PASSWORD` and restarts Redis so `requirepass` is picked up. An empty value with `REDIS_USERNAME=default` makes ioredis AUTH-retry forever. |
 | `LIQUID_AUTH_DB_USERNAME` | *Optional.* MongoDB root user, default `algorand`. |
 
 The workflow writes these into the k8s Secret `liquid-auth-stage-secrets` /
-`liquid-auth-secrets` on every run (`kubectl apply` of a client-side dry-run), so the
-GitHub secrets are the source of truth. Nothing else is needed: TLS certificates come from
+`liquid-auth-secrets` on every run (`kubectl create … --dry-run=client \| kubectl apply`),
+so the GitHub secrets are the source of truth and missing keys (e.g. a first-time
+`REDIS_PASSWORD`) are added. Nothing else is needed: TLS certificates come from
 the `letsencrypt` cluster issuer, DNS for both hosts must point at the ingress.
 
 ### Domains and passkeys

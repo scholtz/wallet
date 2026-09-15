@@ -12,7 +12,8 @@
 #   kubectl create secret generic liquid-auth-secrets -n awallet \
 #     --from-literal=SESSION_SECRET="$(openssl rand -hex 32)" \
 #     --from-literal=DB_USERNAME=algorand \
-#     --from-literal=DB_PASSWORD="$(openssl rand -hex 24)"
+#     --from-literal=DB_PASSWORD="$(openssl rand -hex 24)" \
+#     --from-literal=REDIS_PASSWORD="$(openssl rand -hex 24)"
 #   (or run k8s/liquid-auth-secrets.sh stable). Applied by .github/workflows/liquid-auth.yml
 #   (Production environment, manual approval) or manually with k8s/update-liquid-auth.sh stable.
 #   The stage twin is k8s/deployment-liquid-auth-stage.yaml (stage.liquid.biatec.io).
@@ -50,7 +51,9 @@ data:
   REDIS_HOST: "liquid-auth-redis-service"
   REDIS_PORT: "6379"
   REDIS_USERNAME: "default"
-  REDIS_PASSWORD: ""
+  # REDIS_PASSWORD is injected from the k8s Secret (GitHub LIQUID_AUTH_REDIS_PASSWORD),
+  # not this ConfigMap. An empty password with username "default" makes ioredis
+  # AUTH-retry forever, so Nest never reaches app.listen().
   # Used to resolve rekeyed accounts when verifying the account signature over the challenge.
   ALGOD_SERVER: "https://mainnet-api.4160.nodely.dev"
   ALGOD_PORT: "443"
@@ -170,8 +173,17 @@ spec:
         - name: redis
           image: redis:7-alpine
           imagePullPolicy: IfNotPresent
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: liquid-auth-secrets
+                  key: REDIS_PASSWORD
           # Pub/sub + socket.io adapter only; nothing worth persisting.
-          args: ["--save", "", "--appendonly", "no"]
+          # requirepass must match the app's REDIS_PASSWORD (see liquid-auth env).
+          command: ["sh", "-c"]
+          args:
+            - exec redis-server --save "" --appendonly no --requirepass "$REDIS_PASSWORD"
           ports:
             - containerPort: 6379
               protocol: TCP
@@ -226,6 +238,23 @@ spec:
       labels:
         app: liquid-auth
     spec:
+      # NestFactory.create() + RedisIoAdapter.connectToRedis() happen before
+      # app.listen(3000). Without these waits the API process sits on a closed
+      # Mongo/Redis socket; the old 15s liveness probe then SIGTERMs it
+      # (`npm error signal SIGTERM`) before it ever binds the port.
+      initContainers:
+        - name: wait-for-mongo
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z liquid-auth-mongo-service 27017; do echo waiting for mongo; sleep 2; done
+        - name: wait-for-redis
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z liquid-auth-redis-service 6379; do echo waiting for redis; sleep 2; done
       containers:
         - name: liquid-auth
           image: ghcr.io/algorandfoundation/liquid-auth:develop
@@ -249,22 +278,34 @@ spec:
                 secretKeyRef:
                   name: liquid-auth-secrets
                   key: DB_PASSWORD
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: liquid-auth-secrets
+                  key: REDIS_PASSWORD
           ports:
             - containerPort: 3000
               protocol: TCP
+          # startupProbe gates liveness until Nest has bound :3000 (Mongo
+          # auth + Redis AUTH can take well over the old 15s liveness window).
+          startupProbe:
+            tcpSocket:
+              port: 3000
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 36
           readinessProbe:
             tcpSocket:
               port: 3000
-            initialDelaySeconds: 5
+            periodSeconds: 5
             timeoutSeconds: 5
-            failureThreshold: 2
+            failureThreshold: 3
           livenessProbe:
             tcpSocket:
               port: 3000
-            initialDelaySeconds: 15
+            periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 2
-            terminationGracePeriodSeconds: 1
+            failureThreshold: 3
           resources:
             requests:
               cpu: 50m

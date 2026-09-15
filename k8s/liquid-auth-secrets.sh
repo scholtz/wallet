@@ -5,9 +5,11 @@
 #
 # Usage: ./liquid-auth-secrets.sh stage|stable
 #
-# Idempotent: does nothing if the secret already exists. Rotating SESSION_SECRET logs every
-# wallet out of the service; DB_PASSWORD only applies to a fresh MongoDB volume (MongoDB keeps
-# the root password it was initialised with).
+# Idempotent: does nothing if the secret already exists. The GitHub workflow upserts
+# from LIQUID_AUTH_* environment secrets on every run. Rotating SESSION_SECRET logs every
+# wallet out of the service; DB_PASSWORD only applies to a fresh MongoDB volume (MongoDB
+# keeps the root password it was initialised with); REDIS_PASSWORD takes effect on the
+# next Redis restart.
 set -euo pipefail
 
 ENV_NAME="${1:-stable}"
@@ -26,6 +28,7 @@ fi
 kubectl create secret generic "$SECRET_NAME" -n "$NAMESPACE" \
   --from-literal=SESSION_SECRET="$(openssl rand -hex 32)" \
   --from-literal=DB_USERNAME="${DB_USERNAME:-algorand}" \
-  --from-literal=DB_PASSWORD="$(openssl rand -hex 24)"
+  --from-literal=DB_PASSWORD="$(openssl rand -hex 24)" \
+  --from-literal=REDIS_PASSWORD="$(openssl rand -hex 24)"
 
 echo "created $SECRET_NAME in namespace $NAMESPACE"

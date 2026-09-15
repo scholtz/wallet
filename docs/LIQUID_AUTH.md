@@ -65,7 +65,7 @@ ORIGIN=https://wallet.biatec.io    # WebAuthn origin the passkeys are created fr
 SESSION_SECURE=true
 SESSION_SECRET=<random secret>
 DB_HOST=… DB_USERNAME=… DB_PASSWORD=… DB_NAME=liquid   # MongoDB
-REDIS_HOST=… REDIS_PORT=6379                           # Redis (socket.io adapter + auth events)
+REDIS_HOST=… REDIS_PORT=6379 REDIS_USERNAME=default REDIS_PASSWORD=…  # Redis (socket.io adapter)
 ALGOD_SERVER=https://mainnet-api.4160.nodely.dev       # resolves rekeyed accounts when verifying signatures
 ```
 
@@ -91,7 +91,11 @@ sent on the wallet's fetches; no `SameSite=None` change is needed.
 (API + MongoDB + Redis) into the `awallet` namespace with the two ingresses implementing the
 CORS and WebSocket requirements above. `.github/workflows/liquid-auth.yml` applies them with
 the wallet's Stage → Production flow; the GitHub secrets to configure and the domain/passkey
-caveats are documented in `k8s/README.md` → "Liquid Auth service".
+caveats are documented in `k8s/README.md` → "Liquid Auth service". Set both
+`LIQUID_AUTH_DB_PASSWORD` (Mongo) and `LIQUID_AUTH_REDIS_PASSWORD` (Redis / API
+`REDIS_PASSWORD`) as Stage and Production environment secrets — they are independent.
+The workflow upserts them into the k8s Secret on every run. An empty Redis password
+with `REDIS_USERNAME=default` makes ioredis AUTH-retry forever.
 
 ## Testing locally
 
