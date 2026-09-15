@@ -15,7 +15,7 @@ for `@txnlab/use-wallet` v5; the normative protocol description lives there in
    expose, click **Connect with passkey**.
 3. The browser asks for a passkey (Windows Hello, Touch ID, security key…). The first time for a
    given account and service a passkey is created; later connections reuse it.
-4. The session appears in the sessions table with status *Connected*. Signing requests from the
+4. The session appears in the sessions table with status _Connected_. Signing requests from the
    dApp show up in the same request tables as WalletConnect requests (transactions with the
    simulation preview, ARC-60 data-signing requests) and are approved the same way.
 
@@ -27,12 +27,12 @@ Ledger, multisig, 2FA and Falcon accounts are not offered.
 
 - **Authentication** (`src/scripts/liquid/webauthn.ts`): FIDO2 attestation/assertion against the
   service named in the link, with the `liquid` extension `{ type: 'algorand', address,
-  signature, requestId, device }`. The challenge is signed by `signer/signLiquidChallenge`
+signature, requestId, device }`. The challenge is signed by `signer/signLiquidChallenge`
   (raw ed25519 over the challenge bytes, rekeys resolved like ARC-60 signing). The credential
   id is persisted per `(service, address)` in the encrypted wallet blob (key
   `liquid:cred:<origin>:<address>` via the generic `wallet/wcSetItem` storage).
 - **Signaling + WebRTC** (`src/shared/liquid.ts`): socket.io to the service with the session
-  cookie; the wallet is the *offer* peer: it creates the `liquid` data channel, emits
+  cookie; the wallet is the _offer_ peer: it creates the `liquid` data channel, emits
   `offer-description` / `offer-candidate`, applies the dApp's answer, and renegotiates when the
   service's `presence` event shows both peers present but the channel closed (e.g. the dApp
   reloaded). ICE uses public Google STUN servers.
@@ -44,7 +44,7 @@ Ledger, multisig, 2FA and Falcon accounts are not offered.
 - **Responses**: `sign_transactions` returns the signed transaction bytes positionally with
   `null` for unsigned positions; `sign_data` returns one base64url signature per item. User
   rejection returns error `4001`.
-- **Trust model**: the service proves *the wallet* to the dApp (passkey + account signature),
+- **Trust model**: the service proves _the wallet_ to the dApp (passkey + account signature),
   not the dApp to the wallet. The dApp's name/URL come from its hello message and are shown to
   the user; ARC-60 signing additionally requires the request's domain to match that declared
   URL (`signer/signArc60Data` with `sessionOrigin`), mirroring the WalletConnect checks.

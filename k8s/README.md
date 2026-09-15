@@ -34,24 +34,24 @@ new environments are needed — just make sure each has the secrets below.
 Repo-level (Settings → Secrets and variables → Actions → Repository
 secrets), shared by both workflows regardless of environment:
 
-| Secret | Description |
-| --- | --- |
-| `DOCKERHUB_USERNAME` | Docker Hub username that owns the `scholtz2` namespace. |
-| `DOCKERHUB_TOKEN` | Docker Hub **access token**, not your account password (hub.docker.com → Account Settings → Security → New Access Token). |
-| `HARBOR_REGISTRY` | Harbor host, no scheme, e.g. `harbor.example.com` or `harbor.example.com:443`. |
-| `HARBOR_PROJECT` | Harbor project/namespace the image is pushed under, e.g. `awallet`. |
-| `HARBOR_USERNAME` | Harbor username — a robot account scoped to `HARBOR_PROJECT` with push rights is recommended over a personal account. |
-| `HARBOR_PASSWORD` | Harbor password or robot account token. |
+| Secret               | Description                                                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `DOCKERHUB_USERNAME` | Docker Hub username that owns the `scholtz2` namespace.                                                                   |
+| `DOCKERHUB_TOKEN`    | Docker Hub **access token**, not your account password (hub.docker.com → Account Settings → Security → New Access Token). |
+| `HARBOR_REGISTRY`    | Harbor host, no scheme, e.g. `harbor.example.com` or `harbor.example.com:443`.                                            |
+| `HARBOR_PROJECT`     | Harbor project/namespace the image is pushed under, e.g. `awallet`.                                                       |
+| `HARBOR_USERNAME`    | Harbor username — a robot account scoped to `HARBOR_PROJECT` with push rights is recommended over a personal account.     |
+| `HARBOR_PASSWORD`    | Harbor password or robot account token.                                                                                   |
 
-Environment-scoped (Settings → Environments → *environment name* → Environment secrets):
+Environment-scoped (Settings → Environments → _environment name_ → Environment secrets):
 
-| Environment | Secret | Description |
-| --- | --- | --- |
-| `Stage` | `KUBE_CONFIG` | Base64-encoded kubeconfig for a service account that can manage Deployments/Services/ConfigMaps in the `awallet` namespace. Generate with `cat your-kubeconfig.yaml \| base64 -w0`. Prefer a namespace-scoped service account token over a full-admin kubeconfig. |
-| `Stage` | `AWALLET_MAIN_CONFIG_JSON` | Raw JSON content of the main deployment's runtime `config.json`, mounted via the `awallet-main-conf` ConfigMap. Previously only ever existed on the old deploy server (`k8s/conf/config.json`, gitignored). |
-| `Production` | `KUBE_CONFIG` | Same as above — can point at the same cluster/namespace as `Stage`'s, GitHub keeps the values separate per environment either way. |
-| `Production` | `AWALLET_STABLE_CONFIG_JSON` | Raw JSON content of the **AWallet** stable config, mounted via the `awallet-stable-conf` ConfigMap. `k8s/stable/` is gitignored (unlike `k8s/stable-biatec/`), so this only ever lived on the old deploy server. Example content: `{"d": "6373...7ba"}`. |
-| `Production` | `BIATEC_STABLE_CONFIG_JSON` | *Optional.* Raw JSON content of the **Biatec Wallet** stable config, mounted via the `biatec-wallet-stable-conf` ConfigMap. If set, overrides the committed `k8s/stable-biatec/config.json` for that run only (not committed back) — lets you roll out a Biatec config change via secret without a repo commit. Leave unset to keep using the committed file as-is. |
+| Environment  | Secret                       | Description                                                                                                                                                                                                                                                                                                                                                         |
+| ------------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Stage`      | `KUBE_CONFIG`                | Base64-encoded kubeconfig for a service account that can manage Deployments/Services/ConfigMaps in the `awallet` namespace. Generate with `cat your-kubeconfig.yaml \| base64 -w0`. Prefer a namespace-scoped service account token over a full-admin kubeconfig.                                                                                                   |
+| `Stage`      | `AWALLET_MAIN_CONFIG_JSON`   | Raw JSON content of the main deployment's runtime `config.json`, mounted via the `awallet-main-conf` ConfigMap. Previously only ever existed on the old deploy server (`k8s/conf/config.json`, gitignored).                                                                                                                                                         |
+| `Production` | `KUBE_CONFIG`                | Same as above — can point at the same cluster/namespace as `Stage`'s, GitHub keeps the values separate per environment either way.                                                                                                                                                                                                                                  |
+| `Production` | `AWALLET_STABLE_CONFIG_JSON` | Raw JSON content of the **AWallet** stable config, mounted via the `awallet-stable-conf` ConfigMap. `k8s/stable/` is gitignored (unlike `k8s/stable-biatec/`), so this only ever lived on the old deploy server. Example content: `{"d": "6373...7ba"}`.                                                                                                            |
+| `Production` | `BIATEC_STABLE_CONFIG_JSON`  | _Optional._ Raw JSON content of the **Biatec Wallet** stable config, mounted via the `biatec-wallet-stable-conf` ConfigMap. If set, overrides the committed `k8s/stable-biatec/config.json` for that run only (not committed back) — lets you roll out a Biatec config change via secret without a repo commit. Leave unset to keep using the committed file as-is. |
 
 Biatec Wallet's stable config works either way: `k8s/stable-biatec/config.json`
 is committed to the repo and used by default; setting `BIATEC_STABLE_CONFIG_JSON`
@@ -70,10 +70,10 @@ The Algorand Foundation's Liquid Auth server backs the wallet's **Connect → Li
 tab and the `biatecLiquid()` dApp adapter (see `docs/LIQUID_AUTH.md`). It is deployed by
 **`.github/workflows/liquid-auth.yml`** with the same two-stage model as the wallet:
 
-| Job | Environment | Manifest | URL | Trigger |
-| --- | --- | --- | --- | --- |
-| `deploy-stage` | **`Stage`** | `k8s/deployment-liquid-auth-stage.yaml` | `https://stage.liquid.biatec.io` | automatic on every push to `master` that touches either manifest or the workflow; also **Actions → Deploy Liquid Auth service → Run workflow** |
-| `deploy-production` | **`Production`** | `k8s/deployment-liquid-auth-stable.yaml` | `https://liquid.biatec.io` | runs after `deploy-stage` succeeded and **pauses for the `Production` required reviewer**; skipped on manual runs when *deploy_production* is unticked |
+| Job                 | Environment      | Manifest                                 | URL                              | Trigger                                                                                                                                                |
+| ------------------- | ---------------- | ---------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `deploy-stage`      | **`Stage`**      | `k8s/deployment-liquid-auth-stage.yaml`  | `https://stage.liquid.biatec.io` | automatic on every push to `master` that touches either manifest or the workflow; also **Actions → Deploy Liquid Auth service → Run workflow**         |
+| `deploy-production` | **`Production`** | `k8s/deployment-liquid-auth-stable.yaml` | `https://liquid.biatec.io`       | runs after `deploy-stage` succeeded and **pauses for the `Production` required reviewer**; skipped on manual runs when _deploy_production_ is unticked |
 
 Each environment gets its own API deployment (1 replica on stage, 2 on production),
 single-node MongoDB with a PVC (2Gi / 5Gi) and non-persistent Redis (`requirepass` =
@@ -87,16 +87,16 @@ pin a digest or mirror to Docker Hub before relying on it).
 
 ### Secrets to configure
 
-Environment-scoped (Settings → Environments → *environment name* → Environment secrets),
+Environment-scoped (Settings → Environments → _environment name_ → Environment secrets),
 set in **both** `Stage` and `Production` (different values per environment):
 
-| Secret | Description |
-| --- | --- |
-| `KUBE_CONFIG` | Already exists for the wallet deployments — the same base64 kubeconfig for the `awallet` namespace is reused. |
-| `LIQUID_AUTH_SESSION_SECRET` | Secret for the service's express-session cookies. Generate with `openssl rand -hex 32`. Changing it logs every wallet out of the service (they re-authenticate with their passkey on the next connection). |
-| `LIQUID_AUTH_DB_PASSWORD` | MongoDB root password only. Generate with `openssl rand -hex 24`. **Only applied when the MongoDB volume is first initialised** — to rotate it later, change it inside MongoDB (`db.changeUserPassword`) before updating the secret, or delete the PVC (drops all registered passkeys). |
+| Secret                       | Description                                                                                                                                                                                                                                                                                                                                |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `KUBE_CONFIG`                | Already exists for the wallet deployments — the same base64 kubeconfig for the `awallet` namespace is reused.                                                                                                                                                                                                                              |
+| `LIQUID_AUTH_SESSION_SECRET` | Secret for the service's express-session cookies. Generate with `openssl rand -hex 32`. Changing it logs every wallet out of the service (they re-authenticate with their passkey on the next connection).                                                                                                                                 |
+| `LIQUID_AUTH_DB_PASSWORD`    | MongoDB root password only. Generate with `openssl rand -hex 24`. **Only applied when the MongoDB volume is first initialised** — to rotate it later, change it inside MongoDB (`db.changeUserPassword`) before updating the secret, or delete the PVC (drops all registered passkeys).                                                    |
 | `LIQUID_AUTH_REDIS_PASSWORD` | Redis `requirepass` and the API's `REDIS_PASSWORD` (must match each other; independent of Mongo). Generate with `openssl rand -hex 24`. The workflow upserts this into the k8s Secret as `REDIS_PASSWORD` and restarts Redis so `requirepass` is picked up. An empty value with `REDIS_USERNAME=default` makes ioredis AUTH-retry forever. |
-| `LIQUID_AUTH_DB_USERNAME` | *Optional.* MongoDB root user, default `algorand`. |
+| `LIQUID_AUTH_DB_USERNAME`    | _Optional._ MongoDB root user, default `algorand`.                                                                                                                                                                                                                                                                                         |
 
 The workflow writes these into the k8s Secret `liquid-auth-stage-secrets` /
 `liquid-auth-secrets` on every run (`kubectl create … --dry-run=client \| kubectl apply`),
@@ -143,7 +143,7 @@ one-time logout / fresh DB).
   hand-edited on the cluster (`kubectl edit` / `kubectl set probe`) to add an
   `httpGet`/`exec`/`grpc` handler, `kubectl apply`'s 3-way merge can't clear
   it, and the API server rejects the whole apply with `may not specify more
-  than 1 handler type`. Both workflows' "Clear stray probe handlers" step
+than 1 handler type`. Both workflows' "Clear stray probe handlers" step
   patches every deployment they touch to strip any alternate handler before
   every apply, so this can't recur.
 - The `-landing`/`-stable` containers also need an `imagePullSecret` named
