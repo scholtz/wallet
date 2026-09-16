@@ -413,6 +413,12 @@
                 </div>
               </TabPanel>
               <TabPanel value="2">
+                <div v-if="!$store.state.liquid.enabled">
+                  <Button :disabled="liquidBusy" @click="clickReconnectLiquid">
+                    {{ $t("connect.liquid.init_liquid") }}
+                  </Button>
+                </div>
+                <div v-else>
                 <p>{{ $t("connect.liquid.intro") }}</p>
                 <div v-if="liquidNeedsReconnect" class="mb-3">
                   <Message severity="warn" class="my-2">
@@ -568,6 +574,7 @@
                 <Message severity="error" v-if="liquidError" class="my-2">
                   {{ liquidError }}
                 </Message>
+                </div>
               </TabPanel>
             </TabPanels>
           </Tabs>
@@ -951,7 +958,9 @@ const clickReconnectLiquid = async () => {
   liquidError.value = "";
   liquidBusy.value = true;
   try {
-    await store.dispatch("liquid/reconnect");
+    await store.dispatch(
+      store.state.liquid.enabled ? "liquid/reconnect" : "liquid/init",
+    );
     await store.dispatch("toast/openSuccess", {
       severity: "info",
       summary: t("connect.liquid.session_added"),
@@ -978,7 +987,5 @@ onMounted(async () => {
   addr.value = accountAddress.value;
   await reloadAccount();
   await prolong();
-  // Hydrate saved pairings as disconnected only — do not open sockets here.
-  await store.dispatch("liquid/loadSavedSessions");
 });
 </script>

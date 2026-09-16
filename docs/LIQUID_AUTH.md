@@ -11,8 +11,8 @@ for `@txnlab/use-wallet` v5; the normative protocol description lives there in
 ## User flow
 
 1. The dApp shows a `liquid://liquid.biatec.io/?requestId=<uuid>` link (usually as a QR code).
-2. In the wallet: **Connect → Liquid Auth** tab, paste / scan the link, pick the account to
-   expose, click **Connect with passkey**.
+2. In the wallet: **Connect → Liquid Auth** tab, click **Initialize Liquid Auth**, then
+  paste / scan the link, pick the account to expose, click **Connect with passkey**.
 3. The browser asks for a passkey (Windows Hello, Touch ID, security key…). The first time for a
    given account and service a passkey is created; later connections reuse it.
 4. The session appears in the sessions table with status _Connected_. Signing requests from the
@@ -51,11 +51,13 @@ signature, requestId, device }`. The challenge is signed by `signer/signLiquidCh
 - **Lifecycle**: pairing metadata (`requestId`, origin, address, optional dApp peer) is stored
   in the encrypted wallet blob under `liquid:sessions` (via `wallet/wcSetItem`), next to the
   passkey credential ids. Runtime sockets and WebRTC are **not** persisted and are **not**
-  reopened on wallet open or page refresh — same rule as WalletConnect. After a refresh the
-  Connect page hydrates saved pairings as disconnected (`liquid/loadSavedSessions`) so they
-  remain visible; signing requests only resume after the user clicks **Reconnect to Liquid
-  Auth** (`liquid/reconnect`), which re-runs the passkey assertion and rejoins the signaling
-  room. `liquid/disconnect` closes the peer **and** drops that pairing from storage (so
+  reopened on wallet open or page refresh — same rule as WalletConnect. The Liquid Auth tab
+  starts disabled. Clicking **Initialize Liquid Auth** (`liquid/init`) enables pairing,
+  loads saved sessions and reconnects them (`liquid/reconnect`), re-running the passkey
+  assertion and rejoining each signaling room so new signing requests can arrive. With no
+  saved pairings, initialization only enables the form; no server is contacted until a
+  link is connected. Failed pairings can be retried with the initialization button without
+  reopening already-connected sessions. `liquid/disconnect` closes the peer **and** drops that pairing from storage (so
   reconnect will not revive it). `liquid/reset` closes every runtime connection on logout /
   wallet switch (next to `wc/reset`) but leaves saved pairings in the wallet blob until the
   user disconnects them.

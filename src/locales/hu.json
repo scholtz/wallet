@@ -956,7 +956,7 @@
       "connected_app_unknown": "Unknown (no Liquid Auth session found for this request)",
       "session_added": "Liquid Auth session established",
       "session_removed": "Liquid Auth session closed",
-      "init_liquid": "Liquid Auth újracsatlakozás",
+      "init_liquid": "Liquid Auth inicializálása",
       "reconnect_help": "A mentett Liquid Auth kapcsolatok az oldal frissítése után offline állapotban vannak. Csatlakozzon újra, ha készen áll aláírási kéréseket fogadni ezekről a dAppokról — addig semmi nem érkezik."
     }
   },

@@ -956,7 +956,7 @@
       "connected_app_unknown": "Unknown (no Liquid Auth session found for this request)",
       "session_added": "Liquid Auth session established",
       "session_removed": "Liquid Auth session closed",
-      "init_liquid": "Opnieuw verbinden met Liquid Auth",
+      "init_liquid": "Liquid Auth initialiseren",
       "reconnect_help": "Opgeslagen Liquid Auth-koppelingen zijn offline na het vernieuwen van de pagina. Maak opnieuw verbinding wanneer je klaar bent om ondertekenverzoeken van die dApps te ontvangen — tot die tijd komt er niets binnen."
     }
   },

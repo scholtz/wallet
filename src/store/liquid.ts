@@ -81,6 +81,7 @@ export interface LiquidSessionRecord {
 }
 
 export interface LiquidState {
+  enabled: boolean;
   sessions: LiquidSessionRecord[];
   requests: StoredRequest[];
   signDataRequests: StoredSignDataRequest[];
@@ -102,6 +103,7 @@ interface SignDataRequestPayload {
 type SignedTxnMap = Record<string, Uint8Array | null | undefined>;
 
 const state = (): LiquidState => ({
+  enabled: false,
   sessions: [],
   requests: [],
   signDataRequests: [],
@@ -138,6 +140,9 @@ const persistLiquidSessions = async (
 };
 
 const mutations: MutationTree<LiquidState> = {
+  setEnabled(currentState, enabled: boolean) {
+    currentState.enabled = enabled;
+  },
   upsertSession(currentState, record: LiquidSessionRecord) {
     const index = currentState.sessions.findIndex(
       (s) => s.requestId === record.requestId,
@@ -247,14 +252,22 @@ async function respond(
 }
 
 const actions: ActionTree<LiquidState, RootState> = {
+  async init({ commit, dispatch, state }) {
+    if (state.enabled) return;
+    commit("setEnabled", true);
+    await dispatch("reconnect");
+  },
   /**
    * Pair with a dApp: authenticate at the service named in the deep link (passkey + account
    * signature), then open the signaling socket and negotiate the WebRTC channel.
    */
   async connect(
-    { commit, dispatch, rootState },
+    { commit, dispatch, rootState, state },
     { uri, address }: ConnectPayload,
   ): Promise<LiquidSessionRecord> {
+    if (!state.enabled) {
+      throw new Error("Initialize Liquid Auth before connecting.");
+    }
     const { origin, requestId } = parseLiquidDeepLink(uri);
     const account = rootState.wallet.privateAccounts.find(
       (a) => a.addr === address,
@@ -628,6 +641,9 @@ const actions: ActionTree<LiquidState, RootState> = {
    * Never invoked from wallet open / page mount.
    */
   async reconnect({ dispatch, rootState, state }) {
+    if (!state.enabled) {
+      throw new Error("Initialize Liquid Auth before reconnecting.");
+    }
     await dispatch("loadSavedSessions");
     const pending = state.sessions.filter(
       (session) =>
