@@ -418,10 +418,7 @@
                   <Message severity="warn" class="my-2">
                     {{ $t("connect.liquid.reconnect_help") }}
                   </Message>
-                  <Button
-                    :disabled="liquidBusy"
-                    @click="clickReconnectLiquid"
-                  >
+                  <Button :disabled="liquidBusy" @click="clickReconnectLiquid">
                     {{ $t("connect.liquid.init_liquid") }}
                   </Button>
                 </div>
@@ -691,12 +688,11 @@ const liquidConnectable = computed(
     liquidUri.value.trim().toLowerCase().startsWith("liquid://") &&
     Boolean(liquidAddress.value),
 );
-const liquidNeedsReconnect = computed(
-  () =>
-    liquidSessions.value.some(
-      (session) =>
-        session.status === "disconnected" || session.status === "closed",
-    ),
+const liquidNeedsReconnect = computed(() =>
+  liquidSessions.value.some(
+    (session) =>
+      session.status === "disconnected" || session.status === "closed",
+  ),
 );
 const connectable = computed(() => Boolean(uri.value && uri.value.trim()));
 const connectableWc1 = computed(() =>

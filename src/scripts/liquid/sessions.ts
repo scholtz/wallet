@@ -71,7 +71,9 @@ export function toStoredLiquidSession(session: {
  * Invalid / unexpected shapes become an empty list rather than throwing, so a
  * corrupt blob cannot block the Connect page.
  */
-export function parseStoredLiquidSessions(value: unknown): StoredLiquidSession[] {
+export function parseStoredLiquidSessions(
+  value: unknown,
+): StoredLiquidSession[] {
   let raw: unknown = value;
   if (typeof raw === "string" && raw.length > 0) {
     try {

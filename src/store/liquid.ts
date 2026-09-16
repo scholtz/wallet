@@ -63,7 +63,10 @@ import { getWalletBrandName } from "@/scripts/branding";
 /** Stable ARC-0027 provider id announced by this wallet. */
 export const LIQUID_WALLET_PROVIDER_ID = "8f7a1c2e-5b3d-4e9f-a6c0-1d2e3f4a5b6c";
 /** Methods advertised in the hello handshake. */
-export const LIQUID_METHODS = ["arc0027:sign_transactions", "arc0060:sign_data"];
+export const LIQUID_METHODS = [
+  "arc0027:sign_transactions",
+  "arc0060:sign_data",
+];
 
 export interface LiquidSessionRecord {
   requestId: string;
@@ -107,8 +110,9 @@ const state = (): LiquidState => ({
 const credentialKey = (origin: string, address: string) =>
   `liquid:cred:${origin}:${address}`;
 
-const isLiquidCapable = (account: RootState["wallet"]["privateAccounts"][number]) =>
-  !account.params && (account.type === "hd" || Boolean(account.sk));
+const isLiquidCapable = (
+  account: RootState["wallet"]["privateAccounts"][number],
+) => !account.params && (account.type === "hd" || Boolean(account.sk));
 
 /**
  * Persist pairing metadata only (requestId/origin/address/peer). Runtime status
@@ -116,8 +120,12 @@ const isLiquidCapable = (account: RootState["wallet"]["privateAccounts"][number]
  * as disconnected until the user clicks reconnect.
  */
 const persistLiquidSessions = async (
-  dispatch: (type: string, payload?: unknown, options?: { root: boolean }) => Promise<unknown>,
-  sessions: LiquidSessionRecord[]
+  dispatch: (
+    type: string,
+    payload?: unknown,
+    options?: { root: boolean },
+  ) => Promise<unknown>,
+  sessions: LiquidSessionRecord[],
 ) => {
   await dispatch(
     "wallet/wcSetItem",
@@ -125,26 +133,31 @@ const persistLiquidSessions = async (
       key: LIQUID_SESSIONS_STORAGE_KEY,
       value: sessions.map(toStoredLiquidSession),
     },
-    { root: true }
+    { root: true },
   );
 };
 
 const mutations: MutationTree<LiquidState> = {
   upsertSession(currentState, record: LiquidSessionRecord) {
     const index = currentState.sessions.findIndex(
-      (s) => s.requestId === record.requestId
+      (s) => s.requestId === record.requestId,
     );
     if (index === -1) {
       currentState.sessions.push(record);
     } else {
-      currentState.sessions.splice(index, 1, { ...currentState.sessions[index], ...record });
+      currentState.sessions.splice(index, 1, {
+        ...currentState.sessions[index],
+        ...record,
+      });
     }
   },
   setSessionStatus(
     currentState,
-    { requestId, status }: { requestId: string; status: LiquidRuntimeStatus }
+    { requestId, status }: { requestId: string; status: LiquidRuntimeStatus },
   ) {
-    const session = currentState.sessions.find((s) => s.requestId === requestId);
+    const session = currentState.sessions.find(
+      (s) => s.requestId === requestId,
+    );
     if (session) {
       session.status = status;
     }
@@ -155,39 +168,50 @@ const mutations: MutationTree<LiquidState> = {
       requestId,
       peer,
       dappProviderId,
-    }: { requestId: string; peer: LiquidPeerMetadata; dappProviderId?: string }
+    }: { requestId: string; peer: LiquidPeerMetadata; dappProviderId?: string },
   ) {
-    const session = currentState.sessions.find((s) => s.requestId === requestId);
+    const session = currentState.sessions.find(
+      (s) => s.requestId === requestId,
+    );
     if (session) {
       session.peer = peer;
       session.dappProviderId = dappProviderId;
     }
   },
   removeSession(currentState, requestId: string) {
-    const index = currentState.sessions.findIndex((s) => s.requestId === requestId);
+    const index = currentState.sessions.findIndex(
+      (s) => s.requestId === requestId,
+    );
     if (index !== -1) {
       currentState.sessions.splice(index, 1);
     }
-    currentState.requests = currentState.requests.filter((r) => r.topic !== requestId);
+    currentState.requests = currentState.requests.filter(
+      (r) => r.topic !== requestId,
+    );
     currentState.signDataRequests = currentState.signDataRequests.filter(
-      (r) => r.topic !== requestId
+      (r) => r.topic !== requestId,
     );
   },
   addRequest(currentState, { request }: { request: StoredRequest }) {
     currentState.requests.push(request);
   },
   removeRequest(currentState, id: number | string) {
-    const index = currentState.requests.findIndex((r) => String(r.id) === String(id));
+    const index = currentState.requests.findIndex(
+      (r) => String(r.id) === String(id),
+    );
     if (index !== -1) {
       currentState.requests.splice(index, 1);
     }
   },
-  addSignDataRequest(currentState, { request }: { request: StoredSignDataRequest }) {
+  addSignDataRequest(
+    currentState,
+    { request }: { request: StoredSignDataRequest },
+  ) {
     currentState.signDataRequests.push(request);
   },
   removeSignDataRequest(currentState, id: number | string) {
     const index = currentState.signDataRequests.findIndex(
-      (r) => String(r.id) === String(id)
+      (r) => String(r.id) === String(id),
     );
     if (index !== -1) {
       currentState.signDataRequests.splice(index, 1);
@@ -199,10 +223,10 @@ const mutations: MutationTree<LiquidState> = {
       requestId,
       index,
       signature,
-    }: { requestId: number | string; index: number; signature: string }
+    }: { requestId: number | string; index: number; signature: string },
   ) {
     const request = currentState.signDataRequests.find(
-      (r) => String(r.id) === String(requestId)
+      (r) => String(r.id) === String(requestId),
     );
     const item = request?.items.find((i) => i.index === index);
     if (item) {
@@ -214,7 +238,10 @@ const mutations: MutationTree<LiquidState> = {
   },
 };
 
-async function respond(requestId: string, message: LiquidResponseMessage): Promise<void> {
+async function respond(
+  requestId: string,
+  message: LiquidResponseMessage,
+): Promise<void> {
   const payload = await encodeLiquidMessage(message);
   liquidPeers.send(requestId, payload);
 }
@@ -226,16 +253,18 @@ const actions: ActionTree<LiquidState, RootState> = {
    */
   async connect(
     { commit, dispatch, rootState },
-    { uri, address }: ConnectPayload
+    { uri, address }: ConnectPayload,
   ): Promise<LiquidSessionRecord> {
     const { origin, requestId } = parseLiquidDeepLink(uri);
-    const account = rootState.wallet.privateAccounts.find((a) => a.addr === address);
+    const account = rootState.wallet.privateAccounts.find(
+      (a) => a.addr === address,
+    );
     if (!account) {
       throw new Error("The selected account was not found in this wallet.");
     }
     if (!isLiquidCapable(account)) {
       throw new Error(
-        "Liquid Auth needs an account whose signing key is stored in this wallet (standard or HD account)."
+        "Liquid Auth needs an account whose signing key is stored in this wallet (standard or HD account).",
       );
     }
     const device = `${getWalletBrandName()} (web)`;
@@ -243,13 +272,16 @@ const actions: ActionTree<LiquidState, RootState> = {
     const storedCredId: string | undefined = await dispatch(
       "wallet/wcGetItem",
       { key },
-      { root: true }
+      { root: true },
     );
 
     let auth: LiquidAuthResult | undefined;
     if (typeof storedCredId === "string" && storedCredId.length > 0) {
       try {
-        auth = await liquidAssertion(origin, { credId: storedCredId, requestId });
+        auth = await liquidAssertion(origin, {
+          credId: storedCredId,
+          requestId,
+        });
       } catch (error) {
         // The service forgot the credential (404/401) — register a fresh passkey below.
         if (
@@ -271,16 +303,25 @@ const actions: ActionTree<LiquidState, RootState> = {
           dispatch(
             "signer/signLiquidChallenge",
             { from: address, challenge },
-            { root: true }
+            { root: true },
           ),
       });
-      await dispatch("wallet/wcSetItem", { key, value: auth.credId }, { root: true });
+      await dispatch(
+        "wallet/wcSetItem",
+        { key, value: auth.credId },
+        { root: true },
+      );
     }
     if (auth.user?.wallet && auth.user.wallet !== address) {
-      console.warn("Liquid Auth service bound the session to another wallet", auth.user.wallet);
+      console.warn(
+        "Liquid Auth service bound the session to another wallet",
+        auth.user.wallet,
+      );
     }
 
-    const existing = rootState.liquid.sessions.find((s) => s.requestId === requestId);
+    const existing = rootState.liquid.sessions.find(
+      (s) => s.requestId === requestId,
+    );
     const record: LiquidSessionRecord = {
       requestId,
       origin,
@@ -310,7 +351,7 @@ const actions: ActionTree<LiquidState, RootState> = {
   /** Decode one message from the data channel and turn it into a pending request. */
   async handleMessage(
     { commit, dispatch, state },
-    { requestId, payload }: { requestId: string; payload: string }
+    { requestId, payload }: { requestId: string; payload: string },
   ) {
     const session = state.sessions.find((s) => s.requestId === requestId);
     if (!session) {
@@ -349,19 +390,26 @@ const actions: ActionTree<LiquidState, RootState> = {
         };
         await respond(
           requestId,
-          buildResponse(request, LiquidReference.helloResponse, result)
+          buildResponse(request, LiquidReference.helloResponse, result),
         );
         return;
       }
       case LiquidReference.signTransactionsRequest: {
-        const params = request.params as Partial<SignTransactionsParams> | undefined;
+        const params = request.params as
+          Partial<SignTransactionsParams> | undefined;
         const rawTransactions: AlgoSignTxnParam[] = Array.isArray(params?.txns)
           ? (params!.txns as AlgoSignTxnParam[])
           : [];
-        const transactions = decodeSignTxnTransactions(rawTransactions, (signed) => {
-          dispatch("signer/setSigned", { signed }, { root: true });
-        });
-        const totalFee = transactions.reduce((fee, tx) => fee + (tx.fee ?? 0), 0);
+        const transactions = decodeSignTxnTransactions(
+          rawTransactions,
+          (signed) => {
+            dispatch("signer/setSigned", { signed }, { root: true });
+          },
+        );
+        const totalFee = transactions.reduce(
+          (fee, tx) => fee + (tx.fee ?? 0),
+          0,
+        );
         const stored: StoredRequest = {
           id: request.id,
           method: request.reference,
@@ -391,11 +439,15 @@ const actions: ActionTree<LiquidState, RootState> = {
       default: {
         await respond(
           requestId,
-          buildErrorResponse(request, `${request.reference}`.replace(/:request$/, ":response"), {
-            code: LiquidErrorCode.methodNotSupported,
-            message: `Method not supported: ${request.reference}`,
-            providerId: LIQUID_WALLET_PROVIDER_ID,
-          })
+          buildErrorResponse(
+            request,
+            `${request.reference}`.replace(/:request$/, ":response"),
+            {
+              code: LiquidErrorCode.methodNotSupported,
+              message: `Method not supported: ${request.reference}`,
+              providerId: LIQUID_WALLET_PROVIDER_ID,
+            },
+          ),
         );
       }
     }
@@ -425,7 +477,11 @@ const actions: ActionTree<LiquidState, RootState> = {
     };
     await respond(
       data.topic,
-      buildResponse({ id: String(data.id) }, LiquidReference.signTransactionsResponse, result)
+      buildResponse(
+        { id: String(data.id) },
+        LiquidReference.signTransactionsResponse,
+        result,
+      ),
     );
     commit("removeRequest", data.id);
   },
@@ -434,11 +490,15 @@ const actions: ActionTree<LiquidState, RootState> = {
     try {
       await respond(
         data.topic,
-        buildErrorResponse({ id: String(data.id) }, LiquidReference.signTransactionsResponse, {
-          code: LiquidErrorCode.cancelled,
-          message: "User rejected.",
-          providerId: LIQUID_WALLET_PROVIDER_ID,
-        })
+        buildErrorResponse(
+          { id: String(data.id) },
+          LiquidReference.signTransactionsResponse,
+          {
+            code: LiquidErrorCode.cancelled,
+            message: "User rejected.",
+            providerId: LIQUID_WALLET_PROVIDER_ID,
+          },
+        ),
       );
     } finally {
       commit("removeRequest", data.id);
@@ -447,16 +507,18 @@ const actions: ActionTree<LiquidState, RootState> = {
 
   async signSignDataItem(
     { commit, dispatch, state },
-    { requestId, index }: { requestId: number | string; index: number }
+    { requestId, index }: { requestId: number | string; index: number },
   ) {
-    const request = state.signDataRequests.find((r) => String(r.id) === String(requestId));
+    const request = state.signDataRequests.find(
+      (r) => String(r.id) === String(requestId),
+    );
     const item = request?.items.find((i) => i.index === index);
     if (!request || !item) {
       throw new Error("Sign data request item was not found");
     }
     if (!item.domainValid) {
       throw new Error(
-        "authenticatorData does not match the requesting domain — refusing to sign."
+        "authenticatorData does not match the requesting domain — refusing to sign.",
       );
     }
     const session = state.sessions.find((s) => s.requestId === request.topic);
@@ -471,12 +533,14 @@ const actions: ActionTree<LiquidState, RootState> = {
       {
         from: item.signer,
         data: new Uint8Array(Buffer.from(item.data, "base64")),
-        authenticatorData: new Uint8Array(Buffer.from(item.authenticatorData, "base64")),
+        authenticatorData: new Uint8Array(
+          Buffer.from(item.authenticatorData, "base64"),
+        ),
         domain: item.domain,
         sessionOrigin: session.peer?.url,
         approvedAccounts: [session.address],
       },
-      { root: true }
+      { root: true },
     );
     commit("setSignDataItemSignature", {
       requestId,
@@ -487,12 +551,21 @@ const actions: ActionTree<LiquidState, RootState> = {
 
   async sendSignDataResult({ commit }, { data }: SignDataRequestPayload) {
     const signatures = data.items.map((item) =>
-      item.signature ? toBase64Url(new Uint8Array(Buffer.from(item.signature, "base64"))) : null
+      item.signature
+        ? toBase64Url(new Uint8Array(Buffer.from(item.signature, "base64")))
+        : null,
     );
-    const result: SignDataResult = { providerId: LIQUID_WALLET_PROVIDER_ID, signatures };
+    const result: SignDataResult = {
+      providerId: LIQUID_WALLET_PROVIDER_ID,
+      signatures,
+    };
     await respond(
       data.topic,
-      buildResponse({ id: String(data.id) }, LiquidReference.signDataResponse, result)
+      buildResponse(
+        { id: String(data.id) },
+        LiquidReference.signDataResponse,
+        result,
+      ),
     );
     commit("removeSignDataRequest", data.id);
   },
@@ -501,18 +574,25 @@ const actions: ActionTree<LiquidState, RootState> = {
     try {
       await respond(
         data.topic,
-        buildErrorResponse({ id: String(data.id) }, LiquidReference.signDataResponse, {
-          code: LiquidErrorCode.cancelled,
-          message: "User rejected.",
-          providerId: LIQUID_WALLET_PROVIDER_ID,
-        })
+        buildErrorResponse(
+          { id: String(data.id) },
+          LiquidReference.signDataResponse,
+          {
+            code: LiquidErrorCode.cancelled,
+            message: "User rejected.",
+            providerId: LIQUID_WALLET_PROVIDER_ID,
+          },
+        ),
       );
     } finally {
       commit("removeSignDataRequest", data.id);
     }
   },
 
-  async disconnect({ commit, dispatch, rootState }, { requestId }: { requestId: string }) {
+  async disconnect(
+    { commit, dispatch, rootState },
+    { requestId }: { requestId: string },
+  ) {
     liquidPeers.close(requestId);
     commit("removeSession", requestId);
     await persistLiquidSessions(dispatch, rootState.liquid.sessions);
@@ -525,7 +605,11 @@ const actions: ActionTree<LiquidState, RootState> = {
    */
   async loadSavedSessions({ commit, dispatch, state }) {
     const stored = parseStoredLiquidSessions(
-      await dispatch("wallet/wcGetItem", { key: LIQUID_SESSIONS_STORAGE_KEY }, { root: true })
+      await dispatch(
+        "wallet/wcGetItem",
+        { key: LIQUID_SESSIONS_STORAGE_KEY },
+        { root: true },
+      ),
     );
     for (const session of stored) {
       if (state.sessions.some((s) => s.requestId === session.requestId)) {
@@ -546,11 +630,15 @@ const actions: ActionTree<LiquidState, RootState> = {
   async reconnect({ dispatch, rootState, state }) {
     await dispatch("loadSavedSessions");
     const pending = state.sessions.filter(
-      (session) => session.status !== "connected" && !liquidPeers.isChannelOpen(session.requestId)
+      (session) =>
+        session.status !== "connected" &&
+        !liquidPeers.isChannelOpen(session.requestId),
     );
     const errors: string[] = [];
     for (const session of pending) {
-      const account = rootState.wallet.privateAccounts.find((a) => a.addr === session.address);
+      const account = rootState.wallet.privateAccounts.find(
+        (a) => a.addr === session.address,
+      );
       if (!account || !isLiquidCapable(account)) {
         continue;
       }
