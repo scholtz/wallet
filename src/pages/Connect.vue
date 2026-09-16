@@ -419,161 +419,164 @@
                   </Button>
                 </div>
                 <div v-else>
-                <p>{{ $t("connect.liquid.intro") }}</p>
-                <div v-if="liquidNeedsReconnect" class="mb-3">
-                  <Message severity="warn" class="my-2">
-                    {{ $t("connect.liquid.reconnect_help") }}
-                  </Message>
-                  <Button :disabled="liquidBusy" @click="clickReconnectLiquid">
-                    {{ $t("connect.liquid.init_liquid") }}
-                  </Button>
-                </div>
-                <ConnectRequestsTable
-                  v-if="liquidRequests.length > 0"
-                  :requests="liquidRequests"
-                  :account-address="accountAddress"
-                  namespace="liquid"
-                />
-                <ConnectSignDataRequestsTable
-                  v-else-if="liquidSignDataRequests.length > 0"
-                  :requests="liquidSignDataRequests"
-                  namespace="liquid"
-                />
-                <div v-else>
-                  <h2>{{ $t("connect.liquid.account") }}</h2>
-                  <Select
-                    v-model="liquidAddress"
-                    :options="liquidAccounts"
-                    option-label="label"
-                    option-value="addr"
-                    class="w-full"
-                  />
-                  <Message
-                    v-if="liquidAccounts.length === 0"
-                    severity="warn"
-                    class="my-2"
-                  >
-                    {{ $t("connect.liquid.unsupported_account") }}
-                  </Message>
-                  <h2>{{ $t("connect.liquid.uri") }}</h2>
-                  <InputText
-                    id="uriLiquid"
-                    v-model="liquidUri"
-                    class="w-full"
-                    autocomplete="off"
-                  />
-                  <div v-if="scanLiquid" class="col-12 m-2">
-                    <QrcodeStream @decode="onDecodeQRLiquid" />
-                  </div>
-                  <div>
+                  <p>{{ $t("connect.liquid.intro") }}</p>
+                  <div v-if="liquidNeedsReconnect" class="mb-3">
+                    <Message severity="warn" class="my-2">
+                      {{ $t("connect.liquid.reconnect_help") }}
+                    </Message>
                     <Button
-                      class="m-1"
-                      :disabled="!liquidConnectable || liquidBusy"
-                      @click="clickConnectLiquid(liquidUri)"
-                    >
-                      {{ $t("connect.liquid.connect") }}
-                    </Button>
-                    {{ $t("connect.or") }}
-                    <Button
-                      class="m-1"
                       :disabled="liquidBusy"
-                      @click="clickPasteLiquid"
+                      @click="clickReconnectLiquid"
                     >
-                      {{ $t("connect.clipboard") }}
-                    </Button>
-                    {{ $t("connect.or") }}
-                    <Button class="m-1" @click="scanLiquid = !scanLiquid">
-                      {{ $t("connect.toggle_camera") }}
+                      {{ $t("connect.liquid.init_liquid") }}
                     </Button>
                   </div>
-                  <Message severity="info" class="my-2">
-                    {{ $t("connect.liquid.passkey_help") }}
-                  </Message>
-                </div>
+                  <ConnectRequestsTable
+                    v-if="liquidRequests.length > 0"
+                    :requests="liquidRequests"
+                    :account-address="accountAddress"
+                    namespace="liquid"
+                  />
+                  <ConnectSignDataRequestsTable
+                    v-else-if="liquidSignDataRequests.length > 0"
+                    :requests="liquidSignDataRequests"
+                    namespace="liquid"
+                  />
+                  <div v-else>
+                    <h2>{{ $t("connect.liquid.account") }}</h2>
+                    <Select
+                      v-model="liquidAddress"
+                      :options="liquidAccounts"
+                      option-label="label"
+                      option-value="addr"
+                      class="w-full"
+                    />
+                    <Message
+                      v-if="liquidAccounts.length === 0"
+                      severity="warn"
+                      class="my-2"
+                    >
+                      {{ $t("connect.liquid.unsupported_account") }}
+                    </Message>
+                    <h2>{{ $t("connect.liquid.uri") }}</h2>
+                    <InputText
+                      id="uriLiquid"
+                      v-model="liquidUri"
+                      class="w-full"
+                      autocomplete="off"
+                    />
+                    <div v-if="scanLiquid" class="col-12 m-2">
+                      <QrcodeStream @decode="onDecodeQRLiquid" />
+                    </div>
+                    <div>
+                      <Button
+                        class="m-1"
+                        :disabled="!liquidConnectable || liquidBusy"
+                        @click="clickConnectLiquid(liquidUri)"
+                      >
+                        {{ $t("connect.liquid.connect") }}
+                      </Button>
+                      {{ $t("connect.or") }}
+                      <Button
+                        class="m-1"
+                        :disabled="liquidBusy"
+                        @click="clickPasteLiquid"
+                      >
+                        {{ $t("connect.clipboard") }}
+                      </Button>
+                      {{ $t("connect.or") }}
+                      <Button class="m-1" @click="scanLiquid = !scanLiquid">
+                        {{ $t("connect.toggle_camera") }}
+                      </Button>
+                    </div>
+                    <Message severity="info" class="my-2">
+                      {{ $t("connect.liquid.passkey_help") }}
+                    </Message>
+                  </div>
 
-                <div v-if="liquidSessions.length > 0">
-                  <h2>{{ $t("connect.liquid.sessions") }}</h2>
-                  <DataTable
-                    :value="liquidSessions"
-                    responsive-layout="scroll"
-                    :paginator="true"
-                    :rows="20"
-                  >
-                    <Column
-                      field="requestId"
-                      :header="$t('connect.liquid.request_id')"
-                      :sortable="true"
-                    />
-                    <Column
-                      field="origin"
-                      :header="$t('connect.liquid.origin')"
-                      :sortable="true"
-                    />
-                    <Column :header="$t('connect.address')">
-                      <template #body="slotProps">
-                        <AlgorandAddress :address="slotProps.data.address" />
-                      </template>
-                    </Column>
-                    <Column :header="$t('connect.peer')">
-                      <template #body="slotProps">
-                        <div v-if="slotProps.data.peer">
-                          <img
-                            v-if="
-                              slotProps.data.peer.icons &&
-                              slotProps.data.peer.icons.length
+                  <div v-if="liquidSessions.length > 0">
+                    <h2>{{ $t("connect.liquid.sessions") }}</h2>
+                    <DataTable
+                      :value="liquidSessions"
+                      responsive-layout="scroll"
+                      :paginator="true"
+                      :rows="20"
+                    >
+                      <Column
+                        field="requestId"
+                        :header="$t('connect.liquid.request_id')"
+                        :sortable="true"
+                      />
+                      <Column
+                        field="origin"
+                        :header="$t('connect.liquid.origin')"
+                        :sortable="true"
+                      />
+                      <Column :header="$t('connect.address')">
+                        <template #body="slotProps">
+                          <AlgorandAddress :address="slotProps.data.address" />
+                        </template>
+                      </Column>
+                      <Column :header="$t('connect.peer')">
+                        <template #body="slotProps">
+                          <div v-if="slotProps.data.peer">
+                            <img
+                              v-if="
+                                slotProps.data.peer.icons &&
+                                slotProps.data.peer.icons.length
+                              "
+                              :src="slotProps.data.peer.icons[0]"
+                              width="24"
+                              height="24"
+                            />
+                            <a
+                              v-if="slotProps.data.peer.url"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="m-1"
+                              :href="normalizeUrl(slotProps.data.peer.url)"
+                              :title="slotProps.data.peer.description"
+                            >
+                              {{
+                                slotProps.data.peer.name ||
+                                slotProps.data.peer.url
+                              }}
+                            </a>
+                            <span v-else>{{ slotProps.data.peer.name }}</span>
+                          </div>
+                          <span v-else>{{
+                            $t("connect.liquid.peer_unknown")
+                          }}</span>
+                        </template>
+                      </Column>
+                      <Column :header="$t('connect.liquid.status')">
+                        <template #body="slotProps">
+                          <Badge
+                            :severity="
+                              liquidStatusSeverity(slotProps.data.status)
                             "
-                            :src="slotProps.data.peer.icons[0]"
-                            width="24"
-                            height="24"
+                            :value="liquidStatusLabel(slotProps.data.status)"
                           />
-                          <a
-                            v-if="slotProps.data.peer.url"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        </template>
+                      </Column>
+                      <Column>
+                        <template #body="slotProps">
+                          <Button
+                            variant="secondary"
                             class="m-1"
-                            :href="normalizeUrl(slotProps.data.peer.url)"
-                            :title="slotProps.data.peer.description"
+                            @click="
+                              clickDisconnectLiquid(slotProps.data.requestId)
+                            "
                           >
-                            {{
-                              slotProps.data.peer.name ||
-                              slotProps.data.peer.url
-                            }}
-                          </a>
-                          <span v-else>{{ slotProps.data.peer.name }}</span>
-                        </div>
-                        <span v-else>{{
-                          $t("connect.liquid.peer_unknown")
-                        }}</span>
-                      </template>
-                    </Column>
-                    <Column :header="$t('connect.liquid.status')">
-                      <template #body="slotProps">
-                        <Badge
-                          :severity="
-                            liquidStatusSeverity(slotProps.data.status)
-                          "
-                          :value="liquidStatusLabel(slotProps.data.status)"
-                        />
-                      </template>
-                    </Column>
-                    <Column>
-                      <template #body="slotProps">
-                        <Button
-                          variant="secondary"
-                          class="m-1"
-                          @click="
-                            clickDisconnectLiquid(slotProps.data.requestId)
-                          "
-                        >
-                          {{ $t("connect.disconnect") }}
-                        </Button>
-                      </template>
-                    </Column>
-                  </DataTable>
-                </div>
-                <Message severity="error" v-if="liquidError" class="my-2">
-                  {{ liquidError }}
-                </Message>
+                            {{ $t("connect.disconnect") }}
+                          </Button>
+                        </template>
+                      </Column>
+                    </DataTable>
+                  </div>
+                  <Message severity="error" v-if="liquidError" class="my-2">
+                    {{ liquidError }}
+                  </Message>
                 </div>
               </TabPanel>
             </TabPanels>

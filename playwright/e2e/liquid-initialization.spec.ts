@@ -15,7 +15,9 @@ type WalletElement = HTMLElement & {
 const origin = "https://liquid.example";
 const requestIds = ["saved-pairing-1", "saved-pairing-2"];
 
-test("Liquid Auth stays offline until initialized and restores saved signing sessions after refresh", async ({ page }) => {
+test("Liquid Auth stays offline until initialized and restores saved signing sessions after refresh", async ({
+  page,
+}) => {
   const account = algosdk.generateAccount();
   const address = account.addr.toString();
   const authRequests: string[] = [];
@@ -72,90 +74,158 @@ test("Liquid Auth stays offline until initialized and restores saved signing ses
   await page.goto("/new-wallet");
   await createTestWallet(page, "Liquid Test Wallet");
   await page.waitForURL(/\/account\//);
-  await page.evaluate(async ({ mnemonic, address, origin, requestIds }) => {
-    const { $store: store, $router: router } = (document.querySelector("#app") as WalletElement).__vue_app__.config.globalProperties;
-    await store.dispatch("wallet/addPrivateAccount", { mn: mnemonic, name: "Liquid Account" });
-    await store.dispatch("wallet/wcSetItem", {
-      key: `liquid:cred:${origin}:${address}`,
-      value: "test-credential",
-    });
-    await store.dispatch("wallet/wcSetItem", {
-      key: "liquid:sessions",
-      value: requestIds.map((requestId) => ({
-        requestId, origin, address, device: "Test", createdAt: Date.now(),
-      })),
-    });
-    await router.push("/connect");
-  }, { mnemonic: algosdk.secretKeyToMnemonic(account.sk), address, origin, requestIds });
+  await page.evaluate(
+    async ({ mnemonic, address, origin, requestIds }) => {
+      const { $store: store, $router: router } = (
+        document.querySelector("#app") as WalletElement
+      ).__vue_app__.config.globalProperties;
+      await store.dispatch("wallet/addPrivateAccount", {
+        mn: mnemonic,
+        name: "Liquid Account",
+      });
+      await store.dispatch("wallet/wcSetItem", {
+        key: `liquid:cred:${origin}:${address}`,
+        value: "test-credential",
+      });
+      await store.dispatch("wallet/wcSetItem", {
+        key: "liquid:sessions",
+        value: requestIds.map((requestId) => ({
+          requestId,
+          origin,
+          address,
+          device: "Test",
+          createdAt: Date.now(),
+        })),
+      });
+      await router.push("/connect");
+    },
+    {
+      mnemonic: algosdk.secretKeyToMnemonic(account.sk),
+      address,
+      origin,
+      requestIds,
+    },
+  );
 
   await page.getByRole("tab", { name: "Liquid Auth" }).click();
   await expect(page.locator("#uriLiquid")).toBeHidden();
-  await expect(page.getByRole("button", { name: "Initialize Liquid Auth", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Initialize Liquid Auth", exact: true }),
+  ).toBeVisible();
   expect(authRequests).toEqual([]);
 
   const blocked = await page.evaluate(async () => {
-    const { $store: store } = (document.querySelector("#app") as WalletElement).__vue_app__.config.globalProperties;
-    return Promise.all(["connect", "reconnect"].map(async (action) => {
-      try {
-        await store.dispatch(`liquid/${action}`, { uri: "invalid", address: "" });
-        return false;
-      } catch {
-        return true;
-      }
-    }));
+    const { $store: store } = (document.querySelector("#app") as WalletElement)
+      .__vue_app__.config.globalProperties;
+    return Promise.all(
+      ["connect", "reconnect"].map(async (action) => {
+        try {
+          await store.dispatch(`liquid/${action}`, {
+            uri: "invalid",
+            address: "",
+          });
+          return false;
+        } catch {
+          return true;
+        }
+      }),
+    );
   });
   expect(blocked).toEqual([true, true]);
   expect(authRequests).toEqual([]);
 
-  await page.getByRole("button", { name: "Initialize Liquid Auth", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Initialize Liquid Auth", exact: true })
+    .click();
   await expect(page.getByText("Connected", { exact: true })).toHaveCount(2);
   expect(authRequests).toHaveLength(4);
 
   await page.reload();
   await page.locator("#wallet-pass").fill("TestPassword123");
   await page.locator("#new_wallet_button_open").click();
-  await page.getByRole("menuitem", { name: "Connect App", exact: true }).click();
+  await page
+    .getByRole("menuitem", { name: "Connect App", exact: true })
+    .click();
   await page.getByRole("tab", { name: "Liquid Auth" }).click();
   await expect(page.locator("#uriLiquid")).toBeHidden();
   expect(authRequests).toHaveLength(4);
 
   failFirstPairing = true;
-  await page.getByRole("button", { name: "Initialize Liquid Auth", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Initialize Liquid Auth", exact: true })
+    .click();
   await expect(page.getByText("Connected", { exact: true })).toHaveCount(1);
-  await expect(page.getByText("Waiting for the dApp", { exact: true })).toHaveCount(1);
+  await expect(
+    page.getByText("Waiting for the dApp", { exact: true }),
+  ).toHaveCount(1);
   expect(authRequests).toHaveLength(8);
 
   failFirstPairing = false;
-  await page.getByRole("button", { name: "Initialize Liquid Auth", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Initialize Liquid Auth", exact: true })
+    .click();
   await expect(page.getByText("Connected", { exact: true })).toHaveCount(2);
   expect(authRequests).toHaveLength(10);
 
   const transaction = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    sender: address, receiver: address, amount: 0,
-    suggestedParams: { fee: 1000, flatFee: true, firstValid: 1, lastValid: 100 },
+    sender: address,
+    receiver: address,
+    amount: 0,
+    suggestedParams: {
+      fee: 1000,
+      flatFee: true,
+      firstValid: 1,
+      lastValid: 100,
+    },
   });
-  await page.evaluate(async ({ requestId, txn }) => {
-    const peersPath = "/src/shared/liquid.ts";
-    const protocolPath = "/src/scripts/liquid/protocol.ts";
-    const { opened } = await import(peersPath) as { opened: Map<string, LiquidOpenParams> };
-    const { encodeLiquidMessage, LiquidReference } = await import(protocolPath) as typeof import("../../src/scripts/liquid/protocol");
-    const peer = opened.get(requestId);
-    if (!peer) throw new Error("Saved peer was not reopened");
-    peer.onMessage(requestId, await encodeLiquidMessage({
-      id: "after-refresh", reference: LiquidReference.signTransactionsRequest,
-      params: { providerId: "test-dapp", txns: [{ txn }] },
-    }));
-  }, { requestId: requestIds[0], txn: Buffer.from(transaction.toByte()).toString("base64") });
+  await page.evaluate(
+    async ({ requestId, txn }) => {
+      const peersPath = "/src/shared/liquid.ts";
+      const protocolPath = "/src/scripts/liquid/protocol.ts";
+      const { opened } = (await import(peersPath)) as {
+        opened: Map<string, LiquidOpenParams>;
+      };
+      const { encodeLiquidMessage, LiquidReference } = (await import(
+        protocolPath
+      )) as typeof import("../../src/scripts/liquid/protocol");
+      const peer = opened.get(requestId);
+      if (!peer) throw new Error("Saved peer was not reopened");
+      peer.onMessage(
+        requestId,
+        await encodeLiquidMessage({
+          id: "after-refresh",
+          reference: LiquidReference.signTransactionsRequest,
+          params: { providerId: "test-dapp", txns: [{ txn }] },
+        }),
+      );
+    },
+    {
+      requestId: requestIds[0],
+      txn: Buffer.from(transaction.toByte()).toString("base64"),
+    },
+  );
 
-  await expect.poll(() => page.evaluate(async () => {
-    const { $store: store } = (document.querySelector("#app") as WalletElement).__vue_app__.config.globalProperties;
-    return store.state.liquid.requests.map((request) => request.id);
-  })).toEqual(["after-refresh"]);
+  await expect
+    .poll(() =>
+      page.evaluate(async () => {
+        const { $store: store } = (
+          document.querySelector("#app") as WalletElement
+        ).__vue_app__.config.globalProperties;
+        return store.state.liquid.requests.map((request) => request.id);
+      }),
+    )
+    .toEqual(["after-refresh"]);
 
   const resetState = await page.evaluate(async () => {
-    const { $store: store } = (document.querySelector("#app") as WalletElement).__vue_app__.config.globalProperties;
+    const { $store: store } = (document.querySelector("#app") as WalletElement)
+      .__vue_app__.config.globalProperties;
     await store.dispatch("liquid/reset");
     return store.state.liquid;
   });
-  expect(resetState).toEqual({ enabled: false, sessions: [], requests: [], signDataRequests: [] });
+  expect(resetState).toEqual({
+    enabled: false,
+    sessions: [],
+    requests: [],
+    signDataRequests: [],
+  });
 });

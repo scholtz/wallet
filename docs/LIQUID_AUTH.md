@@ -12,7 +12,7 @@ for `@txnlab/use-wallet` v5; the normative protocol description lives there in
 
 1. The dApp shows a `liquid://liquid.biatec.io/?requestId=<uuid>` link (usually as a QR code).
 2. In the wallet: **Connect → Liquid Auth** tab, click **Initialize Liquid Auth**, then
-  paste / scan the link, pick the account to expose, click **Connect with passkey**.
+   paste / scan the link, pick the account to expose, click **Connect with passkey**.
 3. The browser asks for a passkey (Windows Hello, Touch ID, security key…). The first time for a
    given account and service a passkey is created; later connections reuse it.
 4. The session appears in the sessions table with status _Connected_. Signing requests from the
