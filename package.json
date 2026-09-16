@@ -120,7 +120,7 @@
     "@vitejs/plugin-vue": "^6.0.7",
     "@vue/compiler-sfc": "^3.5.39",
     "@vue/eslint-config-typescript": "^14.9.0",
-    "baseline-browser-mapping": "^2.10.43",
+    "baseline-browser-mapping": "^2.11.0",
     "browser-sync": "^3.0.4",
     "cypress": "^15.18.1",
     "eslint": "^10.7.0",
