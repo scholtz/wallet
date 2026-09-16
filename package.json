@@ -2,7 +2,7 @@
   "name": "wallet",
   "version": "2.0.0",
   "private": false,
-  "packageManager": "pnpm@12.4.2",
+  "packageManager": "pnpm@11.10.0",
   "scripts": {
     "dev": "vite",
     "serve": "vite",
