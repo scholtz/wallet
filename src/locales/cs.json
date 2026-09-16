@@ -955,7 +955,9 @@
       "peer_unknown": "Unknown dApp (no metadata announced)",
       "connected_app_unknown": "Unknown (no Liquid Auth session found for this request)",
       "session_added": "Liquid Auth session established",
-      "session_removed": "Liquid Auth session closed"
+      "session_removed": "Liquid Auth session closed",
+      "init_liquid": "Znovu připojit Liquid Auth",
+      "reconnect_help": "Uložená spojení Liquid Auth jsou po obnovení stránky offline. Znovu se připojte, až budete chtít přijímat požadavky na podpis z těchto dApp — dokud to neuděláte, nic nedorazí."
     }
   },
   "arc56": {

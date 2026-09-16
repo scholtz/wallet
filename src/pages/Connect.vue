@@ -414,6 +414,17 @@
               </TabPanel>
               <TabPanel value="2">
                 <p>{{ $t("connect.liquid.intro") }}</p>
+                <div v-if="liquidNeedsReconnect" class="mb-3">
+                  <Message severity="warn" class="my-2">
+                    {{ $t("connect.liquid.reconnect_help") }}
+                  </Message>
+                  <Button
+                    :disabled="liquidBusy"
+                    @click="clickReconnectLiquid"
+                  >
+                    {{ $t("connect.liquid.init_liquid") }}
+                  </Button>
+                </div>
                 <ConnectRequestsTable
                   v-if="liquidRequests.length > 0"
                   :requests="liquidRequests"
@@ -680,6 +691,13 @@ const liquidConnectable = computed(
     liquidUri.value.trim().toLowerCase().startsWith("liquid://") &&
     Boolean(liquidAddress.value),
 );
+const liquidNeedsReconnect = computed(
+  () =>
+    liquidSessions.value.some(
+      (session) =>
+        session.status === "disconnected" || session.status === "closed",
+    ),
+);
 const connectable = computed(() => Boolean(uri.value && uri.value.trim()));
 const connectableWc1 = computed(() =>
   Boolean(uriWc1.value && uriWc1.value.trim()),
@@ -932,6 +950,26 @@ const clickDisconnectLiquid = async (requestId: string) => {
   });
 };
 
+const clickReconnectLiquid = async () => {
+  await prolong();
+  liquidError.value = "";
+  liquidBusy.value = true;
+  try {
+    await store.dispatch("liquid/reconnect");
+    await store.dispatch("toast/openSuccess", {
+      severity: "info",
+      summary: t("connect.liquid.session_added"),
+      life: 3000,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    liquidError.value = message;
+    await store.dispatch("toast/openError", message);
+  } finally {
+    liquidBusy.value = false;
+  }
+};
+
 watch(
   () => route.params.account,
   async (value) => {
@@ -944,5 +982,7 @@ onMounted(async () => {
   addr.value = accountAddress.value;
   await reloadAccount();
   await prolong();
+  // Hydrate saved pairings as disconnected only — do not open sockets here.
+  await store.dispatch("liquid/loadSavedSessions");
 });
 </script>

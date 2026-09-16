@@ -48,8 +48,17 @@ signature, requestId, device }`. The challenge is signed by `signer/signLiquidCh
   not the dApp to the wallet. The dApp's name/URL come from its hello message and are shown to
   the user; ARC-60 signing additionally requires the request's domain to match that declared
   URL (`signer/signArc60Data` with `sessionOrigin`), mirroring the WalletConnect checks.
-- **Lifecycle**: `liquid/reset` closes every connection on logout / wallet switch (next to
-  `wc/reset`); `liquid/disconnect` closes one pairing.
+- **Lifecycle**: pairing metadata (`requestId`, origin, address, optional dApp peer) is stored
+  in the encrypted wallet blob under `liquid:sessions` (via `wallet/wcSetItem`), next to the
+  passkey credential ids. Runtime sockets and WebRTC are **not** persisted and are **not**
+  reopened on wallet open or page refresh — same rule as WalletConnect. After a refresh the
+  Connect page hydrates saved pairings as disconnected (`liquid/loadSavedSessions`) so they
+  remain visible; signing requests only resume after the user clicks **Reconnect to Liquid
+  Auth** (`liquid/reconnect`), which re-runs the passkey assertion and rejoins the signaling
+  room. `liquid/disconnect` closes the peer **and** drops that pairing from storage (so
+  reconnect will not revive it). `liquid/reset` closes every runtime connection on logout /
+  wallet switch (next to `wc/reset`) but leaves saved pairings in the wallet blob until the
+  user disconnects them.
 
 ## Deploying the Liquid Auth service
 

@@ -38,6 +38,7 @@ import {
   decodeLiquidMessage,
   encodeLiquidMessage,
   isLiquidResponse,
+  generateLiquidDeepLink,
   parseLiquidDeepLink,
   toBase64Url,
   type HelloParams,
@@ -50,6 +51,11 @@ import {
   type SignTransactionsParams,
   type SignTransactionsResult,
 } from "../scripts/liquid/protocol";
+import {
+  LIQUID_SESSIONS_STORAGE_KEY,
+  parseStoredLiquidSessions,
+  toStoredLiquidSession,
+} from "../scripts/liquid/sessions";
 import type { Arc60StdSigData } from "../scripts/encoding/arc60";
 import { bytesToBase64 } from "../scripts/encoding/arc60";
 import { getWalletBrandName } from "@/scripts/branding";
@@ -103,6 +109,25 @@ const credentialKey = (origin: string, address: string) =>
 
 const isLiquidCapable = (account: RootState["wallet"]["privateAccounts"][number]) =>
   !account.params && (account.type === "hd" || Boolean(account.sk));
+
+/**
+ * Persist pairing metadata only (requestId/origin/address/peer). Runtime status
+ * and sockets are never stored — after a refresh the Connect page hydrates these
+ * as disconnected until the user clicks reconnect.
+ */
+const persistLiquidSessions = async (
+  dispatch: (type: string, payload?: unknown, options?: { root: boolean }) => Promise<unknown>,
+  sessions: LiquidSessionRecord[]
+) => {
+  await dispatch(
+    "wallet/wcSetItem",
+    {
+      key: LIQUID_SESSIONS_STORAGE_KEY,
+      value: sessions.map(toStoredLiquidSession),
+    },
+    { root: true }
+  );
+};
 
 const mutations: MutationTree<LiquidState> = {
   upsertSession(currentState, record: LiquidSessionRecord) {
@@ -255,15 +280,19 @@ const actions: ActionTree<LiquidState, RootState> = {
       console.warn("Liquid Auth service bound the session to another wallet", auth.user.wallet);
     }
 
+    const existing = rootState.liquid.sessions.find((s) => s.requestId === requestId);
     const record: LiquidSessionRecord = {
       requestId,
       origin,
       address,
       device,
       status: "connecting",
-      createdAt: Date.now(),
+      createdAt: existing?.createdAt ?? Date.now(),
+      peer: existing?.peer,
+      dappProviderId: existing?.dappProviderId,
     };
     commit("upsertSession", record);
+    await persistLiquidSessions(dispatch, rootState.liquid.sessions);
 
     await liquidPeers.open({
       requestId,
@@ -309,6 +338,7 @@ const actions: ActionTree<LiquidState, RootState> = {
             peer: params.metadata,
             dappProviderId: params.providerId,
           });
+          await persistLiquidSessions(dispatch, state.sessions);
         }
         const result: HelloResult = {
           providerId: LIQUID_WALLET_PROVIDER_ID,
@@ -482,9 +512,61 @@ const actions: ActionTree<LiquidState, RootState> = {
     }
   },
 
-  async disconnect({ commit }, { requestId }: { requestId: string }) {
+  async disconnect({ commit, dispatch, rootState }, { requestId }: { requestId: string }) {
     liquidPeers.close(requestId);
     commit("removeSession", requestId);
+    await persistLiquidSessions(dispatch, rootState.liquid.sessions);
+  },
+
+  /**
+   * Hydrate saved pairings from the encrypted wallet blob as disconnected.
+   * Does not open sockets or run WebAuthn — that only happens from `reconnect`
+   * after an explicit user click.
+   */
+  async loadSavedSessions({ commit, dispatch, state }) {
+    const stored = parseStoredLiquidSessions(
+      await dispatch("wallet/wcGetItem", { key: LIQUID_SESSIONS_STORAGE_KEY }, { root: true })
+    );
+    for (const session of stored) {
+      if (state.sessions.some((s) => s.requestId === session.requestId)) {
+        continue;
+      }
+      commit("upsertSession", {
+        ...session,
+        status: "disconnected" as const,
+      });
+    }
+  },
+
+  /**
+   * Re-authenticate and reopen signaling for every saved pairing that is not
+   * already live. Must be called from a user gesture (WebAuthn assertion).
+   * Never invoked from wallet open / page mount.
+   */
+  async reconnect({ dispatch, rootState, state }) {
+    await dispatch("loadSavedSessions");
+    const pending = state.sessions.filter(
+      (session) => session.status !== "connected" && !liquidPeers.isChannelOpen(session.requestId)
+    );
+    const errors: string[] = [];
+    for (const session of pending) {
+      const account = rootState.wallet.privateAccounts.find((a) => a.addr === session.address);
+      if (!account || !isLiquidCapable(account)) {
+        continue;
+      }
+      try {
+        await dispatch("connect", {
+          uri: generateLiquidDeepLink(session.origin, session.requestId),
+          address: session.address,
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        errors.push(`${session.origin}: ${message}`);
+      }
+    }
+    if (errors.length > 0) {
+      throw new Error(errors.join("\n"));
+    }
   },
 
   /** Close every peer connection and wipe in-memory state (logout / wallet switch). */

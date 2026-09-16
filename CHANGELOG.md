@@ -2,6 +2,10 @@
 
 This document tracks the evolution of AWallet, an open-source Algorand wallet, since its first commit in May 2021. It is a running history of the features that have shipped over time, written for people who use the wallet rather than people who build it.
 
+## 2026-09
+
+- Liquid Auth pairings as alternative to wallet connect.
+
 ## 2026-08
 
 - Added post-quantum secure accounts using the Falcon 1024 signature scheme (New account > Advanced > Post-Quantum Account (Falcon 1024)). The key pair is derived from a standard 25-word Algorand mnemonic, which you can back up and restore like any other account; signatures are designed to resist attacks by quantum computers. Note that Falcon 1024 signatures are larger than regular ones, so transactions from these accounts pay a higher network fee.
