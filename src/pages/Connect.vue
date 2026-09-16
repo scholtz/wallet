@@ -10,9 +10,9 @@
 
       <Card>
         <template #content>
-          <TabView>
-            <TabPanel value="0">
-              <template #header>
+          <Tabs v-model:value="activeTab">
+            <TabList>
+              <Tab value="0">
                 {{ $t("connect.wc1_tab") }}
                 <Badge
                   v-if="wc1Requests.length > 0"
@@ -20,7 +20,30 @@
                   class="ml-2"
                   :value="wc1Requests.length"
                 />
-              </template>
+              </Tab>
+              <Tab value="1">
+                {{ $t("connect.wc2_tab") }}
+                <Badge
+                  v-if="wc2Requests.length + signDataRequests.length > 0"
+                  severity="danger"
+                  class="ml-2"
+                  :value="wc2Requests.length + signDataRequests.length"
+                />
+              </Tab>
+              <Tab value="2">
+                {{ $t("connect.liquid.tab") }}
+                <Badge
+                  v-if="
+                    liquidRequests.length + liquidSignDataRequests.length > 0
+                  "
+                  severity="danger"
+                  class="ml-2"
+                  :value="liquidRequests.length + liquidSignDataRequests.length"
+                />
+              </Tab>
+            </TabList>
+            <TabPanels>
+            <TabPanel value="0">
               <div v-if="!wc1Enabled">
                 <Button @click="clickEnableWc1">
                   {{ $t("connect.enable_wc1") }}
@@ -129,15 +152,6 @@
               </div>
             </TabPanel>
             <TabPanel value="1">
-              <template #header>
-                {{ $t("connect.wc2_tab") }}
-                <Badge
-                  v-if="wc2Requests.length + signDataRequests.length > 0"
-                  severity="danger"
-                  class="ml-2"
-                  :value="wc2Requests.length + signDataRequests.length"
-                />
-              </template>
               <div v-if="!$store.state.wc.web3wallet">
                 <Button @click="initConnection">
                   {{ $t("connect.init_wc") }}
@@ -370,15 +384,6 @@
               </div>
             </TabPanel>
             <TabPanel value="2">
-              <template #header>
-                {{ $t("connect.liquid.tab") }}
-                <Badge
-                  v-if="liquidRequests.length + liquidSignDataRequests.length > 0"
-                  severity="danger"
-                  class="ml-2"
-                  :value="liquidRequests.length + liquidSignDataRequests.length"
-                />
-              </template>
               <p>{{ $t("connect.liquid.intro") }}</p>
               <ConnectRequestsTable
                 v-if="liquidRequests.length > 0"
@@ -518,7 +523,8 @@
                 {{ liquidError }}
               </Message>
             </TabPanel>
-          </TabView>
+            </TabPanels>
+          </Tabs>
         </template>
       </Card>
     </div>
@@ -531,7 +537,10 @@ import { QrcodeStream } from "qrcode-reader-vue3";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
-import TabView from "primevue/tabview";
+import Tabs from "primevue/tabs";
+import TabList from "primevue/tablist";
+import Tab from "primevue/tab";
+import TabPanels from "primevue/tabpanels";
 import TabPanel from "primevue/tabpanel";
 import Select from "primevue/select";
 import MainLayout from "../layouts/Main.vue";
@@ -563,6 +572,7 @@ const route = useRoute();
 const { t } = useI18n();
 const $store = store;
 
+const activeTab = ref("0");
 const uri = ref("");
 const uriWc1 = ref("");
 const addr = ref("");
