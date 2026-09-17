@@ -14,10 +14,7 @@ import type { Socket } from "socket.io-client";
 import { DEFAULT_ICE_SERVERS } from "../scripts/liquid/protocol";
 
 export type LiquidRuntimeStatus =
-  | "connecting"
-  | "connected"
-  | "disconnected"
-  | "closed";
+  "connecting" | "connected" | "disconnected" | "closed";
 
 export interface LiquidOpenParams {
   requestId: string;
@@ -92,7 +89,11 @@ export class LiquidPeerManager {
     });
     socket.on(
       "presence",
-      (presence: { requestId: string; deviceCount: number; online: boolean }) => {
+      (presence: {
+        requestId: string;
+        deviceCount: number;
+        online: boolean;
+      }) => {
         if (presence.requestId !== session.requestId) return;
         if (
           presence.deviceCount >= 2 &&
@@ -100,7 +101,7 @@ export class LiquidPeerManager {
         ) {
           void this.negotiate(session);
         }
-      }
+      },
     );
     socket.on("disconnect", () => {
       if (!session.closed) session.onStatus(session.requestId, "disconnected");
@@ -237,7 +238,10 @@ export class LiquidPeerManager {
       session.socket.emit("offer-description", offer.sdp);
 
       session.negotiationTimeout = setTimeout(() => {
-        if (session.peerConnection === peerConnection && channel.readyState !== "open") {
+        if (
+          session.peerConnection === peerConnection &&
+          channel.readyState !== "open"
+        ) {
           this.teardownPeer(session);
           session.negotiating = false;
           session.onStatus(session.requestId, "disconnected");
@@ -252,13 +256,18 @@ export class LiquidPeerManager {
     }
   }
 
-  private async handleAnswer(session: RuntimeSession, sdp: string): Promise<void> {
+  private async handleAnswer(
+    session: RuntimeSession,
+    sdp: string,
+  ): Promise<void> {
     const peerConnection = session.peerConnection;
     if (!peerConnection || peerConnection.remoteDescription) return;
     try {
       await peerConnection.setRemoteDescription({ type: "answer", sdp });
       for (const candidate of session.pendingCandidates.splice(0)) {
-        await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => undefined);
+        await peerConnection
+          .addIceCandidate(new RTCIceCandidate(candidate))
+          .catch(() => undefined);
       }
     } catch (error) {
       session.negotiating = false;
@@ -268,12 +277,14 @@ export class LiquidPeerManager {
 
   private async handleAnswerCandidate(
     session: RuntimeSession,
-    candidate: RTCIceCandidateInit
+    candidate: RTCIceCandidateInit,
   ): Promise<void> {
     const peerConnection = session.peerConnection;
     if (!peerConnection) return;
     if (peerConnection.remoteDescription) {
-      await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => undefined);
+      await peerConnection
+        .addIceCandidate(new RTCIceCandidate(candidate))
+        .catch(() => undefined);
     } else {
       session.pendingCandidates.push(candidate);
     }
