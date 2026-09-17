@@ -36,6 +36,7 @@ interface RuntimeSession {
   channel: RTCDataChannel | null;
   pendingCandidates: RTCIceCandidateInit[];
   negotiating: boolean;
+  negotiationTimeout?: ReturnType<typeof setTimeout>;
   closed: boolean;
   onMessage: LiquidOpenParams["onMessage"];
   onStatus: LiquidOpenParams["onStatus"];
@@ -93,12 +94,9 @@ export class LiquidPeerManager {
       "presence",
       (presence: { requestId: string; deviceCount: number; online: boolean }) => {
         if (presence.requestId !== session.requestId) return;
-        // Both peers are present but there is no open channel: the dApp (re)joined, so
-        // offer again. Guarded so a burst of presence events triggers a single negotiation.
         if (
           presence.deviceCount >= 2 &&
-          session.channel?.readyState !== "open" &&
-          !session.negotiating
+          session.channel?.readyState !== "open"
         ) {
           void this.negotiate(session);
         }
@@ -151,6 +149,8 @@ export class LiquidPeerManager {
   }
 
   private teardownPeer(session: RuntimeSession): void {
+    clearTimeout(session.negotiationTimeout);
+    session.negotiationTimeout = undefined;
     const { channel, peerConnection } = session;
     session.channel = null;
     session.peerConnection = null;
@@ -177,8 +177,17 @@ export class LiquidPeerManager {
   }
 
   private async negotiate(session: RuntimeSession): Promise<void> {
-    if (session.closed || session.negotiating) return;
+    if (session.closed) return;
+    if (session.negotiating) {
+      const peerConnection = session.peerConnection;
+      const offer = peerConnection?.localDescription;
+      if (offer?.type === "offer" && !peerConnection?.remoteDescription) {
+        session.socket.emit("offer-description", offer.sdp);
+      }
+      return;
+    }
     session.negotiating = true;
+    session.onStatus(session.requestId, "connecting");
     try {
       this.teardownPeer(session);
       const peerConnection = new RTCPeerConnection({
@@ -190,11 +199,14 @@ export class LiquidPeerManager {
       session.channel = channel;
 
       channel.onopen = () => {
+        clearTimeout(session.negotiationTimeout);
+        session.negotiationTimeout = undefined;
         session.negotiating = false;
         session.onStatus(session.requestId, "connected");
       };
       channel.onclose = () => {
         if (session.channel === channel && !session.closed) {
+          session.negotiating = false;
           session.onStatus(session.requestId, "disconnected");
         }
       };
@@ -213,22 +225,29 @@ export class LiquidPeerManager {
           !session.closed &&
           (state === "failed" || state === "disconnected" || state === "closed")
         ) {
+          session.negotiating = false;
           session.onStatus(session.requestId, "disconnected");
         }
       };
 
       const offer = await peerConnection.createOffer();
+      if (session.closed || session.peerConnection !== peerConnection) return;
       await peerConnection.setLocalDescription(offer);
+      if (session.closed || session.peerConnection !== peerConnection) return;
       session.socket.emit("offer-description", offer.sdp);
 
-      // If no answer arrives, allow a later presence event to trigger a fresh offer.
-      setTimeout(() => {
-        if (session.peerConnection === peerConnection && !peerConnection.remoteDescription) {
+      session.negotiationTimeout = setTimeout(() => {
+        if (session.peerConnection === peerConnection && channel.readyState !== "open") {
+          this.teardownPeer(session);
           session.negotiating = false;
+          session.onStatus(session.requestId, "disconnected");
         }
       }, ANSWER_TIMEOUT_MS);
     } catch (error) {
+      if (session.closed) return;
+      this.teardownPeer(session);
       session.negotiating = false;
+      session.onStatus(session.requestId, "disconnected");
       console.error("Liquid Auth negotiation failed", error);
     }
   }

@@ -35,7 +35,10 @@ signature, requestId, device }`. The challenge is signed by `signer/signLiquidCh
   cookie; the wallet is the _offer_ peer: it creates the `liquid` data channel, emits
   `offer-description` / `offer-candidate`, applies the dApp's answer, and renegotiates when the
   service's `presence` event shows both peers present but the channel closed (e.g. the dApp
-  reloaded). ICE uses public Google STUN servers.
+  reloaded). If an offer is still awaiting an answer, presence resends that offer, including
+  gathered ICE candidates, instead of ignoring the returning dApp. Negotiations that do not
+  open a data channel within 30 seconds release their peer and return to the waiting state;
+  a later presence event or explicit initialization can retry. ICE uses public Google STUN servers.
 - **Messages** (`src/scripts/liquid/protocol.ts`, `src/store/liquid.ts`): ARC-0027 envelopes,
   CBOR + base64url. Handled references: `biatec:hello:request` (answered with the connected
   address, wallet name and supported methods), `arc0027:sign_transactions:request` (ARC-0001

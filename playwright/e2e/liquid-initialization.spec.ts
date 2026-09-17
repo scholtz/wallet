@@ -15,6 +15,146 @@ type WalletElement = HTMLElement & {
 const origin = "https://liquid.example";
 const requestIds = ["saved-pairing-1", "saved-pairing-2"];
 
+for (const expired of [false, true]) {
+  test(`Liquid Auth negotiates when the dApp rejoins after the initial offer ${expired ? "timed out" : "was missed"}`, async ({
+    page,
+  }) => {
+    if (expired) await page.clock.install();
+    await page.route("**/*socket*io*client*.js*", (route) =>
+      route.fulfill({
+        contentType: "application/javascript",
+        body: `
+        const signals = globalThis.liquidTestSignals ??= {
+          listeners: new Map(), offers: [], candidates: []
+        };
+        const { listeners } = signals;
+        export const offers = signals.offers;
+        export const candidates = signals.candidates;
+        export const receive = (event, payload) => listeners.get(event)?.(payload);
+        export const io = () => ({
+          connected: true,
+          on(event, handler) { listeners.set(event, handler); },
+          emit(event, payload) {
+            if (event === "offer-description") offers.push(payload);
+            if (event === "offer-candidate") candidates.push(payload);
+          },
+          removeAllListeners() { listeners.clear(); },
+          disconnect() {},
+        });
+      `,
+      }),
+    );
+    await page.goto("/new-wallet");
+    const recovery = page.evaluate(async (expired) => {
+      const peersPath = "/src/shared/liquid.ts";
+      const socketPath = "/node_modules/.vite/deps/socket__io-client.js";
+      const { LiquidPeerManager } = (await import(
+        peersPath
+      )) as typeof import("../../src/shared/liquid");
+      const socket = (await import(socketPath)) as {
+        offers: string[];
+        candidates: RTCIceCandidateInit[];
+        receive: (
+          event: string,
+          payload:
+            | string
+            | RTCIceCandidateInit
+            | {
+                requestId: string;
+                deviceCount: number;
+                online: boolean;
+              },
+        ) => void;
+      };
+      const manager = new LiquidPeerManager();
+      const statuses: string[] = [];
+      const messages: string[] = [];
+      await manager.open({
+        requestId: "rejoining-dapp",
+        origin: "https://liquid.example",
+        iceServers: [],
+        onStatus: (_, status) => statuses.push(status),
+        onMessage: (_, payload) => messages.push(payload),
+      });
+      const waitUntil = async (phase: string, predicate: () => boolean) => {
+        const deadline = Date.now() + 5000;
+        while (!predicate()) {
+          if (Date.now() > deadline)
+            throw new Error(
+              `Timed out waiting for ${phase}: ${statuses.join(", ")}; offers=${socket.offers.length}`,
+            );
+          await new Promise<void>((resolve) =>
+            requestAnimationFrame(() => resolve()),
+          );
+        }
+      };
+      const answerer = new RTCPeerConnection({ iceServers: [] });
+      try {
+        await waitUntil(
+          "initial offer and ICE",
+          () => socket.offers.length === 1 && socket.candidates.length > 0,
+        );
+        if (expired) {
+          await waitUntil("negotiation timeout", () =>
+            statuses.includes("disconnected"),
+          );
+        }
+        socket.receive("presence", {
+          requestId: "rejoining-dapp",
+          deviceCount: 2,
+          online: true,
+        });
+        await waitUntil("resent offer", () => socket.offers.length === 2);
+        answerer.onicecandidate = (event) => {
+          if (event.candidate)
+            socket.receive("answer-candidate", event.candidate.toJSON());
+        };
+        answerer.ondatachannel = ({ channel }) => {
+          channel.onopen = () => channel.send("signing-request-after-refresh");
+        };
+        await answerer.setRemoteDescription({
+          type: "offer",
+          sdp: socket.offers[1],
+        });
+        if (expired) {
+          await waitUntil(
+            "new ICE candidates",
+            () => socket.candidates.length > 1,
+          );
+          for (const candidate of socket.candidates) {
+            await answerer.addIceCandidate(candidate).catch(() => undefined);
+          }
+        }
+        await answerer.setLocalDescription(await answerer.createAnswer());
+        socket.receive("answer-description", answerer.localDescription!.sdp);
+        await waitUntil("data channel message", () => messages.length === 1);
+        return { statuses, messages };
+      } finally {
+        manager.closeAll();
+        answerer.close();
+      }
+    }, expired);
+    if (expired) {
+      await page.waitForFunction(() => {
+        const signals = (
+          globalThis as typeof globalThis & {
+            liquidTestSignals?: {
+              offers: string[];
+              candidates: RTCIceCandidateInit[];
+            };
+          }
+        ).liquidTestSignals;
+        return signals?.offers.length === 1 && signals.candidates.length > 0;
+      });
+      await page.clock.fastForward(30_001);
+    }
+    const result = await recovery;
+    expect(result.statuses).toContain("connected");
+    if (expired) expect(result.statuses).toContain("disconnected");
+    expect(result.messages).toEqual(["signing-request-after-refresh"]);
+  });
+}
+
 test("Liquid Auth stays offline until initialized and restores saved signing sessions after refresh", async ({
   page,
 }) => {
@@ -27,7 +167,7 @@ test("Liquid Auth stays offline until initialized and restores saved signing ses
     route.fulfill({
       contentType: "application/javascript",
       body: `
-        export const opened = new Map();
+        export const opened = globalThis.liquidTestOpened ??= new Map();
         const peers = {
           async open(params) {
             opened.set(params.requestId, params);

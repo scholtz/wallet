@@ -5,6 +5,7 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 ## 2026-09
 
 - Liquid Auth pairings as alternative to wallet connect.
+- Fixed Liquid Auth sessions getting stuck connecting after a page refresh when a dApp requests a signature; unavailable peers now return to a retryable waiting state.
 
 ## 2026-08
 
