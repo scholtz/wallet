@@ -873,6 +873,7 @@
     "arc14_auth_notice": "Bu, \"{realm}\" için bir ARC14 kimlik doğrulama isteğidir. Herhangi bir fon transferi yapmaz.",
     "arc14_auth_badge": "ARC14 Kimlik Doğrulama",
     "arc14_authenticate": "{realm} için kimlik doğrula",
+    "arc14_authenticate_account": "{realm} için {account} hesabıyla kimlik doğrula",
     "group": "Grup",
     "app": "Uygulama dizini",
     "app_args": "Uygulama Argümanları",

@@ -80,9 +80,7 @@
                 >
                   {{
                     isArc14Auth(slotProps.data.txn)
-                      ? $t("connect.arc14_authenticate", {
-                          realm: arc14Realm(slotProps.data.txn),
-                        })
+                      ? arc14AuthenticateLabel(slotProps.data.txn)
                       : $t("connect.sign")
                   }}
                 </Button>
@@ -759,6 +757,15 @@ const clickSign = async (data: TransactionWrapper) => {
         signator: data.txn.sender.toString(),
         tx: txn,
       });
+      // ARC14 auth requests can't be broadcast to the chain, so there is no
+      // decision left for the user to make after signing - send the result
+      // straight back to the dApp instead of waiting for a separate click.
+      if (isArc14Auth(txn)) {
+        const request = findRequestForTransaction(data);
+        if (request) {
+          await clickAccept(request);
+        }
+      }
     }
   } catch (ex) {
     await store.dispatch("toast/openError", {
@@ -887,6 +894,32 @@ const isArc14Auth = (txn: algosdk.Transaction) => isArc14AuthTransaction(txn);
 
 const arc14Realm = (txn: algosdk.Transaction) => getArc14Realm(txn?.note) ?? "";
 
+const accountName = (txn: algosdk.Transaction): string | undefined => {
+  const addr = encodeAddress(txn?.sender);
+  return store.state.wallet.privateAccounts.find((a) => a.addr === addr)?.name;
+};
+
+const arc14AuthenticateLabel = (txn: algosdk.Transaction): string => {
+  const realm = arc14Realm(txn);
+  const account = accountName(txn);
+  return account
+    ? t("connect.arc14_authenticate_account", { realm, account })
+    : t("connect.arc14_authenticate", { realm });
+};
+
+// ARC14 auth transactions can never be grouped (isArc14AuthTransaction
+// rejects any txn with a group), so a request containing one is always
+// exactly that single transaction - safe to auto-send once signed.
+const findRequestForTransaction = (
+  data: TransactionWrapper
+): RequestItem | undefined => {
+  const txId = data?.txn?.txID?.();
+  if (!txId) return undefined;
+  return requests.value.find((request) =>
+    (request.transactions ?? []).some((tx) => tx?.txn?.txID?.() === txId)
+  );
+};
+
 // ARC14 auth transactions are signed with fee=0 and are never broadcast, so
 // simulating them against algod would always fail on minimum-fee validation.
 // Excluded here rather than passed through so any other, real transactions
@@ -901,7 +934,7 @@ const signAllLabel = (data: RequestItem): string => {
   if (list.length !== 1) return t("connect.sign_all");
   const txn = list[0].txn;
   if (isArc14Auth(txn)) {
-    return t("connect.arc14_authenticate", { realm: arc14Realm(txn) });
+    return arc14AuthenticateLabel(txn);
   }
   return t("connect.sign_single");
 };

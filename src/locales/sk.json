@@ -873,6 +873,7 @@
     "arc14_auth_notice": "Toto je overovacia požiadavka ARC14 pre „{realm}“. Neprevádza žiadne prostriedky.",
     "arc14_auth_badge": "ARC14 overenie",
     "arc14_authenticate": "Overiť u {realm}",
+    "arc14_authenticate_account": "Overiť u {realm} s účtom {account}",
     "group": "ID skupiny transakcií",
     "app": "ID aplikácie",
     "app_args": "Argumenty aplikácie",

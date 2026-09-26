@@ -873,6 +873,7 @@
     "arc14_auth_notice": "Ez egy ARC14 hitelesítési kérés a(z) \"{realm}\" számára. Nem utal át semmilyen összeget.",
     "arc14_auth_badge": "ARC14 hitelesítés",
     "arc14_authenticate": "Hitelesítés itt: {realm}",
+    "arc14_authenticate_account": "Hitelesítés itt: {realm}, fiók: {account}",
     "group": "Csoport",
     "app": "Alkalmazás index",
     "app_args": "Alkalmazás paraméterek",
