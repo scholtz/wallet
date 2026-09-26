@@ -831,6 +831,13 @@ const clickReject = async (data: RequestItem) => {
       summary: "Request rejected",
       life: 3000,
     });
+  } catch (ex) {
+    await store.dispatch("toast/openError", {
+      severity: "error",
+      summary: "Reject request failed",
+      detail: ex,
+      life: 5000,
+    });
   } finally {
     respondingRequestIds.delete(data.id);
   }
