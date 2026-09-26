@@ -784,18 +784,20 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
   }
 };
 
-// Guards against clickAccept being dispatched twice for the same request
-// (e.g. the ARC14 auto-accept above racing a manual "Send back" click) -
-// WalletConnect/Liquid Auth's sendResult is a one-shot response and the
-// request is removed from state as soon as it succeeds, so a second call
-// would either throw or silently no-op depending on transport.
-const acceptingRequestIds = new Set<RequestItem["id"]>();
+// Guards against clickAccept/clickReject being dispatched twice - or against
+// each other - for the same request (e.g. the ARC14 auto-accept above racing
+// a manual "Send back" or "Reject" click). WalletConnect/Liquid Auth's
+// sendResult/cancelRequest are one-shot terminal responses and the request
+// is removed from state as soon as one succeeds, so a second call for the
+// same id would either throw, silently no-op, or send a conflicting second
+// response to the dApp depending on transport and which call wins the race.
+const respondingRequestIds = new Set<RequestItem["id"]>();
 
 const clickAccept = async (data: RequestItem) => {
-  if (acceptingRequestIds.has(data.id)) {
+  if (respondingRequestIds.has(data.id)) {
     return;
   }
-  acceptingRequestIds.add(data.id);
+  respondingRequestIds.add(data.id);
   await prolong();
   try {
     await store.dispatch(`${ns.value}/sendResult`, { data });
@@ -812,18 +814,26 @@ const clickAccept = async (data: RequestItem) => {
       life: 5000,
     });
   } finally {
-    acceptingRequestIds.delete(data.id);
+    respondingRequestIds.delete(data.id);
   }
 };
 
 const clickReject = async (data: RequestItem) => {
-  await prolong();
-  await store.dispatch(`${ns.value}/cancelRequest`, { data });
-  await store.dispatch("toast/openSuccess", {
-    severity: "info",
-    summary: "Request rejected",
-    life: 3000,
-  });
+  if (respondingRequestIds.has(data.id)) {
+    return;
+  }
+  respondingRequestIds.add(data.id);
+  try {
+    await prolong();
+    await store.dispatch(`${ns.value}/cancelRequest`, { data });
+    await store.dispatch("toast/openSuccess", {
+      severity: "info",
+      summary: "Request rejected",
+      life: 3000,
+    });
+  } finally {
+    respondingRequestIds.delete(data.id);
+  }
 };
 
 const clickCopyPayload = async (data: RequestItem) => {
@@ -922,6 +932,10 @@ const accountName = (txn: algosdk.Transaction): string | undefined => {
 const arc14AuthenticateLabel = (txn: algosdk.Transaction): string => {
   const realm = arc14Realm(txn);
   const account = accountName(txn);
+  // Falls back to the plain realm-only label both when there's no matching
+  // account and when the matched account has a blank name - "with {realm}"
+  // followed by nothing would look broken, so an empty name isn't treated
+  // any differently from a missing one here.
   return account
     ? t("connect.arc14_authenticate_account", { realm, account })
     : t("connect.arc14_authenticate", { realm });
