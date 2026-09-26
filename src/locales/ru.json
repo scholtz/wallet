@@ -873,6 +873,7 @@
     "arc14_auth_notice": "Это запрос аутентификации ARC14 для \"{realm}\". Он не переводит никакие средства.",
     "arc14_auth_badge": "ARC14 аутентификация",
     "arc14_authenticate": "Аутентификация в {realm}",
+    "arc14_authenticate_account": "Аутентификация в {realm} с аккаунтом {account}",
     "group": "Группа",
     "app": "Индекс приложения",
     "app_args": "Аргументы приложения",

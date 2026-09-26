@@ -873,6 +873,7 @@
     "arc14_auth_notice": "Dit is een ARC14-authenticatieverzoek voor \"{realm}\". Er wordt geen geld verplaatst.",
     "arc14_auth_badge": "ARC14-authenticatie",
     "arc14_authenticate": "Authenticeren bij {realm}",
+    "arc14_authenticate_account": "Authenticeren bij {realm} met {account}",
     "group": "Group",
     "app": "App Index",
     "app_args": "App Args",

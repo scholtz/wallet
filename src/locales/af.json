@@ -873,6 +873,7 @@
     "arc14_auth_notice": "Dit is 'n ARC14-verifikasieversoek vir \"{realm}\". Geen fondse word geskuif nie.",
     "arc14_auth_badge": "ARC14-verifikasie",
     "arc14_authenticate": "Verifieer by {realm}",
+    "arc14_authenticate_account": "Verifieer by {realm} met {account}",
     "group": "Group",
     "app": "App Index",
     "app_args": "App Args",

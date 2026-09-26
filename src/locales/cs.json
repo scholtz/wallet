@@ -873,6 +873,7 @@
     "arc14_auth_notice": "Toto je ověřovací požadavek ARC14 pro „{realm}“. Nepřevádí žádné prostředky.",
     "arc14_auth_badge": "ARC14 ověření",
     "arc14_authenticate": "Ověřit u {realm}",
+    "arc14_authenticate_account": "Ověřit u {realm} s účtem {account}",
     "group": "Group",
     "app": "App Index",
     "app_args": "App Args",

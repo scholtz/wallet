@@ -873,6 +873,7 @@
     "arc14_auth_notice": "This is an ARC14 authentication request for \"{realm}\". It does not transfer any funds.",
     "arc14_auth_badge": "ARC14 Auth",
     "arc14_authenticate": "Authenticate to {realm}",
+    "arc14_authenticate_account": "Authenticate to {realm} with {account}",
     "group": "Group",
     "app": "App Index",
     "app_args": "App Args",

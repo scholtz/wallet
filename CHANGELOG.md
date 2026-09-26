@@ -4,6 +4,7 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 
 ## 2026-09
 
+- ARC-14 app authentication requests (e.g. "Authenticate to BiatecDEX") now also show which account is being asked to sign, so it's clear which one you're logging in with when the wallet holds several. Clicking Authenticate now signs and sends the result back to the dApp immediately, instead of requiring a separate "Send back" click.
 - Liquid Auth pairings as alternative to wallet connect.
 - Fixed Liquid Auth sessions getting stuck connecting after a page refresh when a dApp requests a signature; unavailable peers now return to a retryable waiting state.
 
