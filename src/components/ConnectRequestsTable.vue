@@ -61,12 +61,12 @@
           </Button>
         </template>
       </Column>
-      <template #expansion="slotProps">
+      <template #expansion="requestSlotProps">
         <div class="p-3">
           <DataTable
             v-model:expandedRows="expandedTransactions"
             v-model:selection="selectedTransaction"
-            :value="slotProps.data.transactions"
+            :value="requestSlotProps.data.transactions"
             selection-mode="single"
           >
             <Column expander style="width: 5rem" />
@@ -76,7 +76,7 @@
                   v-if="toBeSigned(slotProps.data)"
                   class="m-1"
                   :disabled="!store.state.wallet.isOpen"
-                  @click="clickSign(slotProps.data)"
+                  @click="clickSign(slotProps.data, requestSlotProps.data)"
                 >
                   {{
                     isArc14Auth(slotProps.data.txn)
@@ -371,7 +371,7 @@
                           "
                           :txn="txProps.data.txn"
                           :current-index="txProps.data.index"
-                          :group-transactions="slotProps.data.transactions"
+                          :group-transactions="requestSlotProps.data.transactions"
                         />
                       </td>
                     </tr>
@@ -487,8 +487,8 @@
             </template>
           </DataTable>
           <TransactionGroupSimulation
-            v-if="simulatableTransactions(slotProps.data).length > 0"
-            :transactions="simulatableTransactions(slotProps.data)"
+            v-if="simulatableTransactions(requestSlotProps.data).length > 0"
+            :transactions="simulatableTransactions(requestSlotProps.data)"
           />
         </div>
       </template>
@@ -714,7 +714,7 @@ const clickSignAll = async (data: RequestItem) => {
     await prolong();
     const list: TransactionWrapper[] = data?.transactions ?? [];
     for (const tx of list) {
-      await clickSign(tx);
+      await clickSign(tx, data);
     }
   } catch (ex) {
     await store.dispatch("toast/openError", {
@@ -726,7 +726,7 @@ const clickSignAll = async (data: RequestItem) => {
   }
 };
 
-const clickSign = async (data: TransactionWrapper) => {
+const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) => {
   try {
     const txn = data?.txn;
     if (!txn?.txID) {
@@ -758,13 +758,20 @@ const clickSign = async (data: TransactionWrapper) => {
         tx: txn,
       });
       // ARC14 auth requests can't be broadcast to the chain, so there is no
-      // decision left for the user to make after signing - send the result
-      // straight back to the dApp instead of waiting for a separate click.
-      if (isArc14Auth(txn)) {
-        const request = findRequestForTransaction(data);
-        if (request) {
-          await clickAccept(request);
-        }
+      // decision left for the user to make once every transaction in the
+      // request is signed - send the result straight back to the dApp
+      // instead of waiting for a separate click. Only do this once the
+      // *whole* request is nothing but signed ARC14 auth transactions - a
+      // dApp is free to bundle an auth transaction alongside ordinary
+      // payment/asset transactions in the same request, and auto-accepting
+      // then would relay a response with unsigned transactions still
+      // missing.
+      if (
+        isArc14Auth(txn) &&
+        isArc14OnlyRequest(parentRequest) &&
+        allTransactionsSigned(parentRequest)
+      ) {
+        await clickAccept(parentRequest);
       }
     }
   } catch (ex) {
@@ -777,7 +784,18 @@ const clickSign = async (data: TransactionWrapper) => {
   }
 };
 
+// Guards against clickAccept being dispatched twice for the same request
+// (e.g. the ARC14 auto-accept above racing a manual "Send back" click) -
+// WalletConnect/Liquid Auth's sendResult is a one-shot response and the
+// request is removed from state as soon as it succeeds, so a second call
+// would either throw or silently no-op depending on transport.
+const acceptingRequestIds = new Set<RequestItem["id"]>();
+
 const clickAccept = async (data: RequestItem) => {
+  if (acceptingRequestIds.has(data.id)) {
+    return;
+  }
+  acceptingRequestIds.add(data.id);
   await prolong();
   try {
     await store.dispatch(`${ns.value}/sendResult`, { data });
@@ -793,6 +811,8 @@ const clickAccept = async (data: RequestItem) => {
       detail: ex,
       life: 5000,
     });
+  } finally {
+    acceptingRequestIds.delete(data.id);
   }
 };
 
@@ -907,17 +927,20 @@ const arc14AuthenticateLabel = (txn: algosdk.Transaction): string => {
     : t("connect.arc14_authenticate", { realm });
 };
 
-// ARC14 auth transactions can never be grouped (isArc14AuthTransaction
-// rejects any txn with a group), so a request containing one is always
-// exactly that single transaction - safe to auto-send once signed.
-const findRequestForTransaction = (
-  data: TransactionWrapper
-): RequestItem | undefined => {
-  const txId = data?.txn?.txID?.();
-  if (!txId) return undefined;
-  return requests.value.find((request) =>
-    (request.transactions ?? []).some((tx) => tx?.txn?.txID?.() === txId)
-  );
+// A dApp can legally bundle an ARC14 auth transaction alongside ordinary
+// (ungrouped) payment/asset transactions in the same request - only requests
+// made up entirely of ARC14 auth transactions are safe to auto-accept.
+const isArc14OnlyRequest = (data: RequestItem): boolean => {
+  const list = data.transactions ?? [];
+  return list.length > 0 && list.every((tx) => isArc14Auth(tx.txn));
+};
+
+const allTransactionsSigned = (data: RequestItem): boolean => {
+  const signedMap = store.state.signer.signed ?? {};
+  return (data.transactions ?? []).every((tx) => {
+    const txId = tx?.txn?.txID?.();
+    return Boolean(txId) && txId in signedMap;
+  });
 };
 
 // ARC14 auth transactions are signed with fee=0 and are never broadcast, so
