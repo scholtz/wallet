@@ -935,12 +935,13 @@ const isArc14OnlyRequest = (data: RequestItem): boolean => {
   return list.length > 0 && list.every((tx) => isArc14Auth(tx.txn));
 };
 
+// Reuses toBeSigned() rather than a plain `txId in signer.signed` check, since
+// a multisig transaction is added to signer.signed as soon as the FIRST
+// required co-signature is present, well before its threshold is met -
+// toBeSigned() already decodes the msig subsig count against the threshold.
 const allTransactionsSigned = (data: RequestItem): boolean => {
-  const signedMap = store.state.signer.signed ?? {};
-  return (data.transactions ?? []).every((tx) => {
-    const txId = tx?.txn?.txID?.();
-    return Boolean(txId) && txId in signedMap;
-  });
+  const list = data.transactions ?? [];
+  return list.length > 0 && !list.some((tx) => toBeSigned(tx));
 };
 
 // ARC14 auth transactions are signed with fee=0 and are never broadcast, so
