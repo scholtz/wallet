@@ -32,6 +32,7 @@ import algosdk from "algosdk";
 import {
   fetchAbiSignatureEntry,
   fetchArc56SpecByProgramHash,
+  fetchArc56OwnersByProgramHash,
   sha256Hex,
   bytesToSelectorHex,
 } from "./registry";
@@ -39,6 +40,7 @@ import type {
   Arc56Contract,
   Arc56Method,
   Arc56MethodArg,
+  Arc56Owner,
   Arc56StructField,
   Arc56Structs,
 } from "./types";
@@ -96,6 +98,20 @@ export const encodeAddressSafe = (
   }
 };
 
+// algosdk's txID() msgpack-encodes the transaction against its schema and
+// can throw for a transaction missing a required field - callers use this
+// to build a Vue watch-source key (e.g. Arc56CallDetails.vue,
+// Arc56RequestSummary.vue), where an uncaught throw inside the getter would
+// be silently swallowed by Vue with the watcher simply never firing again,
+// not a visible error.
+export const safeTxId = (txn: algosdk.Transaction | undefined): string => {
+  try {
+    return txn?.txID?.() ?? "";
+  } catch {
+    return "";
+  }
+};
+
 // Builds the AppCallInfo decodeArc56AppCall needs directly from an
 // application-call transaction plus its group context — shared by every UI
 // consumer that needs to run this decode (a single call's own detail view,
@@ -141,51 +157,59 @@ export type Arc56TrustLevel =
 // (now-incomplete) switch statement.
 export type Arc56TrustSeverity = "success" | "error" | "warn" | "secondary";
 
-export const arc56TrustSeverity = (
+interface Arc56TrustPresentation {
+  severity: Arc56TrustSeverity;
+  titleKey: string;
+  descKey: string;
+}
+
+// A Record keyed by every Arc56TrustLevel, not a switch with a `default`
+// fallback - adding a new trust level without an entry here is a compile
+// error, not a silently-incomplete case in three independently-editable
+// switch statements.
+const TRUST_PRESENTATION: Record<Arc56TrustLevel, Arc56TrustPresentation> = {
+  verified: {
+    severity: "success",
+    titleKey: "arc56.trust_verified",
+    descKey: "arc56.trust_verified_desc",
+  },
+  "verified-other-method": {
+    severity: "error",
+    titleKey: "arc56.trust_verified_other_method",
+    descKey: "arc56.trust_verified_other_method_desc",
+  },
+  "selector-only": {
+    severity: "warn",
+    titleKey: "arc56.trust_selector_only",
+    descKey: "arc56.trust_selector_only_desc",
+  },
+  unknown: {
+    severity: "warn",
+    titleKey: "arc56.trust_unknown",
+    descKey: "arc56.trust_unknown_desc",
+  },
+  "not-abi": {
+    severity: "secondary",
+    titleKey: "arc56.trust_not_abi",
+    descKey: "arc56.trust_not_abi_desc",
+  },
+};
+
+// `trust` is undefined before a decode has resolved (or if decoding is
+// somehow skipped) - presented the same as "not-abi" (a neutral, no-signal
+// state), same as the switch-based version's `default` case did.
+const arc56TrustPresentation = (
   trust: Arc56TrustLevel | undefined,
-): Arc56TrustSeverity => {
-  switch (trust) {
-    case "verified":
-      return "success";
-    case "verified-other-method":
-      return "error";
-    case "selector-only":
-    case "unknown":
-      return "warn";
-    default:
-      return "secondary";
-  }
-};
+): Arc56TrustPresentation => TRUST_PRESENTATION[trust ?? "not-abi"];
 
-export const arc56TrustTitleKey = (trust: Arc56TrustLevel | undefined): string => {
-  switch (trust) {
-    case "verified":
-      return "arc56.trust_verified";
-    case "verified-other-method":
-      return "arc56.trust_verified_other_method";
-    case "selector-only":
-      return "arc56.trust_selector_only";
-    case "unknown":
-      return "arc56.trust_unknown";
-    default:
-      return "arc56.trust_not_abi";
-  }
-};
+export const arc56TrustSeverity = (trust: Arc56TrustLevel | undefined): Arc56TrustSeverity =>
+  arc56TrustPresentation(trust).severity;
 
-export const arc56TrustDescKey = (trust: Arc56TrustLevel | undefined): string => {
-  switch (trust) {
-    case "verified":
-      return "arc56.trust_verified_desc";
-    case "verified-other-method":
-      return "arc56.trust_verified_other_method_desc";
-    case "selector-only":
-      return "arc56.trust_selector_only_desc";
-    case "unknown":
-      return "arc56.trust_unknown_desc";
-    default:
-      return "arc56.trust_not_abi_desc";
-  }
-};
+export const arc56TrustTitleKey = (trust: Arc56TrustLevel | undefined): string =>
+  arc56TrustPresentation(trust).titleKey;
+
+export const arc56TrustDescKey = (trust: Arc56TrustLevel | undefined): string =>
+  arc56TrustPresentation(trust).descKey;
 
 export type DecodedArgKind =
   | "value"
@@ -570,6 +594,37 @@ export const decodeArc56AppCall = async (
     args,
     candidates,
   };
+};
+
+export interface DecodedAppCallWithOwners {
+  decoded: DecodedArc56Call;
+  // null = not looked up (no approvalHash to look up); [] = looked up, no
+  // known publisher; non-empty = the known publishers - see
+  // src/components/Arc56OwnerLinks.vue, the shared renderer for this shape.
+  owners: Arc56Owner[] | null;
+}
+
+// Shared by Arc56CallDetails.vue (one call's own detail view) and
+// Arc56RequestSummary.vue (an aggregate view over every app call in a
+// request) - the caller is only responsible for the Vue/store-specific part
+// (dispatching algod/getApplicationPrograms for `approvalProgram`); this
+// covers the rest of the decode + publisher-lookup sequence so it can't
+// drift between the two call sites the way it already has once before.
+export const decodeAppCallWithOwners = async (
+  txn: algosdk.Transaction,
+  appIndex: bigint,
+  currentIndex: number,
+  approvalProgram: Uint8Array | undefined,
+  groupTransactions: AppCallGroupTxnRef[] = [],
+): Promise<DecodedAppCallWithOwners | undefined> => {
+  const info = buildAppCallInfo(txn, appIndex, currentIndex, approvalProgram, groupTransactions);
+  if (!info) return undefined;
+
+  const decoded = await decodeArc56AppCall(info);
+  const owners = decoded.approvalHash
+    ? ((await fetchArc56OwnersByProgramHash(decoded.approvalHash, "approval"))?.owners ?? [])
+    : null;
+  return { decoded, owners };
 };
 
 // Applies a user-picked, unverified candidate contract's argument

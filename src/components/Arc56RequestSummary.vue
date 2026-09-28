@@ -4,15 +4,14 @@ import { useI18n } from "vue-i18n";
 import algosdk from "algosdk";
 import { useStore } from "@/store";
 import {
-  decodeArc56AppCall,
-  buildAppCallInfo,
+  decodeAppCallWithOwners,
   arc56TrustSeverity,
   arc56TrustTitleKey,
   arc56TrustDescKey,
+  safeTxId,
   type DecodedArc56Call,
   type AppCallGroupTxnRef,
 } from "@/scripts/arc56/decode";
-import { fetchArc56OwnersByProgramHash } from "@/scripts/arc56/registry";
 import Arc56OwnerLinks from "./Arc56OwnerLinks.vue";
 import type { Arc56Owner } from "@/scripts/arc56/types";
 import type { ApplicationPrograms } from "@/store/algod";
@@ -71,7 +70,10 @@ const runDecode = async () => {
 
   loading.value = true;
   try {
-    const results = await Promise.all(
+    // allSettled, not all: one app call's decode/registry-fetch failing
+    // must only drop that entry, not silently wipe the trust/publisher
+    // info for every other (successfully decoded) app call in the request.
+    const results = await Promise.allSettled(
       applCalls.map(async (entry): Promise<AppCallSummary | undefined> => {
         // appIndex 0 is a legitimate, real value (an application-creation
         // call has no app id yet) - only a genuinely missing field should
@@ -83,31 +85,25 @@ const runDecode = async () => {
           appIndex,
         })) as ApplicationPrograms | undefined;
 
-        const info = buildAppCallInfo(
+        const result = await decodeAppCallWithOwners(
           entry.txn,
           appIndex,
           entry.index,
           programs?.approvalProgram,
           groupTransactions,
         );
-        if (!info) return undefined;
-
-        const decoded = await decodeArc56AppCall(info);
-        const owners = decoded.approvalHash
-          ? ((await fetchArc56OwnersByProgramHash(decoded.approvalHash, "approval"))
-              ?.owners ?? [])
-          : null;
-
-        return { index: entry.index, appIndex, decoded, owners };
+        if (!result) return undefined;
+        return { index: entry.index, appIndex, ...result };
       }),
     );
     if (generation !== decodeGeneration) return;
-    summaries.value = results.filter((r): r is AppCallSummary => Boolean(r));
-  } catch (error) {
-    console.error("Failed to summarize ARC-56 app calls", error);
-    if (generation === decodeGeneration) {
-      summaries.value = [];
-    }
+    summaries.value = results.flatMap((r) => {
+      if (r.status === "rejected") {
+        console.error("Failed to summarize an ARC-56 app call", r.reason);
+        return [];
+      }
+      return r.value ? [r.value] : [];
+    });
   } finally {
     if (generation === decodeGeneration) {
       loading.value = false;
@@ -119,7 +115,7 @@ const runDecode = async () => {
 // ConnectRequestsTable rebuilds TransactionWrapper[] on every request-store
 // update even when the actual transactions haven't changed.
 watch(
-  () => props.transactions.map((tx) => tx.txn?.txID?.() ?? "").join(","),
+  () => props.transactions.map((tx) => safeTxId(tx.txn)).join(","),
   () => {
     void runDecode();
   },

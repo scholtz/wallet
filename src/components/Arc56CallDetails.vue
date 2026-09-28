@@ -6,18 +6,17 @@ import { useStore } from "@/store";
 import AlgorandAddress from "./AlgorandAddress.vue";
 import Arc56OwnerLinks from "./Arc56OwnerLinks.vue";
 import {
-  decodeArc56AppCall,
+  decodeAppCallWithOwners,
   applyCandidateToArgs,
-  buildAppCallInfo,
   arc56TrustSeverity,
   arc56TrustTitleKey,
   arc56TrustDescKey,
+  safeTxId,
   type DecodedArc56Call,
   type DecodedArc56Arg,
   type DecodedAbiValue,
   type Arc56CandidateMatch,
 } from "@/scripts/arc56/decode";
-import { fetchArc56OwnersByProgramHash } from "@/scripts/arc56/registry";
 import type { Arc56Owner } from "@/scripts/arc56/types";
 import type { ApplicationPrograms } from "@/store/algod";
 import { explorerAssetUrl, explorerApplicationUrl } from "@/scripts/explorer";
@@ -81,30 +80,24 @@ const runDecode = async () => {
     })) as ApplicationPrograms | undefined;
     if (generation !== decodeGeneration) return;
 
-    const info = buildAppCallInfo(
+    const result = await decodeAppCallWithOwners(
       props.txn,
       props.appIndex,
       props.currentIndex,
       programs?.approvalProgram,
       props.groupTransactions ?? [],
     );
-    if (!info) {
+    if (generation !== decodeGeneration) return;
+    if (!result) {
       decoded.value = { trust: "not-abi", args: [] };
       return;
     }
-
-    const result = await decodeArc56AppCall(info);
-    if (generation !== decodeGeneration) return;
-    decoded.value = result;
+    decoded.value = result.decoded;
     // owners.value stays null (not looked up) when there's no approvalHash -
-    // the template's `v-if="decoded.approvalHash && owners"` guard already
-    // depends on that distinction to avoid showing a "no publisher found"
-    // warning for a call that was never eligible for a hash lookup at all.
-    if (result.approvalHash) {
-      const entry = await fetchArc56OwnersByProgramHash(result.approvalHash, "approval");
-      if (generation !== decodeGeneration) return;
-      owners.value = entry?.owners ?? [];
-    }
+    // the template's `v-if="owners"` guard depends on that distinction to
+    // avoid showing a "no publisher found" warning for a call that was
+    // never eligible for a hash lookup at all.
+    owners.value = result.owners;
   } catch (error) {
     console.error("Failed to decode ARC-56 app call", error);
     if (generation === decodeGeneration) {
@@ -123,7 +116,7 @@ const runDecode = async () => {
 // avoids re-running the decode (a real algod + registry round-trip) for a
 // content-identical txn object.
 watch(
-  () => `${props.txn?.txID?.() ?? ""}:${props.appIndex}`,
+  () => `${safeTxId(props.txn)}:${props.appIndex}`,
   () => {
     void runDecode();
   },

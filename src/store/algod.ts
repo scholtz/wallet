@@ -394,15 +394,20 @@ const actions: ActionTree<AlgodState, RootState> = {
     { appIndex }: GetApplicationPayload,
   ): Promise<ApplicationPrograms | undefined> {
     let algod: string;
+    let algodToken: string;
     try {
-      algod = getAlgodConfig(rootState).algod;
+      ({ algod, algodToken } = getAlgodConfig(rootState));
     } catch (error) {
       // Must resolve, not throw, to honor this action's own contract below -
       // callers rely on that to degrade gracefully instead of crashing.
       console.error("Failed to fetch application programs", error);
       return Promise.resolve(undefined);
     }
-    const cacheKey = `${algod}:${appIndex}`;
+    // Includes the token, not just the URL - two configs can point at the
+    // same algod endpoint but authenticate as different callers (e.g. a
+    // shared public node with per-network API keys), and this cache is only
+    // ever meant to dedupe requests that are truly the same call.
+    const cacheKey = `${algod}:${algodToken}:${appIndex}`;
     const cached = applicationProgramsCache.get(cacheKey);
     if (cached) return cached;
 
