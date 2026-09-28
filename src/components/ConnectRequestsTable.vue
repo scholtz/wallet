@@ -63,6 +63,7 @@
       </Column>
       <template #expansion="requestSlotProps">
         <div class="p-3">
+          <Arc56RequestSummary :transactions="requestSlotProps.data.transactions" />
           <DataTable
             v-model:expandedRows="expandedTransactions"
             v-model:selection="selectedTransaction"
@@ -510,6 +511,7 @@ import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import AlgorandAddress from "./AlgorandAddress.vue";
 import Arc56CallDetails from "./Arc56CallDetails.vue";
+import Arc56RequestSummary from "./Arc56RequestSummary.vue";
 import TransactionGroupSimulation from "./TransactionGroupSimulation.vue";
 import { useStore } from "../store";
 import { getArc14Realm, isArc14AuthTransaction } from "../scripts/encoding/arc14";

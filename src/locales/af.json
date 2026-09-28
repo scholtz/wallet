@@ -990,7 +990,12 @@
     "kind_transaction": "Transaction reference",
     "required_txn_type": "Requires a preceding \"{type}\" transaction in this group",
     "matched_group_txn": "matches transaction #{index} in this group",
-    "no_arguments": "This method call takes no arguments."
+    "no_arguments": "This method call takes no arguments.",
+    "published_by": "Published on GitHub by",
+    "no_owners_found": "No known GitHub publisher was found in the ARC-56 registry for this program - its source has not been indexed from any public repository, so you cannot verify who wrote it.",
+    "summary_title": "Application call summary",
+    "summary_multi_title": "Application calls in this request ({count})",
+    "summary_app": "App {appIndex}"
   },
   "new_account_wc": {
     "title": "Add WalletConnect account",

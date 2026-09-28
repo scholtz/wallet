@@ -32,6 +32,7 @@ import algosdk from "algosdk";
 import {
   fetchAbiSignatureEntry,
   fetchArc56SpecByProgramHash,
+  fetchArc56OwnersByProgramHash,
   sha256Hex,
   bytesToSelectorHex,
 } from "./registry";
@@ -39,6 +40,7 @@ import type {
   Arc56Contract,
   Arc56Method,
   Arc56MethodArg,
+  Arc56Owner,
   Arc56StructField,
   Arc56Structs,
 } from "./types";
@@ -83,12 +85,147 @@ export interface AppCallInfo {
   precedingGroupTxns?: AppCallGroupTxnRef[];
 }
 
+export const encodeAddressSafe = (
+  addr: algosdk.Address | { publicKey?: Uint8Array } | undefined,
+): string => {
+  try {
+    if (!addr) return "";
+    if (addr instanceof algosdk.Address) return addr.toString();
+    if (addr.publicKey) return algosdk.encodeAddress(addr.publicKey);
+    return "";
+  } catch {
+    return "";
+  }
+};
+
+// algosdk's txID() msgpack-encodes the transaction against its schema and
+// can throw for a transaction missing a required field - callers use this
+// to build a Vue watch-source key (e.g. Arc56CallDetails.vue,
+// Arc56RequestSummary.vue), where an uncaught throw inside the getter would
+// be silently swallowed by Vue with the watcher simply never firing again,
+// not a visible error.
+export const safeTxId = (txn: algosdk.Transaction | undefined): string => {
+  try {
+    return txn?.txID?.() ?? "";
+  } catch {
+    return "";
+  }
+};
+
+// Builds the AppCallInfo decodeArc56AppCall needs directly from an
+// application-call transaction plus its group context — shared by every UI
+// consumer that needs to run this decode (a single call's own detail view,
+// or a summary aggregating every app call in a request) so the
+// address-encoding and preceding-group-txn slicing logic isn't duplicated
+// per caller. Returns undefined if `txn` isn't actually an application call.
+export const buildAppCallInfo = (
+  txn: algosdk.Transaction,
+  appIndex: bigint,
+  currentIndex: number,
+  approvalProgram: Uint8Array | undefined,
+  groupTransactions: AppCallGroupTxnRef[] = [],
+): AppCallInfo | undefined => {
+  const call = txn.applicationCall;
+  if (!call) return undefined;
+  return {
+    appIndex,
+    approvalProgram,
+    appArgs: [...(call.appArgs ?? [])],
+    accounts: (call.accounts ?? []).map((a) => encodeAddressSafe(a)),
+    foreignAssets: (call.foreignAssets ?? []).map((a) => BigInt(a)),
+    foreignApps: (call.foreignApps ?? []).map((a) => BigInt(a)),
+    senderAddress: encodeAddressSafe(txn.sender),
+    precedingGroupTxns: groupTransactions
+      .filter((g) => g.index < currentIndex)
+      .sort((a, b) => a.index - b.index)
+      .map((g) => ({ index: g.index, type: g.type })),
+  };
+};
+
 export type Arc56TrustLevel =
   | "verified"
   | "verified-other-method"
   | "selector-only"
   | "unknown"
   | "not-abi";
+
+// Shared trust->severity/copy mapping, used by both Arc56CallDetails.vue (a
+// single decoded call's own detail view) and Arc56RequestSummary.vue (an
+// aggregate view over every app call in a request) - kept here rather than
+// duplicated per component so a future Arc56TrustLevel value can't update
+// one view's severity/copy while silently leaving the other on its old
+// (now-incomplete) switch statement.
+export type Arc56TrustSeverity = "success" | "error" | "warn" | "secondary";
+
+interface Arc56TrustPresentation {
+  severity: Arc56TrustSeverity;
+  titleKey: string;
+  descKey: string;
+}
+
+// A Record keyed by every Arc56TrustLevel, not a switch with a `default`
+// fallback - adding a new trust level without an entry here is a compile
+// error, not a silently-incomplete case in three independently-editable
+// switch statements.
+const TRUST_PRESENTATION: Record<Arc56TrustLevel, Arc56TrustPresentation> = {
+  verified: {
+    severity: "success",
+    titleKey: "arc56.trust_verified",
+    descKey: "arc56.trust_verified_desc",
+  },
+  "verified-other-method": {
+    severity: "error",
+    titleKey: "arc56.trust_verified_other_method",
+    descKey: "arc56.trust_verified_other_method_desc",
+  },
+  "selector-only": {
+    severity: "warn",
+    titleKey: "arc56.trust_selector_only",
+    descKey: "arc56.trust_selector_only_desc",
+  },
+  unknown: {
+    severity: "warn",
+    titleKey: "arc56.trust_unknown",
+    descKey: "arc56.trust_unknown_desc",
+  },
+  "not-abi": {
+    severity: "secondary",
+    titleKey: "arc56.trust_not_abi",
+    descKey: "arc56.trust_not_abi_desc",
+  },
+};
+
+// `trust` is undefined before a decode has resolved (or if decoding is
+// somehow skipped) - presented the same as "not-abi" (a neutral, no-signal
+// state), same as the switch-based version's `default` case did.
+const arc56TrustPresentation = (
+  trust: Arc56TrustLevel | undefined,
+): Arc56TrustPresentation => TRUST_PRESENTATION[trust ?? "not-abi"];
+
+// arc56TrustSeverity()'s value is for PrimeVue <Message>, whose severity
+// enum includes "error" but not "danger". <Badge>'s enum is the reverse -
+// "danger" but no "error" - an actual inconsistency between the two
+// components, not a typo, so a value valid for one silently fails to match
+// any styled variant on the other. Use this converter when handing a
+// trust severity to a <Badge> (e.g. the per-app summary table) instead of
+// binding arc56TrustSeverity()'s result directly.
+export type Arc56BadgeSeverity = "secondary" | "success" | "warn" | "danger";
+
+export const arc56TrustBadgeSeverity = (
+  trust: Arc56TrustLevel | undefined,
+): Arc56BadgeSeverity => {
+  const severity = arc56TrustPresentation(trust).severity;
+  return severity === "error" ? "danger" : severity;
+};
+
+export const arc56TrustSeverity = (trust: Arc56TrustLevel | undefined): Arc56TrustSeverity =>
+  arc56TrustPresentation(trust).severity;
+
+export const arc56TrustTitleKey = (trust: Arc56TrustLevel | undefined): string =>
+  arc56TrustPresentation(trust).titleKey;
+
+export const arc56TrustDescKey = (trust: Arc56TrustLevel | undefined): string =>
+  arc56TrustPresentation(trust).descKey;
 
 export type DecodedArgKind =
   | "value"
@@ -473,6 +610,37 @@ export const decodeArc56AppCall = async (
     args,
     candidates,
   };
+};
+
+export interface DecodedAppCallWithOwners {
+  decoded: DecodedArc56Call;
+  // null = not looked up (no approvalHash to look up); [] = looked up, no
+  // known publisher; non-empty = the known publishers - see
+  // src/components/Arc56OwnerLinks.vue, the shared renderer for this shape.
+  owners: Arc56Owner[] | null;
+}
+
+// Shared by Arc56CallDetails.vue (one call's own detail view) and
+// Arc56RequestSummary.vue (an aggregate view over every app call in a
+// request) - the caller is only responsible for the Vue/store-specific part
+// (dispatching algod/getApplicationPrograms for `approvalProgram`); this
+// covers the rest of the decode + publisher-lookup sequence so it can't
+// drift between the two call sites the way it already has once before.
+export const decodeAppCallWithOwners = async (
+  txn: algosdk.Transaction,
+  appIndex: bigint,
+  currentIndex: number,
+  approvalProgram: Uint8Array | undefined,
+  groupTransactions: AppCallGroupTxnRef[] = [],
+): Promise<DecodedAppCallWithOwners | undefined> => {
+  const info = buildAppCallInfo(txn, appIndex, currentIndex, approvalProgram, groupTransactions);
+  if (!info) return undefined;
+
+  const decoded = await decodeArc56AppCall(info);
+  const owners = decoded.approvalHash
+    ? ((await fetchArc56OwnersByProgramHash(decoded.approvalHash, "approval"))?.owners ?? [])
+    : null;
+  return { decoded, owners };
 };
 
 // Applies a user-picked, unverified candidate contract's argument

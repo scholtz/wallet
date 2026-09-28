@@ -990,7 +990,12 @@
     "kind_transaction": "Odkaz na transakciu",
     "required_txn_type": "Vyžaduje predchádzajúcu transakciu typu \"{type}\" v tejto skupine",
     "matched_group_txn": "zodpovedá transakcii č. {index} v tejto skupine",
-    "no_arguments": "Toto volanie metódy nevyžaduje žiadne argumenty."
+    "no_arguments": "Toto volanie metódy nevyžaduje žiadne argumenty.",
+    "published_by": "Publikované na GitHube používateľom",
+    "no_owners_found": "V registri ARC-56 sa pre tento program nenašiel žiadny známy vydavateľ na GitHube - jeho zdrojový kód nebol indexovaný zo žiadneho verejného repozitára, takže nemôžete overiť, kto ho napísal.",
+    "summary_title": "Súhrn volania aplikácie",
+    "summary_multi_title": "Volania aplikácií v tejto požiadavke ({count})",
+    "summary_app": "Aplikácia {appIndex}"
   },
   "new_account_wc": {
     "title": "Pridať WalletConnect účet",

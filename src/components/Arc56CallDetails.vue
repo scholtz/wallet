@@ -4,14 +4,20 @@ import { useI18n } from "vue-i18n";
 import algosdk from "algosdk";
 import { useStore } from "@/store";
 import AlgorandAddress from "./AlgorandAddress.vue";
+import Arc56OwnerLinks from "./Arc56OwnerLinks.vue";
 import {
-  decodeArc56AppCall,
+  decodeAppCallWithOwners,
   applyCandidateToArgs,
+  arc56TrustSeverity,
+  arc56TrustTitleKey,
+  arc56TrustDescKey,
+  safeTxId,
   type DecodedArc56Call,
   type DecodedArc56Arg,
   type DecodedAbiValue,
   type Arc56CandidateMatch,
 } from "@/scripts/arc56/decode";
+import type { Arc56Owner } from "@/scripts/arc56/types";
 import type { ApplicationPrograms } from "@/store/algod";
 import { explorerAssetUrl, explorerApplicationUrl } from "@/scripts/explorer";
 
@@ -48,113 +54,78 @@ const loading = ref(false);
 // ("Type instantiation is excessively deep") when wrapped in a normal ref.
 const decoded = shallowRef<DecodedArc56Call | null>(null);
 const selectedCandidateHash = ref<string>("");
+// null = not looked up yet / no approvalHash to look up; [] = looked up, no
+// known GitHub publisher (surfaced as a warning, not silently omitted).
+const owners = shallowRef<Arc56Owner[] | null>(null);
 
-const encodeAddressSafe = (
-  addr: algosdk.Address | { publicKey?: Uint8Array } | undefined,
-): string => {
-  try {
-    if (!addr) return "";
-    if (addr instanceof algosdk.Address) return addr.toString();
-    if (addr.publicKey) return algosdk.encodeAddress(addr.publicKey);
-    return "";
-  } catch {
-    return "";
-  }
-};
+// Guards against a stale runDecode() call overwriting a fresher one - e.g.
+// ConnectRequestsTable rebuilds TransactionWrapper[] on every request-store
+// update, which can re-trigger the watch below with a new (but
+// content-identical) txn object before a previous decode has resolved.
+let decodeGeneration = 0;
 
 const runDecode = async () => {
+  const generation = ++decodeGeneration;
   loading.value = true;
   decoded.value = null;
   selectedCandidateHash.value = "";
+  owners.value = null;
   try {
-    const call = props.txn.applicationCall;
-    if (!call) {
+    if (!props.txn.applicationCall) {
       decoded.value = { trust: "not-abi", args: [] };
       return;
     }
     const programs = (await store.dispatch("algod/getApplicationPrograms", {
       appIndex: props.appIndex,
     })) as ApplicationPrograms | undefined;
+    if (generation !== decodeGeneration) return;
 
-    const accounts = (call.accounts ?? []).map((a) => encodeAddressSafe(a));
-    const foreignAssets = (call.foreignAssets ?? []).map((a) => BigInt(a));
-    const foreignApps = (call.foreignApps ?? []).map((a) => BigInt(a));
-    const senderAddress = encodeAddressSafe(props.txn.sender);
-    const precedingGroupTxns = (props.groupTransactions ?? [])
-      .filter((g) => g.index < props.currentIndex)
-      .sort((a, b) => a.index - b.index)
-      .map((g) => ({ index: g.index, type: g.type }));
-
-    decoded.value = await decodeArc56AppCall({
-      appIndex: props.appIndex,
-      approvalProgram: programs?.approvalProgram,
-      appArgs: [...(call.appArgs ?? [])],
-      accounts,
-      foreignAssets,
-      foreignApps,
-      senderAddress,
-      precedingGroupTxns,
-    });
+    const result = await decodeAppCallWithOwners(
+      props.txn,
+      props.appIndex,
+      props.currentIndex,
+      programs?.approvalProgram,
+      props.groupTransactions ?? [],
+    );
+    if (generation !== decodeGeneration) return;
+    if (!result) {
+      decoded.value = { trust: "not-abi", args: [] };
+      return;
+    }
+    decoded.value = result.decoded;
+    // owners.value stays null (not looked up) when there's no approvalHash -
+    // the template's `v-if="owners"` guard depends on that distinction to
+    // avoid showing a "no publisher found" warning for a call that was
+    // never eligible for a hash lookup at all.
+    owners.value = result.owners;
   } catch (error) {
     console.error("Failed to decode ARC-56 app call", error);
-    decoded.value = { trust: "unknown", args: [] };
+    if (generation === decodeGeneration) {
+      decoded.value = { trust: "unknown", args: [] };
+    }
   } finally {
-    loading.value = false;
+    if (generation === decodeGeneration) {
+      loading.value = false;
+    }
   }
 };
 
+// Keyed on transaction identity (txID) plus appIndex, not object identity -
+// ConnectRequestsTable/SignAll rebuild their transaction arrays on every
+// store update even when the actual transaction hasn't changed, and this
+// avoids re-running the decode (a real algod + registry round-trip) for a
+// content-identical txn object.
 watch(
-  () => [props.txn, props.appIndex],
+  () => `${safeTxId(props.txn)}:${props.appIndex}`,
   () => {
     void runDecode();
   },
   { immediate: true },
 );
 
-const trustSeverity = computed(() => {
-  switch (decoded.value?.trust) {
-    case "verified":
-      return "success";
-    case "verified-other-method":
-      return "error";
-    case "selector-only":
-      return "warn";
-    case "unknown":
-      return "warn";
-    default:
-      return "secondary";
-  }
-});
-
-const trustTitleKey = computed(() => {
-  switch (decoded.value?.trust) {
-    case "verified":
-      return "arc56.trust_verified";
-    case "verified-other-method":
-      return "arc56.trust_verified_other_method";
-    case "selector-only":
-      return "arc56.trust_selector_only";
-    case "unknown":
-      return "arc56.trust_unknown";
-    default:
-      return "arc56.trust_not_abi";
-  }
-});
-
-const trustDescKey = computed(() => {
-  switch (decoded.value?.trust) {
-    case "verified":
-      return "arc56.trust_verified_desc";
-    case "verified-other-method":
-      return "arc56.trust_verified_other_method_desc";
-    case "selector-only":
-      return "arc56.trust_selector_only_desc";
-    case "unknown":
-      return "arc56.trust_unknown_desc";
-    default:
-      return "arc56.trust_not_abi_desc";
-  }
-});
+const trustSeverity = computed(() => arc56TrustSeverity(decoded.value?.trust));
+const trustTitleKey = computed(() => arc56TrustTitleKey(decoded.value?.trust));
+const trustDescKey = computed(() => arc56TrustDescKey(decoded.value?.trust));
 
 const selectedCandidate = computed<Arc56CandidateMatch | undefined>(() =>
   decoded.value?.candidates?.find(
@@ -352,6 +323,11 @@ watch(
         </div>
       </div>
 
+      <div v-if="owners" class="arc56-owners">
+        <strong v-if="owners.length > 0">{{ t("arc56.published_by") }}:</strong>
+        <Arc56OwnerLinks :owners="owners" />
+      </div>
+
       <div
         v-if="decoded.candidates && decoded.candidates.length > 0"
         class="arc56-candidates"
@@ -523,6 +499,10 @@ watch(
 .arc56-contract-name,
 .arc56-method {
   margin-bottom: 0.25rem;
+}
+
+.arc56-owners {
+  margin-bottom: 0.5rem;
 }
 
 .arc56-method-desc {

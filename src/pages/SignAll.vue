@@ -5,6 +5,7 @@ import { computed, onMounted, reactive } from "vue";
 import MainLayout from "../layouts/Main.vue";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
 import Arc56CallDetails from "../components/Arc56CallDetails.vue";
+import Arc56RequestSummary from "../components/Arc56RequestSummary.vue";
 import TransactionGroupSimulation from "../components/TransactionGroupSimulation.vue";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
@@ -348,6 +349,18 @@ const getAssetDecimals = (id: number) => {
 const simulationTransactions = computed<algosdk.Transaction[]>(() =>
   state.transactions.map((entry) => entry.txn as algosdk.Transaction),
 );
+
+// Cast for the same reason as simulationTransactions above - Vue's
+// reactive() deep-readonly type transform strips methods off the nested
+// Transaction class instances, which Arc56RequestSummary's prop type
+// (a plain algosdk.Transaction) doesn't structurally accept otherwise.
+const arc56SummaryTransactions = computed(() =>
+  state.transactions.map((entry) => ({
+    index: entry.index,
+    type: entry.type,
+    txn: entry.txn as algosdk.Transaction,
+  })),
+);
 </script>
 <template>
   <MainLayout>
@@ -405,6 +418,7 @@ const simulationTransactions = computed<algosdk.Transaction[]>(() =>
             Return to scheduled payment management
           </Button>
         </div>
+        <Arc56RequestSummary :transactions="arc56SummaryTransactions" />
         <DataTable
           v-model:expandedRows="state.expandedTransactions"
           v-model:selection="state.selectedTransaction"

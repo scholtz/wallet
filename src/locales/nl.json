@@ -990,7 +990,12 @@
     "kind_transaction": "Transactieverwijzing",
     "required_txn_type": "Vereist een voorafgaande \"{type}\"-transactie in deze groep",
     "matched_group_txn": "komt overeen met transactie #{index} in deze groep",
-    "no_arguments": "Deze methodeaanroep vereist geen argumenten."
+    "no_arguments": "Deze methodeaanroep vereist geen argumenten.",
+    "published_by": "Gepubliceerd op GitHub door",
+    "no_owners_found": "Er is geen bekende GitHub-publicist gevonden in het ARC-56-register voor dit programma - de broncode is niet geïndexeerd vanuit een openbare repository, dus je kunt niet verifiëren wie het heeft geschreven.",
+    "summary_title": "Samenvatting van de applicatie-aanroep",
+    "summary_multi_title": "Applicatie-aanroepen in dit verzoek ({count})",
+    "summary_app": "App {appIndex}"
   },
   "new_account_wc": {
     "title": "Add WalletConnect account",

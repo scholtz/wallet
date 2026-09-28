@@ -990,7 +990,12 @@
     "kind_transaction": "Tranzakcióhivatkozás",
     "required_txn_type": "Egy megelőző \"{type}\" tranzakciót igényel ebben a csoportban",
     "matched_group_txn": "megegyezik a(z) #{index}. tranzakcióval ebben a csoportban",
-    "no_arguments": "Ez a metódushívás nem igényel argumentumot."
+    "no_arguments": "Ez a metódushívás nem igényel argumentumot.",
+    "published_by": "GitHubon közzétette",
+    "no_owners_found": "Nem található ismert GitHub-közzétevő az ARC-56 registryben ehhez a programhoz - a forráskódját nem indexelték nyilvános tárolóból, így nem ellenőrizhető, ki írta.",
+    "summary_title": "Alkalmazáshívás összefoglalója",
+    "summary_multi_title": "Alkalmazáshívások ebben a kérésben ({count})",
+    "summary_app": "{appIndex}. alkalmazás"
   },
   "new_account_wc": {
     "title": "WalletConnect számla hozzáadása",

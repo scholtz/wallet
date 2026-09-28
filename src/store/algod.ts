@@ -70,6 +70,23 @@ export interface ApplicationPrograms {
   clearStateProgram: Uint8Array;
 }
 
+// getApplicationPrograms is called once per app-call transaction that needs
+// ARC-56 decoding (Arc56CallDetails.vue, Arc56RequestSummary.vue,
+// TransactionGroupSimulation.vue), and the same app is often referenced by
+// several transactions in one request/group, or by both the summary and
+// detail views for the same transaction at once - this dedupes those
+// genuinely concurrent callers onto a single in-flight request. Keyed by
+// algod endpoint (not just appIndex), since the same numeric app ID can
+// exist independently on different networks. Entries are removed as soon as
+// the request settles (see the `finally` below), not kept as a long-lived
+// cache: this value feeds an ARC-56 trust/publisher signal, and an app's
+// approval program can legitimately change mid-session via an update
+// transaction, so a later, separate caller must always get a fresh fetch.
+const applicationProgramsCache = new Map<
+  string,
+  Promise<ApplicationPrograms | undefined>
+>();
+
 const state = (): AlgodState => ({});
 
 const getAlgodConfig = (rootState: RootState): AlgodConfig => {
@@ -372,22 +389,62 @@ const actions: ActionTree<AlgodState, RootState> = {
   // being called. Returns undefined rather than throwing on failure — a
   // registry lookup that can't resolve a program just falls back to
   // showing the raw, undecoded call, it's never fatal to signing.
-  async getApplicationPrograms(
+  getApplicationPrograms(
     { rootState },
     { appIndex }: GetApplicationPayload,
   ): Promise<ApplicationPrograms | undefined> {
+    let algod: string;
+    let algodToken: string;
     try {
-      const algodClient = createAlgodClient(rootState);
-      const app = await algodClient.getApplicationByID(appIndex).do();
-      if (!app.params) return undefined;
-      return {
-        approvalProgram: app.params.approvalProgram,
-        clearStateProgram: app.params.clearStateProgram,
-      };
+      ({ algod, algodToken } = getAlgodConfig(rootState));
     } catch (error) {
+      // Must resolve, not throw, to honor this action's own contract below -
+      // callers rely on that to degrade gracefully instead of crashing.
       console.error("Failed to fetch application programs", error);
-      return undefined;
+      return Promise.resolve(undefined);
     }
+    // Includes the token, not just the URL - two configs can point at the
+    // same algod endpoint but authenticate as different callers (e.g. a
+    // shared public node with per-network API keys), and this cache is only
+    // ever meant to dedupe requests that are truly the same call.
+    const cacheKey = `${algod}:${algodToken}:${appIndex}`;
+    const cached = applicationProgramsCache.get(cacheKey);
+    if (cached) return cached;
+
+    const promise = (async (): Promise<ApplicationPrograms | undefined> => {
+      // Yields to a microtask before doing anything else, so
+      // applicationProgramsCache.set() below always runs first - otherwise
+      // a synchronous throw inside this body (e.g. createAlgodClient()'s
+      // `new URL(algod)` on a malformed custom node URL) would run the
+      // `finally`'s delete(cacheKey) *before* the .set() call ever added
+      // that key, permanently caching the failed result instead of
+      // cleaning it up as intended.
+      await Promise.resolve();
+      try {
+        const algodClient = createAlgodClient(rootState);
+        const app = await algodClient.getApplicationByID(appIndex).do();
+        if (!app.params) return undefined;
+        return {
+          approvalProgram: app.params.approvalProgram,
+          clearStateProgram: app.params.clearStateProgram,
+        };
+      } catch (error) {
+        console.error("Failed to fetch application programs", error);
+        return undefined;
+      } finally {
+        // Only dedupes genuinely concurrent callers (e.g. the summary and
+        // per-transaction detail views both expanding for the same app in
+        // the same tick) - never serves a stale result to a later, separate
+        // caller. This value feeds an ARC-56 trust/publisher signal, and an
+        // app's approval program can legitimately change mid-session via an
+        // update transaction; caching it past this in-flight request could
+        // keep showing a verified/publisher result for code that's no
+        // longer actually deployed.
+        applicationProgramsCache.delete(cacheKey);
+      }
+    })();
+    applicationProgramsCache.set(cacheKey, promise);
+    return promise;
   },
   async waitForConfirmation(
     { rootState },

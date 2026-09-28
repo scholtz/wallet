@@ -990,7 +990,12 @@
     "kind_transaction": "Referencia de transacción",
     "required_txn_type": "Requiere una transacción \"{type}\" precedente en este grupo",
     "matched_group_txn": "coincide con la transacción #{index} de este grupo",
-    "no_arguments": "Esta llamada a método no requiere argumentos."
+    "no_arguments": "Esta llamada a método no requiere argumentos.",
+    "published_by": "Publicado en GitHub por",
+    "no_owners_found": "No se encontró ningún publicador conocido de GitHub en el registro ARC-56 para este programa - su código fuente no ha sido indexado desde ningún repositorio público, por lo que no puede verificar quién lo escribió.",
+    "summary_title": "Resumen de la llamada a la aplicación",
+    "summary_multi_title": "Llamadas a aplicaciones en esta solicitud ({count})",
+    "summary_app": "App {appIndex}"
   },
   "new_account_wc": {
     "title": "Añadir cuenta WalletConnect",
