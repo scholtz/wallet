@@ -70,6 +70,20 @@ export interface ApplicationPrograms {
   clearStateProgram: Uint8Array;
 }
 
+// getApplicationPrograms is called once per app-call transaction that needs
+// ARC-56 decoding (Arc56CallDetails.vue, Arc56RequestSummary.vue,
+// TransactionGroupSimulation.vue), and the same app is often referenced by
+// several transactions in one request/group - caching avoids a redundant
+// algod round-trip per occurrence. Keyed by algod endpoint (not just
+// appIndex), since the same numeric app ID can exist independently on
+// different networks. Caches the promise, not just the resolved value, so
+// concurrent callers for the same app before the first fetch resolves also
+// share a single request instead of racing separate ones.
+const applicationProgramsCache = new Map<
+  string,
+  Promise<ApplicationPrograms | undefined>
+>();
+
 const state = (): AlgodState => ({});
 
 const getAlgodConfig = (rootState: RootState): AlgodConfig => {
@@ -372,22 +386,35 @@ const actions: ActionTree<AlgodState, RootState> = {
   // being called. Returns undefined rather than throwing on failure — a
   // registry lookup that can't resolve a program just falls back to
   // showing the raw, undecoded call, it's never fatal to signing.
-  async getApplicationPrograms(
+  getApplicationPrograms(
     { rootState },
     { appIndex }: GetApplicationPayload,
   ): Promise<ApplicationPrograms | undefined> {
-    try {
-      const algodClient = createAlgodClient(rootState);
-      const app = await algodClient.getApplicationByID(appIndex).do();
-      if (!app.params) return undefined;
-      return {
-        approvalProgram: app.params.approvalProgram,
-        clearStateProgram: app.params.clearStateProgram,
-      };
-    } catch (error) {
-      console.error("Failed to fetch application programs", error);
-      return undefined;
-    }
+    const { algod } = getAlgodConfig(rootState);
+    const cacheKey = `${algod}:${appIndex}`;
+    const cached = applicationProgramsCache.get(cacheKey);
+    if (cached) return cached;
+
+    const promise = (async (): Promise<ApplicationPrograms | undefined> => {
+      try {
+        const algodClient = createAlgodClient(rootState);
+        const app = await algodClient.getApplicationByID(appIndex).do();
+        if (!app.params) return undefined;
+        return {
+          approvalProgram: app.params.approvalProgram,
+          clearStateProgram: app.params.clearStateProgram,
+        };
+      } catch (error) {
+        console.error("Failed to fetch application programs", error);
+        // Don't let a transient failure poison the cache for the rest of the
+        // session - a later retry (e.g. re-expanding the same row) should
+        // get a fresh attempt, not a permanently cached undefined.
+        applicationProgramsCache.delete(cacheKey);
+        return undefined;
+      }
+    })();
+    applicationProgramsCache.set(cacheKey, promise);
+    return promise;
   },
   async waitForConfirmation(
     { rootState },

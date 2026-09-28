@@ -133,6 +133,60 @@ export type Arc56TrustLevel =
   | "unknown"
   | "not-abi";
 
+// Shared trust->severity/copy mapping, used by both Arc56CallDetails.vue (a
+// single decoded call's own detail view) and Arc56RequestSummary.vue (an
+// aggregate view over every app call in a request) - kept here rather than
+// duplicated per component so a future Arc56TrustLevel value can't update
+// one view's severity/copy while silently leaving the other on its old
+// (now-incomplete) switch statement.
+export type Arc56TrustSeverity = "success" | "error" | "warn" | "secondary";
+
+export const arc56TrustSeverity = (
+  trust: Arc56TrustLevel | undefined,
+): Arc56TrustSeverity => {
+  switch (trust) {
+    case "verified":
+      return "success";
+    case "verified-other-method":
+      return "error";
+    case "selector-only":
+    case "unknown":
+      return "warn";
+    default:
+      return "secondary";
+  }
+};
+
+export const arc56TrustTitleKey = (trust: Arc56TrustLevel | undefined): string => {
+  switch (trust) {
+    case "verified":
+      return "arc56.trust_verified";
+    case "verified-other-method":
+      return "arc56.trust_verified_other_method";
+    case "selector-only":
+      return "arc56.trust_selector_only";
+    case "unknown":
+      return "arc56.trust_unknown";
+    default:
+      return "arc56.trust_not_abi";
+  }
+};
+
+export const arc56TrustDescKey = (trust: Arc56TrustLevel | undefined): string => {
+  switch (trust) {
+    case "verified":
+      return "arc56.trust_verified_desc";
+    case "verified-other-method":
+      return "arc56.trust_verified_other_method_desc";
+    case "selector-only":
+      return "arc56.trust_selector_only_desc";
+    case "unknown":
+      return "arc56.trust_unknown_desc";
+    default:
+      return "arc56.trust_not_abi_desc";
+  }
+};
+
 export type DecodedArgKind =
   | "value"
   | "account"

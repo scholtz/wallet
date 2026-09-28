@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { ref, shallowRef, watch } from "vue";
+import { computed, ref, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import algosdk from "algosdk";
 import { useStore } from "@/store";
 import {
   decodeArc56AppCall,
   buildAppCallInfo,
+  arc56TrustSeverity,
+  arc56TrustTitleKey,
+  arc56TrustDescKey,
   type DecodedArc56Call,
   type AppCallGroupTxnRef,
 } from "@/scripts/arc56/decode";
 import { fetchArc56OwnersByProgramHash } from "@/scripts/arc56/registry";
+import Arc56OwnerLinks from "./Arc56OwnerLinks.vue";
 import type { Arc56Owner } from "@/scripts/arc56/types";
 import type { ApplicationPrograms } from "@/store/algod";
 
@@ -33,18 +37,27 @@ interface AppCallSummary {
   index: number;
   appIndex: bigint;
   decoded: DecodedArc56Call;
-  owners: Arc56Owner[];
+  // null = not looked up (no approvalHash); [] = looked up, no known
+  // publisher; non-empty = the known publishers. See Arc56OwnerLinks.vue.
+  owners: Arc56Owner[] | null;
 }
 
 const loading = ref(false);
 const summaries = shallowRef<AppCallSummary[]>([]);
 
+// Guards against a stale runDecode() call overwriting a fresher one - e.g.
+// ConnectRequestsTable rebuilds TransactionWrapper[] on every request-store
+// update, which can re-trigger the watch below before a previous decode
+// (several concurrent algod + registry round-trips) has resolved.
+let decodeGeneration = 0;
+
 const runDecode = async () => {
-  const groupTransactions: AppCallGroupTxnRef[] = props.transactions.map((t) => ({
-    index: t.index,
-    type: t.type,
+  const generation = ++decodeGeneration;
+  const groupTransactions: AppCallGroupTxnRef[] = props.transactions.map((tx) => ({
+    index: tx.index,
+    type: tx.type,
   }));
-  const applCalls = props.transactions.filter((t) => t.type === "appl");
+  const applCalls = props.transactions.filter((tx) => tx.type === "appl");
   if (applCalls.length === 0) {
     summaries.value = [];
     return;
@@ -54,8 +67,11 @@ const runDecode = async () => {
   try {
     const results = await Promise.all(
       applCalls.map(async (entry): Promise<AppCallSummary | undefined> => {
+        // appIndex 0 is a legitimate, real value (an application-creation
+        // call has no app id yet) - only a genuinely missing field should
+        // be skipped, so this must not be a plain falsy check.
         const rawAppIndex = entry.txn.applicationCall?.appIndex;
-        if (!rawAppIndex) return undefined;
+        if (rawAppIndex === undefined) return undefined;
         const appIndex = BigInt(rawAppIndex);
         const programs = (await store.dispatch("algod/getApplicationPrograms", {
           appIndex,
@@ -71,19 +87,25 @@ const runDecode = async () => {
         if (!info) return undefined;
 
         const decoded = await decodeArc56AppCall(info);
-        const ownersEntry = decoded.approvalHash
-          ? await fetchArc56OwnersByProgramHash(decoded.approvalHash, "approval")
-          : undefined;
+        const owners = decoded.approvalHash
+          ? ((await fetchArc56OwnersByProgramHash(decoded.approvalHash, "approval"))
+              ?.owners ?? [])
+          : null;
 
-        return { index: entry.index, appIndex, decoded, owners: ownersEntry?.owners ?? [] };
+        return { index: entry.index, appIndex, decoded, owners };
       }),
     );
+    if (generation !== decodeGeneration) return;
     summaries.value = results.filter((r): r is AppCallSummary => Boolean(r));
   } catch (error) {
     console.error("Failed to summarize ARC-56 app calls", error);
-    summaries.value = [];
+    if (generation === decodeGeneration) {
+      summaries.value = [];
+    }
   } finally {
-    loading.value = false;
+    if (generation === decodeGeneration) {
+      loading.value = false;
+    }
   }
 };
 
@@ -91,64 +113,21 @@ const runDecode = async () => {
 // ConnectRequestsTable rebuilds TransactionWrapper[] on every request-store
 // update even when the actual transactions haven't changed.
 watch(
-  () => props.transactions.map((t) => t.txn?.txID?.() ?? "").join(","),
+  () => props.transactions.map((tx) => tx.txn?.txID?.() ?? "").join(","),
   () => {
     void runDecode();
   },
   { immediate: true },
 );
 
-const trustSeverity = (trust: DecodedArc56Call["trust"]) => {
-  switch (trust) {
-    case "verified":
-      return "success";
-    case "verified-other-method":
-      return "error";
-    case "selector-only":
-    case "unknown":
-      return "warn";
-    default:
-      return "secondary";
-  }
-};
-
-const trustTitleKey = (trust: DecodedArc56Call["trust"]) => {
-  switch (trust) {
-    case "verified":
-      return "arc56.trust_verified";
-    case "verified-other-method":
-      return "arc56.trust_verified_other_method";
-    case "selector-only":
-      return "arc56.trust_selector_only";
-    case "unknown":
-      return "arc56.trust_unknown";
-    default:
-      return "arc56.trust_not_abi";
-  }
-};
-
-const trustDescKey = (trust: DecodedArc56Call["trust"]) => {
-  switch (trust) {
-    case "verified":
-      return "arc56.trust_verified_desc";
-    case "verified-other-method":
-      return "arc56.trust_verified_other_method_desc";
-    case "selector-only":
-      return "arc56.trust_selector_only_desc";
-    case "unknown":
-      return "arc56.trust_unknown_desc";
-    default:
-      return "arc56.trust_not_abi_desc";
-  }
-};
-
 // Only worth its own dedicated summary card when it's the one and only
 // transaction in the request - a user relying on "Sign all" without
 // expanding anything should still see this. For a multi-transaction group,
 // the compact per-app list below already surfaces the same warnings without
 // taking over the space above the full transaction table.
-const isSingleAppCall = () =>
-  props.transactions.length === 1 && summaries.value.length === 1;
+const isSingleAppCall = computed(
+  () => props.transactions.length === 1 && summaries.value.length === 1,
+);
 </script>
 
 <template>
@@ -157,11 +136,11 @@ const isSingleAppCall = () =>
       <ProgressSpinner style="width: 1.5em; height: 1.5em" stroke-width="6" />
       {{ t("arc56.loading") }}
     </div>
-    <template v-else-if="isSingleAppCall()">
+    <template v-else-if="isSingleAppCall">
       <h4 class="m-0 mb-2">{{ t("arc56.summary_title") }}</h4>
-      <Message :severity="trustSeverity(summaries[0].decoded.trust)" class="m-0 mb-2">
-        <div class="arc56-trust-title">{{ t(trustTitleKey(summaries[0].decoded.trust)) }}</div>
-        <div class="arc56-trust-desc">{{ t(trustDescKey(summaries[0].decoded.trust)) }}</div>
+      <Message :severity="arc56TrustSeverity(summaries[0].decoded.trust)" class="m-0 mb-2">
+        <div class="arc56-trust-title">{{ t(arc56TrustTitleKey(summaries[0].decoded.trust)) }}</div>
+        <div class="arc56-trust-desc">{{ t(arc56TrustDescKey(summaries[0].decoded.trust)) }}</div>
       </Message>
       <div v-if="summaries[0].decoded.contract" class="mb-1">
         <strong>{{ t("arc56.contract_name") }}:</strong> {{ summaries[0].decoded.contract.name }}
@@ -170,21 +149,10 @@ const isSingleAppCall = () =>
         <strong>{{ t("arc56.method_signature") }}:</strong>
         {{ summaries[0].decoded.methodSignature }}
       </div>
-      <div v-if="summaries[0].owners.length > 0" class="mb-1">
-        <strong>{{ t("arc56.published_by") }}:</strong>
-        <a
-          v-for="(owner, i) in summaries[0].owners"
-          :key="owner.url"
-          :href="owner.url"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {{ owner.owner }}/{{ owner.repo }}<span v-if="i < summaries[0].owners.length - 1">, </span>
-        </a>
+      <div v-if="summaries[0].owners" class="mb-1">
+        <strong v-if="summaries[0].owners.length > 0">{{ t("arc56.published_by") }}:</strong>
+        <Arc56OwnerLinks :owners="summaries[0].owners" />
       </div>
-      <Message v-else severity="warn" class="m-0">
-        {{ t("arc56.no_owners_found") }}
-      </Message>
     </template>
     <template v-else>
       <h4 class="m-0 mb-2">{{ t("arc56.summary_multi_title", { count: summaries.length }) }}</h4>
@@ -194,25 +162,12 @@ const isSingleAppCall = () =>
             <td>{{ t("arc56.summary_app", { appIndex: summary.appIndex }) }}</td>
             <td>
               <Badge
-                :severity="trustSeverity(summary.decoded.trust)"
-                :value="t(trustTitleKey(summary.decoded.trust))"
+                :severity="arc56TrustSeverity(summary.decoded.trust)"
+                :value="t(arc56TrustTitleKey(summary.decoded.trust))"
               />
             </td>
             <td>
-              <span v-if="summary.owners.length > 0">
-                <a
-                  v-for="(owner, i) in summary.owners"
-                  :key="owner.url"
-                  :href="owner.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {{ owner.owner }}/{{ owner.repo }}<span v-if="i < summary.owners.length - 1">, </span>
-                </a>
-              </span>
-              <Message v-else severity="warn" class="m-0">
-                {{ t("arc56.no_owners_found") }}
-              </Message>
+              <Arc56OwnerLinks :owners="summary.owners" />
             </td>
           </tr>
         </tbody>
