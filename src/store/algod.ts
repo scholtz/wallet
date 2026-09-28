@@ -393,7 +393,15 @@ const actions: ActionTree<AlgodState, RootState> = {
     { rootState },
     { appIndex }: GetApplicationPayload,
   ): Promise<ApplicationPrograms | undefined> {
-    const { algod } = getAlgodConfig(rootState);
+    let algod: string;
+    try {
+      algod = getAlgodConfig(rootState).algod;
+    } catch (error) {
+      // Must resolve, not throw, to honor this action's own contract below -
+      // callers rely on that to degrade gracefully instead of crashing.
+      console.error("Failed to fetch application programs", error);
+      return Promise.resolve(undefined);
+    }
     const cacheKey = `${algod}:${appIndex}`;
     const cached = applicationProgramsCache.get(cacheKey);
     if (cached) return cached;
