@@ -9,6 +9,7 @@
 import type {
   Arc56AbiSignatureEntry,
   Arc56Contract,
+  Arc56OwnersEntry,
   Arc56ProgramKind,
 } from "./types";
 
@@ -78,3 +79,13 @@ export const fetchAbiSignatureEntry = async (
   fetchJson<Arc56AbiSignatureEntry>(
     `abi-signatures/${selectorHex.slice(0, 2)}/${selectorHex}.json`,
   );
+
+export const fetchArc56OwnersByProgramHash = async (
+  hash: string,
+  kind: Arc56ProgramKind,
+): Promise<Arc56OwnersEntry | null> => {
+  const folder = kind === "approval" ? "approval-programs" : "clear-programs";
+  return fetchJson<Arc56OwnersEntry>(
+    `${folder}/${hash.slice(0, 3)}/${hash}.owners.json`,
+  );
+};

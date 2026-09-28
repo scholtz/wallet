@@ -83,6 +83,49 @@ export interface AppCallInfo {
   precedingGroupTxns?: AppCallGroupTxnRef[];
 }
 
+export const encodeAddressSafe = (
+  addr: algosdk.Address | { publicKey?: Uint8Array } | undefined,
+): string => {
+  try {
+    if (!addr) return "";
+    if (addr instanceof algosdk.Address) return addr.toString();
+    if (addr.publicKey) return algosdk.encodeAddress(addr.publicKey);
+    return "";
+  } catch {
+    return "";
+  }
+};
+
+// Builds the AppCallInfo decodeArc56AppCall needs directly from an
+// application-call transaction plus its group context — shared by every UI
+// consumer that needs to run this decode (a single call's own detail view,
+// or a summary aggregating every app call in a request) so the
+// address-encoding and preceding-group-txn slicing logic isn't duplicated
+// per caller. Returns undefined if `txn` isn't actually an application call.
+export const buildAppCallInfo = (
+  txn: algosdk.Transaction,
+  appIndex: bigint,
+  currentIndex: number,
+  approvalProgram: Uint8Array | undefined,
+  groupTransactions: AppCallGroupTxnRef[] = [],
+): AppCallInfo | undefined => {
+  const call = txn.applicationCall;
+  if (!call) return undefined;
+  return {
+    appIndex,
+    approvalProgram,
+    appArgs: [...(call.appArgs ?? [])],
+    accounts: (call.accounts ?? []).map((a) => encodeAddressSafe(a)),
+    foreignAssets: (call.foreignAssets ?? []).map((a) => BigInt(a)),
+    foreignApps: (call.foreignApps ?? []).map((a) => BigInt(a)),
+    senderAddress: encodeAddressSafe(txn.sender),
+    precedingGroupTxns: groupTransactions
+      .filter((g) => g.index < currentIndex)
+      .sort((a, b) => a.index - b.index)
+      .map((g) => ({ index: g.index, type: g.type })),
+  };
+};
+
 export type Arc56TrustLevel =
   | "verified"
   | "verified-other-method"

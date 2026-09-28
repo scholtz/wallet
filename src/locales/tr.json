@@ -990,7 +990,12 @@
     "kind_transaction": "İşlem referansı",
     "required_txn_type": "Bu grupta önceki bir \"{type}\" işlemi gerektirir",
     "matched_group_txn": "bu gruptaki #{index} numaralı işlemle eşleşiyor",
-    "no_arguments": "Bu yöntem çağrısı hiçbir argüman gerektirmez."
+    "no_arguments": "Bu yöntem çağrısı hiçbir argüman gerektirmez.",
+    "published_by": "GitHub'da yayınlayan",
+    "no_owners_found": "Bu program için ARC-56 sicilinde bilinen bir GitHub yayıncısı bulunamadı - kaynak kodu herhangi bir genel depodan dizine eklenmemiş, bu nedenle kimin yazdığını doğrulayamazsınız.",
+    "summary_title": "Uygulama çağrısı özeti",
+    "summary_multi_title": "Bu istekteki uygulama çağrıları ({count})",
+    "summary_app": "Uygulama {appIndex}"
   },
   "new_account_wc": {
     "title": "WalletConnect hesabını ekleyin",

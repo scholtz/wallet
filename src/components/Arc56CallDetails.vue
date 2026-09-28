@@ -7,11 +7,14 @@ import AlgorandAddress from "./AlgorandAddress.vue";
 import {
   decodeArc56AppCall,
   applyCandidateToArgs,
+  buildAppCallInfo,
   type DecodedArc56Call,
   type DecodedArc56Arg,
   type DecodedAbiValue,
   type Arc56CandidateMatch,
 } from "@/scripts/arc56/decode";
+import { fetchArc56OwnersByProgramHash } from "@/scripts/arc56/registry";
+import type { Arc56Owner } from "@/scripts/arc56/types";
 import type { ApplicationPrograms } from "@/store/algod";
 import { explorerAssetUrl, explorerApplicationUrl } from "@/scripts/explorer";
 
@@ -48,53 +51,42 @@ const loading = ref(false);
 // ("Type instantiation is excessively deep") when wrapped in a normal ref.
 const decoded = shallowRef<DecodedArc56Call | null>(null);
 const selectedCandidateHash = ref<string>("");
-
-const encodeAddressSafe = (
-  addr: algosdk.Address | { publicKey?: Uint8Array } | undefined,
-): string => {
-  try {
-    if (!addr) return "";
-    if (addr instanceof algosdk.Address) return addr.toString();
-    if (addr.publicKey) return algosdk.encodeAddress(addr.publicKey);
-    return "";
-  } catch {
-    return "";
-  }
-};
+// null = not looked up yet / no approvalHash to look up; [] = looked up, no
+// known GitHub publisher (surfaced as a warning, not silently omitted).
+const owners = shallowRef<Arc56Owner[] | null>(null);
 
 const runDecode = async () => {
   loading.value = true;
   decoded.value = null;
   selectedCandidateHash.value = "";
+  owners.value = null;
   try {
-    const call = props.txn.applicationCall;
-    if (!call) {
-      decoded.value = { trust: "not-abi", args: [] };
-      return;
-    }
     const programs = (await store.dispatch("algod/getApplicationPrograms", {
       appIndex: props.appIndex,
     })) as ApplicationPrograms | undefined;
 
-    const accounts = (call.accounts ?? []).map((a) => encodeAddressSafe(a));
-    const foreignAssets = (call.foreignAssets ?? []).map((a) => BigInt(a));
-    const foreignApps = (call.foreignApps ?? []).map((a) => BigInt(a));
-    const senderAddress = encodeAddressSafe(props.txn.sender);
-    const precedingGroupTxns = (props.groupTransactions ?? [])
-      .filter((g) => g.index < props.currentIndex)
-      .sort((a, b) => a.index - b.index)
-      .map((g) => ({ index: g.index, type: g.type }));
+    const info = buildAppCallInfo(
+      props.txn,
+      props.appIndex,
+      props.currentIndex,
+      programs?.approvalProgram,
+      props.groupTransactions ?? [],
+    );
+    if (!info) {
+      decoded.value = { trust: "not-abi", args: [] };
+      return;
+    }
 
-    decoded.value = await decodeArc56AppCall({
-      appIndex: props.appIndex,
-      approvalProgram: programs?.approvalProgram,
-      appArgs: [...(call.appArgs ?? [])],
-      accounts,
-      foreignAssets,
-      foreignApps,
-      senderAddress,
-      precedingGroupTxns,
-    });
+    decoded.value = await decodeArc56AppCall(info);
+    if (decoded.value.approvalHash) {
+      const entry = await fetchArc56OwnersByProgramHash(
+        decoded.value.approvalHash,
+        "approval",
+      );
+      owners.value = entry?.owners ?? [];
+    } else {
+      owners.value = [];
+    }
   } catch (error) {
     console.error("Failed to decode ARC-56 app call", error);
     decoded.value = { trust: "unknown", args: [] };
@@ -352,6 +344,24 @@ watch(
         </div>
       </div>
 
+      <div v-if="decoded.approvalHash && owners" class="arc56-owners">
+        <div v-if="owners.length > 0">
+          <strong>{{ t("arc56.published_by") }}:</strong>
+          <a
+            v-for="(owner, i) in owners"
+            :key="owner.url"
+            :href="owner.url"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ owner.owner }}/{{ owner.repo }}<span v-if="i < owners.length - 1">, </span>
+          </a>
+        </div>
+        <Message v-else severity="warn" class="m-0 mb-2">
+          {{ t("arc56.no_owners_found") }}
+        </Message>
+      </div>
+
       <div
         v-if="decoded.candidates && decoded.candidates.length > 0"
         class="arc56-candidates"
@@ -523,6 +533,10 @@ watch(
 .arc56-contract-name,
 .arc56-method {
   margin-bottom: 0.25rem;
+}
+
+.arc56-owners {
+  margin-bottom: 0.5rem;
 }
 
 .arc56-method-desc {
