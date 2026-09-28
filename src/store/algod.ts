@@ -73,12 +73,15 @@ export interface ApplicationPrograms {
 // getApplicationPrograms is called once per app-call transaction that needs
 // ARC-56 decoding (Arc56CallDetails.vue, Arc56RequestSummary.vue,
 // TransactionGroupSimulation.vue), and the same app is often referenced by
-// several transactions in one request/group - caching avoids a redundant
-// algod round-trip per occurrence. Keyed by algod endpoint (not just
-// appIndex), since the same numeric app ID can exist independently on
-// different networks. Caches the promise, not just the resolved value, so
-// concurrent callers for the same app before the first fetch resolves also
-// share a single request instead of racing separate ones.
+// several transactions in one request/group, or by both the summary and
+// detail views for the same transaction at once - this dedupes those
+// genuinely concurrent callers onto a single in-flight request. Keyed by
+// algod endpoint (not just appIndex), since the same numeric app ID can
+// exist independently on different networks. Entries are removed as soon as
+// the request settles (see the `finally` below), not kept as a long-lived
+// cache: this value feeds an ARC-56 trust/publisher signal, and an app's
+// approval program can legitimately change mid-session via an update
+// transaction, so a later, separate caller must always get a fresh fetch.
 const applicationProgramsCache = new Map<
   string,
   Promise<ApplicationPrograms | undefined>
@@ -406,11 +409,17 @@ const actions: ActionTree<AlgodState, RootState> = {
         };
       } catch (error) {
         console.error("Failed to fetch application programs", error);
-        // Don't let a transient failure poison the cache for the rest of the
-        // session - a later retry (e.g. re-expanding the same row) should
-        // get a fresh attempt, not a permanently cached undefined.
-        applicationProgramsCache.delete(cacheKey);
         return undefined;
+      } finally {
+        // Only dedupes genuinely concurrent callers (e.g. the summary and
+        // per-transaction detail views both expanding for the same app in
+        // the same tick) - never serves a stale result to a later, separate
+        // caller. This value feeds an ARC-56 trust/publisher signal, and an
+        // app's approval program can legitimately change mid-session via an
+        // update transaction; caching it past this in-flight request could
+        // keep showing a verified/publisher result for code that's no
+        // longer actually deployed.
+        applicationProgramsCache.delete(cacheKey);
       }
     })();
     applicationProgramsCache.set(cacheKey, promise);

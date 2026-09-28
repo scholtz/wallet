@@ -60,6 +60,12 @@ const runDecode = async () => {
   const applCalls = props.transactions.filter((tx) => tx.type === "appl");
   if (applCalls.length === 0) {
     summaries.value = [];
+    // Not gated on the generation check below (this path never entered
+    // `loading.value = true`) - but it must still clear loading itself, or
+    // an older in-flight call's own `finally` (which skips resetting
+    // `loading` once it sees a newer generation) would leave the spinner
+    // stuck on forever with no summaries to show.
+    loading.value = false;
     return;
   }
 
