@@ -412,6 +412,14 @@ const actions: ActionTree<AlgodState, RootState> = {
     if (cached) return cached;
 
     const promise = (async (): Promise<ApplicationPrograms | undefined> => {
+      // Yields to a microtask before doing anything else, so
+      // applicationProgramsCache.set() below always runs first - otherwise
+      // a synchronous throw inside this body (e.g. createAlgodClient()'s
+      // `new URL(algod)` on a malformed custom node URL) would run the
+      // `finally`'s delete(cacheKey) *before* the .set() call ever added
+      // that key, permanently caching the failed result instead of
+      // cleaning it up as intended.
+      await Promise.resolve();
       try {
         const algodClient = createAlgodClient(rootState);
         const app = await algodClient.getApplicationByID(appIndex).do();
