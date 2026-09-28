@@ -6,6 +6,7 @@ import { useStore } from "@/store";
 import {
   decodeAppCallWithOwners,
   arc56TrustSeverity,
+  arc56TrustBadgeSeverity,
   arc56TrustTitleKey,
   arc56TrustDescKey,
   safeTxId,
@@ -164,7 +165,7 @@ const isSingleAppCall = computed(
             <td>{{ t("arc56.summary_app", { appIndex: summary.appIndex }) }}</td>
             <td>
               <Badge
-                :severity="arc56TrustSeverity(summary.decoded.trust)"
+                :severity="arc56TrustBadgeSeverity(summary.decoded.trust)"
                 :value="t(arc56TrustTitleKey(summary.decoded.trust))"
               />
             </td>

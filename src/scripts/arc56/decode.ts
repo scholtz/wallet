@@ -202,6 +202,22 @@ const arc56TrustPresentation = (
   trust: Arc56TrustLevel | undefined,
 ): Arc56TrustPresentation => TRUST_PRESENTATION[trust ?? "not-abi"];
 
+// arc56TrustSeverity()'s value is for PrimeVue <Message>, whose severity
+// enum includes "error" but not "danger". <Badge>'s enum is the reverse -
+// "danger" but no "error" - an actual inconsistency between the two
+// components, not a typo, so a value valid for one silently fails to match
+// any styled variant on the other. Use this converter when handing a
+// trust severity to a <Badge> (e.g. the per-app summary table) instead of
+// binding arc56TrustSeverity()'s result directly.
+export type Arc56BadgeSeverity = "secondary" | "success" | "warn" | "danger";
+
+export const arc56TrustBadgeSeverity = (
+  trust: Arc56TrustLevel | undefined,
+): Arc56BadgeSeverity => {
+  const severity = arc56TrustPresentation(trust).severity;
+  return severity === "error" ? "danger" : severity;
+};
+
 export const arc56TrustSeverity = (trust: Arc56TrustLevel | undefined): Arc56TrustSeverity =>
   arc56TrustPresentation(trust).severity;
 
