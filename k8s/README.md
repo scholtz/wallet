@@ -147,6 +147,10 @@ one-time logout / fresh DB).
 than 1 handler type`. Both workflows' "Clear stray probe handlers" step
   patches every deployment they touch to strip any alternate handler before
   every apply, so this can't recur.
+- The three `arc56-registry` deployments run `scholtz2/arc56-registry:latest`, whose
+  manifest never changes, so `kubectl apply` won't make them re-pull. Both workflows'
+  "Roll out" step therefore `kubectl rollout restart`s them on every deploy (alongside
+  the wallet deployments) so the registry always picks up the newest image.
 - The `-landing`/`-stable` containers also need an `imagePullSecret` named
   `regcred` to exist in the `awallet` namespace (to avoid Docker Hub
   anonymous pull rate limits). That secret is created out-of-band and isn't

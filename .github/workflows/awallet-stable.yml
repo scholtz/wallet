@@ -151,10 +151,17 @@ jobs:
           kubectl create configmap biatec-wallet-stable-conf --from-file=k8s/stable-biatec -n awallet
 
       - name: Roll out
+        # The ARC-56 registries run scholtz2/arc56-registry:latest (imagePullPolicy: Always)
+        # and their manifests never change, so `kubectl apply` is a no-op for them --
+        # restart them explicitly on every deploy so they pull the newest registry image.
         run: |
+          kubectl rollout restart deployment/awallet-arc56-registry-stable-deployment -n awallet
+          kubectl rollout restart deployment/biatec-wallet-arc56-registry-deployment -n awallet
           kubectl rollout restart deployment/awallet-stable-deployment -n awallet
-          kubectl rollout status deployment/awallet-stable-deployment -n awallet
           kubectl rollout restart deployment/biatec-wallet-stable-deployment -n awallet
+          kubectl rollout status deployment/awallet-arc56-registry-stable-deployment -n awallet
+          kubectl rollout status deployment/biatec-wallet-arc56-registry-deployment -n awallet
+          kubectl rollout status deployment/awallet-stable-deployment -n awallet
           kubectl rollout status deployment/biatec-wallet-stable-deployment -n awallet
 
       - name: Commit updated image tags

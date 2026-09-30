@@ -103,8 +103,13 @@ jobs:
           kubectl create configmap awallet-main-conf --from-file=k8s/conf -n awallet
 
       - name: Roll out
+        # The ARC-56 registry runs scholtz2/arc56-registry:latest (imagePullPolicy: Always)
+        # and its manifest never changes, so `kubectl apply` is a no-op for it -- restart
+        # it explicitly on every deploy so it pulls the newest registry image.
         run: |
+          kubectl rollout restart deployment/awallet-arc56-registry-main-deployment -n awallet
           kubectl rollout restart deployment/awallet-web-main-landing-deployment -n awallet
+          kubectl rollout status deployment/awallet-arc56-registry-main-deployment -n awallet
           kubectl rollout status deployment/awallet-web-main-landing-deployment -n awallet
 
       - name: Commit updated image tag
