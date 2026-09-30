@@ -6,6 +6,7 @@ import MainLayout from "../layouts/Main.vue";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
 import Arc56CallDetails from "../components/Arc56CallDetails.vue";
 import Arc56RequestSummary from "../components/Arc56RequestSummary.vue";
+import Arc56RiskIcon from "../components/Arc56RiskIcon.vue";
 import TransactionGroupSimulation from "../components/TransactionGroupSimulation.vue";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
@@ -385,6 +386,7 @@ const arc56SummaryTransactions = computed(() =>
           >
             {{ t("connect.sign_all") }}
           </Button>
+          <Arc56RiskIcon :transactions="arc56SummaryTransactions" />
           <Button
             :disabled="
               !state.allTxsAreSigned ||

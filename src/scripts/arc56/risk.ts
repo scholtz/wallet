@@ -1,0 +1,104 @@
+// Pure signing-risk evaluation over decoded ARC-56 app calls. Deliberately
+// type-only imports so it stays loadable from the Node-only unit tests.
+import type { Arc56Owner } from "./types";
+
+// Structural subset of decode.ts's Arc56TrustLevel, repeated here to keep
+// this module free of runtime imports (decode.ts pulls in algosdk).
+export type RiskInputTrust =
+  | "verified"
+  | "verified-other-method"
+  | "selector-only"
+  | "unknown"
+  | "not-abi";
+
+export interface Arc56RiskInput {
+  trust: RiskInputTrust;
+  // null = not looked up (no approval hash); [] = looked up, no publisher.
+  owners: Arc56Owner[] | null;
+}
+
+// "none": no app calls, nothing to show. "not-abi": every app call is
+// non-ABI, so the registry cannot say anything about it.
+export type Arc56RiskLevel = "none" | "not-abi" | "trusted" | "warning" | "danger";
+
+export type Arc56RiskReason =
+  | "banned_publisher"
+  | "method_mismatch"
+  | "unregistered"
+  | "no_publisher"
+  | "low_reputation_publisher"
+  | "unrated_publisher"
+  | "not_abi";
+
+export interface Arc56RiskResult {
+  level: Arc56RiskLevel;
+  reasons: Arc56RiskReason[];
+}
+
+type PublisherStanding = "banned" | "trusted" | "low_reputation" | "unrated" | "none";
+
+// A contract can legitimately be vendored/forked across repos with the same
+// program hash, so the best-rated publisher decides - except that any banned
+// publisher always wins, since a confirmed bad actor is the one signal the
+// registry treats as certain.
+export const publisherStanding = (owners: Arc56Owner[] | null): PublisherStanding => {
+  if (!owners || owners.length === 0) return "none";
+  if (owners.some((o) => o.banned === true || o.riskLevel === "banned")) return "banned";
+  if (owners.some((o) => o.riskLevel === "low" || o.riskLevel === "medium")) return "trusted";
+  if (owners.some((o) => o.riskLevel === "high" || o.riskLevel === "very_high")) {
+    return "low_reputation";
+  }
+  return "unrated";
+};
+
+const RANK: Record<Arc56RiskLevel, number> = {
+  none: 0,
+  "not-abi": 1,
+  trusted: 2,
+  warning: 3,
+  danger: 4,
+};
+
+const evaluateOne = (input: Arc56RiskInput): Arc56RiskResult => {
+  switch (input.trust) {
+    case "not-abi":
+      return { level: "not-abi", reasons: ["not_abi"] };
+    case "verified-other-method":
+      return { level: "danger", reasons: ["method_mismatch"] };
+    case "selector-only":
+    case "unknown":
+      return { level: "warning", reasons: ["unregistered"] };
+    case "verified": {
+      switch (publisherStanding(input.owners)) {
+        case "banned":
+          return { level: "danger", reasons: ["banned_publisher"] };
+        case "trusted":
+          return { level: "trusted", reasons: [] };
+        case "low_reputation":
+          return { level: "warning", reasons: ["low_reputation_publisher"] };
+        case "unrated":
+          return { level: "warning", reasons: ["unrated_publisher"] };
+        case "none":
+          return { level: "warning", reasons: ["no_publisher"] };
+      }
+    }
+  }
+};
+
+// Worst app call decides. "trusted" is only shown when every app call is
+// trusted: a group mixing trusted calls with unverifiable non-ABI ones
+// escalates to "warning" rather than showing a reassuring badge that the
+// non-ABI call has not earned.
+export const evaluateArc56Risk = (inputs: Arc56RiskInput[]): Arc56RiskResult => {
+  if (inputs.length === 0) return { level: "none", reasons: [] };
+  const results = inputs.map(evaluateOne);
+  let level = results.reduce<Arc56RiskLevel>(
+    (worst, r) => (RANK[r.level] > RANK[worst] ? r.level : worst),
+    "none",
+  );
+  const reasons = [...new Set(results.flatMap((r) => r.reasons))];
+  const hasNotAbi = results.some((r) => r.level === "not-abi");
+  const hasTrusted = results.some((r) => r.level === "trusted");
+  if (hasNotAbi && hasTrusted && level === "trusted") level = "warning";
+  return { level, reasons };
+};
