@@ -116,13 +116,15 @@ watch(loading, (isLoading) => {
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  font-size: 2rem;
+  font-size: 1.5rem;
   vertical-align: middle;
-  margin: 0.25rem;
-  cursor: pointer;
+  margin: 0.25rem 0.5rem 0.25rem 0.25rem;
   background: none;
   border: none;
   padding: 0;
+}
+button.arc56-risk-icon {
+  cursor: pointer;
 }
 .arc56-risk-popover {
   max-width: 24rem;
