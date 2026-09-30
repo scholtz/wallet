@@ -1,6 +1,22 @@
 <template>
   <PublicLayout>
     <div class="faq-page">
+      <div class="faq-languages" role="group" aria-label="Language">
+        <Button
+          v-for="lang in $store.state.config.languages"
+          :key="lang"
+          size="small"
+          severity="secondary"
+          :text="$i18n.locale !== lang"
+          :outlined="$i18n.locale === lang"
+          :aria-label="lang"
+          :aria-pressed="$i18n.locale === lang"
+          @click="setLanguage(lang)"
+        >
+          <LanguageFlag :locale="lang" size="1.25rem" />
+        </Button>
+      </div>
+
       <div class="faq-hero">
         <i class="pi pi-question-circle faq-hero-icon" aria-hidden="true" />
         <h1 class="faq-hero-title">{{ $t("faq.title") }}</h1>
@@ -109,16 +125,17 @@ import { getWalletBrandName } from "@/scripts/branding";
 // Category order/icons are defined here (not localized); question/answer
 // copy lives entirely in src/locales/*.json under faq.categories.<key>.
 const CATEGORY_DEFS = [
-  { key: "general", icon: "pi-info-circle", count: 5 },
+  { key: "general", icon: "pi-info-circle", count: 6 },
   { key: "biatec", icon: "pi-building", count: 5 },
-  { key: "blockchain", icon: "pi-sitemap", count: 5 },
-  { key: "security", icon: "pi-shield", count: 5 },
-  { key: "accounts", icon: "pi-users", count: 5 },
-  { key: "actions", icon: "pi-bolt", count: 5 },
-  { key: "assets", icon: "pi-tags", count: 5 },
-  { key: "swap", icon: "pi-arrow-right-arrow-left", count: 5 },
-  { key: "connect", icon: "pi-qrcode", count: 5 },
-  { key: "backup", icon: "pi-save", count: 5 },
+  { key: "blockchain", icon: "pi-sitemap", count: 8 },
+  { key: "ecosystem", icon: "pi-globe", count: 8 },
+  { key: "security", icon: "pi-shield", count: 7 },
+  { key: "accounts", icon: "pi-users", count: 7 },
+  { key: "actions", icon: "pi-bolt", count: 8 },
+  { key: "assets", icon: "pi-tags", count: 7 },
+  { key: "swap", icon: "pi-arrow-right-arrow-left", count: 6 },
+  { key: "connect", icon: "pi-qrcode", count: 7 },
+  { key: "backup", icon: "pi-save", count: 6 },
 ];
 
 // A handful of FAQ answers link out to Biatec/GitHub/Discord resources.
@@ -157,6 +174,12 @@ const FAQ_LINKS = {
     {
       url: "https://github.com/algorandfoundation/xGov/pull/9/files",
       labelKey: "faq.categories.biatec.a5_link2",
+    },
+  ],
+  "faq.categories.ecosystem.a4": [
+    {
+      url: "https://github.com/scholtz/ARC56Registry",
+      labelKey: "faq.categories.ecosystem.a4_link1",
     },
   ],
   "faq.categories.actions.a4": [
@@ -226,6 +249,10 @@ export default {
     },
   },
   methods: {
+    setLanguage(lang) {
+      this.$i18n.locale = lang;
+      localStorage.setItem("lang", this.$i18n.locale);
+    },
     // Link config (if any) for a given question/answer translation key.
     linksFor(key) {
       return FAQ_LINKS[key] ?? [];
@@ -252,6 +279,13 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.faq-languages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem;
 }
 
 .faq-hero {
