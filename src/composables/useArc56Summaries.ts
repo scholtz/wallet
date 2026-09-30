@@ -29,6 +29,24 @@ export interface AppCallSummary {
 
 type Store = ReturnType<typeof useStore>;
 
+// The approval program behind an app call. Creation (appIndex 0) has no
+// on-chain program yet - the program being deployed is in the transaction
+// itself. For an existing app, a failed algod lookup throws so the caller
+// reports "could not verify" rather than an "unregistered" verdict. Shared
+// with Arc56CallDetails.vue so both views resolve programs identically.
+export const resolveApprovalProgram = async (
+  store: Store,
+  txn: algosdk.Transaction,
+  appIndex: bigint,
+): Promise<Uint8Array | undefined> => {
+  if (appIndex === 0n) return txn.applicationCall?.approvalProgram;
+  const programs = (await store.dispatch("algod/getApplicationPrograms", {
+    appIndex,
+  })) as ApplicationPrograms | undefined;
+  if (!programs) throw new Error(`Approval program of app ${appIndex} unavailable`);
+  return programs.approvalProgram;
+};
+
 // Concurrent callers over the same transactions (the risk icon on a
 // collapsed row, then the summary card when it is expanded) share one decode
 // instead of each repeating the hashing / registry fan-out. A finished
@@ -63,20 +81,7 @@ const decodeAll = async (
       const rawAppIndex = entry.txn.applicationCall?.appIndex;
       if (rawAppIndex === undefined) return undefined;
       const appIndex = BigInt(rawAppIndex);
-      // Creation (appIndex 0) has no on-chain program yet - the program being
-      // deployed is in the transaction itself. For an existing app, a failed
-      // algod lookup must surface as "could not verify" (entry dropped ->
-      // lookupFailed), not as an "unregistered" verdict.
-      let approvalProgram: Uint8Array | undefined;
-      if (appIndex === 0n) {
-        approvalProgram = entry.txn.applicationCall?.approvalProgram;
-      } else {
-        const programs = (await store.dispatch("algod/getApplicationPrograms", {
-          appIndex,
-        })) as ApplicationPrograms | undefined;
-        if (!programs) throw new Error(`Approval program of app ${appIndex} unavailable`);
-        approvalProgram = programs.approvalProgram;
-      }
+      const approvalProgram = await resolveApprovalProgram(store, entry.txn, appIndex);
 
       const result = await decodeAppCallWithOwners(
         entry.txn,

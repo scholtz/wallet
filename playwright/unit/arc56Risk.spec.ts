@@ -119,4 +119,11 @@ test.describe("evaluateArc56Risk", () => {
     });
     expect(evaluateArc56Risk([{ trust: "not-abi", owners: [] }]).level).toBe("not-abi");
   });
+
+  test("banned publisher is danger whichever decode branch was taken", () => {
+    const owners = [owner({ banned: true, riskLevel: "banned" })];
+    for (const trust of ["unknown", "selector-only", "verified", "not-abi"] as const) {
+      expect(evaluateArc56Risk([{ trust, owners }]).level).toBe("danger");
+    }
+  });
 });

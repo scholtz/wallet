@@ -37,7 +37,9 @@ export class RegistryUnavailableError extends Error {
 }
 
 interface FetchResult {
-  value: unknown | null;
+  // `unknown` is unavoidable: one cache holds specs, ABI entries and owners
+  // files, each a different shape; fetchJson<T> narrows it per call.
+  value: unknown;
   // A null value that may be down to an outage rather than a real 404.
   transient: boolean;
 }
@@ -52,6 +54,9 @@ const fetchJson = async <T>(
   if (!promise) {
     const fresh: Promise<FetchResult> = (async (): Promise<FetchResult> => {
       let transient = false;
+      // At least one mirror answered a definitive 404: the file is absent,
+      // even if another mirror is having an outage.
+      let definitiveMiss = false;
       for (const base of REGISTRY_BASE_URLS) {
         let response: Response;
         try {
@@ -71,17 +76,22 @@ const fetchJson = async <T>(
         if (!response.ok) {
           // 404 is a definitive miss on that mirror; anything else (5xx,
           // 429, ...) is an outage and must not be cached as "not found".
-          if (response.status !== 404) transient = true;
+          if (response.status === 404) definitiveMiss = true;
+          else transient = true;
           continue;
         }
         try {
           return { value: (await response.json()) as T, transient: false };
         } catch {
-          // Not JSON (e.g. an SPA fallback answering 200 for a path no
-          // mirror serves): a permanently absent mirror, not transient.
+          // An HTML body is an SPA fallback answering 200 for a path no
+          // mirror serves: a permanently absent mirror. Anything else (a
+          // truncated or dropped body) is a transient failure.
+          if (!(response.headers.get("content-type") ?? "").includes("html")) {
+            transient = true;
+          }
         }
       }
-      return { value: null, transient };
+      return { value: null, transient: transient && !definitiveMiss };
     })();
     jsonCache.set(relativePath, fresh);
     // A transient miss must not be cached, or a brief outage would show a

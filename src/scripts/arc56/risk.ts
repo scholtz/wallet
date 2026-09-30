@@ -1,18 +1,10 @@
 // Pure signing-risk evaluation over decoded ARC-56 app calls. Deliberately
 // type-only imports so it stays loadable from the Node-only unit tests.
 import type { Arc56Owner } from "./types";
-
-// Structural subset of decode.ts's Arc56TrustLevel, repeated here to keep
-// this module free of runtime imports (decode.ts pulls in algosdk).
-export type RiskInputTrust =
-  | "verified"
-  | "verified-other-method"
-  | "selector-only"
-  | "unknown"
-  | "not-abi";
+import type { Arc56TrustLevel } from "./decode";
 
 export interface Arc56RiskInput {
-  trust: RiskInputTrust;
+  trust: Arc56TrustLevel;
   // null = not looked up (no approval hash); [] = looked up, no publisher.
   owners: Arc56Owner[] | null;
   // App creation, UpdateApplication or DeleteApplication: never presented as
@@ -77,16 +69,18 @@ const RANK: Record<Arc56RiskLevel, number> = {
 
 const evaluateBase = (input: Arc56RiskInput): Arc56RiskResult => {
   if (input.lookupFailed) return { level: "warning", reasons: ["lookup_failed"] };
+  // A confirmed bad actor is danger whichever decode branch was taken.
+  if (publisherStanding(input.owners) === "banned") {
+    return {
+      level: "danger",
+      reasons: input.trust === "not-abi" ? ["banned_publisher", "not_abi"] : ["banned_publisher"],
+    };
+  }
   switch (input.trust) {
     case "not-abi":
       // No approval program could be looked up: the publisher/ban check did
       // not run, so fail closed like the ABI path does.
       if (input.owners === null) return { level: "warning", reasons: ["lookup_failed"] };
-      // A non-ABI call still executes some registered program: a banned
-      // publisher must not be bypassed just by omitting the ABI selector.
-      if (publisherStanding(input.owners) === "banned") {
-        return { level: "danger", reasons: ["banned_publisher", "not_abi"] };
-      }
       return { level: "not-abi", reasons: ["not_abi"] };
     case "verified-other-method":
       return { level: "danger", reasons: ["method_mismatch"] };
@@ -95,7 +89,7 @@ const evaluateBase = (input: Arc56RiskInput): Arc56RiskResult => {
       return { level: "warning", reasons: ["unregistered"] };
     case "verified": {
       switch (publisherStanding(input.owners)) {
-        case "banned":
+        case "banned": // handled above; kept so the switch stays exhaustive
           return { level: "danger", reasons: ["banned_publisher"] };
         case "trusted":
           return { level: "trusted", reasons: [] };
