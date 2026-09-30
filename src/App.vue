@@ -37,7 +37,7 @@ export default {
     this.applyTheme();
     this.gradient = new Gradient();
     setTimeout(() => {
-      this.gradient.initGradient("#gradient-canvas");
+      this.initGradient();
     }, 100);
   },
   computed: {
@@ -49,7 +49,7 @@ export default {
     theme() {
       this.applyTheme();
       setTimeout(() => {
-        this.gradient.initGradient("#gradient-canvas");
+        this.initGradient();
       }, 100);
     },
   },
@@ -58,6 +58,20 @@ export default {
       getConfig: "config/getConfig",
       setTheme: "config/setTheme",
     }),
+    // The animated background is purely decorative: browsers without WebGL (headless CI, some
+    // locked-down/remote-desktop setups) make whatamesh throw an unhandled rejection
+    // ("Cannot read properties of null (reading 'uniformMatrix4fv')"), so skip it there.
+    async initGradient() {
+      const canvas = document.createElement("canvas");
+      if (!canvas.getContext("webgl") && !canvas.getContext("experimental-webgl")) {
+        return;
+      }
+      try {
+        await this.gradient.initGradient("#gradient-canvas");
+      } catch (err) {
+        console.warn("Animated background disabled", err);
+      }
+    },
     applyTheme() {
       document.documentElement.classList.toggle(
         "p-dark",
