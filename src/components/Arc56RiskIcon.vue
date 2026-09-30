@@ -110,9 +110,15 @@ watch(loading, (isLoading) => {
 
 <style scoped>
 .arc56-risk-icon {
-  font-size: 1.5rem;
+  /* Sized to match the neighbouring PrimeVue buttons (~2.5rem tall). */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 2rem;
   vertical-align: middle;
-  margin: 0 0.5rem;
+  margin: 0.25rem;
   cursor: pointer;
   background: none;
   border: none;
