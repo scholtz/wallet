@@ -18,6 +18,9 @@ export interface Arc56RiskInput {
   // App creation, UpdateApplication or DeleteApplication: never presented as
   // reassuring, whatever the registry says about the (new or old) program.
   sensitive?: boolean;
+  // The registry/algod lookup for this call did not complete (failure or
+  // deadline) - reported as such rather than as "not registered".
+  lookupFailed?: boolean;
 }
 
 export interface Arc56RiskOptions {
@@ -35,6 +38,7 @@ export type Arc56RiskReason =
   | "banned_publisher"
   | "method_mismatch"
   | "unregistered"
+  | "lookup_failed"
   | "no_publisher"
   | "low_reputation_publisher"
   | "unrated_publisher"
@@ -72,8 +76,12 @@ const RANK: Record<Arc56RiskLevel, number> = {
 };
 
 const evaluateBase = (input: Arc56RiskInput): Arc56RiskResult => {
+  if (input.lookupFailed) return { level: "warning", reasons: ["lookup_failed"] };
   switch (input.trust) {
     case "not-abi":
+      // No approval program could be looked up: the publisher/ban check did
+      // not run, so fail closed like the ABI path does.
+      if (input.owners === null) return { level: "warning", reasons: ["lookup_failed"] };
       // A non-ABI call still executes some registered program: a banned
       // publisher must not be bypassed just by omitting the ABI selector.
       if (publisherStanding(input.owners) === "banned") {

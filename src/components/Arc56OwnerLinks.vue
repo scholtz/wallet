@@ -31,11 +31,11 @@ const ownerBadge = (owner: Arc56Owner): { label: string; severity: BadgeSeverity
       break;
     case "medium":
       key = "arc56.owner_risk_medium";
-      severity = "info";
+      severity = "warn";
       break;
     case "high":
       key = "arc56.owner_risk_high";
-      severity = "warn";
+      severity = "danger";
       break;
     case "very_high":
       key = "arc56.owner_risk_very_high";

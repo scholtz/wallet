@@ -6,8 +6,9 @@ import {
   arc56TrustBadgeSeverity,
   arc56TrustTitleKey,
   arc56TrustDescKey,
+  ownersForDisplay,
 } from "@/scripts/arc56/decode";
-import { useArc56Summaries, type AppCallTxnEntry } from "@/composables/useArc56Summaries";
+import { useArc56Summaries, type AppCallSummary, type AppCallTxnEntry } from "@/composables/useArc56Summaries";
 import Arc56OwnerLinks from "./Arc56OwnerLinks.vue";
 
 const props = defineProps<{
@@ -16,6 +17,9 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const { summaries, loading } = useArc56Summaries(() => props.transactions);
+
+const displayOwners = (summary: AppCallSummary) =>
+  ownersForDisplay(summary.decoded, summary.owners);
 
 // Only worth its own dedicated summary card when it's the one and only
 // transaction in the request - a user relying on "Sign all" without
@@ -46,9 +50,9 @@ const isSingleAppCall = computed(
         <strong>{{ t("arc56.method_signature") }}:</strong>
         {{ summaries[0].decoded.methodSignature }}
       </div>
-      <div v-if="summaries[0].owners" class="mb-1">
-        <strong v-if="summaries[0].owners.length > 0">{{ t("arc56.published_by") }}:</strong>
-        <Arc56OwnerLinks :owners="summaries[0].owners" />
+      <div v-if="displayOwners(summaries[0])" class="mb-1">
+        <strong v-if="displayOwners(summaries[0])!.length > 0">{{ t("arc56.published_by") }}:</strong>
+        <Arc56OwnerLinks :owners="displayOwners(summaries[0])" />
       </div>
     </template>
     <template v-else>
@@ -64,7 +68,7 @@ const isSingleAppCall = computed(
               />
             </td>
             <td>
-              <Arc56OwnerLinks :owners="summary.owners" />
+              <Arc56OwnerLinks :owners="displayOwners(summary)" />
             </td>
           </tr>
         </tbody>

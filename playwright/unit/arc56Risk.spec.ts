@@ -17,8 +17,8 @@ test.describe("evaluateArc56Risk", () => {
   test("all non-ABI -> not-abi", () => {
     expect(
       evaluateArc56Risk([
-        { trust: "not-abi", owners: null },
-        { trust: "not-abi", owners: null },
+        { trust: "not-abi", owners: [] },
+        { trust: "not-abi", owners: [] },
       ]).level,
     ).toBe("not-abi");
   });
@@ -64,7 +64,7 @@ test.describe("evaluateArc56Risk", () => {
     expect(
       evaluateArc56Risk([good, { trust: "verified-other-method", owners: [] }]).level,
     ).toBe("danger");
-    expect(evaluateArc56Risk([good, { trust: "not-abi", owners: null }])).toEqual({
+    expect(evaluateArc56Risk([good, { trust: "not-abi", owners: [] }])).toEqual({
       level: "warning",
       reasons: ["not_abi"],
     });
@@ -76,7 +76,7 @@ test.describe("evaluateArc56Risk", () => {
       level: "warning",
       reasons: ["sensitive_call"],
     });
-    expect(evaluateArc56Risk([{ trust: "not-abi", owners: null, sensitive: true }]).level).toBe(
+    expect(evaluateArc56Risk([{ trust: "not-abi", owners: [], sensitive: true }]).level).toBe(
       "warning",
     );
     expect(
@@ -90,7 +90,7 @@ test.describe("evaluateArc56Risk", () => {
       level: "warning",
       reasons: ["risky_fields"],
     });
-    expect(evaluateArc56Risk([{ trust: "not-abi", owners: null }], { riskyFields: true }).level).toBe(
+    expect(evaluateArc56Risk([{ trust: "not-abi", owners: [] }], { riskyFields: true }).level).toBe(
       "warning",
     );
     expect(evaluateArc56Risk([], { riskyFields: true })).toEqual({
@@ -105,5 +105,18 @@ test.describe("evaluateArc56Risk", () => {
         { trust: "not-abi", owners: [owner({ banned: true, riskLevel: "banned" })] },
       ]).level,
     ).toBe("danger");
+  });
+
+  test("lookup failures fail closed with their own reason", () => {
+    expect(evaluateArc56Risk([{ trust: "unknown", owners: null, lookupFailed: true }])).toEqual({
+      level: "warning",
+      reasons: ["lookup_failed"],
+    });
+    // Non-ABI call whose program could not be looked up: ban check did not run.
+    expect(evaluateArc56Risk([{ trust: "not-abi", owners: null }])).toEqual({
+      level: "warning",
+      reasons: ["lookup_failed"],
+    });
+    expect(evaluateArc56Risk([{ trust: "not-abi", owners: [] }]).level).toBe("not-abi");
   });
 });

@@ -618,6 +618,17 @@ export const decodeArc56AppCall = async (
   };
 };
 
+// The publisher list a UI should render. A non-ABI call with no known
+// publisher is the common, unremarkable case (an opt-in, a bare NoOp) and
+// must not show a "no publisher found" warning next to a call the registry
+// was never meant to describe; a non-empty list (e.g. a banned publisher) is
+// always shown.
+export const ownersForDisplay = (
+  decoded: DecodedArc56Call,
+  owners: Arc56Owner[] | null,
+): Arc56Owner[] | null =>
+  decoded.trust === "not-abi" && owners?.length === 0 ? null : owners;
+
 export interface DecodedAppCallWithOwners {
   decoded: DecodedArc56Call;
   // null = not looked up (no approvalHash to look up); [] = looked up, no

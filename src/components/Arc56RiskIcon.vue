@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import algosdk from "algosdk";
 import Popover from "primevue/popover";
+import { isRiskyTransaction, isSensitiveAppCall } from "@/scripts/arc56/riskTxn";
 import { useArc56Summaries, type AppCallTxnEntry } from "@/composables/useArc56Summaries";
 import { evaluateArc56Risk, type Arc56RiskInput, type Arc56RiskLevel } from "@/scripts/arc56/risk";
 
@@ -16,38 +16,7 @@ const props = defineProps<{
 const { t } = useI18n();
 const { summaries, loading } = useArc56Summaries(() => props.transactions);
 
-const isSensitiveCall = (entry: AppCallTxnEntry | undefined): boolean => {
-  const call = entry?.txn.applicationCall;
-  if (!call) return false;
-  return (
-    BigInt(call.appIndex) === 0n ||
-    // ClearState runs the clear program, which the approval-program hash
-    // behind the verdict says nothing about.
-    call.onComplete === algosdk.OnApplicationComplete.ClearStateOC ||
-    call.onComplete === algosdk.OnApplicationComplete.UpdateApplicationOC ||
-    call.onComplete === algosdk.OnApplicationComplete.DeleteApplicationOC
-  );
-};
-
-// Close-outs, rekeys, clawbacks, freezes and key registrations move funds or
-// control regardless of which contract is being called.
-const isZeroAddress = (addr: algosdk.Address | undefined): boolean =>
-  !addr || addr.toString() === algosdk.ALGORAND_ZERO_ADDRESS_STRING;
-
-const isRiskyTxn = (txn: algosdk.Transaction): boolean => {
-  const rekeysAway =
-    !isZeroAddress(txn.rekeyTo) && txn.rekeyTo?.toString() !== txn.sender.toString();
-  return (
-    rekeysAway ||
-    !isZeroAddress(txn.assetTransfer?.assetSender) ||
-    !isZeroAddress(txn.payment?.closeRemainderTo) ||
-    !isZeroAddress(txn.assetTransfer?.closeRemainderTo) ||
-    txn.type === algosdk.TransactionType.afrz ||
-    txn.type === algosdk.TransactionType.keyreg
-  );
-};
-
-const hasRiskyFields = computed(() => props.transactions.some((tx) => isRiskyTxn(tx.txn)));
+const hasRiskyFields = computed(() => props.transactions.some((tx) => isRiskyTransaction(tx.txn)));
 
 const result = computed(() => {
   const inputs: Arc56RiskInput[] = [];
@@ -60,7 +29,8 @@ const result = computed(() => {
     inputs.push({
       trust: summary?.decoded.trust ?? "unknown",
       owners: summary?.owners ?? null,
-      sensitive: isSensitiveCall(tx),
+      sensitive: isSensitiveAppCall(tx.txn),
+      lookupFailed: !summary,
     });
   }
   return evaluateArc56Risk(inputs, { riskyFields: hasRiskyFields.value });

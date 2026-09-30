@@ -29,12 +29,19 @@ export interface AppCallSummary {
 
 type Store = ReturnType<typeof useStore>;
 
-// Concurrent callers over the same transactions (the summary card and the
-// risk icon mount together) share one decode instead of each repeating the
-// hashing / registry fan-out. Entries are dropped as soon as they settle, not
-// kept as a cache: an app's program can change mid-session (update txn), so a
-// later, separate caller must always get a fresh lookup.
-const inflight = new Map<string, Promise<AppCallSummary[]>>();
+// Concurrent callers over the same transactions (the risk icon on a
+// collapsed row, then the summary card when it is expanded) share one decode
+// instead of each repeating the hashing / registry fan-out. A finished
+// result is reused for only a few seconds - an app's program can change
+// mid-session (update txn) - and only when it is definitive: a timeout, an
+// error or an "unknown" verdict may be down to a transient outage, so those
+// are dropped on settle and always retried.
+const RECENT_TTL_MS = 15_000;
+interface SharedDecode {
+  promise: Promise<AppCallSummary[]>;
+  settledAt: number | null;
+}
+const shared = new Map<string, SharedDecode>();
 
 const decodeAll = async (
   store: Store,
@@ -84,13 +91,7 @@ const decodeAll = async (
 // calls (each with its own per-fetch timeout), so without this the spinner
 // could sit next to "Sign all" for minutes. On expiry the request is treated
 // as unverified (no summaries -> fail-closed warning in Arc56RiskIcon).
-const DECODE_DEADLINE_MS = 20_000;
-
-// Results are reused for a few seconds so the collapsed-row risk icon and the
-// summary card mounted moments later (row expanded) don't repeat the whole
-// decode. Deliberately short: an app's program can change mid-session.
-const RECENT_TTL_MS = 15_000;
-const recent = new Map<string, { at: number; promise: Promise<AppCallSummary[]> }>();
+const DECODE_DEADLINE_MS = 30_000;
 
 const withDeadline = (promise: Promise<AppCallSummary[]>): Promise<AppCallSummary[]> =>
   new Promise((resolve) => {
@@ -109,19 +110,27 @@ const decodeShared = (store: Store, transactions: AppCallTxnEntry[]): Promise<Ap
   // requests must never collide on such a key and share each other's verdict.
   if (ids.some((id) => id === "")) return withDeadline(decodeAll(store, transactions));
   const key = transactions.map((tx, i) => `${tx.index}:${ids[i]}`).join(",");
-  const existing = inflight.get(key);
-  if (existing) return existing;
-  const fresh = recent.get(key);
-  if (fresh && Date.now() - fresh.at < RECENT_TTL_MS) return fresh.promise;
-  const promise = withDeadline(decodeAll(store, transactions)).finally(() => {
-    inflight.delete(key);
-  });
-  inflight.set(key, promise);
-  recent.set(key, { at: Date.now(), promise });
-  for (const [k, v] of recent) {
-    if (Date.now() - v.at >= RECENT_TTL_MS) recent.delete(k);
+  const existing = shared.get(key);
+  if (existing && (existing.settledAt === null || Date.now() - existing.settledAt < RECENT_TTL_MS)) {
+    return existing.promise;
   }
-  return promise;
+  const expected = transactions.filter((tx) => tx.type === "appl").length;
+  const entry: SharedDecode = {
+    promise: withDeadline(decodeAll(store, transactions)),
+    settledAt: null,
+  };
+  void entry.promise.then((result) => {
+    const definitive =
+      result.length === expected &&
+      result.every((r) => r.decoded.trust !== "unknown" && r.decoded.trust !== "selector-only");
+    if (definitive) entry.settledAt = Date.now();
+    else if (shared.get(key) === entry) shared.delete(key);
+  });
+  shared.set(key, entry);
+  for (const [k, v] of shared) {
+    if (v.settledAt !== null && Date.now() - v.settledAt >= RECENT_TTL_MS) shared.delete(k);
+  }
+  return entry.promise;
 };
 
 // Decodes every app call in a request against the ARC-56 registry. Shared by
