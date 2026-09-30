@@ -26,6 +26,10 @@ const displayOwners = (summary: AppCallSummary) =>
 // expanding anything should still see this. For a multi-transaction group,
 // the compact per-app list below already surfaces the same warnings without
 // taking over the space above the full transaction table.
+const singleOwners = computed(() =>
+  summaries.value.length === 1 ? displayOwners(summaries.value[0]) : null,
+);
+
 const isSingleAppCall = computed(
   () => props.transactions.length === 1 && summaries.value.length === 1,
 );
@@ -50,9 +54,9 @@ const isSingleAppCall = computed(
         <strong>{{ t("arc56.method_signature") }}:</strong>
         {{ summaries[0].decoded.methodSignature }}
       </div>
-      <div v-if="displayOwners(summaries[0])" class="mb-1">
-        <strong v-if="displayOwners(summaries[0])!.length > 0">{{ t("arc56.published_by") }}:</strong>
-        <Arc56OwnerLinks :owners="displayOwners(summaries[0])" />
+      <div v-if="singleOwners" class="mb-1">
+        <strong v-if="singleOwners.length > 0">{{ t("arc56.published_by") }}:</strong>
+        <Arc56OwnerLinks :owners="singleOwners" />
       </div>
     </template>
     <template v-else>

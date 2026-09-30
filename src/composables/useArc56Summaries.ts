@@ -63,15 +63,26 @@ const decodeAll = async (
       const rawAppIndex = entry.txn.applicationCall?.appIndex;
       if (rawAppIndex === undefined) return undefined;
       const appIndex = BigInt(rawAppIndex);
-      const programs = (await store.dispatch("algod/getApplicationPrograms", {
-        appIndex,
-      })) as ApplicationPrograms | undefined;
+      // Creation (appIndex 0) has no on-chain program yet - the program being
+      // deployed is in the transaction itself. For an existing app, a failed
+      // algod lookup must surface as "could not verify" (entry dropped ->
+      // lookupFailed), not as an "unregistered" verdict.
+      let approvalProgram: Uint8Array | undefined;
+      if (appIndex === 0n) {
+        approvalProgram = entry.txn.applicationCall?.approvalProgram;
+      } else {
+        const programs = (await store.dispatch("algod/getApplicationPrograms", {
+          appIndex,
+        })) as ApplicationPrograms | undefined;
+        if (!programs) throw new Error(`Approval program of app ${appIndex} unavailable`);
+        approvalProgram = programs.approvalProgram;
+      }
 
       const result = await decodeAppCallWithOwners(
         entry.txn,
         appIndex,
         entry.index,
-        programs?.approvalProgram,
+        approvalProgram,
         groupTransactions,
       );
       if (!result) return undefined;
@@ -109,7 +120,10 @@ const decodeShared = (store: Store, transactions: AppCallTxnEntry[]): Promise<Ap
   // safeTxId() returns "" for an un-hashable transaction; two different
   // requests must never collide on such a key and share each other's verdict.
   if (ids.some((id) => id === "")) return withDeadline(decodeAll(store, transactions));
-  const key = transactions.map((tx, i) => `${tx.index}:${ids[i]}`).join(",");
+  // The decode also depends on algod state (an app's current program), so the
+  // node is part of the key - a node switch must not reuse another's verdict.
+  const node = String(store.state.config.algod ?? "");
+  const key = `${node}|${transactions.map((tx, i) => `${tx.index}:${ids[i]}`).join(",")}`;
   const existing = shared.get(key);
   if (existing && (existing.settledAt === null || Date.now() - existing.settledAt < RECENT_TTL_MS)) {
     return existing.promise;

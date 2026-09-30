@@ -551,7 +551,7 @@ export const decodeArc56AppCall = async (
   let primaryContract: Arc56Contract | null = null;
   if (info.approvalProgram && info.approvalProgram.length > 0) {
     approvalHash = await sha256Hex(info.approvalProgram);
-    primaryContract = await fetchArc56SpecByProgramHash(approvalHash, "approval");
+    primaryContract = await fetchArc56SpecByProgramHash(approvalHash, "approval", true);
   }
 
   const matchedMethod = primaryContract
