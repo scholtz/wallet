@@ -76,13 +76,13 @@ export interface Arc56AbiSignatureEntry {
 
 export type Arc56ProgramKind = "approval" | "clear";
 
+export type Arc56OwnerRiskLevel = "low" | "medium" | "high" | "very_high" | "banned";
+
 // approval-programs|clear-programs/<hash>.owners.json — every distinct GitHub
 // owner/repo whose indexed ARC-56 spec compiles to this program hash. A
 // union across every indexed spec sharing the hash (unlike the single
 // winning .arc56.json copy), so more than one entry can legitimately appear
 // for a shared library, a fork, or a vendored copy.
-export type Arc56OwnerRiskLevel = "low" | "medium" | "high" | "very_high" | "banned";
-
 // The reputation fields come from the registry's automated owner scoring
 // (docs/reputation-scoring.md in scholtz/ARC56Registry) and are optional so
 // older registry mirrors that predate it still parse - such an owner is

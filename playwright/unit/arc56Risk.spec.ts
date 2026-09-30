@@ -68,4 +68,29 @@ test.describe("evaluateArc56Risk", () => {
       reasons: ["not_abi"],
     });
   });
+
+  test("sensitive calls (create/update/delete) are never trusted", () => {
+    const good = { trust: "verified" as const, owners: [owner({ riskLevel: "low" })] };
+    expect(evaluateArc56Risk([{ ...good, sensitive: true }])).toEqual({
+      level: "warning",
+      reasons: ["sensitive_call"],
+    });
+    expect(evaluateArc56Risk([{ trust: "not-abi", owners: null, sensitive: true }]).level).toBe(
+      "warning",
+    );
+    expect(
+      evaluateArc56Risk([{ trust: "verified-other-method", owners: [], sensitive: true }]).level,
+    ).toBe("danger");
+  });
+
+  test("close-out/rekey elsewhere in the request downgrades a trusted verdict", () => {
+    const good = { trust: "verified" as const, owners: [owner({ riskLevel: "low" })] };
+    expect(evaluateArc56Risk([good], { riskyFields: true })).toEqual({
+      level: "warning",
+      reasons: ["risky_fields"],
+    });
+    expect(evaluateArc56Risk([{ trust: "not-abi", owners: null }], { riskyFields: true }).level).toBe(
+      "warning",
+    );
+  });
 });

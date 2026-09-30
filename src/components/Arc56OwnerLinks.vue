@@ -19,22 +19,37 @@ type BadgeSeverity = "success" | "info" | "warn" | "danger" | "secondary";
 
 // Registry-provided reputation (docs/reputation-scoring.md in
 // scholtz/ARC56Registry) - a heuristic prioritization signal, not a guarantee.
-const ownerRisk = (owner: Arc56Owner): { key: string; severity: BadgeSeverity } => {
+const ownerBadge = (owner: Arc56Owner): { label: string; severity: BadgeSeverity } => {
   const level = owner.banned ? "banned" : owner.riskLevel;
+  let key = "arc56.owner_risk_unrated";
+  let severity: BadgeSeverity = "secondary";
   switch (level) {
     case "low":
-      return { key: "arc56.owner_risk_low", severity: "success" };
+      key = "arc56.owner_risk_low";
+      severity = "success";
+      break;
     case "medium":
-      return { key: "arc56.owner_risk_medium", severity: "info" };
+      key = "arc56.owner_risk_medium";
+      severity = "info";
+      break;
     case "high":
-      return { key: "arc56.owner_risk_high", severity: "warn" };
+      key = "arc56.owner_risk_high";
+      severity = "warn";
+      break;
     case "very_high":
-      return { key: "arc56.owner_risk_very_high", severity: "danger" };
+      key = "arc56.owner_risk_very_high";
+      severity = "danger";
+      break;
     case "banned":
-      return { key: "arc56.owner_risk_banned", severity: "danger" };
-    default:
-      return { key: "arc56.owner_risk_unrated", severity: "secondary" };
+      key = "arc56.owner_risk_banned";
+      severity = "danger";
+      break;
   }
+  const label = t(key);
+  return {
+    label: owner.reputationScore !== undefined ? `${label} (${owner.reputationScore})` : label,
+    severity,
+  };
 };
 </script>
 
@@ -45,12 +60,8 @@ const ownerRisk = (owner: Arc56Owner): { key: string; severity: BadgeSeverity } 
         {{ owner.owner }}/{{ owner.repo }}
       </a>
       <Badge
-        :severity="ownerRisk(owner).severity"
-        :value="
-          owner.reputationScore !== undefined
-            ? `${t(ownerRisk(owner).key)} (${owner.reputationScore})`
-            : t(ownerRisk(owner).key)
-        "
+        :severity="ownerBadge(owner).severity"
+        :value="ownerBadge(owner).label"
         class="ml-1"
       />
       <span v-if="i < owners.length - 1">, </span>

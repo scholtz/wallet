@@ -23,6 +23,8 @@ export const REGISTRY_BASE_URLS: readonly string[] = [
   "https://raw.githubusercontent.com/scholtz/ARC56Registry/refs/heads/main",
 ];
 
+const FETCH_TIMEOUT_MS = 10_000;
+
 const jsonCache = new Map<string, Promise<unknown | null>>();
 
 const fetchJson = async <T>(relativePath: string): Promise<T | null> => {

@@ -15,6 +15,16 @@ export interface Arc56RiskInput {
   trust: RiskInputTrust;
   // null = not looked up (no approval hash); [] = looked up, no publisher.
   owners: Arc56Owner[] | null;
+  // App creation, UpdateApplication or DeleteApplication: never presented as
+  // reassuring, whatever the registry says about the (new or old) program.
+  sensitive?: boolean;
+}
+
+export interface Arc56RiskOptions {
+  // Any transaction in the request closes out an account/asset holding or
+  // rekeys the sender. A verdict scoped to the app calls must not read as
+  // "safe to sign" while such a transaction sits next to them.
+  riskyFields?: boolean;
 }
 
 // "none": no app calls, nothing to show. "not-abi": every app call is
@@ -28,7 +38,9 @@ export type Arc56RiskReason =
   | "no_publisher"
   | "low_reputation_publisher"
   | "unrated_publisher"
-  | "not_abi";
+  | "not_abi"
+  | "sensitive_call"
+  | "risky_fields";
 
 export interface Arc56RiskResult {
   level: Arc56RiskLevel;
@@ -59,7 +71,7 @@ const RANK: Record<Arc56RiskLevel, number> = {
   danger: 4,
 };
 
-const evaluateOne = (input: Arc56RiskInput): Arc56RiskResult => {
+const evaluateBase = (input: Arc56RiskInput): Arc56RiskResult => {
   switch (input.trust) {
     case "not-abi":
       return { level: "not-abi", reasons: ["not_abi"] };
@@ -85,11 +97,21 @@ const evaluateOne = (input: Arc56RiskInput): Arc56RiskResult => {
   }
 };
 
+const evaluateOne = (input: Arc56RiskInput): Arc56RiskResult => {
+  const base = evaluateBase(input);
+  if (!input.sensitive) return base;
+  const level = RANK[base.level] < RANK.warning ? "warning" : base.level;
+  return { level, reasons: [...base.reasons, "sensitive_call"] };
+};
+
 // Worst app call decides. "trusted" is only shown when every app call is
 // trusted: a group mixing trusted calls with unverifiable non-ABI ones
 // escalates to "warning" rather than showing a reassuring badge that the
 // non-ABI call has not earned.
-export const evaluateArc56Risk = (inputs: Arc56RiskInput[]): Arc56RiskResult => {
+export const evaluateArc56Risk = (
+  inputs: Arc56RiskInput[],
+  options: Arc56RiskOptions = {},
+): Arc56RiskResult => {
   if (inputs.length === 0) return { level: "none", reasons: [] };
   const results = inputs.map(evaluateOne);
   let level = results.reduce<Arc56RiskLevel>(
@@ -100,5 +122,9 @@ export const evaluateArc56Risk = (inputs: Arc56RiskInput[]): Arc56RiskResult => 
   const hasNotAbi = results.some((r) => r.level === "not-abi");
   const hasTrusted = results.some((r) => r.level === "trusted");
   if (hasNotAbi && hasTrusted && level === "trusted") level = "warning";
+  if (options.riskyFields) {
+    if (RANK[level] < RANK.warning) level = "warning";
+    reasons.push("risky_fields");
+  }
   return { level, reasons };
 };
