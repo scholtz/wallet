@@ -4,6 +4,7 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 
 ## 2026-09
 
+- A risk icon now appears next to "Sign all" on smart-contract requests, so you no longer need to open the transaction list: a green verified badge for a registry-verified contract from a low-risk GitHub publisher, an orange warning when the contract is not in the ARC-56 registry or its publisher is unknown or low-reputation, a red icon when the publisher is on the registry ban list or the called method is not part of the registered contract, and a warning for app creation/update/delete or a close-out/rekey in the same request, and an orange question mark when none of the calls follow the ABI format (so they cannot be verified). Publishers now also show their registry reputation rating.
 - WalletConnect/Liquid Auth requests that call a smart contract now show an application-call summary above the transaction table, so you can see whether the app's code is verified in the public ARC-56 registry - and, if so, which GitHub account(s) published it - without expanding every transaction to check. If no known publisher is found, you'll see a clear warning instead.
 - ARC-14 app authentication requests (e.g. "Authenticate to BiatecDEX") now also show which account is being asked to sign, so it's clear which one you're logging in with when the wallet holds several. Clicking Authenticate now signs and sends the result back to the dApp immediately, instead of requiring a separate "Send back" click.
 - Liquid Auth pairings as alternative to wallet connect.

@@ -537,7 +537,13 @@ export const decodeArc56AppCall = async (
   const appArgs = info.appArgs ?? [];
   const selectorBytes = appArgs[0];
   if (!selectorBytes || selectorBytes.length !== 4) {
-    return { trust: "not-abi", args: [] };
+    // Still hash the program so the caller can look up its publisher - a
+    // call that merely omits the ABI selector must not dodge the ban list.
+    const nonAbiHash =
+      info.approvalProgram && info.approvalProgram.length > 0
+        ? await sha256Hex(info.approvalProgram)
+        : undefined;
+    return { trust: "not-abi", approvalHash: nonAbiHash, args: [] };
   }
   const selectorHex = bytesToSelectorHex(selectorBytes);
 
@@ -545,7 +551,7 @@ export const decodeArc56AppCall = async (
   let primaryContract: Arc56Contract | null = null;
   if (info.approvalProgram && info.approvalProgram.length > 0) {
     approvalHash = await sha256Hex(info.approvalProgram);
-    primaryContract = await fetchArc56SpecByProgramHash(approvalHash, "approval");
+    primaryContract = await fetchArc56SpecByProgramHash(approvalHash, "approval", true);
   }
 
   const matchedMethod = primaryContract
@@ -611,6 +617,17 @@ export const decodeArc56AppCall = async (
     candidates,
   };
 };
+
+// The publisher list a UI should render. A non-ABI call with no known
+// publisher is the common, unremarkable case (an opt-in, a bare NoOp) and
+// must not show a "no publisher found" warning next to a call the registry
+// was never meant to describe; a non-empty list (e.g. a banned publisher) is
+// always shown.
+export const ownersForDisplay = (
+  decoded: DecodedArc56Call,
+  owners: Arc56Owner[] | null,
+): Arc56Owner[] | null =>
+  decoded.trust === "not-abi" && owners?.length === 0 ? null : owners;
 
 export interface DecodedAppCallWithOwners {
   decoded: DecodedArc56Call;

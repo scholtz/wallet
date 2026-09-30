@@ -7,6 +7,7 @@ import AlgorandAddress from "./AlgorandAddress.vue";
 import Arc56OwnerLinks from "./Arc56OwnerLinks.vue";
 import {
   decodeAppCallWithOwners,
+  ownersForDisplay,
   applyCandidateToArgs,
   arc56TrustSeverity,
   arc56TrustTitleKey,
@@ -18,7 +19,7 @@ import {
   type Arc56CandidateMatch,
 } from "@/scripts/arc56/decode";
 import type { Arc56Owner } from "@/scripts/arc56/types";
-import type { ApplicationPrograms } from "@/store/algod";
+import { resolveApprovalProgram } from "@/composables/useArc56Summaries";
 import { explorerAssetUrl, explorerApplicationUrl } from "@/scripts/explorer";
 
 // Deliberately narrow (just index + type, not the full algosdk.Transaction)
@@ -75,16 +76,14 @@ const runDecode = async () => {
       decoded.value = { trust: "not-abi", args: [] };
       return;
     }
-    const programs = (await store.dispatch("algod/getApplicationPrograms", {
-      appIndex: props.appIndex,
-    })) as ApplicationPrograms | undefined;
+    const approvalProgram = await resolveApprovalProgram(store, props.txn, props.appIndex);
     if (generation !== decodeGeneration) return;
 
     const result = await decodeAppCallWithOwners(
       props.txn,
       props.appIndex,
       props.currentIndex,
-      programs?.approvalProgram,
+      approvalProgram,
       props.groupTransactions ?? [],
     );
     if (generation !== decodeGeneration) return;
@@ -97,7 +96,7 @@ const runDecode = async () => {
     // the template's `v-if="owners"` guard depends on that distinction to
     // avoid showing a "no publisher found" warning for a call that was
     // never eligible for a hash lookup at all.
-    owners.value = result.owners;
+    owners.value = ownersForDisplay(result.decoded, result.owners);
   } catch (error) {
     console.error("Failed to decode ARC-56 app call", error);
     if (generation === decodeGeneration) {
