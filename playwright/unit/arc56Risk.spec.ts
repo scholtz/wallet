@@ -23,12 +23,13 @@ test.describe("evaluateArc56Risk", () => {
     ).toBe("not-abi");
   });
 
-  test("verified + low/medium-risk publisher -> trusted", () => {
-    for (const riskLevel of ["low", "medium"] as const) {
-      expect(
-        evaluateArc56Risk([{ trust: "verified", owners: [owner({ riskLevel })] }]).level,
-      ).toBe("trusted");
-    }
+  test("verified + low-risk publisher -> trusted; medium is not", () => {
+    expect(
+      evaluateArc56Risk([{ trust: "verified", owners: [owner({ riskLevel: "low" })] }]).level,
+    ).toBe("trusted");
+    expect(
+      evaluateArc56Risk([{ trust: "verified", owners: [owner({ riskLevel: "medium" })] }]).level,
+    ).toBe("warning");
   });
 
   test("verified but high-risk, unrated or missing publisher -> warning", () => {
@@ -92,5 +93,9 @@ test.describe("evaluateArc56Risk", () => {
     expect(evaluateArc56Risk([{ trust: "not-abi", owners: null }], { riskyFields: true }).level).toBe(
       "warning",
     );
+    expect(evaluateArc56Risk([], { riskyFields: true })).toEqual({
+      level: "warning",
+      reasons: ["risky_fields"],
+    });
   });
 });

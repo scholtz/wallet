@@ -27,7 +27,7 @@ export interface Arc56RiskOptions {
   riskyFields?: boolean;
 }
 
-// "none": no app calls, nothing to show. "not-abi": every app call is
+// "none": nothing to show (no app calls, no risky fields). "not-abi": every app call is
 // non-ABI, so the registry cannot say anything about it.
 export type Arc56RiskLevel = "none" | "not-abi" | "trusted" | "warning" | "danger";
 
@@ -56,8 +56,8 @@ type PublisherStanding = "banned" | "trusted" | "low_reputation" | "unrated" | "
 export const publisherStanding = (owners: Arc56Owner[] | null): PublisherStanding => {
   if (!owners || owners.length === 0) return "none";
   if (owners.some((o) => o.banned === true || o.riskLevel === "banned")) return "banned";
-  if (owners.some((o) => o.riskLevel === "low" || o.riskLevel === "medium")) return "trusted";
-  if (owners.some((o) => o.riskLevel === "high" || o.riskLevel === "very_high")) {
+  if (owners.some((o) => o.riskLevel === "low")) return "trusted";
+  if (owners.some((o) => o.riskLevel === "medium" || o.riskLevel === "high" || o.riskLevel === "very_high")) {
     return "low_reputation";
   }
   return "unrated";
@@ -112,7 +112,12 @@ export const evaluateArc56Risk = (
   inputs: Arc56RiskInput[],
   options: Arc56RiskOptions = {},
 ): Arc56RiskResult => {
-  if (inputs.length === 0) return { level: "none", reasons: [] };
+  if (inputs.length === 0) {
+    // No app calls, but a close-out/rekey is still worth a caution icon.
+    return options.riskyFields
+      ? { level: "warning", reasons: ["risky_fields"] }
+      : { level: "none", reasons: [] };
+  }
   const results = inputs.map(evaluateOne);
   let level = results.reduce<Arc56RiskLevel>(
     (worst, r) => (RANK[r.level] > RANK[worst] ? r.level : worst),

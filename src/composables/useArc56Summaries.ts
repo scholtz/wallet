@@ -81,7 +81,11 @@ const decodeAll = async (
 };
 
 const decodeShared = (store: Store, transactions: AppCallTxnEntry[]): Promise<AppCallSummary[]> => {
-  const key = transactions.map((tx) => `${tx.index}:${safeTxId(tx.txn)}`).join(",");
+  const ids = transactions.map((tx) => safeTxId(tx.txn));
+  // safeTxId() returns "" for an un-hashable transaction; two different
+  // requests must never collide on such a key and share each other's verdict.
+  if (ids.some((id) => id === "")) return decodeAll(store, transactions);
+  const key = transactions.map((tx, i) => `${tx.index}:${ids[i]}`).join(",");
   const existing = inflight.get(key);
   if (existing) return existing;
   const promise = decodeAll(store, transactions).finally(() => {

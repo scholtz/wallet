@@ -8,7 +8,7 @@ import { evaluateArc56Risk, type Arc56RiskInput, type Arc56RiskLevel } from "@/s
 
 // At-a-glance signing risk for a whole request, shown next to "Sign all" so
 // the user doesn't have to expand the transaction list to see the ARC-56
-// registry verdict. Renders nothing when the request has no app calls.
+// registry verdict. Renders nothing when the request has neither app calls nor risky fields.
 const props = defineProps<{
   transactions: AppCallTxnEntry[];
 }>();
@@ -21,6 +21,9 @@ const isSensitiveCall = (entry: AppCallTxnEntry | undefined): boolean => {
   if (!call) return false;
   return (
     BigInt(call.appIndex) === 0n ||
+    // ClearState runs the clear program, which the approval-program hash
+    // behind the verdict says nothing about.
+    call.onComplete === algosdk.OnApplicationComplete.ClearStateOC ||
     call.onComplete === algosdk.OnApplicationComplete.UpdateApplicationOC ||
     call.onComplete === algosdk.OnApplicationComplete.DeleteApplicationOC
   );
@@ -38,16 +41,18 @@ const hasRiskyFields = computed(() =>
 );
 
 const result = computed(() => {
-  const inputs: Arc56RiskInput[] = summaries.value.map((s) => ({
-    trust: s.decoded.trust,
-    owners: s.owners,
-    sensitive: isSensitiveCall(props.transactions.find((tx) => tx.index === s.index)),
-  }));
-  // An app call whose decode failed is dropped from `summaries`; it must
-  // count as unverified, never silently vanish into a "trusted" verdict.
-  const expected = props.transactions.filter((tx) => tx.type === "appl").length;
-  for (let i = inputs.length; i < expected; i++) {
-    inputs.push({ trust: "unknown", owners: null });
+  const inputs: Arc56RiskInput[] = [];
+  // Every app call gets an input: one whose decode failed is absent from
+  // `summaries` and must count as unverified, never silently vanish into a
+  // "trusted" verdict.
+  for (const tx of props.transactions) {
+    if (tx.type !== "appl") continue;
+    const summary = summaries.value.find((s) => s.index === tx.index);
+    inputs.push({
+      trust: summary?.decoded.trust ?? "unknown",
+      owners: summary?.owners ?? null,
+      sensitive: isSensitiveCall(tx),
+    });
   }
   return evaluateArc56Risk(inputs, { riskyFields: hasRiskyFields.value });
 });
@@ -77,12 +82,12 @@ const reasons = computed(() =>
     : result.value.reasons.map((r) => t(`arc56.reason_${r}`)),
 );
 
-const label = computed(() => [title.value, ...reasons.value].join(" "));
 
 // Click/tap/Enter opens the explanation - a hover-only tooltip is not
 // reachable on touch devices or by keyboard.
 const popover = ref<InstanceType<typeof Popover> | null>(null);
 const toggle = (event: Event) => popover.value?.toggle(event);
+const expanded = ref(false);
 </script>
 
 <template>
@@ -90,13 +95,15 @@ const toggle = (event: Event) => popover.value?.toggle(event);
     <button
       type="button"
       :class="['arc56-risk-icon', presentation.cls]"
-      :aria-label="label"
+      :aria-label="title"
+      aria-haspopup="dialog"
+      :aria-expanded="expanded"
       :data-risk="result.level"
       @click="toggle"
     >
       <i :class="presentation.icon"></i>
     </button>
-    <Popover ref="popover">
+    <Popover ref="popover" @show="expanded = true" @hide="expanded = false">
       <div class="arc56-risk-popover">
         <strong>{{ title }}</strong>
         <ul v-if="reasons.length > 0" class="m-0 mt-2 pl-3">

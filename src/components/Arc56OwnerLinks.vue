@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import type { Arc56Owner } from "@/scripts/arc56/types";
 
@@ -9,7 +10,7 @@ import type { Arc56Owner } from "@/scripts/arc56/types";
 // distinction - and the comma-separated link markup - can't drift between
 // Arc56CallDetails.vue's per-transaction view and
 // Arc56RequestSummary.vue's aggregate view.
-defineProps<{
+const props = defineProps<{
   owners: Arc56Owner[] | null;
 }>();
 
@@ -47,24 +48,24 @@ const ownerBadge = (owner: Arc56Owner): { label: string; severity: BadgeSeverity
   }
   const label = t(key);
   return {
-    label: owner.reputationScore !== undefined ? `${label} (${owner.reputationScore})` : label,
+    label: typeof owner.reputationScore === "number" ? `${label} (${owner.reputationScore})` : label,
     severity,
   };
 };
+
+const rows = computed(() =>
+  (props.owners ?? []).map((owner) => ({ owner, badge: ownerBadge(owner) })),
+);
 </script>
 
 <template>
   <span v-if="owners && owners.length > 0">
-    <span v-for="(owner, i) in owners" :key="owner.url">
+    <span v-for="({ owner, badge }, i) in rows" :key="owner.url">
       <a :href="owner.url" target="_blank" rel="noopener noreferrer">
         {{ owner.owner }}/{{ owner.repo }}
       </a>
-      <Badge
-        :severity="ownerBadge(owner).severity"
-        :value="ownerBadge(owner).label"
-        class="ml-1"
-      />
-      <span v-if="i < owners.length - 1">, </span>
+      <Badge :severity="badge.severity" :value="badge.label" class="ml-1" />
+      <span v-if="i < rows.length - 1">, </span>
     </span>
   </span>
   <Message v-else-if="owners" severity="warn" class="m-0">

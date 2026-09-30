@@ -31,15 +31,24 @@ const fetchJson = async <T>(relativePath: string): Promise<T | null> => {
   const cached = jsonCache.get(relativePath);
   if (cached) return cached as Promise<T | null>;
 
+  // Set when any mirror failed at the network level (offline, timeout) rather
+  // than answering 404 - the resulting "not found" is then transient and must
+  // not be cached, or a brief outage would show a false warning all session.
+  let transientFailure = false;
   const promise = (async (): Promise<T | null> => {
     for (const base of REGISTRY_BASE_URLS) {
       try {
         const response = await fetch(`${base}/${relativePath}`, {
           headers: { Accept: "application/json" },
+          // A hung mirror must fall through to the next one (and finally to
+          // "not found", i.e. a warning) instead of leaving the signing
+          // risk verdict pending forever.
+          signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
         });
         if (!response.ok) continue;
         return (await response.json()) as T;
       } catch {
+        transientFailure = true;
         // Try the next base URL — a missing self-hosted mirror or an
         // offline public fallback are both expected, not errors.
       }
@@ -48,6 +57,9 @@ const fetchJson = async <T>(relativePath: string): Promise<T | null> => {
   })();
 
   jsonCache.set(relativePath, promise);
+  void promise.then((value) => {
+    if (value === null && transientFailure) jsonCache.delete(relativePath);
+  });
   return promise;
 };
 
