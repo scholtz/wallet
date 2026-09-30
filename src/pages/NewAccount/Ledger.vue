@@ -84,8 +84,7 @@
 <script>
 import MainLayout from "../../layouts/Main.vue";
 import AlgorandAddress from "@/components/AlgorandAddress.vue";
-import Algorand from "@ledgerhq/hw-app-algorand";
-import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
+import { ledgerPath, withLedger } from "@/scripts/ledger";
 
 import { mapActions } from "vuex";
 export default {
@@ -118,22 +117,20 @@ export default {
       openError: "toast/openError",
       addLedgerAccount: "wallet/addLedgerAccount",
     }),
-    async loadAddress(slot, storeZero) {
+    async loadAddress(slot) {
       try {
         this.prolong();
-        const transport = await TransportWebUSB.request();
-        const algo = new Algorand(transport);
-        const getAddressOfSlot = `44'/283'/${slot}'/0/0`;
-        const address = await algo.getAddress(getAddressOfSlot);
-        if (storeZero) {
-          this.address0 = address.address;
-        } else {
+        // One device session for both lookups: a second requestDevice() after an await has no
+        // user gesture and fails with "No device selected".
+        await withLedger(async (algo) => {
+          const address = await algo.getAddress(ledgerPath(slot));
           this.address = address.address;
-
           if (slot == 0) {
             this.address0 = address.address;
+          } else if (!this.address0) {
+            this.address0 = (await algo.getAddress(ledgerPath(0))).address;
           }
-        }
+        });
       } catch (Error) {
         let err = Error.message ?? Error;
 
@@ -149,11 +146,7 @@ export default {
       try {
         this.lastError = "";
         this.loadedSlot = this.slot;
-        await this.loadAddress(this.slot, false);
-
-        if (this.address && !this.address0) {
-          await this.loadAddress(0, true);
-        }
+        await this.loadAddress(this.slot);
       } catch (Error) {
         console.error(Error);
         this.lastError = Error;

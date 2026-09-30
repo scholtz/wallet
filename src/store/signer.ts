@@ -1,6 +1,5 @@
 import algosdk, { Transaction, type EncodedMultisig } from "algosdk";
-import Algorand from "@ledgerhq/hw-app-algorand";
-import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
+import { ledgerPath, withLedger } from "@/scripts/ledger";
 import WalletConnect from "@walletconnect/client";
 import UniversalProvider from "universal-provider-with-algorand";
 
@@ -355,12 +354,12 @@ const actions: ActionTree<SignerState, RootState> = {
     payload: SignByPayload,
   ): Promise<Uint8Array<ArrayBufferLike>> {
     const fromAccount = ensureAccount(rootState, payload.from);
-    const transport = await TransportWebUSB.request();
-    const algo = new Algorand(transport);
     const slot = fromAccount.slot ?? 0;
-    const { signature } = await algo.sign(
-      `44'/283'/${slot}'/0/0`,
-      Buffer.from(payload.tx.toByte()).toString("hex"),
+    const { signature } = await withLedger((algo) =>
+      algo.sign(
+        ledgerPath(slot),
+        Buffer.from(payload.tx.toByte()).toString("hex"),
+      ),
     );
     if (!signature) {
       throw new Error("Ledger signature missing");
