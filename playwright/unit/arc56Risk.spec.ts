@@ -98,4 +98,12 @@ test.describe("evaluateArc56Risk", () => {
       reasons: ["risky_fields"],
     });
   });
+
+  test("non-ABI call to a banned publisher's program is danger, not just unverifiable", () => {
+    expect(
+      evaluateArc56Risk([
+        { trust: "not-abi", owners: [owner({ banned: true, riskLevel: "banned" })] },
+      ]).level,
+    ).toBe("danger");
+  });
 });

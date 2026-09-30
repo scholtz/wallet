@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import algosdk from "algosdk";
 import Popover from "primevue/popover";
@@ -29,16 +29,25 @@ const isSensitiveCall = (entry: AppCallTxnEntry | undefined): boolean => {
   );
 };
 
-// Close-outs and rekeys move funds/control regardless of which contract is
-// being called.
-const hasRiskyFields = computed(() =>
-  props.transactions.some(
-    (tx) =>
-      !!tx.txn.rekeyTo ||
-      !!tx.txn.payment?.closeRemainderTo ||
-      !!tx.txn.assetTransfer?.closeRemainderTo,
-  ),
-);
+// Close-outs, rekeys, clawbacks, freezes and key registrations move funds or
+// control regardless of which contract is being called.
+const isZeroAddress = (addr: algosdk.Address | undefined): boolean =>
+  !addr || addr.toString() === algosdk.ALGORAND_ZERO_ADDRESS_STRING;
+
+const isRiskyTxn = (txn: algosdk.Transaction): boolean => {
+  const rekeysAway =
+    !isZeroAddress(txn.rekeyTo) && txn.rekeyTo?.toString() !== txn.sender.toString();
+  return (
+    rekeysAway ||
+    !isZeroAddress(txn.assetTransfer?.assetSender) ||
+    !isZeroAddress(txn.payment?.closeRemainderTo) ||
+    !isZeroAddress(txn.assetTransfer?.closeRemainderTo) ||
+    txn.type === algosdk.TransactionType.afrz ||
+    txn.type === algosdk.TransactionType.keyreg
+  );
+};
+
+const hasRiskyFields = computed(() => props.transactions.some((tx) => isRiskyTxn(tx.txn)));
 
 const result = computed(() => {
   const inputs: Arc56RiskInput[] = [];
@@ -88,6 +97,15 @@ const reasons = computed(() =>
 const popover = ref<InstanceType<typeof Popover> | null>(null);
 const toggle = (event: Event) => popover.value?.toggle(event);
 const expanded = ref(false);
+
+// The button (and its popover) unmount while a new verdict is loading; close
+// first so `expanded` can't stay true with no popover open.
+watch(loading, (isLoading) => {
+  if (isLoading) {
+    popover.value?.hide();
+    expanded.value = false;
+  }
+});
 </script>
 
 <template>

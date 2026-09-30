@@ -80,18 +80,47 @@ const decodeAll = async (
   });
 };
 
+// Overall bound on one verdict: the decode chains several dependent registry
+// calls (each with its own per-fetch timeout), so without this the spinner
+// could sit next to "Sign all" for minutes. On expiry the request is treated
+// as unverified (no summaries -> fail-closed warning in Arc56RiskIcon).
+const DECODE_DEADLINE_MS = 20_000;
+
+// Results are reused for a few seconds so the collapsed-row risk icon and the
+// summary card mounted moments later (row expanded) don't repeat the whole
+// decode. Deliberately short: an app's program can change mid-session.
+const RECENT_TTL_MS = 15_000;
+const recent = new Map<string, { at: number; promise: Promise<AppCallSummary[]> }>();
+
+const withDeadline = (promise: Promise<AppCallSummary[]>): Promise<AppCallSummary[]> =>
+  new Promise((resolve) => {
+    const timer = setTimeout(() => resolve([]), DECODE_DEADLINE_MS);
+    promise
+      .then(resolve, (error) => {
+        console.error("Failed to summarize ARC-56 app calls", error);
+        resolve([]);
+      })
+      .finally(() => clearTimeout(timer));
+  });
+
 const decodeShared = (store: Store, transactions: AppCallTxnEntry[]): Promise<AppCallSummary[]> => {
   const ids = transactions.map((tx) => safeTxId(tx.txn));
   // safeTxId() returns "" for an un-hashable transaction; two different
   // requests must never collide on such a key and share each other's verdict.
-  if (ids.some((id) => id === "")) return decodeAll(store, transactions);
+  if (ids.some((id) => id === "")) return withDeadline(decodeAll(store, transactions));
   const key = transactions.map((tx, i) => `${tx.index}:${ids[i]}`).join(",");
   const existing = inflight.get(key);
   if (existing) return existing;
-  const promise = decodeAll(store, transactions).finally(() => {
+  const fresh = recent.get(key);
+  if (fresh && Date.now() - fresh.at < RECENT_TTL_MS) return fresh.promise;
+  const promise = withDeadline(decodeAll(store, transactions)).finally(() => {
     inflight.delete(key);
   });
   inflight.set(key, promise);
+  recent.set(key, { at: Date.now(), promise });
+  for (const [k, v] of recent) {
+    if (Date.now() - v.at >= RECENT_TTL_MS) recent.delete(k);
+  }
   return promise;
 };
 
@@ -118,6 +147,9 @@ export const useArc56Summaries = (
       return;
     }
     loading.value = true;
+    // Never let a consumer read the previous request's verdict while this
+    // one is pending or if it fails.
+    summaries.value = [];
     try {
       const result = await decodeShared(store, transactions);
       if (generation !== decodeGeneration) return;

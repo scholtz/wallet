@@ -74,6 +74,11 @@ const RANK: Record<Arc56RiskLevel, number> = {
 const evaluateBase = (input: Arc56RiskInput): Arc56RiskResult => {
   switch (input.trust) {
     case "not-abi":
+      // A non-ABI call still executes some registered program: a banned
+      // publisher must not be bypassed just by omitting the ABI selector.
+      if (publisherStanding(input.owners) === "banned") {
+        return { level: "danger", reasons: ["banned_publisher", "not_abi"] };
+      }
       return { level: "not-abi", reasons: ["not_abi"] };
     case "verified-other-method":
       return { level: "danger", reasons: ["method_mismatch"] };

@@ -537,7 +537,13 @@ export const decodeArc56AppCall = async (
   const appArgs = info.appArgs ?? [];
   const selectorBytes = appArgs[0];
   if (!selectorBytes || selectorBytes.length !== 4) {
-    return { trust: "not-abi", args: [] };
+    // Still hash the program so the caller can look up its publisher - a
+    // call that merely omits the ABI selector must not dodge the ban list.
+    const nonAbiHash =
+      info.approvalProgram && info.approvalProgram.length > 0
+        ? await sha256Hex(info.approvalProgram)
+        : undefined;
+    return { trust: "not-abi", approvalHash: nonAbiHash, args: [] };
   }
   const selectorHex = bytesToSelectorHex(selectorBytes);
 

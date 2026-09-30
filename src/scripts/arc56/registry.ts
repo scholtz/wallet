@@ -23,7 +23,7 @@ export const REGISTRY_BASE_URLS: readonly string[] = [
   "https://raw.githubusercontent.com/scholtz/ARC56Registry/refs/heads/main",
 ];
 
-const FETCH_TIMEOUT_MS = 10_000;
+const FETCH_TIMEOUT_MS = 5_000;
 
 const jsonCache = new Map<string, Promise<unknown | null>>();
 
@@ -37,20 +37,28 @@ const fetchJson = async <T>(relativePath: string): Promise<T | null> => {
   let transientFailure = false;
   const promise = (async (): Promise<T | null> => {
     for (const base of REGISTRY_BASE_URLS) {
+      let response: Response;
       try {
-        const response = await fetch(`${base}/${relativePath}`, {
+        response = await fetch(`${base}/${relativePath}`, {
           headers: { Accept: "application/json" },
           // A hung mirror must fall through to the next one (and finally to
           // "not found", i.e. a warning) instead of leaving the signing
           // risk verdict pending forever.
           signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
         });
-        if (!response.ok) continue;
+      } catch {
+        // Offline / timeout: transient, so a resulting "not found" must not
+        // be cached. A missing self-hosted mirror or an offline public
+        // fallback are both expected, not errors - try the next base URL.
+        transientFailure = true;
+        continue;
+      }
+      if (!response.ok) continue;
+      try {
         return (await response.json()) as T;
       } catch {
-        transientFailure = true;
-        // Try the next base URL — a missing self-hosted mirror or an
-        // offline public fallback are both expected, not errors.
+        // Not JSON (e.g. an SPA fallback answering 200 for a path no mirror
+        // serves): a permanently absent mirror, not a transient failure.
       }
     }
     return null;
