@@ -131,7 +131,8 @@
       "submit_withdraw": "Vybrať",
       "success": "Spracované v tx: {txid}",
       "rate_error": "Nepodarilo sa načítať kurz poolu Folks Finance",
-      "not_confirmed": "Transakcia nebola potvrdená. Môže byť stále čakajúca, alebo mohla byť zamietnutá. Pred ďalším pokusom skontrolujte svoj účet."
+      "not_confirmed": "Transakcia nebola potvrdená. Môže byť stále čakajúca, alebo mohla byť zamietnutá. Pred ďalším pokusom skontrolujte svoj účet.",
+      "insufficient_algo": "Nedostatok ALGO: opt-in na {asset} vyhradí ďalších 0,1 ALGO minimálneho zostatku plus sieťové poplatky."
     }
   },
   "govtoolsmenu": {

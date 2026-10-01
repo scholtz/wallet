@@ -131,7 +131,8 @@
       "submit_withdraw": "Kivét",
       "success": "Feldolgozva a tx-ben: {txid}",
       "rate_error": "Nem sikerült betölteni a Folks Finance pool árfolyamát",
-      "not_confirmed": "A tranzakciót nem erősítették meg. Lehet, hogy még függőben van, vagy elutasították. Újrapróbálkozás előtt ellenőrizze a számláját."
+      "not_confirmed": "A tranzakciót nem erősítették meg. Lehet, hogy még függőben van, vagy elutasították. Újrapróbálkozás előtt ellenőrizze a számláját.",
+      "insufficient_algo": "Nincs elég ALGO: a(z) {asset} opt-in további 0,1 ALGO-t foglal le a minimális egyenlegből, plusz a hálózati díjakat."
     }
   },
   "govtoolsmenu": {

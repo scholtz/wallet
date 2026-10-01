@@ -59,6 +59,9 @@
       <Message severity="info" v-if="needsOptIn">
         {{ t("swap.folks_lend.opt_in_note", { asset: toUnit }) }}
       </Message>
+      <Message severity="error" v-if="lacksAlgoForOptIn">
+        {{ t("swap.folks_lend.insufficient_algo", { asset: toUnit }) }}
+      </Message>
       <Message severity="error" v-if="insufficient">
         {{ t("swap.folks_lend.insufficient", { asset: fromUnit }) }}
       </Message>
@@ -152,6 +155,17 @@ const optInAssetId = computed<number | undefined>(() => {
     : undefined;
 });
 const needsOptIn = computed(() => optInAssetId.value !== undefined);
+
+// Conservative estimate (same basis as the Swap page: 0.1 ALGO base + 0.1 per
+// held asset; apps only raise the real minimum, so this never blocks wrongly):
+// an opt-in must leave room for one more 0.1 ALGO reservation plus the fees.
+const OPT_IN_FEES_MICROALGO = 10_000n;
+const lacksAlgoForOptIn = computed(() => {
+  if (!needsOptIn.value || accountData.value === undefined) return false;
+  const minBalance = 100_000n * BigInt(holdings.value.length + 1);
+  const needed = minBalance + 100_000n + OPT_IN_FEES_MICROALGO;
+  return BigInt(accountData.value.amount ?? 0) < needed;
+});
 const fromUnit = computed(() =>
   direction.value === "deposit" ? "USDC" : "fUSDC",
 );
@@ -196,7 +210,8 @@ const canSubmit = computed(
     !!pool.value &&
     amountBase.value > 0n &&
     receivedBase.value > 0n &&
-    !insufficient.value,
+    !insufficient.value &&
+    !lacksAlgoForOptIn.value,
 );
 
 const loadRate = async () => {
@@ -262,7 +277,11 @@ const submit = async () => {
       // user to check before retrying.
       store.dispatch("toast/openError", t("swap.folks_lend.not_confirmed"));
     }
-    await reloadAccount();
+    // The conversion is already confirmed - a failed refresh must not be
+    // reported as a failed conversion.
+    await reloadAccount().catch((e: unknown) =>
+      console.error("Unable to refresh the account after the conversion", e),
+    );
   } catch (e) {
     store.dispatch("toast/openError", (e as Error).message);
   } finally {

@@ -131,7 +131,8 @@
       "submit_withdraw": "Çek",
       "success": "İşlendi, tx: {txid}",
       "rate_error": "Folks Finance havuz oranı yüklenemedi",
-      "not_confirmed": "İşlem onaylanmadı. Hâlâ beklemede olabilir veya reddedilmiş olabilir. Tekrar denemeden önce hesabınızı kontrol edin."
+      "not_confirmed": "İşlem onaylanmadı. Hâlâ beklemede olabilir veya reddedilmiş olabilir. Tekrar denemeden önce hesabınızı kontrol edin.",
+      "insufficient_algo": "Yetersiz ALGO: {asset} için opt-in, minimum bakiyeden 0,1 ALGO daha ayırır ve ağ ücretleri de gerekir."
     }
   },
   "govtoolsmenu": {

@@ -28,6 +28,9 @@ test("swap page offers the Folks USDC <-> fUSDC card and blocks an unfunded depo
     card.getByText("opt in to fUSDC in the same transaction group"),
   ).toBeVisible();
 
+  // ...and so is the missing ALGO for the 0.1 ALGO opt-in reservation.
+  await expect(card.getByText("Not enough ALGO")).toBeVisible();
+
   // Negative case: amount above the (zero) USDC balance.
   await card.locator("#folks-lend-amount").fill("5");
   await card.locator("#folks-lend-amount").press("Tab");

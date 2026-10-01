@@ -131,7 +131,8 @@
       "submit_withdraw": "Opnemen",
       "success": "Verwerkt in tx: {txid}",
       "rate_error": "Kan het tarief van de Folks Finance-pool niet laden",
-      "not_confirmed": "De transactie is niet bevestigd. Mogelijk is deze nog in behandeling of is deze afgewezen. Controleer uw account voordat u het opnieuw probeert."
+      "not_confirmed": "De transactie is niet bevestigd. Mogelijk is deze nog in behandeling of is deze afgewezen. Controleer uw account voordat u het opnieuw probeert.",
+      "insufficient_algo": "Onvoldoende ALGO: opt-in voor {asset} reserveert nog eens 0,1 ALGO van het minimumsaldo, plus netwerkkosten."
     }
   },
   "govtoolsmenu": {

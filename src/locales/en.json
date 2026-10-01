@@ -131,7 +131,8 @@
       "submit_withdraw": "Withdraw",
       "success": "Processed in tx: {txid}",
       "rate_error": "Unable to load the Folks Finance pool rate",
-      "not_confirmed": "The transaction was not confirmed. It may still be pending or it may have been rejected. Check your account before trying again."
+      "not_confirmed": "The transaction was not confirmed. It may still be pending or it may have been rejected. Check your account before trying again.",
+      "insufficient_algo": "Not enough ALGO: opting in to {asset} reserves another 0.1 ALGO of the minimum balance, plus network fees."
     }
   },
   "govtoolsmenu": {
