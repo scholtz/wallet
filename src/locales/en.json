@@ -283,7 +283,8 @@
     "amount": "Amount",
     "search_by_amount": "Search by amount",
     "usd_value": "USD Value",
-    "actions": "Actions"
+    "actions": "Actions",
+    "only_with_balance": "Show only assets with a balance"
   },
   "assets_overview": {
     "title": "Assets Overview",

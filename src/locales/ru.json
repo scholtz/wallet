@@ -283,7 +283,8 @@
     "amount": "Сумма",
     "search_by_amount": "Поиск по сумме",
     "usd_value": "Стоимость в USD",
-    "actions": "Действия"
+    "actions": "Действия",
+    "only_with_balance": "Показывать только активы с балансом"
   },
   "assets_overview": {
     "title": "Обзор активов",

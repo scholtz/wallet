@@ -218,7 +218,7 @@
                         inputId="asset"
                         v-model="asset"
                         filter
-                        :options="assets"
+                        :options="visibleAssets"
                         optionLabel="label"
                         optionValue="assetId"
                         :placeholder="t('pay.asset')"
@@ -226,6 +226,16 @@
                         inputClass="w-full"
                       >
                       </Select>
+                      <div class="flex align-items-center gap-2 mt-2">
+                        <Checkbox
+                          v-model="onlyWithBalance"
+                          inputId="pay-only-with-balance"
+                          binary
+                        />
+                        <label for="pay-only-with-balance">
+                          {{ t("acc_overview_assets.only_with_balance") }}
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -372,6 +382,7 @@ import {
   getCurrentInstance,
   onMounted,
   reactive,
+  ref,
   toRefs,
   watch,
 } from "vue";
@@ -395,6 +406,7 @@ import { useStore } from "@/store";
 import { Buffer } from "buffer";
 import type { WalletAccount, IAccountData } from "@/store/wallet";
 import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
+import { filterAssetsWithBalance } from "@/scripts/assets/filterAssetsWithBalance";
 import { TransactionComposer } from "@algorandfoundation/algokit-utils/types/composer";
 
 type AccountNetworkData = IAccountData;
@@ -536,7 +548,6 @@ const {
   page,
   subpage,
   rawSignedTxnInput,
-  assets,
   asset,
   assetObj,
   scan,
@@ -572,6 +583,11 @@ const envName = computed(() => store.state.config.env);
 const walletAccounts = computed<WalletAccount[]>(
   () => store.state.wallet.privateAccounts || [],
 );
+const onlyWithBalance = ref(true);
+const visibleAssets = computed(() =>
+  filterAssetsWithBalance(state.assets, onlyWithBalance.value, state.asset),
+);
+
 const assetData = computed<ExtendedStoredAsset | undefined>(() => {
   const assetId = state.asset;
   return state.assets.find(

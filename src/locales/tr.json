@@ -283,7 +283,8 @@
     "amount": "Tutar",
     "search_by_amount": "Tutara göre ara",
     "usd_value": "USD Değeri",
-    "actions": "Eylemler"
+    "actions": "Eylemler",
+    "only_with_balance": "Yalnızca bakiyesi olan varlıkları göster"
   },
   "assets_overview": {
     "title": "Varlıklara Genel Bakış",

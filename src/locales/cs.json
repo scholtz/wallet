@@ -283,7 +283,8 @@
     "amount": "Částka",
     "search_by_amount": "Vyhledat podle částky",
     "usd_value": "Hodnota v USD",
-    "actions": "Akce"
+    "actions": "Akce",
+    "only_with_balance": "Zobrazit pouze aktiva se zůstatkem"
   },
   "assets_overview": {
     "title": "Přehled aktiv",

@@ -2,6 +2,10 @@
 
 This document tracks the evolution of AWallet, an open-source Algorand wallet, since its first commit in May 2021. It is a running history of the features that have shipped over time, written for people who use the wallet rather than people who build it.
 
+## 2026-10
+
+- Zero-balance assets are now hidden by default in the account asset list, and the asset dropdowns when making a payment or scheduling one only offer assets you actually hold. A "Show only assets with a balance" checkbox lets you bring the empty ones back.
+
 ## 2026-09
 
 - The FAQ page has been expanded and revised: new sections on the Algorand and Voi ecosystem (what Voi is, the ARC-56 registry and the risk icon, ARC-200 tokens, governance) plus new answers on opt-in, minimum balance, failed transactions, exchange memos, scams and recovery. Several existing answers were corrected and clarified. You can also switch the language with the flags at the top of the FAQ, without unlocking the wallet.

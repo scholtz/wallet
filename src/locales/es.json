@@ -283,7 +283,8 @@
     "amount": "Amount",
     "search_by_amount": "Search by amount",
     "usd_value": "Valor en USD",
-    "actions": "Actions"
+    "actions": "Actions",
+    "only_with_balance": "Mostrar solo activos con saldo"
   },
   "assets_overview": {
     "title": "Resumen de activos",
