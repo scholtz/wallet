@@ -284,7 +284,12 @@
     "search_by_amount": "Tutara göre ara",
     "usd_value": "USD Değeri",
     "actions": "Eylemler",
-    "only_with_balance": "Yalnızca bakiyesi olan varlıkları göster"
+    "only_with_balance": "Yalnızca bakiyesi olan varlıkları göster",
+    "opt_out": "Varlıktan çık",
+    "opt_out_confirm": "Şu varlıktan çıkmak istiyor musunuz:",
+    "opt_out_balance_warning": "Çıkarsanız, kalan {amount} bakiyeniz varlığın yaratıcısına gönderilir ve onu kaybedersiniz.",
+    "opt_out_confirm_button": "Çık",
+    "opt_out_success": "Varlıktan çıkıldı"
   },
   "assets_overview": {
     "title": "Varlıklara Genel Bakış",

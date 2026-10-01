@@ -284,7 +284,12 @@
     "search_by_amount": "Keresés összeg szerint",
     "usd_value": "USD érték",
     "actions": "Műveletek",
-    "only_with_balance": "Csak az egyenleggel rendelkező eszközök megjelenítése"
+    "only_with_balance": "Csak az egyenleggel rendelkező eszközök megjelenítése",
+    "opt_out": "Leiratkozás az eszközről",
+    "opt_out_confirm": "Le szeretne iratkozni az eszközről:",
+    "opt_out_balance_warning": "Ha leiratkozik, a megmaradt {amount} egyenlege az eszköz létrehozójának lesz elküldve, és elveszíti azt.",
+    "opt_out_confirm_button": "Leiratkozás",
+    "opt_out_success": "Sikeresen leiratkozott az eszközről"
   },
   "assets_overview": {
     "title": "Eszközök áttekintése",
