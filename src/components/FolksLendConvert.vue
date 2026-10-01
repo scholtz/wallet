@@ -210,9 +210,9 @@ const submit = async () => {
   const from = sender.value;
   try {
     await store.dispatch("wallet/prolong");
-    // Re-read the rate right before building so the shown estimate is fresh.
-    await loadRate();
-    if (!pool.value) return;
+    // The transactions carry no client-side rate (a deposit sends the USDC
+    // amount, a withdrawal asks the pool for a variable payout), so the
+    // displayed estimate is informational and needs no refetch here.
     const suggestedParams: algosdk.SuggestedParams = await store.dispatch(
       "algod/getTransactionParams",
     );
