@@ -115,7 +115,23 @@
     "simulation_received": "A csomópont szerint ennyit kapnál",
     "simulation_failed": "A szimuláció sikertelen",
     "simulation_unavailable": "Még nincs elég tranzakciós adat ennek az útvonalnak a szimulálásához.",
-    "simulation_disclaimer": "A beállított algod csomóponton keresztül, a pontosan előkészített tranzakciók próbafuttatásával számolva az aktuális könyvelési állapot alapján - nem mozog pénz, és aláírás sem szükséges. Ezt az előnézetet az adott csomópont jelenti, és nincs függetlenül ellenőrizve; egy kompromittált vagy rosszindulatú csomópont félrevezető előnézetet mutathat."
+    "simulation_disclaimer": "A beállított algod csomóponton keresztül, a pontosan előkészített tranzakciók próbafuttatásával számolva az aktuális könyvelési állapot alapján - nem mozog pénz, és aláírás sem szükséges. Ezt az előnézetet az adott csomópont jelenti, és nincs függetlenül ellenőrizve; egy kompromittált vagy rosszindulatú csomópont félrevezető előnézetet mutathat.",
+    "folks_lend": {
+      "title": "Folks Finance hitelezés (USDC ⇄ fUSDC)",
+      "description": "Helyezzen el USDC-t a Folks Finance hitelezési poolban, és kapjon fUSDC-t, amely egy kamatozó betéti token, vagy váltsa vissza a fUSDC-t USDC-re. Csak Mainneten érhető el.",
+      "mode_deposit": "USDC betét → fUSDC",
+      "mode_withdraw": "fUSDC kivét → USDC",
+      "amount": "Összeg",
+      "receive": "Kapni fog (becslés)",
+      "rate": "Árfolyam",
+      "apy": "APY",
+      "opt_in_note": "A fiókja ugyanabban a tranzakciócsoportban feliratkozik (opt-in) az fUSDC-re.",
+      "insufficient": "Nincs elég {asset} egyenleg",
+      "submit_deposit": "Betét",
+      "submit_withdraw": "Kivét",
+      "success": "Feldolgozva a tx-ben: {txid}",
+      "rate_error": "Nem sikerült betölteni a Folks Finance pool árfolyamát"
+    }
   },
   "govtoolsmenu": {
     "gen": "Számlák generálása",

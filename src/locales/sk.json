@@ -115,7 +115,23 @@
     "simulation_received": "Uzol hlási, že dostanete",
     "simulation_failed": "Simulácia zlyhala",
     "simulation_unavailable": "Na simuláciu tejto trasy zatiaľ nie je dostatok transakčných údajov.",
-    "simulation_disclaimer": "Vypočítané skúšobným spustením presne pripravených transakcií voči aktuálnemu stavu ledgera prostredníctvom vášho nakonfigurovaného algod uzla - žiadne prostriedky sa nepresúvajú a podpis nie je potrebný. Tento náhľad hlási daný uzol a nie je nezávisle overený; kompromitovaný alebo škodlivý uzol môže zobraziť zavádzajúci náhľad."
+    "simulation_disclaimer": "Vypočítané skúšobným spustením presne pripravených transakcií voči aktuálnemu stavu ledgera prostredníctvom vášho nakonfigurovaného algod uzla - žiadne prostriedky sa nepresúvajú a podpis nie je potrebný. Tento náhľad hlási daný uzol a nie je nezávisle overený; kompromitovaný alebo škodlivý uzol môže zobraziť zavádzajúci náhľad.",
+    "folks_lend": {
+      "title": "Požičiavanie Folks Finance (USDC ⇄ fUSDC)",
+      "description": "Vložte USDC do požičiavacieho poolu Folks Finance a získajte fUSDC, vkladový token, ktorý zhodnocuje úrokom, alebo fUSDC vyberte späť na USDC. Dostupné iba na Mainnete.",
+      "mode_deposit": "Vložiť USDC → fUSDC",
+      "mode_withdraw": "Vybrať fUSDC → USDC",
+      "amount": "Suma",
+      "receive": "Dostanete (odhad)",
+      "rate": "Výmenný kurz",
+      "apy": "APY",
+      "opt_in_note": "Váš účet sa v tej istej skupine transakcií prihlási na odber fUSDC (opt-in).",
+      "insufficient": "Nedostatočný zostatok {asset}",
+      "submit_deposit": "Vložiť",
+      "submit_withdraw": "Vybrať",
+      "success": "Spracované v tx: {txid}",
+      "rate_error": "Nepodarilo sa načítať kurz poolu Folks Finance"
+    }
   },
   "govtoolsmenu": {
     "gen": "Generate accounts",

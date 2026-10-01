@@ -115,7 +115,23 @@
     "simulation_received": "Die node rapporteer dat jy sal ontvang",
     "simulation_failed": "Simulasie het misluk",
     "simulation_unavailable": "Nog nie genoeg transaksiedata om hierdie roete te simuleer nie.",
-    "simulation_disclaimer": "Bereken deur die presiese voorbereide transaksies proef te loop teen die huidige grootboekstaat via jou gekonfigureerde algod-node - geen fondse word geskuif nie en geen handtekening word vereis nie. Hierdie voorskou word deur daardie node gerapporteer en word nie onafhanklik geverifieer nie; 'n gekompromitteerde of kwaadwillige node kan 'n misleidende voorskou wys."
+    "simulation_disclaimer": "Bereken deur die presiese voorbereide transaksies proef te loop teen die huidige grootboekstaat via jou gekonfigureerde algod-node - geen fondse word geskuif nie en geen handtekening word vereis nie. Hierdie voorskou word deur daardie node gerapporteer en word nie onafhanklik geverifieer nie; 'n gekompromitteerde of kwaadwillige node kan 'n misleidende voorskou wys.",
+    "folks_lend": {
+      "title": "Folks Finance uitleen (USDC ⇄ fUSDC)",
+      "description": "Deponeer USDC in die Folks Finance uitleenpoel om fUSDC te ontvang, 'n depositotoken wat rente verdien, of onttrek fUSDC terug na USDC. Slegs op Mainnet beskikbaar.",
+      "mode_deposit": "Deponeer USDC → fUSDC",
+      "mode_withdraw": "Onttrek fUSDC → USDC",
+      "amount": "Bedrag",
+      "receive": "Jy ontvang (geskat)",
+      "rate": "Wisselkoers",
+      "apy": "APY",
+      "opt_in_note": "Jou rekening sal in dieselfde transaksiegroep by fUSDC inteken (opt-in).",
+      "insufficient": "Onvoldoende {asset}-saldo",
+      "submit_deposit": "Deponeer",
+      "submit_withdraw": "Onttrek",
+      "success": "Verwerk in tx: {txid}",
+      "rate_error": "Kon nie die Folks Finance-poelkoers laai nie"
+    }
   },
   "govtoolsmenu": {
     "gen": "Genereer rekeninge",

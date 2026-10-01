@@ -115,7 +115,23 @@
     "simulation_received": "Düğüm, alacağınızı bildiriyor",
     "simulation_failed": "Simülasyon başarısız oldu",
     "simulation_unavailable": "Bu rotayı simüle etmek için henüz yeterli işlem verisi yok.",
-    "simulation_disclaimer": "Yapılandırılmış algod düğümünüz üzerinden, tam olarak hazırlanan işlemlerin mevcut defter durumuna karşı deneme çalıştırmasıyla hesaplanmıştır - herhangi bir fon hareket etmez ve imza gerekmez. Bu önizleme söz konusu düğüm tarafından bildirilir ve bağımsız olarak doğrulanmaz; ele geçirilmiş veya kötü niyetli bir düğüm yanıltıcı bir önizleme gösterebilir."
+    "simulation_disclaimer": "Yapılandırılmış algod düğümünüz üzerinden, tam olarak hazırlanan işlemlerin mevcut defter durumuna karşı deneme çalıştırmasıyla hesaplanmıştır - herhangi bir fon hareket etmez ve imza gerekmez. Bu önizleme söz konusu düğüm tarafından bildirilir ve bağımsız olarak doğrulanmaz; ele geçirilmiş veya kötü niyetli bir düğüm yanıltıcı bir önizleme gösterebilir.",
+    "folks_lend": {
+      "title": "Folks Finance borç verme (USDC ⇄ fUSDC)",
+      "description": "Faiz kazandıran bir mevduat tokeni olan fUSDC almak için USDC'yi Folks Finance borç verme havuzuna yatırın veya fUSDC'yi tekrar USDC'ye çevirin. Yalnızca Mainnet'te kullanılabilir.",
+      "mode_deposit": "USDC yatır → fUSDC",
+      "mode_withdraw": "fUSDC çek → USDC",
+      "amount": "Miktar",
+      "receive": "Alacağınız (tahmini)",
+      "rate": "Döviz kuru",
+      "apy": "APY",
+      "opt_in_note": "Hesabınız aynı işlem grubunda fUSDC'ye opt-in yapacaktır.",
+      "insufficient": "Yetersiz {asset} bakiyesi",
+      "submit_deposit": "Yatır",
+      "submit_withdraw": "Çek",
+      "success": "İşlendi, tx: {txid}",
+      "rate_error": "Folks Finance havuz oranı yüklenemedi"
+    }
   },
   "govtoolsmenu": {
     "gen": "Hesap oluştur",

@@ -115,7 +115,23 @@
     "simulation_received": "De node meldt dat u zou ontvangen",
     "simulation_failed": "Simulatie mislukt",
     "simulation_unavailable": "Nog niet genoeg transactiegegevens om deze route te simuleren.",
-    "simulation_disclaimer": "Berekend door de exact voorbereide transacties proefondervindelijk uit te voeren tegen de huidige ledgerstatus via uw geconfigureerde algod-node - er worden geen middelen verplaatst en er is geen handtekening vereist. Deze voorvertoning wordt gerapporteerd door die node en is niet onafhankelijk geverifieerd; een gecompromitteerde of kwaadwillende node kan een misleidende voorvertoning tonen."
+    "simulation_disclaimer": "Berekend door de exact voorbereide transacties proefondervindelijk uit te voeren tegen de huidige ledgerstatus via uw geconfigureerde algod-node - er worden geen middelen verplaatst en er is geen handtekening vereist. Deze voorvertoning wordt gerapporteerd door die node en is niet onafhankelijk geverifieerd; een gecompromitteerde of kwaadwillende node kan een misleidende voorvertoning tonen.",
+    "folks_lend": {
+      "title": "Folks Finance lenen (USDC ⇄ fUSDC)",
+      "description": "Stort USDC in de leenpool van Folks Finance om fUSDC te ontvangen, een depositotoken dat rente oplevert, of neem fUSDC op terug naar USDC. Alleen beschikbaar op Mainnet.",
+      "mode_deposit": "USDC storten → fUSDC",
+      "mode_withdraw": "fUSDC opnemen → USDC",
+      "amount": "Bedrag",
+      "receive": "U ontvangt (geschat)",
+      "rate": "Wisselkoers",
+      "apy": "APY",
+      "opt_in_note": "Uw account doet opt-in voor fUSDC in dezelfde transactiegroep.",
+      "insufficient": "Onvoldoende {asset}-saldo",
+      "submit_deposit": "Storten",
+      "submit_withdraw": "Opnemen",
+      "success": "Verwerkt in tx: {txid}",
+      "rate_error": "Kan het tarief van de Folks Finance-pool niet laden"
+    }
   },
   "govtoolsmenu": {
     "gen": "Generate accounts",

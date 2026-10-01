@@ -4,6 +4,7 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 
 ## 2026-10
 
+- The Swap page can now convert USDC to Folks Finance fUSDC (and back): deposit USDC into the Folks Finance lending pool to receive fUSDC, a deposit token that earns interest, or withdraw fUSDC to USDC. The card shows the current exchange rate and APY, and opts your account in to fUSDC automatically in the same transaction group. Mainnet only.
 - You can now opt out of an asset directly from the account asset list (red cross button on ASA rows), which frees the 0.1 ALGO minimum balance it was holding. A confirmation dialog warns you if you still hold a balance, since the remainder is returned to the asset creator.
 - Zero-balance assets are now hidden by default in the account asset list, and the asset dropdowns when making a payment or scheduling one only offer assets you actually hold. A "Show only assets with a balance" checkbox lets you bring the empty ones back.
 

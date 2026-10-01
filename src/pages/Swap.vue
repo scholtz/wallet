@@ -141,6 +141,7 @@
         </div>
       </template>
     </Card>
+    <FolksLendConvert />
   </MainLayout>
 </template>
 
@@ -159,6 +160,7 @@ import SwapOptIn from "../components/SwapOptIn.vue";
 import SwapTransactionDetails from "../components/SwapTransactionDetails.vue";
 import SwapRouteExplorer from "../components/SwapRouteExplorer.vue";
 import SwapExecuteButtons from "../components/SwapExecuteButtons.vue";
+import FolksLendConvert from "../components/FolksLendConvert.vue";
 import { useSwap } from "../composables/useSwap";
 import { RootState } from "@/store";
 import { StoredAsset } from "@/store/indexer";

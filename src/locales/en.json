@@ -115,7 +115,23 @@
     "simulation_received": "The node reports you would receive",
     "simulation_failed": "Simulation failed",
     "simulation_unavailable": "Not enough transaction data to simulate this route yet.",
-    "simulation_disclaimer": "Computed by dry-running the exact prepared transactions against the current ledger state via your configured algod node - no funds are moved and no signature is required. This preview is reported by that node and is not independently verified; a compromised or malicious node could show a misleading preview."
+    "simulation_disclaimer": "Computed by dry-running the exact prepared transactions against the current ledger state via your configured algod node - no funds are moved and no signature is required. This preview is reported by that node and is not independently verified; a compromised or malicious node could show a misleading preview.",
+    "folks_lend": {
+      "title": "Folks Finance lending (USDC ⇄ fUSDC)",
+      "description": "Deposit USDC into the Folks Finance lending pool to receive fUSDC, a deposit token that earns interest, or withdraw fUSDC back to USDC. Available on Mainnet only.",
+      "mode_deposit": "Deposit USDC → fUSDC",
+      "mode_withdraw": "Withdraw fUSDC → USDC",
+      "amount": "Amount",
+      "receive": "You receive (estimated)",
+      "rate": "Exchange rate",
+      "apy": "APY",
+      "opt_in_note": "Your account will opt in to fUSDC in the same transaction group.",
+      "insufficient": "Insufficient {asset} balance",
+      "submit_deposit": "Deposit",
+      "submit_withdraw": "Withdraw",
+      "success": "Processed in tx: {txid}",
+      "rate_error": "Unable to load the Folks Finance pool rate"
+    }
   },
   "govtoolsmenu": {
     "gen": "Generate accounts",

@@ -115,7 +115,23 @@
     "simulation_received": "Il nodo segnala che riceveresti",
     "simulation_failed": "Simulazione non riuscita",
     "simulation_unavailable": "Non ci sono ancora abbastanza dati di transazione per simulare questo percorso.",
-    "simulation_disclaimer": "Calcolato eseguendo in prova le transazioni esatte preparate rispetto allo stato attuale del ledger tramite il tuo nodo algod configurato - non viene spostato alcun fondo e non è richiesta alcuna firma. Questa anteprima è segnalata da quel nodo e non è verificata in modo indipendente; un nodo compromesso o malevolo potrebbe mostrare un'anteprima fuorviante."
+    "simulation_disclaimer": "Calcolato eseguendo in prova le transazioni esatte preparate rispetto allo stato attuale del ledger tramite il tuo nodo algod configurato - non viene spostato alcun fondo e non è richiesta alcuna firma. Questa anteprima è segnalata da quel nodo e non è verificata in modo indipendente; un nodo compromesso o malevolo potrebbe mostrare un'anteprima fuorviante.",
+    "folks_lend": {
+      "title": "Prestiti Folks Finance (USDC ⇄ fUSDC)",
+      "description": "Deposita USDC nel pool di prestito di Folks Finance per ricevere fUSDC, un token di deposito che matura interessi, oppure preleva fUSDC tornando a USDC. Disponibile solo su Mainnet.",
+      "mode_deposit": "Deposita USDC → fUSDC",
+      "mode_withdraw": "Preleva fUSDC → USDC",
+      "amount": "Importo",
+      "receive": "Riceverai (stima)",
+      "rate": "Tasso di cambio",
+      "apy": "APY",
+      "opt_in_note": "Il tuo account farà opt-in a fUSDC nello stesso gruppo di transazioni.",
+      "insufficient": "Saldo {asset} insufficiente",
+      "submit_deposit": "Deposita",
+      "submit_withdraw": "Preleva",
+      "success": "Elaborato nella tx: {txid}",
+      "rate_error": "Impossibile caricare il tasso del pool Folks Finance"
+    }
   },
   "govtoolsmenu": {
     "gen": "Generate accounts",
