@@ -1,7 +1,9 @@
 import algosdk from "algosdk";
 import {
+  MainnetOpUp,
   MainnetPoolManagerAppId,
   MainnetPools,
+  prefixWithOpUp,
   prepareDepositIntoPool,
   prepareWithdrawFromPool,
   retrievePoolInfo,
@@ -33,8 +35,15 @@ export const fetchFolksPoolRate = async (
   };
 };
 
+/** Inner OpUp transactions added in front of the pool call (see buildFolksLendTxns). */
+const OPUP_INNER_TXNS = 1;
+
 const MIN_BALANCE_PER_ENTRY = 100_000n;
+// Worst-case group fees: opt-in 0.001 + OpUp 0.002 + pool call up to 0.005
+// (withdraw) = 0.008 ALGO, rounded up.
 const OPT_IN_FEES_MICROALGO = 10_000n;
+/** Highest fee any single call of this flow may carry (the pool's withdraw). */
+const MAX_APP_CALL_FEE = 5_000n;
 
 /**
  * Pre-check that an account can afford one more opt-in, so the user gets a
@@ -68,11 +77,19 @@ export const buildOptInTxn = (
 
 /**
  * Builds the unsigned, grouped transactions for a deposit (USDC -> fUSDC) or
- * withdrawal (fUSDC -> USDC). Prepends an opt-in for `optInAssetId` when set
- * (fUSDC before a deposit, USDC before a withdrawal).
- * Withdrawals always pass received_amount = 0 ("variable"): the pool then pays
- * out whatever the fUSDC is worth at the on-chain index, so a client clock that
- * is ahead of chain time can never request more than the pool will pay.
+ * withdrawal (fUSDC -> USDC), laid out as [opt-in?, OpUp, ...pool calls].
+ *
+ * - The optional opt-in is for `optInAssetId` (fUSDC before a deposit, USDC
+ *   before a withdrawal).
+ * - The pool's program needs more opcode budget than a single app call
+ *   provides ("dynamic cost budget exceeded"), so the pool calls are prefixed
+ *   with one OpUp call. Verified by simulating both directions on mainnet:
+ *   without it deposit and withdraw fail, with one inner OpUp txn both pass
+ *   with plenty of headroom.
+ * - Withdrawals always pass received_amount = 0 ("variable"): the pool then
+ *   pays out whatever the fUSDC is worth at the on-chain index, so a client
+ *   clock that is ahead of chain time can never request more than the pool
+ *   will pay.
  */
 export const buildFolksLendTxns = (args: {
   direction: "deposit" | "withdraw";
@@ -101,10 +118,17 @@ export const buildFolksLendTxns = (args: {
           0n,
           suggestedParams,
         );
+  const budgetedTxns = prefixWithOpUp(
+    MainnetOpUp,
+    sender,
+    poolTxns,
+    OPUP_INNER_TXNS,
+    suggestedParams,
+  );
   const txns =
     optInAssetId !== undefined
-      ? [buildOptInTxn(sender, optInAssetId, suggestedParams), ...poolTxns]
-      : poolTxns;
+      ? [buildOptInTxn(sender, optInAssetId, suggestedParams), ...budgetedTxns]
+      : budgetedTxns;
   // The SDK strips group ids so the caller can recompose groups.
   return algosdk.assignGroupID(txns);
 };
@@ -112,8 +136,10 @@ export const buildFolksLendTxns = (args: {
 /**
  * Last line of defence before signing: besides the generic swap safety checks
  * (sender, rekey, close-to), every transaction must be one the flow is meant
- * to produce - a transfer of the pool's own assets to the pool app / self, or
- * a call to the USDC pool application. Anything else is rejected.
+ * to produce - a transfer of the pool's own assets to the pool app / self, a
+ * plain NoOp call to the USDC pool application, or the single OpUp call that
+ * prefixes it (one inner txn, referencing only its base app). Anything else is
+ * rejected.
  */
 export const assertFolksLendTxnsSafe = (
   txns: algosdk.Transaction[],
@@ -125,10 +151,33 @@ export const assertFolksLendTxnsSafe = (
     FOLKS_USDC_POOL.assetId,
     FOLKS_USDC_POOL.fAssetId as number,
   ]);
+  let poolCalls = 0;
+  let opUpCalls = 0;
   for (const tx of txns) {
     if (tx.type === algosdk.TransactionType.appl) {
-      if (Number(tx.applicationCall?.appIndex) !== FOLKS_USDC_POOL.appId) {
+      const call = tx.applicationCall;
+      const appId = Number(call?.appIndex);
+      const isPool = appId === FOLKS_USDC_POOL.appId;
+      const isOpUp = appId === MainnetOpUp.callerAppId;
+      if (
+        !call ||
+        (!isPool && !isOpUp) ||
+        call.onComplete !== algosdk.OnApplicationComplete.NoOpOC ||
+        tx.fee > MAX_APP_CALL_FEE
+      ) {
         throw new Error("Refusing to sign: unexpected application call.");
+      }
+      if (isOpUp) {
+        opUpCalls++;
+        if (
+          call.appArgs.length !== 1 ||
+          call.foreignApps.length !== 1 ||
+          Number(call.foreignApps[0]) !== MainnetOpUp.baseAppId
+        ) {
+          throw new Error("Refusing to sign: unexpected OpUp call.");
+        }
+      } else {
+        poolCalls++;
       }
     } else if (tx.type === algosdk.TransactionType.axfer) {
       const at = tx.assetTransfer;
@@ -143,5 +192,8 @@ export const assertFolksLendTxnsSafe = (
     } else {
       throw new Error("Refusing to sign: unexpected transaction type.");
     }
+  }
+  if (poolCalls > 1 || opUpCalls > 1) {
+    throw new Error("Refusing to sign: unexpected number of application calls.");
   }
 };

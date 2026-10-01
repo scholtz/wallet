@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import algosdk from "algosdk";
+import { MainnetOpUp } from "@folks-finance/algorand-sdk";
 import {
   ONE_14_DP,
   calcFAssetReceived,
@@ -7,6 +8,7 @@ import {
   calcUnderlyingReceived,
   exchangeRate,
   fromBaseUnits,
+  getFolksLendDirection,
   toBaseUnits,
 } from "../../src/scripts/folksLend/convert";
 import {
@@ -78,6 +80,22 @@ test.describe("base unit conversion", () => {
   });
 });
 
+test.describe("form direction", () => {
+  const U = 31566704;
+  const F = 971384592;
+  test("USDC -> fUSDC deposits, fUSDC -> USDC withdraws", () => {
+    expect(getFolksLendDirection(BigInt(U), BigInt(F), U, F)).toBe("deposit");
+    expect(getFolksLendDirection(BigInt(F), BigInt(U), U, F)).toBe("withdraw");
+  });
+  test("any other pair is a normal swap", () => {
+    expect(getFolksLendDirection(BigInt(U), 0n, U, F)).toBeNull();
+    expect(getFolksLendDirection(0n, BigInt(F), U, F)).toBeNull();
+    expect(getFolksLendDirection(BigInt(U), BigInt(U), U, F)).toBeNull();
+    expect(getFolksLendDirection(null, BigInt(F), U, F)).toBeNull();
+    expect(getFolksLendDirection(BigInt(U), null, U, F)).toBeNull();
+  });
+});
+
 test.describe("network gate", () => {
   test("mainnet only", () => {
     expect(isFolksLendNetwork("mainnet-v1.0")).toBe(true);
@@ -104,26 +122,38 @@ test.describe("transaction building", () => {
     .getApplicationAddress(FOLKS_USDC_POOL.appId)
     .toString();
 
-  test("deposit without opt-in: grouped USDC transfer + pool app call", () => {
+  const opUpAppId = MainnetOpUp.callerAppId;
+
+  const expectOpUpFirst = (txns: algosdk.Transaction[]) => {
+    expect(txns[0].type).toBe(algosdk.TransactionType.appl);
+    expect(txns[0].applicationCall?.appIndex).toBe(BigInt(opUpAppId));
+    // 1 inner OpUp txn: the pool's program exceeds the 700 budget of a single
+    // app call (verified by simulating deposit and withdraw on mainnet).
+    expect(txns[0].fee).toBe(2000n);
+  };
+
+  test("deposit without opt-in: OpUp + grouped USDC transfer + pool app call", () => {
     const txns = buildFolksLendTxns({
       direction: "deposit",
       sender,
       amount: 5_000_000n,
       suggestedParams,
     });
-    expect(txns).toHaveLength(2);
-    expect(txns[0].type).toBe(algosdk.TransactionType.axfer);
-    expect(txns[0].assetTransfer?.assetIndex).toBe(
+    expect(txns).toHaveLength(3);
+    expectOpUpFirst(txns);
+    expect(txns[1].type).toBe(algosdk.TransactionType.axfer);
+    expect(txns[1].assetTransfer?.assetIndex).toBe(
       BigInt(FOLKS_USDC_POOL.assetId),
     );
-    expect(txns[0].assetTransfer?.receiver.toString()).toBe(poolAddr);
-    expect(txns[0].assetTransfer?.amount).toBe(5_000_000n);
-    expect(txns[1].type).toBe(algosdk.TransactionType.appl);
-    expect(txns[1].applicationCall?.appIndex).toBe(
+    expect(txns[1].assetTransfer?.receiver.toString()).toBe(poolAddr);
+    expect(txns[1].assetTransfer?.amount).toBe(5_000_000n);
+    expect(txns[2].type).toBe(algosdk.TransactionType.appl);
+    expect(txns[2].applicationCall?.appIndex).toBe(
       BigInt(FOLKS_USDC_POOL.appId),
     );
     expect(txns[0].group).toBeDefined();
     expect(txns[0].group).toEqual(txns[1].group);
+    expect(txns[1].group).toEqual(txns[2].group);
     expect(() => assertFolksLendTxnsSafe(txns, sender)).not.toThrow();
   });
 
@@ -135,12 +165,13 @@ test.describe("transaction building", () => {
       optInAssetId: FOLKS_USDC_POOL.fAssetId,
       suggestedParams,
     });
-    expect(txns).toHaveLength(3);
+    expect(txns).toHaveLength(4);
     expect(txns[0].assetTransfer?.assetIndex).toBe(
       BigInt(FOLKS_USDC_POOL.fAssetId),
     );
     expect(txns[0].assetTransfer?.amount).toBe(0n);
     expect(txns[0].assetTransfer?.receiver.toString()).toBe(sender);
+    expectOpUpFirst(txns.slice(1));
     expect(() => assertFolksLendTxnsSafe(txns, sender)).not.toThrow();
   });
 
@@ -151,14 +182,15 @@ test.describe("transaction building", () => {
       amount: 2_000_000n,
       suggestedParams,
     });
-    expect(txns).toHaveLength(2);
-    expect(txns[0].assetTransfer?.assetIndex).toBe(
+    expect(txns).toHaveLength(3);
+    expectOpUpFirst(txns);
+    expect(txns[1].assetTransfer?.assetIndex).toBe(
       BigInt(FOLKS_USDC_POOL.fAssetId),
     );
-    expect(txns[0].assetTransfer?.receiver.toString()).toBe(poolAddr);
+    expect(txns[1].assetTransfer?.receiver.toString()).toBe(poolAddr);
     // received_amount = 0 ("variable"): the pool pays whatever the fUSDC is
     // worth on-chain instead of a client-estimated amount.
-    expect(txns[1].applicationCall?.appArgs[1]).toEqual(new Uint8Array(8));
+    expect(txns[2].applicationCall?.appArgs[1]).toEqual(new Uint8Array(8));
     expect(() => assertFolksLendTxnsSafe(txns, sender)).not.toThrow();
   });
 
@@ -170,13 +202,71 @@ test.describe("transaction building", () => {
       optInAssetId: FOLKS_USDC_POOL.assetId,
       suggestedParams,
     });
-    expect(txns).toHaveLength(3);
+    expect(txns).toHaveLength(4);
     expect(txns[0].assetTransfer?.assetIndex).toBe(
       BigInt(FOLKS_USDC_POOL.assetId),
     );
     expect(txns[0].assetTransfer?.amount).toBe(0n);
     expect(txns[0].assetTransfer?.receiver.toString()).toBe(sender);
     expect(() => assertFolksLendTxnsSafe(txns, sender)).not.toThrow();
+  });
+
+  test("safety check only accepts plain, bounded calls to the pool and OpUp", () => {
+    const opUp = (overrides: Partial<Parameters<typeof algosdk.makeApplicationNoOpTxnFromObject>[0]> = {}) =>
+      algosdk.makeApplicationNoOpTxnFromObject({
+        sender,
+        appIndex: MainnetOpUp.callerAppId,
+        appArgs: [algosdk.encodeUint64(1)],
+        foreignApps: [MainnetOpUp.baseAppId],
+        suggestedParams: { ...suggestedParams, fee: 2000n },
+        ...overrides,
+      });
+    expect(() => assertFolksLendTxnsSafe([opUp()], sender)).not.toThrow();
+
+    // not a plain NoOp: close-out / update / clear-state of the OpUp app
+    const closeOut = algosdk.makeApplicationCloseOutTxnFromObject({
+      sender,
+      appIndex: MainnetOpUp.callerAppId,
+      appArgs: [algosdk.encodeUint64(1)],
+      foreignApps: [MainnetOpUp.baseAppId],
+      suggestedParams: { ...suggestedParams, fee: 2000n },
+    });
+    expect(() => assertFolksLendTxnsSafe([closeOut], sender)).toThrow(
+      /unexpected application call/,
+    );
+    // closing out of the pool app itself is not allowed either
+    const poolCloseOut = algosdk.makeApplicationCloseOutTxnFromObject({
+      sender,
+      appIndex: FOLKS_USDC_POOL.appId,
+      suggestedParams,
+    });
+    expect(() => assertFolksLendTxnsSafe([poolCloseOut], sender)).toThrow(
+      /unexpected application call/,
+    );
+    // an inflated fee
+    expect(() =>
+      assertFolksLendTxnsSafe(
+        [opUp({ suggestedParams: { ...suggestedParams, fee: 50_000n } })],
+        sender,
+      ),
+    ).toThrow(/unexpected application call/);
+    // OpUp with extra arguments / foreign apps / a different base app
+    expect(() =>
+      assertFolksLendTxnsSafe(
+        [opUp({ appArgs: [algosdk.encodeUint64(1), algosdk.encodeUint64(2)] })],
+        sender,
+      ),
+    ).toThrow(/unexpected OpUp call/);
+    expect(() =>
+      assertFolksLendTxnsSafe([opUp({ foreignApps: [1234] })], sender),
+    ).toThrow(/unexpected OpUp call/);
+    expect(() =>
+      assertFolksLendTxnsSafe([opUp({ foreignApps: [] })], sender),
+    ).toThrow(/unexpected OpUp call/);
+    // more than one OpUp call
+    expect(() => assertFolksLendTxnsSafe([opUp(), opUp()], sender)).toThrow(
+      /number of application calls/,
+    );
   });
 
   test("safety check rejects foreign senders, receivers, apps and assets", () => {

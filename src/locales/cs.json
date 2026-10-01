@@ -119,9 +119,6 @@
     "folks_lend": {
       "title": "Půjčování Folks Finance (USDC ⇄ fUSDC)",
       "description": "Vložte USDC do půjčovacího poolu Folks Finance a získejte fUSDC, vkladový token, který vydělává úrok, nebo fUSDC vyberte zpět na USDC. Dostupné pouze na Mainnetu.",
-      "mode_deposit": "Vložit USDC → fUSDC",
-      "mode_withdraw": "Vybrat fUSDC → USDC",
-      "amount": "Částka",
       "receive": "Obdržíte (odhad)",
       "rate": "Směnný kurz",
       "apy": "APY",
@@ -135,7 +132,8 @@
       "insufficient_algo": "Nedostatek ALGO: opt-in k {asset} vyhradí dalších 0,1 ALGO minimálního zůstatku plus síťové poplatky.",
       "optin_button": "Opt-in k fUSDC",
       "optin_hint": "Pro převod USDC na Folks Finance fUSDC se musí váš účet nejprve přihlásit k fUSDC (opt-in). Tím se vyhradí 0,1 ALGO vašeho minimálního zůstatku. Po potvrzení opt-inu se jako cílové aktivum vybere fUSDC.",
-      "optin_done": "Opt-in k fUSDC proveden"
+      "optin_done": "Opt-in k fUSDC proveden",
+      "swap_to_fusdc": "Vyměnit na fUSDC"
     }
   },
   "govtoolsmenu": {
@@ -879,9 +877,9 @@
         "q6": "Proč se musím k tokenu přihlásit, než na něj mohu swapovat?",
         "a6": "Protože Algorand umožňuje účtu držet jen assety, ke kterým se přihlásil. Pokud jste token, který chcete získat, nikdy nedrželi, je nejprve potřeba opt-in, který stojí běžný poplatek a zamkne 0,1 ALGO minimálního zůstatku. Ujistěte se, že máte dost volných ALGO na něj i na poplatky za swap.",
         "q7": "Jak vložím USDC, abych získal úrok a obdržel fUSDC?",
-        "a7": "Otevřete stránku Swap (Účet > Swap) na Mainnetu a sjeďte na kartu půjčování Folks Finance pod formulářem pro výměnu. Vyberte „Vložit USDC → fUSDC“, zadejte částku (nebo stiskněte Max) a zkontrolujte odhadované fUSDC, aktuální směnný kurz a APY. Pokud váš účet ještě nemá opt-in k fUSDC, karta to oznámí – opt-in se přidá do stejné skupiny transakcí a vyhradí 0,1 ALGO vašeho minimálního zůstatku, takže mějte nějaké ALGO navíc. Stiskněte Vložit a podepište. Zpět se dostanete volbou „Vybrat fUSDC → USDC“, zadáním částky fUSDC a podpisem; USDC obdržíte podle aktuálního kurzu (pokud USDC ještě nevlastníte, opt-in se přidá automaticky). Tip: pokud ve formuláři pro výměnu vyberete jako zdrojové aktivum USDC a váš účet ještě nemá opt-in k fUSDC, objeví se tlačítko „Opt-in k fUSDC“; po potvrzení opt-inu a načtení zůstatku se fUSDC automaticky vybere jako cílové aktivum.",
+        "a7": "Otevřete stránku Swap (Účet > Swap) na Mainnetu. Pokud váš účet ještě nemá opt-in k fUSDC, vyberte jako zdrojové aktivum USDC a stiskněte „Opt-in k fUSDC“ – vyhradí se tím 0,1 ALGO vašeho minimálního zůstatku a po potvrzení opt-inu se jako cílové aktivum automaticky vybere fUSDC. Pro vklad vyberte jako zdrojové aktivum USDC a jako cílové fUSDC a zadejte částku (nebo stiskněte Max). Formulář pro nabídku výměny se pak nahradí panelem půjčování Folks Finance, který ukazuje, kolik fUSDC obdržíte, aktuální směnný kurz a APY – stiskněte Vložit a podepište. Pro výběr stiskněte tlačítko ⇅ (nebo vyberte fUSDC jako zdrojové a USDC jako cílové aktivum), zadejte částku fUSDC a stiskněte Vybrat; USDC obdržíte podle aktuálního kurzu (pokud USDC ještě nevlastníte, opt-in se přidá automaticky).",
         "q8": "Co je fUSDC a jaká jsou rizika?",
-        "a8": "fUSDC je vkladový token půjčovacího poolu USDC na Folks Finance. Vaše USDC jsou půjčována dlužníkům a úrok se připisuje do směnného kurzu: jeden fUSDC lze časem vyměnit za stále více USDC, takže samotný zůstatek fUSDC neroste. Vklady nejsou pojištěné a nesou riziko smart kontraktu a protokolu. Výběr může dočasně selhat, pokud je většina poolu právě půjčena. Kurz a APY jsou zobrazeny na kartě a průběžně se mění. Půjčování Folks je dostupné pouze na Mainnetu a jako každou transakci ji musíte zkontrolovat a podepsat sami – {name} prostředky nikdy nedrží."
+        "a8": "fUSDC je vkladový token půjčovacího poolu USDC na Folks Finance. Vaše USDC jsou půjčována dlužníkům a úrok se připisuje do směnného kurzu: jeden fUSDC lze časem vyměnit za stále více USDC, takže samotný zůstatek fUSDC neroste. Vklady nejsou pojištěné a nesou riziko smart kontraktu a protokolu. Výběr může dočasně selhat, pokud je většina poolu právě půjčena. Kurz a APY jsou zobrazeny v panelu půjčování a průběžně se mění. Půjčování Folks je dostupné pouze na Mainnetu a jako každou transakci ji musíte zkontrolovat a podepsat sami – {name} prostředky nikdy nedrží."
       },
       "connect": {
         "title": "WalletConnect a DApps",

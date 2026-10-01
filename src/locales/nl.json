@@ -119,9 +119,6 @@
     "folks_lend": {
       "title": "Folks Finance lenen (USDC ⇄ fUSDC)",
       "description": "Stort USDC in de leenpool van Folks Finance om fUSDC te ontvangen, een depositotoken dat rente oplevert, of neem fUSDC op terug naar USDC. Alleen beschikbaar op Mainnet.",
-      "mode_deposit": "USDC storten → fUSDC",
-      "mode_withdraw": "fUSDC opnemen → USDC",
-      "amount": "Bedrag",
       "receive": "U ontvangt (geschat)",
       "rate": "Wisselkoers",
       "apy": "APY",
@@ -135,7 +132,8 @@
       "insufficient_algo": "Onvoldoende ALGO: opt-in voor {asset} reserveert nog eens 0,1 ALGO van het minimumsaldo, plus netwerkkosten.",
       "optin_button": "Opt-in voor fUSDC",
       "optin_hint": "Om USDC om te zetten naar Folks Finance fUSDC moet uw account eerst opt-in doen voor fUSDC. Dit reserveert 0,1 ALGO van uw minimumsaldo. Nadat de opt-in is bevestigd, wordt fUSDC als doelasset geselecteerd.",
-      "optin_done": "Opt-in voor fUSDC gedaan"
+      "optin_done": "Opt-in voor fUSDC gedaan",
+      "swap_to_fusdc": "Omwisselen naar fUSDC"
     }
   },
   "govtoolsmenu": {
@@ -879,9 +877,9 @@
         "q6": "Waarom moet ik me aanmelden voor een token voordat ik ernaar kan swappen?",
         "a6": "Omdat Algorand een account alleen assets laat bezitten waarvoor het zich heeft aangemeld. Als u het token dat u wilt ontvangen nog nooit hebt bezeten, is eerst een opt-in nodig, wat de normale transactiekosten kost en 0,1 ALGO aan minimumsaldo vastzet. Zorg dat u genoeg ALGO overhoudt hiervoor en voor de swapkosten.",
         "q7": "Hoe stort ik USDC om rente te verdienen en fUSDC te ontvangen?",
-        "a7": "Open de Swap-pagina (Account > Swap) op Mainnet en scrol naar de Folks Finance-leenkaart onder het swapformulier. Kies \"USDC storten → fUSDC\", voer het bedrag in (of druk op Max) en controleer de geschatte fUSDC, de huidige wisselkoers en de APY. Heeft uw account nog geen opt-in voor fUSDC, dan meldt de kaart dat - de opt-in wordt aan dezelfde transactiegroep toegevoegd en reserveert 0,1 ALGO van uw minimumsaldo, dus houd wat ALGO over. Druk op Storten en onderteken. Om terug te gaan kiest u \"fUSDC opnemen → USDC\", voert u het fUSDC-bedrag in en ondertekent u; u ontvangt USDC tegen de huidige koers (heeft u nog geen USDC, dan wordt de opt-in automatisch toegevoegd). Tip: kiest u in het swapformulier USDC als bronasset en heeft uw account nog geen opt-in voor fUSDC, dan verschijnt er een knop \"Opt-in voor fUSDC\"; zodra de opt-in is bevestigd en uw saldo is herladen, wordt fUSDC automatisch als doelasset geselecteerd.",
+        "a7": "Open de Swap-pagina (Account > Swap) op Mainnet. Heeft uw account nog geen opt-in voor fUSDC, kies dan USDC als bronasset en druk op \"Opt-in voor fUSDC\" - dit reserveert 0,1 ALGO van uw minimumsaldo en zodra de opt-in is bevestigd, wordt fUSDC automatisch als doelasset geselecteerd. Om te storten kiest u USDC als bronasset en fUSDC als doelasset en voert u het bedrag in (of drukt u op Max). Het offerteformulier wordt dan vervangen door het Folks Finance-leenpaneel, dat de fUSDC die u ontvangt, de huidige wisselkoers en de APY toont - druk op Storten en onderteken. Om op te nemen drukt u op de knop ⇅ (of kiest u fUSDC als bron en USDC als doel), voert u het fUSDC-bedrag in en drukt u op Opnemen; u ontvangt USDC tegen de huidige koers (heeft u nog geen USDC, dan wordt de opt-in automatisch toegevoegd).",
         "q8": "Wat is fUSDC en wat zijn de risico's?",
-        "a8": "fUSDC is het depositotoken van de Folks Finance USDC-leenpool. Uw USDC wordt uitgeleend aan leners en de rente wordt verwerkt in de wisselkoers: één fUSDC is na verloop van tijd voor steeds meer USDC inwisselbaar, dus uw fUSDC-saldo zelf groeit niet. Stortingen zijn niet verzekerd en brengen smart-contract- en protocolrisico met zich mee. Een opname kan ook tijdelijk mislukken als het grootste deel van de pool is uitgeleend. De koers en APY staan op de kaart en veranderen voortdurend. Folks lenen is alleen beschikbaar op Mainnet en zoals elke transactie moet u deze zelf controleren en ondertekenen - {name} beheert nooit geld."
+        "a8": "fUSDC is het depositotoken van de Folks Finance USDC-leenpool. Uw USDC wordt uitgeleend aan leners en de rente wordt verwerkt in de wisselkoers: één fUSDC is na verloop van tijd voor steeds meer USDC inwisselbaar, dus uw fUSDC-saldo zelf groeit niet. Stortingen zijn niet verzekerd en brengen smart-contract- en protocolrisico met zich mee. Een opname kan ook tijdelijk mislukken als het grootste deel van de pool is uitgeleend. De koers en APY staan in het leenpaneel en veranderen voortdurend. Folks lenen is alleen beschikbaar op Mainnet en zoals elke transactie moet u deze zelf controleren en ondertekenen - {name} beheert nooit geld."
       },
       "connect": {
         "title": "WalletConnect & DApps",
