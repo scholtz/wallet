@@ -267,8 +267,10 @@ test("a failed refresh after a confirmed opt-in is not reported as a failed opt-
     timeout: 30000,
   });
   expect(chain.submitted).not.toBeNull();
-  // No error toast, and no stale destination selection (fUSDC is not in the
-  // asset list until the holdings reload).
+  // No error toast, the prompt is gone (it must not be submittable twice),
+  // and no stale destination selection (fUSDC is not in the asset list until
+  // the holdings reload).
   await expect(page.locator(".p-toast-message-error")).toHaveCount(0);
+  await expect(page.getByTestId("folks-fusdc-optin")).toHaveCount(0);
   await expect(page.locator("#swap_asset_to")).not.toContainText("fUSDC");
 });
