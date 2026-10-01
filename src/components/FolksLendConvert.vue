@@ -175,15 +175,29 @@ const canSubmit = computed(
     !lacksAlgoForOptIn.value,
 );
 
-const loadRate = async () => {
-  rateError.value = false;
+// Only the newest request may update the state, so a slow older response
+// (timer vs. submit) can never overwrite a newer one.
+let rateRequestId = 0;
+/**
+ * Loads the pool rate. A background refresh that fails keeps the last good
+ * rate on screen instead of blanking the estimate on one transient error.
+ */
+const loadRate = async (background = false) => {
+  const requestId = ++rateRequestId;
+  if (!background) rateError.value = false;
   try {
     const algod: algosdk.Algodv2 = await store.dispatch("algod/getAlgod");
-    pool.value = await fetchFolksPoolRate(algod);
+    const rate = await fetchFolksPoolRate(algod);
+    if (requestId !== rateRequestId) return;
+    pool.value = rate;
+    rateError.value = false;
   } catch (e) {
     console.error("Unable to load Folks Finance pool info", e);
-    pool.value = null;
-    rateError.value = true;
+    if (requestId !== rateRequestId) return;
+    if (!background || !pool.value) {
+      pool.value = null;
+      rateError.value = true;
+    }
   }
 };
 
@@ -252,7 +266,7 @@ const RATE_REFRESH_MS = 60_000;
 let rateTimer: ReturnType<typeof setInterval> | undefined;
 onMounted(() => {
   loadRate();
-  rateTimer = setInterval(loadRate, RATE_REFRESH_MS);
+  rateTimer = setInterval(() => loadRate(true), RATE_REFRESH_MS);
 });
 onUnmounted(() => {
   if (rateTimer !== undefined) clearInterval(rateTimer);
