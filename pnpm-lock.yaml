@@ -197,6 +197,9 @@ importers:
       '@algorandfoundation/xhd-wallet-api':
         specifier: ^1.0.3
         version: 1.0.3(@types/node@26.6.0)
+      '@folks-finance/algorand-sdk':
+        specifier: ^0.2.6
+        version: 0.2.6(@algorandfoundation/algokit-utils@9.2.2(algosdk@3.7.0))(algosdk@3.7.0)
       '@folks-router/js-sdk':
         specifier: ^0.5.1
         version: 0.5.1
@@ -1552,6 +1555,12 @@ packages:
   '@eslint/plugin-kit@0.7.3':
     resolution: {integrity: sha512-IkO+/KEUvwbVpiURZg+P7zF74z5Jxe0UgJxVni+RtoHQ6IZieXaO02kmadomap/q+l6bc/jdPGGqTjhuZnuz1Q==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+
+  '@folks-finance/algorand-sdk@0.2.6':
+    resolution: {integrity: sha512-ijKjlIqB5hqFQoVcVvabkX/k13cwtxbI15P7BO8y9pmK+swKtdmTalvLGyom65Ddhqy7y2pjV428KJzYt330CQ==}
+    peerDependencies:
+      '@algorandfoundation/algokit-utils': ^9.0.0
+      algosdk: ^3.0.0
 
   '@folks-router/js-sdk@0.5.1':
     resolution: {integrity: sha512-MaqCTVjqxN3ckvZyYha+DoQj2NXoyGBG16Ge06x+3aUuodsqVPPCW6hLzhW60a2YLuhLMgfRaoyIqSIZcqmnUw==}
@@ -7387,6 +7396,11 @@ snapshots:
     dependencies:
       '@eslint/core': 1.2.1
       levn: 0.4.1
+
+  '@folks-finance/algorand-sdk@0.2.6(@algorandfoundation/algokit-utils@9.2.2(algosdk@3.7.0))(algosdk@3.7.0)':
+    dependencies:
+      '@algorandfoundation/algokit-utils': 9.2.2(algosdk@3.7.0)
+      algosdk: 3.7.0
 
   '@folks-router/js-sdk@0.5.1':
     dependencies:

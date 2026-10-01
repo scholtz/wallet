@@ -115,7 +115,25 @@
     "simulation_received": "Il nodo segnala che riceveresti",
     "simulation_failed": "Simulazione non riuscita",
     "simulation_unavailable": "Non ci sono ancora abbastanza dati di transazione per simulare questo percorso.",
-    "simulation_disclaimer": "Calcolato eseguendo in prova le transazioni esatte preparate rispetto allo stato attuale del ledger tramite il tuo nodo algod configurato - non viene spostato alcun fondo e non è richiesta alcuna firma. Questa anteprima è segnalata da quel nodo e non è verificata in modo indipendente; un nodo compromesso o malevolo potrebbe mostrare un'anteprima fuorviante."
+    "simulation_disclaimer": "Calcolato eseguendo in prova le transazioni esatte preparate rispetto allo stato attuale del ledger tramite il tuo nodo algod configurato - non viene spostato alcun fondo e non è richiesta alcuna firma. Questa anteprima è segnalata da quel nodo e non è verificata in modo indipendente; un nodo compromesso o malevolo potrebbe mostrare un'anteprima fuorviante.",
+    "folks_lend": {
+      "title": "Prestiti Folks Finance (USDC ⇄ fUSDC)",
+      "description": "Deposita USDC nel pool di prestito di Folks Finance per ricevere fUSDC, un token di deposito che matura interessi, oppure preleva fUSDC tornando a USDC. Disponibile solo su Mainnet.",
+      "mode_deposit": "Deposita USDC → fUSDC",
+      "mode_withdraw": "Preleva fUSDC → USDC",
+      "amount": "Importo",
+      "receive": "Riceverai (stima)",
+      "rate": "Tasso di cambio",
+      "apy": "APY",
+      "opt_in_note": "Il tuo account farà opt-in a {asset} nello stesso gruppo di transazioni, riservando 0,1 ALGO del suo saldo minimo.",
+      "insufficient": "Saldo {asset} insufficiente",
+      "submit_deposit": "Deposita",
+      "submit_withdraw": "Preleva",
+      "success": "Elaborato nella tx: {txid}",
+      "rate_error": "Impossibile caricare il tasso del pool Folks Finance",
+      "not_confirmed": "La transazione non è stata confermata. Potrebbe essere ancora in sospeso o essere stata rifiutata. Controlla il tuo account prima di riprovare.",
+      "insufficient_algo": "ALGO insufficienti: l'opt-in a {asset} riserva altri 0,1 ALGO del saldo minimo, più le commissioni di rete."
+    }
   },
   "govtoolsmenu": {
     "gen": "Generate accounts",
@@ -856,7 +874,11 @@
         "q5": "Fare swap tramite {name} è custodial?",
         "a5": "No. In ogni fase i tuoi asset restano sotto il controllo della tua chiave privata. {name} presenta solo una transazione non firmata per lo swap, che devi revisionare e firmare, esattamente come qualsiasi altra transazione.",
         "q6": "Perché devo aderire a un token prima di poter fare uno swap verso di esso?",
-        "a6": "Perché Algorand permette a un account di detenere solo gli asset a cui ha aderito. Se non hai mai detenuto il token che vuoi ricevere, serve prima un opt-in, che costa la normale commissione e blocca 0,1 ALGO di saldo minimo. Assicurati di avere abbastanza ALGO di scorta per questo e per le commissioni dello swap."
+        "a6": "Perché Algorand permette a un account di detenere solo gli asset a cui ha aderito. Se non hai mai detenuto il token che vuoi ricevere, serve prima un opt-in, che costa la normale commissione e blocca 0,1 ALGO di saldo minimo. Assicurati di avere abbastanza ALGO di scorta per questo e per le commissioni dello swap.",
+        "q7": "Come depositare USDC per guadagnare interessi e ricevere fUSDC?",
+        "a7": "Apri la pagina Swap (Account > Swap) su Mainnet e scorri fino alla scheda di prestito Folks Finance sotto il modulo di scambio. Scegli \"Deposita USDC → fUSDC\", inserisci l'importo (o premi Max) e controlla gli fUSDC stimati, il tasso di cambio attuale e l'APY. Se il tuo account non ha ancora fatto opt-in a fUSDC, la scheda lo indica: l'opt-in viene aggiunto allo stesso gruppo di transazioni e riserva 0,1 ALGO del tuo saldo minimo, quindi tieni un po' di ALGO libero. Premi Deposita e firma. Per tornare indietro, scegli \"Preleva fUSDC → USDC\", inserisci l'importo di fUSDC e firma; ricevi USDC al tasso attuale (se non possiedi ancora USDC, l'opt-in viene aggiunto automaticamente).",
+        "q8": "Cos'è fUSDC e quali sono i rischi?",
+        "a8": "fUSDC è il token di deposito del pool di prestito USDC di Folks Finance. I tuoi USDC vengono prestati ai mutuatari e gli interessi maturano nel tasso di cambio: un fUSDC diventa riscattabile per sempre più USDC nel tempo, quindi il saldo di fUSDC in sé non cresce. I depositi non sono assicurati e comportano rischio di smart contract e di protocollo. Un prelievo può anche fallire temporaneamente se gran parte del pool è in prestito. Tasso e APY sono mostrati nella scheda e cambiano continuamente. Il prestito Folks è disponibile solo su Mainnet e, come ogni transazione, devi verificarla e firmarla tu stesso: {name} non custodisce mai fondi."
       },
       "connect": {
         "title": "WalletConnect e DApp",

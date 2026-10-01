@@ -115,7 +115,25 @@
     "simulation_received": "Uzol hlási, že dostanete",
     "simulation_failed": "Simulácia zlyhala",
     "simulation_unavailable": "Na simuláciu tejto trasy zatiaľ nie je dostatok transakčných údajov.",
-    "simulation_disclaimer": "Vypočítané skúšobným spustením presne pripravených transakcií voči aktuálnemu stavu ledgera prostredníctvom vášho nakonfigurovaného algod uzla - žiadne prostriedky sa nepresúvajú a podpis nie je potrebný. Tento náhľad hlási daný uzol a nie je nezávisle overený; kompromitovaný alebo škodlivý uzol môže zobraziť zavádzajúci náhľad."
+    "simulation_disclaimer": "Vypočítané skúšobným spustením presne pripravených transakcií voči aktuálnemu stavu ledgera prostredníctvom vášho nakonfigurovaného algod uzla - žiadne prostriedky sa nepresúvajú a podpis nie je potrebný. Tento náhľad hlási daný uzol a nie je nezávisle overený; kompromitovaný alebo škodlivý uzol môže zobraziť zavádzajúci náhľad.",
+    "folks_lend": {
+      "title": "Požičiavanie Folks Finance (USDC ⇄ fUSDC)",
+      "description": "Vložte USDC do požičiavacieho poolu Folks Finance a získajte fUSDC, vkladový token, ktorý zhodnocuje úrokom, alebo fUSDC vyberte späť na USDC. Dostupné iba na Mainnete.",
+      "mode_deposit": "Vložiť USDC → fUSDC",
+      "mode_withdraw": "Vybrať fUSDC → USDC",
+      "amount": "Suma",
+      "receive": "Dostanete (odhad)",
+      "rate": "Výmenný kurz",
+      "apy": "APY",
+      "opt_in_note": "Váš účet sa v tej istej skupine transakcií prihlási na odber {asset} (opt-in), čím sa vyhradí 0,1 ALGO jeho minimálneho zostatku.",
+      "insufficient": "Nedostatočný zostatok {asset}",
+      "submit_deposit": "Vložiť",
+      "submit_withdraw": "Vybrať",
+      "success": "Spracované v tx: {txid}",
+      "rate_error": "Nepodarilo sa načítať kurz poolu Folks Finance",
+      "not_confirmed": "Transakcia nebola potvrdená. Môže byť stále čakajúca, alebo mohla byť zamietnutá. Pred ďalším pokusom skontrolujte svoj účet.",
+      "insufficient_algo": "Nedostatok ALGO: opt-in na {asset} vyhradí ďalších 0,1 ALGO minimálneho zostatku plus sieťové poplatky."
+    }
   },
   "govtoolsmenu": {
     "gen": "Generate accounts",
@@ -856,7 +874,11 @@
         "q5": "Je swapovanie cez {name} kustodiálne?",
         "a5": "Nie. Vaše aktíva zostávajú v každom kroku pod kontrolou vášho vlastného súkromného kľúča. {name} vám iba predloží nepodpísanú transakciu pre swap, ktorú musíte skontrolovať a podpísať, presne ako pri akejkoľvek inej transakcii.",
         "q6": "Prečo musím urobiť opt-in k tokenu, skôr než doň môžem swapovať?",
-        "a6": "Pretože Algorand umožňuje účtu držať iba aktíva, ku ktorým sa prihlásil. Ak ste token, ktorý chcete získať, nikdy nedržali, je najprv potrebný opt-in, ktorý stojí bežný poplatok a zablokuje 0,1 ALGO minimálneho zostatku. Uistite sa, že máte dosť voľných ALGO na to aj na poplatky za swap."
+        "a6": "Pretože Algorand umožňuje účtu držať iba aktíva, ku ktorým sa prihlásil. Ak ste token, ktorý chcete získať, nikdy nedržali, je najprv potrebný opt-in, ktorý stojí bežný poplatok a zablokuje 0,1 ALGO minimálneho zostatku. Uistite sa, že máte dosť voľných ALGO na to aj na poplatky za swap.",
+        "q7": "Ako vložím USDC, aby som získal úrok a dostal fUSDC?",
+        "a7": "Otvorte stránku Swap (Účet > Swap) na Mainnete a posuňte sa na kartu požičiavania Folks Finance pod formulárom na výmenu. Vyberte „Vložiť USDC → fUSDC“, zadajte sumu (alebo stlačte Max) a skontrolujte odhadované fUSDC, aktuálny výmenný kurz a APY. Ak váš účet ešte nemá opt-in na fUSDC, karta to oznámi – opt-in sa pridá do tej istej skupiny transakcií a vyhradí 0,1 ALGO vášho minimálneho zostatku, takže majte nejaké ALGO navyše. Stlačte Vložiť a podpíšte. Späť sa dostanete voľbou „Vybrať fUSDC → USDC“, zadaním sumy fUSDC a podpisom; USDC dostanete podľa aktuálneho kurzu (ak USDC ešte nevlastníte, opt-in sa pridá automaticky).",
+        "q8": "Čo je fUSDC a aké sú riziká?",
+        "a8": "fUSDC je vkladový token požičiavacieho poolu USDC na Folks Finance. Vaše USDC sa požičiavajú dlžníkom a úrok sa pripisuje do výmenného kurzu: jeden fUSDC je časom vymeniteľný za stále viac USDC, takže samotný zostatok fUSDC nerastie. Vklady nie sú poistené a nesú riziko smart kontraktu a protokolu. Výber môže dočasne zlyhať, ak je väčšina poolu práve požičaná. Kurz a APY sú zobrazené na karte a priebežne sa menia. Požičiavanie Folks je dostupné iba na Mainnete a ako každú transakciu ju musíte skontrolovať a podpísať sami – {name} prostriedky nikdy nedrží."
       },
       "connect": {
         "title": "WalletConnect a DApps",

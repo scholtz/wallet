@@ -133,7 +133,7 @@ const CATEGORY_DEFS = [
   { key: "accounts", icon: "pi-users", count: 7 },
   { key: "actions", icon: "pi-bolt", count: 8 },
   { key: "assets", icon: "pi-tags", count: 7 },
-  { key: "swap", icon: "pi-arrow-right-arrow-left", count: 6 },
+  { key: "swap", icon: "pi-arrow-right-arrow-left", count: 8 },
   { key: "connect", icon: "pi-qrcode", count: 7 },
   { key: "backup", icon: "pi-save", count: 6 },
 ];

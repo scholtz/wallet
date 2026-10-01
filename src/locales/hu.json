@@ -115,7 +115,25 @@
     "simulation_received": "A csomópont szerint ennyit kapnál",
     "simulation_failed": "A szimuláció sikertelen",
     "simulation_unavailable": "Még nincs elég tranzakciós adat ennek az útvonalnak a szimulálásához.",
-    "simulation_disclaimer": "A beállított algod csomóponton keresztül, a pontosan előkészített tranzakciók próbafuttatásával számolva az aktuális könyvelési állapot alapján - nem mozog pénz, és aláírás sem szükséges. Ezt az előnézetet az adott csomópont jelenti, és nincs függetlenül ellenőrizve; egy kompromittált vagy rosszindulatú csomópont félrevezető előnézetet mutathat."
+    "simulation_disclaimer": "A beállított algod csomóponton keresztül, a pontosan előkészített tranzakciók próbafuttatásával számolva az aktuális könyvelési állapot alapján - nem mozog pénz, és aláírás sem szükséges. Ezt az előnézetet az adott csomópont jelenti, és nincs függetlenül ellenőrizve; egy kompromittált vagy rosszindulatú csomópont félrevezető előnézetet mutathat.",
+    "folks_lend": {
+      "title": "Folks Finance hitelezés (USDC ⇄ fUSDC)",
+      "description": "Helyezzen el USDC-t a Folks Finance hitelezési poolban, és kapjon fUSDC-t, amely egy kamatozó betéti token, vagy váltsa vissza a fUSDC-t USDC-re. Csak Mainneten érhető el.",
+      "mode_deposit": "USDC betét → fUSDC",
+      "mode_withdraw": "fUSDC kivét → USDC",
+      "amount": "Összeg",
+      "receive": "Kapni fog (becslés)",
+      "rate": "Árfolyam",
+      "apy": "APY",
+      "opt_in_note": "A fiókja ugyanabban a tranzakciócsoportban feliratkozik (opt-in) a(z) {asset} eszközre, ami 0,1 ALGO-t foglal le a minimális egyenlegéből.",
+      "insufficient": "Nincs elég {asset} egyenleg",
+      "submit_deposit": "Betét",
+      "submit_withdraw": "Kivét",
+      "success": "Feldolgozva a tx-ben: {txid}",
+      "rate_error": "Nem sikerült betölteni a Folks Finance pool árfolyamát",
+      "not_confirmed": "A tranzakciót nem erősítették meg. Lehet, hogy még függőben van, vagy elutasították. Újrapróbálkozás előtt ellenőrizze a számláját.",
+      "insufficient_algo": "Nincs elég ALGO: a(z) {asset} opt-in további 0,1 ALGO-t foglal le a minimális egyenlegből, plusz a hálózati díjakat."
+    }
   },
   "govtoolsmenu": {
     "gen": "Számlák generálása",
@@ -856,7 +874,11 @@
         "q5": "Letétkezelő jellegű a swapolás a(z) {name}-on keresztül?",
         "a5": "Nem. Minden lépésben az eszközeid a saját privát kulcsod irányítása alatt maradnak. A(z) {name} csak egy alá nem írt tranzakciót jelenít meg a swaphoz, amelyet át kell nézned és alá kell írnod, pontosan úgy, mint bármely más tranzakciót.",
         "q6": "Miért kell elfogadnom (opt-in) egy tokent, mielőtt swapolhatnék rá?",
-        "a6": "Mert az Algorand csak olyan eszközöket enged egy fiókban tartani, amelyeket a fiók elfogadott. Ha még soha nem birtokoltad a kapni kívánt tokent, először opt-in szükséges, amely a szokásos díjba kerül, és 0,1 ALGO minimumegyenleget foglal le. Gondoskodj róla, hogy legyen elég tartalék ALGO-d erre és a swap díjaira."
+        "a6": "Mert az Algorand csak olyan eszközöket enged egy fiókban tartani, amelyeket a fiók elfogadott. Ha még soha nem birtokoltad a kapni kívánt tokent, először opt-in szükséges, amely a szokásos díjba kerül, és 0,1 ALGO minimumegyenleget foglal le. Gondoskodj róla, hogy legyen elég tartalék ALGO-d erre és a swap díjaira.",
+        "q7": "Hogyan helyezhetek el USDC-t, hogy kamatot keressek és fUSDC-t kapjak?",
+        "a7": "Nyissa meg a Swap oldalt (Fiók > Swap) Mainneten, és görgessen a csereűrlap alatti Folks Finance hitelezési kártyához. Válassza a „USDC betét → fUSDC” lehetőséget, adja meg az összeget (vagy nyomja meg a Max gombot), és ellenőrizze a becsült fUSDC-t, az aktuális árfolyamot és az APY-t. Ha a fiókja még nem végzett opt-int az fUSDC-re, a kártya jelzi – az opt-in ugyanabba a tranzakciócsoportba kerül, és 0,1 ALGO-t foglal le a minimális egyenlegből, ezért tartson tartalék ALGO-t. Nyomja meg a Betét gombot és írja alá. Visszaváltáshoz válassza az „fUSDC kivét → USDC” lehetőséget, adja meg az fUSDC összegét és írja alá; az aktuális árfolyamon kap USDC-t (ha még nincs USDC-je, az opt-in automatikusan hozzáadódik).",
+        "q8": "Mi az fUSDC és mik a kockázatai?",
+        "a8": "Az fUSDC a Folks Finance USDC hitelezési poolának betéti tokenje. Az USDC-t kölcsönadják a hitelfelvevőknek, a kamat pedig az árfolyamban halmozódik: egy fUSDC idővel egyre több USDC-re váltható, így maga az fUSDC egyenleg nem nő. A betétek nem biztosítottak, és okosszerződés- és protokollkockázattal járnak. A kivét átmenetileg meghiúsulhat, ha a pool nagy része éppen ki van hitelezve. Az árfolyam és az APY a kártyán látható, és folyamatosan változik. A Folks hitelezés csak Mainneten érhető el, és mint minden tranzakciót, ezt is Önnek kell ellenőriznie és aláírnia – a(z) {name} soha nem tárol pénzeszközöket."
       },
       "connect": {
         "title": "WalletConnect és DApp-ok",
