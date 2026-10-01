@@ -8,9 +8,8 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 
 ### Bootstrap and Build
 
-- Install dependencies: `CYPRESS_INSTALL_BINARY=0 pnpm install`
+- Install dependencies: `pnpm install`
   - **NEVER CANCEL: Installation takes 20-30 seconds. Set timeout to 600+ seconds.**
-  - Note: Cypress binary installation often fails due to network restrictions. The CYPRESS_INSTALL_BINARY=0 flag skips the binary download.
   - Expected warnings about deprecated packages are normal
 - Build the application: `pnpm run build`
   - **NEVER CANCEL: Build takes 65-70 seconds. Set timeout to 180+ seconds.**
@@ -54,15 +53,19 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 
 ## Testing
 
-### Cypress E2E Tests
+### Playwright Tests (the only test framework - there is no Cypress)
 
-- **WARNING: Cypress binary installation often fails due to network restrictions**
-- Run tests: `pnpm run test`
-  - **Will fail without Cypress binary: "The cypress npm package is installed, but the Cypress binary is missing"**
-  - Do NOT attempt to install Cypress binary unless you have confirmed network access
-- Alternative test commands:
-  - `pnpm run test:open` - Opens Cypress UI (requires binary)
-  - `pnpm run test1` - Runs specific test (requires binary)
+- Unit tests (Node only, no browser): `pnpm run test:unit`
+- E2E tests (specs in `playwright/e2e/`, shared helpers in `playwright/support/`): `pnpm run playwright:test`
+  - One-time browser install: `pnpm run playwright:install`
+  - The dev server is started automatically; set `STEP_DELAY_MS=0` for a fast run without the video slow-motion delay
+- Everything: `pnpm run test`
+
+### Testing policy (mandatory)
+
+- Before finishing ANY change, run `pnpm run lint`, `pnpm run build`, `pnpm run test:unit` and `pnpm run playwright:test`; fix failures and report real results.
+- Add/update tests with every change: pure logic -> `playwright/unit/*.spec.ts`; user-visible flows -> `playwright/e2e/*.spec.ts` (helpers in `playwright/support/wallet.ts`). Bug fixes need a regression test; cover main use case plus a negative case.
+- Never skip/delete tests to get green. PRs must pass the `E2E Tests` and `Unit Tests` GitHub workflows before merge.
 
 ### Manual Validation Scenarios
 
@@ -117,11 +120,10 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 
 ## Common Issues and Workarounds
 
-### Cypress Installation Issues
+### Playwright Browser Missing
 
-- **Problem**: `pnpm install` fails with Cypress download errors
-- **Solution**: Use `CYPRESS_INSTALL_BINARY=0 pnpm install`
-- **Impact**: E2E tests cannot be run, but application development works normally
+- **Problem**: E2E tests fail with "Executable doesn't exist"
+- **Solution**: `pnpm run playwright:install`
 
 ### TypeScript Version Warnings
 
@@ -154,7 +156,7 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
   - `gh-pages.yml`: Builds and deploys to GitHub Pages
   - `awallet-main.yml`: Deploys to private K8S cluster
 - Build steps: `pnpm install` → `pnpm run build` → `pnpm run test`
-- **WARNING: CI tests will fail without Cypress binary access**
+- E2E tests need a Playwright Chromium (`pnpm run playwright:install`)
 
 ## Key URLs and Access Points
 
@@ -195,7 +197,7 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 - `package.json`: Dependencies and pnpm scripts
 - `vue.config.js`: Vue CLI configuration with crypto polyfills
 - `tsconfig.json`: TypeScript configuration
-- `cypress.config.ts`: Cypress test configuration
+- `playwright.config.ts` / `playwright.unit.config.ts`: Playwright E2E / unit test configuration
 - `.eslintrc.js`: ESLint configuration
 
 ### Build Assets (`dist/` after build)
@@ -207,9 +209,9 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 
 ## Development Workflow
 
-1. **Setup**: `CYPRESS_INSTALL_BINARY=0 pnpm install`
+1. **Setup**: `pnpm install`
 2. **Development**: `pnpm run serve` (wait for compilation)
-3. **Testing**: Manual validation scenarios (Cypress tests require binary)
+3. **Testing**: Playwright tests (`pnpm run test`) plus manual validation scenarios
 4. **Linting**: `pnpm run lint` before committing
 5. **Building**: `pnpm run build` for production
 6. **Validation**: Test wallet creation and navigation flows

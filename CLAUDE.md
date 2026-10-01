@@ -10,7 +10,7 @@ AWallet — an open-source Algorand cryptocurrency wallet built with Vue 3 + Typ
 
 This project uses **pnpm** as its package manager (migrated from npm; `pnpm-lock.yaml` is the committed lockfile, `package-lock.json` is gone). A `pnpm-workspace.yaml` carries pnpm-specific policy settings (`allowBuilds`, `minimumReleaseAgeExclude`).
 
-- Install: `CYPRESS_INSTALL_BINARY=0 pnpm install` (skips Cypress binary download, which often fails on restricted networks)
+- Install: `pnpm install`
 - Dev server: `pnpm run serve` (Vite, http://localhost:8080)
 - Build: `pnpm run build` (runs `vue-tsc --noEmit` type-check then `vite build` into `dist/`)
 - Lint (with autofix): `pnpm run lint`
@@ -22,20 +22,27 @@ pnpm's strict, non-hoisted `node_modules` means a package that's only a _transit
 
 ESLint config is a flat config (`eslint.config.mjs`, ESLint 10 requires this — the old `.eslintrc.js` and `package.json`'s `eslintConfig` key are gone). It uses `vueTsConfigs.base` from `@vue/eslint-config-typescript`, not `.recommended` — deliberately, to match the ruleset that was actually enforced before the ESLint 10 upgrade (the old package.json config extended `@vue/typescript`, the equivalent lightweight base with no type-aware rules). Don't switch this to `.recommended`/`.strict` casually: it would newly flag ~130 pre-existing `@typescript-eslint/no-explicit-any` usages across `src/scripts/aggregators/`, `src/store/{wc,wcClient,signer,wallet}.ts`, etc. that were never actually linted. Also calls `configureVueProject({ scriptLangs: ["ts", "js"] })` so `vue/block-lang` doesn't force every legacy plain-`<script>` Options API component (many exist) into strict TS typing — one file (`Settings.vue`) was tried as `lang="ts"` during this migration and immediately surfaced real implicit-`any`/argument-count errors, confirming these files rely on being checked as loose JS, not TS.
 
-### Testing (Cypress E2E)
+### Testing (Playwright E2E)
 
-Cypress requires its binary, which frequently fails to install in sandboxed/restricted environments — don't assume `pnpm run test` works without checking first.
+Playwright is the **only** test framework (Cypress was removed). E2E specs live in `playwright/e2e/*.spec.ts`, shared helpers in `playwright/support/wallet.ts` (`clearAWalletDB`, `createTestWallet`, ...). `playwright.config.ts` auto-starts the Vite dev server on :8080, records video, and applies `slowMo` from `STEP_DELAY_MS` (default 1000 ms so videos are followable; use `STEP_DELAY_MS=0` for a fast run, as CI does).
 
-`scripts/run-test-with-server.js` and `scripts/run-tests.js`/`run-tests.ts` locate the Cypress binary cache cross-platform (Windows `%LOCALAPPDATA%\Cypress\Cache`, macOS `~/Library/Caches/Cypress`, Linux `~/.cache/Cypress`) — both were fixed to agree on this (previously `run-test-with-server.js` only checked the Linux path and false-negatived on Windows). Even with the binary present, `npx cypress run ...` can still fail in a sandboxed/headless Windows environment with `Cypress.exe: bad option: --smoke-test` (the sandboxed `.exe` isn't the real Cypress binary, and this reproduces identically via `npx cypress install` + direct invocation in both Git Bash and native PowerShell, with or without sandboxing disabled). If you hit that, don't keep retrying Cypress — fall back to a plain Node script exercising the underlying logic directly (e.g. algosdk + the relevant `src/scripts/` helper) for verification instead. Note that `@algorandfoundation/xhd-wallet-api`'s `libsodium-wrappers-sumo` dependency only resolves via Vite's build-time alias (see Build config quirks below) — a bare Node script importing it directly will hit the same broken-ESM-build error Vite works around, so verify HD-wallet-adjacent logic via a successful `vite build` instead of a standalone script for that specific dependency chain.
-
-- Run full suite: `pnpm run test` (compiles scripts then runs `scripts/run-tests.js`)
-- Run a single spec against an auto-started server: `pnpm run test:basic` / `test:arc76` / `test:ed25519` / `test:hd-wallet`, or directly: `node scripts/run-test-with-server.js cypress run --config-file cypress.config.video.ts --spec 'cypress/e2e/<path>/<file>.cy.ts'` (run this via `pnpm run <script>` rather than bare `node`, so `node_modules/.bin` is on `PATH` and `cypress` resolves)
-- Interactive: `pnpm run test:open` (starts server + opens Cypress UI)
-- Specs live under `cypress/e2e/<n-category>/*.cy.ts`, numbered by test phase (e.g. `1-basic-tests`, `2-setup-account`).
+- One-time browser install: `pnpm run playwright:install`
+- Run all E2E: `pnpm run playwright:test` (single spec: `pnpm exec playwright test <file>.spec.ts`)
+- Everything (unit + E2E): `pnpm run test`
+- A full page reload locks the wallet (session state is in Vuex only), so inside a spec navigate via in-app links/menus, not `page.goto`, once a wallet is unlocked.
 
 ### Unit tests (Playwright, Node-only)
 
-`pnpm run test:unit` runs pure Node unit tests via Playwright's test runner (`playwright.unit.config.ts`, specs in `playwright/unit/*.spec.ts`) — no browser, no dev server, no video, so they run in under a second and also run in CI (`.github/workflows/unit-tests.yml`). Use this for pure logic under `src/scripts/` (e.g. `combineBiatecRoute.ts`): keep the module under test free of runtime imports (type-only imports are fine — they're erased, so transitive `vue`/`algosdk` imports in `types.ts` never load at runtime) and import it into the spec via a relative path. Everything browser-dependent is still verified via type-checking, lint, and Cypress/Playwright E2E flows.
+`pnpm run test:unit` runs pure Node unit tests via Playwright's test runner (`playwright.unit.config.ts`, specs in `playwright/unit/*.spec.ts`) — no browser, no dev server, no video, so they run in under a second and also run in CI (`.github/workflows/unit-tests.yml`). Use this for pure logic under `src/scripts/` (e.g. `combineBiatecRoute.ts`): keep the module under test free of runtime imports (type-only imports are fine — they're erased, so transitive `vue`/`algosdk` imports in `types.ts` never load at runtime) and import it into the spec via a relative path. Everything browser-dependent is still verified via type-checking, lint, and Playwright E2E flows.
+
+## Testing policy (mandatory)
+
+Every change must be verified with real tests before it is called done, committed or merged. Playwright is the only test framework (no Cypress).
+
+- **Run before every commit/PR:** `pnpm run lint`, `pnpm run build` (includes the `vue-tsc` type-check), `pnpm run check-locales` if any locale was touched, `pnpm run test:unit`, and the Playwright E2E suite (`pnpm run playwright:test`; `STEP_DELAY_MS=0` speeds it up). Report failures honestly - never claim "tests pass" without having run them.
+- **Add or update tests with the change.** Pure logic under `src/scripts/` -> a spec in `playwright/unit/`. Any user-visible flow (wallet/account creation, unlock, export/backup, signing, navigation, settings) -> a spec in `playwright/e2e/` using the helpers in `playwright/support/wallet.ts`. A bug fix needs a regression test. Test the main use case *and* the obvious negative case (wrong password, invalid input).
+- **Fix or justify every red test.** Don't delete, skip or loosen a test to get green unless the behaviour was intentionally changed (then update the test and say so).
+- **CI gates PRs.** `.github/workflows/e2e-tests.yml` (build + Playwright E2E) and `.github/workflows/unit-tests.yml` must be green before merging; don't merge a PR with failing checks.
 
 ## Architecture
 
@@ -145,7 +152,7 @@ Other design-system notes:
 
 ### `scripts/` (repo tooling, not app code)
 
-Write new one-off/repo-tooling scripts in TypeScript, not plain `.js` — the source of truth is a `.ts` file compiled via `pnpm run build:scripts` (`tsc -p tsconfig.scripts.json`, which includes all of `scripts/*.ts`) into a same-named `.js`. There's no ts-node/tsx installed, so `node scripts/<name>.js` (the compiled output) is what actually runs — never hand-edit the `.js`, regenerate it after editing the `.ts`. The compiled `.js` for each `.ts`-sourced script is gitignored (listed explicitly in `.gitignore`, e.g. `scripts/check-locales.js`, `scripts/run-tests.js`) — only the `.ts` is committed, so wire the npm script to always rebuild first: `pnpm run build:scripts && node scripts/<name>.js` (see `check-locales`, `test`). `run-test-with-server.js` and `wait-for-server.js` predate this convention, have no `.ts` source, and stay committed as plain hand-written `.js` — leave them as-is unless asked to convert them (and if you do, add the new compiled `.js` to `.gitignore` too).
+Write new one-off/repo-tooling scripts in TypeScript, not plain `.js` — the source of truth is a `.ts` file compiled via `pnpm run build:scripts` (`tsc -p tsconfig.scripts.json`, which includes all of `scripts/*.ts`) into a same-named `.js`. There's no ts-node/tsx installed, so `node scripts/<name>.js` (the compiled output) is what actually runs — never hand-edit the `.js`, regenerate it after editing the `.ts`. The compiled `.js` for each `.ts`-sourced script is gitignored (listed explicitly in `.gitignore`, e.g. `scripts/check-locales.js`) — only the `.ts` is committed, so wire the npm script to always rebuild first: `pnpm run build:scripts && node scripts/<name>.js` (see `check-locales`). Every script in `scripts/` currently follows this convention.
 
 ### Changelog
 

@@ -14,6 +14,31 @@ export async function clearAWalletDB(page: Page) {
   );
 }
 
+export const DEFAULT_WALLET_PASSWORD = "TestPassword123";
+
+/** Navbar: Wallet > New account > <item> (hover submenu, hence forced clicks). */
+export async function chooseNewAccountMenuItem(page: Page, item: string) {
+  await page.getByText("Wallet", { exact: true }).click({ force: true });
+  await page.getByText("New account", { exact: true }).hover({ force: true });
+  await page.getByText(item, { exact: true }).click({ force: true });
+}
+
+/**
+ * Clears the DB, creates a wallet and waits for the overview of the
+ * auto-created first (not yet backed up) HD account.
+ */
+export async function setupFreshWallet(
+  page: Page,
+  walletName = "Test Wallet",
+  password = DEFAULT_WALLET_PASSWORD
+) {
+  await clearAWalletDB(page);
+  await page.goto("/new-wallet");
+  await createTestWallet(page, walletName, password);
+  await page.waitForURL(/\/account\//, { timeout: 30000 });
+  await expect(page.locator("h1")).toContainText("Account overview");
+}
+
 export async function createTestWallet(
   page: Page,
   walletName = "Test Wallet",

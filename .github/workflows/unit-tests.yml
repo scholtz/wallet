@@ -1,5 +1,8 @@
 name: Unit Tests
-on: [push]
+on:
+  push:
+    branches: [master]
+  pull_request:
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
@@ -20,10 +23,25 @@ jobs:
 
       - name: Install dependencies
         # Node-only unit tests (playwright/unit) never launch a browser, so
-        # neither the Cypress binary nor Playwright browsers are needed here.
+        # no browsers are needed here.
         run: pnpm install --frozen-lockfile
-        env:
-          CYPRESS_INSTALL_BINARY: "0"
 
       - name: Run unit tests
         run: pnpm run test:unit
+
+  build-and-locales:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.10.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "26.x"
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - name: Type-check and build
+        run: pnpm run build
+      - name: Locale parity
+        run: pnpm run check-locales

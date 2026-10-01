@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { clearAWalletDB, createTestWallet } from "../support/wallet";
+import {
+  chooseNewAccountMenuItem,
+  clearAWalletDB,
+  createTestWallet,
+} from "../support/wallet";
 
 const WALLET_PASSWORD = "TestPassword123";
 
@@ -10,11 +14,12 @@ test("create basic ed25519 account, verify mnemonic export, back up via 2-of-3 S
 
   await page.goto("/new-wallet");
   await createTestWallet(page, "Test Wallet", WALLET_PASSWORD);
-  await expect(page.locator("nav")).toBeVisible();
+  await expect(page.locator(".p-menubar")).toBeVisible();
 
-  // --- Create a basic ed25519 account (first account, so via #create-first) ---
-  await expect(page).toHaveURL(/\/accounts/);
-  await page.locator("#create-first").click();
+  // --- Create a basic ed25519 account. Wallet creation already auto-created
+  // a first HD account, so go through the navbar menu. ---
+  await expect(page).toHaveURL(/\/account\//);
+  await chooseNewAccountMenuItem(page, "Create basic account");
 
   await expect(page).toHaveURL(/\/new-account\/ed25519/);
   const createdMnemonic = await page

@@ -25,9 +25,9 @@ jobs:
       - name: pnpm run build 🔧 # Build
         run: |
           pnpm run build
-      - name: pnpm run test 🔧 # Test
+      - name: pnpm run test:unit 🔧 # Unit tests (E2E runs in the E2E Tests workflow)
         run: |
-          pnpm run test
+          pnpm run test:unit
 
       - name: Deploy 🚀 # Deploy to gh-pages branch
         uses: JamesIves/github-pages-deploy-action@4.1.5

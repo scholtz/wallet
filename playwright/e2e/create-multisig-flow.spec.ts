@@ -12,7 +12,7 @@ test("create wallet, HD root + next account, basic account, then a 2-of-3 multis
   await expect(page.locator("#new_wallet_button_create")).toBeVisible();
 
   await createTestWallet(page);
-  await expect(page.locator("nav")).toBeVisible();
+  await expect(page.locator(".p-menubar")).toBeVisible();
 
   // --- Create the HD root account via the navbar menu ---
   await page.getByText("Wallet", { exact: true }).click({ force: true });
