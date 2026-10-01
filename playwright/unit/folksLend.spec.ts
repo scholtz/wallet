@@ -211,6 +211,64 @@ test.describe("transaction building", () => {
     expect(() => assertFolksLendTxnsSafe(txns, sender)).not.toThrow();
   });
 
+  test("safety check only accepts plain, bounded calls to the pool and OpUp", () => {
+    const opUp = (overrides: Partial<Parameters<typeof algosdk.makeApplicationNoOpTxnFromObject>[0]> = {}) =>
+      algosdk.makeApplicationNoOpTxnFromObject({
+        sender,
+        appIndex: MainnetOpUp.callerAppId,
+        appArgs: [algosdk.encodeUint64(1)],
+        foreignApps: [MainnetOpUp.baseAppId],
+        suggestedParams: { ...suggestedParams, fee: 2000n },
+        ...overrides,
+      });
+    expect(() => assertFolksLendTxnsSafe([opUp()], sender)).not.toThrow();
+
+    // not a plain NoOp: close-out / update / clear-state of the OpUp app
+    const closeOut = algosdk.makeApplicationCloseOutTxnFromObject({
+      sender,
+      appIndex: MainnetOpUp.callerAppId,
+      appArgs: [algosdk.encodeUint64(1)],
+      foreignApps: [MainnetOpUp.baseAppId],
+      suggestedParams: { ...suggestedParams, fee: 2000n },
+    });
+    expect(() => assertFolksLendTxnsSafe([closeOut], sender)).toThrow(
+      /unexpected application call/,
+    );
+    // closing out of the pool app itself is not allowed either
+    const poolCloseOut = algosdk.makeApplicationCloseOutTxnFromObject({
+      sender,
+      appIndex: FOLKS_USDC_POOL.appId,
+      suggestedParams,
+    });
+    expect(() => assertFolksLendTxnsSafe([poolCloseOut], sender)).toThrow(
+      /unexpected application call/,
+    );
+    // an inflated fee
+    expect(() =>
+      assertFolksLendTxnsSafe(
+        [opUp({ suggestedParams: { ...suggestedParams, fee: 50_000n } })],
+        sender,
+      ),
+    ).toThrow(/unexpected application call/);
+    // OpUp with extra arguments / foreign apps / a different base app
+    expect(() =>
+      assertFolksLendTxnsSafe(
+        [opUp({ appArgs: [algosdk.encodeUint64(1), algosdk.encodeUint64(2)] })],
+        sender,
+      ),
+    ).toThrow(/unexpected OpUp call/);
+    expect(() =>
+      assertFolksLendTxnsSafe([opUp({ foreignApps: [1234] })], sender),
+    ).toThrow(/unexpected OpUp call/);
+    expect(() =>
+      assertFolksLendTxnsSafe([opUp({ foreignApps: [] })], sender),
+    ).toThrow(/unexpected OpUp call/);
+    // more than one OpUp call
+    expect(() => assertFolksLendTxnsSafe([opUp(), opUp()], sender)).toThrow(
+      /number of application calls/,
+    );
+  });
+
   test("safety check rejects foreign senders, receivers, apps and assets", () => {
     const good = buildFolksLendTxns({
       direction: "deposit",

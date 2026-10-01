@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import algosdk from "algosdk";
 import { useStore } from "@/store";
@@ -191,6 +191,7 @@ const submit = async () => {
   if (!canSubmit.value) return;
   processing.value = true;
   lastTxId.value = "";
+  const submittedAmount = props.amount;
   // The account can change in the router while we await signing/confirmation.
   const from = sender.value;
   try {
@@ -213,7 +214,8 @@ const submit = async () => {
     if (!result) return; // the signer already surfaced the error toast
     if (result.confirmed) {
       lastTxId.value = result.txid;
-      emit("converted");
+      // Do not discard an amount the user changed while signing/confirming.
+      if (props.amount === submittedAmount) emit("converted");
     } else {
       // Submitted, but no confirmation (still pending or rejected) - tell the
       // user to check before retrying.
@@ -229,12 +231,30 @@ const submit = async () => {
   }
 };
 
+// A new direction or amount makes the previous result message stale (the
+// reset to 0 after a conversion keeps its message).
 watch(
   () => props.direction,
   () => {
     lastTxId.value = "";
   },
 );
-// The pool rate is only needed while this panel is shown (mounted).
-loadRate();
+watch(
+  () => props.amount,
+  (value) => {
+    if (value !== 0) lastTxId.value = "";
+  },
+);
+
+// The pool rate is only needed while this panel is shown. Keep the estimate
+// and APY fresh on a long-open page, and retry after a failed load.
+const RATE_REFRESH_MS = 60_000;
+let rateTimer: ReturnType<typeof setInterval> | undefined;
+onMounted(() => {
+  loadRate();
+  rateTimer = setInterval(loadRate, RATE_REFRESH_MS);
+});
+onUnmounted(() => {
+  if (rateTimer !== undefined) clearInterval(rateTimer);
+});
 </script>

@@ -73,82 +73,82 @@
             @converted="payamount = 0"
           />
           <template v-else>
-          <SwapSlippageInput
-            v-model:slippage="slippage"
-            v-model:slippageProtectionEnabled="slippageProtectionEnabled"
-          />
-          <SwapOptions
-            :aggregators="dexAggregators"
-            v-model:useFolks="useFolks"
-            v-model:useDeflex="useDeflex"
-            v-model:useBiatec="useBiatec"
-            v-model:useBiatecStage="useBiatecStage"
-          />
-          <SwapQuoteButton
-            :formInvalid="formInvalid"
-            :allowExecuteDeflex="allowExecuteDeflex"
-            :requiresOptIn="requiresOptIn"
-            :processingQuote="processingQuote"
-            @get-quote="clickGetQuote"
-          />
-          <SwapOptIn
-            :requiresOptIn="requiresOptIn"
-            :appsToOptIn="appsToOptIn"
-            :processingOptin="processingOptin"
-            @opt-in="clickOptInToApps"
-          />
-          <SwapTransactionDetails
-            v-model:txsDetails="txsDetails"
-            :note="note"
-            :error="error"
-          />
-          <SwapRouteExplorer
-            :useDeflex="useDeflex"
-            :useFolks="useFolks"
-            :useBiatec="useBiatec"
-            :useBiatecStage="useBiatecStage"
-            :deflexQuotes="deflexQuotes"
-            :deflexTxs="deflexTxs"
-            :folksQuote="folksQuote"
-            :folksTxns="folksTxns"
-            :biatecQuotes="biatecQuotes"
-            :biatecStageQuotes="biatecStageQuotes"
-            :fromAssetObj="fromAssetObj"
-            :toAssetObj="toAssetObj"
-            :payamount="payamount"
-            :fromAssetDecimals="fromAssetDecimals"
-            :accountAddr="account?.addr"
-          />
-          <SwapExecuteButtons
-            :useDeflex="useDeflex"
-            :useFolks="useFolks"
-            :useBiatec="useBiatec"
-            :useBiatecStage="useBiatecStage"
-            :allowExecuteDeflex="allowExecuteDeflex"
-            :allowExecuteFolks="allowExecuteFolks"
-            :allowExecuteBiatec="allowExecuteBiatec"
-            :allowExecuteBiatecStage="allowExecuteBiatecStage"
-            :processingTradeDeflex="processingTradeDeflex"
-            :processingTradeFolks="processingTradeFolks"
-            :processingTradeBiatec="processingTradeBiatec"
-            :processingTradeBiatecStage="processingTradeBiatecStage"
-            :isDeflexQuoteBetter="isDeflexQuoteBetter"
-            :isFolksQuoteBetter="isFolksQuoteBetter"
-            :isBiatecQuoteBetter="isBiatecQuoteBetter"
-            :isBiatecStageQuoteBetter="isBiatecStageQuoteBetter"
-            :deflexQuotes="deflexQuotes"
-            :folksQuote="folksQuote"
-            :biatecQuotes="biatecQuotes"
-            :biatecStageQuotes="biatecStageQuotes"
-            :toAssetDecimals="toAssetDecimals"
-            :payamount="payamount"
-            :pair="pair"
-            :pairReversed="pairReversed"
-            @execute-deflex="clickExecuteDeflex"
-            @execute-folks="clickExecuteFolks"
-            @execute-biatec="clickExecuteBiatec"
-            @execute-biatec-stage="clickExecuteBiatecStage"
-          />
+            <SwapSlippageInput
+              v-model:slippage="slippage"
+              v-model:slippageProtectionEnabled="slippageProtectionEnabled"
+            />
+            <SwapOptions
+              :aggregators="dexAggregators"
+              v-model:useFolks="useFolks"
+              v-model:useDeflex="useDeflex"
+              v-model:useBiatec="useBiatec"
+              v-model:useBiatecStage="useBiatecStage"
+            />
+            <SwapQuoteButton
+              :formInvalid="formInvalid"
+              :allowExecuteDeflex="allowExecuteDeflex"
+              :requiresOptIn="requiresOptIn"
+              :processingQuote="processingQuote"
+              @get-quote="clickGetQuote"
+            />
+            <SwapOptIn
+              :requiresOptIn="requiresOptIn"
+              :appsToOptIn="appsToOptIn"
+              :processingOptin="processingOptin"
+              @opt-in="clickOptInToApps"
+            />
+            <SwapTransactionDetails
+              v-model:txsDetails="txsDetails"
+              :note="note"
+              :error="error"
+            />
+            <SwapRouteExplorer
+              :useDeflex="useDeflex"
+              :useFolks="useFolks"
+              :useBiatec="useBiatec"
+              :useBiatecStage="useBiatecStage"
+              :deflexQuotes="deflexQuotes"
+              :deflexTxs="deflexTxs"
+              :folksQuote="folksQuote"
+              :folksTxns="folksTxns"
+              :biatecQuotes="biatecQuotes"
+              :biatecStageQuotes="biatecStageQuotes"
+              :fromAssetObj="fromAssetObj"
+              :toAssetObj="toAssetObj"
+              :payamount="payamount"
+              :fromAssetDecimals="fromAssetDecimals"
+              :accountAddr="account?.addr"
+            />
+            <SwapExecuteButtons
+              :useDeflex="useDeflex"
+              :useFolks="useFolks"
+              :useBiatec="useBiatec"
+              :useBiatecStage="useBiatecStage"
+              :allowExecuteDeflex="allowExecuteDeflex"
+              :allowExecuteFolks="allowExecuteFolks"
+              :allowExecuteBiatec="allowExecuteBiatec"
+              :allowExecuteBiatecStage="allowExecuteBiatecStage"
+              :processingTradeDeflex="processingTradeDeflex"
+              :processingTradeFolks="processingTradeFolks"
+              :processingTradeBiatec="processingTradeBiatec"
+              :processingTradeBiatecStage="processingTradeBiatecStage"
+              :isDeflexQuoteBetter="isDeflexQuoteBetter"
+              :isFolksQuoteBetter="isFolksQuoteBetter"
+              :isBiatecQuoteBetter="isBiatecQuoteBetter"
+              :isBiatecStageQuoteBetter="isBiatecStageQuoteBetter"
+              :deflexQuotes="deflexQuotes"
+              :folksQuote="folksQuote"
+              :biatecQuotes="biatecQuotes"
+              :biatecStageQuotes="biatecStageQuotes"
+              :toAssetDecimals="toAssetDecimals"
+              :payamount="payamount"
+              :pair="pair"
+              :pairReversed="pairReversed"
+              @execute-deflex="clickExecuteDeflex"
+              @execute-folks="clickExecuteFolks"
+              @execute-biatec="clickExecuteBiatec"
+              @execute-biatec-stage="clickExecuteBiatecStage"
+            />
           </template>
         </div>
       </template>
@@ -243,10 +243,6 @@ const {
   clickOptInToApps,
 } = useSwap();
 
-// "Custom" network (Settings > Network > Custom) points at user-supplied
-// algod/indexer URLs with no fixed chain identity, so checkNetwork() can't
-// tell whether it behaves like mainnet or testnet on its own - the swap page
-// asks the user to pick explicitly (see customNetworkKind in useSwap).
 // USDC <-> fUSDC (either way) is handled by the Folks lending panel instead of
 // the swap quote form; the selected assets decide the direction.
 const folksDirection = computed(() =>
@@ -260,6 +256,10 @@ const folksDirection = computed(() =>
     : null
 );
 
+// "Custom" network (Settings > Network > Custom) points at user-supplied
+// algod/indexer URLs with no fixed chain identity, so checkNetwork() can't
+// tell whether it behaves like mainnet or testnet on its own - the swap page
+// asks the user to pick explicitly (see customNetworkKind in useSwap).
 const isCustomEnv = computed(() => store.state.config.env === "custom");
 const customNetworkKindOptions = [
   { label: t("swap.custom_network_kind_mainnet"), value: "mainnet" },
