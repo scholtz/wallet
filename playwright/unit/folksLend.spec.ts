@@ -13,6 +13,7 @@ import {
   FOLKS_USDC_POOL,
   assertFolksLendTxnsSafe,
   buildFolksLendTxns,
+  hasAlgoForOptIn,
   isFolksLendNetwork,
 } from "../../src/scripts/folksLend/transactions";
 
@@ -83,6 +84,18 @@ test.describe("network gate", () => {
     expect(isFolksLendNetwork("mainnet")).toBe(true);
     expect(isFolksLendNetwork("testnet-v1.0")).toBe(false);
     expect(isFolksLendNetwork("custom")).toBe(false);
+  });
+});
+
+test.describe("ALGO headroom for an opt-in", () => {
+  test("needs min balance + one more 0.1 ALGO reservation + fees", () => {
+    // no assets: 0.1 (base) + 0.1 (new asset) + 0.01 fees
+    expect(hasAlgoForOptIn(209_999n, 0)).toBe(false);
+    expect(hasAlgoForOptIn(210_000n, 0)).toBe(true);
+    // each held asset raises the minimum by 0.1 ALGO
+    expect(hasAlgoForOptIn(309_999n, 1)).toBe(false);
+    expect(hasAlgoForOptIn(310_000n, 1)).toBe(true);
+    expect(hasAlgoForOptIn(0n, 0)).toBe(false);
   });
 });
 

@@ -54,6 +54,7 @@
             @update:toAsset="toAsset = $event"
             @swap-tokens="swapTokens"
           />
+          <FolksFAssetOptIn :asset="asset" @opted-in="onFAssetOptedIn" />
           <SwapAmountInput
             v-model:payamount="payamount"
             :maxAmount="maxAmount"
@@ -161,6 +162,7 @@ import SwapTransactionDetails from "../components/SwapTransactionDetails.vue";
 import SwapRouteExplorer from "../components/SwapRouteExplorer.vue";
 import SwapExecuteButtons from "../components/SwapExecuteButtons.vue";
 import FolksLendConvert from "../components/FolksLendConvert.vue";
+import FolksFAssetOptIn from "../components/FolksFAssetOptIn.vue";
 import { useSwap } from "../composables/useSwap";
 import { RootState } from "@/store";
 import { StoredAsset } from "@/store/indexer";
@@ -281,6 +283,13 @@ const biatecQuotes = computed(() => aggregatorData.biatecQuotes.value);
 const biatecStageQuotes = computed(
   () => aggregatorData.biatecStageQuotes?.value ?? {}
 );
+
+// After the fUSDC opt-in is confirmed and the balance reloaded, rebuild the
+// asset list (it only offers held assets) and preselect fUSDC as destination.
+const onFAssetOptedIn = async (assetId: bigint) => {
+  await makeAssets();
+  toAsset.value = assetId;
+};
 
 // Watchers
 watch(asset, async (newAsset) => {

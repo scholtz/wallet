@@ -33,6 +33,24 @@ export const fetchFolksPoolRate = async (
   };
 };
 
+const MIN_BALANCE_PER_ENTRY = 100_000n;
+const OPT_IN_FEES_MICROALGO = 10_000n;
+
+/**
+ * Conservative check that an account can afford one more opt-in (same basis as
+ * the Swap page: 0.1 ALGO base + 0.1 per held asset; apps only raise the real
+ * minimum, so this never blocks wrongly): room for one more 0.1 ALGO
+ * reservation plus fees.
+ */
+export const hasAlgoForOptIn = (
+  microAlgo: bigint,
+  heldAssetCount: number,
+): boolean =>
+  microAlgo >=
+  MIN_BALANCE_PER_ENTRY * BigInt(heldAssetCount + 1) +
+    MIN_BALANCE_PER_ENTRY +
+    OPT_IN_FEES_MICROALGO;
+
 /** Zero-amount self transfer opting the account into an asset. */
 export const buildOptInTxn = (
   sender: string,

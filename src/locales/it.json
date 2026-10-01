@@ -132,7 +132,10 @@
       "success": "Elaborato nella tx: {txid}",
       "rate_error": "Impossibile caricare il tasso del pool Folks Finance",
       "not_confirmed": "La transazione non è stata confermata. Potrebbe essere ancora in sospeso o essere stata rifiutata. Controlla il tuo account prima di riprovare.",
-      "insufficient_algo": "ALGO insufficienti: l'opt-in a {asset} riserva altri 0,1 ALGO del saldo minimo, più le commissioni di rete."
+      "insufficient_algo": "ALGO insufficienti: l'opt-in a {asset} riserva altri 0,1 ALGO del saldo minimo, più le commissioni di rete.",
+      "optin_button": "Opt-in a fUSDC",
+      "optin_hint": "Per convertire USDC in fUSDC di Folks Finance, il tuo account deve prima fare opt-in a fUSDC. Questo riserva 0,1 ALGO del tuo saldo minimo. Dopo la conferma dell'opt-in, fUSDC viene selezionato come asset di destinazione.",
+      "optin_done": "Opt-in a fUSDC completato"
     }
   },
   "govtoolsmenu": {
@@ -876,7 +879,7 @@
         "q6": "Perché devo aderire a un token prima di poter fare uno swap verso di esso?",
         "a6": "Perché Algorand permette a un account di detenere solo gli asset a cui ha aderito. Se non hai mai detenuto il token che vuoi ricevere, serve prima un opt-in, che costa la normale commissione e blocca 0,1 ALGO di saldo minimo. Assicurati di avere abbastanza ALGO di scorta per questo e per le commissioni dello swap.",
         "q7": "Come depositare USDC per guadagnare interessi e ricevere fUSDC?",
-        "a7": "Apri la pagina Swap (Account > Swap) su Mainnet e scorri fino alla scheda di prestito Folks Finance sotto il modulo di scambio. Scegli \"Deposita USDC → fUSDC\", inserisci l'importo (o premi Max) e controlla gli fUSDC stimati, il tasso di cambio attuale e l'APY. Se il tuo account non ha ancora fatto opt-in a fUSDC, la scheda lo indica: l'opt-in viene aggiunto allo stesso gruppo di transazioni e riserva 0,1 ALGO del tuo saldo minimo, quindi tieni un po' di ALGO libero. Premi Deposita e firma. Per tornare indietro, scegli \"Preleva fUSDC → USDC\", inserisci l'importo di fUSDC e firma; ricevi USDC al tasso attuale (se non possiedi ancora USDC, l'opt-in viene aggiunto automaticamente).",
+        "a7": "Apri la pagina Swap (Account > Swap) su Mainnet e scorri fino alla scheda di prestito Folks Finance sotto il modulo di scambio. Scegli \"Deposita USDC → fUSDC\", inserisci l'importo (o premi Max) e controlla gli fUSDC stimati, il tasso di cambio attuale e l'APY. Se il tuo account non ha ancora fatto opt-in a fUSDC, la scheda lo indica: l'opt-in viene aggiunto allo stesso gruppo di transazioni e riserva 0,1 ALGO del tuo saldo minimo, quindi tieni un po' di ALGO libero. Premi Deposita e firma. Per tornare indietro, scegli \"Preleva fUSDC → USDC\", inserisci l'importo di fUSDC e firma; ricevi USDC al tasso attuale (se non possiedi ancora USDC, l'opt-in viene aggiunto automaticamente). Suggerimento: se nel modulo di scambio scegli USDC come asset di origine e il tuo account non ha ancora fatto opt-in a fUSDC, compare un pulsante \"Opt-in a fUSDC\"; dopo la conferma dell'opt-in e il ricaricamento del saldo, fUSDC viene selezionato automaticamente come asset di destinazione.",
         "q8": "Cos'è fUSDC e quali sono i rischi?",
         "a8": "fUSDC è il token di deposito del pool di prestito USDC di Folks Finance. I tuoi USDC vengono prestati ai mutuatari e gli interessi maturano nel tasso di cambio: un fUSDC diventa riscattabile per sempre più USDC nel tempo, quindi il saldo di fUSDC in sé non cresce. I depositi non sono assicurati e comportano rischio di smart contract e di protocollo. Un prelievo può anche fallire temporaneamente se gran parte del pool è in prestito. Tasso e APY sono mostrati nella scheda e cambiano continuamente. Il prestito Folks è disponibile solo su Mainnet e, come ogni transazione, devi verificarla e firmarla tu stesso: {name} non custodisce mai fondi."
       },

@@ -98,6 +98,7 @@ import {
   buildFolksLendTxns,
   FOLKS_USDC_POOL,
   fetchFolksPoolRate,
+  hasAlgoForOptIn,
   isFolksLendNetwork,
   type FolksPoolRate,
 } from "@/scripts/folksLend/transactions";
@@ -156,16 +157,12 @@ const optInAssetId = computed<number | undefined>(() => {
 });
 const needsOptIn = computed(() => optInAssetId.value !== undefined);
 
-// Conservative estimate (same basis as the Swap page: 0.1 ALGO base + 0.1 per
-// held asset; apps only raise the real minimum, so this never blocks wrongly):
-// an opt-in must leave room for one more 0.1 ALGO reservation plus the fees.
-const OPT_IN_FEES_MICROALGO = 10_000n;
-const lacksAlgoForOptIn = computed(() => {
-  if (!needsOptIn.value || accountData.value === undefined) return false;
-  const minBalance = 100_000n * BigInt(holdings.value.length + 1);
-  const needed = minBalance + 100_000n + OPT_IN_FEES_MICROALGO;
-  return BigInt(accountData.value.amount ?? 0) < needed;
-});
+const lacksAlgoForOptIn = computed(
+  () =>
+    needsOptIn.value &&
+    accountData.value !== undefined &&
+    !hasAlgoForOptIn(BigInt(accountData.value.amount ?? 0), holdings.value.length),
+);
 const fromUnit = computed(() =>
   direction.value === "deposit" ? "USDC" : "fUSDC",
 );
