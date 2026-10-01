@@ -37,10 +37,11 @@ const MIN_BALANCE_PER_ENTRY = 100_000n;
 const OPT_IN_FEES_MICROALGO = 10_000n;
 
 /**
- * Conservative check that an account can afford one more opt-in (same basis as
- * the Swap page: 0.1 ALGO base + 0.1 per held asset; apps only raise the real
- * minimum, so this never blocks wrongly): room for one more 0.1 ALGO
- * reservation plus fees.
+ * Pre-check that an account can afford one more opt-in, so the user gets a
+ * friendly message instead of a raw algod error. It is an approximation (the
+ * Swap page's basis: 0.1 ALGO base + 0.1 per held asset) that ignores opted-in
+ * apps, created assets/apps and boxes, so it can only under-block: algod stays
+ * authoritative and its rejection is still shown if the real minimum is higher.
  */
 export const hasAlgoForOptIn = (
   microAlgo: bigint,

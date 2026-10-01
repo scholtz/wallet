@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import algosdk from "algosdk";
 import { setupFreshWallet } from "../support/wallet";
 
@@ -80,48 +80,57 @@ test("selecting USDC as the source offers the fUSDC opt-in, but not for other as
   await expect(page.getByTestId("folks-fusdc-optin")).toHaveCount(0);
 });
 
-test("after the fUSDC opt-in is confirmed the balance is reloaded and fUSDC becomes the destination", async ({
-  page,
-}) => {
-  test.setTimeout(180000);
-  const USDC = 31566704;
-  const FUSDC = 971384592;
-  await page.route(/\/v2\/applications\/971372237/, (route) => route.abort());
+const USDC = 31566704;
+const FUSDC = 971384592;
 
-  // --- mocked chain: the account holds ALGO + USDC, fUSDC only after opt-in ---
-  let optedIn = false;
-  const accountJson = (addr: string) => ({
-    "current-round": 100,
-    account: {
-      address: addr,
-      amount: 5_000_000,
-      "amount-without-pending-rewards": 5_000_000,
-      "min-balance": 200_000,
-      "pending-rewards": 0,
-      rewards: 0,
-      round: 100,
-      status: "Offline",
-      "total-apps-opted-in": 0,
-      "total-assets-opted-in": optedIn ? 2 : 1,
-      "total-created-apps": 0,
-      "total-created-assets": 0,
-      assets: [
-        { "asset-id": USDC, amount: 10_000_000, "is-frozen": false },
-        ...(optedIn
-          ? [{ "asset-id": FUSDC, amount: 0, "is-frozen": false }]
-          : []),
-      ],
-    },
+interface ChainMockOptions {
+  /** algod rejects the submitted transaction. */
+  rejectSend?: boolean;
+  /** the indexer fails once the opt-in went through. */
+  failRefreshAfterOptIn?: boolean;
+}
+
+/**
+ * Mocked chain: the account holds ALGO + USDC and fUSDC only after the opt-in.
+ * Installed before the wallet exists so that no real mainnet lookup can land
+ * later and overwrite the mocked holdings.
+ */
+async function mockFolksChain(page: Page, opts: ChainMockOptions = {}) {
+  const state = { optedIn: false, submitted: null as Buffer | null };
+  await page.route(/\/v2\/applications\/971372237/, (route) => route.abort());
+  await page.route(/\/v2\/accounts\/[A-Z2-7]{58}/, (route) => {
+    if (opts.failRefreshAfterOptIn && state.optedIn) {
+      return route.fulfill({ status: 500, body: "indexer down" });
+    }
+    const addr = new URL(route.request().url()).pathname.split(
+      "/v2/accounts/",
+    )[1];
+    return route.fulfill({
+      json: {
+        "current-round": 100,
+        account: {
+          address: addr,
+          amount: 5_000_000,
+          "amount-without-pending-rewards": 5_000_000,
+          "min-balance": 200_000,
+          "pending-rewards": 0,
+          rewards: 0,
+          round: 100,
+          status: "Offline",
+          "total-apps-opted-in": 0,
+          "total-assets-opted-in": state.optedIn ? 2 : 1,
+          "total-created-apps": 0,
+          "total-created-assets": 0,
+          assets: [
+            { "asset-id": USDC, amount: 10_000_000, "is-frozen": false },
+            ...(state.optedIn
+              ? [{ "asset-id": FUSDC, amount: 0, "is-frozen": false }]
+              : []),
+          ],
+        },
+      },
+    });
   });
-  // Installed before the wallet exists so no real mainnet lookup can land
-  // later and overwrite the mocked holdings.
-  await page.route(/\/v2\/accounts\/[A-Z2-7]{58}/, (route) =>
-    route.fulfill({
-      json: accountJson(
-        new URL(route.request().url()).pathname.split("/v2/accounts/")[1],
-      ),
-    }),
-  );
   await page.route(/\/v2\/transactions\/params/, (route) =>
     route.fulfill({
       json: {
@@ -134,10 +143,15 @@ test("after the fUSDC opt-in is confirmed the balance is reloaded and fUSDC beco
       },
     }),
   );
-  let signedBody: Buffer | null = null;
   await page.route(/\/v2\/transactions$/, (route) => {
-    signedBody = route.request().postDataBuffer();
-    optedIn = true;
+    if (opts.rejectSend) {
+      return route.fulfill({
+        status: 400,
+        json: { message: "TransactionPool.Remember: transaction rejected" },
+      });
+    }
+    state.submitted = route.request().postDataBuffer();
+    state.optedIn = true;
     return route.fulfill({ json: { txId: "OPTINTXID" } });
   });
   await page.route(/\/v2\/status$/, (route) =>
@@ -162,16 +176,19 @@ test("after the fUSDC opt-in is confirmed the balance is reloaded and fUSDC beco
           "confirmed-round": 101,
           "pool-error": "",
           // echo the signed transaction the wallet submitted
-          txn: algosdk.msgpackRawDecode(signedBody ?? Buffer.alloc(0)),
+          txn: algosdk.msgpackRawDecode(state.submitted ?? Buffer.alloc(0)),
         }),
       ),
     }),
   );
+  return state;
+}
 
+/** Fresh wallet, known asset metadata, then the Swap page with USDC as source. */
+async function openSwapWithUsdc(page: Page) {
   await setupFreshWallet(page);
   const addr = page.url().split("/account/")[1];
-
-  // Known asset metadata (the store reads its localStorage cache first).
+  // The store reads its localStorage asset cache first.
   await page.evaluate(
     ([usdc, fusdc]) => {
       const put = (id: number, name: string) =>
@@ -191,8 +208,7 @@ test("after the fUSDC opt-in is confirmed the balance is reloaded and fUSDC beco
     },
     [USDC, FUSDC],
   );
-
-  // USDC as the source asset, fUSDC not held yet -> opt-in is offered.
+  // In-app route change (history + popstate) - a page.goto would lock the wallet.
   await page.evaluate((to) => {
     history.pushState({}, "", to);
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -200,6 +216,15 @@ test("after the fUSDC opt-in is confirmed the balance is reloaded and fUSDC beco
   const button = page.getByTestId("folks-fusdc-optin-button");
   await expect(button).toBeVisible({ timeout: 30000 });
   await expect(button).toBeEnabled();
+  return button;
+}
+
+test("after the fUSDC opt-in is confirmed the balance is reloaded and fUSDC becomes the destination", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  const chain = await mockFolksChain(page);
+  const button = await openSwapWithUsdc(page);
 
   await button.click();
 
@@ -208,5 +233,42 @@ test("after the fUSDC opt-in is confirmed the balance is reloaded and fUSDC beco
     timeout: 30000,
   });
   await expect(page.locator("#swap_asset_to")).toContainText("fUSDC");
-  expect(signedBody).not.toBeNull();
+  expect(chain.submitted).not.toBeNull();
+});
+
+test("a rejected opt-in keeps the prompt and does not change the destination", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page, { rejectSend: true });
+  const button = await openSwapWithUsdc(page);
+
+  await button.click();
+
+  await expect(page.locator(".p-toast-message-error").first()).toBeVisible({
+    timeout: 30000,
+  });
+  await expect(page.getByTestId("folks-fusdc-optin")).toBeVisible();
+  await expect(page.locator("#swap_asset_to")).not.toContainText("fUSDC");
+  // The user can try again.
+  await expect(button).toBeEnabled();
+});
+
+test("a failed refresh after a confirmed opt-in is not reported as a failed opt-in", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  const chain = await mockFolksChain(page, { failRefreshAfterOptIn: true });
+  const button = await openSwapWithUsdc(page);
+
+  await button.click();
+
+  await expect(page.locator(".p-toast-message-success").first()).toBeVisible({
+    timeout: 30000,
+  });
+  expect(chain.submitted).not.toBeNull();
+  // No error toast, and no stale destination selection (fUSDC is not in the
+  // asset list until the holdings reload).
+  await expect(page.locator(".p-toast-message-error")).toHaveCount(0);
+  await expect(page.locator("#swap_asset_to")).not.toContainText("fUSDC");
 });

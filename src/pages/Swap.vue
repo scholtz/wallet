@@ -287,8 +287,15 @@ const biatecStageQuotes = computed(
 // After the fUSDC opt-in is confirmed and the balance reloaded, rebuild the
 // asset list (it only offers held assets) and preselect fUSDC as destination.
 const onFAssetOptedIn = async (assetId: bigint) => {
-  await makeAssets();
-  toAsset.value = assetId;
+  try {
+    await makeAssets();
+  } catch (e) {
+    console.error("Unable to rebuild the asset list after the opt-in", e);
+    return;
+  }
+  if (assets.value.some((a) => a.assetId === assetId)) {
+    toAsset.value = assetId;
+  }
 };
 
 // Watchers

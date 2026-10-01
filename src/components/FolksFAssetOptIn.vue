@@ -19,10 +19,11 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRoute } from "vue-router";
 import algosdk from "algosdk";
 import { useStore } from "@/store";
+import { useFolksLendAccount } from "@/composables/useFolksLendAccount";
 import {
+  assertFolksLendTxnsSafe,
   buildOptInTxn,
   FOLKS_USDC_POOL,
   hasAlgoForOptIn,
@@ -34,22 +35,15 @@ const props = defineProps<{
   asset: bigint | null;
 }>();
 const emit = defineEmits<{
-  /** The opt-in is confirmed and the account has been reloaded. */
+  /** The opt-in is confirmed and the reloaded account holds the asset. */
   (e: "opted-in", assetId: bigint): void;
 }>();
 
 const { t } = useI18n();
 const store = useStore();
-const route = useRoute();
+const { sender, accountData, holdings, balanceOf, reloadAccount, signSendConfirm } =
+  useFolksLendAccount();
 const processing = ref(false);
-
-const sender = computed(() => String(route.params.account));
-const accountData = computed(
-  () =>
-    store.state.wallet.privateAccounts.find((a) => a.addr === sender.value)
-      ?.data?.[store.state.config.env],
-);
-const holdings = computed(() => accountData.value?.assets ?? []);
 
 // Only decided once the account's holdings are loaded - missing data must not
 // be mistaken for "not opted in".
@@ -58,9 +52,7 @@ const visible = computed(
     isFolksLendNetwork(store.state.config.env) &&
     props.asset === BigInt(FOLKS_USDC_POOL.assetId) &&
     accountData.value !== undefined &&
-    !holdings.value.some(
-      (a) => Number(a.assetId) === FOLKS_USDC_POOL.fAssetId,
-    ),
+    balanceOf(FOLKS_USDC_POOL.fAssetId) === undefined,
 );
 const lacksAlgo = computed(
   () =>
@@ -74,40 +66,34 @@ const lacksAlgo = computed(
 const optIn = async () => {
   if (processing.value) return;
   processing.value = true;
+  // The account can change in the router while we await signing/confirmation.
+  const from = sender.value;
   try {
     await store.dispatch("wallet/prolong");
     const suggestedParams: algosdk.SuggestedParams = await store.dispatch(
       "algod/getTransactionParams",
     );
-    const tx = buildOptInTxn(
-      sender.value,
-      FOLKS_USDC_POOL.fAssetId,
-      suggestedParams,
-    );
-    const signed: Uint8Array | undefined = await store.dispatch(
-      "signer/signTransaction",
-      { from: sender.value, tx },
-    );
-    if (!signed) return; // the signer already surfaced the error toast
-    const res: algosdk.modelsv2.PostTransactionsResponse = await store.dispatch(
-      "algod/sendRawTransaction",
-      { signedTxn: signed },
-    );
-    const confirmation = await store.dispatch("algod/waitForConfirmation", {
-      txId: res.txid,
-      timeout: 4,
-    });
-    if (!confirmation) {
+    const tx = buildOptInTxn(from, FOLKS_USDC_POOL.fAssetId, suggestedParams);
+    assertFolksLendTxnsSafe([tx], from);
+    const result = await signSendConfirm(from, [tx]);
+    if (!result) return; // the signer already surfaced the error toast
+    if (!result.confirmed) {
       store.dispatch("toast/openError", t("swap.folks_lend.not_confirmed"));
       return;
     }
-    const info = await store.dispatch("indexer/accountInformation", {
-      addr: sender.value,
-    });
-    if (info) await store.dispatch("wallet/updateAccount", { info });
     store.dispatch("toast/openSuccess", t("swap.folks_lend.optin_done"));
-    // The balance is reloaded - the parent can now offer fUSDC as destination.
-    emit("opted-in", BigInt(FOLKS_USDC_POOL.fAssetId));
+    // Tell the page only once the reloaded account really holds fUSDC, so it
+    // never selects a destination asset that is not in its list. A failed
+    // refresh is not a failed opt-in - the prompt simply stays until the
+    // holdings reload.
+    const refreshed = await reloadAccount(from);
+    if (
+      refreshed &&
+      from === sender.value &&
+      balanceOf(FOLKS_USDC_POOL.fAssetId) !== undefined
+    ) {
+      emit("opted-in", BigInt(FOLKS_USDC_POOL.fAssetId));
+    }
   } catch (e) {
     store.dispatch("toast/openError", (e as Error).message);
   } finally {
