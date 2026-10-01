@@ -150,7 +150,7 @@
             </Button>
           </RouterLink>
           <Button
-            v-if="slotProps.data.type === 'ASA'"
+            v-if="slotProps.data.type === 'ASA' && account"
             class="m-1"
             size="small"
             severity="danger"
@@ -216,6 +216,7 @@ import { StoredAsset } from "@/store/indexer";
 import { getArc200Client } from "arc200-client";
 import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import { getAssetUsdPrices } from "@/scripts/biatecScan";
+import type { OptOutResult } from "@/scripts/assets/optOut";
 import { filterAssetsWithBalance } from "@/scripts/assets/filterAssetsWithBalance";
 
 type AssetType = "Native" | "ASA" | "ARC200";
@@ -462,13 +463,33 @@ const confirmOptOut = async () => {
   if (!target || !addr || target.type !== "ASA") return;
   optOutProcessing.value = true;
   try {
-    const txId = (await store.dispatch("algod/optOutAsset", {
+    const result = (await store.dispatch("algod/optOutAsset", {
       addr,
       assetId: target.assetId,
-    })) as string | undefined;
-    if (!txId) return;
-    await store.dispatch("algod/waitForConfirmation", { txId, timeout: 4 });
-    await store.dispatch("toast/openSuccess", t("acc_overview_assets.opt_out_success"));
+    })) as OptOutResult;
+    if (result.status === "creator") {
+      await store.dispatch(
+        "toast/openError",
+        t("acc_overview_assets.opt_out_creator")
+      );
+      return;
+    }
+    if (result.status !== "sent") return;
+    const confirmed = await store.dispatch("algod/waitForConfirmation", {
+      txId: result.txId,
+      timeout: 4,
+    });
+    if (!confirmed) {
+      await store.dispatch(
+        "toast/openError",
+        t("acc_overview_assets.opt_out_failed")
+      );
+      return;
+    }
+    await store.dispatch(
+      "toast/openSuccess",
+      t("acc_overview_assets.opt_out_success")
+    );
     optOutDialogVisible.value = false;
     await reloadAccount();
     await makeAssets();

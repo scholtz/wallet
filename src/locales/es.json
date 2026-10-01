@@ -289,7 +289,9 @@
     "opt_out_confirm": "¿Quieres darte de baja del activo",
     "opt_out_balance_warning": "Si te das de baja, tu saldo restante de {amount} se enviará al creador del activo y lo perderás.",
     "opt_out_confirm_button": "Darse de baja",
-    "opt_out_success": "Te has dado de baja del activo"
+    "opt_out_success": "Te has dado de baja del activo",
+    "opt_out_creator": "El creador no puede darse de baja de su propio activo.",
+    "opt_out_failed": "La red no confirmó la baja."
   },
   "assets_overview": {
     "title": "Resumen de activos",

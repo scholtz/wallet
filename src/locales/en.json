@@ -289,7 +289,9 @@
     "opt_out_confirm": "Do you want to opt out of the asset",
     "opt_out_balance_warning": "If you opt out, your remaining balance of {amount} will be sent to the asset creator and you will lose it.",
     "opt_out_confirm_button": "Opt out",
-    "opt_out_success": "Opted out of the asset"
+    "opt_out_success": "Opted out of the asset",
+    "opt_out_creator": "The creator cannot opt out of its own asset.",
+    "opt_out_failed": "The opt-out was not confirmed by the network."
   },
   "assets_overview": {
     "title": "Assets Overview",

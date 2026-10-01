@@ -52,3 +52,8 @@ export const isAssetNotFoundError = (error: unknown): boolean =>
   typeof error === "object" &&
   error !== null &&
   (error as { status?: number }).status === 404;
+
+export type OptOutResult =
+  | { status: "sent"; txId: string }
+  | { status: "creator" }
+  | { status: "failed" };

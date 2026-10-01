@@ -9,6 +9,7 @@ import {
 import {
   buildAssetOptOutTxn,
   isAssetNotFoundError,
+  type OptOutResult,
   resolveOptOutCloseTo,
 } from "../scripts/assets/optOut";
 
@@ -375,7 +376,7 @@ const actions: ActionTree<AlgodState, RootState> = {
   async optOutAsset(
     { dispatch, rootState },
     { addr, assetId }: { addr: string; assetId: bigint | number | string },
-  ) {
+  ): Promise<OptOutResult> {
     try {
       const algodClient = createAlgodClient(rootState);
       let creator: string | undefined;
@@ -390,10 +391,7 @@ const actions: ActionTree<AlgodState, RootState> = {
       }
       const closeTo = resolveOptOutCloseTo(addr, creator);
       if (!closeTo) {
-        dispatch("toast/openError", "The creator cannot opt out of its own asset.", {
-          root: true,
-        });
-        return undefined;
+        return { status: "creator" };
       }
       const params = await algodClient.getTransactionParams().do();
       assertParamsMatchNetwork(rootState, params);
@@ -403,14 +401,16 @@ const actions: ActionTree<AlgodState, RootState> = {
         closeTo,
         suggestedParams: params,
       });
-      return (await dispatch("signAndSend", { txn, payFrom: addr })) as
-        | string
-        | undefined;
+      const txId = (await dispatch("signAndSend", {
+        txn,
+        payFrom: addr,
+      })) as string | undefined;
+      return txId ? { status: "sent", txId } : { status: "failed" };
     } catch (error) {
       console.error("Failed to opt out of asset", error);
       const message = error instanceof Error ? error.message : String(error);
       dispatch("toast/openError", message, { root: true });
-      return undefined;
+      return { status: "failed" };
     }
   },
   async sendRawTransaction(

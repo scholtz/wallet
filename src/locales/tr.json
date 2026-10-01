@@ -289,7 +289,9 @@
     "opt_out_confirm": "Şu varlıktan çıkmak istiyor musunuz:",
     "opt_out_balance_warning": "Çıkarsanız, kalan {amount} bakiyeniz varlığın yaratıcısına gönderilir ve onu kaybedersiniz.",
     "opt_out_confirm_button": "Çık",
-    "opt_out_success": "Varlıktan çıkıldı"
+    "opt_out_success": "Varlıktan çıkıldı",
+    "opt_out_creator": "Yaratıcı kendi varlığından çıkamaz.",
+    "opt_out_failed": "Çıkış ağ tarafından onaylanmadı."
   },
   "assets_overview": {
     "title": "Varlıklara Genel Bakış",

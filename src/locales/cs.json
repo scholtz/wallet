@@ -289,7 +289,9 @@
     "opt_out_confirm": "Chcete se odhlásit z aktiva",
     "opt_out_balance_warning": "Pokud se odhlásíte, váš zbývající zůstatek {amount} bude odeslán tvůrci aktiva a přijdete o něj.",
     "opt_out_confirm_button": "Odhlásit",
-    "opt_out_success": "Aktivum bylo odhlášeno"
+    "opt_out_success": "Aktivum bylo odhlášeno",
+    "opt_out_creator": "Tvůrce se nemůže odhlásit z vlastního aktiva.",
+    "opt_out_failed": "Odhlášení nebylo potvrzeno sítí."
   },
   "assets_overview": {
     "title": "Přehled aktiv",

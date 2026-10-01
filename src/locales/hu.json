@@ -289,7 +289,9 @@
     "opt_out_confirm": "Le szeretne iratkozni az eszközről:",
     "opt_out_balance_warning": "Ha leiratkozik, a megmaradt {amount} egyenlege az eszköz létrehozójának lesz elküldve, és elveszíti azt.",
     "opt_out_confirm_button": "Leiratkozás",
-    "opt_out_success": "Sikeresen leiratkozott az eszközről"
+    "opt_out_success": "Sikeresen leiratkozott az eszközről",
+    "opt_out_creator": "A létrehozó nem iratkozhat le a saját eszközéről.",
+    "opt_out_failed": "A leiratkozást a hálózat nem erősítette meg."
   },
   "assets_overview": {
     "title": "Eszközök áttekintése",

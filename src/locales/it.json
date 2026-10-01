@@ -289,7 +289,9 @@
     "opt_out_confirm": "Vuoi rimuovere l'asset",
     "opt_out_balance_warning": "Se lo rimuovi, il tuo saldo residuo di {amount} verrà inviato al creatore dell'asset e lo perderai.",
     "opt_out_confirm_button": "Rimuovi",
-    "opt_out_success": "Asset rimosso"
+    "opt_out_success": "Asset rimosso",
+    "opt_out_creator": "Il creatore non può rimuovere il proprio asset.",
+    "opt_out_failed": "La rimozione non è stata confermata dalla rete."
   },
   "assets_overview": {
     "title": "Panoramica degli asset",
