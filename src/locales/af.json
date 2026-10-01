@@ -131,7 +131,7 @@
       "submit_withdraw": "Onttrek",
       "success": "Verwerk in tx: {txid}",
       "rate_error": "Kon nie die Folks Finance-poelkoers laai nie",
-      "not_confirmed": "Die transaksie is ingedien maar nog nie bevestig nie. Kontroleer jou rekeningsaldo voordat jy weer probeer."
+      "not_confirmed": "Die transaksie is nie bevestig nie. Dit kan nog hangende wees of dit kan verwerp is. Kontroleer jou rekening voordat jy weer probeer."
     }
   },
   "govtoolsmenu": {

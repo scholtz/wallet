@@ -131,7 +131,7 @@
       "submit_withdraw": "Kivét",
       "success": "Feldolgozva a tx-ben: {txid}",
       "rate_error": "Nem sikerült betölteni a Folks Finance pool árfolyamát",
-      "not_confirmed": "A tranzakciót elküldtük, de még nincs megerősítve. Újrapróbálkozás előtt ellenőrizze a számla egyenlegét."
+      "not_confirmed": "A tranzakciót nem erősítették meg. Lehet, hogy még függőben van, vagy elutasították. Újrapróbálkozás előtt ellenőrizze a számláját."
     }
   },
   "govtoolsmenu": {

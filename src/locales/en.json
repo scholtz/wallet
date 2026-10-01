@@ -131,7 +131,7 @@
       "submit_withdraw": "Withdraw",
       "success": "Processed in tx: {txid}",
       "rate_error": "Unable to load the Folks Finance pool rate",
-      "not_confirmed": "The transaction was submitted but is not confirmed yet. Check your account balance before trying again."
+      "not_confirmed": "The transaction was not confirmed. It may still be pending or it may have been rejected. Check your account before trying again."
     }
   },
   "govtoolsmenu": {

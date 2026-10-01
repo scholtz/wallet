@@ -192,6 +192,7 @@ const submitLabel = computed(() =>
 const canSubmit = computed(
   () =>
     !processing.value &&
+    accountData.value !== undefined &&
     !!pool.value &&
     amountBase.value > 0n &&
     receivedBase.value > 0n &&
@@ -257,7 +258,8 @@ const submit = async () => {
       lastTxId.value = res.txid;
       amount.value = 0;
     } else {
-      // Already submitted - tell the user, so they check before retrying.
+      // Submitted, but no confirmation (still pending or rejected) - tell the
+      // user to check before retrying.
       store.dispatch("toast/openError", t("swap.folks_lend.not_confirmed"));
     }
     await reloadAccount();

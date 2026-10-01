@@ -131,7 +131,7 @@
       "submit_withdraw": "Vybrat",
       "success": "Zpracováno v tx: {txid}",
       "rate_error": "Nepodařilo se načíst kurz poolu Folks Finance",
-      "not_confirmed": "Transakce byla odeslána, ale zatím není potvrzena. Před dalším pokusem zkontrolujte zůstatek účtu."
+      "not_confirmed": "Transakce nebyla potvrzena. Může být stále čekající, nebo mohla být zamítnuta. Před dalším pokusem zkontrolujte svůj účet."
     }
   },
   "govtoolsmenu": {

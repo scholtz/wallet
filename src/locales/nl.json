@@ -131,7 +131,7 @@
       "submit_withdraw": "Opnemen",
       "success": "Verwerkt in tx: {txid}",
       "rate_error": "Kan het tarief van de Folks Finance-pool niet laden",
-      "not_confirmed": "De transactie is verzonden maar nog niet bevestigd. Controleer uw accountsaldo voordat u het opnieuw probeert."
+      "not_confirmed": "De transactie is niet bevestigd. Mogelijk is deze nog in behandeling of is deze afgewezen. Controleer uw account voordat u het opnieuw probeert."
     }
   },
   "govtoolsmenu": {

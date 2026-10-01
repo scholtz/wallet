@@ -131,7 +131,7 @@
       "submit_withdraw": "Çek",
       "success": "İşlendi, tx: {txid}",
       "rate_error": "Folks Finance havuz oranı yüklenemedi",
-      "not_confirmed": "İşlem gönderildi ancak henüz onaylanmadı. Tekrar denemeden önce hesap bakiyenizi kontrol edin."
+      "not_confirmed": "İşlem onaylanmadı. Hâlâ beklemede olabilir veya reddedilmiş olabilir. Tekrar denemeden önce hesabınızı kontrol edin."
     }
   },
   "govtoolsmenu": {

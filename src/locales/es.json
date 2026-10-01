@@ -131,7 +131,7 @@
       "submit_withdraw": "Retirar",
       "success": "Procesado en tx: {txid}",
       "rate_error": "No se pudo cargar la tasa del pool de Folks Finance",
-      "not_confirmed": "La transacción se envió pero aún no está confirmada. Revisa el saldo de tu cuenta antes de volver a intentarlo."
+      "not_confirmed": "La transacción no fue confirmada. Puede seguir pendiente o haber sido rechazada. Revisa tu cuenta antes de volver a intentarlo."
     }
   },
   "govtoolsmenu": {

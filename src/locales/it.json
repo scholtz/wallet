@@ -131,7 +131,7 @@
       "submit_withdraw": "Preleva",
       "success": "Elaborato nella tx: {txid}",
       "rate_error": "Impossibile caricare il tasso del pool Folks Finance",
-      "not_confirmed": "La transazione è stata inviata ma non è ancora confermata. Controlla il saldo del tuo account prima di riprovare."
+      "not_confirmed": "La transazione non è stata confermata. Potrebbe essere ancora in sospeso o essere stata rifiutata. Controlla il tuo account prima di riprovare."
     }
   },
   "govtoolsmenu": {
