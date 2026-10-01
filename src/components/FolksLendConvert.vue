@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import algosdk from "algosdk";
@@ -121,12 +121,12 @@ const directionOptions = computed(() => [
 const available = computed(() => isFolksLendNetwork(store.state.config.env));
 const sender = computed(() => String(route.params.account));
 
-const holdings = computed(() => {
-  const account = store.state.wallet.privateAccounts.find(
-    (a) => a.addr === sender.value,
-  );
-  return account?.data?.[store.state.config.env]?.assets ?? [];
-});
+const accountData = computed(
+  () =>
+    store.state.wallet.privateAccounts.find((a) => a.addr === sender.value)
+      ?.data?.[store.state.config.env],
+);
+const holdings = computed(() => accountData.value?.assets ?? []);
 
 const balanceOf = (assetId: number): bigint | undefined => {
   const holding = holdings.value.find((a) => Number(a.assetId) === assetId);
@@ -137,8 +137,13 @@ const usdcBalance = computed(() => balanceOf(FOLKS_USDC_POOL.assetId) ?? 0n);
 const fBalanceRaw = computed(() => balanceOf(FOLKS_USDC_POOL.fAssetId));
 const fBalance = computed(() => fBalanceRaw.value ?? 0n);
 
+// Only announce/prepend the opt-in once the account's holdings are actually
+// loaded - missing data must not be mistaken for "not opted in".
 const needsOptIn = computed(
-  () => direction.value === "deposit" && fBalanceRaw.value === undefined,
+  () =>
+    direction.value === "deposit" &&
+    accountData.value !== undefined &&
+    fBalanceRaw.value === undefined,
 );
 const fromUnit = computed(() =>
   direction.value === "deposit" ? "USDC" : "fUSDC",
@@ -261,7 +266,12 @@ watch(direction, () => {
   amount.value = 0;
   lastTxId.value = "";
 });
-onMounted(() => {
-  if (available.value) loadRate();
-});
+// Also covers switching to Mainnet while this page is already open.
+watch(
+  available,
+  (isAvailable) => {
+    if (isAvailable) loadRate();
+  },
+  { immediate: true },
+);
 </script>
