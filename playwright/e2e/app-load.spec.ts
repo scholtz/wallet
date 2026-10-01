@@ -10,8 +10,9 @@ test.describe("Basic application load and public pages", () => {
     page,
   }) => {
     await page.goto("/");
-    await expect(page).toHaveURL(/\/(new-wallet)?$/);
-    await expect(page.locator("body")).toBeVisible();
+    // No wallet exists yet, so the wallet creation form must be offered.
+    await expect(page.locator("#newwallet-name")).toBeVisible();
+    await expect(page.locator("#new_wallet_button_create")).toBeVisible();
     await expect(page.locator(".p-button").first()).toBeVisible({
       timeout: 10000,
     });

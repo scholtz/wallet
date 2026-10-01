@@ -3,7 +3,6 @@ packages:
 allowBuilds:
   cbor-extract: false
   core-js: false
-  cypress: set this to true or false
   esbuild: true
 minimumReleaseAgeExclude:
   - '@vue/language-core@3.3.7'

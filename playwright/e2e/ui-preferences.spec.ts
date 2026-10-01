@@ -18,9 +18,11 @@ test.describe("UI preferences", () => {
     await page.reload(); // locks the wallet -> login screen with flags
     await expect(page.locator("#new_wallet_button_open")).toBeVisible();
     const openLabel = await page.locator("#new_wallet_button_open").innerText();
-    await page.locator(".language-footer a").nth(1).click();
-    await expect(page.locator("#new_wallet_button_open")).not.toHaveText(
-      openLabel
+    expect(openLabel).toBe("Open wallet");
+    // Languages: en, hu, it, nl, sk, ... - pick Slovak explicitly.
+    await page.locator(".language-footer a").nth(4).click();
+    await expect(page.locator("#new_wallet_button_open")).toHaveText(
+      "Otvoriť peňaženku"
     );
   });
 

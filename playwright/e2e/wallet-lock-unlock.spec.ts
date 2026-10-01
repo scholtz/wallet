@@ -10,7 +10,11 @@ test.describe("Wallet lock / unlock", () => {
     await page.getByText("Wallet", { exact: true }).click({ force: true });
     await page.getByText("Logout", { exact: true }).click({ force: true });
 
-    // The wallet is persisted in IndexedDB, so a reload offers "Open wallet".
+    // Logout itself locks the wallet: the open-wallet form appears without
+    // any reload.
+    await expect(page.locator("#new_wallet_button_open")).toBeVisible();
+
+    // The wallet is persisted in IndexedDB, so a reload still offers it.
     await page.goto("/");
     await expect(page.locator("#new_wallet_button_open")).toBeVisible();
     await expect(page.locator("#wallet-select")).toBeVisible();
@@ -18,7 +22,7 @@ test.describe("Wallet lock / unlock", () => {
     // Wrong password: stays locked.
     await page.locator("#wallet-pass").fill("wrong-password");
     await page.locator("#new_wallet_button_open").click();
-    await page.waitForTimeout(1500);
+    await expect(page.locator(".p-toast-message")).toBeVisible();
     await expect(page.locator("#new_wallet_button_open")).toBeVisible();
     await expect(page).not.toHaveURL(/\/account\//);
 

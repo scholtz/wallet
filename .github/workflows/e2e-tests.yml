@@ -4,23 +4,6 @@ on:
     branches: [master]
   pull_request:
 jobs:
-  build-and-locales:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.10.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "26.x"
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - name: Type-check and build
-        run: pnpm run build
-      - name: Locale parity
-        run: pnpm run check-locales
-
   playwright-e2e:
     runs-on: ubuntu-latest
     steps:

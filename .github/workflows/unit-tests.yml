@@ -24,7 +24,24 @@ jobs:
       - name: Install dependencies
         # Node-only unit tests (playwright/unit) never launch a browser, so
         # no browsers are needed here.
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Run unit tests
         run: pnpm run test:unit
+
+  build-and-locales:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.10.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "26.x"
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - name: Type-check and build
+        run: pnpm run build
+      - name: Locale parity
+        run: pnpm run check-locales

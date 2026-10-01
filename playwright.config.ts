@@ -11,12 +11,13 @@ export default defineConfig({
   testDir: "./playwright/e2e",
   fullyParallel: false,
   workers: 1,
-  retries: 0,
+  retries: process.env.CI ? 2 : 0,
   reporter: [["list"], ["html", { open: "never" }]],
   timeout: 120000,
   use: {
     baseURL: "http://localhost:8080",
-    video: { mode: "on", size: { width: 1920, height: 1080 } },
+    // Full video of every test locally; in CI only keep it for failures.
+    video: { mode: process.env.CI ? "retain-on-failure" : "on", size: { width: 1920, height: 1080 } },
     trace: "retain-on-failure",
     viewport: { width: 1920, height: 1080 },
     launchOptions: {
