@@ -86,9 +86,9 @@ For each in-scope area:
 3. **Dependency check** — run (or reason from `pnpm-lock.yaml`) a check for known CVEs
    in crypto-relevant dependencies; note any outdated major versions of `algosdk`,
    `@walletconnect/*`, `@algorandfoundation/xhd-wallet-api`.
-4. **Negative testing where feasible** — if Cypress/dev server is available, exercise
+4. **Negative testing where feasible** — if Playwright/dev server is available, exercise
    at least one signing flow end-to-end and confirm displayed vs. signed data match.
-   If Cypress cannot run in the environment (see CLAUDE.md's known sandboxing issue),
+   If Playwright cannot run in the environment,
    say so explicitly rather than skipping verification silently.
 5. **Severity rating** — use the scale in section 4. Every finding needs: description,
    affected file(s)/line(s), attacker precondition, concrete impact, and remediation.

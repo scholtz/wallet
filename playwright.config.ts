@@ -24,7 +24,7 @@ export default defineConfig({
     },
   },
   webServer: {
-    command: "npm run serve -- --port 8080",
+    command: "pnpm run serve --port 8080",
     url: "http://localhost:8080",
     reuseExistingServer: !process.env.CI,
     timeout: 60000,

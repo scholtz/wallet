@@ -17,8 +17,6 @@ export default defineConfigWithVueTs(
     ignores: [
       "dist/**",
       "node_modules/**",
-      "cypress/videos/**",
-      "cypress/screenshots/**",
       "playwright-report/**",
       "test-results/**",
       "blob-report/**",
@@ -26,7 +24,6 @@ export default defineConfigWithVueTs(
       "k8s/conf/**",
       "k8s/stable/**",
       "scripts/check-locales.js",
-      "scripts/run-tests.js",
     ],
   },
   js.configs.recommended,
