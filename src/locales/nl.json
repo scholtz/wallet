@@ -284,7 +284,14 @@
     "search_by_amount": "Search by amount",
     "usd_value": "USD-waarde",
     "actions": "Actions",
-    "only_with_balance": "Alleen activa met saldo tonen"
+    "only_with_balance": "Alleen activa met saldo tonen",
+    "opt_out": "Afmelden voor activum",
+    "opt_out_confirm": "Wilt u zich afmelden voor het activum",
+    "opt_out_balance_warning": "Als u zich afmeldt, wordt uw resterende saldo van {amount} naar de maker van het activum gestuurd en raakt u het kwijt.",
+    "opt_out_confirm_button": "Afmelden",
+    "opt_out_success": "Afgemeld voor het activum",
+    "opt_out_creator": "De maker kan zich niet afmelden voor zijn eigen activum.",
+    "opt_out_failed": "De afmelding is niet bevestigd door het netwerk."
   },
   "assets_overview": {
     "title": "Overzicht van activa",

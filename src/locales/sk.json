@@ -284,7 +284,14 @@
     "search_by_amount": "Search by amount",
     "usd_value": "Hodnota v USD",
     "actions": "Actions",
-    "only_with_balance": "Zobraziť iba aktíva so zostatkom"
+    "only_with_balance": "Zobraziť iba aktíva so zostatkom",
+    "opt_out": "Odhlásiť aktívum",
+    "opt_out_confirm": "Chcete sa odhlásiť z aktíva",
+    "opt_out_balance_warning": "Ak sa odhlásite, váš zostávajúci zostatok {amount} bude odoslaný tvorcovi aktíva a prídete oň.",
+    "opt_out_confirm_button": "Odhlásiť",
+    "opt_out_success": "Aktívum bolo odhlásené",
+    "opt_out_creator": "Tvorca sa nemôže odhlásiť z vlastného aktíva.",
+    "opt_out_failed": "Odhlásenie nebolo potvrdené sieťou."
   },
   "assets_overview": {
     "title": "Prehľad aktív",

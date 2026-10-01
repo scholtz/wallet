@@ -284,7 +284,14 @@
     "search_by_amount": "Soek op bedrag",
     "usd_value": "USD-waarde",
     "actions": "Aksies",
-    "only_with_balance": "Wys slegs bates met 'n saldo"
+    "only_with_balance": "Wys slegs bates met 'n saldo",
+    "opt_out": "Onttrek van bate",
+    "opt_out_confirm": "Wil jy van die bate onttrek",
+    "opt_out_balance_warning": "As jy onttrek, sal jou oorblywende saldo van {amount} na die skepper van die bate gestuur word en jy sal dit verloor.",
+    "opt_out_confirm_button": "Onttrek",
+    "opt_out_success": "Van die bate onttrek",
+    "opt_out_creator": "Die skepper kan nie van sy eie bate onttrek nie.",
+    "opt_out_failed": "Die onttrekking is nie deur die netwerk bevestig nie."
   },
   "assets_overview": {
     "title": "Assets Overview",

@@ -149,15 +149,63 @@
               <i class="pi pi-send"></i>
             </Button>
           </RouterLink>
+          <Button
+            v-if="slotProps.data.type === 'ASA' && account"
+            class="m-1"
+            size="small"
+            severity="danger"
+            :title="$t('acc_overview_assets.opt_out')"
+            @click="askOptOut(slotProps.data)"
+          >
+            <i class="pi pi-times-circle"></i>
+          </Button>
         </template>
       </Column>
     </DataTable>
+    <Dialog
+      v-model:visible="optOutDialogVisible"
+      :header="$t('acc_overview_assets.opt_out')"
+      :modal="true"
+    >
+      <template v-if="optOutTarget">
+        <p>
+          {{ $t("acc_overview_assets.opt_out_confirm") }}
+          <b>{{ optOutTarget.name }} ({{ optOutTarget.assetId }})</b>
+        </p>
+        <p v-if="optOutTarget.amount > 0n" class="font-bold">
+          {{
+            $t("acc_overview_assets.opt_out_balance_warning", {
+              amount: formatAssetAmount(optOutTarget),
+            })
+          }}
+        </p>
+      </template>
+      <template #footer>
+        <Button
+          severity="secondary"
+          size="small"
+          :disabled="optOutProcessing"
+          @click="optOutDialogVisible = false"
+        >
+          {{ $t("global.cancel") }}
+        </Button>
+        <Button
+          severity="danger"
+          size="small"
+          :loading="optOutProcessing"
+          @click="confirmOptOut"
+        >
+          {{ $t("acc_overview_assets.opt_out_confirm_button") }}
+        </Button>
+      </template>
+    </Dialog>
   </MainLayout>
 </template>
 
 <script setup lang="ts">
 import { computed, getCurrentInstance, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { FilterMatchMode } from "@primevue/core/api";
 import Badge from "primevue/badge";
 import MainLayout from "../../layouts/Main.vue";
@@ -168,6 +216,7 @@ import { StoredAsset } from "@/store/indexer";
 import { getArc200Client } from "arc200-client";
 import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import { getAssetUsdPrices } from "@/scripts/biatecScan";
+import type { OptOutResult } from "@/scripts/assets/optOut";
 import { filterAssetsWithBalance } from "@/scripts/assets/filterAssetsWithBalance";
 
 type AssetType = "Native" | "ASA" | "ARC200";
@@ -196,6 +245,7 @@ type AssetsFilters = {
 };
 
 const store = useStore();
+const { t } = useI18n();
 const route = useRoute();
 
 const loading = ref(true);
@@ -395,6 +445,57 @@ const reloadArc200AccountBalance = async (data: AssetListItem) => {
     await loadPrices();
   } catch (e: unknown) {
     console.error("Failed to reload ARC200 balance", e);
+  }
+};
+
+const optOutDialogVisible = ref(false);
+const optOutProcessing = ref(false);
+const optOutTarget = ref<AssetListItem | null>(null);
+
+const askOptOut = (data: AssetListItem) => {
+  optOutTarget.value = data;
+  optOutDialogVisible.value = true;
+};
+
+const confirmOptOut = async () => {
+  const target = optOutTarget.value;
+  const addr = account.value?.addr;
+  if (!target || !addr || target.type !== "ASA") return;
+  optOutProcessing.value = true;
+  try {
+    const result = (await store.dispatch("algod/optOutAsset", {
+      addr,
+      assetId: target.assetId,
+    })) as OptOutResult;
+    if (result.status === "creator") {
+      await store.dispatch(
+        "toast/openError",
+        t("acc_overview_assets.opt_out_creator")
+      );
+      return;
+    }
+    if (result.status !== "sent") return;
+    const confirmed = await store.dispatch("algod/waitForConfirmation", {
+      txId: result.txId,
+      timeout: 4,
+    });
+    if (!confirmed) {
+      await store.dispatch(
+        "toast/openError",
+        t("acc_overview_assets.opt_out_failed")
+      );
+      return;
+    }
+    await store.dispatch(
+      "toast/openSuccess",
+      t("acc_overview_assets.opt_out_success")
+    );
+    optOutDialogVisible.value = false;
+    await reloadAccount();
+    await makeAssets();
+    await loadPrices();
+  } finally {
+    optOutProcessing.value = false;
   }
 };
 

@@ -6,6 +6,12 @@ import {
   resolveRequiredFee,
   type FeeEstimate,
 } from "../scripts/fees";
+import {
+  buildAssetOptOutTxn,
+  isAssetNotFoundError,
+  type OptOutResult,
+  resolveOptOutCloseTo,
+} from "../scripts/assets/optOut";
 
 export interface AlgodState {}
 
@@ -288,17 +294,39 @@ const actions: ActionTree<AlgodState, RootState> = {
       return undefined;
     }
   },
-  async makePayment({ dispatch, rootState }, payload: PaymentPayload) {
+  async makePayment({ dispatch }, payload: PaymentPayload) {
     try {
       const txn = (await dispatch("preparePayment", payload)) as
         algosdk.Transaction | undefined;
       if (!txn) {
         return undefined;
       }
+      const txid = (await dispatch("signAndSend", {
+        txn,
+        payFrom: payload.payFrom,
+      })) as string | undefined;
+      if (txid) {
+        await dispatch(
+          "wallet/lastPayTo",
+          { addr: payload.payTo },
+          { root: true },
+        );
+      }
+      return txid;
+    } catch (error) {
+      console.error("Failed to sign and send transaction", error);
+      return undefined;
+    }
+  },
+  async signAndSend(
+    { dispatch, rootState },
+    { txn, payFrom }: { txn: algosdk.Transaction; payFrom: PaymentAccount },
+  ) {
+    try {
 
       const estimate = (await dispatch("estimateRequiredFee", {
         txn,
-        senderAddr: resolveSenderAddress(payload.payFrom),
+        senderAddr: resolveSenderAddress(payFrom),
       })) as FeeEstimate | undefined;
       if (estimate && txn.fee < estimate.requiredFee) {
         if (estimate.requiredFee > MAX_AUTO_FEE_MICROALGOS) {
@@ -320,18 +348,13 @@ const actions: ActionTree<AlgodState, RootState> = {
 
       const signedTxn = (await dispatch(
         "signer/signTransaction",
-        { from: payload.payFrom, tx: txn },
+        { from: payFrom, tx: txn },
         { root: true },
       )) as Uint8Array | Buffer;
 
       const algodClient = createAlgodClient(rootState);
       try {
         const ret = await algodClient.sendRawTransaction(signedTxn).do();
-        await dispatch(
-          "wallet/lastPayTo",
-          { addr: payload.payTo },
-          { root: true },
-        );
         return (ret.txid as string) ?? undefined;
       } catch (error) {
         const responseMessage = (
@@ -348,6 +371,46 @@ const actions: ActionTree<AlgodState, RootState> = {
     } catch (error) {
       console.error("Failed to make payment", error);
       return undefined;
+    }
+  },
+  async optOutAsset(
+    { dispatch, rootState },
+    { addr, assetId }: { addr: string; assetId: bigint | number | string },
+  ): Promise<OptOutResult> {
+    try {
+      const algodClient = createAlgodClient(rootState);
+      let creator: string | undefined;
+      try {
+        const info = await algodClient.getAssetByID(BigInt(assetId)).do();
+        creator = info.params?.creator.toString();
+      } catch (error) {
+        // a deleted asset has no creator to return the balance to; any other
+        // failure (network, node) must not be mistaken for that
+        if (!isAssetNotFoundError(error)) throw error;
+        creator = undefined;
+      }
+      const closeTo = resolveOptOutCloseTo(addr, creator);
+      if (!closeTo) {
+        return { status: "creator" };
+      }
+      const params = await algodClient.getTransactionParams().do();
+      assertParamsMatchNetwork(rootState, params);
+      const txn = buildAssetOptOutTxn({
+        sender: addr,
+        assetId,
+        closeTo,
+        suggestedParams: params,
+      });
+      const txId = (await dispatch("signAndSend", {
+        txn,
+        payFrom: addr,
+      })) as string | undefined;
+      return txId ? { status: "sent", txId } : { status: "failed" };
+    } catch (error) {
+      console.error("Failed to opt out of asset", error);
+      const message = error instanceof Error ? error.message : String(error);
+      dispatch("toast/openError", message, { root: true });
+      return { status: "failed" };
     }
   },
   async sendRawTransaction(
