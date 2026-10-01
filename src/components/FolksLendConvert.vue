@@ -82,10 +82,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRoute } from "vue-router";
 import algosdk from "algosdk";
 import SelectButton from "primevue/selectbutton";
 import { useStore } from "@/store";
+import { useFolksLendAccount } from "@/composables/useFolksLendAccount";
 import {
   calcFolksLendReceived,
   exchangeRate,
@@ -98,6 +98,7 @@ import {
   buildFolksLendTxns,
   FOLKS_USDC_POOL,
   fetchFolksPoolRate,
+  hasAlgoForOptIn,
   isFolksLendNetwork,
   type FolksPoolRate,
 } from "@/scripts/folksLend/transactions";
@@ -106,7 +107,14 @@ const DECIMALS = 6;
 
 const { t } = useI18n();
 const store = useStore();
-const route = useRoute();
+const {
+  sender,
+  accountData,
+  holdings,
+  balanceOf,
+  reloadAccount,
+  signSendConfirm,
+} = useFolksLendAccount();
 
 const direction = ref<FolksLendDirection>("deposit");
 const amount = ref(0);
@@ -121,20 +129,6 @@ const directionOptions = computed(() => [
 ]);
 
 const available = computed(() => isFolksLendNetwork(store.state.config.env));
-const sender = computed(() => String(route.params.account));
-
-const accountData = computed(
-  () =>
-    store.state.wallet.privateAccounts.find((a) => a.addr === sender.value)
-      ?.data?.[store.state.config.env],
-);
-const holdings = computed(() => accountData.value?.assets ?? []);
-
-const balanceOf = (assetId: number): bigint | undefined => {
-  const holding = holdings.value.find((a) => Number(a.assetId) === assetId);
-  return holding === undefined ? undefined : BigInt(holding.amount);
-};
-
 const usdcBalance = computed(() => balanceOf(FOLKS_USDC_POOL.assetId) ?? 0n);
 const fBalanceRaw = computed(() => balanceOf(FOLKS_USDC_POOL.fAssetId));
 const fBalance = computed(() => fBalanceRaw.value ?? 0n);
@@ -156,16 +150,12 @@ const optInAssetId = computed<number | undefined>(() => {
 });
 const needsOptIn = computed(() => optInAssetId.value !== undefined);
 
-// Conservative estimate (same basis as the Swap page: 0.1 ALGO base + 0.1 per
-// held asset; apps only raise the real minimum, so this never blocks wrongly):
-// an opt-in must leave room for one more 0.1 ALGO reservation plus the fees.
-const OPT_IN_FEES_MICROALGO = 10_000n;
-const lacksAlgoForOptIn = computed(() => {
-  if (!needsOptIn.value || accountData.value === undefined) return false;
-  const minBalance = 100_000n * BigInt(holdings.value.length + 1);
-  const needed = minBalance + 100_000n + OPT_IN_FEES_MICROALGO;
-  return BigInt(accountData.value.amount ?? 0) < needed;
-});
+const lacksAlgoForOptIn = computed(
+  () =>
+    needsOptIn.value &&
+    accountData.value !== undefined &&
+    !hasAlgoForOptIn(BigInt(accountData.value.amount ?? 0), holdings.value.length),
+);
 const fromUnit = computed(() =>
   direction.value === "deposit" ? "USDC" : "fUSDC",
 );
@@ -226,17 +216,12 @@ const loadRate = async () => {
   }
 };
 
-const reloadAccount = async () => {
-  const info = await store.dispatch("indexer/accountInformation", {
-    addr: sender.value,
-  });
-  if (info) await store.dispatch("wallet/updateAccount", { info });
-};
-
 const submit = async () => {
   if (!canSubmit.value) return;
   processing.value = true;
   lastTxId.value = "";
+  // The account can change in the router while we await signing/confirmation.
+  const from = sender.value;
   try {
     await store.dispatch("wallet/prolong");
     // Re-read the rate right before building so the withdrawal payout we
@@ -248,29 +233,16 @@ const submit = async () => {
     );
     const txns = buildFolksLendTxns({
       direction: direction.value,
-      sender: sender.value,
+      sender: from,
       amount: amountBase.value,
       optInAssetId: optInAssetId.value,
       suggestedParams,
     });
-    assertFolksLendTxnsSafe(txns, sender.value);
-    const signed: Uint8Array[] = [];
-    for (const tx of txns) {
-      const stx: Uint8Array | undefined = await store.dispatch(
-        "signer/signTransaction",
-        { from: sender.value, tx },
-      );
-      if (!stx) return; // the signer already surfaced the error toast
-      signed.push(stx);
-    }
-    const res: algosdk.modelsv2.PostTransactionsResponse =
-      await store.dispatch("algod/sendRawTransaction", { signedTxn: signed });
-    const confirmation = await store.dispatch("algod/waitForConfirmation", {
-      txId: res.txid,
-      timeout: 4,
-    });
-    if (confirmation) {
-      lastTxId.value = res.txid;
+    assertFolksLendTxnsSafe(txns, from);
+    const result = await signSendConfirm(from, txns);
+    if (!result) return; // the signer already surfaced the error toast
+    if (result.confirmed) {
+      lastTxId.value = result.txid;
       amount.value = 0;
     } else {
       // Submitted, but no confirmation (still pending or rejected) - tell the
@@ -279,9 +251,7 @@ const submit = async () => {
     }
     // The conversion is already confirmed - a failed refresh must not be
     // reported as a failed conversion.
-    await reloadAccount().catch((e: unknown) =>
-      console.error("Unable to refresh the account after the conversion", e),
-    );
+    await reloadAccount(from);
   } catch (e) {
     store.dispatch("toast/openError", (e as Error).message);
   } finally {

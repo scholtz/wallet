@@ -132,7 +132,10 @@
       "success": "Processed in tx: {txid}",
       "rate_error": "Unable to load the Folks Finance pool rate",
       "not_confirmed": "The transaction was not confirmed. It may still be pending or it may have been rejected. Check your account before trying again.",
-      "insufficient_algo": "Not enough ALGO: opting in to {asset} reserves another 0.1 ALGO of the minimum balance, plus network fees."
+      "insufficient_algo": "Not enough ALGO: opting in to {asset} reserves another 0.1 ALGO of the minimum balance, plus network fees.",
+      "optin_button": "Opt in to fUSDC",
+      "optin_hint": "To convert USDC to Folks Finance fUSDC your account must first opt in to fUSDC. This reserves 0.1 ALGO of your minimum balance. After the opt-in is confirmed, fUSDC is selected as the destination asset.",
+      "optin_done": "Opted in to fUSDC"
     }
   },
   "govtoolsmenu": {
@@ -876,7 +879,7 @@
         "q6": "Why do I need to opt in to a token before I can swap into it?",
         "a6": "Because Algorand only lets an account hold assets it has opted in to. If you have never held the token you want to receive, an opt-in is needed first, which costs the normal fee and locks 0.1 ALGO of minimum balance. Make sure you keep enough spare ALGO for this and for the swap fees.",
         "q7": "How do I deposit USDC to earn interest and receive fUSDC?",
-        "a7": "Open the Swap page (Account > Swap) on Mainnet and scroll to the Folks Finance lending card below the swap form. Choose \"Deposit USDC → fUSDC\", enter the amount (or press Max) and check the estimated fUSDC you receive, the current exchange rate and the APY. If your account has not opted in to fUSDC yet, the card says so - the opt-in is added to the same transaction group and reserves 0.1 ALGO of your minimum balance, so keep a little spare ALGO. Press Deposit and sign. To go back, choose \"Withdraw fUSDC → USDC\", enter the fUSDC amount and sign; you receive USDC at the current exchange rate (if you do not hold USDC yet, the opt-in is added automatically).",
+        "a7": "Open the Swap page (Account > Swap) on Mainnet and scroll to the Folks Finance lending card below the swap form. Choose \"Deposit USDC → fUSDC\", enter the amount (or press Max) and check the estimated fUSDC you receive, the current exchange rate and the APY. If your account has not opted in to fUSDC yet, the card says so - the opt-in is added to the same transaction group and reserves 0.1 ALGO of your minimum balance, so keep a little spare ALGO. Press Deposit and sign. To go back, choose \"Withdraw fUSDC → USDC\", enter the fUSDC amount and sign; you receive USDC at the current exchange rate (if you do not hold USDC yet, the opt-in is added automatically). Tip: if you pick USDC as the source asset on the swap form and your account has not opted in to fUSDC yet, an \"Opt in to fUSDC\" button appears there; once the opt-in is confirmed and your balance reloads, fUSDC is selected as the destination asset automatically.",
         "q8": "What is fUSDC and what are the risks?",
         "a8": "fUSDC is the deposit token of the Folks Finance USDC lending pool. Your USDC is lent out to borrowers and the interest accrues in the exchange rate: one fUSDC becomes redeemable for more and more USDC over time, so your fUSDC balance itself does not grow. Deposits are not insured and carry smart-contract and protocol risk. A withdrawal can also fail temporarily if most of the pool is currently borrowed. The rate and APY are shown on the card and change continuously. Folks lending is available on Mainnet only, and as with any transaction you must review and sign it yourself - funds are never held by {name}."
       },

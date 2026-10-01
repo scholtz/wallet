@@ -54,6 +54,7 @@
             @update:toAsset="toAsset = $event"
             @swap-tokens="swapTokens"
           />
+          <FolksFAssetOptIn :asset="asset" @opted-in="onFAssetOptedIn" />
           <SwapAmountInput
             v-model:payamount="payamount"
             :maxAmount="maxAmount"
@@ -161,6 +162,7 @@ import SwapTransactionDetails from "../components/SwapTransactionDetails.vue";
 import SwapRouteExplorer from "../components/SwapRouteExplorer.vue";
 import SwapExecuteButtons from "../components/SwapExecuteButtons.vue";
 import FolksLendConvert from "../components/FolksLendConvert.vue";
+import FolksFAssetOptIn from "../components/FolksFAssetOptIn.vue";
 import { useSwap } from "../composables/useSwap";
 import { RootState } from "@/store";
 import { StoredAsset } from "@/store/indexer";
@@ -281,6 +283,30 @@ const biatecQuotes = computed(() => aggregatorData.biatecQuotes.value);
 const biatecStageQuotes = computed(
   () => aggregatorData.biatecStageQuotes?.value ?? {}
 );
+
+// After the fUSDC opt-in is confirmed and the balance reloaded, rebuild the
+// asset list (it only offers held assets) and preselect fUSDC as destination.
+const onFAssetOptedIn = async (assetId: bigint) => {
+  // Remember what the user was looking at: if they change the source,
+  // destination or account while the list reloads, their choice wins.
+  const fromBefore = asset.value;
+  const toBefore = toAsset.value;
+  const accountBefore = route.params.account;
+  try {
+    await makeAssets();
+  } catch (e) {
+    console.error("Unable to rebuild the asset list after the opt-in", e);
+    return;
+  }
+  if (
+    asset.value === fromBefore &&
+    toAsset.value === toBefore &&
+    route.params.account === accountBefore &&
+    assets.value.some((a) => a.assetId === assetId)
+  ) {
+    toAsset.value = assetId;
+  }
+};
 
 // Watchers
 watch(asset, async (newAsset) => {
