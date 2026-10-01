@@ -125,12 +125,13 @@
       "receive": "Recibirás (estimado)",
       "rate": "Tipo de cambio",
       "apy": "APY",
-      "opt_in_note": "Tu cuenta hará opt-in a fUSDC en el mismo grupo de transacciones.",
+      "opt_in_note": "Tu cuenta hará opt-in a {asset} en el mismo grupo de transacciones, lo que reserva 0,1 ALGO de su saldo mínimo.",
       "insufficient": "Saldo de {asset} insuficiente",
       "submit_deposit": "Depositar",
       "submit_withdraw": "Retirar",
       "success": "Procesado en tx: {txid}",
-      "rate_error": "No se pudo cargar la tasa del pool de Folks Finance"
+      "rate_error": "No se pudo cargar la tasa del pool de Folks Finance",
+      "not_confirmed": "La transacción se envió pero aún no está confirmada. Revisa el saldo de tu cuenta antes de volver a intentarlo."
     }
   },
   "govtoolsmenu": {

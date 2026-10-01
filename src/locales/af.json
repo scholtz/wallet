@@ -125,12 +125,13 @@
       "receive": "Jy ontvang (geskat)",
       "rate": "Wisselkoers",
       "apy": "APY",
-      "opt_in_note": "Jou rekening sal in dieselfde transaksiegroep by fUSDC inteken (opt-in).",
+      "opt_in_note": "Jou rekening sal in dieselfde transaksiegroep by {asset} inteken (opt-in), wat 0,1 ALGO van sy minimum saldo reserveer.",
       "insufficient": "Onvoldoende {asset}-saldo",
       "submit_deposit": "Deponeer",
       "submit_withdraw": "Onttrek",
       "success": "Verwerk in tx: {txid}",
-      "rate_error": "Kon nie die Folks Finance-poelkoers laai nie"
+      "rate_error": "Kon nie die Folks Finance-poelkoers laai nie",
+      "not_confirmed": "Die transaksie is ingedien maar nog nie bevestig nie. Kontroleer jou rekeningsaldo voordat jy weer probeer."
     }
   },
   "govtoolsmenu": {

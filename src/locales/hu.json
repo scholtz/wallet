@@ -125,12 +125,13 @@
       "receive": "Kapni fog (becslés)",
       "rate": "Árfolyam",
       "apy": "APY",
-      "opt_in_note": "A fiókja ugyanabban a tranzakciócsoportban feliratkozik (opt-in) az fUSDC-re.",
+      "opt_in_note": "A fiókja ugyanabban a tranzakciócsoportban feliratkozik (opt-in) a(z) {asset} eszközre, ami 0,1 ALGO-t foglal le a minimális egyenlegéből.",
       "insufficient": "Nincs elég {asset} egyenleg",
       "submit_deposit": "Betét",
       "submit_withdraw": "Kivét",
       "success": "Feldolgozva a tx-ben: {txid}",
-      "rate_error": "Nem sikerült betölteni a Folks Finance pool árfolyamát"
+      "rate_error": "Nem sikerült betölteni a Folks Finance pool árfolyamát",
+      "not_confirmed": "A tranzakciót elküldtük, de még nincs megerősítve. Újrapróbálkozás előtt ellenőrizze a számla egyenlegét."
     }
   },
   "govtoolsmenu": {

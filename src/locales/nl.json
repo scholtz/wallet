@@ -125,12 +125,13 @@
       "receive": "U ontvangt (geschat)",
       "rate": "Wisselkoers",
       "apy": "APY",
-      "opt_in_note": "Uw account doet opt-in voor fUSDC in dezelfde transactiegroep.",
+      "opt_in_note": "Uw account doet opt-in voor {asset} in dezelfde transactiegroep, waardoor 0,1 ALGO van het minimumsaldo wordt gereserveerd.",
       "insufficient": "Onvoldoende {asset}-saldo",
       "submit_deposit": "Storten",
       "submit_withdraw": "Opnemen",
       "success": "Verwerkt in tx: {txid}",
-      "rate_error": "Kan het tarief van de Folks Finance-pool niet laden"
+      "rate_error": "Kan het tarief van de Folks Finance-pool niet laden",
+      "not_confirmed": "De transactie is verzonden maar nog niet bevestigd. Controleer uw accountsaldo voordat u het opnieuw probeert."
     }
   },
   "govtoolsmenu": {

@@ -57,7 +57,7 @@
         {{ t("swap.folks_lend.rate_error") }}
       </Message>
       <Message severity="info" v-if="needsOptIn">
-        {{ t("swap.folks_lend.opt_in_note") }}
+        {{ t("swap.folks_lend.opt_in_note", { asset: toUnit }) }}
       </Message>
       <Message severity="error" v-if="insufficient">
         {{ t("swap.folks_lend.insufficient", { asset: fromUnit }) }}
@@ -85,7 +85,6 @@ import SelectButton from "primevue/selectbutton";
 import { useStore } from "@/store";
 import {
   calcFolksLendReceived,
-  calcUnderlyingReceived,
   exchangeRate,
   fromBaseUnits,
   toBaseUnits,
@@ -137,14 +136,22 @@ const usdcBalance = computed(() => balanceOf(FOLKS_USDC_POOL.assetId) ?? 0n);
 const fBalanceRaw = computed(() => balanceOf(FOLKS_USDC_POOL.fAssetId));
 const fBalance = computed(() => fBalanceRaw.value ?? 0n);
 
-// Only announce/prepend the opt-in once the account's holdings are actually
-// loaded - missing data must not be mistaken for "not opted in".
-const needsOptIn = computed(
-  () =>
-    direction.value === "deposit" &&
-    accountData.value !== undefined &&
-    fBalanceRaw.value === undefined,
-);
+// The asset the account still has to opt in to for this direction (fUSDC
+// before a deposit, USDC before a withdrawal). Only decided once the
+// account's holdings are actually loaded - missing data must not be mistaken
+// for "not opted in".
+const optInAssetId = computed<number | undefined>(() => {
+  if (accountData.value === undefined) return undefined;
+  if (direction.value === "deposit") {
+    return fBalanceRaw.value === undefined
+      ? FOLKS_USDC_POOL.fAssetId
+      : undefined;
+  }
+  return balanceOf(FOLKS_USDC_POOL.assetId) === undefined
+    ? FOLKS_USDC_POOL.assetId
+    : undefined;
+});
+const needsOptIn = computed(() => optInAssetId.value !== undefined);
 const fromUnit = computed(() =>
   direction.value === "deposit" ? "USDC" : "fUSDC",
 );
@@ -227,11 +234,7 @@ const submit = async () => {
       direction: direction.value,
       sender: sender.value,
       amount: amountBase.value,
-      minReceived:
-        direction.value === "withdraw"
-          ? calcUnderlyingReceived(amountBase.value, pool.value.depositIndex)
-          : 0n,
-      needsOptIn: needsOptIn.value,
+      optInAssetId: optInAssetId.value,
       suggestedParams,
     });
     assertFolksLendTxnsSafe(txns, sender.value);
@@ -253,6 +256,9 @@ const submit = async () => {
     if (confirmation) {
       lastTxId.value = res.txid;
       amount.value = 0;
+    } else {
+      // Already submitted - tell the user, so they check before retrying.
+      store.dispatch("toast/openError", t("swap.folks_lend.not_confirmed"));
     }
     await reloadAccount();
   } catch (e) {

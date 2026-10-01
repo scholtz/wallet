@@ -125,12 +125,13 @@
       "receive": "Riceverai (stima)",
       "rate": "Tasso di cambio",
       "apy": "APY",
-      "opt_in_note": "Il tuo account farà opt-in a fUSDC nello stesso gruppo di transazioni.",
+      "opt_in_note": "Il tuo account farà opt-in a {asset} nello stesso gruppo di transazioni, riservando 0,1 ALGO del suo saldo minimo.",
       "insufficient": "Saldo {asset} insufficiente",
       "submit_deposit": "Deposita",
       "submit_withdraw": "Preleva",
       "success": "Elaborato nella tx: {txid}",
-      "rate_error": "Impossibile caricare il tasso del pool Folks Finance"
+      "rate_error": "Impossibile caricare il tasso del pool Folks Finance",
+      "not_confirmed": "La transazione è stata inviata ma non è ancora confermata. Controlla il saldo del tuo account prima di riprovare."
     }
   },
   "govtoolsmenu": {

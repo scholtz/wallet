@@ -33,33 +33,36 @@ export const fetchFolksPoolRate = async (
   };
 };
 
-/** Zero-amount self transfer opting the account into the fUSDC asset. */
-export const buildFAssetOptInTxn = (
+/** Zero-amount self transfer opting the account into an asset. */
+export const buildOptInTxn = (
   sender: string,
+  assetId: number,
   suggestedParams: algosdk.SuggestedParams,
 ): algosdk.Transaction =>
   algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
     sender,
     receiver: sender,
-    assetIndex: FOLKS_USDC_POOL.fAssetId as number,
+    assetIndex: assetId,
     amount: 0n,
     suggestedParams,
   });
 
 /**
  * Builds the unsigned, grouped transactions for a deposit (USDC -> fUSDC) or
- * withdrawal (fUSDC -> USDC). Prepends the fUSDC opt-in when `needsOptIn`.
- * `minReceived` is only used for withdrawals (the pool pays exactly that).
+ * withdrawal (fUSDC -> USDC). Prepends an opt-in for `optInAssetId` when set
+ * (fUSDC before a deposit, USDC before a withdrawal).
+ * Withdrawals always pass received_amount = 0 ("variable"): the pool then pays
+ * out whatever the fUSDC is worth at the on-chain index, so a client clock that
+ * is ahead of chain time can never request more than the pool will pay.
  */
 export const buildFolksLendTxns = (args: {
   direction: "deposit" | "withdraw";
   sender: string;
   amount: bigint;
-  minReceived: bigint;
-  needsOptIn: boolean;
+  optInAssetId?: number;
   suggestedParams: algosdk.SuggestedParams;
 }): algosdk.Transaction[] => {
-  const { direction, sender, amount, minReceived, needsOptIn, suggestedParams } = args;
+  const { direction, sender, amount, optInAssetId, suggestedParams } = args;
   const poolTxns =
     direction === "deposit"
       ? prepareDepositIntoPool(
@@ -76,12 +79,12 @@ export const buildFolksLendTxns = (args: {
           sender,
           sender,
           amount,
-          minReceived,
+          0n,
           suggestedParams,
         );
   const txns =
-    direction === "deposit" && needsOptIn
-      ? [buildFAssetOptInTxn(sender, suggestedParams), ...poolTxns]
+    optInAssetId !== undefined
+      ? [buildOptInTxn(sender, optInAssetId, suggestedParams), ...poolTxns]
       : poolTxns;
   // The SDK strips group ids so the caller can recompose groups.
   return algosdk.assignGroupID(txns);

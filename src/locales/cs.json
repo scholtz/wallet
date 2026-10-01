@@ -125,12 +125,13 @@
       "receive": "Obdržíte (odhad)",
       "rate": "Směnný kurz",
       "apy": "APY",
-      "opt_in_note": "Váš účet se ve stejné skupině transakcí přihlásí k odběru fUSDC (opt-in).",
+      "opt_in_note": "Váš účet se ve stejné skupině transakcí přihlásí k odběru {asset} (opt-in), což vyhradí 0,1 ALGO jeho minimálního zůstatku.",
       "insufficient": "Nedostatečný zůstatek {asset}",
       "submit_deposit": "Vložit",
       "submit_withdraw": "Vybrat",
       "success": "Zpracováno v tx: {txid}",
-      "rate_error": "Nepodařilo se načíst kurz poolu Folks Finance"
+      "rate_error": "Nepodařilo se načíst kurz poolu Folks Finance",
+      "not_confirmed": "Transakce byla odeslána, ale zatím není potvrzena. Před dalším pokusem zkontrolujte zůstatek účtu."
     }
   },
   "govtoolsmenu": {

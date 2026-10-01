@@ -125,12 +125,13 @@
       "receive": "Alacağınız (tahmini)",
       "rate": "Döviz kuru",
       "apy": "APY",
-      "opt_in_note": "Hesabınız aynı işlem grubunda fUSDC'ye opt-in yapacaktır.",
+      "opt_in_note": "Hesabınız aynı işlem grubunda {asset} için opt-in yapacak ve bu, minimum bakiyesinden 0,1 ALGO ayıracaktır.",
       "insufficient": "Yetersiz {asset} bakiyesi",
       "submit_deposit": "Yatır",
       "submit_withdraw": "Çek",
       "success": "İşlendi, tx: {txid}",
-      "rate_error": "Folks Finance havuz oranı yüklenemedi"
+      "rate_error": "Folks Finance havuz oranı yüklenemedi",
+      "not_confirmed": "İşlem gönderildi ancak henüz onaylanmadı. Tekrar denemeden önce hesap bakiyenizi kontrol edin."
     }
   },
   "govtoolsmenu": {

@@ -96,8 +96,6 @@ test.describe("transaction building", () => {
       direction: "deposit",
       sender,
       amount: 5_000_000n,
-      minReceived: 0n,
-      needsOptIn: false,
       suggestedParams,
     });
     expect(txns).toHaveLength(2);
@@ -121,8 +119,7 @@ test.describe("transaction building", () => {
       direction: "deposit",
       sender,
       amount: 1_000_000n,
-      minReceived: 0n,
-      needsOptIn: true,
+      optInAssetId: FOLKS_USDC_POOL.fAssetId,
       suggestedParams,
     });
     expect(txns).toHaveLength(3);
@@ -139,8 +136,6 @@ test.describe("transaction building", () => {
       direction: "withdraw",
       sender,
       amount: 2_000_000n,
-      minReceived: 2_100_000n,
-      needsOptIn: false,
       suggestedParams,
     });
     expect(txns).toHaveLength(2);
@@ -148,6 +143,26 @@ test.describe("transaction building", () => {
       BigInt(FOLKS_USDC_POOL.fAssetId),
     );
     expect(txns[0].assetTransfer?.receiver.toString()).toBe(poolAddr);
+    // received_amount = 0 ("variable"): the pool pays whatever the fUSDC is
+    // worth on-chain instead of a client-estimated amount.
+    expect(txns[1].applicationCall?.appArgs[1]).toEqual(new Uint8Array(8));
+    expect(() => assertFolksLendTxnsSafe(txns, sender)).not.toThrow();
+  });
+
+  test("withdraw opts in to USDC first when it is not held", () => {
+    const txns = buildFolksLendTxns({
+      direction: "withdraw",
+      sender,
+      amount: 2_000_000n,
+      optInAssetId: FOLKS_USDC_POOL.assetId,
+      suggestedParams,
+    });
+    expect(txns).toHaveLength(3);
+    expect(txns[0].assetTransfer?.assetIndex).toBe(
+      BigInt(FOLKS_USDC_POOL.assetId),
+    );
+    expect(txns[0].assetTransfer?.amount).toBe(0n);
+    expect(txns[0].assetTransfer?.receiver.toString()).toBe(sender);
     expect(() => assertFolksLendTxnsSafe(txns, sender)).not.toThrow();
   });
 
@@ -156,8 +171,6 @@ test.describe("transaction building", () => {
       direction: "deposit",
       sender,
       amount: 1n,
-      minReceived: 0n,
-      needsOptIn: false,
       suggestedParams,
     });
     // wrong connected account

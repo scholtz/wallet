@@ -125,12 +125,13 @@
       "receive": "You receive (estimated)",
       "rate": "Exchange rate",
       "apy": "APY",
-      "opt_in_note": "Your account will opt in to fUSDC in the same transaction group.",
+      "opt_in_note": "Your account will opt in to {asset} in the same transaction group, which reserves 0.1 ALGO of its minimum balance.",
       "insufficient": "Insufficient {asset} balance",
       "submit_deposit": "Deposit",
       "submit_withdraw": "Withdraw",
       "success": "Processed in tx: {txid}",
-      "rate_error": "Unable to load the Folks Finance pool rate"
+      "rate_error": "Unable to load the Folks Finance pool rate",
+      "not_confirmed": "The transaction was submitted but is not confirmed yet. Check your account balance before trying again."
     }
   },
   "govtoolsmenu": {
