@@ -55,53 +55,20 @@ test("USDC <-> fUSDC replaces the quote form with the Folks lending panel; the a
   await expect(page.getByTestId("folks-lend")).toHaveCount(0);
 });
 
-test("selecting USDC as the source offers the fUSDC opt-in, but not for other assets", async ({
-  page,
-}) => {
-  await page.route(/\/v2\/applications\/971372237/, (route) => route.abort());
-  await setupFreshWallet(page);
-  const addr = page.url().split("/account/")[1];
-
-  // In-app route change (history + popstate) - a page.goto would lock the wallet.
-  const openSwap = async (path: string) => {
-    await page.evaluate((to) => {
-      history.pushState({}, "", to);
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    }, path);
-  };
-
-  // USDC (31566704) as source asset, fUSDC not held yet.
-  await openSwap(`/swap/${addr}/0/31566704`);
-  const optIn = page.getByTestId("folks-fusdc-optin");
-  await expect(optIn).toBeVisible({ timeout: 30000 });
-  await expect(optIn.getByRole("button", { name: "Opt in to fUSDC" })).toBeVisible();
-  // A brand new account has no ALGO for the 0.1 ALGO reservation: the button
-  // is blocked and says why instead of failing on-chain.
-  await expect(optIn.getByText("Not enough ALGO")).toBeVisible();
-  await expect(page.getByTestId("folks-fusdc-optin-button")).toBeDisabled();
-
-  // Any other source asset (ALGO), chosen in the page's own selector, shows
-  // no opt-in prompt.
-  await page.locator("#swap_asset_from").click();
-  await page
-    .locator(".p-select-overlay .p-select-option")
-    .filter({ hasText: "Native token" })
-    .first()
-    .click();
-  // ALGO is a normal swap source: no opt-in prompt, no lending panel.
-  await expect(page.getByRole("button", { name: "Get quote" })).toBeVisible();
-  await expect(page.getByTestId("folks-lend")).toHaveCount(0);
-  await expect(page.getByTestId("folks-fusdc-optin")).toHaveCount(0);
-});
-
 const USDC = 31566704;
 const FUSDC = 971384592;
+// An asset the mocked account is opted in to but holds none of.
+const ZERO_BALANCE_ASSET = 312769;
 
 interface ChainMockOptions {
   /** algod rejects the submitted transaction. */
   rejectSend?: boolean;
   /** the indexer fails once the opt-in went through. */
   failRefreshAfterOptIn?: boolean;
+  /** the account already holds fUSDC. */
+  startOptedIn?: boolean;
+  /** ALGO balance of the mocked account in microAlgo (default 5 ALGO). */
+  algoMicro?: number;
 }
 
 /**
@@ -127,19 +94,20 @@ async function mockFolksChain(page: Page, opts: ChainMockOptions = {}) {
         "current-round": 100,
         account: {
           address: addr,
-          amount: 5_000_000,
-          "amount-without-pending-rewards": 5_000_000,
+          amount: opts.algoMicro ?? 5_000_000,
+          "amount-without-pending-rewards": opts.algoMicro ?? 5_000_000,
           "min-balance": 200_000,
           "pending-rewards": 0,
           rewards: 0,
           round: 100,
           status: "Offline",
           "total-apps-opted-in": 0,
-          "total-assets-opted-in": state.optedIn ? 2 : 1,
+          "total-assets-opted-in": state.optedIn ? 3 : 2,
           "total-created-apps": 0,
           "total-created-assets": 0,
           assets: [
             { "asset-id": USDC, amount: 10_000_000, "is-frozen": false },
+            { "asset-id": ZERO_BALANCE_ASSET, amount: 0, "is-frozen": false },
             ...(state.optedIn
               ? [{ "asset-id": FUSDC, amount: 5_000_000, "is-frozen": false }]
               : []),
@@ -204,7 +172,7 @@ async function mockFolksChain(page: Page, opts: ChainMockOptions = {}) {
 /** The store reads its localStorage asset cache first. */
 async function seedAssetCache(page: Page) {
   await page.evaluate(
-    ([usdc, fusdc]) => {
+    ([usdc, fusdc, zero]) => {
       const put = (id: number, name: string) =>
         localStorage.setItem(
           `Asset-${id}`,
@@ -219,8 +187,9 @@ async function seedAssetCache(page: Page) {
         );
       put(usdc, "USDC");
       put(fusdc, "fUSDC");
+      put(zero, "USDt");
     },
-    [USDC, FUSDC],
+    [USDC, FUSDC, ZERO_BALANCE_ASSET],
   );
 }
 
@@ -302,3 +271,111 @@ test("a failed refresh after a confirmed opt-in is not reported as a failed opt-
   await expect(page.getByTestId("folks-fusdc-optin")).toHaveCount(0);
   await expect(page.locator("#swap_asset_to")).not.toContainText("fUSDC");
 });
+
+test("the source list only offers assets with a balance, the destination list offers all", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page, { startOptedIn: true });
+  await setupFreshWallet(page);
+  const addr = page.url().split("/account/")[1];
+  await seedAssetCache(page);
+  await openSwap(page, `/swap/${addr}/0/${USDC}`);
+  await expect(page.locator("#swap_asset_from")).toContainText("USDC", {
+    timeout: 30000,
+  });
+
+  const options = page.locator(".p-select-overlay .p-select-option");
+  // Source: held assets only - the 0-balance USDt is hidden.
+  await page.locator("#swap_asset_from").click();
+  await expect(options.filter({ hasText: "USDC" }).first()).toBeVisible();
+  await expect(options.filter({ hasText: "fUSDC" }).first()).toBeVisible();
+  await expect(options.filter({ hasText: "USDt" })).toHaveCount(0);
+  await page.keyboard.press("Escape");
+
+  // Destination: every opted-in asset, including the 0-balance ones.
+  await page.locator("#swap_asset_to").click();
+  await expect(options.filter({ hasText: "USDt" }).first()).toBeVisible();
+  await expect(options.filter({ hasText: "fUSDC" }).first()).toBeVisible();
+});
+
+test("selecting USDC offers a 'Swap to fUSDC' button that selects fUSDC and shows the lending panel", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page, { startOptedIn: true });
+  await setupFreshWallet(page);
+  const addr = page.url().split("/account/")[1];
+  await seedAssetCache(page);
+  // USDC is the source, the destination is still ALGO.
+  await openSwap(page, `/swap/${addr}/0/${USDC}`);
+
+  const button = page.getByTestId("folks-swap-to-fusdc-button");
+  await expect(button).toBeVisible({ timeout: 30000 });
+  await expect(button).toHaveText(/Swap to fUSDC/);
+  // The normal quote form is shown until the pair is selected.
+  await expect(page.getByRole("button", { name: "Get quote" })).toBeVisible();
+
+  await button.click();
+
+  await expect(page.locator("#swap_asset_to")).toContainText("fUSDC");
+  await expect(page.getByTestId("folks-lend")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Get quote" })).toHaveCount(0);
+  // Already selected: the shortcut is gone.
+  await expect(button).toHaveCount(0);
+});
+
+test("the 'Swap to fUSDC' button is not offered for other source assets", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page, { startOptedIn: true });
+  await setupFreshWallet(page);
+  const addr = page.url().split("/account/")[1];
+  await seedAssetCache(page);
+  // ALGO as the source.
+  await openSwap(page, `/swap/${addr}/${USDC}/0`);
+  await expect(page.locator("#swap_asset_from")).toBeVisible({
+    timeout: 30000,
+  });
+  await expect(page.getByTestId("folks-swap-to-fusdc-button")).toHaveCount(0);
+});
+
+test("selecting USDC as the source offers the fUSDC opt-in, but not for other assets", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  // Holds USDC but no fUSDC, and only 0.15 ALGO: not enough for the 0.1 ALGO
+  // reservation of one more opt-in on top of the minimum balance.
+  await mockFolksChain(page, { algoMicro: 150_000 });
+  await setupFreshWallet(page);
+  const addr = page.url().split("/account/")[1];
+  await seedAssetCache(page);
+
+  // USDC as the source asset, fUSDC not held yet.
+  await openSwap(page, `/swap/${addr}/0/${USDC}`);
+  const optIn = page.getByTestId("folks-fusdc-optin");
+  await expect(optIn).toBeVisible({ timeout: 30000 });
+  await expect(
+    optIn.getByRole("button", { name: "Opt in to fUSDC" }),
+  ).toBeVisible();
+  // The button is blocked and says why instead of failing on-chain.
+  await expect(optIn.getByText("Not enough ALGO")).toBeVisible();
+  await expect(page.getByTestId("folks-fusdc-optin-button")).toBeDisabled();
+  // No "Swap to fUSDC" shortcut yet: fUSDC is not held.
+  await expect(page.getByTestId("folks-swap-to-fusdc-button")).toHaveCount(0);
+
+  // Any other source asset (ALGO), chosen in the page's own selector, shows
+  // no opt-in prompt.
+  await page.locator("#swap_asset_from").click();
+  await page
+    .locator(".p-select-overlay .p-select-option")
+    .filter({ hasText: "Native token" })
+    .first()
+    .click();
+  // ALGO is a normal swap source: no opt-in prompt, no lending panel.
+  await expect(page.getByRole("button", { name: "Get quote" })).toBeVisible();
+  await expect(page.getByTestId("folks-lend")).toHaveCount(0);
+  await expect(page.getByTestId("folks-fusdc-optin")).toHaveCount(0);
+});
+

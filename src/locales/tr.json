@@ -132,7 +132,8 @@
       "insufficient_algo": "Yetersiz ALGO: {asset} için opt-in, minimum bakiyeden 0,1 ALGO daha ayırır ve ağ ücretleri de gerekir.",
       "optin_button": "fUSDC için opt-in yap",
       "optin_hint": "USDC'yi Folks Finance fUSDC'ye çevirmek için hesabınızın önce fUSDC için opt-in yapması gerekir. Bu, minimum bakiyenizden 0,1 ALGO ayırır. Opt-in onaylandıktan sonra hedef varlık olarak fUSDC seçilir.",
-      "optin_done": "fUSDC için opt-in yapıldı"
+      "optin_done": "fUSDC için opt-in yapıldı",
+      "swap_to_fusdc": "fUSDC'ye takas et"
     }
   },
   "govtoolsmenu": {

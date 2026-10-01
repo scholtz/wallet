@@ -132,7 +132,8 @@
       "insufficient_algo": "Nincs elég ALGO: a(z) {asset} opt-in további 0,1 ALGO-t foglal le a minimális egyenlegből, plusz a hálózati díjakat.",
       "optin_button": "Opt-in az fUSDC-re",
       "optin_hint": "Az USDC Folks Finance fUSDC-re váltásához a fiókjának először opt-int kell végeznie az fUSDC-re. Ez 0,1 ALGO-t foglal le a minimális egyenlegéből. Az opt-in megerősítése után az fUSDC lesz a célvagyon.",
-      "optin_done": "Az fUSDC opt-in megtörtént"
+      "optin_done": "Az fUSDC opt-in megtörtént",
+      "swap_to_fusdc": "Csere fUSDC-re"
     }
   },
   "govtoolsmenu": {

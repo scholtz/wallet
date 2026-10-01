@@ -132,7 +132,8 @@
       "insufficient_algo": "Nedostatok ALGO: opt-in na {asset} vyhradí ďalších 0,1 ALGO minimálneho zostatku plus sieťové poplatky.",
       "optin_button": "Opt-in na fUSDC",
       "optin_hint": "Na prevod USDC na Folks Finance fUSDC sa musí váš účet najprv prihlásiť na fUSDC (opt-in). Tým sa vyhradí 0,1 ALGO vášho minimálneho zostatku. Po potvrdení opt-inu sa ako cieľové aktívum vyberie fUSDC.",
-      "optin_done": "Opt-in na fUSDC vykonaný"
+      "optin_done": "Opt-in na fUSDC vykonaný",
+      "swap_to_fusdc": "Vymeniť na fUSDC"
     }
   },
   "govtoolsmenu": {

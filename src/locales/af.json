@@ -132,7 +132,8 @@
       "insufficient_algo": "Onvoldoende ALGO: opt-in by {asset} reserveer nog 0,1 ALGO van die minimum saldo, plus netwerkfooie.",
       "optin_button": "Teken in by fUSDC (opt-in)",
       "optin_hint": "Om USDC na Folks Finance fUSDC om te skakel, moet jou rekening eers by fUSDC inteken (opt-in). Dit reserveer 0,1 ALGO van jou minimum saldo. Nadat die opt-in bevestig is, word fUSDC as bestemmingsbate gekies.",
-      "optin_done": "By fUSDC ingeteken"
+      "optin_done": "By fUSDC ingeteken",
+      "swap_to_fusdc": "Ruil na fUSDC"
     }
   },
   "govtoolsmenu": {

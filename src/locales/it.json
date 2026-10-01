@@ -132,7 +132,8 @@
       "insufficient_algo": "ALGO insufficienti: l'opt-in a {asset} riserva altri 0,1 ALGO del saldo minimo, più le commissioni di rete.",
       "optin_button": "Opt-in a fUSDC",
       "optin_hint": "Per convertire USDC in fUSDC di Folks Finance, il tuo account deve prima fare opt-in a fUSDC. Questo riserva 0,1 ALGO del tuo saldo minimo. Dopo la conferma dell'opt-in, fUSDC viene selezionato come asset di destinazione.",
-      "optin_done": "Opt-in a fUSDC completato"
+      "optin_done": "Opt-in a fUSDC completato",
+      "swap_to_fusdc": "Scambia in fUSDC"
     }
   },
   "govtoolsmenu": {

@@ -1,4 +1,15 @@
 <template>
+  <div v-if="showSwapTo" class="field grid">
+    <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+    <div class="col-12 md:col-10">
+      <Button
+        :label="t('swap.folks_lend.swap_to_fusdc')"
+        severity="secondary"
+        data-testid="folks-swap-to-fusdc-button"
+        @click="emit('swap-to', BigInt(FOLKS_USDC_POOL.fAssetId))"
+      />
+    </div>
+  </div>
   <div v-if="visible" class="my-3" data-testid="folks-fusdc-optin">
     <Message severity="info">
       {{ t("swap.folks_lend.optin_hint") }}
@@ -33,10 +44,14 @@ import {
 const props = defineProps<{
   /** The asset currently selected as the swap source. */
   asset: bigint | null;
+  /** The asset currently selected as the swap destination. */
+  toAsset: bigint | null;
 }>();
 const emit = defineEmits<{
   /** The opt-in is confirmed and the reloaded account holds the asset. */
   (e: "opted-in", assetId: bigint): void;
+  /** The user asked to swap the selected source (USDC) into this asset. */
+  (e: "swap-to", assetId: bigint): void;
 }>();
 
 const { t } = useI18n();
@@ -58,6 +73,16 @@ const visible = computed(
     accountData.value !== undefined &&
     confirmedFor.value !== sender.value &&
     balanceOf(FOLKS_USDC_POOL.fAssetId) === undefined,
+);
+// Shortcut under the source asset: USDC is the source, fUSDC is held (opted
+// in) but not yet the destination.
+const showSwapTo = computed(
+  () =>
+    isFolksLendNetwork(store.state.config.env) &&
+    props.asset === BigInt(FOLKS_USDC_POOL.assetId) &&
+    accountData.value !== undefined &&
+    balanceOf(FOLKS_USDC_POOL.fAssetId) !== undefined &&
+    props.toAsset !== BigInt(FOLKS_USDC_POOL.fAssetId),
 );
 const lacksAlgo = computed(
   () =>

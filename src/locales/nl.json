@@ -132,7 +132,8 @@
       "insufficient_algo": "Onvoldoende ALGO: opt-in voor {asset} reserveert nog eens 0,1 ALGO van het minimumsaldo, plus netwerkkosten.",
       "optin_button": "Opt-in voor fUSDC",
       "optin_hint": "Om USDC om te zetten naar Folks Finance fUSDC moet uw account eerst opt-in doen voor fUSDC. Dit reserveert 0,1 ALGO van uw minimumsaldo. Nadat de opt-in is bevestigd, wordt fUSDC als doelasset geselecteerd.",
-      "optin_done": "Opt-in voor fUSDC gedaan"
+      "optin_done": "Opt-in voor fUSDC gedaan",
+      "swap_to_fusdc": "Omwisselen naar fUSDC"
     }
   },
   "govtoolsmenu": {

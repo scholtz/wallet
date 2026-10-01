@@ -8,7 +8,7 @@
         inputId="swap_asset_from"
         v-model="assetModel"
         filter
-        :options="assets"
+        :options="fromAssets"
         option-label="label"
         option-value="assetId"
         :placeholder="$t('placeholders.source_asset')"
@@ -17,6 +17,8 @@
       </Select>
     </div>
   </div>
+  <!-- Shortcuts relating to the selected source asset (e.g. Folks fUSDC). -->
+  <slot name="after-from" />
   <div class="field grid">
     <label for="swap_asset_to" class="col-12 mb-2 md:col-2 md:mb-0"> </label>
     <div class="col-12 md:col-10">
@@ -47,6 +49,8 @@
 </template>
 
 <script>
+import { filterAssetsWithBalance } from "@/scripts/assets/filterAssetsWithBalance";
+
 export default {
   name: "SwapAssetSelector",
   props: {
@@ -55,6 +59,12 @@ export default {
     toAsset: [Number, String, BigInt],
   },
   computed: {
+    // The source can only be sold if it is held; the destination list stays
+    // complete (swapping into an asset you hold at 0 balance is normal).
+    // The current selection is always kept so it never vanishes.
+    fromAssets() {
+      return filterAssetsWithBalance(this.assets ?? [], true, this.asset);
+    },
     assetModel: {
       get() {
         return this.asset;

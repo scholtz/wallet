@@ -53,8 +53,16 @@
             :toAsset="toAsset ?? undefined"
             @update:toAsset="toAsset = $event"
             @swap-tokens="swapTokens"
-          />
-          <FolksFAssetOptIn :asset="asset" @opted-in="onFAssetOptedIn" />
+          >
+            <template #after-from>
+              <FolksFAssetOptIn
+                :asset="asset"
+                :toAsset="toAsset"
+                @opted-in="onFAssetOptedIn"
+                @swap-to="(id: bigint) => (toAsset = id)"
+              />
+            </template>
+          </SwapAssetSelector>
           <SwapAmountInput
             v-model:payamount="payamount"
             :maxAmount="maxAmount"

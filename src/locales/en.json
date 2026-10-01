@@ -132,7 +132,8 @@
       "insufficient_algo": "Not enough ALGO: opting in to {asset} reserves another 0.1 ALGO of the minimum balance, plus network fees.",
       "optin_button": "Opt in to fUSDC",
       "optin_hint": "To convert USDC to Folks Finance fUSDC your account must first opt in to fUSDC. This reserves 0.1 ALGO of your minimum balance. After the opt-in is confirmed, fUSDC is selected as the destination asset.",
-      "optin_done": "Opted in to fUSDC"
+      "optin_done": "Opted in to fUSDC",
+      "swap_to_fusdc": "Swap to fUSDC"
     }
   },
   "govtoolsmenu": {

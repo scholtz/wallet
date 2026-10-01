@@ -132,7 +132,8 @@
       "insufficient_algo": "Недостаточно ALGO: opt-in на {asset} резервирует ещё 0,1 ALGO минимального баланса плюс комиссии сети.",
       "optin_button": "Выполнить opt-in на fUSDC",
       "optin_hint": "Чтобы конвертировать USDC в fUSDC Folks Finance, ваш аккаунт сначала должен выполнить opt-in на fUSDC. Это резервирует 0,1 ALGO минимального баланса. После подтверждения opt-in fUSDC выбирается как целевой актив.",
-      "optin_done": "Opt-in на fUSDC выполнен"
+      "optin_done": "Opt-in на fUSDC выполнен",
+      "swap_to_fusdc": "Обменять на fUSDC"
     }
   },
   "govtoolsmenu": {
