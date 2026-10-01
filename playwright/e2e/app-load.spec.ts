@@ -49,7 +49,7 @@ test.describe("Basic application load and public pages", () => {
 
   test("changelog page renders the project history", async ({ page }) => {
     await page.goto("/changelog");
-    await expect(page.locator("h1").first()).toBeVisible();
-    await expect(page.locator("body")).toContainText("2021");
+    await expect(page.locator(".changelog-content h2").first()).toBeVisible();
+    await expect(page.locator(".changelog-content")).toContainText("2021");
   });
 });
