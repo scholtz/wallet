@@ -1,7 +1,9 @@
 import algosdk from "algosdk";
 import {
+  MainnetOpUp,
   MainnetPoolManagerAppId,
   MainnetPools,
+  prefixWithOpUp,
   prepareDepositIntoPool,
   prepareWithdrawFromPool,
   retrievePoolInfo,
@@ -32,6 +34,9 @@ export const fetchFolksPoolRate = async (
     apy: Number(info.interest.depositInterestYield) / 1e16,
   };
 };
+
+/** Inner OpUp transactions added in front of the pool call (see buildFolksLendTxns). */
+const OPUP_INNER_TXNS = 1;
 
 const MIN_BALANCE_PER_ENTRY = 100_000n;
 const OPT_IN_FEES_MICROALGO = 10_000n;
@@ -70,6 +75,11 @@ export const buildOptInTxn = (
  * Builds the unsigned, grouped transactions for a deposit (USDC -> fUSDC) or
  * withdrawal (fUSDC -> USDC). Prepends an opt-in for `optInAssetId` when set
  * (fUSDC before a deposit, USDC before a withdrawal).
+ * The pool's program needs more opcode budget than a single app call
+ * provides ("dynamic cost budget exceeded"), so the pool calls are prefixed
+ * with one OpUp call (verified by simulating both directions on mainnet:
+ * without it deposit and withdraw fail, with one inner OpUp txn both pass
+ * with plenty of headroom).
  * Withdrawals always pass received_amount = 0 ("variable"): the pool then pays
  * out whatever the fUSDC is worth at the on-chain index, so a client clock that
  * is ahead of chain time can never request more than the pool will pay.
@@ -101,10 +111,17 @@ export const buildFolksLendTxns = (args: {
           0n,
           suggestedParams,
         );
+  const budgetedTxns = prefixWithOpUp(
+    MainnetOpUp,
+    sender,
+    poolTxns,
+    OPUP_INNER_TXNS,
+    suggestedParams,
+  );
   const txns =
     optInAssetId !== undefined
-      ? [buildOptInTxn(sender, optInAssetId, suggestedParams), ...poolTxns]
-      : poolTxns;
+      ? [buildOptInTxn(sender, optInAssetId, suggestedParams), ...budgetedTxns]
+      : budgetedTxns;
   // The SDK strips group ids so the caller can recompose groups.
   return algosdk.assignGroupID(txns);
 };
@@ -127,7 +144,8 @@ export const assertFolksLendTxnsSafe = (
   ]);
   for (const tx of txns) {
     if (tx.type === algosdk.TransactionType.appl) {
-      if (Number(tx.applicationCall?.appIndex) !== FOLKS_USDC_POOL.appId) {
+      const appId = Number(tx.applicationCall?.appIndex);
+      if (appId !== FOLKS_USDC_POOL.appId && appId !== MainnetOpUp.callerAppId) {
         throw new Error("Refusing to sign: unexpected application call.");
       }
     } else if (tx.type === algosdk.TransactionType.axfer) {

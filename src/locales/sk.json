@@ -119,9 +119,6 @@
     "folks_lend": {
       "title": "Požičiavanie Folks Finance (USDC ⇄ fUSDC)",
       "description": "Vložte USDC do požičiavacieho poolu Folks Finance a získajte fUSDC, vkladový token, ktorý zhodnocuje úrokom, alebo fUSDC vyberte späť na USDC. Dostupné iba na Mainnete.",
-      "mode_deposit": "Vložiť USDC → fUSDC",
-      "mode_withdraw": "Vybrať fUSDC → USDC",
-      "amount": "Suma",
       "receive": "Dostanete (odhad)",
       "rate": "Výmenný kurz",
       "apy": "APY",
@@ -879,7 +876,7 @@
         "q6": "Prečo musím urobiť opt-in k tokenu, skôr než doň môžem swapovať?",
         "a6": "Pretože Algorand umožňuje účtu držať iba aktíva, ku ktorým sa prihlásil. Ak ste token, ktorý chcete získať, nikdy nedržali, je najprv potrebný opt-in, ktorý stojí bežný poplatok a zablokuje 0,1 ALGO minimálneho zostatku. Uistite sa, že máte dosť voľných ALGO na to aj na poplatky za swap.",
         "q7": "Ako vložím USDC, aby som získal úrok a dostal fUSDC?",
-        "a7": "Otvorte stránku Swap (Účet > Swap) na Mainnete a posuňte sa na kartu požičiavania Folks Finance pod formulárom na výmenu. Vyberte „Vložiť USDC → fUSDC“, zadajte sumu (alebo stlačte Max) a skontrolujte odhadované fUSDC, aktuálny výmenný kurz a APY. Ak váš účet ešte nemá opt-in na fUSDC, karta to oznámi – opt-in sa pridá do tej istej skupiny transakcií a vyhradí 0,1 ALGO vášho minimálneho zostatku, takže majte nejaké ALGO navyše. Stlačte Vložiť a podpíšte. Späť sa dostanete voľbou „Vybrať fUSDC → USDC“, zadaním sumy fUSDC a podpisom; USDC dostanete podľa aktuálneho kurzu (ak USDC ešte nevlastníte, opt-in sa pridá automaticky). Tip: ak vo formulári na výmenu vyberiete ako zdrojové aktívum USDC a váš účet ešte nemá opt-in na fUSDC, objaví sa tlačidlo „Opt-in na fUSDC“; po potvrdení opt-inu a načítaní zostatku sa fUSDC automaticky vyberie ako cieľové aktívum.",
+        "a7": "Otvorte stránku Swap (Účet > Swap) na Mainnete. Ak váš účet ešte nemá opt-in na fUSDC, vyberte ako zdrojové aktívum USDC a stlačte „Opt-in na fUSDC“ – vyhradí sa tým 0,1 ALGO vášho minimálneho zostatku a po potvrdení opt-inu sa ako cieľové aktívum automaticky vyberie fUSDC. Na vklad vyberte ako zdrojové aktívum USDC a ako cieľové fUSDC a zadajte sumu (alebo stlačte Max). Formulár na ponuku výmeny sa potom nahradí panelom požičiavania Folks Finance, ktorý ukazuje, koľko fUSDC dostanete, aktuálny výmenný kurz a APY – stlačte Vložiť a podpíšte. Na výber stlačte tlačidlo ⇅ (alebo vyberte fUSDC ako zdrojové a USDC ako cieľové aktívum), zadajte sumu fUSDC a stlačte Vybrať; USDC dostanete podľa aktuálneho kurzu (ak USDC ešte nevlastníte, opt-in sa pridá automaticky).",
         "q8": "Čo je fUSDC a aké sú riziká?",
         "a8": "fUSDC je vkladový token požičiavacieho poolu USDC na Folks Finance. Vaše USDC sa požičiavajú dlžníkom a úrok sa pripisuje do výmenného kurzu: jeden fUSDC je časom vymeniteľný za stále viac USDC, takže samotný zostatok fUSDC nerastie. Vklady nie sú poistené a nesú riziko smart kontraktu a protokolu. Výber môže dočasne zlyhať, ak je väčšina poolu práve požičaná. Kurz a APY sú zobrazené na karte a priebežne sa menia. Požičiavanie Folks je dostupné iba na Mainnete a ako každú transakciu ju musíte skontrolovať a podpísať sami – {name} prostriedky nikdy nedrží."
       },

@@ -20,6 +20,22 @@ export const calcUnderlyingReceived = (fAmount: bigint, depositIndex: bigint): b
   return (fAmount * depositIndex) / ONE_14_DP;
 };
 
+/**
+ * Direction implied by the swap form's selected assets: USDC -> fUSDC is a
+ * deposit, fUSDC -> USDC a withdrawal, any other pair is a normal swap (null).
+ */
+export const getFolksLendDirection = (
+  from: bigint | null,
+  to: bigint | null,
+  assetId: number,
+  fAssetId: number,
+): FolksLendDirection | null => {
+  if (from === null || to === null) return null;
+  if (from === BigInt(assetId) && to === BigInt(fAssetId)) return "deposit";
+  if (from === BigInt(fAssetId) && to === BigInt(assetId)) return "withdraw";
+  return null;
+};
+
 /** Amount received for the chosen direction, in base units of the output asset. */
 export const calcFolksLendReceived = (
   direction: FolksLendDirection,

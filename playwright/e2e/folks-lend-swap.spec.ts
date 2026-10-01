@@ -2,45 +2,57 @@ import { test, expect, type Page } from "@playwright/test";
 import algosdk from "algosdk";
 import { setupFreshWallet } from "../support/wallet";
 
-test("swap page offers the Folks USDC <-> fUSDC card and blocks an unfunded deposit", async ({
+test("USDC <-> fUSDC replaces the quote form with the Folks lending panel; the assets choose the direction", async ({
   page,
 }) => {
-  // Keep the test independent of the live Folks pool: the pool application
-  // state request fails, which also covers the "rate unavailable" path.
-  await page.route(/\/v2\/applications\/971372237/, (route) => route.abort());
-
+  test.setTimeout(180000);
+  // The account already holds USDC and fUSDC. The pool state request fails,
+  // which also covers the "rate unavailable" path (no live pool needed).
+  await mockFolksChain(page, { startOptedIn: true });
   await setupFreshWallet(page);
+  const addr = page.url().split("/account/")[1];
+  await seedAssetCache(page);
 
-  // In-app navigation only - a reload would lock the wallet.
-  await page.locator(".p-tabmenu").getByText("Actions", { exact: true }).click({ force: true });
-  await page.locator("a[href^='/swap/']:visible").first().click();
-  await expect(page).toHaveURL(/\/swap\//);
-
+  // Source USDC, destination fUSDC (route params: toAsset / fromAsset).
+  await openSwap(page, `/swap/${addr}/${FUSDC}/${USDC}`);
   const card = page.getByTestId("folks-lend");
-  await expect(card).toBeVisible();
-  await expect(card.getByText("Deposit USDC → fUSDC")).toBeVisible();
-  await expect(page.getByTestId("folks-lend-submit")).toBeDisabled();
+  await expect(card).toBeVisible({ timeout: 30000 });
+  const submit = page.getByTestId("folks-lend-submit");
+  await expect(submit).toHaveText(/Deposit/);
+  await expect(submit).toBeDisabled();
   await expect(
     card.getByText("Unable to load the Folks Finance pool rate"),
   ).toBeVisible({ timeout: 30000 });
 
-  // A brand new account holds no fUSDC, so the opt-in is announced.
-  await expect(
-    card.getByText("opt in to fUSDC in the same transaction group"),
-  ).toBeVisible();
+  // The routed-swap quote form is gone, the main form stays.
+  await expect(page.getByRole("button", { name: "Get quote" })).toHaveCount(0);
+  await expect(page.locator("#swap_asset_from")).toBeVisible();
+  await expect(page.locator("#payamount")).toBeVisible();
+  // No separate direction selector / amount field inside the panel.
+  await expect(card.locator("#folks-lend-amount")).toHaveCount(0);
+  await expect(page.getByTestId("folks-lend-direction")).toHaveCount(0);
 
-  // ...and so is the missing ALGO for the 0.1 ALGO opt-in reservation.
-  await expect(card.getByText("Not enough ALGO")).toBeVisible();
+  // Negative case: more than the 10 USDC held. The main amount field clamps
+  // to the balance, and without a pool rate the action stays disabled.
+  await page.locator("#payamount").fill("50");
+  await page.locator("#payamount").press("Tab");
+  await expect(page.locator("#payamount")).toHaveValue("10");
+  await expect(submit).toBeDisabled();
 
-  // Negative case: amount above the (zero) USDC balance.
-  await card.locator("#folks-lend-amount").fill("5");
-  await card.locator("#folks-lend-amount").press("Tab");
-  await expect(page.getByTestId("folks-lend-submit")).toBeDisabled();
+  // The main form's exchange button flips the direction to a withdrawal.
+  await page.getByRole("button", { name: /Exchange source and destination/ }).click();
+  await expect(submit).toHaveText(/Withdraw/);
+  await expect(card).toBeVisible();
 
-  // Switching direction resets the form and the submit stays disabled.
-  await card.getByText("Withdraw fUSDC → USDC").click();
-  await expect(page.getByTestId("folks-lend-submit")).toBeDisabled();
-  await expect(card.locator("#folks-lend-amount")).toHaveValue("0");
+  // Any other pair is a normal swap again: quote form back, panel gone.
+  await page.locator("#swap_asset_to").click();
+  await page
+    .locator(".p-select-overlay .p-select-option")
+    .filter({ hasText: "Native token" })
+    .first()
+    .click();
+  await expect(page.getByRole("button", { name: "Get quote" })).toBeVisible();
+  await expect(page.getByTestId("folks-lend")).toHaveCount(0);
 });
 
 test("selecting USDC as the source offers the fUSDC opt-in, but not for other assets", async ({
@@ -76,7 +88,9 @@ test("selecting USDC as the source offers the fUSDC opt-in, but not for other as
     .filter({ hasText: "Native token" })
     .first()
     .click();
-  await expect(page.getByTestId("folks-lend")).toBeVisible();
+  // ALGO is a normal swap source: no opt-in prompt, no lending panel.
+  await expect(page.getByRole("button", { name: "Get quote" })).toBeVisible();
+  await expect(page.getByTestId("folks-lend")).toHaveCount(0);
   await expect(page.getByTestId("folks-fusdc-optin")).toHaveCount(0);
 });
 
@@ -96,7 +110,10 @@ interface ChainMockOptions {
  * later and overwrite the mocked holdings.
  */
 async function mockFolksChain(page: Page, opts: ChainMockOptions = {}) {
-  const state = { optedIn: false, submitted: null as Buffer | null };
+  const state = {
+    optedIn: !!opts.startOptedIn,
+    submitted: null as Buffer | null,
+  };
   await page.route(/\/v2\/applications\/971372237/, (route) => route.abort());
   await page.route(/\/v2\/accounts\/[A-Z2-7]{58}/, (route) => {
     if (opts.failRefreshAfterOptIn && state.optedIn) {
@@ -124,7 +141,7 @@ async function mockFolksChain(page: Page, opts: ChainMockOptions = {}) {
           assets: [
             { "asset-id": USDC, amount: 10_000_000, "is-frozen": false },
             ...(state.optedIn
-              ? [{ "asset-id": FUSDC, amount: 0, "is-frozen": false }]
+              ? [{ "asset-id": FUSDC, amount: 5_000_000, "is-frozen": false }]
               : []),
           ],
         },
@@ -184,11 +201,8 @@ async function mockFolksChain(page: Page, opts: ChainMockOptions = {}) {
   return state;
 }
 
-/** Fresh wallet, known asset metadata, then the Swap page with USDC as source. */
-async function openSwapWithUsdc(page: Page) {
-  await setupFreshWallet(page);
-  const addr = page.url().split("/account/")[1];
-  // The store reads its localStorage asset cache first.
+/** The store reads its localStorage asset cache first. */
+async function seedAssetCache(page: Page) {
   await page.evaluate(
     ([usdc, fusdc]) => {
       const put = (id: number, name: string) =>
@@ -208,11 +222,22 @@ async function openSwapWithUsdc(page: Page) {
     },
     [USDC, FUSDC],
   );
-  // In-app route change (history + popstate) - a page.goto would lock the wallet.
+}
+
+/** In-app route change (history + popstate) - a page.goto would lock the wallet. */
+async function openSwap(page: Page, path: string) {
   await page.evaluate((to) => {
     history.pushState({}, "", to);
     window.dispatchEvent(new PopStateEvent("popstate"));
-  }, `/swap/${addr}/0/${USDC}`);
+  }, path);
+}
+
+/** Fresh wallet, known asset metadata, then the Swap page with USDC as source. */
+async function openSwapWithUsdc(page: Page) {
+  await setupFreshWallet(page);
+  const addr = page.url().split("/account/")[1];
+  await seedAssetCache(page);
+  await openSwap(page, `/swap/${addr}/0/${USDC}`);
   const button = page.getByTestId("folks-fusdc-optin-button");
   await expect(button).toBeVisible({ timeout: 30000 });
   await expect(button).toBeEnabled();
@@ -233,6 +258,9 @@ test("after the fUSDC opt-in is confirmed the balance is reloaded and fUSDC beco
     timeout: 30000,
   });
   await expect(page.locator("#swap_asset_to")).toContainText("fUSDC");
+  // USDC -> fUSDC is now selected, so the Folks lending panel is shown.
+  await expect(page.getByTestId("folks-lend")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Get quote" })).toHaveCount(0);
   expect(chain.submitted).not.toBeNull();
 });
 

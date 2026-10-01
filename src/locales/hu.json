@@ -119,9 +119,6 @@
     "folks_lend": {
       "title": "Folks Finance hitelezés (USDC ⇄ fUSDC)",
       "description": "Helyezzen el USDC-t a Folks Finance hitelezési poolban, és kapjon fUSDC-t, amely egy kamatozó betéti token, vagy váltsa vissza a fUSDC-t USDC-re. Csak Mainneten érhető el.",
-      "mode_deposit": "USDC betét → fUSDC",
-      "mode_withdraw": "fUSDC kivét → USDC",
-      "amount": "Összeg",
       "receive": "Kapni fog (becslés)",
       "rate": "Árfolyam",
       "apy": "APY",
@@ -879,7 +876,7 @@
         "q6": "Miért kell elfogadnom (opt-in) egy tokent, mielőtt swapolhatnék rá?",
         "a6": "Mert az Algorand csak olyan eszközöket enged egy fiókban tartani, amelyeket a fiók elfogadott. Ha még soha nem birtokoltad a kapni kívánt tokent, először opt-in szükséges, amely a szokásos díjba kerül, és 0,1 ALGO minimumegyenleget foglal le. Gondoskodj róla, hogy legyen elég tartalék ALGO-d erre és a swap díjaira.",
         "q7": "Hogyan helyezhetek el USDC-t, hogy kamatot keressek és fUSDC-t kapjak?",
-        "a7": "Nyissa meg a Swap oldalt (Fiók > Swap) Mainneten, és görgessen a csereűrlap alatti Folks Finance hitelezési kártyához. Válassza a „USDC betét → fUSDC” lehetőséget, adja meg az összeget (vagy nyomja meg a Max gombot), és ellenőrizze a becsült fUSDC-t, az aktuális árfolyamot és az APY-t. Ha a fiókja még nem végzett opt-int az fUSDC-re, a kártya jelzi – az opt-in ugyanabba a tranzakciócsoportba kerül, és 0,1 ALGO-t foglal le a minimális egyenlegből, ezért tartson tartalék ALGO-t. Nyomja meg a Betét gombot és írja alá. Visszaváltáshoz válassza az „fUSDC kivét → USDC” lehetőséget, adja meg az fUSDC összegét és írja alá; az aktuális árfolyamon kap USDC-t (ha még nincs USDC-je, az opt-in automatikusan hozzáadódik). Tipp: ha a csereűrlapon az USDC-t választja forrásvagyonnak, és a fiókja még nem végzett opt-int az fUSDC-re, megjelenik egy „Opt-in az fUSDC-re” gomb; az opt-in megerősítése és az egyenleg újratöltése után az fUSDC automatikusan célvagyonként lesz kiválasztva.",
+        "a7": "Nyissa meg a Swap oldalt (Fiók > Swap) Mainneten. Ha a fiókja még nem végzett opt-int az fUSDC-re, válassza forrásvagyonnak az USDC-t, és nyomja meg az „Opt-in az fUSDC-re” gombot – ez 0,1 ALGO-t foglal le a minimális egyenlegéből, és az opt-in megerősítése után az fUSDC automatikusan célvagyonként lesz kiválasztva. Betéthez válassza forrásvagyonnak az USDC-t, célvagyonnak az fUSDC-t, és adja meg az összeget (vagy nyomja meg a Max gombot). Ekkor az árajánlat-űrlapot a Folks Finance hitelezési panel váltja fel, amely megmutatja a kapott fUSDC-t, az aktuális árfolyamot és az APY-t – nyomja meg a Betét gombot és írja alá. Kivéthez nyomja meg a ⇅ gombot (vagy válassza forrásnak az fUSDC-t, célnak az USDC-t), adja meg az fUSDC összegét, és nyomja meg a Kivét gombot; az aktuális árfolyamon kap USDC-t (ha még nincs USDC-je, az opt-in automatikusan hozzáadódik).",
         "q8": "Mi az fUSDC és mik a kockázatai?",
         "a8": "Az fUSDC a Folks Finance USDC hitelezési poolának betéti tokenje. Az USDC-t kölcsönadják a hitelfelvevőknek, a kamat pedig az árfolyamban halmozódik: egy fUSDC idővel egyre több USDC-re váltható, így maga az fUSDC egyenleg nem nő. A betétek nem biztosítottak, és okosszerződés- és protokollkockázattal járnak. A kivét átmenetileg meghiúsulhat, ha a pool nagy része éppen ki van hitelezve. Az árfolyam és az APY a kártyán látható, és folyamatosan változik. A Folks hitelezés csak Mainneten érhető el, és mint minden tranzakciót, ezt is Önnek kell ellenőriznie és aláírnia – a(z) {name} soha nem tárol pénzeszközöket."
       },

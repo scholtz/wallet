@@ -63,6 +63,16 @@
             :unit="unit"
             @set-max="payamount = maxAmount"
           />
+          <!-- USDC <-> fUSDC is a Folks Finance lending deposit/withdrawal, not a
+               routed swap: the assets above choose the direction, so the quote
+               form is replaced by the lending panel. -->
+          <FolksLendConvert
+            v-if="folksDirection"
+            :direction="folksDirection"
+            :amount="payamount"
+            @converted="payamount = 0"
+          />
+          <template v-else>
           <SwapSlippageInput
             v-model:slippage="slippage"
             v-model:slippageProtectionEnabled="slippageProtectionEnabled"
@@ -139,10 +149,10 @@
             @execute-biatec="clickExecuteBiatec"
             @execute-biatec-stage="clickExecuteBiatecStage"
           />
+          </template>
         </div>
       </template>
     </Card>
-    <FolksLendConvert />
   </MainLayout>
 </template>
 
@@ -164,6 +174,11 @@ import SwapExecuteButtons from "../components/SwapExecuteButtons.vue";
 import FolksLendConvert from "../components/FolksLendConvert.vue";
 import FolksFAssetOptIn from "../components/FolksFAssetOptIn.vue";
 import { useSwap } from "../composables/useSwap";
+import { getFolksLendDirection } from "../scripts/folksLend/convert";
+import {
+  FOLKS_USDC_POOL,
+  isFolksLendNetwork,
+} from "../scripts/folksLend/transactions";
 import { RootState } from "@/store";
 import { StoredAsset } from "@/store/indexer";
 
@@ -232,6 +247,19 @@ const {
 // algod/indexer URLs with no fixed chain identity, so checkNetwork() can't
 // tell whether it behaves like mainnet or testnet on its own - the swap page
 // asks the user to pick explicitly (see customNetworkKind in useSwap).
+// USDC <-> fUSDC (either way) is handled by the Folks lending panel instead of
+// the swap quote form; the selected assets decide the direction.
+const folksDirection = computed(() =>
+  isFolksLendNetwork(store.state.config.env)
+    ? getFolksLendDirection(
+        asset.value,
+        toAsset.value,
+        FOLKS_USDC_POOL.assetId,
+        FOLKS_USDC_POOL.fAssetId
+      )
+    : null
+);
+
 const isCustomEnv = computed(() => store.state.config.env === "custom");
 const customNetworkKindOptions = [
   { label: t("swap.custom_network_kind_mainnet"), value: "mainnet" },
