@@ -42,6 +42,16 @@ test.describe("Basic application load and public pages", () => {
     await expect(page.locator("[id^='faq-']").first()).toBeAttached();
   });
 
+  test("FAQ explains how to deposit USDC for fUSDC", async ({ page }) => {
+    await page.goto("/faq");
+    await expect(
+      page.getByText("How do I deposit USDC to earn interest and receive fUSDC?").first(),
+    ).toBeAttached();
+    await expect(
+      page.getByText("What is fUSDC and what are the risks?").first(),
+    ).toBeAttached();
+  });
+
   test("privacy policy page renders without a wallet", async ({ page }) => {
     await page.goto("/privacy-policy");
     await expect(page.locator("h1").first()).toBeVisible();

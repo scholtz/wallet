@@ -874,7 +874,11 @@
         "q5": "Is ruil deur {name} bewarend?",
         "a5": "Nee. Jou bates bly by elke stap onder jou eie private sleutel. {name} bied net 'n ononderteken transaksie vir die ruil aan, wat jy moet nagaan en onderteken, presies soos enige ander transaksie.",
         "q6": "Hoekom moet ek vir 'n token inskakel voordat ek daarin kan ruil?",
-        "a6": "Omdat Algorand 'n rekening net bates laat hou waarvoor dit ingeskakel het. As jy nog nooit die token gehad het wat jy wil ontvang nie, is 'n inskakeling eers nodig, wat die normale fooi kos en 0.1 ALGO van minimum saldo sluit. Maak seker jy hou genoeg ekstra ALGO vir hierdie en vir die ruilfooie."
+        "a6": "Omdat Algorand 'n rekening net bates laat hou waarvoor dit ingeskakel het. As jy nog nooit die token gehad het wat jy wil ontvang nie, is 'n inskakeling eers nodig, wat die normale fooi kos en 0.1 ALGO van minimum saldo sluit. Maak seker jy hou genoeg ekstra ALGO vir hierdie en vir die ruilfooie.",
+        "q7": "Hoe deponeer ek USDC om rente te verdien en fUSDC te ontvang?",
+        "a7": "Maak die Swap-bladsy oop (Rekening > Swap) op Mainnet en blaai na die Folks Finance-uitleenkaart onder die ruilvorm. Kies \"Deponeer USDC → fUSDC\", voer die bedrag in (of druk Max) en kontroleer die geskatte fUSDC, die huidige wisselkoers en die APY. As jou rekening nog nie by fUSDC ingeteken (opt-in) het nie, sê die kaart so - die opt-in word by dieselfde transaksiegroep gevoeg en reserveer 0,1 ALGO van jou minimum saldo, so hou 'n bietjie ekstra ALGO. Druk Deponeer en teken. Om terug te gaan, kies \"Onttrek fUSDC → USDC\", voer die fUSDC-bedrag in en teken; jy ontvang USDC teen die huidige koers (as jy nog nie USDC het nie, word die opt-in outomaties bygevoeg).",
+        "q8": "Wat is fUSDC en wat is die risiko's?",
+        "a8": "fUSDC is die depositotoken van die Folks Finance USDC-uitleenpoel. Jou USDC word aan leners uitgeleen en die rente versamel in die wisselkoers: een fUSDC kan mettertyd vir al hoe meer USDC verruil word, so jou fUSDC-saldo self groei nie. Deposito's is nie verseker nie en dra slimkontrak- en protokolrisiko. 'n Onttrekking kan ook tydelik misluk as die meeste van die poel tans uitgeleen is. Die koers en APY word op die kaart gewys en verander voortdurend. Folks-uitleen is slegs op Mainnet beskikbaar en soos met enige transaksie moet jy dit self hersien en teken - {name} hou nooit fondse nie."
       },
       "connect": {
         "title": "WalletConnect en DApps",

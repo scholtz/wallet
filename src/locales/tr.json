@@ -874,7 +874,11 @@
         "q5": "{name} üzerinden takas yapmak saklayıcı (custodial) bir işlem mi?",
         "a5": "Hayır. Varlıklarınız her adımda kendi özel anahtarınızın kontrolünde kalır. {name} takas için yalnızca imzasız bir işlem sunar; tıpkı diğer işlemler gibi bunu incelemeniz ve imzalamanız gerekir.",
         "q6": "Bir tokene takas yapabilmem için neden önce ona katılmam gerekiyor?",
-        "a6": "Çünkü Algorand, bir hesabın yalnızca katıldığı varlıkları tutmasına izin verir. Almak istediğiniz tokeni hiç tutmadıysanız önce bir katılım gerekir; bu normal ücreti gerektirir ve 0,1 ALGO asgari bakiyeyi kilitler. Bunun ve takas ücretlerinin için yeterli yedek ALGO bulundurduğunuzdan emin olun."
+        "a6": "Çünkü Algorand, bir hesabın yalnızca katıldığı varlıkları tutmasına izin verir. Almak istediğiniz tokeni hiç tutmadıysanız önce bir katılım gerekir; bu normal ücreti gerektirir ve 0,1 ALGO asgari bakiyeyi kilitler. Bunun ve takas ücretlerinin için yeterli yedek ALGO bulundurduğunuzdan emin olun.",
+        "q7": "Faiz kazanmak ve fUSDC almak için USDC'yi nasıl yatırırım?",
+        "a7": "Mainnet'te Swap sayfasını (Hesap > Swap) açın ve takas formunun altındaki Folks Finance borç verme kartına kaydırın. \"USDC yatır → fUSDC\" seçeneğini seçin, tutarı girin (veya Max'a basın) ve tahmini fUSDC'yi, güncel döviz kurunu ve APY'yi kontrol edin. Hesabınız henüz fUSDC için opt-in yapmadıysa kart bunu belirtir - opt-in aynı işlem grubuna eklenir ve minimum bakiyenizden 0,1 ALGO ayırır, bu yüzden biraz boş ALGO bulundurun. Yatır'a basın ve imzalayın. Geri dönmek için \"fUSDC çek → USDC\" seçeneğini seçin, fUSDC tutarını girin ve imzalayın; güncel kurdan USDC alırsınız (henüz USDC'niz yoksa opt-in otomatik eklenir).",
+        "q8": "fUSDC nedir ve riskleri nelerdir?",
+        "a8": "fUSDC, Folks Finance USDC borç verme havuzunun mevduat tokenidir. USDC'niz borçlulara ödünç verilir ve faiz döviz kuruna yansır: bir fUSDC zamanla giderek daha fazla USDC'ye çevrilebilir hale gelir, yani fUSDC bakiyenizin kendisi artmaz. Mevduatlar sigortalı değildir ve akıllı sözleşme ile protokol riski taşır. Havuzun çoğu ödünç verilmişse çekim geçici olarak başarısız olabilir. Kur ve APY kartta gösterilir ve sürekli değişir. Folks borç verme yalnızca Mainnet'te kullanılabilir ve her işlemde olduğu gibi onu kendiniz incelemeli ve imzalamalısınız - {name} hiçbir zaman fon tutmaz."
       },
       "connect": {
         "title": "WalletConnect ve DApp'ler",
