@@ -283,7 +283,8 @@
     "amount": "Amount",
     "search_by_amount": "Search by amount",
     "usd_value": "Hodnota v USD",
-    "actions": "Actions"
+    "actions": "Actions",
+    "only_with_balance": "Zobraziť iba aktíva so zostatkom"
   },
   "assets_overview": {
     "title": "Prehľad aktív",

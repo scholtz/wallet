@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useStore } from "vuex";
 import Select from "primevue/select";
 import formatCurrency from "../scripts/numbers/formatCurrency";
@@ -9,6 +9,7 @@ import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
 import { IAccountData } from "@/store/wallet";
+import { filterAssetsWithBalance } from "@/scripts/assets/filterAssetsWithBalance";
 
 const { t } = useI18n();
 const props = defineProps({
@@ -16,16 +17,26 @@ const props = defineProps({
   itemId: String,
   class: String,
   account: String,
+  defaultOnlyWithBalance: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["update:modelValue"]);
 
 const store = useStore<RootState>();
+const onlyWithBalance = ref(props.defaultOnlyWithBalance);
 const state = reactive({
   assetId: "",
   assets: [] as IAsset[],
   accountData: undefined as IAccountData | undefined,
 });
+
+const visibleAssets = computed(() =>
+  filterAssetsWithBalance(
+    state.assets,
+    onlyWithBalance.value,
+    state.assetId === "" ? undefined : state.assetId
+  )
+);
 
 watch(
   () => state.assetId,
@@ -142,17 +153,29 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <Select
+  <div class="w-full">
+    <Select
     inputId="asset"
     :itemid="props.itemId"
     v-model="state.assetId"
     filter
-    :options="state.assets"
+    :options="visibleAssets"
     optionLabel="label"
     optionValue="assetId"
     :placeholder="t('pay.asset')"
     class="w-full"
     inputClass="w-full"
   >
-  </Select>
+    </Select>
+    <div class="flex align-items-center gap-2 mt-2">
+      <Checkbox
+        v-model="onlyWithBalance"
+        inputId="select-asset-only-with-balance"
+        binary
+      />
+      <label for="select-asset-only-with-balance">
+        {{ t("acc_overview_assets.only_with_balance") }}
+      </label>
+    </div>
+  </div>
 </template>

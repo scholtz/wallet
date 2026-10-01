@@ -283,7 +283,8 @@
     "amount": "Amount",
     "search_by_amount": "Search by amount",
     "usd_value": "USD-waarde",
-    "actions": "Actions"
+    "actions": "Actions",
+    "only_with_balance": "Alleen activa met saldo tonen"
   },
   "assets_overview": {
     "title": "Overzicht van activa",

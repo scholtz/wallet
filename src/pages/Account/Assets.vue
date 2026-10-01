@@ -4,7 +4,7 @@
 
     <DataTable
       v-if="filters"
-      :value="assets"
+      :value="visibleAssets"
       responsive-layout="scroll"
       :paginator="true"
       :rows="20"
@@ -16,7 +16,20 @@
       :sortOrder="-1"
     >
       <template #header>
-        <div class="flex justify-content-end" v-if="filters['global']">
+        <div
+          class="flex justify-content-between align-items-center flex-wrap gap-2"
+          v-if="filters['global']"
+        >
+          <div class="flex align-items-center gap-2">
+            <Checkbox
+              v-model="onlyWithBalance"
+              inputId="only-with-balance"
+              binary
+            />
+            <label for="only-with-balance">
+              {{ $t("acc_overview_assets.only_with_balance") }}
+            </label>
+          </div>
           <IconField>
             <InputIcon class="pi pi-search" />
             <InputText
@@ -155,6 +168,7 @@ import { StoredAsset } from "@/store/indexer";
 import { getArc200Client } from "arc200-client";
 import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import { getAssetUsdPrices } from "@/scripts/biatecScan";
+import { filterAssetsWithBalance } from "@/scripts/assets/filterAssetsWithBalance";
 
 type AssetType = "Native" | "ASA" | "ARC200";
 
@@ -186,6 +200,10 @@ const route = useRoute();
 
 const loading = ref(true);
 const assets = ref<AssetListItem[]>([]);
+const onlyWithBalance = ref(true);
+const visibleAssets = computed(() =>
+  filterAssetsWithBalance(assets.value, onlyWithBalance.value)
+);
 
 const filters = ref<AssetsFilters>({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },

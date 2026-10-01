@@ -495,6 +495,7 @@ watch(
               v-model="state.assetData"
               class="w-full"
               :account="state.account"
+              default-only-with-balance
             ></SelectAsset>
           </div>
         </div>

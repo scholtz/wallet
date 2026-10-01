@@ -283,7 +283,8 @@
     "amount": "Bedrag",
     "search_by_amount": "Soek op bedrag",
     "usd_value": "USD-waarde",
-    "actions": "Aksies"
+    "actions": "Aksies",
+    "only_with_balance": "Wys slegs bates met 'n saldo"
   },
   "assets_overview": {
     "title": "Assets Overview",

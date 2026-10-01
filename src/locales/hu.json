@@ -283,7 +283,8 @@
     "amount": "Összeg",
     "search_by_amount": "Keresés összeg szerint",
     "usd_value": "USD érték",
-    "actions": "Műveletek"
+    "actions": "Műveletek",
+    "only_with_balance": "Csak az egyenleggel rendelkező eszközök megjelenítése"
   },
   "assets_overview": {
     "title": "Eszközök áttekintése",
