@@ -379,3 +379,66 @@ test("selecting USDC as the source offers the fUSDC opt-in, but not for other as
   await expect(page.getByTestId("folks-fusdc-optin")).toHaveCount(0);
 });
 
+test("the account overview suggests converting held USDC to fUSDC and opens the swap preselected", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page, { startOptedIn: true });
+  await setupFreshWallet(page);
+  const addr = page.url().split("/account/")[1];
+  await seedAssetCache(page);
+
+  const hint = page.getByTestId("folks-yield-hint");
+  await expect(hint).toBeVisible({ timeout: 30000 });
+  await expect(hint).toContainText("10 USDC");
+
+  await page.getByTestId("folks-yield-hint-button").click();
+
+  // Navigated in-app to the swap page with USDC -> fUSDC preselected.
+  await expect(page).toHaveURL(`/swap/${addr}/${FUSDC}/${USDC}`);
+  await expect(page.locator("#swap_asset_from")).toContainText("USDC", {
+    timeout: 30000,
+  });
+  await expect(page.locator("#swap_asset_to")).toContainText("fUSDC");
+  const panel = page.getByTestId("folks-lend");
+  await expect(panel).toBeVisible();
+  await expect(page.getByRole("button", { name: "Get quote" })).toHaveCount(0);
+  // The action sits in the second column, like the regular "Get quote" row.
+  await expect(
+    panel.locator(".field.grid .md\\:col-10").getByTestId("folks-lend-submit"),
+  ).toHaveCount(1);
+});
+
+test("the overview hint opens the swap for an account that has not opted in to fUSDC yet", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page); // holds USDC, fUSDC not held
+  await setupFreshWallet(page);
+  const addr = page.url().split("/account/")[1];
+  await seedAssetCache(page);
+
+  await expect(page.getByTestId("folks-yield-hint")).toBeVisible({
+    timeout: 30000,
+  });
+  await page.getByTestId("folks-yield-hint-button").click();
+  await expect(page).toHaveURL(`/swap/${addr}/${FUSDC}/${USDC}`);
+
+  // The lending panel offers the opt-in within the deposit; the separate
+  // opt-in prompt is not shown on top of it.
+  const panel = page.getByTestId("folks-lend");
+  await expect(panel).toBeVisible({ timeout: 30000 });
+  await expect(panel.getByText("will opt in to fUSDC")).toBeVisible();
+  await expect(page.getByTestId("folks-fusdc-optin")).toHaveCount(0);
+});
+
+test("the overview shows no yield hint when the account holds no USDC", async ({
+  page,
+}) => {
+  await setupFreshWallet(page);
+  // An unfunded brand new account: the account details are loaded (no USDC).
+  await expect(page.getByText("Amount", { exact: true }).first()).toBeVisible({
+    timeout: 30000,
+  });
+  await expect(page.getByTestId("folks-yield-hint")).toHaveCount(0);
+});

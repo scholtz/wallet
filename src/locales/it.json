@@ -290,7 +290,9 @@
     "button_sign_keyreg_tx": "Step 4/4: Sign participation tx",
     "button_custom_keyreg": "Custom KeyReg tx",
     "making_account_online": "Setting your account to online state. Please wait a while",
-    "making_account_offline": "Setting your account to offline state. Please wait a while"
+    "making_account_offline": "Setting your account to offline state. Please wait a while",
+    "folks_yield_message": "Possiedi {amount} USDC che non rendono nulla in questo account. Convertili in fUSDC di Folks Finance per ottenere un rendimento sui tuoi USDC: puoi riconvertirli in qualsiasi momento.",
+    "folks_yield_button": "Converti USDC in fUSDC"
   },
   "acc_overview_assets": {
     "name": "Name",

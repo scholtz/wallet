@@ -338,6 +338,7 @@
                 })
               }}
             </Message>
+            <FolksYieldHint />
             <AccountDetailsGrid
               :account="account"
               :account-data="accountData"
@@ -375,6 +376,7 @@ import MainLayout from "../layouts/Main.vue";
 import AccountTopMenu from "../components/AccountTopMenu.vue";
 import AccountOverviewHeader from "@/components/account/AccountOverviewHeader.vue";
 import AccountDetailsGrid from "@/components/account/AccountDetailsGrid.vue";
+import FolksYieldHint from "@/components/account/FolksYieldHint.vue";
 import AccountQrCodePanel from "@/components/account/AccountQrCodePanel.vue";
 import type {
   AccountNetworkData,

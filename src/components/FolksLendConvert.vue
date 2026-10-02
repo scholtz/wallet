@@ -7,7 +7,7 @@
         {{ t("swap.folks_lend.receive") }}
       </label>
       <div class="col-12 md:col-10" data-testid="folks-lend-receive">
-        {{ receiveText }}
+        <strong>{{ receiveText }}</strong>
       </div>
     </div>
     <div class="field grid" v-if="pool">
@@ -15,32 +15,51 @@
         {{ t("swap.folks_lend.rate") }}
       </label>
       <div class="col-12 md:col-10" data-testid="folks-lend-rate">
-        1 fUSDC = {{ rateText }} USDC · {{ t("swap.folks_lend.apy") }}
+        1 fUSDC = {{ rateText }} USDC
+      </div>
+    </div>
+    <div class="field grid" v-if="pool">
+      <label class="col-12 mb-2 md:col-2 md:mb-0">
+        {{ t("swap.folks_lend.apy") }}
+      </label>
+      <div class="col-12 md:col-10" data-testid="folks-lend-apy">
         {{ apyText }}%
       </div>
     </div>
-    <Message severity="error" v-if="rateError">
-      {{ t("swap.folks_lend.rate_error") }}
-    </Message>
-    <Message severity="info" v-if="needsOptIn">
-      {{ t("swap.folks_lend.opt_in_note", { asset: toUnit }) }}
-    </Message>
-    <Message severity="error" v-if="lacksAlgoForOptIn">
-      {{ t("swap.folks_lend.insufficient_algo", { asset: toUnit }) }}
-    </Message>
-    <Message severity="error" v-if="insufficient">
-      {{ t("swap.folks_lend.insufficient", { asset: fromUnit }) }}
-    </Message>
-    <Message severity="success" v-if="lastTxId">
-      {{ t("swap.folks_lend.success", { txid: lastTxId }) }}
-    </Message>
-    <Button
-      :label="submitLabel"
-      :disabled="!canSubmit"
-      :loading="processing"
-      data-testid="folks-lend-submit"
-      @click="submit"
-    />
+    <div class="field grid" v-if="messagesShown">
+      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+      <div class="col-12 md:col-10">
+        <Message severity="error" v-if="rateError" class="my-1">
+          {{ t("swap.folks_lend.rate_error") }}
+        </Message>
+        <Message severity="info" v-if="needsOptIn" class="my-1">
+          {{ t("swap.folks_lend.opt_in_note", { asset: toUnit }) }}
+        </Message>
+        <Message severity="error" v-if="lacksAlgoForOptIn" class="my-1">
+          {{ t("swap.folks_lend.insufficient_algo", { asset: toUnit }) }}
+        </Message>
+        <Message severity="error" v-if="insufficient" class="my-1">
+          {{ t("swap.folks_lend.insufficient", { asset: fromUnit }) }}
+        </Message>
+        <Message severity="success" v-if="lastTxId" class="my-1">
+          {{ t("swap.folks_lend.success", { txid: lastTxId }) }}
+        </Message>
+      </div>
+    </div>
+    <!-- Same placement as the "Get quote" row of the regular swap form. -->
+    <div class="field grid">
+      <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+      <div class="col-12 md:col-10">
+        <Button
+          class="my-2"
+          :label="submitLabel"
+          :disabled="!canSubmit"
+          :loading="processing"
+          data-testid="folks-lend-submit"
+          @click="submit"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -116,6 +135,15 @@ const optInAssetId = computed<number | undefined>(() => {
     : undefined;
 });
 const needsOptIn = computed(() => optInAssetId.value !== undefined);
+
+const messagesShown = computed(
+  () =>
+    rateError.value ||
+    needsOptIn.value ||
+    lacksAlgoForOptIn.value ||
+    insufficient.value ||
+    !!lastTxId.value,
+);
 
 const lacksAlgoForOptIn = computed(
   () =>

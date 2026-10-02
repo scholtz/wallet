@@ -10,20 +10,24 @@
       />
     </div>
   </div>
-  <div v-if="visible" class="my-3" data-testid="folks-fusdc-optin">
-    <Message severity="info">
-      {{ t("swap.folks_lend.optin_hint") }}
-    </Message>
-    <Message severity="error" v-if="lacksAlgo">
-      {{ t("swap.folks_lend.insufficient_algo", { asset: "fUSDC" }) }}
-    </Message>
-    <Button
-      :disabled="processing || lacksAlgo"
-      :loading="processing"
-      :label="t('swap.folks_lend.optin_button')"
-      data-testid="folks-fusdc-optin-button"
-      @click="optIn"
-    />
+  <div v-if="visible" class="field grid" data-testid="folks-fusdc-optin">
+    <label class="col-12 mb-2 md:col-2 md:mb-0"></label>
+    <div class="col-12 md:col-10">
+      <Message severity="info" class="my-1">
+        {{ t("swap.folks_lend.optin_hint") }}
+      </Message>
+      <Message severity="error" v-if="lacksAlgo" class="my-1">
+        {{ t("swap.folks_lend.insufficient_algo", { asset: "fUSDC" }) }}
+      </Message>
+      <Button
+        class="my-2"
+        :disabled="processing || lacksAlgo"
+        :loading="processing"
+        :label="t('swap.folks_lend.optin_button')"
+        data-testid="folks-fusdc-optin-button"
+        @click="optIn"
+      />
+    </div>
   </div>
 </template>
 
@@ -72,7 +76,10 @@ const visible = computed(
     props.asset === BigInt(FOLKS_USDC_POOL.assetId) &&
     accountData.value !== undefined &&
     confirmedFor.value !== sender.value &&
-    balanceOf(FOLKS_USDC_POOL.fAssetId) === undefined,
+    balanceOf(FOLKS_USDC_POOL.fAssetId) === undefined &&
+    // With fUSDC already chosen as the destination the lending panel offers
+    // the opt-in within the deposit itself.
+    props.toAsset !== BigInt(FOLKS_USDC_POOL.fAssetId),
 );
 // Shortcut under the source asset: USDC is the source, fUSDC is held (opted
 // in) but not yet the destination.

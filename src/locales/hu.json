@@ -290,7 +290,9 @@
     "button_sign_keyreg_tx": "4/4. lépés: részvételi tranzakció aláírása",
     "button_custom_keyreg": "Egyedi KeyReg tranzakció",
     "making_account_online": "A számlád online állapotba állítása. Várnod kell egy kicsit…",
-    "making_account_offline": "A számlád offline állapotba állítása. Várnod kell egy kicsit…"
+    "making_account_offline": "A számlád offline állapotba állítása. Várnod kell egy kicsit…",
+    "folks_yield_message": "Önnek {amount} USDC-je van, amely nem hoz hozamot ezen a számlán. Váltsa át Folks Finance fUSDC-re, hogy hozamot kapjon az USDC-jén – bármikor visszaválthatja.",
+    "folks_yield_button": "USDC átváltása fUSDC-re"
   },
   "acc_overview_assets": {
     "name": "Név",
