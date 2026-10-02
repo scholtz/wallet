@@ -290,7 +290,9 @@
     "button_sign_keyreg_tx": "Step 4/4: Podpísať participačnú transakciu",
     "button_custom_keyreg": "Vlastná KeyReg tx",
     "making_account_online": "Nastavujem Váš účet aby participoval na overovaní siete. Táto operácia môže chvíľku trvať.",
-    "making_account_offline": "Nastavujem Váš účet aby neparticipoval na overovaní siete. Táto operácia môže chvíľku trvať."
+    "making_account_offline": "Nastavujem Váš účet aby neparticipoval na overovaní siete. Táto operácia môže chvíľku trvať.",
+    "folks_yield_message": "Držíte {amount} USDC, ktoré na tomto účte nič nezarábajú. Preveďte ich na fUSDC z Folks Finance a získajte z USDC výnos – kedykoľvek ich môžete previesť späť.",
+    "folks_yield_button": "Previesť USDC na fUSDC"
   },
   "acc_overview_assets": {
     "name": "Name",

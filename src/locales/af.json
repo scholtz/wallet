@@ -290,7 +290,9 @@
     "button_sign_keyreg_tx": "Step 4/4: Sign participation tx",
     "button_custom_keyreg": "Custom KeyReg tx",
     "making_account_online": "Setting your account to online state. Please wait a while",
-    "making_account_offline": "Setting your account to offline state. Please wait a while"
+    "making_account_offline": "Setting your account to offline state. Please wait a while",
+    "folks_yield_message": "Jy het {amount} USDC wat niks verdien terwyl dit in hierdie rekening sit. Skakel dit om na Folks Finance fUSDC om 'n opbrengs op jou USDC te kry - jy kan dit enige tyd terug omskakel.",
+    "folks_yield_button": "Skakel USDC om na fUSDC"
   },
   "acc_overview_assets": {
     "name": "Naam",

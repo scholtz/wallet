@@ -69,6 +69,8 @@ interface ChainMockOptions {
   startOptedIn?: boolean;
   /** ALGO balance of the mocked account in microAlgo (default 5 ALGO). */
   algoMicro?: number;
+  /** USDC balance of the mocked account in base units (default 10 USDC). */
+  usdcBase?: number;
 }
 
 /**
@@ -106,7 +108,11 @@ async function mockFolksChain(page: Page, opts: ChainMockOptions = {}) {
           "total-created-apps": 0,
           "total-created-assets": 0,
           assets: [
-            { "asset-id": USDC, amount: 10_000_000, "is-frozen": false },
+            {
+              "asset-id": USDC,
+              amount: opts.usdcBase ?? 10_000_000,
+              "is-frozen": false,
+            },
             { "asset-id": ZERO_BALANCE_ASSET, amount: 0, "is-frozen": false },
             ...(state.optedIn
               ? [{ "asset-id": FUSDC, amount: 5_000_000, "is-frozen": false }]
@@ -379,3 +385,103 @@ test("selecting USDC as the source offers the fUSDC opt-in, but not for other as
   await expect(page.getByTestId("folks-fusdc-optin")).toHaveCount(0);
 });
 
+test("the account overview suggests converting held USDC to fUSDC and opens the swap preselected", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page, { startOptedIn: true });
+  await setupFreshWallet(page);
+  const addr = page.url().split("/account/")[1];
+  await seedAssetCache(page);
+
+  const hint = page.getByTestId("folks-yield-hint");
+  await expect(hint).toBeVisible({ timeout: 30000 });
+  await expect(hint).toContainText("10 USDC");
+
+  await page.getByTestId("folks-yield-hint-button").click();
+
+  // Navigated in-app to the swap page with USDC -> fUSDC preselected.
+  await expect(page).toHaveURL(`/swap/${addr}/${FUSDC}/${USDC}`);
+  await expect(page.locator("#swap_asset_from")).toContainText("USDC", {
+    timeout: 30000,
+  });
+  await expect(page.locator("#swap_asset_to")).toContainText("fUSDC");
+  const panel = page.getByTestId("folks-lend");
+  await expect(panel).toBeVisible();
+  await expect(page.getByRole("button", { name: "Get quote" })).toHaveCount(0);
+  // The action sits in the second column, like the regular "Get quote" row.
+  await expect(
+    panel.locator(".field.grid .md\\:col-10").getByTestId("folks-lend-submit"),
+  ).toHaveCount(1);
+});
+
+test("the overview hint for an account that has not opted in to fUSDC preselects USDC and offers the opt-in", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page); // holds USDC, fUSDC not held
+  await setupFreshWallet(page);
+  const addr = page.url().split("/account/")[1];
+  await seedAssetCache(page);
+
+  await expect(page.getByTestId("folks-yield-hint")).toBeVisible({
+    timeout: 30000,
+  });
+  await page.getByTestId("folks-yield-hint-button").click();
+
+  // fUSDC cannot be chosen before the account holds it, so only the source is
+  // preselected and the opt-in button is offered (it then selects fUSDC).
+  await expect(page).toHaveURL(`/swap/${addr}/0/${USDC}`);
+  await expect(page.locator("#swap_asset_from")).toContainText("USDC", {
+    timeout: 30000,
+  });
+  await expect(page.getByTestId("folks-fusdc-optin-button")).toBeVisible();
+  await expect(page.getByTestId("folks-fusdc-optin-button")).toBeEnabled();
+  await expect(page.locator("#swap_asset_to")).not.toContainText("fUSDC");
+});
+
+test("the overview shows no yield hint when a loaded account holds no USDC", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page, { usdcBase: 0 });
+  await setupFreshWallet(page);
+  // The account details are loaded (5 ALGO from the mocked indexer) ...
+  await expect(page.getByText("5.000000 Algo")).toBeVisible({ timeout: 30000 });
+  // ... and there is nothing to convert.
+  await expect(page.getByTestId("folks-yield-hint")).toHaveCount(0);
+});
+
+test("the overview shows no yield hint for a dust USDC balance", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page, { usdcBase: 4_000 }); // 0.004 USDC
+  await setupFreshWallet(page);
+  await expect(page.getByText("5.000000 Algo")).toBeVisible({ timeout: 30000 });
+  await expect(page.getByTestId("folks-yield-hint")).toHaveCount(0);
+});
+
+test("the overview hint does not understate balances whose float product is off by a cent", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page, { usdcBase: 290_000, startOptedIn: true }); // 0.29 USDC
+  await setupFreshWallet(page);
+  await expect(page.getByTestId("folks-yield-hint")).toContainText(
+    "0.29 USDC",
+    { timeout: 30000 },
+  );
+});
+
+test("the overview hint shows the USDC balance floored to cents", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page, { usdcBase: 10_999_000, startOptedIn: true });
+  await setupFreshWallet(page);
+  await expect(page.getByTestId("folks-yield-hint")).toContainText(
+    "10.99 USDC",
+    { timeout: 30000 },
+  );
+});

@@ -290,7 +290,9 @@
     "button_sign_keyreg_tx": "Krok 4/4: Podepsat participační transakci",
     "button_custom_keyreg": "Vlastní KeyReg transakce",
     "making_account_online": "Nastavování vašeho účtu do online stavu. Chvíli počkejte",
-    "making_account_offline": "Nastavování vašeho účtu do offline stavu. Chvíli počkejte"
+    "making_account_offline": "Nastavování vašeho účtu do offline stavu. Chvíli počkejte",
+    "folks_yield_message": "Držíte {amount} USDC, které na tomto účtu nic nevydělávají. Převeďte je na fUSDC z Folks Finance a získejte z USDC výnos – kdykoli je můžete převést zpět.",
+    "folks_yield_button": "Převést USDC na fUSDC"
   },
   "acc_overview_assets": {
     "name": "Název",

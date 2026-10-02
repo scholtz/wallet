@@ -7,6 +7,7 @@ import {
   calcFolksLendReceived,
   calcUnderlyingReceived,
   exchangeRate,
+  floorToCents,
   fromBaseUnits,
   getFolksLendDirection,
   toBaseUnits,
@@ -77,6 +78,25 @@ test.describe("base unit conversion", () => {
   });
   test("fromBaseUnits", () => {
     expect(fromBaseUnits(1500000n, 6)).toBe(1.5);
+  });
+});
+
+test.describe("floorToCents", () => {
+  test("is exact where float flooring is off by a cent", () => {
+    // Math.floor(290000 / 1e6 * 100) / 100 === 0.28 (wrong)
+    expect(floorToCents(290_000n, 6)).toBe(0.29);
+    expect(floorToCents(1_130_000n, 6)).toBe(1.13);
+    expect(floorToCents(570_000n, 6)).toBe(0.57);
+  });
+  test("floors instead of rounding", () => {
+    expect(floorToCents(10_999_000n, 6)).toBe(10.99);
+    expect(floorToCents(10_009_999n, 6)).toBe(10);
+    expect(floorToCents(9_999n, 6)).toBe(0);
+  });
+  test("whole amounts and large balances", () => {
+    expect(floorToCents(10_000_000n, 6)).toBe(10);
+    expect(floorToCents(577_834_145n, 6)).toBe(577.83);
+    expect(floorToCents(0n, 6)).toBe(0);
   });
 });
 
