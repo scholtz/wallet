@@ -865,6 +865,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     }
   },
   async logout({ commit, dispatch }) {
+    // First, before any await: a Ledger request must not start or complete into
+    // a session that is closing.
+    commit("signer/ledgerPendingReset", null, { root: true });
     try {
       wc.clear();
     } catch (err) {
@@ -891,9 +894,6 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     } catch (err) {
       console.error("Failed to reset wcClient module state", err);
     }
-    // Immediately before the session is torn down, so no Ledger request can
-    // start between the reset and the logout.
-    commit("signer/ledgerPendingReset", null, { root: true });
     await commit("logout");
   },
   async prolong({ commit }) {
@@ -1800,6 +1800,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
           " and all private keys within it?"
       )
     ) {
+      commit("signer/ledgerPendingReset", null, { root: true });
       const walletRecord = await db.wallets.get({ name });
       if (walletRecord?.id !== undefined) {
         await db.wallets.delete(walletRecord.id);
@@ -1816,7 +1817,6 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       } catch (err) {
         console.error("Failed to reset wcClient module state", err);
       }
-      commit("signer/ledgerPendingReset", null, { root: true });
       commit("logout");
     }
   },

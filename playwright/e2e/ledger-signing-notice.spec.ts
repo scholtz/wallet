@@ -4,7 +4,7 @@ import { setupFreshWallet } from "../support/wallet";
 interface StoreLike {
   commit: (type: string, payload?: number) => void;
   dispatch: (type: string) => Promise<void>;
-  _mutations: Record<string, unknown>;
+  _mutations: Record<string, object | undefined>;
 }
 interface AppHost extends Element {
   __vue_app__?: { config: { globalProperties: { $store: StoreLike } } };
