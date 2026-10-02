@@ -2,7 +2,6 @@
   <div class="flex flex-column h-full">
     <Navbar2 />
     <Toast />
-    <LedgerSigningNotice />
     <div
       v-if="$store.state.wallet.isOpen"
       class="container-fluid flex flex-column flex-grow-1 page-shell"
@@ -21,7 +20,6 @@ import Toast from "primevue/toast";
 import Navbar2 from "../components/Navbar2.vue";
 import Footer from "../components/Footer.vue";
 import Login from "../components/Login.vue";
-import LedgerSigningNotice from "../components/LedgerSigningNotice.vue";
 import { mapActions } from "vuex";
 export default {
   components: {
@@ -29,7 +27,6 @@ export default {
     Login,
     Footer,
     Toast,
-    LedgerSigningNotice,
   },
   created() {
     this.setVM({ _vm: this });

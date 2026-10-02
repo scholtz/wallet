@@ -921,7 +921,7 @@
   "ledger_signing": {
     "title": "Confirm on your Ledger",
     "instruction": "Look at your Ledger device, check the transaction details on its screen and approve it by pressing both buttons. Signing continues automatically once you confirm.",
-    "waiting": "Waiting for the Ledger device..."
+    "hide": "Hide"
   },
   "changelog": {
     "title": "Changelog"

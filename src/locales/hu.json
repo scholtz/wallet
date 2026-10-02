@@ -921,7 +921,7 @@
   "ledger_signing": {
     "title": "Erősítse meg a Ledgeren",
     "instruction": "Nézze meg a Ledger eszközét, ellenőrizze a tranzakció adatait a képernyőn, és hagyja jóvá mindkét gomb megnyomásával. Az aláírás a megerősítés után automatikusan folytatódik.",
-    "waiting": "Várakozás a Ledger eszközre..."
+    "hide": "Elrejtés"
   },
   "changelog": {
     "title": "Fejlesztési és funkciótörténet"

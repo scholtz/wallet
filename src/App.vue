@@ -1,6 +1,7 @@
 <template>
   <canvas id="gradient-canvas"></canvas>
   <router-view />
+  <LedgerSigningNotice />
 </template>
 
 <script>
@@ -19,10 +20,12 @@ window.process = {
   version: "",
 };
 import wc from "./shared/wc";
+import LedgerSigningNotice from "./components/LedgerSigningNotice.vue";
 import { Gradient } from "whatamesh";
 
 export default {
   name: "App",
+  components: { LedgerSigningNotice },
   async created() {
     wc.initialize(this.$store);
     await this.getConfig();

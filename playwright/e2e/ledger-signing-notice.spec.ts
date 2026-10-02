@@ -36,7 +36,12 @@ test.describe("Ledger signing notice", () => {
     await commit("signer/ledgerPendingEnd");
     await expect(notice).toHaveCount(0);
 
-    // Extra ends never drive the counter negative (notice stays hidden, next start shows it).
+    // The user is never trapped: the notice can be hidden while signing keeps waiting,
+    // and it reappears for the next signing round.
+    await commit("signer/ledgerPendingStart");
+    await expect(notice).toBeVisible();
+    await page.getByTestId("ledger-signing-hide").click();
+    await expect(notice).toHaveCount(0);
     await commit("signer/ledgerPendingEnd");
     await commit("signer/ledgerPendingStart");
     await expect(notice).toBeVisible();

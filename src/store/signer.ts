@@ -1,5 +1,6 @@
 import algosdk, { Transaction, type EncodedMultisig } from "algosdk";
 import { ledgerPath, withLedger } from "@/scripts/ledger";
+import { trackPending } from "@/scripts/trackPending";
 import WalletConnect from "@walletconnect/client";
 import UniversalProvider from "universal-provider-with-algorand";
 
@@ -197,6 +198,10 @@ const mutations: MutationTree<SignerState> = {
   ledgerPendingEnd(currentState) {
     currentState.ledgerPending = Math.max(0, currentState.ledgerPending - 1);
   },
+  // Wallet logout/delete: never leave the notice up for a session that is gone.
+  ledgerPendingReset(currentState) {
+    currentState.ledgerPending = 0;
+  },
   setSigned(currentState, signed: SignedTxnInput) {
     const bytes = toSignedBytes(signed);
     const tx = algosdk.decodeSignedTransaction(bytes);
@@ -364,19 +369,20 @@ const actions: ActionTree<SignerState, RootState> = {
   ): Promise<Uint8Array<ArrayBufferLike>> {
     const fromAccount = ensureAccount(rootState, payload.from);
     const slot = fromAccount.slot ?? 0;
-    // Drives the global "confirm on your Ledger" notice (LedgerSigningNotice).
-    commit("ledgerPendingStart");
-    let signature: Buffer | null | undefined;
-    try {
-      ({ signature } = await withLedger((algo) =>
-        algo.sign(
-          ledgerPath(slot),
-          Buffer.from(payload.tx.toByte()).toString("hex"),
-        ),
-      ));
-    } finally {
-      commit("ledgerPendingEnd");
-    }
+    // The global "confirm on your Ledger" notice (LedgerSigningNotice) is shown
+    // only once the device is open and `sign` is actually waiting on the user -
+    // not while the browser USB chooser is up.
+    const { signature } = await withLedger((algo) =>
+      trackPending(
+        () => commit("ledgerPendingStart"),
+        () => commit("ledgerPendingEnd"),
+        () =>
+          algo.sign(
+            ledgerPath(slot),
+            Buffer.from(payload.tx.toByte()).toString("hex"),
+          ),
+      ),
+    );
     if (!signature) {
       throw new Error("Ledger signature missing");
     }

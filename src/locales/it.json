@@ -921,7 +921,7 @@
   "ledger_signing": {
     "title": "Conferma sul tuo Ledger",
     "instruction": "Guarda il dispositivo Ledger, controlla i dettagli della transazione sullo schermo e approvala premendo entrambi i pulsanti. La firma prosegue automaticamente dopo la conferma.",
-    "waiting": "In attesa del dispositivo Ledger..."
+    "hide": "Nascondi"
   },
   "changelog": {
     "title": "Cronologia di sviluppo e funzionalità"

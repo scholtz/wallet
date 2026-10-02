@@ -921,7 +921,7 @@
   "ledger_signing": {
     "title": "Potvrďte na svojom Ledgeri",
     "instruction": "Pozrite sa na zariadenie Ledger, skontrolujte detaily transakcie na jeho displeji a schváľte ju stlačením oboch tlačidiel. Podpisovanie pokračuje automaticky po potvrdení.",
-    "waiting": "Čakanie na zariadenie Ledger..."
+    "hide": "Skryť"
   },
   "changelog": {
     "title": "História vývoja a nových funkcií"
