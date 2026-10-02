@@ -400,6 +400,10 @@ const actions: ActionTree<SignerState, RootState> = {
           ),
       ),
     );
+    if (rootState.signer.ledgerEpoch !== epoch) {
+      // The wallet was closed while the device was waiting: drop the signature.
+      throw new Error("Wallet was closed while waiting for the Ledger");
+    }
     if (!signature) {
       throw new Error("Ledger signature missing");
     }

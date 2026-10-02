@@ -1803,6 +1803,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
         await db.wallets.delete(walletRecord.id);
       }
       clearDerivedKeys();
+      commit("signer/ledgerPendingReset", null, { root: true });
       try {
         await dispatch("wc/reset", null, { root: true });
       await dispatch("liquid/reset", null, { root: true });
