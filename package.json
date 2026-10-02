@@ -37,7 +37,7 @@
     "@ledgerhq/hw-transport-webusb": "^6.35.0",
     "@popperjs/core": "^2.11.8",
     "@primeuix/themes": "^3.0.1",
-    "@primevue/core": "^5.0.2",
+    "@primevue/core": "^4.5.5",
     "@reown/walletkit": "^1.6.0",
     "@revolist/vue3-datagrid": "^4.28.0",
     "@scure/bip39": "^2.4.0",

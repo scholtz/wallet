@@ -225,8 +225,8 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       '@primevue/core':
-        specifier: ^5.0.2
-        version: 5.0.2(vue@3.5.43(typescript@6.0.3))
+        specifier: ^4.5.5
+        version: 4.5.5(vue@3.5.43(typescript@6.0.3))
       '@reown/walletkit':
         specifier: ^1.6.0
         version: 1.6.0(typescript@6.0.3)
@@ -1873,11 +1873,6 @@ packages:
   '@primevue/core@4.5.5':
     resolution: {integrity: sha512-JpkXhq1ddc70JdsC3CC4dM+UbeeWuCW/8DpS9dNBfrOk824TLSlRlMEGFyVKqRMn5WPQvYLiy3xXfLQeNdSqhQ==}
     engines: {node: '>=12.11.0'}
-    peerDependencies:
-      vue: ^3.5.0
-
-  '@primevue/core@5.0.2':
-    resolution: {integrity: sha512-/W/C3jw2uEWbcX8m0Ze516Z54kVLiO+V6irRZDBNFqNhtE051mHON4HOnfWNfy21xOFQIiMua1c4NeOtcTgfyQ==}
     peerDependencies:
       vue: ^3.5.0
 
@@ -7818,13 +7813,6 @@ snapshots:
     dependencies:
       '@primeuix/styled': 0.7.4
       '@primeuix/utils': 0.6.4
-      vue: 3.5.43(typescript@6.0.3)
-
-  '@primevue/core@5.0.2(vue@3.5.43(typescript@6.0.3))':
-    dependencies:
-      '@primeui/license-manager': 1.1.0
-      '@primeuix/styled': 1.0.0
-      '@primeuix/utils': 0.8.2
       vue: 3.5.43(typescript@6.0.3)
 
   '@primevue/icons@4.5.5(vue@3.5.43(typescript@6.0.3))':
