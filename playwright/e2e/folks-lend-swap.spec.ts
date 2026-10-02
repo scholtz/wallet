@@ -69,6 +69,8 @@ interface ChainMockOptions {
   startOptedIn?: boolean;
   /** ALGO balance of the mocked account in microAlgo (default 5 ALGO). */
   algoMicro?: number;
+  /** USDC balance of the mocked account in base units (default 10 USDC). */
+  usdcBase?: number;
 }
 
 /**
@@ -106,7 +108,11 @@ async function mockFolksChain(page: Page, opts: ChainMockOptions = {}) {
           "total-created-apps": 0,
           "total-created-assets": 0,
           assets: [
-            { "asset-id": USDC, amount: 10_000_000, "is-frozen": false },
+            {
+              "asset-id": USDC,
+              amount: opts.usdcBase ?? 10_000_000,
+              "is-frozen": false,
+            },
             { "asset-id": ZERO_BALANCE_ASSET, amount: 0, "is-frozen": false },
             ...(state.optedIn
               ? [{ "asset-id": FUSDC, amount: 5_000_000, "is-frozen": false }]
@@ -409,7 +415,7 @@ test("the account overview suggests converting held USDC to fUSDC and opens the 
   ).toHaveCount(1);
 });
 
-test("the overview hint opens the swap for an account that has not opted in to fUSDC yet", async ({
+test("the overview hint for an account that has not opted in to fUSDC preselects USDC and offers the opt-in", async ({
   page,
 }) => {
   test.setTimeout(180000);
@@ -422,23 +428,48 @@ test("the overview hint opens the swap for an account that has not opted in to f
     timeout: 30000,
   });
   await page.getByTestId("folks-yield-hint-button").click();
-  await expect(page).toHaveURL(`/swap/${addr}/${FUSDC}/${USDC}`);
 
-  // The lending panel offers the opt-in within the deposit; the separate
-  // opt-in prompt is not shown on top of it.
-  const panel = page.getByTestId("folks-lend");
-  await expect(panel).toBeVisible({ timeout: 30000 });
-  await expect(panel.getByText("will opt in to fUSDC")).toBeVisible();
-  await expect(page.getByTestId("folks-fusdc-optin")).toHaveCount(0);
-});
-
-test("the overview shows no yield hint when the account holds no USDC", async ({
-  page,
-}) => {
-  await setupFreshWallet(page);
-  // An unfunded brand new account: the account details are loaded (no USDC).
-  await expect(page.getByText("Amount", { exact: true }).first()).toBeVisible({
+  // fUSDC cannot be chosen before the account holds it, so only the source is
+  // preselected and the opt-in button is offered (it then selects fUSDC).
+  await expect(page).toHaveURL(`/swap/${addr}/0/${USDC}`);
+  await expect(page.locator("#swap_asset_from")).toContainText("USDC", {
     timeout: 30000,
   });
+  await expect(page.getByTestId("folks-fusdc-optin-button")).toBeVisible();
+  await expect(page.getByTestId("folks-fusdc-optin-button")).toBeEnabled();
+  await expect(page.locator("#swap_asset_to")).not.toContainText("fUSDC");
+});
+
+test("the overview shows no yield hint when a loaded account holds no USDC", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page, { usdcBase: 0 });
+  await setupFreshWallet(page);
+  // The account details are loaded (5 ALGO from the mocked indexer) ...
+  await expect(page.getByText("5.000000 Algo")).toBeVisible({ timeout: 30000 });
+  // ... and there is nothing to convert.
   await expect(page.getByTestId("folks-yield-hint")).toHaveCount(0);
+});
+
+test("the overview shows no yield hint for a dust USDC balance", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page, { usdcBase: 4_000 }); // 0.004 USDC
+  await setupFreshWallet(page);
+  await expect(page.getByText("5.000000 Algo")).toBeVisible({ timeout: 30000 });
+  await expect(page.getByTestId("folks-yield-hint")).toHaveCount(0);
+});
+
+test("the overview hint shows the USDC balance floored to cents", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page, { usdcBase: 10_999_000, startOptedIn: true });
+  await setupFreshWallet(page);
+  await expect(page.getByTestId("folks-yield-hint")).toContainText(
+    "10.99 USDC",
+    { timeout: 30000 },
+  );
 });

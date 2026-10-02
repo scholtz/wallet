@@ -76,10 +76,7 @@ const visible = computed(
     props.asset === BigInt(FOLKS_USDC_POOL.assetId) &&
     accountData.value !== undefined &&
     confirmedFor.value !== sender.value &&
-    balanceOf(FOLKS_USDC_POOL.fAssetId) === undefined &&
-    // With fUSDC already chosen as the destination the lending panel offers
-    // the opt-in within the deposit itself.
-    props.toAsset !== BigInt(FOLKS_USDC_POOL.fAssetId),
+    balanceOf(FOLKS_USDC_POOL.fAssetId) === undefined,
 );
 // Shortcut under the source asset: USDC is the source, fUSDC is held (opted
 // in) but not yet the destination.
