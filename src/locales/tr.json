@@ -918,6 +918,11 @@
       }
     }
   },
+  "ledger_signing": {
+    "title": "Ledger cihazınızda onaylayın",
+    "instruction": "Ledger cihazınızın kilidini açın ve Algorand uygulamasını açın, ardından cihaz ekranındaki işlem ayrıntılarını kontrol edin ve orada onaylayın (veya reddedin). Onayladığınızda imzalama otomatik olarak devam eder.",
+    "hide": "Gizle"
+  },
   "changelog": {
     "title": "Geliştirme ve özellik geçmişi"
   },

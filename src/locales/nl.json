@@ -918,6 +918,11 @@
       }
     }
   },
+  "ledger_signing": {
+    "title": "Bevestig op je Ledger",
+    "instruction": "Ontgrendel je Ledger en open de Algorand-app, controleer daarna de transactiegegevens op het scherm van het apparaat en keur de transactie daar goed (of wijs af). Het ondertekenen gaat automatisch verder zodra je bevestigt.",
+    "hide": "Verbergen"
+  },
   "changelog": {
     "title": "Ontwikkel- en functiegeschiedenis"
   },

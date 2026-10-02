@@ -918,6 +918,11 @@
       }
     }
   },
+  "ledger_signing": {
+    "title": "Confirm on your Ledger",
+    "instruction": "Unlock your Ledger and open the Algorand app, then check the transaction details on the device screen and approve (or reject) it there. Signing continues automatically once you confirm.",
+    "hide": "Hide"
+  },
   "changelog": {
     "title": "Changelog"
   },

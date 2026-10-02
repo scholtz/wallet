@@ -1,5 +1,6 @@
 import algosdk, { Transaction, type EncodedMultisig } from "algosdk";
 import { ledgerPath, withLedger } from "@/scripts/ledger";
+import { trackPending } from "@/scripts/trackPending";
 import WalletConnect from "@walletconnect/client";
 import UniversalProvider from "universal-provider-with-algorand";
 
@@ -80,6 +81,10 @@ export interface SignerState {
   toSignArray: unknown[];
   returnTo: string;
   returnToSignAll: string;
+  /** Ids of Ledger signature requests currently waiting for the user to confirm on the device. */
+  ledgerPendingIds: number[];
+  /** Bumped on logout so a request that outlives its session cannot raise the notice afterwards. */
+  ledgerEpoch: number;
 }
 
 const toSignedBytes = (signed: SignedTxnInput): Uint8Array => {
@@ -179,15 +184,35 @@ const describeSignerError = (error: unknown): string => {
   return String(error);
 };
 
+// Seeded from the clock so ids stay unique across hot reloads of this module.
+let ledgerRequestCounter = Date.now();
+
 const state = (): SignerState => ({
   signed: {},
   toSign: undefined,
   toSignArray: [],
   returnTo: "",
   returnToSignAll: "",
+  ledgerPendingIds: [],
+  ledgerEpoch: 0,
 });
 
 const mutations: MutationTree<SignerState> = {
+  ledgerPendingStart(currentState, id: number) {
+    currentState.ledgerPendingIds.push(id);
+  },
+  // Ending by id (not a bare counter) keeps a stale request that outlives a
+  // logout reset from clearing a newer request's notice.
+  ledgerPendingEnd(currentState, id: number) {
+    currentState.ledgerPendingIds = currentState.ledgerPendingIds.filter(
+      (item) => item !== id,
+    );
+  },
+  // Wallet logout/delete: never leave the notice up for a session that is gone.
+  ledgerPendingReset(currentState) {
+    currentState.ledgerPendingIds = [];
+    currentState.ledgerEpoch += 1;
+  },
   setSigned(currentState, signed: SignedTxnInput) {
     const bytes = toSignedBytes(signed);
     const tx = algosdk.decodeSignedTransaction(bytes);
@@ -355,12 +380,37 @@ const actions: ActionTree<SignerState, RootState> = {
   ): Promise<Uint8Array<ArrayBufferLike>> {
     const fromAccount = ensureAccount(rootState, payload.from);
     const slot = fromAccount.slot ?? 0;
+    const epoch = rootState.signer.ledgerEpoch;
+    // The global "confirm on your Ledger" notice (LedgerSigningNotice) is shown
+    // only once the device is open and `sign` is actually waiting on the user -
+    // not while the browser USB chooser is up.
+    // Allocated when the request actually starts, so ids grow in start order.
+    let pendingId = 0;
     const { signature } = await withLedger((algo) =>
-      algo.sign(
-        ledgerPath(slot),
-        Buffer.from(payload.tx.toByte()).toString("hex"),
+      trackPending(
+        () => {
+          if (rootState.signer.ledgerEpoch !== epoch) {
+            // The wallet was closed while the transport was opening: never
+            // prompt the device for a session that no longer exists.
+            throw new Error("Wallet was closed while waiting for the Ledger");
+          }
+          pendingId = ++ledgerRequestCounter;
+          commit("ledgerPendingStart", pendingId);
+        },
+        () => {
+          if (pendingId) commit("ledgerPendingEnd", pendingId);
+        },
+        () =>
+          algo.sign(
+            ledgerPath(slot),
+            Buffer.from(payload.tx.toByte()).toString("hex"),
+          ),
       ),
     );
+    if (rootState.signer.ledgerEpoch !== epoch) {
+      // The wallet was closed while the device was waiting: drop the signature.
+      throw new Error("Wallet was closed while waiting for the Ledger");
+    }
     if (!signature) {
       throw new Error("Ledger signature missing");
     }

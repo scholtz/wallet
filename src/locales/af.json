@@ -918,6 +918,11 @@
       }
     }
   },
+  "ledger_signing": {
+    "title": "Bevestig op jou Ledger",
+    "instruction": "Ontsluit jou Ledger en maak die Algorand-toepassing oop, kontroleer dan die transaksiebesonderhede op die toestel se skerm en keur dit daar goed (of verwerp dit). Die ondertekening gaan outomaties voort sodra jy bevestig.",
+    "hide": "Versteek"
+  },
   "changelog": {
     "title": "Veranderingslogboek"
   },
