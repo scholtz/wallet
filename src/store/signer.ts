@@ -384,15 +384,22 @@ const actions: ActionTree<SignerState, RootState> = {
     // The global "confirm on your Ledger" notice (LedgerSigningNotice) is shown
     // only once the device is open and `sign` is actually waiting on the user -
     // not while the browser USB chooser is up.
-    const pendingId = ++ledgerRequestCounter;
+    // Allocated when the request actually starts, so ids grow in start order.
+    let pendingId = 0;
     const { signature } = await withLedger((algo) =>
       trackPending(
         () => {
-          if (rootState.signer.ledgerEpoch === epoch) {
-            commit("ledgerPendingStart", pendingId);
+          if (rootState.signer.ledgerEpoch !== epoch) {
+            // The wallet was closed while the transport was opening: never
+            // prompt the device for a session that no longer exists.
+            throw new Error("Wallet was closed while waiting for the Ledger");
           }
+          pendingId = ++ledgerRequestCounter;
+          commit("ledgerPendingStart", pendingId);
         },
-        () => commit("ledgerPendingEnd", pendingId),
+        () => {
+          if (pendingId) commit("ledgerPendingEnd", pendingId);
+        },
         () =>
           algo.sign(
             ledgerPath(slot),
