@@ -918,6 +918,11 @@
       }
     }
   },
+  "ledger_signing": {
+    "title": "Potvrďte na svém Ledgeru",
+    "instruction": "Podívejte se na zařízení Ledger, zkontrolujte detaily transakce na jeho displeji a schvalte ji stisknutím obou tlačítek. Podepisování pokračuje automaticky po potvrzení.",
+    "waiting": "Čekání na zařízení Ledger..."
+  },
   "changelog": {
     "title": "Historie vývoje a nových funkcí"
   },

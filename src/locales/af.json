@@ -918,6 +918,11 @@
       }
     }
   },
+  "ledger_signing": {
+    "title": "Bevestig op jou Ledger",
+    "instruction": "Kyk na jou Ledger-toestel, kontroleer die transaksiebesonderhede op die skerm en keur dit goed deur albei knoppies te druk. Die ondertekening gaan outomaties voort sodra jy bevestig.",
+    "waiting": "Wag vir die Ledger-toestel..."
+  },
   "changelog": {
     "title": "Veranderingslogboek"
   },

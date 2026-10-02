@@ -80,6 +80,8 @@ export interface SignerState {
   toSignArray: unknown[];
   returnTo: string;
   returnToSignAll: string;
+  /** Number of Ledger signature requests currently waiting for the user to confirm on the device. */
+  ledgerPending: number;
 }
 
 const toSignedBytes = (signed: SignedTxnInput): Uint8Array => {
@@ -185,9 +187,16 @@ const state = (): SignerState => ({
   toSignArray: [],
   returnTo: "",
   returnToSignAll: "",
+  ledgerPending: 0,
 });
 
 const mutations: MutationTree<SignerState> = {
+  ledgerPendingStart(currentState) {
+    currentState.ledgerPending += 1;
+  },
+  ledgerPendingEnd(currentState) {
+    currentState.ledgerPending = Math.max(0, currentState.ledgerPending - 1);
+  },
   setSigned(currentState, signed: SignedTxnInput) {
     const bytes = toSignedBytes(signed);
     const tx = algosdk.decodeSignedTransaction(bytes);
@@ -355,12 +364,19 @@ const actions: ActionTree<SignerState, RootState> = {
   ): Promise<Uint8Array<ArrayBufferLike>> {
     const fromAccount = ensureAccount(rootState, payload.from);
     const slot = fromAccount.slot ?? 0;
-    const { signature } = await withLedger((algo) =>
-      algo.sign(
-        ledgerPath(slot),
-        Buffer.from(payload.tx.toByte()).toString("hex"),
-      ),
-    );
+    // Drives the global "confirm on your Ledger" notice (LedgerSigningNotice).
+    commit("ledgerPendingStart");
+    let signature: Buffer | null | undefined;
+    try {
+      ({ signature } = await withLedger((algo) =>
+        algo.sign(
+          ledgerPath(slot),
+          Buffer.from(payload.tx.toByte()).toString("hex"),
+        ),
+      ));
+    } finally {
+      commit("ledgerPendingEnd");
+    }
     if (!signature) {
       throw new Error("Ledger signature missing");
     }

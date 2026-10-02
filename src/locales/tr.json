@@ -918,6 +918,11 @@
       }
     }
   },
+  "ledger_signing": {
+    "title": "Ledger cihazınızda onaylayın",
+    "instruction": "Ledger cihazınıza bakın, ekranındaki işlem ayrıntılarını kontrol edin ve iki düğmeye birlikte basarak onaylayın. Onayladığınızda imzalama otomatik olarak devam eder.",
+    "waiting": "Ledger cihazı bekleniyor..."
+  },
   "changelog": {
     "title": "Geliştirme ve özellik geçmişi"
   },
