@@ -40,12 +40,14 @@ const visible = computed(() => pending.value && !dismissed.value);
 
 // A newly started signing request (including the next one of a SignAll batch)
 // shows the notice again; hiding only applies to what is pending right now.
-// Keyed on the newest id so a request ending and another starting in the same
-// tick still counts as a new request.
+// Ids only grow, so a higher newest id means a new request even when one ended
+// in the same tick, while an older request finishing never re-shows it.
+let newestSeen = 0;
 watch(
-  () => store.state.signer.ledgerPendingIds.at(-1),
-  () => {
-    dismissed.value = false;
+  () => Math.max(0, ...store.state.signer.ledgerPendingIds),
+  (newest) => {
+    if (newest === 0 || newest > newestSeen) dismissed.value = false;
+    newestSeen = newest;
   },
 );
 </script>

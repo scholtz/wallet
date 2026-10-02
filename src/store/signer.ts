@@ -83,6 +83,8 @@ export interface SignerState {
   returnToSignAll: string;
   /** Ids of Ledger signature requests currently waiting for the user to confirm on the device. */
   ledgerPendingIds: number[];
+  /** Bumped on logout so a request that outlives its session cannot raise the notice afterwards. */
+  ledgerEpoch: number;
 }
 
 const toSignedBytes = (signed: SignedTxnInput): Uint8Array => {
@@ -192,6 +194,7 @@ const state = (): SignerState => ({
   returnTo: "",
   returnToSignAll: "",
   ledgerPendingIds: [],
+  ledgerEpoch: 0,
 });
 
 const mutations: MutationTree<SignerState> = {
@@ -208,6 +211,7 @@ const mutations: MutationTree<SignerState> = {
   // Wallet logout/delete: never leave the notice up for a session that is gone.
   ledgerPendingReset(currentState) {
     currentState.ledgerPendingIds = [];
+    currentState.ledgerEpoch += 1;
   },
   setSigned(currentState, signed: SignedTxnInput) {
     const bytes = toSignedBytes(signed);
@@ -376,13 +380,18 @@ const actions: ActionTree<SignerState, RootState> = {
   ): Promise<Uint8Array<ArrayBufferLike>> {
     const fromAccount = ensureAccount(rootState, payload.from);
     const slot = fromAccount.slot ?? 0;
+    const epoch = rootState.signer.ledgerEpoch;
     // The global "confirm on your Ledger" notice (LedgerSigningNotice) is shown
     // only once the device is open and `sign` is actually waiting on the user -
     // not while the browser USB chooser is up.
     const pendingId = ++ledgerRequestCounter;
     const { signature } = await withLedger((algo) =>
       trackPending(
-        () => commit("ledgerPendingStart", pendingId),
+        () => {
+          if (rootState.signer.ledgerEpoch === epoch) {
+            commit("ledgerPendingStart", pendingId);
+          }
+        },
         () => commit("ledgerPendingEnd", pendingId),
         () =>
           algo.sign(
