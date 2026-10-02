@@ -920,6 +920,11 @@
       }
     }
   },
+  "ledger_signing": {
+    "title": "Erősítse meg a Ledgeren",
+    "instruction": "Oldja fel a Ledgert és nyissa meg az Algorand alkalmazást, majd ellenőrizze a tranzakció adatait az eszköz képernyőjén, és ott hagyja jóvá (vagy utasítsa el). Az aláírás a megerősítés után automatikusan folytatódik.",
+    "hide": "Elrejtés"
+  },
   "changelog": {
     "title": "Fejlesztési és funkciótörténet"
   },

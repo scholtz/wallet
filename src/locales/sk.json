@@ -920,6 +920,11 @@
       }
     }
   },
+  "ledger_signing": {
+    "title": "Potvrďte na svojom Ledgeri",
+    "instruction": "Odomknite Ledger a otvorte aplikáciu Algorand, potom skontrolujte detaily transakcie na displeji zariadenia a schváľte ju (alebo zamietnite) priamo tam. Podpisovanie pokračuje automaticky po potvrdení.",
+    "hide": "Skryť"
+  },
   "changelog": {
     "title": "História vývoja a nových funkcií"
   },

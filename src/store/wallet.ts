@@ -865,6 +865,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     }
   },
   async logout({ commit, dispatch }) {
+    // First, before any await: a Ledger request must not start or complete into
+    // a session that is closing.
+    commit("signer/ledgerPendingReset", null, { root: true });
     try {
       wc.clear();
     } catch (err) {
@@ -1802,6 +1805,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
         await db.wallets.delete(walletRecord.id);
       }
       clearDerivedKeys();
+      commit("signer/ledgerPendingReset", null, { root: true });
       try {
         await dispatch("wc/reset", null, { root: true });
       await dispatch("liquid/reset", null, { root: true });
