@@ -4,6 +4,7 @@ import { setupFreshWallet } from "../support/wallet";
 interface StoreLike {
   commit: (type: string, payload?: number) => void;
   dispatch: (type: string) => Promise<void>;
+  _mutations: Record<string, unknown>;
 }
 interface AppHost extends Element {
   __vue_app__?: { config: { globalProperties: { $store: StoreLike } } };
@@ -25,6 +26,20 @@ test.describe("Ledger signing notice", () => {
         const host = document.querySelector("#app") as AppHost | null;
         host?.__vue_app__?.config.globalProperties.$store.commit(t, i);
       }, [type, id] as [string, number | undefined]);
+
+    // Guards the mutations signByLedger/the other signers commit by name (a
+    // typo or a deleted mutation is otherwise only a runtime "unknown mutation" log).
+    const registered = await page.evaluate(() => {
+      const host = document.querySelector("#app") as AppHost | null;
+      const mutations = host?.__vue_app__?.config.globalProperties.$store._mutations;
+      return [
+        "signer/setSigned",
+        "signer/ledgerPendingStart",
+        "signer/ledgerPendingEnd",
+        "signer/ledgerPendingReset",
+      ].filter((name) => !mutations?.[name]);
+    });
+    expect(registered).toEqual([]);
 
     await commit("signer/ledgerPendingStart", 1);
     await commit("signer/ledgerPendingStart", 2);

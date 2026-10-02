@@ -182,7 +182,8 @@ const describeSignerError = (error: unknown): string => {
   return String(error);
 };
 
-let ledgerRequestCounter = 0;
+// Seeded from the clock so ids stay unique across hot reloads of this module.
+let ledgerRequestCounter = Date.now();
 
 const state = (): SignerState => ({
   signed: {},
@@ -207,6 +208,12 @@ const mutations: MutationTree<SignerState> = {
   // Wallet logout/delete: never leave the notice up for a session that is gone.
   ledgerPendingReset(currentState) {
     currentState.ledgerPendingIds = [];
+  },
+  setSigned(currentState, signed: SignedTxnInput) {
+    const bytes = toSignedBytes(signed);
+    const tx = algosdk.decodeSignedTransaction(bytes);
+    const txId = tx.txn.txID();
+    currentState.signed[txId] = bytes;
   },
   toSign(currentState, tx: Record<string, unknown>) {
     currentState.toSign = tx;
