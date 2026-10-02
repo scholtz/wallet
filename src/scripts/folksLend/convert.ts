@@ -62,6 +62,17 @@ export const toBaseUnits = (value: number, decimals: number): bigint => {
   return BigInt(whole + frac.padEnd(decimals, "0").slice(0, decimals));
 };
 
+/**
+ * Base units floored to whole cents (two decimals), for display. Done in
+ * bigint math: flooring a float is inexact (0.29 * 100 = 28.999999999999996
+ * would show as 0.28).
+ */
+export const floorToCents = (value: bigint, decimals: number): number => {
+  if (decimals < 2) return Number(value) / 10 ** decimals;
+  const cents = value / 10n ** BigInt(decimals - 2);
+  return Number(cents) / 100;
+};
+
 /** Base units to a decimal number for display. */
 export const fromBaseUnits = (value: bigint, decimals: number): number =>
   Number(value) / 10 ** decimals;

@@ -28,7 +28,7 @@ import {
   FOLKS_USDC_POOL,
   isFolksLendNetwork,
 } from "@/scripts/folksLend/transactions";
-import { fromBaseUnits } from "@/scripts/folksLend/convert";
+import { floorToCents } from "@/scripts/folksLend/convert";
 
 const { t } = useI18n();
 const store = useStore();
@@ -47,12 +47,12 @@ const show = computed(
     accountData.value !== undefined &&
     usdcBalance.value >= MIN_HINT_BALANCE,
 );
-// Floored to cents so the text never claims more (10.999 -> 10.99) or less.
+// Floored to cents so the text never claims more (10.999 -> 10.99).
 const amountText = computed(() =>
-  (Math.floor(fromBaseUnits(usdcBalance.value, 6) * 100) / 100).toLocaleString(
-    undefined,
-    { minimumFractionDigits: 0, maximumFractionDigits: 2 },
-  ),
+  floorToCents(usdcBalance.value, 6).toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }),
 );
 
 // Route: /swap/:account/:toAsset/:fromAsset. With fUSDC held, USDC -> fUSDC is

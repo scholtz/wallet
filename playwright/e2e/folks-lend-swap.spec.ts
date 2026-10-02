@@ -462,6 +462,18 @@ test("the overview shows no yield hint for a dust USDC balance", async ({
   await expect(page.getByTestId("folks-yield-hint")).toHaveCount(0);
 });
 
+test("the overview hint does not understate balances whose float product is off by a cent", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await mockFolksChain(page, { usdcBase: 290_000, startOptedIn: true }); // 0.29 USDC
+  await setupFreshWallet(page);
+  await expect(page.getByTestId("folks-yield-hint")).toContainText(
+    "0.29 USDC",
+    { timeout: 30000 },
+  );
+});
+
 test("the overview hint shows the USDC balance floored to cents", async ({
   page,
 }) => {
