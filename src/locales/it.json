@@ -920,7 +920,7 @@
   },
   "ledger_signing": {
     "title": "Conferma sul tuo Ledger",
-    "instruction": "Guarda il dispositivo Ledger, controlla i dettagli della transazione sullo schermo e approvala premendo entrambi i pulsanti. La firma prosegue automaticamente dopo la conferma.",
+    "instruction": "Sblocca il tuo Ledger e apri l'app Algorand, poi controlla i dettagli della transazione sullo schermo del dispositivo e approvala (o rifiutala) lì. La firma prosegue automaticamente dopo la conferma.",
     "hide": "Nascondi"
   },
   "changelog": {

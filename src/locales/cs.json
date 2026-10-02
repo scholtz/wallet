@@ -920,7 +920,7 @@
   },
   "ledger_signing": {
     "title": "Potvrďte na svém Ledgeru",
-    "instruction": "Podívejte se na zařízení Ledger, zkontrolujte detaily transakce na jeho displeji a schvalte ji stisknutím obou tlačítek. Podepisování pokračuje automaticky po potvrzení.",
+    "instruction": "Odemkněte Ledger a otevřete aplikaci Algorand, poté zkontrolujte detaily transakce na displeji zařízení a schvalte ji (nebo zamítněte) přímo tam. Podepisování pokračuje automaticky po potvrzení.",
     "hide": "Skrýt"
   },
   "changelog": {

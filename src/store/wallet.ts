@@ -871,6 +871,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       console.error("Failed to clear WalletConnect v1 state", err);
     }
     clearDerivedKeys();
+    commit("signer/ledgerPendingReset", null, { root: true });
     // Must fully tear down the live WalletConnect v2 clients (wc + wcClient
     // modules) on logout, not just this module's own state: those modules
     // keep a WalletKit/UniversalProvider instance alive with the previous
@@ -883,7 +884,6 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     try {
       await dispatch("wc/reset", null, { root: true });
       await dispatch("liquid/reset", null, { root: true });
-      commit("signer/ledgerPendingReset", null, { root: true });
     } catch (err) {
       console.error("Failed to reset wc module state", err);
     }

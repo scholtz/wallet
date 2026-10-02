@@ -920,7 +920,7 @@
   },
   "ledger_signing": {
     "title": "Confirm on your Ledger",
-    "instruction": "Look at your Ledger device, check the transaction details on its screen and approve it by pressing both buttons. Signing continues automatically once you confirm.",
+    "instruction": "Unlock your Ledger and open the Algorand app, then check the transaction details on the device screen and approve (or reject) it there. Signing continues automatically once you confirm.",
     "hide": "Hide"
   },
   "changelog": {

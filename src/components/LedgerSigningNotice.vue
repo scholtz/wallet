@@ -34,12 +34,16 @@ import { computed, ref, watch } from "vue";
 import { useStore } from "@/store";
 
 const store = useStore();
-const pending = computed(() => store.state.signer.ledgerPending > 0);
+const pending = computed(() => store.state.signer.ledgerPendingIds.length > 0);
 const dismissed = ref(false);
 const visible = computed(() => pending.value && !dismissed.value);
 
-// A new signing round shows the notice again.
-watch(pending, (isPending) => {
-  if (!isPending) dismissed.value = false;
-});
+// A newly started signing request (including the next one of a SignAll batch)
+// shows the notice again; hiding only applies to what is pending right now.
+watch(
+  () => store.state.signer.ledgerPendingIds.length,
+  (count, previous) => {
+    if (count === 0 || count > previous) dismissed.value = false;
+  },
+);
 </script>

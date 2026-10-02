@@ -81,8 +81,8 @@ export interface SignerState {
   toSignArray: unknown[];
   returnTo: string;
   returnToSignAll: string;
-  /** Number of Ledger signature requests currently waiting for the user to confirm on the device. */
-  ledgerPending: number;
+  /** Ids of Ledger signature requests currently waiting for the user to confirm on the device. */
+  ledgerPendingIds: number[];
 }
 
 const toSignedBytes = (signed: SignedTxnInput): Uint8Array => {
@@ -182,31 +182,31 @@ const describeSignerError = (error: unknown): string => {
   return String(error);
 };
 
+let ledgerRequestCounter = 0;
+
 const state = (): SignerState => ({
   signed: {},
   toSign: undefined,
   toSignArray: [],
   returnTo: "",
   returnToSignAll: "",
-  ledgerPending: 0,
+  ledgerPendingIds: [],
 });
 
 const mutations: MutationTree<SignerState> = {
-  ledgerPendingStart(currentState) {
-    currentState.ledgerPending += 1;
+  ledgerPendingStart(currentState, id: number) {
+    currentState.ledgerPendingIds.push(id);
   },
-  ledgerPendingEnd(currentState) {
-    currentState.ledgerPending = Math.max(0, currentState.ledgerPending - 1);
+  // Ending by id (not a bare counter) keeps a stale request that outlives a
+  // logout reset from clearing a newer request's notice.
+  ledgerPendingEnd(currentState, id: number) {
+    currentState.ledgerPendingIds = currentState.ledgerPendingIds.filter(
+      (item) => item !== id,
+    );
   },
   // Wallet logout/delete: never leave the notice up for a session that is gone.
   ledgerPendingReset(currentState) {
-    currentState.ledgerPending = 0;
-  },
-  setSigned(currentState, signed: SignedTxnInput) {
-    const bytes = toSignedBytes(signed);
-    const tx = algosdk.decodeSignedTransaction(bytes);
-    const txId = tx.txn.txID();
-    currentState.signed[txId] = bytes;
+    currentState.ledgerPendingIds = [];
   },
   toSign(currentState, tx: Record<string, unknown>) {
     currentState.toSign = tx;
@@ -372,10 +372,11 @@ const actions: ActionTree<SignerState, RootState> = {
     // The global "confirm on your Ledger" notice (LedgerSigningNotice) is shown
     // only once the device is open and `sign` is actually waiting on the user -
     // not while the browser USB chooser is up.
+    const pendingId = ++ledgerRequestCounter;
     const { signature } = await withLedger((algo) =>
       trackPending(
-        () => commit("ledgerPendingStart"),
-        () => commit("ledgerPendingEnd"),
+        () => commit("ledgerPendingStart", pendingId),
+        () => commit("ledgerPendingEnd", pendingId),
         () =>
           algo.sign(
             ledgerPath(slot),
