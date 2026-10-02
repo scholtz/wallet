@@ -53,12 +53,21 @@ test.describe("Ledger signing notice", () => {
     await expect(notice).toHaveCount(0);
 
     // The user is never trapped: the notice can be hidden while signing keeps
-    // waiting, and a newly started request (next of a batch) shows it again.
+    // waiting. Hiding holds for the whole batch (a brief gap between two
+    // sequential signatures must not bring it back or make it flicker).
     await commit("signer/ledgerPendingStart", 3);
     await expect(notice).toBeVisible();
     await page.getByTestId("ledger-signing-hide").click();
     await expect(notice).toHaveCount(0);
+    await commit("signer/ledgerPendingEnd", 3);
     await commit("signer/ledgerPendingStart", 4);
+    await page.waitForTimeout(900);
+    await expect(notice).toHaveCount(0);
+
+    // Once everything has finished, the next signing round shows it again.
+    await commit("signer/ledgerPendingEnd", 4);
+    await page.waitForTimeout(900);
+    await commit("signer/ledgerPendingStart", 5);
     await expect(notice).toBeVisible();
 
     // A stale id (e.g. one that outlived a reset) cannot end another request's notice.

@@ -30,24 +30,31 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useStore } from "@/store";
 
 const store = useStore();
 const pending = computed(() => store.state.signer.ledgerPendingIds.length > 0);
 const dismissed = ref(false);
-const visible = computed(() => pending.value && !dismissed.value);
+// Sequential signatures (SignAll) briefly drop to zero pending requests between
+// transactions; holding the notice for a moment avoids flicker and keeps a
+// user's "Hide" for the whole batch.
+const HOLD_MS = 600;
+const shown = ref(pending.value);
+let holdTimer: ReturnType<typeof setTimeout> | undefined;
+const visible = computed(() => shown.value && !dismissed.value);
 
-// A newly started signing request (including the next one of a SignAll batch)
-// shows the notice again; hiding only applies to what is pending right now.
-// Ids only grow, so a higher newest id means a new request even when one ended
-// in the same tick, while an older request finishing never re-shows it.
-let newestSeen = 0;
-watch(
-  () => Math.max(0, ...store.state.signer.ledgerPendingIds),
-  (newest) => {
-    if (newest === 0 || newest > newestSeen) dismissed.value = false;
-    newestSeen = newest;
-  },
-);
+watch(pending, (isPending) => {
+  clearTimeout(holdTimer);
+  if (isPending) {
+    shown.value = true;
+  } else {
+    holdTimer = setTimeout(() => {
+      shown.value = false;
+      dismissed.value = false;
+    }, HOLD_MS);
+  }
+});
+
+onBeforeUnmount(() => clearTimeout(holdTimer));
 </script>

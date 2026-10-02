@@ -1800,12 +1800,12 @@ const actionHandlers: Record<string, WalletActionHandler> = {
           " and all private keys within it?"
       )
     ) {
-      commit("signer/ledgerPendingReset", null, { root: true });
       const walletRecord = await db.wallets.get({ name });
       if (walletRecord?.id !== undefined) {
         await db.wallets.delete(walletRecord.id);
       }
       clearDerivedKeys();
+      commit("signer/ledgerPendingReset", null, { root: true });
       try {
         await dispatch("wc/reset", null, { root: true });
       await dispatch("liquid/reset", null, { root: true });

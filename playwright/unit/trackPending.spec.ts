@@ -30,3 +30,17 @@ test.describe("trackPending", () => {
     expect(log).toEqual(["start", "end"]);
   });
 });
+
+test("does not call onEnd when onStart throws", async () => {
+  const log: string[] = [];
+  await expect(
+    trackPending(
+      () => {
+        throw new Error("closed");
+      },
+      () => log.push("end"),
+      async () => log.push("run"),
+    ),
+  ).rejects.toThrow("closed");
+  expect(log).toEqual([]);
+});

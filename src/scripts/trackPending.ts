@@ -1,5 +1,6 @@
 /**
- * Runs `fn` between `onStart` and `onEnd`; `onEnd` always runs, even when `fn` rejects, so a
+ * Runs `fn` between `onStart` and `onEnd`; `onEnd` runs even when `fn` rejects (but not when
+ * `onStart` itself throws - nothing has started then), so a
  * pending-state indicator (e.g. the "confirm on your Ledger" notice) can never get stuck.
  */
 export async function trackPending<T>(
