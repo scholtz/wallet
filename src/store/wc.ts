@@ -482,16 +482,9 @@ const actions: ActionTree<WcState, RootState> = {
         );
         return;
       }
-      // Concurrent requests all passed the cap check before the awaits above: re-check. From
-      // here to addRequest there is no await, so the check and the queueing are atomic.
-      if (backlogFull()) {
-        await rejectRequest(
-          "Too many pending WalletConnect requests. The request was rejected.",
-          "Too many pending requests.",
-          4000,
-        );
-        return;
-      }
+      // No await between the cap check at the top of this handler and addRequest, so the
+      // check and the queueing are atomic. Keep it that way (the sign-data path, which
+      // does await, re-checks). Blobs were validated above, so registering cannot throw.
       preSignedBlobs.forEach((signed) =>
         commit("signer/setSigned", signed, { root: true }),
       );
