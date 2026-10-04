@@ -253,10 +253,10 @@ const actions: ActionTree<AlgodState, RootState> = {
   async getAlgod({ rootState }) {
     return createAlgodClient(rootState);
   },
-  async getTransactionParams({ rootState }) {
+  async getTransactionParams({ dispatch }) {
+    // Unchecked-by-name callers still get the genesis/fee validation; failures stay "no params".
     try {
-      const algodClient = createAlgodClient(rootState);
-      return await algodClient.getTransactionParams().do();
+      return await dispatch("getCheckedTransactionParams");
     } catch (error) {
       console.error("Failed to fetch transaction params", error);
       return undefined;
@@ -421,8 +421,10 @@ const actions: ActionTree<AlgodState, RootState> = {
       });
       const lookup = await indexer.lookupAssetByID(BigInt(assetId)).do();
       indexerCreator = lookup.asset?.params?.creator?.toString();
-    } catch {
-      // indexer unreachable or asset not indexed: nothing to compare against
+    } catch (error) {
+      // indexer unreachable or asset not indexed: nothing to compare against, which
+      // confirmAssetCreator treats as "not confirmed" and refuses
+      console.warn("Indexer asset lookup failed", error);
       indexerCreator = undefined;
     }
     return confirmAssetCreator(creator, indexerCreator);

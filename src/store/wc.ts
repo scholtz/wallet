@@ -256,12 +256,16 @@ const mutations: MutationTree<WcState> = {
 
 /** Addresses (CAIP-10 account suffix) a WalletConnect session was approved for. */
 const getSessionAccounts = (
-  web3wallet: { getActiveSessions(): Record<string, { namespaces?: { algorand?: { accounts?: string[] } } }> },
+  web3wallet: Web3WalletInstance,
   topic: string,
 ): string[] =>
   (web3wallet.getActiveSessions()[topic]?.namespaces?.algorand?.accounts ?? []).map(
     (entry: string) => entry.split(":").pop() ?? "",
   );
+
+/** Most transactions / pending requests the wallet accepts from a dApp (AW-2026-052 parity). */
+const MAX_TXNS_PER_REQUEST = 16;
+const MAX_PENDING_REQUESTS = 50;
 
 const actions: ActionTree<WcState, RootState> = {
   async init({ commit, dispatch, rootState }) {
@@ -298,6 +302,33 @@ const actions: ActionTree<WcState, RootState> = {
     web3wallet.on("session_request", async (sessionRequest) => {
       commit("addSessionRequest", sessionRequest);
 
+      // Tell the user and the dApp a request was refused (4100 = unauthorized signer).
+      const rejectRequest = async (toastText: string, message: string) => {
+        dispatch("toast/openError", toastText, { root: true });
+        try {
+          await web3wallet.respondSessionRequest({
+            topic: sessionRequest.topic,
+            response: {
+              id: ensureNumericId(sessionRequest.id),
+              jsonrpc: "2.0",
+              error: { code: 4100, message },
+            },
+          });
+        } catch (error) {
+          console.error("Failed to reject the WalletConnect request", error);
+        }
+      };
+      if (
+        rootState.wc.requests.length + rootState.wc.signDataRequests.length >=
+        MAX_PENDING_REQUESTS
+      ) {
+        await rejectRequest(
+          "Too many pending WalletConnect requests. The request was rejected.",
+          "Too many pending requests.",
+        );
+        return;
+      }
+
       const request = sessionRequest?.params?.request;
 
       // @walletconnect/types declares session_request's `request.params` as
@@ -319,22 +350,10 @@ const actions: ActionTree<WcState, RootState> = {
           items.length < rawItems.length ||
           items.some((item) => !approvedForData.includes(item.signer))
         ) {
-          dispatch(
-            "toast/openError",
+          await rejectRequest(
             "A dApp asked to sign data that is invalid or for an account that is not approved for its session. The request was rejected.",
-            { root: true },
+            "The signer is not an account approved for this session.",
           );
-          await web3wallet.respondSessionRequest({
-            topic: sessionRequest.topic,
-            response: {
-              id: ensureNumericId(sessionRequest.id),
-              jsonrpc: "2.0",
-              error: {
-                code: 4100,
-                message: "The signer is not an account approved for this session.",
-              },
-            },
-          });
           return;
         }
 
@@ -363,6 +382,16 @@ const actions: ActionTree<WcState, RootState> = {
         : [];
 
       // Pre-signed blobs are only registered once the request is accepted.
+      if (
+        rawTransactions.length === 0 ||
+        rawTransactions.length > MAX_TXNS_PER_REQUEST
+      ) {
+        await rejectRequest(
+          "A dApp sent an invalid number of transactions. The request was rejected.",
+          "Invalid transaction count.",
+        );
+        return;
+      }
       const preSignedBlobs: Uint8Array[] = [];
       const transactions: DecodedTransactionSummary[] =
         decodeSignTxnTransactions(rawTransactions, (signed) => {
@@ -383,28 +412,11 @@ const actions: ActionTree<WcState, RootState> = {
           rootState.wallet.privateAccounts.map((a) => a.addr),
         ).length > 0
       ) {
-        dispatch(
-          "toast/openError",
+        await rejectRequest(
           "A dApp asked to sign a transaction from an account that is not approved for its session. The request was rejected.",
-          { root: true },
+          "Transaction sender is not an account approved for this session.",
         );
-        await web3wallet.respondSessionRequest({
-          topic: sessionRequest.topic,
-          response: {
-            id: ensureNumericId(sessionRequest.id),
-            jsonrpc: "2.0",
-            error: {
-              code: 4100,
-              message:
-                "Transaction sender is not an account approved for this session.",
-            },
-          },
-        });
         return;
-      }
-
-      for (const signed of preSignedBlobs) {
-        await dispatch("signer/setSigned", { signed }, { root: true });
       }
 
       const totalFee = transactions.reduce((fee, tx) => fee + (tx.fee ?? 0), 0);
@@ -419,6 +431,9 @@ const actions: ActionTree<WcState, RootState> = {
       };
 
       commit("addRequest", { request: requestToStore });
+      for (const signed of preSignedBlobs) {
+        await dispatch("signer/setSigned", { signed }, { root: true });
+      }
     });
 
     // "auth_request" / "call_request" / "subscription_created" /

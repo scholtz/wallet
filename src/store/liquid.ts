@@ -505,9 +505,6 @@ const actions: ActionTree<LiquidState, RootState> = {
           );
           return;
         }
-        for (const signed of preSignedBlobs) {
-          await dispatch("signer/setSigned", { signed }, { root: true });
-        }
         const totalFee = transactions.reduce(
           (fee, tx) => fee + (tx.fee ?? 0),
           0,
@@ -520,7 +517,11 @@ const actions: ActionTree<LiquidState, RootState> = {
           ver: "liquid",
           topic: requestId,
         };
+        // Queue first (no await since the duplicate-id check), then register pre-signed blobs.
         commit("addRequest", { request: stored });
+        for (const signed of preSignedBlobs) {
+          await dispatch("signer/setSigned", { signed }, { root: true });
+        }
         return;
       }
       case LiquidReference.signDataRequest: {
@@ -548,6 +549,14 @@ const actions: ActionTree<LiquidState, RootState> = {
         // The decode above is async: re-check that no same-id request was queued meanwhile.
         if (isRequestIdInUse(state, request.id)) {
           console.error("Duplicate Liquid Auth request id ignored");
+          return;
+        }
+        if (isRequestBacklogFull(state)) {
+          await rejectRequest(
+            LiquidReference.signDataResponse,
+            LiquidErrorCode.unknown,
+            "Too many pending requests.",
+          );
           return;
         }
         // AW-2026-051: a session linked to one account may only ask it for signatures.
