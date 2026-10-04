@@ -517,10 +517,18 @@ const actions: ActionTree<LiquidState, RootState> = {
           ver: "liquid",
           topic: requestId,
         };
-        // Queue first (no await since the duplicate-id check), then register pre-signed blobs.
+        // Queue first, synchronously after the duplicate-id check at the top of this case
+        // (peers choose ids, so no await may sit between the two), then register the
+        // pre-signed blobs; a bad blob takes the whole request back out.
         commit("addRequest", { request: stored });
-        for (const signed of preSignedBlobs) {
-          await dispatch("signer/setSigned", { signed }, { root: true });
+        try {
+          for (const signed of preSignedBlobs) {
+            await dispatch("signer/setSigned", { signed }, { root: true });
+          }
+        } catch (error) {
+          console.error("Invalid pre-signed Liquid Auth transaction", error);
+          commit("removeRequest", request.id);
+          await reject(LiquidErrorCode.invalidInput, "Invalid transaction.");
         }
         return;
       }

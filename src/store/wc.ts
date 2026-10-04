@@ -9,7 +9,11 @@ import WCKeyValueStore from "../shared/WCKeyValueStore";
 import type { RootState } from "./index";
 import type { GenesisNetwork } from "./publicData";
 import { bytesToBase64, type Arc60StdSigData } from "../scripts/encoding/arc60";
-import { findUnauthorizedSenders } from "../scripts/liquid/guards";
+import {
+  LIQUID_MAX_PENDING_REQUESTS as MAX_PENDING_REQUESTS,
+  LIQUID_MAX_TXNS_PER_REQUEST as MAX_TXNS_PER_REQUEST,
+  findUnauthorizedSenders,
+} from "../scripts/liquid/guards";
 import {
   decodeArc60Items,
   decodeSignTxnTransactions,
@@ -263,9 +267,6 @@ const getSessionAccounts = (
     (entry: string) => entry.split(":").pop() ?? "",
   );
 
-/** Most transactions / pending requests the wallet accepts from a dApp (AW-2026-052 parity). */
-const MAX_TXNS_PER_REQUEST = 16;
-const MAX_PENDING_REQUESTS = 50;
 
 const actions: ActionTree<WcState, RootState> = {
   async init({ commit, dispatch, rootState }) {
@@ -300,10 +301,13 @@ const actions: ActionTree<WcState, RootState> = {
     });
 
     web3wallet.on("session_request", async (sessionRequest) => {
-      commit("addSessionRequest", sessionRequest);
-
-      // Tell the user and the dApp a request was refused (4100 = unauthorized signer).
-      const rejectRequest = async (toastText: string, message: string) => {
+      // Tell the user and the dApp a request was refused (default 4100 = unauthorized
+      // signer; 4200 = invalid input; 4000 = other failure, e.g. too many requests).
+      const rejectRequest = async (
+        toastText: string,
+        message: string,
+        code = 4100,
+      ) => {
         dispatch("toast/openError", toastText, { root: true });
         try {
           await web3wallet.respondSessionRequest({
@@ -311,7 +315,7 @@ const actions: ActionTree<WcState, RootState> = {
             response: {
               id: ensureNumericId(sessionRequest.id),
               jsonrpc: "2.0",
-              error: { code: 4100, message },
+              error: { code, message },
             },
           });
         } catch (error) {
@@ -325,9 +329,11 @@ const actions: ActionTree<WcState, RootState> = {
         await rejectRequest(
           "Too many pending WalletConnect requests. The request was rejected.",
           "Too many pending requests.",
+          4000,
         );
         return;
       }
+      commit("addSessionRequest", sessionRequest);
 
       const request = sessionRequest?.params?.request;
 
@@ -381,7 +387,6 @@ const actions: ActionTree<WcState, RootState> = {
         ? firstParam
         : [];
 
-      // Pre-signed blobs are only registered once the request is accepted.
       if (
         rawTransactions.length === 0 ||
         rawTransactions.length > MAX_TXNS_PER_REQUEST
@@ -389,14 +394,26 @@ const actions: ActionTree<WcState, RootState> = {
         await rejectRequest(
           "A dApp sent an invalid number of transactions. The request was rejected.",
           "Invalid transaction count.",
+          4200,
         );
         return;
       }
+      // Pre-signed blobs are only registered once the request is accepted.
       const preSignedBlobs: Uint8Array[] = [];
-      const transactions: DecodedTransactionSummary[] =
-        decodeSignTxnTransactions(rawTransactions, (signed) => {
+      let transactions: DecodedTransactionSummary[];
+      try {
+        transactions = decodeSignTxnTransactions(rawTransactions, (signed) => {
           preSignedBlobs.push(signed);
         });
+      } catch (error) {
+        console.error("Undecodable WalletConnect transactions", error);
+        await rejectRequest(
+          "A dApp sent a transaction the wallet could not read. The request was rejected.",
+          "Invalid transaction.",
+          4200,
+        );
+        return;
+      }
 
       // AW-2026-051: only accounts the user approved for this session may be asked to sign.
       const sessionAccounts = getSessionAccounts(web3wallet, sessionRequest.topic);
@@ -430,10 +447,10 @@ const actions: ActionTree<WcState, RootState> = {
         topic: sessionRequest.topic,
       };
 
-      commit("addRequest", { request: requestToStore });
       for (const signed of preSignedBlobs) {
         await dispatch("signer/setSigned", { signed }, { root: true });
       }
+      commit("addRequest", { request: requestToStore });
     });
 
     // "auth_request" / "call_request" / "subscription_created" /

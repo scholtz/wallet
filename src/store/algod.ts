@@ -253,18 +253,9 @@ const actions: ActionTree<AlgodState, RootState> = {
   async getAlgod({ rootState }) {
     return createAlgodClient(rootState);
   },
-  async getTransactionParams({ dispatch }) {
-    // Unchecked-by-name callers still get the genesis/fee validation; failures stay "no params".
-    try {
-      return await dispatch("getCheckedTransactionParams");
-    } catch (error) {
-      console.error("Failed to fetch transaction params", error);
-      return undefined;
-    }
-  },
   /**
-   * Like getTransactionParams, but refuses params from a node on another network or with an
-   * abnormal fee, by throwing (AW-2026-053). For callers that sign what they build and already
+   * Suggested params from the node, refused (by throwing) when the node reports another
+   * network or an abnormal fee (AW-2026-053). For callers that sign what they build and
    * handle a rejected dispatch.
    */
   async getCheckedTransactionParams({
