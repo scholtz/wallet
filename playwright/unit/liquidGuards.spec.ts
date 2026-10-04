@@ -254,3 +254,29 @@ test.describe("admitSignData", () => {
     expect(admitSignData({ rawCount: 1, signers: ["A"], approved: ["A"] }).ok).toBe(true);
   });
 });
+
+import { countPending } from "../../src/scripts/liquid/guards";
+import { LiquidErrorCode } from "../../src/scripts/liquid/protocol";
+
+test.describe("countPending / REQUEST_ERROR", () => {
+  test("counts totals, per-session and duplicate ids across both queues", () => {
+    const counts = countPending(
+      [{ id: 1, topic: "a" }, { id: 2, topic: "b" }],
+      [{ id: "3", topic: "a" }],
+      "a",
+      "3",
+    );
+    expect(counts).toEqual({ pendingTotal: 3, pendingForSession: 2, idInUse: true });
+    expect(countPending([], [], "a", 9)).toEqual({
+      pendingTotal: 0,
+      pendingForSession: 0,
+      idInUse: false,
+    });
+  });
+
+  test("admission error codes are the Liquid protocol codes", () => {
+    expect(REQUEST_ERROR.limit).toBe(LiquidErrorCode.unknown);
+    expect(REQUEST_ERROR.unauthorized).toBe(LiquidErrorCode.unauthorizedSigner);
+    expect(REQUEST_ERROR.invalid).toBe(LiquidErrorCode.invalidInput);
+  });
+});

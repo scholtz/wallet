@@ -10,11 +10,13 @@ const stepDelayMs = process.env.STEP_DELAY_MS
 // Spec files run in parallel workers (every test gets its own browser context, so IndexedDB,
 // localStorage and mocked routes are isolated); tests inside one file stay sequential.
 // Override with E2E_WORKERS=1 to debug ordering problems.
-const workers = process.env.E2E_WORKERS
-  ? Number(process.env.E2E_WORKERS)
-  : process.env.CI
-    ? 3
-    : 1;
+const requestedWorkers = Number.parseInt(process.env.E2E_WORKERS ?? "", 10);
+const workers =
+  Number.isInteger(requestedWorkers) && requestedWorkers > 0
+    ? requestedWorkers
+    : process.env.CI
+      ? 3
+      : 1;
 
 export default defineConfig({
   testDir: "./playwright/e2e",

@@ -81,8 +81,11 @@ const actions: ActionTree<Arc14State, RootState> = {
   async getAuthTx({ dispatch, rootState }, { account, realm }: AuthTxPayload) {
     try {
       if (!account) throw new Error("Address not found.");
-      const algodClient = getAlgodClient(rootState);
-      const suggestedParams = await algodClient.getTransactionParams().do();
+      const suggestedParams: algosdk.SuggestedParams = await dispatch(
+        "algod/getCheckedTransactionParams",
+        undefined,
+        { root: true }
+      );
       suggestedParams.fee = 0n;
       suggestedParams.flatFee = true;
       const note = Buffer.from(realm, "utf-8");

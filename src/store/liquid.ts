@@ -59,6 +59,7 @@ import {
   admitSignData,
   admitTransactions,
   assertLiquidServiceOrigin,
+  countPending,
   sanitizePeerMetadata,
   type Admission,
 } from "../scripts/liquid/guards";
@@ -253,18 +254,6 @@ const mutations: MutationTree<LiquidState> = {
     Object.assign(currentState, state());
   },
 };
-
-/** Pending-request counts the admission checks need (peers choose request ids). */
-function pendingCounts(currentState: LiquidState, session: string, id: string) {
-  const sameId = (r: { id: number | string }) => String(r.id) === String(id);
-  return {
-    pendingTotal: currentState.requests.length + currentState.signDataRequests.length,
-    pendingForSession:
-      currentState.requests.filter((r) => r.topic === session).length +
-      currentState.signDataRequests.filter((r) => r.topic === session).length,
-    idInUse: currentState.requests.some(sameId) || currentState.signDataRequests.some(sameId),
-  };
-}
 
 async function respond(
   requestId: string,
@@ -468,7 +457,7 @@ const actions: ActionTree<LiquidState, RootState> = {
         const envelope = admitEnvelope({
           count: rawTransactions.length,
           maxCount: MAX_DAPP_TXNS_PER_REQUEST,
-          ...pendingCounts(state, requestId, request.id),
+          ...countPending(state.requests, state.signDataRequests, requestId, request.id),
         });
         if (!envelope.ok) {
           await refuse(LiquidReference.signTransactionsResponse, envelope);
@@ -532,7 +521,7 @@ const actions: ActionTree<LiquidState, RootState> = {
         const envelope = admitEnvelope({
           count: rawItems.length,
           maxCount: MAX_DAPP_SIGN_DATA_ITEMS,
-          ...pendingCounts(state, requestId, request.id),
+          ...countPending(state.requests, state.signDataRequests, requestId, request.id),
         });
         if (!envelope.ok) {
           await refuse(LiquidReference.signDataResponse, envelope);
@@ -565,7 +554,7 @@ const actions: ActionTree<LiquidState, RootState> = {
         const recheck = admitEnvelope({
           count: rawItems.length,
           maxCount: MAX_DAPP_SIGN_DATA_ITEMS,
-          ...pendingCounts(state, requestId, request.id),
+          ...countPending(state.requests, state.signDataRequests, requestId, request.id),
         });
         if (!recheck.ok) {
           await refuse(LiquidReference.signDataResponse, recheck);

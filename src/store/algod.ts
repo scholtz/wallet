@@ -256,7 +256,8 @@ const actions: ActionTree<AlgodState, RootState> = {
   /**
    * Suggested params from the node, refused (by throwing) when the node reports another
    * network or an abnormal fee (AW-2026-053). For callers that sign what they build and
-   * handle a rejected dispatch.
+   * handle a rejected dispatch. Returns a fresh object on every call, so callers may adjust
+   * it (fee, flatFee) without affecting anyone else.
    */
   async getCheckedTransactionParams({
     rootState,

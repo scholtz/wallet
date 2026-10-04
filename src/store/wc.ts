@@ -15,6 +15,7 @@ import {
   admitEnvelope,
   admitSignData,
   admitTransactions,
+  countPending,
   REQUEST_ERROR,
   type Admission,
 } from "../scripts/liquid/guards";
@@ -306,18 +307,13 @@ const actions: ActionTree<WcState, RootState> = {
     web3wallet.on("session_request", async (sessionRequest) => {
       const topic = sessionRequest.topic;
       const requestId = ensureNumericId(sessionRequest.id);
-      const sameId = (r: { id: number | string }) =>
-        String(r.id) === String(requestId);
-      const pending = () => ({
-        pendingTotal:
-          rootState.wc.requests.length + rootState.wc.signDataRequests.length,
-        pendingForSession:
-          rootState.wc.requests.filter((r) => r.topic === topic).length +
-          rootState.wc.signDataRequests.filter((r) => r.topic === topic).length,
-        idInUse:
-          rootState.wc.requests.some(sameId) ||
-          rootState.wc.signDataRequests.some(sameId),
-      });
+      const pending = () =>
+        countPending(
+          rootState.wc.requests,
+          rootState.wc.signDataRequests,
+          topic,
+          requestId,
+        );
       // Tell the user and the dApp that a request was refused (see REQUEST_ERROR).
       const refuse = async (admission: Extract<Admission, { ok: false }>) => {
         console.error("WalletConnect request refused:", admission.reason);
@@ -406,7 +402,8 @@ const actions: ActionTree<WcState, RootState> = {
       }
 
       if (request?.method !== "algo_signTxn") {
-        await invalid(`Method not supported: ${String(request?.method)}`);
+        // Never echo the dApp-chosen method name into a toast or reply.
+        await invalid("Method not supported.");
         return;
       }
 

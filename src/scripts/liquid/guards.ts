@@ -1,8 +1,10 @@
 /**
  * Input guards for the Liquid Auth transport. Everything the signaling service or the remote
  * dApp peer sends is untrusted; these checks keep it from steering what the wallet signs.
- * Kept free of runtime imports so it can be unit-tested in plain Node.
+ * Kept free of runtime imports (apart from the pure protocol constants) so it can be
+ * unit-tested in plain Node. Also holds the request admission shared with WalletConnect.
  */
+import { LiquidErrorCode } from "./protocol";
 
 /** Services the wallet will authenticate against regardless of the wallet's own host. */
 export const LIQUID_TRUSTED_SERVICE_HOSTS = [
@@ -202,15 +204,18 @@ export function findUnauthorizedSenders(
 /** JSON-RPC style error codes used when refusing a dApp request. */
 export const REQUEST_ERROR = {
   /** Resource/limit problem (too many requests). */
-  limit: 4000,
+  limit: LiquidErrorCode.unknown,
   /** The signer/sender is not an account approved for the session. */
-  unauthorized: 4100,
+  unauthorized: LiquidErrorCode.unauthorizedSigner,
   /** Malformed request. */
-  invalid: 4200,
+  invalid: LiquidErrorCode.invalidInput,
 } as const;
 
 export const MAX_DAPP_SIGN_DATA_ITEMS = 16;
-/** Pending requests one session may hold, so a single dApp cannot lock out the others. */
+/**
+ * Pending requests one session may hold: one session alone can never fill the whole backlog
+ * (it takes at least two), which keeps a single misbehaving dApp from locking the wallet.
+ */
 export const MAX_DAPP_PENDING_PER_SESSION = 25;
 
 export type Admission =
@@ -287,4 +292,26 @@ export function admitSignData(input: {
     };
   }
   return ADMITTED;
+}
+
+export interface PendingRequestLike {
+  id: number | string;
+  topic: string;
+}
+
+/** The counts and duplicate-id flag `admitEnvelope` needs, for any transport's request queues. */
+export function countPending(
+  requests: PendingRequestLike[],
+  signDataRequests: PendingRequestLike[],
+  topic: string,
+  id: number | string,
+) {
+  const sameId = (r: PendingRequestLike) => String(r.id) === String(id);
+  return {
+    pendingTotal: requests.length + signDataRequests.length,
+    pendingForSession:
+      requests.filter((r) => r.topic === topic).length +
+      signDataRequests.filter((r) => r.topic === topic).length,
+    idInUse: requests.some(sameId) || signDataRequests.some(sameId),
+  };
 }
