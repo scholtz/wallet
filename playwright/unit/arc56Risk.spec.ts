@@ -127,3 +127,15 @@ test.describe("evaluateArc56Risk", () => {
     }
   });
 });
+
+test("a hand-configured node caps a trusted verdict at warning (AW-2026-055)", async () => {
+  const { evaluateArc56Risk } = await import("../../src/scripts/arc56/risk");
+  const input = {
+    trust: "verified" as const,
+    owners: [{ riskLevel: "low" }] as never,
+  };
+  expect(evaluateArc56Risk([input]).level).toBe("trusted");
+  const capped = evaluateArc56Risk([input], { unverifiedNode: true });
+  expect(capped.level).toBe("warning");
+  expect(capped.reasons).toContain("unverified_node");
+});

@@ -86,6 +86,13 @@
                     <span v-if="sessionPeer(slotProps.data.topic)?.url">
                       ({{ sessionPeer(slotProps.data.topic)?.url }})
                     </span>
+                    <Message
+                      v-if="ns === 'liquid'"
+                      severity="warn"
+                      class="m-0"
+                    >
+                      {{ $t("connect.liquid.peer_unverified") }}
+                    </Message>
                   </div>
                   <div>
                     <strong>{{ $t("connect.arc60.signer") }}:</strong>

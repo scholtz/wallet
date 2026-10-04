@@ -115,6 +115,7 @@
                                 slotProps.data.peer.icons.length
                               "
                               :src="slotProps.data.peer.icons[0]"
+                              referrerpolicy="no-referrer"
                               width="24"
                               height="24"
                             />

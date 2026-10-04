@@ -2,6 +2,7 @@
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import Popover from "primevue/popover";
+import { useStore } from "@/store";
 import { isRiskyTransaction, isSensitiveAppCall } from "@/scripts/arc56/riskTxn";
 import { useArc56Summaries, type AppCallTxnEntry } from "@/composables/useArc56Summaries";
 import { evaluateArc56Risk, type Arc56RiskInput, type Arc56RiskLevel } from "@/scripts/arc56/risk";
@@ -14,6 +15,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+const store = useStore();
 const { summaries, loading } = useArc56Summaries(() => props.transactions);
 
 const hasRiskyFields = computed(() => props.transactions.some((tx) => isRiskyTransaction(tx.txn)));
@@ -33,7 +35,10 @@ const result = computed(() => {
       lookupFailed: !summary,
     });
   }
-  return evaluateArc56Risk(inputs, { riskyFields: hasRiskyFields.value });
+  return evaluateArc56Risk(inputs, {
+    riskyFields: hasRiskyFields.value,
+    unverifiedNode: store.state.config.env === "custom",
+  });
 });
 
 const PRESENTATION: Record<Exclude<Arc56RiskLevel, "none">, { icon: string; cls: string }> = {

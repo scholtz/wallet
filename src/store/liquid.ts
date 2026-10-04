@@ -52,6 +52,15 @@ import {
   type SignTransactionsResult,
 } from "../scripts/liquid/protocol";
 import {
+  LIQUID_MAX_PAYLOAD_CHARS,
+  LIQUID_MAX_PENDING_REQUESTS,
+  LIQUID_MAX_SIGN_DATA_ITEMS,
+  LIQUID_MAX_TXNS_PER_REQUEST,
+  assertLiquidServiceOrigin,
+  findUnauthorizedSenders,
+  sanitizePeerMetadata,
+} from "../scripts/liquid/guards";
+import {
   LIQUID_SESSIONS_STORAGE_KEY,
   parseStoredLiquidSessions,
   toStoredLiquidSession,
@@ -243,6 +252,21 @@ const mutations: MutationTree<LiquidState> = {
   },
 };
 
+function isRequestBacklogFull(currentState: LiquidState): boolean {
+  return (
+    currentState.requests.length + currentState.signDataRequests.length >=
+    LIQUID_MAX_PENDING_REQUESTS
+  );
+}
+
+/** Peer-chosen ids are the store keys, so one that is already pending must not be reused. */
+function isRequestIdInUse(currentState: LiquidState, id: string): boolean {
+  return (
+    currentState.requests.some((r) => String(r.id) === String(id)) ||
+    currentState.signDataRequests.some((r) => String(r.id) === String(id))
+  );
+}
+
 async function respond(
   requestId: string,
   message: LiquidResponseMessage,
@@ -269,6 +293,9 @@ const actions: ActionTree<LiquidState, RootState> = {
       throw new Error("Initialize Liquid Auth before connecting.");
     }
     const { origin, requestId } = parseLiquidDeepLink(uri);
+    // AW-2026-049: the service receives a passkey and an account-key signature, so a pasted
+    // link must not be able to point the wallet at an arbitrary host.
+    assertLiquidServiceOrigin(origin, window.location.hostname);
     const account = rootState.wallet.privateAccounts.find(
       (a) => a.addr === address,
     );
@@ -370,6 +397,11 @@ const actions: ActionTree<LiquidState, RootState> = {
     if (!session) {
       return;
     }
+    // AW-2026-052: the peer is unauthenticated; bound its input before decoding.
+    if (payload.length > LIQUID_MAX_PAYLOAD_CHARS) {
+      console.error("Oversized Liquid Auth message dropped");
+      return;
+    }
     let message;
     try {
       message = await decodeLiquidMessage(payload);
@@ -389,7 +421,7 @@ const actions: ActionTree<LiquidState, RootState> = {
         if (params?.metadata) {
           commit("setSessionPeer", {
             requestId,
-            peer: params.metadata,
+            peer: sanitizePeerMetadata(params.metadata),
             dappProviderId: params.providerId,
           });
           await persistLiquidSessions(dispatch, state.sessions);
@@ -413,12 +445,56 @@ const actions: ActionTree<LiquidState, RootState> = {
         const rawTransactions: AlgoSignTxnParam[] = Array.isArray(params?.txns)
           ? (params!.txns as AlgoSignTxnParam[])
           : [];
-        const transactions = decodeSignTxnTransactions(
-          rawTransactions,
-          (signed) => {
+        const reject = async (code: number, message: string) => {
+          await respond(
+            requestId,
+            buildErrorResponse(
+              request,
+              LiquidReference.signTransactionsResponse,
+              { code, message, providerId: LIQUID_WALLET_PROVIDER_ID },
+            ),
+          );
+        };
+        if (
+          rawTransactions.length === 0 ||
+          rawTransactions.length > LIQUID_MAX_TXNS_PER_REQUEST
+        ) {
+          await reject(LiquidErrorCode.invalidInput, "Invalid transaction count.");
+          return;
+        }
+        if (isRequestBacklogFull(state)) {
+          await reject(LiquidErrorCode.unknown, "Too many pending requests.");
+          return;
+        }
+        if (isRequestIdInUse(state, request.id)) {
+          await reject(LiquidErrorCode.invalidInput, "Duplicate request id.");
+          return;
+        }
+        let transactions: ReturnType<typeof decodeSignTxnTransactions>;
+        try {
+          transactions = decodeSignTxnTransactions(rawTransactions, (signed) => {
             dispatch("signer/setSigned", { signed }, { root: true });
-          },
+          });
+        } catch (error) {
+          console.error("Undecodable Liquid Auth transactions", error);
+          await reject(LiquidErrorCode.invalidInput, "Invalid transaction.");
+          return;
+        }
+        // AW-2026-051: a session paired for one account may only ask it to sign.
+        const unauthorized = findUnauthorizedSenders(
+          transactions.map((tx, i) => ({
+            sender: tx.txn?.sender?.toString(),
+            signers: rawTransactions[i]?.signers,
+          })),
+          [session.address],
         );
+        if (unauthorized.length > 0) {
+          await reject(
+            LiquidErrorCode.unauthorizedSigner,
+            "Transaction sender is not the account linked to this session.",
+          );
+          return;
+        }
         const totalFee = transactions.reduce(
           (fee, tx) => fee + (tx.fee ?? 0),
           0,
@@ -439,6 +515,22 @@ const actions: ActionTree<LiquidState, RootState> = {
         const rawItems = (Array.isArray(params?.items)
           ? params!.items
           : []) as unknown as Arc60StdSigData[];
+        if (
+          rawItems.length === 0 ||
+          rawItems.length > LIQUID_MAX_SIGN_DATA_ITEMS ||
+          isRequestBacklogFull(state) ||
+          isRequestIdInUse(state, request.id)
+        ) {
+          await respond(
+            requestId,
+            buildErrorResponse(request, LiquidReference.signDataResponse, {
+              code: LiquidErrorCode.invalidInput,
+              message: "Invalid or excessive sign data request.",
+              providerId: LIQUID_WALLET_PROVIDER_ID,
+            }),
+          );
+          return;
+        }
         const items = await decodeArc60Items(rawItems);
         const stored: StoredSignDataRequest = {
           id: request.id,

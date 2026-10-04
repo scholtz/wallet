@@ -242,12 +242,18 @@ const actions: ActionTree<AlgodState, RootState> = {
   async getAlgod({ rootState }) {
     return createAlgodClient(rootState);
   },
-  async getTransactionParams({ rootState }) {
+  async getTransactionParams({ dispatch, rootState }) {
     try {
       const algodClient = createAlgodClient(rootState);
-      return await algodClient.getTransactionParams().do();
+      const params = await algodClient.getTransactionParams().do();
+      // AW-2026-053: every caller builds transactions that get signed, so none may trust a
+      // node that reports another network's genesis.
+      assertParamsMatchNetwork(rootState, params);
+      return params;
     } catch (error) {
       console.error("Failed to fetch transaction params", error);
+      const message = error instanceof Error ? error.message : String(error);
+      dispatch("toast/openError", message, { root: true });
       return undefined;
     }
   },
@@ -373,25 +379,47 @@ const actions: ActionTree<AlgodState, RootState> = {
       return undefined;
     }
   },
+  async getAssetCreator(
+    { rootState },
+    { assetId }: { assetId: bigint | number | string },
+  ): Promise<string | undefined> {
+    const algodClient = createAlgodClient(rootState);
+    try {
+      const info = await algodClient.getAssetByID(BigInt(assetId)).do();
+      return info.params?.creator.toString();
+    } catch (error) {
+      // a deleted asset has no creator to return the balance to; any other
+      // failure (network, node) must not be mistaken for that
+      if (!isAssetNotFoundError(error)) throw error;
+      return undefined;
+    }
+  },
   async optOutAsset(
     { dispatch, rootState },
-    { addr, assetId }: { addr: string; assetId: bigint | number | string },
+    {
+      addr,
+      assetId,
+      expectedCloseTo,
+    }: {
+      addr: string;
+      assetId: bigint | number | string;
+      /** The close-to address the user confirmed; the opt-out is refused if the node now reports another (AW-2026-054). */
+      expectedCloseTo?: string;
+    },
   ): Promise<OptOutResult> {
     try {
       const algodClient = createAlgodClient(rootState);
-      let creator: string | undefined;
-      try {
-        const info = await algodClient.getAssetByID(BigInt(assetId)).do();
-        creator = info.params?.creator.toString();
-      } catch (error) {
-        // a deleted asset has no creator to return the balance to; any other
-        // failure (network, node) must not be mistaken for that
-        if (!isAssetNotFoundError(error)) throw error;
-        creator = undefined;
-      }
+      const creator: string | undefined = await dispatch("getAssetCreator", {
+        assetId,
+      });
       const closeTo = resolveOptOutCloseTo(addr, creator);
       if (!closeTo) {
         return { status: "creator" };
+      }
+      if (expectedCloseTo && closeTo !== expectedCloseTo) {
+        throw new Error(
+          "The asset creator reported by the node changed since you confirmed the opt-out. Nothing was sent.",
+        );
       }
       const params = await algodClient.getTransactionParams().do();
       assertParamsMatchNetwork(rootState, params);

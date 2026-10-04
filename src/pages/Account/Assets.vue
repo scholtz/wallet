@@ -179,6 +179,10 @@
             })
           }}
         </p>
+        <p v-if="optOutCloseTo">
+          {{ $t("acc_overview_assets.opt_out_close_to") }}
+          <code class="break-all">{{ optOutCloseTo }}</code>
+        </p>
       </template>
       <template #footer>
         <Button
@@ -216,6 +220,7 @@ import { StoredAsset } from "@/store/indexer";
 import { getArc200Client } from "arc200-client";
 import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import { getAssetUsdPrices } from "@/scripts/biatecScan";
+import { resolveOptOutCloseTo } from "@/scripts/assets/optOut";
 import type { OptOutResult } from "@/scripts/assets/optOut";
 import { filterAssetsWithBalance } from "@/scripts/assets/filterAssetsWithBalance";
 
@@ -452,7 +457,33 @@ const optOutDialogVisible = ref(false);
 const optOutProcessing = ref(false);
 const optOutTarget = ref<AssetListItem | null>(null);
 
-const askOptOut = (data: AssetListItem) => {
+const optOutCloseTo = ref<string | undefined>(undefined);
+
+const askOptOut = async (data: AssetListItem) => {
+  const addr = account.value?.addr;
+  if (!addr || data.type !== "ASA") return;
+  try {
+    // AW-2026-054: show the address the remaining balance will be sent to before the
+    // user confirms; the node's answer is re-checked against it at send time.
+    const creator = (await store.dispatch("algod/getAssetCreator", {
+      assetId: data.assetId,
+    })) as string | undefined;
+    const closeTo = resolveOptOutCloseTo(addr, creator);
+    if (!closeTo) {
+      await store.dispatch(
+        "toast/openError",
+        t("acc_overview_assets.opt_out_creator")
+      );
+      return;
+    }
+    optOutCloseTo.value = closeTo;
+  } catch (error) {
+    await store.dispatch(
+      "toast/openError",
+      error instanceof Error ? error.message : String(error)
+    );
+    return;
+  }
   optOutTarget.value = data;
   optOutDialogVisible.value = true;
 };
@@ -466,6 +497,7 @@ const confirmOptOut = async () => {
     const result = (await store.dispatch("algod/optOutAsset", {
       addr,
       assetId: target.assetId,
+      expectedCloseTo: optOutCloseTo.value,
     })) as OptOutResult;
     if (result.status === "creator") {
       await store.dispatch(

@@ -16,6 +16,7 @@
  */
 import algosdk from "algosdk";
 import { fromBase64Url, toBase64Url } from "./protocol";
+import { assertLiquidChallenge } from "./guards";
 
 export interface LiquidPasskeyCredential {
   credId: string;
@@ -139,6 +140,8 @@ export async function liquidAttestation(
   });
 
   const challenge = fromBase64Url(options.challenge);
+  // Fail before the passkey prompt rather than after the user has approved it.
+  assertLiquidChallenge(challenge);
   const publicKey: PublicKeyCredentialCreationOptions = {
     challenge: toArrayBuffer(challenge),
     rp: options.rp,

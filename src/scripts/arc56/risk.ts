@@ -20,6 +20,10 @@ export interface Arc56RiskOptions {
   // rekeys the sender. A verdict scoped to the app calls must not read as
   // "safe to sign" while such a transaction sits next to them.
   riskyFields?: boolean;
+  // The approval program was read from a node the user configured by hand, so the
+  // program hash the registry verdict is built on is attacker-controllable
+  // (AW-2026-055). A "trusted" verdict is capped at "warning" in that case.
+  unverifiedNode?: boolean;
 }
 
 // "none": nothing to show (no app calls, no risky fields). "not-abi": every app call is
@@ -36,7 +40,8 @@ export type Arc56RiskReason =
   | "unrated_publisher"
   | "not_abi"
   | "sensitive_call"
-  | "risky_fields";
+  | "risky_fields"
+  | "unverified_node";
 
 export interface Arc56RiskResult {
   level: Arc56RiskLevel;
@@ -134,6 +139,10 @@ export const evaluateArc56Risk = (
   const hasNotAbi = results.some((r) => r.level === "not-abi");
   const hasTrusted = results.some((r) => r.level === "trusted");
   if (hasNotAbi && hasTrusted && level === "trusted") level = "warning";
+  if (options.unverifiedNode && level === "trusted") {
+    level = "warning";
+    reasons.push("unverified_node");
+  }
   if (options.riskyFields) {
     if (RANK[level] < RANK.warning) level = "warning";
     reasons.push("risky_fields");

@@ -9,6 +9,7 @@ import WCKeyValueStore from "../shared/WCKeyValueStore";
 import type { RootState } from "./index";
 import type { GenesisNetwork } from "./publicData";
 import { bytesToBase64, type Arc60StdSigData } from "../scripts/encoding/arc60";
+import { findUnauthorizedSenders } from "../scripts/liquid/guards";
 import {
   decodeArc60Items,
   decodeSignTxnTransactions,
@@ -326,6 +327,36 @@ const actions: ActionTree<WcState, RootState> = {
         decodeSignTxnTransactions(rawTransactions, (signed) => {
           dispatch("signer/setSigned", { signed }, { root: true });
         });
+
+      // AW-2026-051: only accounts the user approved for this session may be asked to sign.
+      const sessionAccounts = (
+        web3wallet.getActiveSessions()[sessionRequest.topic]?.namespaces
+          ?.algorand?.accounts ?? []
+      ).map((entry: string) => entry.split(":").pop() ?? "");
+      if (
+        findUnauthorizedSenders(
+          transactions.map((tx, i) => ({
+            sender: tx.txn?.sender?.toString(),
+            signers: (rawTransactions[i] as AlgoSignTxnParam | undefined)
+              ?.signers,
+          })),
+          sessionAccounts,
+        ).length > 0
+      ) {
+        await web3wallet.respondSessionRequest({
+          topic: sessionRequest.topic,
+          response: {
+            id: ensureNumericId(sessionRequest.id),
+            jsonrpc: "2.0",
+            error: {
+              code: 4100,
+              message:
+                "Transaction sender is not an account approved for this session.",
+            },
+          },
+        });
+        return;
+      }
 
       const totalFee = transactions.reduce((fee, tx) => fee + (tx.fee ?? 0), 0);
 

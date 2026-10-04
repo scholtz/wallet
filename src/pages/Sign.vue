@@ -844,6 +844,17 @@ const tokenSymbol = computed(() => store.state.config.tokenSymbol);
 // selection) immediately reflects whether the tx now matches - it must not
 // stay stuck showing (or hiding) a mismatch computed once at page load.
 const fatal = computed(() => {
+  // AW-2026-058: a WalletConnect transaction is signed with the account in the route, so the
+  // route must be the transaction's own sender, not whatever account was last active.
+  const wcSender = txn.value?.sender?.toString();
+  if (
+    route.name === "PayFromWalletConnect" &&
+    wcSender &&
+    payFrom.value &&
+    wcSender !== payFrom.value
+  ) {
+    return `The transaction sender ${wcSender} does not match the account ${payFrom.value} selected for signing.`;
+  }
   // "custom" is a UI placeholder, not a genesis id - a manually configured
   // node has no expected network to compare the transaction's genesis to.
   if (

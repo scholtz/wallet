@@ -135,8 +135,8 @@ export function decodeSignTxnTransactions(
     }
 
     let from: string | undefined;
-    if (decoded.from?.publicKey) {
-      from = algosdk.encodeAddress(decoded.from.publicKey);
+    if (decoded.sender) {
+      from = decoded.sender.toString();
     }
 
     let rekeyTo: string | undefined;
