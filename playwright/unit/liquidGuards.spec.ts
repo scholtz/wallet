@@ -128,6 +128,13 @@ test.describe("sanitizePeerMetadata", () => {
     expect(peer.icons).toEqual(["https://ok/x.png"]);
   });
 
+  test("keeps only an https app url", () => {
+    const base = { name: "n", description: "d", icons: [] as string[] };
+    expect(sanitizePeerMetadata({ ...base, url: "https://dapp.example" }).url).toBe("https://dapp.example");
+    expect(sanitizePeerMetadata({ ...base, url: "javascript:alert(1)" }).url).toBe("");
+    expect(sanitizePeerMetadata({ ...base, url: "http://dapp.example" }).url).toBe("");
+  });
+
   test("tolerates malformed metadata", () => {
     const peer = sanitizePeerMetadata({
       name: 5,

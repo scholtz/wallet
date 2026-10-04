@@ -140,7 +140,8 @@ export function sanitizePeerMetadata<T extends PeerMetadataLike>(peer: T): T {
     ...peer,
     name: cap(peer.name),
     description: cap(peer.description),
-    url: cap(peer.url),
+    // Shown as a link and used to label the app: only an https address is kept.
+    url: cap(peer.url).toLowerCase().startsWith("https://") ? cap(peer.url) : "",
     icons: icons
       .filter(
         (icon): icon is string =>

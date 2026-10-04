@@ -136,10 +136,19 @@ const base64UrlToBase64 = (input: string): string => {
 // a malicious/compromised node must not be able to have the wallet sign a
 // transaction that is valid on a different network than the one shown in
 // the UI. Mirrors the guard Sign.vue applies to externally supplied txns.
+const MAX_NODE_PER_BYTE_FEE = 1_000n;
+const MAX_NODE_MIN_FEE = 10_000n;
 const assertParamsMatchNetwork = (
   rootState: RootState,
   params: algosdk.SuggestedParams,
 ): void => {
+  // A node must not be able to turn a signature into a large fee payment (AW-2026-053):
+  // suggested params carry a per-byte fee (normally 0) and a minimum fee (normally 1000).
+  if (BigInt(params.fee ?? 0) > MAX_NODE_PER_BYTE_FEE || BigInt(params.minFee ?? 0) > MAX_NODE_MIN_FEE) {
+    throw new Error(
+      "The configured node suggested an abnormally high fee. Refusing to build the transaction.",
+    );
+  }
   const env = rootState.config.env;
   // "custom" is a UI placeholder, not a genesis id — the user has manually
   // configured their own node endpoints, so there is no selected network to
@@ -242,25 +251,26 @@ const actions: ActionTree<AlgodState, RootState> = {
   async getAlgod({ rootState }) {
     return createAlgodClient(rootState);
   },
-  async getTransactionParams({ dispatch, rootState }) {
-    let params: algosdk.SuggestedParams;
+  async getTransactionParams({ rootState }) {
     try {
       const algodClient = createAlgodClient(rootState);
-      params = await algodClient.getTransactionParams().do();
+      return await algodClient.getTransactionParams().do();
     } catch (error) {
       console.error("Failed to fetch transaction params", error);
       return undefined;
     }
-    // AW-2026-053: every caller builds transactions that get signed, so none may trust a
-    // node that reports another network's genesis. Callers only see "no params", so say why.
-    try {
-      assertParamsMatchNetwork(rootState, params);
-    } catch (error) {
-      console.error("Transaction params do not match the network", error);
-      const message = error instanceof Error ? error.message : String(error);
-      dispatch("toast/openError", message, { root: true });
-      return undefined;
-    }
+  },
+  /**
+   * Like getTransactionParams, but refuses params from a node on another network or with an
+   * abnormal fee, by throwing (AW-2026-053). For callers that sign what they build and already
+   * handle a rejected dispatch.
+   */
+  async getCheckedTransactionParams({
+    rootState,
+  }): Promise<algosdk.SuggestedParams> {
+    const algodClient = createAlgodClient(rootState);
+    const params = await algodClient.getTransactionParams().do();
+    assertParamsMatchNetwork(rootState, params);
     return params;
   },
   async preparePayment(

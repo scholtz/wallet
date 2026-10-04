@@ -1045,7 +1045,7 @@
       "status_closed": "Closed",
       "invalid_link": "This is not a valid liquid:// link",
       "unsupported_account": "Liquid Auth needs an account whose signing key is stored in this wallet (standard or HD account). Ledger, multisig and 2FA accounts are not supported.",
-      "passkey_help": "Your browser will ask you to create or use a passkey (Windows Hello, Touch ID, security key). The passkey is registered with the Liquid Auth service and bound to the selected account; the service must be hosted under this wallet's domain.",
+      "passkey_help": "Je browser vraagt om een passkey aan te maken of te gebruiken (Windows Hello, Touch ID, beveiligingssleutel). De passkey wordt geregistreerd bij de Liquid Auth-dienst uit de link en gekoppeld aan het geselecteerde account. De wallet koppelt alleen met vertrouwde diensten: liquid.biatec.io, het eigen domein van deze wallet of een host die door de beheerder is ingesteld.",
       "peer_unknown": "Unknown dApp (no metadata announced)",
       "connected_app_unknown": "Unknown (no Liquid Auth session found for this request)",
       "peer_unverified": "De getoonde app-identiteit wordt door de app zelf opgegeven en kan door Liquid Auth niet worden geverifieerd. Onderteken alleen als je dit verzoek zelf hebt gestart.",

@@ -226,6 +226,10 @@ const mutations: MutationTree<WcState> = {
     sessionRequest: WalletKitTypes.EventArguments["session_request"]
   ) {
     currentState.sessionRequests.push(sessionRequest);
+    // Raw event log, not read by the UI: keep it bounded against a request-spamming dApp.
+    if (currentState.sessionRequests.length > 100) {
+      currentState.sessionRequests.shift();
+    }
   },
   addAuthRequest(currentState, authRequest: unknown) {
     currentState.authRequests.push(authRequest);

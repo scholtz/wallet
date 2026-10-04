@@ -105,7 +105,7 @@ const optIn = async () => {
   try {
     await store.dispatch("wallet/prolong");
     const suggestedParams: algosdk.SuggestedParams = await store.dispatch(
-      "algod/getTransactionParams",
+      "algod/getCheckedTransactionParams",
     );
     const tx = buildOptInTxn(from, FOLKS_USDC_POOL.fAssetId, suggestedParams);
     assertFolksLendTxnsSafe([tx], from);
