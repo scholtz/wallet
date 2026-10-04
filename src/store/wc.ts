@@ -302,6 +302,9 @@ const actions: ActionTree<WcState, RootState> = {
     web3wallet.on("session_request", async (sessionRequest) => {
       // Tell the user and the dApp a request was refused (default 4100 = unauthorized
       // signer; 4200 = invalid input; 4000 = other failure, e.g. too many requests).
+      const backlogFull = () =>
+        rootState.wc.requests.length + rootState.wc.signDataRequests.length >=
+        MAX_PENDING_REQUESTS;
       const rejectRequest = async (
         toastText: string,
         message: string,
@@ -321,10 +324,7 @@ const actions: ActionTree<WcState, RootState> = {
           console.error("Failed to reject the WalletConnect request", error);
         }
       };
-      if (
-        rootState.wc.requests.length + rootState.wc.signDataRequests.length >=
-        MAX_PENDING_REQUESTS
-      ) {
+      if (backlogFull()) {
         await rejectRequest(
           "Too many pending WalletConnect requests. The request was rejected.",
           "Too many pending requests.",
@@ -385,10 +385,7 @@ const actions: ActionTree<WcState, RootState> = {
         };
 
         // Concurrent requests all passed the cap check before the awaits above: re-check.
-        if (
-          rootState.wc.requests.length + rootState.wc.signDataRequests.length >=
-          MAX_PENDING_REQUESTS
-        ) {
+        if (backlogFull()) {
           await rejectRequest(
             "Too many pending WalletConnect requests. The request was rejected.",
             "Too many pending requests.",
@@ -476,9 +473,6 @@ const actions: ActionTree<WcState, RootState> = {
       try {
         // Validate every blob before registering any, so a bad one leaves nothing behind.
         preSignedBlobs.forEach((signed) => algosdk.decodeSignedTransaction(signed));
-        for (const signed of preSignedBlobs) {
-          await dispatch("signer/setSigned", { signed }, { root: true });
-        }
       } catch (error) {
         console.error("Invalid pre-signed WalletConnect transaction", error);
         await rejectRequest(
@@ -488,11 +482,9 @@ const actions: ActionTree<WcState, RootState> = {
         );
         return;
       }
-      // Concurrent requests all passed the cap check before the awaits above: re-check.
-      if (
-        rootState.wc.requests.length + rootState.wc.signDataRequests.length >=
-        MAX_PENDING_REQUESTS
-      ) {
+      // Concurrent requests all passed the cap check before the awaits above: re-check. From
+      // here to addRequest there is no await, so the check and the queueing are atomic.
+      if (backlogFull()) {
         await rejectRequest(
           "Too many pending WalletConnect requests. The request was rejected.",
           "Too many pending requests.",
@@ -500,6 +492,9 @@ const actions: ActionTree<WcState, RootState> = {
         );
         return;
       }
+      preSignedBlobs.forEach((signed) =>
+        commit("signer/setSigned", signed, { root: true }),
+      );
       commit("addRequest", { request: requestToStore });
     });
 
