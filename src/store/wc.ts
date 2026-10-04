@@ -254,6 +254,15 @@ const mutations: MutationTree<WcState> = {
   },
 };
 
+/** Addresses (CAIP-10 account suffix) a WalletConnect session was approved for. */
+const getSessionAccounts = (
+  web3wallet: { getActiveSessions(): Record<string, { namespaces?: { algorand?: { accounts?: string[] } } }> },
+  topic: string,
+): string[] =>
+  (web3wallet.getActiveSessions()[topic]?.namespaces?.algorand?.accounts ?? []).map(
+    (entry: string) => entry.split(":").pop() ?? "",
+  );
+
 const actions: ActionTree<WcState, RootState> = {
   async init({ commit, dispatch, rootState }) {
     const { walletConnectProjectId, walletConnectMetadata } = rootState.config;
@@ -304,11 +313,17 @@ const actions: ActionTree<WcState, RootState> = {
         const items: StoredSignDataItem[] = await decodeArc60Items(rawItems);
 
         // AW-2026-051: only accounts approved for this session may be asked to sign data.
-        const approvedForData = (
-          web3wallet.getActiveSessions()[sessionRequest.topic]?.namespaces
-            ?.algorand?.accounts ?? []
-        ).map((entry: string) => entry.split(":").pop() ?? "");
-        if (items.some((item) => !approvedForData.includes(item.signer))) {
+        const approvedForData = getSessionAccounts(web3wallet, sessionRequest.topic);
+        if (
+          items.length === 0 ||
+          items.length < rawItems.length ||
+          items.some((item) => !approvedForData.includes(item.signer))
+        ) {
+          dispatch(
+            "toast/openError",
+            "A dApp asked to sign data that is invalid or for an account that is not approved for its session. The request was rejected.",
+            { root: true },
+          );
           await web3wallet.respondSessionRequest({
             topic: sessionRequest.topic,
             response: {
@@ -355,10 +370,7 @@ const actions: ActionTree<WcState, RootState> = {
         });
 
       // AW-2026-051: only accounts the user approved for this session may be asked to sign.
-      const sessionAccounts = (
-        web3wallet.getActiveSessions()[sessionRequest.topic]?.namespaces
-          ?.algorand?.accounts ?? []
-      ).map((entry: string) => entry.split(":").pop() ?? "");
+      const sessionAccounts = getSessionAccounts(web3wallet, sessionRequest.topic);
       if (
         findUnauthorizedSenders(
           transactions.map((tx, i) => ({

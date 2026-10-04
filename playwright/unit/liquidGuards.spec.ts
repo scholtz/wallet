@@ -37,6 +37,8 @@ test.describe("assertLiquidServiceOrigin", () => {
     expect(() => assertLiquidServiceOrigin("https://liquid.biatec.io:8443", WALLET)).toThrow();
     expect(() => assertLiquidServiceOrigin("https://localhost:3000", "localhost")).not.toThrow();
     expect(() => assertLiquidServiceOrigin("https://localhost:3000", "127.0.0.1")).not.toThrow();
+    expect(() => assertLiquidServiceOrigin("https://127.0.0.1:3000", "127.0.0.1")).toThrow();
+    expect(() => assertLiquidServiceOrigin("https://[::1]:3000", "localhost")).toThrow();
     expect(() => assertLiquidServiceOrigin("https://user:pw@liquid.biatec.io", WALLET)).toThrow();
     expect(() => assertLiquidServiceOrigin("https://10.0.0.5", WALLET)).toThrow();
   });

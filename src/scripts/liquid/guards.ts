@@ -39,13 +39,14 @@ const IPV4 = /^\d{1,3}(\.\d{1,3}){3}$/;
  */
 const FORBIDDEN_SIGNING_PREFIXES = ["Program", "ProgData", "appID", "MultisigAddr"];
 
+/** A local development *name* (never an IP literal: the service host must be a named host). */
+function isLocalName(hostname: string): boolean {
+  return hostname === "localhost" || hostname.endsWith(".localhost");
+}
+
+/** The wallet itself may be served from a loopback IP during development. */
 function isLocalHost(hostname: string): boolean {
-  return (
-    hostname === "localhost" ||
-    hostname.endsWith(".localhost") ||
-    hostname === "127.0.0.1" ||
-    hostname === "[::1]"
-  );
+  return isLocalName(hostname) || hostname === "127.0.0.1" || hostname === "[::1]";
 }
 
 /**
@@ -75,7 +76,7 @@ export function assertLiquidServiceOrigin(
     throw new Error("The Liquid Auth service must use https.");
   }
   // Local development: a localhost service for a localhost wallet, on any port.
-  if (isLocalHost(host) && isLocalHost(walletHost)) return;
+  if (isLocalName(host) && isLocalHost(walletHost)) return;
   if (url.port) {
     throw new Error("The Liquid Auth service must use the default https port.");
   }
@@ -143,7 +144,10 @@ export function sanitizePeerMetadata<T extends PeerMetadataLike>(peer: T): T {
   const cap = (value: unknown) =>
     typeof value === "string" ? value.slice(0, MAX_METADATA_FIELD) : "";
   // unknown: same reason - the peer may send anything for `icons`.
-  const icons: unknown[] = Array.isArray(peer.icons) ? peer.icons : [];
+  // Cap the array before scanning it, so a flood of entries costs nothing.
+  const icons: unknown[] = Array.isArray(peer.icons)
+    ? peer.icons.slice(0, MAX_METADATA_ICONS * 4)
+    : [];
   return {
     ...peer,
     name: cap(peer.name),
@@ -155,7 +159,7 @@ export function sanitizePeerMetadata<T extends PeerMetadataLike>(peer: T): T {
         (icon): icon is string =>
           typeof icon === "string" &&
           icon.length <= MAX_METADATA_FIELD &&
-          icon.toLowerCase().startsWith("https://"),
+          icon.slice(0, 8).toLowerCase() === "https://",
       )
       .slice(0, MAX_METADATA_ICONS),
   };

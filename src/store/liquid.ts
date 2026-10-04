@@ -460,6 +460,11 @@ const actions: ActionTree<LiquidState, RootState> = {
           : [];
         const reject = (code: number, text: string) =>
           rejectRequest(LiquidReference.signTransactionsResponse, code, text);
+        if (isRequestIdInUse(state, request.id)) {
+          // No reply: an error response would carry the id of the still-pending request.
+          console.error("Duplicate Liquid Auth request id ignored");
+          return;
+        }
         if (
           rawTransactions.length === 0 ||
           rawTransactions.length > LIQUID_MAX_TXNS_PER_REQUEST
@@ -469,11 +474,6 @@ const actions: ActionTree<LiquidState, RootState> = {
         }
         if (isRequestBacklogFull(state)) {
           await reject(LiquidErrorCode.unknown, "Too many pending requests.");
-          return;
-        }
-        if (isRequestIdInUse(state, request.id)) {
-          // No reply: an error response would carry the id of the still-pending request.
-          console.error("Duplicate Liquid Auth request id ignored");
           return;
         }
         const preSignedBlobs: Uint8Array[] = [];
@@ -528,6 +528,10 @@ const actions: ActionTree<LiquidState, RootState> = {
         const rawItems = (Array.isArray(params?.items)
           ? params!.items
           : []) as unknown as Arc60StdSigData[];
+        if (isRequestIdInUse(state, request.id)) {
+          console.error("Duplicate Liquid Auth request id ignored");
+          return;
+        }
         if (
           rawItems.length === 0 ||
           rawItems.length > LIQUID_MAX_SIGN_DATA_ITEMS ||
@@ -540,13 +544,18 @@ const actions: ActionTree<LiquidState, RootState> = {
           );
           return;
         }
+        const items = await decodeArc60Items(rawItems);
+        // The decode above is async: re-check that no same-id request was queued meanwhile.
         if (isRequestIdInUse(state, request.id)) {
           console.error("Duplicate Liquid Auth request id ignored");
           return;
         }
-        const items = await decodeArc60Items(rawItems);
         // AW-2026-051: a session linked to one account may only ask it for signatures.
-        if (items.some((item) => item.signer !== session.address)) {
+        if (
+          items.length === 0 ||
+          items.length < rawItems.length ||
+          items.some((item) => item.signer !== session.address)
+        ) {
           await rejectRequest(
             LiquidReference.signDataResponse,
             LiquidErrorCode.unauthorizedSigner,
