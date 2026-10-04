@@ -10,9 +10,13 @@ import type { RootState } from "./index";
 import type { GenesisNetwork } from "./publicData";
 import { bytesToBase64, type Arc60StdSigData } from "../scripts/encoding/arc60";
 import {
-  MAX_DAPP_PENDING_REQUESTS as MAX_PENDING_REQUESTS,
-  MAX_DAPP_TXNS_PER_REQUEST as MAX_TXNS_PER_REQUEST,
-  findUnauthorizedSenders,
+  MAX_DAPP_SIGN_DATA_ITEMS,
+  MAX_DAPP_TXNS_PER_REQUEST,
+  admitEnvelope,
+  admitSignData,
+  admitTransactions,
+  REQUEST_ERROR,
+  type Admission,
 } from "../scripts/liquid/guards";
 import {
   decodeArc60Items,
@@ -300,39 +304,44 @@ const actions: ActionTree<WcState, RootState> = {
     });
 
     web3wallet.on("session_request", async (sessionRequest) => {
-      // Tell the user and the dApp a request was refused (default 4100 = unauthorized
-      // signer; 4200 = invalid input; 4000 = other failure, e.g. too many requests).
-      const backlogFull = () =>
-        rootState.wc.requests.length + rootState.wc.signDataRequests.length >=
-        MAX_PENDING_REQUESTS;
-      const rejectRequest = async (
-        toastText: string,
-        message: string,
-        code = 4100,
-      ) => {
-        dispatch("toast/openError", toastText, { root: true });
+      const topic = sessionRequest.topic;
+      const requestId = ensureNumericId(sessionRequest.id);
+      const sameId = (r: { id: number | string }) =>
+        String(r.id) === String(requestId);
+      const pending = () => ({
+        pendingTotal:
+          rootState.wc.requests.length + rootState.wc.signDataRequests.length,
+        pendingForSession:
+          rootState.wc.requests.filter((r) => r.topic === topic).length +
+          rootState.wc.signDataRequests.filter((r) => r.topic === topic).length,
+        idInUse:
+          rootState.wc.requests.some(sameId) ||
+          rootState.wc.signDataRequests.some(sameId),
+      });
+      // Tell the user and the dApp that a request was refused (see REQUEST_ERROR).
+      const refuse = async (admission: Extract<Admission, { ok: false }>) => {
+        console.error("WalletConnect request refused:", admission.reason);
+        if (admission.silent) return;
+        dispatch(
+          "toast/openError",
+          `A dApp request was rejected: ${admission.reason}`,
+          { root: true },
+        );
         try {
           await web3wallet.respondSessionRequest({
-            topic: sessionRequest.topic,
+            topic,
             response: {
-              id: ensureNumericId(sessionRequest.id),
+              id: requestId,
               jsonrpc: "2.0",
-              error: { code, message },
+              error: { code: admission.code, message: admission.reason },
             },
           });
         } catch (error) {
           console.error("Failed to reject the WalletConnect request", error);
         }
       };
-      if (backlogFull()) {
-        await rejectRequest(
-          "Too many pending WalletConnect requests. The request was rejected.",
-          "Too many pending requests.",
-          4000,
-        );
-        return;
-      }
-      commit("addSessionRequest", sessionRequest);
+      const invalid = (reason: string) =>
+        refuse({ ok: false, code: REQUEST_ERROR.invalid, reason });
 
       const request = sessionRequest?.params?.request;
 
@@ -345,150 +354,123 @@ const actions: ActionTree<WcState, RootState> = {
         const rawItems: Arc60StdSigData[] = Array.isArray(request.params?.[0])
           ? request.params[0]
           : [];
+        const envelope = admitEnvelope({
+          count: rawItems.length,
+          maxCount: MAX_DAPP_SIGN_DATA_ITEMS,
+          ...pending(),
+        });
+        if (!envelope.ok) {
+          await refuse(envelope);
+          return;
+        }
+        commit("addSessionRequest", sessionRequest);
 
         let items: StoredSignDataItem[];
         try {
           items = await decodeArc60Items(rawItems);
         } catch (error) {
           console.error("Undecodable WalletConnect sign data items", error);
-          await rejectRequest(
-            "A dApp sent data the wallet could not read. The request was rejected.",
-            "Invalid sign data request.",
-            4200,
-          );
+          await invalid("Invalid sign data request.");
           return;
         }
-
         // AW-2026-051: only accounts approved for this session may be asked to sign data.
-        const approvedForData = getSessionAccounts(web3wallet, sessionRequest.topic);
-        if (items.length === 0 || items.length < rawItems.length) {
-          await rejectRequest(
-            "A dApp sent invalid sign data items. The request was rejected.",
-            "Invalid sign data request.",
-            4200,
-          );
+        const admission = admitSignData({
+          rawCount: rawItems.length,
+          signers: items.map((item) => item.signer),
+          approved: getSessionAccounts(web3wallet, topic),
+        });
+        if (!admission.ok) {
+          await refuse(admission);
           return;
         }
-        if (items.some((item) => !approvedForData.includes(item.signer))) {
-          await rejectRequest(
-            "A dApp asked to sign data that is invalid or for an account that is not approved for its session. The request was rejected.",
-            "The signer is not an account approved for this session.",
-          );
+        // The decode above is async: re-check the envelope (cap, duplicate id) right
+        // before queueing, with no await in between.
+        const recheck = admitEnvelope({
+          count: rawItems.length,
+          maxCount: MAX_DAPP_SIGN_DATA_ITEMS,
+          ...pending(),
+        });
+        if (!recheck.ok) {
+          await refuse(recheck);
           return;
         }
-
-        const signDataRequest: StoredSignDataRequest = {
-          id: ensureNumericId(sessionRequest.id),
-          method: request.method,
-          items,
-          topic: sessionRequest.topic,
-        };
-
-        // Concurrent requests all passed the cap check before the awaits above: re-check.
-        if (backlogFull()) {
-          await rejectRequest(
-            "Too many pending WalletConnect requests. The request was rejected.",
-            "Too many pending requests.",
-            4000,
-          );
-          return;
-        }
-        commit("addSignDataRequest", { request: signDataRequest });
+        commit("addSignDataRequest", {
+          request: {
+            id: requestId,
+            method: request.method,
+            items,
+            topic,
+          } satisfies StoredSignDataRequest,
+        });
         return;
       }
 
       if (request?.method !== "algo_signTxn") {
-        console.error("request.method not implemented", request?.method);
+        await invalid(`Method not supported: ${String(request?.method)}`);
         return;
       }
 
       const firstParam: unknown = Array.isArray(request.params)
         ? request.params[0]
         : undefined;
-
       const rawTransactions: AlgoSignTxnParam[] = Array.isArray(firstParam)
         ? firstParam
         : [];
-
-      if (
-        rawTransactions.length === 0 ||
-        rawTransactions.length > MAX_TXNS_PER_REQUEST
-      ) {
-        await rejectRequest(
-          "A dApp sent an invalid number of transactions. The request was rejected.",
-          "Invalid transaction count.",
-          4200,
-        );
+      const envelope = admitEnvelope({
+        count: rawTransactions.length,
+        maxCount: MAX_DAPP_TXNS_PER_REQUEST,
+        ...pending(),
+      });
+      if (!envelope.ok) {
+        await refuse(envelope);
         return;
       }
-      // Pre-signed blobs are only registered once the request is accepted.
+      commit("addSessionRequest", sessionRequest);
+
+      // Everything from here to addRequest is synchronous, so the checks above and the
+      // queueing are atomic. Pre-signed blobs are only registered once admitted.
       const preSignedBlobs: Uint8Array[] = [];
       let transactions: DecodedTransactionSummary[];
       try {
         transactions = decodeSignTxnTransactions(rawTransactions, (signed) => {
           preSignedBlobs.push(signed);
         });
+        // Validate every blob before registering any, so a bad one leaves nothing behind.
+        preSignedBlobs.forEach((signed) => algosdk.decodeSignedTransaction(signed));
       } catch (error) {
         console.error("Undecodable WalletConnect transactions", error);
-        await rejectRequest(
-          "A dApp sent a transaction the wallet could not read. The request was rejected.",
-          "Invalid transaction.",
-          4200,
-        );
+        await invalid("Invalid transaction.");
         return;
       }
 
       // AW-2026-051: only accounts the user approved for this session may be asked to sign.
-      const sessionAccounts = getSessionAccounts(web3wallet, sessionRequest.topic);
-      if (
-        findUnauthorizedSenders(
-          transactions.map((tx, i) => ({
-            sender: tx.txn?.sender?.toString(),
-            preSigned: tx.preSigned,
-            signers: (rawTransactions[i] as AlgoSignTxnParam | undefined)
-              ?.signers,
-          })),
-          sessionAccounts,
-          rootState.wallet.privateAccounts.map((a) => a.addr),
-        ).length > 0
-      ) {
-        await rejectRequest(
-          "A dApp asked to sign a transaction from an account that is not approved for its session. The request was rejected.",
-          "Transaction sender is not an account approved for this session.",
-        );
+      const admission = admitTransactions({
+        transactions: transactions.map((tx, i) => ({
+          sender: tx.txn?.sender?.toString(),
+          preSigned: tx.preSigned,
+          signers: rawTransactions[i]?.signers,
+        })),
+        approved: getSessionAccounts(web3wallet, topic),
+        own: rootState.wallet.privateAccounts.map((a) => a.addr),
+      });
+      if (!admission.ok) {
+        await refuse(admission);
         return;
       }
 
-      const totalFee = transactions.reduce((fee, tx) => fee + (tx.fee ?? 0), 0);
-
-      const requestToStore: StoredRequest = {
-        id: ensureNumericId(sessionRequest.id),
-        method: request.method,
-        transactions,
-        fee: totalFee,
-        ver: "2",
-        topic: sessionRequest.topic,
-      };
-
-      try {
-        // Validate every blob before registering any, so a bad one leaves nothing behind.
-        preSignedBlobs.forEach((signed) => algosdk.decodeSignedTransaction(signed));
-      } catch (error) {
-        console.error("Invalid pre-signed WalletConnect transaction", error);
-        await rejectRequest(
-          "A dApp sent an invalid pre-signed transaction. The request was rejected.",
-          "Invalid transaction.",
-          4200,
-        );
-        return;
-      }
-      // No await between the cap check at the top of this handler and addRequest, so the
-      // check and the queueing are atomic. Keep it that way (the sign-data path, which
-      // does await, re-checks). Blobs were validated above, so registering cannot throw.
       preSignedBlobs.forEach((signed) =>
         commit("signer/setSigned", signed, { root: true }),
       );
-      commit("addRequest", { request: requestToStore });
+      commit("addRequest", {
+        request: {
+          id: requestId,
+          method: request.method,
+          transactions,
+          fee: transactions.reduce((fee, tx) => fee + (tx.fee ?? 0), 0),
+          ver: "2",
+          topic,
+        } satisfies StoredRequest,
+      });
     });
 
     // "auth_request" / "call_request" / "subscription_created" /

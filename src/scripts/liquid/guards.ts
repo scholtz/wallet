@@ -24,9 +24,6 @@ export const LIQUID_MAX_PAYLOAD_CHARS = 350_000;
 export const MAX_DAPP_TXNS_PER_REQUEST = 16;
 /** Pending (unanswered) requests the wallet keeps per transport. */
 export const MAX_DAPP_PENDING_REQUESTS = 50;
-export const LIQUID_MAX_TXNS_PER_REQUEST = MAX_DAPP_TXNS_PER_REQUEST;
-export const LIQUID_MAX_SIGN_DATA_ITEMS = 16;
-export const LIQUID_MAX_PENDING_REQUESTS = MAX_DAPP_PENDING_REQUESTS;
 
 const MAX_METADATA_FIELD = 512;
 const MAX_METADATA_ICONS = 4;
@@ -198,4 +195,96 @@ export function findUnauthorizedSenders(
     if (!entry.sender || !approved.has(entry.sender)) rejected.push(index);
   });
   return rejected;
+}
+
+// ---------- Request admission (shared by WalletConnect and Liquid Auth) ----------
+
+/** JSON-RPC style error codes used when refusing a dApp request. */
+export const REQUEST_ERROR = {
+  /** Resource/limit problem (too many requests). */
+  limit: 4000,
+  /** The signer/sender is not an account approved for the session. */
+  unauthorized: 4100,
+  /** Malformed request. */
+  invalid: 4200,
+} as const;
+
+export const MAX_DAPP_SIGN_DATA_ITEMS = 16;
+/** Pending requests one session may hold, so a single dApp cannot lock out the others. */
+export const MAX_DAPP_PENDING_PER_SESSION = 25;
+
+export type Admission =
+  | { ok: true }
+  | {
+      ok: false;
+      code: number;
+      reason: string;
+      /** Do not answer the peer (an answer would reuse the id of a still-pending request). */
+      silent?: boolean;
+    };
+
+const ADMITTED: Admission = { ok: true };
+
+export interface EnvelopeInput {
+  /** Transactions / sign-data items in the request. */
+  count: number;
+  maxCount: number;
+  /** Pending requests across the whole transport. */
+  pendingTotal: number;
+  /** Pending requests of this session. */
+  pendingForSession: number;
+  /** A request with the same id is already pending. */
+  idInUse: boolean;
+}
+
+/** Cheap checks on the shape of a request, before anything is decoded. */
+export function admitEnvelope(input: EnvelopeInput): Admission {
+  if (input.idInUse) {
+    return { ok: false, code: REQUEST_ERROR.invalid, reason: "Duplicate request id.", silent: true };
+  }
+  if (input.count === 0 || input.count > input.maxCount) {
+    return { ok: false, code: REQUEST_ERROR.invalid, reason: "Invalid number of items." };
+  }
+  if (
+    input.pendingTotal >= MAX_DAPP_PENDING_REQUESTS ||
+    input.pendingForSession >= MAX_DAPP_PENDING_PER_SESSION
+  ) {
+    return { ok: false, code: REQUEST_ERROR.limit, reason: "Too many pending requests." };
+  }
+  return ADMITTED;
+}
+
+/** Decoded transactions: every one the wallet would sign must belong to an approved account. */
+export function admitTransactions(input: {
+  transactions: SignRequestEntry[];
+  approved: string[];
+  own: string[];
+}): Admission {
+  if (findUnauthorizedSenders(input.transactions, input.approved, input.own).length > 0) {
+    return {
+      ok: false,
+      code: REQUEST_ERROR.unauthorized,
+      reason: "Transaction sender is not an account approved for this session.",
+    };
+  }
+  return ADMITTED;
+}
+
+/** Decoded sign-data items: none may be dropped by decoding, all must be for approved accounts. */
+export function admitSignData(input: {
+  rawCount: number;
+  signers: string[];
+  approved: string[];
+}): Admission {
+  if (input.signers.length === 0 || input.signers.length < input.rawCount) {
+    return { ok: false, code: REQUEST_ERROR.invalid, reason: "Invalid sign data request." };
+  }
+  if (input.signers.some((signer) => !input.approved.includes(signer))) {
+    return {
+      ok: false,
+      code: REQUEST_ERROR.unauthorized,
+      reason: "The signer is not an account approved for this session.",
+    };
+  }
+  return ADMITTED;
 }

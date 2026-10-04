@@ -166,3 +166,91 @@ test.describe("sanitizePeerMetadata", () => {
     expect(peer.name).toBe("");
   });
 });
+
+import {
+  REQUEST_ERROR,
+  admitEnvelope,
+  admitSignData,
+  admitTransactions,
+  MAX_DAPP_PENDING_PER_SESSION,
+  MAX_DAPP_PENDING_REQUESTS,
+  MAX_DAPP_TXNS_PER_REQUEST,
+} from "../../src/scripts/liquid/guards";
+
+const envelope = (over: Partial<Parameters<typeof admitEnvelope>[0]> = {}) =>
+  admitEnvelope({
+    count: 1,
+    maxCount: MAX_DAPP_TXNS_PER_REQUEST,
+    pendingTotal: 0,
+    pendingForSession: 0,
+    idInUse: false,
+    ...over,
+  });
+
+test.describe("admitEnvelope", () => {
+  test("admits a normal request", () => {
+    expect(envelope().ok).toBe(true);
+  });
+
+  test("a duplicate id is dropped silently (an answer would reuse the pending id)", () => {
+    const result = envelope({ idInUse: true });
+    expect(result).toMatchObject({ ok: false, silent: true });
+  });
+
+  test("rejects empty and oversized requests as invalid input", () => {
+    for (const count of [0, MAX_DAPP_TXNS_PER_REQUEST + 1]) {
+      expect(envelope({ count })).toMatchObject({ ok: false, code: REQUEST_ERROR.invalid });
+    }
+  });
+
+  test("rejects when the transport or one session is full, with the limit code", () => {
+    expect(envelope({ pendingTotal: MAX_DAPP_PENDING_REQUESTS })).toMatchObject({
+      ok: false,
+      code: REQUEST_ERROR.limit,
+    });
+    expect(envelope({ pendingForSession: MAX_DAPP_PENDING_PER_SESSION })).toMatchObject({
+      ok: false,
+      code: REQUEST_ERROR.limit,
+    });
+    expect(envelope({ pendingTotal: MAX_DAPP_PENDING_REQUESTS - 1 }).ok).toBe(true);
+  });
+});
+
+test.describe("admitTransactions", () => {
+  test("rejects an unapproved sender with the unauthorized code", () => {
+    expect(
+      admitTransactions({ transactions: [{ sender: "B" }], approved: ["A"], own: ["A", "B"] }),
+    ).toMatchObject({ ok: false, code: REQUEST_ERROR.unauthorized });
+  });
+
+  test("admits approved senders and foreign co-signer transactions", () => {
+    expect(
+      admitTransactions({
+        transactions: [{ sender: "A" }, { sender: "X", signers: [] }, { sender: "Y", preSigned: true }],
+        approved: ["A"],
+        own: ["A", "B"],
+      }).ok,
+    ).toBe(true);
+  });
+});
+
+test.describe("admitSignData", () => {
+  test("rejects when decoding dropped items or produced none", () => {
+    expect(admitSignData({ rawCount: 2, signers: ["A"], approved: ["A"] })).toMatchObject({
+      ok: false,
+      code: REQUEST_ERROR.invalid,
+    });
+    expect(admitSignData({ rawCount: 1, signers: [], approved: ["A"] })).toMatchObject({
+      ok: false,
+      code: REQUEST_ERROR.invalid,
+    });
+  });
+
+  test("rejects a signer that is not approved, admits approved ones", () => {
+    expect(admitSignData({ rawCount: 1, signers: ["B"], approved: ["A"] })).toMatchObject({
+      ok: false,
+      code: REQUEST_ERROR.unauthorized,
+    });
+    expect(admitSignData({ rawCount: 1, signers: ["A"], approved: ["A"] }).ok).toBe(true);
+  });
+});

@@ -376,7 +376,9 @@ const optinEscrowToAsset = async () => {
         assets: [state.optin],
       }
     );
-    const params = await algod.getTransactionParams().do();
+    const params: algosdk.SuggestedParams = await store.dispatch(
+      "algod/getCheckedTransactionParams"
+    );
     const receiver = state.appInfo.appAddress;
     const payToEscrowMBR = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       amount: 100_000,
@@ -416,7 +418,9 @@ const depositToFeePool = async () => {
       algod
     );
 
-    const params = await algod.getTransactionParams().do();
+    const params: algosdk.SuggestedParams = await store.dispatch(
+      "algod/getCheckedTransactionParams"
+    );
     const feeDecimals = state.feeAssetData.decimals ?? 0;
     const depositTx = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
       {
