@@ -503,6 +503,7 @@
 
 <script lang="ts" setup>
 import { Buffer } from "buffer";
+import { payWcPath } from "@/scripts/wcNavigation";
 import algosdk from "algosdk";
 import {
   computed,
@@ -757,7 +758,13 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
       const encoded = algosdk.encodeUnsignedTransaction(txn);
       const urldataB64 = _arrayBufferToBase64(encoded);
       const urldataB64url = base642base64url(urldataB64);
-      await router.push(`/payWC/${props.accountAddress}/${urldataB64url}`);
+      await router.push(
+        payWcPath(
+          props.accountAddress,
+          data.txn.sender.toString(),
+          urldataB64url,
+        ),
+      );
     } else {
       await store.dispatch("signer/signTransaction", {
         from: data.txn.sender.toString(),

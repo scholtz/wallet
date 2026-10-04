@@ -704,6 +704,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, getCurrentInstance } from "vue";
+import { connectReturnPath } from "@/scripts/wcNavigation";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
@@ -1789,7 +1790,10 @@ const combineSignatures = async (e?: Event) => {
 
 const retToWalletConnect = () => {
   returnToAction("");
-  router.push({ name: "Connect" });
+  const accountParam = toSingleParam(
+    route.params.account as string | string[] | undefined
+  );
+  router.push(connectReturnPath(accountParam));
 };
 
 const retToSignAll = () => {
