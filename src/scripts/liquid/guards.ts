@@ -209,6 +209,8 @@ export const REQUEST_ERROR = {
   unauthorized: LiquidErrorCode.unauthorizedSigner,
   /** Malformed request. */
   invalid: LiquidErrorCode.invalidInput,
+  /** The request's method is not one the wallet implements. */
+  methodNotSupported: LiquidErrorCode.methodNotSupported,
 } as const;
 
 export const MAX_DAPP_SIGN_DATA_ITEMS = 16;

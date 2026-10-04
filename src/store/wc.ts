@@ -403,7 +403,11 @@ const actions: ActionTree<WcState, RootState> = {
 
       if (request?.method !== "algo_signTxn") {
         // Never echo the dApp-chosen method name into a toast or reply.
-        await invalid("Method not supported.");
+        await refuse({
+          ok: false,
+          code: REQUEST_ERROR.methodNotSupported,
+          reason: "Method not supported.",
+        });
         return;
       }
 

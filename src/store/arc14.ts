@@ -60,12 +60,6 @@ const getConfig = (rootState: RootState): Arc14Config => {
   return config as Arc14Config;
 };
 
-const getAlgodClient = (rootState: RootState): algosdk.Algodv2 => {
-  const config = getConfig(rootState);
-  const url = new URL(config.algod);
-  return new algosdk.Algodv2(config.algodToken, config.algod, url.port);
-};
-
 const mutations: MutationTree<Arc14State> = {
   storeArc14Auth(state, { chain, addr, realm, token }: Arc14AuthPayload) {
     const chainMap = ensureChainEntry(state, chain);

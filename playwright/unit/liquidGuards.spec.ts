@@ -2,11 +2,20 @@
 // Run via `pnpm run test:unit`.
 import { test, expect } from "@playwright/test";
 import {
+  MAX_DAPP_PENDING_PER_SESSION,
+  MAX_DAPP_PENDING_REQUESTS,
+  MAX_DAPP_TXNS_PER_REQUEST,
+  REQUEST_ERROR,
+  admitEnvelope,
+  admitSignData,
+  admitTransactions,
   assertLiquidChallenge,
   assertLiquidServiceOrigin,
+  countPending,
   findUnauthorizedSenders,
   sanitizePeerMetadata,
 } from "../../src/scripts/liquid/guards";
+import { LiquidErrorCode } from "../../src/scripts/liquid/protocol";
 
 const WALLET = "wallet.biatec.io";
 
@@ -167,16 +176,6 @@ test.describe("sanitizePeerMetadata", () => {
   });
 });
 
-import {
-  REQUEST_ERROR,
-  admitEnvelope,
-  admitSignData,
-  admitTransactions,
-  MAX_DAPP_PENDING_PER_SESSION,
-  MAX_DAPP_PENDING_REQUESTS,
-  MAX_DAPP_TXNS_PER_REQUEST,
-} from "../../src/scripts/liquid/guards";
-
 const envelope = (over: Partial<Parameters<typeof admitEnvelope>[0]> = {}) =>
   admitEnvelope({
     count: 1,
@@ -255,9 +254,6 @@ test.describe("admitSignData", () => {
   });
 });
 
-import { countPending } from "../../src/scripts/liquid/guards";
-import { LiquidErrorCode } from "../../src/scripts/liquid/protocol";
-
 test.describe("countPending / REQUEST_ERROR", () => {
   test("counts totals, per-session and duplicate ids across both queues", () => {
     const counts = countPending(
@@ -278,5 +274,6 @@ test.describe("countPending / REQUEST_ERROR", () => {
     expect(REQUEST_ERROR.limit).toBe(LiquidErrorCode.unknown);
     expect(REQUEST_ERROR.unauthorized).toBe(LiquidErrorCode.unauthorizedSigner);
     expect(REQUEST_ERROR.invalid).toBe(LiquidErrorCode.invalidInput);
+    expect(REQUEST_ERROR.methodNotSupported).toBe(LiquidErrorCode.methodNotSupported);
   });
 });
