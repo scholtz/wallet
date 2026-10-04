@@ -40,7 +40,12 @@ const IPV4 = /^\d{1,3}(\.\d{1,3}){3}$/;
 const FORBIDDEN_SIGNING_PREFIXES = ["Program", "ProgData", "appID", "MultisigAddr"];
 
 function isLocalHost(hostname: string): boolean {
-  return hostname === "localhost" || hostname.endsWith(".localhost");
+  return (
+    hostname === "localhost" ||
+    hostname.endsWith(".localhost") ||
+    hostname === "127.0.0.1" ||
+    hostname === "[::1]"
+  );
 }
 
 /**
@@ -133,8 +138,11 @@ export interface PeerMetadataLike {
 
 /** Length-cap peer-supplied metadata and keep only https icon URLs. */
 export function sanitizePeerMetadata<T extends PeerMetadataLike>(peer: T): T {
+  // unknown: untrusted data from a remote peer; every field is type-checked before use,
+  // whatever the declared PeerMetadataLike type says.
   const cap = (value: unknown) =>
     typeof value === "string" ? value.slice(0, MAX_METADATA_FIELD) : "";
+  // unknown: same reason - the peer may send anything for `icons`.
   const icons: unknown[] = Array.isArray(peer.icons) ? peer.icons : [];
   return {
     ...peer,
@@ -145,10 +153,11 @@ export function sanitizePeerMetadata<T extends PeerMetadataLike>(peer: T): T {
     icons: icons
       .filter(
         (icon): icon is string =>
-          typeof icon === "string" && /^https:\/\//i.test(icon),
+          typeof icon === "string" &&
+          icon.length <= MAX_METADATA_FIELD &&
+          icon.toLowerCase().startsWith("https://"),
       )
-      .slice(0, MAX_METADATA_ICONS)
-      .map(cap),
+      .slice(0, MAX_METADATA_ICONS),
   };
 }
 

@@ -303,6 +303,26 @@ const actions: ActionTree<WcState, RootState> = {
 
         const items: StoredSignDataItem[] = await decodeArc60Items(rawItems);
 
+        // AW-2026-051: only accounts approved for this session may be asked to sign data.
+        const approvedForData = (
+          web3wallet.getActiveSessions()[sessionRequest.topic]?.namespaces
+            ?.algorand?.accounts ?? []
+        ).map((entry: string) => entry.split(":").pop() ?? "");
+        if (items.some((item) => !approvedForData.includes(item.signer))) {
+          await web3wallet.respondSessionRequest({
+            topic: sessionRequest.topic,
+            response: {
+              id: ensureNumericId(sessionRequest.id),
+              jsonrpc: "2.0",
+              error: {
+                code: 4100,
+                message: "The signer is not an account approved for this session.",
+              },
+            },
+          });
+          return;
+        }
+
         const signDataRequest: StoredSignDataRequest = {
           id: ensureNumericId(sessionRequest.id),
           method: request.method,

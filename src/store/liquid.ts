@@ -472,7 +472,8 @@ const actions: ActionTree<LiquidState, RootState> = {
           return;
         }
         if (isRequestIdInUse(state, request.id)) {
-          await reject(LiquidErrorCode.invalidInput, "Duplicate request id.");
+          // No reply: an error response would carry the id of the still-pending request.
+          console.error("Duplicate Liquid Auth request id ignored");
           return;
         }
         const preSignedBlobs: Uint8Array[] = [];
@@ -530,8 +531,7 @@ const actions: ActionTree<LiquidState, RootState> = {
         if (
           rawItems.length === 0 ||
           rawItems.length > LIQUID_MAX_SIGN_DATA_ITEMS ||
-          isRequestBacklogFull(state) ||
-          isRequestIdInUse(state, request.id)
+          isRequestBacklogFull(state)
         ) {
           await rejectRequest(
             LiquidReference.signDataResponse,
@@ -540,7 +540,20 @@ const actions: ActionTree<LiquidState, RootState> = {
           );
           return;
         }
+        if (isRequestIdInUse(state, request.id)) {
+          console.error("Duplicate Liquid Auth request id ignored");
+          return;
+        }
         const items = await decodeArc60Items(rawItems);
+        // AW-2026-051: a session linked to one account may only ask it for signatures.
+        if (items.some((item) => item.signer !== session.address)) {
+          await rejectRequest(
+            LiquidReference.signDataResponse,
+            LiquidErrorCode.unauthorizedSigner,
+            "The signer is not the account linked to this session.",
+          );
+          return;
+        }
         const stored: StoredSignDataRequest = {
           id: request.id,
           method: request.reference,

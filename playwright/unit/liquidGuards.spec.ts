@@ -36,6 +36,7 @@ test.describe("assertLiquidServiceOrigin", () => {
     expect(() => assertLiquidServiceOrigin("http://liquid.biatec.io", WALLET)).toThrow();
     expect(() => assertLiquidServiceOrigin("https://liquid.biatec.io:8443", WALLET)).toThrow();
     expect(() => assertLiquidServiceOrigin("https://localhost:3000", "localhost")).not.toThrow();
+    expect(() => assertLiquidServiceOrigin("https://localhost:3000", "127.0.0.1")).not.toThrow();
     expect(() => assertLiquidServiceOrigin("https://user:pw@liquid.biatec.io", WALLET)).toThrow();
     expect(() => assertLiquidServiceOrigin("https://10.0.0.5", WALLET)).toThrow();
   });
@@ -141,7 +142,18 @@ test.describe("sanitizePeerMetadata", () => {
     expect(sanitizePeerMetadata({ ...base, url: "http://dapp.example" }).url).toBe("");
   });
 
+  test("drops over-long icon urls instead of truncating them", () => {
+    const peer = sanitizePeerMetadata({
+      name: "n",
+      description: "d",
+      url: "https://dapp.example",
+      icons: ["https://x/" + "a".repeat(600), "https://ok/x.png"],
+    });
+    expect(peer.icons).toEqual(["https://ok/x.png"]);
+  });
+
   test("tolerates malformed metadata", () => {
+    // unknown cast: deliberately feeds the wrong types a hostile peer could send.
     const peer = sanitizePeerMetadata({
       name: 5,
       description: null,

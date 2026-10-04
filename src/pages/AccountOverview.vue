@@ -537,7 +537,7 @@ const getAuthTxAction = (payload: { account: string; realm: string }) =>
 const returnToAction = (payload: string) =>
   store.dispatch("signer/returnTo", payload);
 const getTransactionParamsAction = () =>
-  store.dispatch("algod/getCheckedTransactionParams") as Promise<SuggestedParams>;
+  store.dispatch("algod/getTransactionParams") as Promise<SuggestedParams>;
 const setEnvAction = (payload: { env: string }) =>
   store.dispatch("config/setEnv", payload);
 

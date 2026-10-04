@@ -71,3 +71,11 @@ test.describe("isAssetNotFoundError", () => {
     expect(isAssetNotFoundError(undefined)).toBe(false);
   });
 });
+
+test("creator must be confirmed by the indexer (AW-2026-054)", async () => {
+  const { confirmAssetCreator } = await import("../../src/scripts/assets/optOut");
+  expect(confirmAssetCreator("A", "A")).toBe("A");
+  expect(confirmAssetCreator(undefined, undefined)).toBeUndefined();
+  expect(() => confirmAssetCreator("A", "B")).toThrow(/disagree/);
+  expect(() => confirmAssetCreator("A", undefined)).toThrow(/could not be confirmed/);
+});
