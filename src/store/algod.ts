@@ -136,7 +136,8 @@ const base64UrlToBase64 = (input: string): string => {
 // a malicious/compromised node must not be able to have the wallet sign a
 // transaction that is valid on a different network than the one shown in
 // the UI. Mirrors the guard Sign.vue applies to externally supplied txns.
-const MAX_NODE_PER_BYTE_FEE = 1_000n;
+// Real networks suggest 0 per byte; 10 x ~250 bytes is still only 0.0025 ALGO.
+const MAX_NODE_PER_BYTE_FEE = 10n;
 const MAX_NODE_MIN_FEE = 10_000n;
 const assertParamsMatchNetwork = (
   rootState: RootState,

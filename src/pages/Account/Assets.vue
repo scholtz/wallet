@@ -514,6 +514,12 @@ const confirmOptOut = async () => {
       );
       return;
     }
+    if (result.status === "failed") {
+      // Force a fresh lookup (and a fresh look at the address) before any retry.
+      optOutDialogVisible.value = false;
+      optOutCloseTo.value = undefined;
+      return;
+    }
     if (result.status !== "sent") return;
     const confirmed = await store.dispatch("algod/waitForConfirmation", {
       txId: result.txId,

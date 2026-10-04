@@ -111,6 +111,12 @@ test.describe("findUnauthorizedSenders", () => {
     ).toEqual([]);
   });
 
+  test("a pre-signed envelope does not exempt an unapproved account of this wallet", () => {
+    expect(
+      findUnauthorizedSenders([{ sender: "B", preSigned: true }], ["A"], ["A", "B"]),
+    ).toEqual([0]);
+  });
+
   test("a missing sender is unauthorized", () => {
     expect(findUnauthorizedSenders([{}], ["A"])).toEqual([0]);
   });

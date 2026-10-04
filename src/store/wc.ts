@@ -351,6 +351,11 @@ const actions: ActionTree<WcState, RootState> = {
           rootState.wallet.privateAccounts.map((a) => a.addr),
         ).length > 0
       ) {
+        dispatch(
+          "toast/openError",
+          "A dApp asked to sign a transaction from an account that is not approved for its session. The request was rejected.",
+          { root: true },
+        );
         await web3wallet.respondSessionRequest({
           topic: sessionRequest.topic,
           response: {

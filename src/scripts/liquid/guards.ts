@@ -174,17 +174,12 @@ export function findUnauthorizedSenders(
   const own = new Set(walletAddresses);
   const rejected: number[] = [];
   entries.forEach((entry, index) => {
-    if (entry.preSigned) return;
-    // `signers: []` is not enforced by the signing path, so it only exempts transactions
-    // of accounts this wallet cannot sign for anyway; an unapproved wallet account is
-    // always rejected.
-    if (
-      Array.isArray(entry.signers) &&
-      entry.signers.length === 0 &&
-      !(entry.sender && own.has(entry.sender))
-    ) {
-      return;
-    }
+    // `signers: []` is not enforced by the signing path, and a pre-signed envelope is just
+    // data the dApp sent, so both only exempt transactions of accounts this wallet cannot
+    // sign for anyway; an unapproved wallet account is always rejected.
+    const exempt =
+      entry.preSigned || (Array.isArray(entry.signers) && entry.signers.length === 0);
+    if (exempt && !(entry.sender && own.has(entry.sender))) return;
     if (!entry.sender || !approved.has(entry.sender)) rejected.push(index);
   });
   return rejected;
