@@ -155,6 +155,8 @@
             size="small"
             severity="danger"
             :title="$t('acc_overview_assets.opt_out')"
+            :loading="optOutLookupRunning"
+            :disabled="optOutLookupRunning"
             @click="askOptOut(slotProps.data)"
           >
             <i class="pi pi-times-circle"></i>

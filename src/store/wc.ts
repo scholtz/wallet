@@ -323,9 +323,11 @@ const actions: ActionTree<WcState, RootState> = {
         ? firstParam
         : [];
 
+      // Pre-signed blobs are only registered once the request is accepted.
+      const preSignedBlobs: Uint8Array[] = [];
       const transactions: DecodedTransactionSummary[] =
         decodeSignTxnTransactions(rawTransactions, (signed) => {
-          dispatch("signer/setSigned", { signed }, { root: true });
+          preSignedBlobs.push(signed);
         });
 
       // AW-2026-051: only accounts the user approved for this session may be asked to sign.
@@ -342,6 +344,7 @@ const actions: ActionTree<WcState, RootState> = {
               ?.signers,
           })),
           sessionAccounts,
+          rootState.wallet.privateAccounts.map((a) => a.addr),
         ).length > 0
       ) {
         await web3wallet.respondSessionRequest({
@@ -357,6 +360,10 @@ const actions: ActionTree<WcState, RootState> = {
           },
         });
         return;
+      }
+
+      for (const signed of preSignedBlobs) {
+        await dispatch("signer/setSigned", { signed }, { root: true });
       }
 
       const totalFee = transactions.reduce((fee, tx) => fee + (tx.fee ?? 0), 0);

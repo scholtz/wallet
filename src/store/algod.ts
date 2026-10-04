@@ -418,6 +418,13 @@ const actions: ActionTree<AlgodState, RootState> = {
         "The node and the indexer disagree about the asset creator. Refusing to opt out.",
       );
     }
+    // A hand-configured node is the one source an attacker is most likely to control, so
+    // its answer alone is not enough when nothing independent could confirm it.
+    if (creator && !indexerCreator && rootState.config.env === "custom") {
+      throw new Error(
+        "The asset creator could not be confirmed by the indexer. Refusing to opt out on a custom node.",
+      );
+    }
     return creator;
   },
   async optOutAsset(

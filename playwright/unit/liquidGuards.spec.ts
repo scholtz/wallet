@@ -16,15 +16,15 @@ test.describe("assertLiquidServiceOrigin", () => {
     expect(() => assertLiquidServiceOrigin("https://stage.liquid.biatec.io", "x.example")).not.toThrow();
   });
 
-  test("accepts a host on the wallet's own registrable domain", () => {
-    expect(() => assertLiquidServiceOrigin("https://liquid.example.org", "wallet.example.org")).not.toThrow();
+  test("accepts a subdomain of the wallet's own host and explicitly configured hosts", () => {
+    expect(() => assertLiquidServiceOrigin("https://liquid.wallet.example.org", "wallet.example.org")).not.toThrow();
+    expect(() => assertLiquidServiceOrigin("https://liquid.example.org", "wallet.example.org", [" Liquid.Example.org "])).not.toThrow();
   });
 
-  test("a wallet on shared hosting cannot adopt sibling tenants as its service", () => {
+  test("sibling hosts are not trusted unless configured (shared hosting)", () => {
     expect(() => assertLiquidServiceOrigin("https://evil.github.io", "scholtz.github.io")).toThrow();
     expect(() => assertLiquidServiceOrigin("https://evil.vercel.app", "wallet.vercel.app")).toThrow();
-    expect(() => assertLiquidServiceOrigin("https://evil.co.uk", "wallet.example.co.uk")).toThrow();
-    expect(() => assertLiquidServiceOrigin("https://liquid.example.co.uk", "wallet.example.co.uk")).not.toThrow();
+    expect(() => assertLiquidServiceOrigin("https://liquid.example.org", "wallet.example.org")).toThrow();
   });
 
   test("rejects an arbitrary host (phishing link)", () => {
@@ -72,9 +72,13 @@ test.describe("assertLiquidChallenge", () => {
     expect(() => assertLiquidChallenge(nonce)).not.toThrow();
   });
 
+  test("rejects a 64-byte payload that could be an ARC-60 digest", () => {
+    expect(() => assertLiquidChallenge(new Uint8Array(64).fill(3))).toThrow();
+  });
+
   test("rejects too short and too long challenges", () => {
     expect(() => assertLiquidChallenge(new Uint8Array(4))).toThrow();
-    expect(() => assertLiquidChallenge(new Uint8Array(65).fill(9))).toThrow();
+    expect(() => assertLiquidChallenge(new Uint8Array(49).fill(9))).toThrow();
   });
 });
 
@@ -85,10 +89,20 @@ test.describe("findUnauthorizedSenders", () => {
     ).toEqual([1]);
   });
 
-  test("ignores group members the wallet must not sign", () => {
+  test("ignores group members of foreign accounts the wallet must not sign", () => {
     expect(
       findUnauthorizedSenders([{ sender: "A" }, { sender: "OTHER", signers: [] }], ["A"]),
     ).toEqual([]);
+  });
+
+  test("signers: [] does not exempt an unapproved account of this wallet", () => {
+    expect(
+      findUnauthorizedSenders(
+        [{ sender: "B", signers: [] }],
+        ["A"],
+        ["A", "B"],
+      ),
+    ).toEqual([0]);
   });
 
   test("ignores already-signed co-signer transactions", () => {

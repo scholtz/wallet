@@ -65,6 +65,16 @@ signature, requestId, device }`. The challenge is signed by `signer/signLiquidCh
   wallet switch (next to `wc/reset`) but leaves saved pairings in the wallet blob until the
   user disconnects them.
 
+## Which services the wallet will talk to
+
+A `liquid://` link names the service that receives the wallet's address, a passkey and an
+account-key signature, so the wallet only accepts `liquid.biatec.io`, `stage.liquid.biatec.io`,
+a subdomain of the wallet's own host, `localhost` services for a `localhost` wallet, and hosts
+listed in the build-time variable `VITE_LIQUID_SERVICE_HOSTS` (comma-separated; set it when
+you self-host the service). The challenge returned by the service must be a 16-48 byte nonce
+and must not start with an Algorand signing prefix: it is signed with the raw account key, and
+nothing else may ever be signed that way (AW-2026-049).
+
 ## Deploying the Liquid Auth service
 
 Passkeys can only be created for the domain of the page that creates them, so the service

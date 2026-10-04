@@ -10,9 +10,13 @@ export const LIQUID_TRUSTED_SERVICE_HOSTS = [
   "stage.liquid.biatec.io",
 ];
 
-/** Challenge sizes accepted for raw account-key signing (WebAuthn nonces are 16..64 bytes). */
+/**
+ * Challenge sizes accepted for raw account-key signing. WebAuthn nonces are 16..64 bytes, but
+ * the cap stops at 48: an ARC-60 digest (SHA256(data)||SHA256(authenticatorData)) is exactly
+ * 64 bytes, so a longer challenge could be a login signature for another site.
+ */
 export const LIQUID_CHALLENGE_MIN_BYTES = 16;
-export const LIQUID_CHALLENGE_MAX_BYTES = 64;
+export const LIQUID_CHALLENGE_MAX_BYTES = 48;
 
 /** Max characters of one base64url CBOR message from the data channel (~256 KiB decoded). */
 export const LIQUID_MAX_PAYLOAD_CHARS = 350_000;
@@ -33,59 +37,23 @@ const IPV4 = /^\d{1,3}(\.\d{1,3}){3}$/;
  * transaction cannot fit in 64 bytes, and rejecting those two bytes would only add
  * false positives for random nonces.
  */
-const FORBIDDEN_SIGNING_PREFIXES = ["Program", "ProgData", "appID"];
-
-/** Hosts where unrelated tenants share one registrable domain. */
-const SHARED_HOSTING_SUFFIXES = [
-  "github.io",
-  "vercel.app",
-  "pages.dev",
-  "netlify.app",
-  "ngrok.io",
-  "ngrok.app",
-  "ngrok-free.app",
-  "herokuapp.com",
-  "azurewebsites.net",
-  "web.app",
-  "firebaseapp.com",
-  "workers.dev",
-  "onrender.com",
-  "fly.dev",
-  "gitlab.io",
-  "surge.sh",
-];
-
-const SECOND_LEVEL_LABELS = ["co", "com", "org", "net", "gov", "ac", "edu"];
+const FORBIDDEN_SIGNING_PREFIXES = ["Program", "ProgData", "appID", "MultisigAddr"];
 
 function isLocalHost(hostname: string): boolean {
   return hostname === "localhost" || hostname.endsWith(".localhost");
 }
 
-function parentDomain(hostname: string): string {
-  const labels = hostname.split(".");
-  const last = labels[labels.length - 1];
-  const second = labels[labels.length - 2];
-  // co.uk-style public suffix: the registrable domain has three labels.
-  const take =
-    last.length === 2 && SECOND_LEVEL_LABELS.includes(second) ? 3 : 2;
-  return labels.slice(-take).join(".");
-}
-
-function isSharedHosting(hostname: string): boolean {
-  return SHARED_HOSTING_SUFFIXES.some(
-    (suffix) => hostname === suffix || hostname.endsWith(`.${suffix}`),
-  );
-}
-
 /**
  * The service named in a `liquid://` link receives the wallet's address, a passkey and an
  * account-key signature, so a link must not be able to point it anywhere. Allowed: the
- * trusted Biatec services, a host in the wallet's own registrable domain (self-hosted
- * deployments, see docs/LIQUID_AUTH.md), or localhost while the wallet itself runs on localhost.
+ * trusted Biatec services, a subdomain of the wallet's own host, hosts listed in
+ * VITE_LIQUID_SERVICE_HOSTS (self-hosted deployments, see docs/LIQUID_AUTH.md), or localhost
+ * while the wallet itself runs on localhost (any port; links are always https://).
  */
 export function assertLiquidServiceOrigin(
   origin: string,
   walletHostname: string,
+  extraTrustedHosts: string[] = [],
 ): void {
   let url: URL;
   try {
@@ -110,21 +78,19 @@ export function assertLiquidServiceOrigin(
     throw new Error("The Liquid Auth service must be a named host.");
   }
   if (LIQUID_TRUSTED_SERVICE_HOSTS.includes(host)) return;
-  if (!isLocalHost(walletHost) && !IPV4.test(walletHost) && walletHost.includes(".")) {
-    // The wallet's own host or one of its subdomains is always its own.
-    if (host === walletHost || host.endsWith(`.${walletHost}`)) return;
-    // A sibling on the same registrable domain (self-hosted deployments), unless that
-    // domain is shared with unrelated tenants (github.io, vercel.app, ...).
-    const parent = parentDomain(walletHost);
-    if (
-      !isSharedHosting(walletHost) &&
-      (host === parent || host.endsWith(`.${parent}`))
-    ) {
-      return;
-    }
+  // The wallet's own host or one of its subdomains is always its own.
+  if (
+    !isLocalHost(walletHost) &&
+    !IPV4.test(walletHost) &&
+    (host === walletHost || host.endsWith(`.${walletHost}`))
+  ) {
+    return;
   }
+  // Self-hosted deployments name their service explicitly (VITE_LIQUID_SERVICE_HOSTS);
+  // guessing a "sibling domain" would trust unrelated tenants of shared hosting.
+  if (extraTrustedHosts.some((h) => h.trim().toLowerCase() === host)) return;
   throw new Error(
-    `Refusing to link with the untrusted Liquid Auth service "${host}". Only liquid.biatec.io or a service on this wallet's own domain is accepted.`,
+    `Refusing to link with the untrusted Liquid Auth service "${host}". Only liquid.biatec.io, a subdomain of this wallet's host, or a host configured in VITE_LIQUID_SERVICE_HOSTS is accepted.`,
   );
 }
 
@@ -196,17 +162,28 @@ export interface SignRequestEntry {
 /**
  * Indexes of transactions the wallet is asked to sign whose sender is not one of the accounts
  * the dApp session was approved for (AW-2026-016/046/051). Group members the wallet is told not
- * to sign (`signers: []`) are ignored.
+ * to sign (`signers: []`) are ignored unless the sender is one of the wallet's own accounts.
  */
 export function findUnauthorizedSenders(
   entries: SignRequestEntry[],
   approvedAddresses: string[],
+  walletAddresses: string[] = [],
 ): number[] {
   const approved = new Set(approvedAddresses);
+  const own = new Set(walletAddresses);
   const rejected: number[] = [];
   entries.forEach((entry, index) => {
     if (entry.preSigned) return;
-    if (Array.isArray(entry.signers) && entry.signers.length === 0) return;
+    // `signers: []` is not enforced by the signing path, so it only exempts transactions
+    // of accounts this wallet cannot sign for anyway; an unapproved wallet account is
+    // always rejected.
+    if (
+      Array.isArray(entry.signers) &&
+      entry.signers.length === 0 &&
+      !(entry.sender && own.has(entry.sender))
+    ) {
+      return;
+    }
     if (!entry.sender || !approved.has(entry.sender)) rejected.push(index);
   });
   return rejected;

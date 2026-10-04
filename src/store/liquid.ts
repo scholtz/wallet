@@ -295,7 +295,11 @@ const actions: ActionTree<LiquidState, RootState> = {
     const { origin, requestId } = parseLiquidDeepLink(uri);
     // AW-2026-049: the service receives a passkey and an account-key signature, so a pasted
     // link must not be able to point the wallet at an arbitrary host.
-    assertLiquidServiceOrigin(origin, window.location.hostname);
+    assertLiquidServiceOrigin(
+      origin,
+      window.location.hostname,
+      (import.meta.env.VITE_LIQUID_SERVICE_HOSTS ?? "").split(","),
+    );
     const account = rootState.wallet.privateAccounts.find(
       (a) => a.addr === address,
     );
@@ -390,7 +394,7 @@ const actions: ActionTree<LiquidState, RootState> = {
 
   /** Decode one message from the data channel and turn it into a pending request. */
   async handleMessage(
-    { commit, dispatch, state },
+    { commit, dispatch, state, rootState },
     { requestId, payload }: { requestId: string; payload: string },
   ) {
     const session = state.sessions.find((s) => s.requestId === requestId);
@@ -471,10 +475,12 @@ const actions: ActionTree<LiquidState, RootState> = {
           await reject(LiquidErrorCode.invalidInput, "Duplicate request id.");
           return;
         }
+        const preSignedBlobs: Uint8Array[] = [];
         let transactions: ReturnType<typeof decodeSignTxnTransactions>;
         try {
+          // Pre-signed blobs are only registered once the request is accepted.
           transactions = decodeSignTxnTransactions(rawTransactions, (signed) => {
-            dispatch("signer/setSigned", { signed }, { root: true });
+            preSignedBlobs.push(signed);
           });
         } catch (error) {
           console.error("Undecodable Liquid Auth transactions", error);
@@ -489,6 +495,7 @@ const actions: ActionTree<LiquidState, RootState> = {
             signers: rawTransactions[i]?.signers,
           })),
           [session.address],
+          rootState.wallet.privateAccounts.map((a) => a.addr),
         );
         if (unauthorized.length > 0) {
           await reject(
@@ -496,6 +503,9 @@ const actions: ActionTree<LiquidState, RootState> = {
             "Transaction sender is not the account linked to this session.",
           );
           return;
+        }
+        for (const signed of preSignedBlobs) {
+          await dispatch("signer/setSigned", { signed }, { root: true });
         }
         const totalFee = transactions.reduce(
           (fee, tx) => fee + (tx.fee ?? 0),
