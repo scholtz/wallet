@@ -20,11 +20,13 @@ export const LIQUID_CHALLENGE_MAX_BYTES = 48;
 
 /** Max characters of one base64url CBOR message from the data channel (~256 KiB decoded). */
 export const LIQUID_MAX_PAYLOAD_CHARS = 350_000;
-/** Algorand's group size limit. */
-export const LIQUID_MAX_TXNS_PER_REQUEST = 16;
+/** Algorand's group size limit; applies to every dApp transport (WalletConnect, Liquid). */
+export const MAX_DAPP_TXNS_PER_REQUEST = 16;
+/** Pending (unanswered) requests the wallet keeps per transport. */
+export const MAX_DAPP_PENDING_REQUESTS = 50;
+export const LIQUID_MAX_TXNS_PER_REQUEST = MAX_DAPP_TXNS_PER_REQUEST;
 export const LIQUID_MAX_SIGN_DATA_ITEMS = 16;
-/** Pending (unanswered) requests the wallet keeps across all Liquid sessions. */
-export const LIQUID_MAX_PENDING_REQUESTS = 50;
+export const LIQUID_MAX_PENDING_REQUESTS = MAX_DAPP_PENDING_REQUESTS;
 
 const MAX_METADATA_FIELD = 512;
 const MAX_METADATA_ICONS = 4;

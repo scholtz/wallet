@@ -522,6 +522,8 @@ const actions: ActionTree<LiquidState, RootState> = {
         // pre-signed blobs; a bad blob takes the whole request back out.
         commit("addRequest", { request: stored });
         try {
+          // Validate every blob before registering any, so a bad one leaves nothing behind.
+          preSignedBlobs.forEach((signed) => algosdk.decodeSignedTransaction(signed));
           for (const signed of preSignedBlobs) {
             await dispatch("signer/setSigned", { signed }, { root: true });
           }

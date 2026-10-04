@@ -10,8 +10,8 @@ import type { RootState } from "./index";
 import type { GenesisNetwork } from "./publicData";
 import { bytesToBase64, type Arc60StdSigData } from "../scripts/encoding/arc60";
 import {
-  LIQUID_MAX_PENDING_REQUESTS as MAX_PENDING_REQUESTS,
-  LIQUID_MAX_TXNS_PER_REQUEST as MAX_TXNS_PER_REQUEST,
+  MAX_DAPP_PENDING_REQUESTS as MAX_PENDING_REQUESTS,
+  MAX_DAPP_TXNS_PER_REQUEST as MAX_TXNS_PER_REQUEST,
   findUnauthorizedSenders,
 } from "../scripts/liquid/guards";
 import {
@@ -267,7 +267,6 @@ const getSessionAccounts = (
     (entry: string) => entry.split(":").pop() ?? "",
   );
 
-
 const actions: ActionTree<WcState, RootState> = {
   async init({ commit, dispatch, rootState }) {
     const { walletConnectProjectId, walletConnectMetadata } = rootState.config;
@@ -347,15 +346,30 @@ const actions: ActionTree<WcState, RootState> = {
           ? request.params[0]
           : [];
 
-        const items: StoredSignDataItem[] = await decodeArc60Items(rawItems);
+        let items: StoredSignDataItem[];
+        try {
+          items = await decodeArc60Items(rawItems);
+        } catch (error) {
+          console.error("Undecodable WalletConnect sign data items", error);
+          await rejectRequest(
+            "A dApp sent data the wallet could not read. The request was rejected.",
+            "Invalid sign data request.",
+            4200,
+          );
+          return;
+        }
 
         // AW-2026-051: only accounts approved for this session may be asked to sign data.
         const approvedForData = getSessionAccounts(web3wallet, sessionRequest.topic);
-        if (
-          items.length === 0 ||
-          items.length < rawItems.length ||
-          items.some((item) => !approvedForData.includes(item.signer))
-        ) {
+        if (items.length === 0 || items.length < rawItems.length) {
+          await rejectRequest(
+            "A dApp sent invalid sign data items. The request was rejected.",
+            "Invalid sign data request.",
+            4200,
+          );
+          return;
+        }
+        if (items.some((item) => !approvedForData.includes(item.signer))) {
           await rejectRequest(
             "A dApp asked to sign data that is invalid or for an account that is not approved for its session. The request was rejected.",
             "The signer is not an account approved for this session.",
@@ -370,6 +384,18 @@ const actions: ActionTree<WcState, RootState> = {
           topic: sessionRequest.topic,
         };
 
+        // Concurrent requests all passed the cap check before the awaits above: re-check.
+        if (
+          rootState.wc.requests.length + rootState.wc.signDataRequests.length >=
+          MAX_PENDING_REQUESTS
+        ) {
+          await rejectRequest(
+            "Too many pending WalletConnect requests. The request was rejected.",
+            "Too many pending requests.",
+            4000,
+          );
+          return;
+        }
         commit("addSignDataRequest", { request: signDataRequest });
         return;
       }
@@ -447,8 +473,32 @@ const actions: ActionTree<WcState, RootState> = {
         topic: sessionRequest.topic,
       };
 
-      for (const signed of preSignedBlobs) {
-        await dispatch("signer/setSigned", { signed }, { root: true });
+      try {
+        // Validate every blob before registering any, so a bad one leaves nothing behind.
+        preSignedBlobs.forEach((signed) => algosdk.decodeSignedTransaction(signed));
+        for (const signed of preSignedBlobs) {
+          await dispatch("signer/setSigned", { signed }, { root: true });
+        }
+      } catch (error) {
+        console.error("Invalid pre-signed WalletConnect transaction", error);
+        await rejectRequest(
+          "A dApp sent an invalid pre-signed transaction. The request was rejected.",
+          "Invalid transaction.",
+          4200,
+        );
+        return;
+      }
+      // Concurrent requests all passed the cap check before the awaits above: re-check.
+      if (
+        rootState.wc.requests.length + rootState.wc.signDataRequests.length >=
+        MAX_PENDING_REQUESTS
+      ) {
+        await rejectRequest(
+          "Too many pending WalletConnect requests. The request was rejected.",
+          "Too many pending requests.",
+          4000,
+        );
+        return;
       }
       commit("addRequest", { request: requestToStore });
     });

@@ -141,8 +141,9 @@ test("opt-out shows where the remaining balance goes and sends it to the confirm
     indexerCreator: creator,
   });
   await setupFreshWallet(page);
-  const addr = page.url().match(/\/account\/([A-Z2-7]{58})/)?.[1] ?? "";
-  await openAssets(page, addr);
+  const addr = page.url().match(/\/account\/([A-Z2-7]{58})/)?.[1];
+  expect(addr).toBeTruthy();
+  await openAssets(page, addr as string);
 
   const optOut = page.locator('button[title="Opt out of asset"]').first();
   await expect(optOut).toBeVisible({ timeout: 30000 });
@@ -174,8 +175,9 @@ test("opt-out is refused when the node and the indexer disagree about the creato
     indexerCreator: algosdk.generateAccount().addr.toString(),
   });
   await setupFreshWallet(page);
-  const addr = page.url().match(/\/account\/([A-Z2-7]{58})/)?.[1] ?? "";
-  await openAssets(page, addr);
+  const addr = page.url().match(/\/account\/([A-Z2-7]{58})/)?.[1];
+  expect(addr).toBeTruthy();
+  await openAssets(page, addr as string);
 
   const optOut = page.locator('button[title="Opt out of asset"]').first();
   await expect(optOut).toBeVisible({ timeout: 30000 });
