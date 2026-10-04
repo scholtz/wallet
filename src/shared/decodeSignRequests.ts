@@ -39,6 +39,8 @@ export interface DecodedTransactionSummary {
   closeTo?: string;
   txn: DecodedAlgorandTransaction;
   txnB64: string;
+  /** The incoming transaction was already signature-wrapped (a co-signer's). */
+  preSigned?: boolean;
 }
 
 /** One decoded item from an ARC-60 `algo_signData` request. */
@@ -102,9 +104,11 @@ export function decodeSignTxnTransactions(
     const txnBuffer = decodeBase64Flexible(txnB64);
     const decodedObj = algosdk.decodeObj(txnBuffer) as RawDecodedTxnEnvelope;
     let decodedTx = decodedObj;
+    let preSigned = false;
     if (!decodedTx.type && decodedTx.txn?.type) {
-      if (decodedTx.sig && onPreSigned) {
-        onPreSigned(new Uint8Array(txnBuffer));
+      if (decodedTx.sig) {
+        preSigned = true;
+        onPreSigned?.(new Uint8Array(txnBuffer));
       }
       decodedTx = decodedTx.txn;
     }
@@ -135,8 +139,8 @@ export function decodeSignTxnTransactions(
     }
 
     let from: string | undefined;
-    if (decoded.from?.publicKey) {
-      from = algosdk.encodeAddress(decoded.from.publicKey);
+    if (decoded.sender) {
+      from = decoded.sender.toString();
     }
 
     let rekeyTo: string | undefined;
@@ -164,6 +168,7 @@ export function decodeSignTxnTransactions(
       closeTo,
       txn: decoded,
       txnB64,
+      preSigned,
     };
   });
 }

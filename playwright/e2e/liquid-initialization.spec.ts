@@ -12,7 +12,7 @@ type WalletElement = HTMLElement & {
   };
 };
 
-const origin = "https://liquid.example";
+const origin = "https://liquid.localhost";
 const requestIds = ["saved-pairing-1", "saved-pairing-2"];
 
 for (const expired of [false, true]) {
@@ -71,7 +71,7 @@ for (const expired of [false, true]) {
       const messages: string[] = [];
       await manager.open({
         requestId: "rejoining-dapp",
-        origin: "https://liquid.example",
+        origin: "https://liquid.localhost",
         iceServers: [],
         onStatus: (_, status) => statuses.push(status),
         onMessage: (_, payload) => messages.push(payload),

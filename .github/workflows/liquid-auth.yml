@@ -45,9 +45,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure kubeconfig
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         run: |
           mkdir -p "$RUNNER_TEMP/.kube"
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > "$RUNNER_TEMP/.kube/config"
+          echo "$KUBE_CONFIG" | base64 -d > "$RUNNER_TEMP/.kube/config"
           chmod 600 "$RUNNER_TEMP/.kube/config"
           echo "KUBECONFIG=$RUNNER_TEMP/.kube/config" >> "$GITHUB_ENV"
 
@@ -57,17 +59,22 @@ jobs:
         # takes effect on a fresh MongoDB volume (MongoDB keeps the root password it was
         # initialised with); REDIS_PASSWORD takes effect on the next Redis restart -- see
         # k8s/README.md.
+        env:
+          LIQUID_AUTH_SESSION_SECRET: ${{ secrets.LIQUID_AUTH_SESSION_SECRET }}
+          LIQUID_AUTH_DB_PASSWORD: ${{ secrets.LIQUID_AUTH_DB_PASSWORD }}
+          LIQUID_AUTH_REDIS_PASSWORD: ${{ secrets.LIQUID_AUTH_REDIS_PASSWORD }}
+          LIQUID_AUTH_DB_USERNAME: ${{ secrets.LIQUID_AUTH_DB_USERNAME }}
         run: |
           set -euo pipefail
-          if [ -z "${{ secrets.LIQUID_AUTH_SESSION_SECRET }}" ] || [ -z "${{ secrets.LIQUID_AUTH_DB_PASSWORD }}" ] || [ -z "${{ secrets.LIQUID_AUTH_REDIS_PASSWORD }}" ]; then
+          if [ -z "$LIQUID_AUTH_SESSION_SECRET" ] || [ -z "$LIQUID_AUTH_DB_PASSWORD" ] || [ -z "$LIQUID_AUTH_REDIS_PASSWORD" ]; then
             echo "::error::LIQUID_AUTH_SESSION_SECRET, LIQUID_AUTH_DB_PASSWORD and LIQUID_AUTH_REDIS_PASSWORD must be set as environment secrets"
             exit 1
           fi
           kubectl create secret generic "$SECRET_NAME" -n awallet \
-            --from-literal=SESSION_SECRET="${{ secrets.LIQUID_AUTH_SESSION_SECRET }}" \
-            --from-literal=DB_USERNAME="${{ secrets.LIQUID_AUTH_DB_USERNAME || 'algorand' }}" \
-            --from-literal=DB_PASSWORD="${{ secrets.LIQUID_AUTH_DB_PASSWORD }}" \
-            --from-literal=REDIS_PASSWORD="${{ secrets.LIQUID_AUTH_REDIS_PASSWORD }}" \
+            --from-literal=SESSION_SECRET="$LIQUID_AUTH_SESSION_SECRET" \
+            --from-literal=DB_USERNAME="${LIQUID_AUTH_DB_USERNAME:-algorand}" \
+            --from-literal=DB_PASSWORD="$LIQUID_AUTH_DB_PASSWORD" \
+            --from-literal=REDIS_PASSWORD="$LIQUID_AUTH_REDIS_PASSWORD" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Clear stray probe handlers
@@ -138,24 +145,31 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure kubeconfig
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         run: |
           mkdir -p "$RUNNER_TEMP/.kube"
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > "$RUNNER_TEMP/.kube/config"
+          echo "$KUBE_CONFIG" | base64 -d > "$RUNNER_TEMP/.kube/config"
           chmod 600 "$RUNNER_TEMP/.kube/config"
           echo "KUBECONFIG=$RUNNER_TEMP/.kube/config" >> "$GITHUB_ENV"
 
       - name: Sync liquid-auth secrets
+        env:
+          LIQUID_AUTH_SESSION_SECRET: ${{ secrets.LIQUID_AUTH_SESSION_SECRET }}
+          LIQUID_AUTH_DB_PASSWORD: ${{ secrets.LIQUID_AUTH_DB_PASSWORD }}
+          LIQUID_AUTH_REDIS_PASSWORD: ${{ secrets.LIQUID_AUTH_REDIS_PASSWORD }}
+          LIQUID_AUTH_DB_USERNAME: ${{ secrets.LIQUID_AUTH_DB_USERNAME }}
         run: |
           set -euo pipefail
-          if [ -z "${{ secrets.LIQUID_AUTH_SESSION_SECRET }}" ] || [ -z "${{ secrets.LIQUID_AUTH_DB_PASSWORD }}" ] || [ -z "${{ secrets.LIQUID_AUTH_REDIS_PASSWORD }}" ]; then
+          if [ -z "$LIQUID_AUTH_SESSION_SECRET" ] || [ -z "$LIQUID_AUTH_DB_PASSWORD" ] || [ -z "$LIQUID_AUTH_REDIS_PASSWORD" ]; then
             echo "::error::LIQUID_AUTH_SESSION_SECRET, LIQUID_AUTH_DB_PASSWORD and LIQUID_AUTH_REDIS_PASSWORD must be set as environment secrets"
             exit 1
           fi
           kubectl create secret generic "$SECRET_NAME" -n awallet \
-            --from-literal=SESSION_SECRET="${{ secrets.LIQUID_AUTH_SESSION_SECRET }}" \
-            --from-literal=DB_USERNAME="${{ secrets.LIQUID_AUTH_DB_USERNAME || 'algorand' }}" \
-            --from-literal=DB_PASSWORD="${{ secrets.LIQUID_AUTH_DB_PASSWORD }}" \
-            --from-literal=REDIS_PASSWORD="${{ secrets.LIQUID_AUTH_REDIS_PASSWORD }}" \
+            --from-literal=SESSION_SECRET="$LIQUID_AUTH_SESSION_SECRET" \
+            --from-literal=DB_USERNAME="${LIQUID_AUTH_DB_USERNAME:-algorand}" \
+            --from-literal=DB_PASSWORD="$LIQUID_AUTH_DB_PASSWORD" \
+            --from-literal=REDIS_PASSWORD="$LIQUID_AUTH_REDIS_PASSWORD" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Clear stray probe handlers

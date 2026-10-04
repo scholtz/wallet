@@ -52,6 +52,18 @@ import {
   type SignTransactionsResult,
 } from "../scripts/liquid/protocol";
 import {
+  LIQUID_MAX_PAYLOAD_CHARS,
+  MAX_DAPP_SIGN_DATA_ITEMS,
+  MAX_DAPP_TXNS_PER_REQUEST,
+  admitEnvelope,
+  admitSignData,
+  admitTransactions,
+  assertLiquidServiceOrigin,
+  countPending,
+  sanitizePeerMetadata,
+  type Admission,
+} from "../scripts/liquid/guards";
+import {
   LIQUID_SESSIONS_STORAGE_KEY,
   parseStoredLiquidSessions,
   toStoredLiquidSession,
@@ -269,6 +281,13 @@ const actions: ActionTree<LiquidState, RootState> = {
       throw new Error("Initialize Liquid Auth before connecting.");
     }
     const { origin, requestId } = parseLiquidDeepLink(uri);
+    // AW-2026-049: the service receives a passkey and an account-key signature, so a pasted
+    // link must not be able to point the wallet at an arbitrary host.
+    assertLiquidServiceOrigin(
+      origin,
+      window.location.hostname,
+      (import.meta.env.VITE_LIQUID_SERVICE_HOSTS ?? "").split(","),
+    );
     const account = rootState.wallet.privateAccounts.find(
       (a) => a.addr === address,
     );
@@ -363,11 +382,16 @@ const actions: ActionTree<LiquidState, RootState> = {
 
   /** Decode one message from the data channel and turn it into a pending request. */
   async handleMessage(
-    { commit, dispatch, state },
+    { commit, dispatch, state, rootState },
     { requestId, payload }: { requestId: string; payload: string },
   ) {
     const session = state.sessions.find((s) => s.requestId === requestId);
     if (!session) {
+      return;
+    }
+    // AW-2026-052: the peer is unauthenticated; bound its input before decoding.
+    if (payload.length > LIQUID_MAX_PAYLOAD_CHARS) {
+      console.error("Oversized Liquid Auth message dropped");
       return;
     }
     let message;
@@ -382,6 +406,23 @@ const actions: ActionTree<LiquidState, RootState> = {
       return;
     }
     const request = message as LiquidRequestMessage;
+    // Answer a refused request with the admission's code (REQUEST_ERROR codes equal the
+    // Liquid error codes), unless answering would reuse the id of a still-pending request.
+    const refuse = async (
+      reference: string,
+      admission: Extract<Admission, { ok: false }>,
+    ) => {
+      console.error("Liquid Auth request refused:", admission.reason);
+      if (admission.silent) return;
+      await respond(
+        requestId,
+        buildErrorResponse(request, reference, {
+          code: admission.code,
+          message: admission.reason,
+          providerId: LIQUID_WALLET_PROVIDER_ID,
+        }),
+      );
+    };
 
     switch (request.reference) {
       case LiquidReference.helloRequest: {
@@ -389,7 +430,7 @@ const actions: ActionTree<LiquidState, RootState> = {
         if (params?.metadata) {
           commit("setSessionPeer", {
             requestId,
-            peer: params.metadata,
+            peer: sanitizePeerMetadata(params.metadata),
             dappProviderId: params.providerId,
           });
           await persistLiquidSessions(dispatch, state.sessions);
@@ -413,40 +454,120 @@ const actions: ActionTree<LiquidState, RootState> = {
         const rawTransactions: AlgoSignTxnParam[] = Array.isArray(params?.txns)
           ? (params!.txns as AlgoSignTxnParam[])
           : [];
-        const transactions = decodeSignTxnTransactions(
-          rawTransactions,
-          (signed) => {
-            dispatch("signer/setSigned", { signed }, { root: true });
-          },
+        const envelope = admitEnvelope({
+          count: rawTransactions.length,
+          maxCount: MAX_DAPP_TXNS_PER_REQUEST,
+          ...countPending(state.requests, state.signDataRequests, requestId, request.id),
+        });
+        if (!envelope.ok) {
+          await refuse(LiquidReference.signTransactionsResponse, envelope);
+          return;
+        }
+        // Everything from here to addRequest is synchronous, so the checks above and the
+        // queueing are atomic (peers choose request ids). Pre-signed blobs are only
+        // registered once the request is admitted.
+        const preSignedBlobs: Uint8Array[] = [];
+        let transactions: ReturnType<typeof decodeSignTxnTransactions>;
+        try {
+          transactions = decodeSignTxnTransactions(rawTransactions, (signed) => {
+            preSignedBlobs.push(signed);
+          });
+          // Validate every blob before registering any, so a bad one leaves nothing behind.
+          preSignedBlobs.forEach((signed) => algosdk.decodeSignedTransaction(signed));
+        } catch (error) {
+          console.error("Undecodable Liquid Auth transactions", error);
+          await refuse(LiquidReference.signTransactionsResponse, {
+            ok: false,
+            code: LiquidErrorCode.invalidInput,
+            reason: "Invalid transaction.",
+          });
+          return;
+        }
+        // AW-2026-051: a session paired for one account may only ask it to sign.
+        const admission = admitTransactions({
+          transactions: transactions.map((tx, i) => ({
+            sender: tx.txn?.sender?.toString(),
+            preSigned: tx.preSigned,
+            signers: rawTransactions[i]?.signers,
+          })),
+          approved: [session.address],
+          own: rootState.wallet.privateAccounts.map((a) => a.addr),
+        });
+        if (!admission.ok) {
+          await refuse(LiquidReference.signTransactionsResponse, admission);
+          return;
+        }
+        preSignedBlobs.forEach((signed) =>
+          commit("signer/setSigned", signed, { root: true }),
         );
-        const totalFee = transactions.reduce(
-          (fee, tx) => fee + (tx.fee ?? 0),
-          0,
-        );
-        const stored: StoredRequest = {
-          id: request.id,
-          method: request.reference,
-          transactions,
-          fee: totalFee,
-          ver: "liquid",
-          topic: requestId,
-        };
-        commit("addRequest", { request: stored });
+        commit("addRequest", {
+          request: {
+            id: request.id,
+            method: request.reference,
+            transactions,
+            fee: transactions.reduce((fee, tx) => fee + (tx.fee ?? 0), 0),
+            ver: "liquid",
+            topic: requestId,
+          } satisfies StoredRequest,
+        });
         return;
       }
       case LiquidReference.signDataRequest: {
         const params = request.params as Partial<SignDataParams> | undefined;
+        // unknown cast: the peer sends untrusted CBOR; decodeArc60Items validates each item.
         const rawItems = (Array.isArray(params?.items)
           ? params!.items
           : []) as unknown as Arc60StdSigData[];
-        const items = await decodeArc60Items(rawItems);
-        const stored: StoredSignDataRequest = {
-          id: request.id,
-          method: request.reference,
-          items,
-          topic: requestId,
-        };
-        commit("addSignDataRequest", { request: stored });
+        const envelope = admitEnvelope({
+          count: rawItems.length,
+          maxCount: MAX_DAPP_SIGN_DATA_ITEMS,
+          ...countPending(state.requests, state.signDataRequests, requestId, request.id),
+        });
+        if (!envelope.ok) {
+          await refuse(LiquidReference.signDataResponse, envelope);
+          return;
+        }
+        let items: Awaited<ReturnType<typeof decodeArc60Items>>;
+        try {
+          items = await decodeArc60Items(rawItems);
+        } catch (error) {
+          console.error("Undecodable Liquid Auth sign data items", error);
+          await refuse(LiquidReference.signDataResponse, {
+            ok: false,
+            code: LiquidErrorCode.invalidInput,
+            reason: "Invalid sign data request.",
+          });
+          return;
+        }
+        // AW-2026-051: a session linked to one account may only ask it for signatures.
+        const admission = admitSignData({
+          rawCount: rawItems.length,
+          signers: items.map((item) => item.signer),
+          approved: [session.address],
+        });
+        if (!admission.ok) {
+          await refuse(LiquidReference.signDataResponse, admission);
+          return;
+        }
+        // The decode above is async: re-check the envelope (cap, duplicate id) right
+        // before queueing, with no await in between.
+        const recheck = admitEnvelope({
+          count: rawItems.length,
+          maxCount: MAX_DAPP_SIGN_DATA_ITEMS,
+          ...countPending(state.requests, state.signDataRequests, requestId, request.id),
+        });
+        if (!recheck.ok) {
+          await refuse(LiquidReference.signDataResponse, recheck);
+          return;
+        }
+        commit("addSignDataRequest", {
+          request: {
+            id: request.id,
+            method: request.reference,
+            items,
+            topic: requestId,
+          } satisfies StoredSignDataRequest,
+        });
         return;
       }
       default: {

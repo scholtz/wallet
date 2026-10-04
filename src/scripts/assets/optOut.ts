@@ -57,3 +57,26 @@ export type OptOutResult =
   | { status: "sent"; txId: string }
   | { status: "creator" }
   | { status: "failed" };
+
+/**
+ * The creator receives the whole remaining balance, so the node's answer must be confirmed by
+ * the (separately configured) indexer. Refuses when the two disagree or when the indexer could
+ * not confirm at all (AW-2026-054). A missing creator (deleted asset) needs no confirmation.
+ */
+export const confirmAssetCreator = (
+  nodeCreator: string | undefined,
+  indexerCreator: string | undefined,
+): string | undefined => {
+  if (!nodeCreator) return undefined;
+  if (!indexerCreator) {
+    throw new Error(
+      "The asset creator could not be confirmed by the indexer. Refusing to opt out.",
+    );
+  }
+  if (nodeCreator !== indexerCreator) {
+    throw new Error(
+      "The node and the indexer disagree about the asset creator. Refusing to opt out.",
+    );
+  }
+  return nodeCreator;
+};

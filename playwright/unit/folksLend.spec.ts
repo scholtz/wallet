@@ -348,3 +348,27 @@ test.describe("transaction building", () => {
     expect(() => assertFolksLendTxnsSafe([rekey], sender)).toThrow(/rekey/);
   });
 });
+
+test("aggregator-returned transactions with an excessive fee are refused (AW-2026-053)", async () => {
+  const { assertSwapTransactionSafe, MAX_SWAP_TXN_FEE_MICROALGOS } = await import(
+    "../../src/scripts/aggregators/validate"
+  );
+  const sender = algosdk.generateAccount().addr.toString();
+  const make = (fee: bigint) =>
+    algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender,
+      receiver: sender,
+      amount: 0,
+      suggestedParams: {
+        fee,
+        flatFee: true,
+        firstValid: 1,
+        lastValid: 1000,
+        genesisHash: new Uint8Array(32),
+        genesisID: "testnet-v1.0",
+        minFee: 1000,
+      },
+    });
+  expect(() => assertSwapTransactionSafe(make(1000n), sender)).not.toThrow();
+  expect(() => assertSwapTransactionSafe(make(MAX_SWAP_TXN_FEE_MICROALGOS + 1n), sender)).toThrow(/fee/);
+});

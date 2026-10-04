@@ -12,6 +12,8 @@ interface ImportMetaEnv {
   readonly VITE_GIT_COMMIT: string;
   readonly VITE_BUILD_DATE: string;
   readonly VITE_BUILD_SOURCE: "docker" | "local";
+  /** Comma-separated extra Liquid Auth service hosts a self-hosted wallet trusts. */
+  readonly VITE_LIQUID_SERVICE_HOSTS?: string;
 }
 
 interface ImportMeta {

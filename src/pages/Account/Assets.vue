@@ -155,6 +155,8 @@
             size="small"
             severity="danger"
             :title="$t('acc_overview_assets.opt_out')"
+            :loading="optOutLookupRunning"
+            :disabled="optOutLookupRunning"
             @click="askOptOut(slotProps.data)"
           >
             <i class="pi pi-times-circle"></i>
@@ -178,6 +180,10 @@
               amount: formatAssetAmount(optOutTarget),
             })
           }}
+        </p>
+        <p v-if="optOutCloseTo">
+          {{ $t("acc_overview_assets.opt_out_close_to") }}
+          <code class="break-all">{{ optOutCloseTo }}</code>
         </p>
       </template>
       <template #footer>
@@ -216,6 +222,7 @@ import { StoredAsset } from "@/store/indexer";
 import { getArc200Client } from "arc200-client";
 import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import { getAssetUsdPrices } from "@/scripts/biatecScan";
+import { resolveOptOutCloseTo } from "@/scripts/assets/optOut";
 import type { OptOutResult } from "@/scripts/assets/optOut";
 import { filterAssetsWithBalance } from "@/scripts/assets/filterAssetsWithBalance";
 
@@ -452,26 +459,65 @@ const optOutDialogVisible = ref(false);
 const optOutProcessing = ref(false);
 const optOutTarget = ref<AssetListItem | null>(null);
 
-const askOptOut = (data: AssetListItem) => {
-  optOutTarget.value = data;
-  optOutDialogVisible.value = true;
+const optOutCloseTo = ref<string | undefined>(undefined);
+
+const optOutLookupRunning = ref(false);
+
+const askOptOut = async (data: AssetListItem) => {
+  const addr = account.value?.addr;
+  if (!addr || data.type !== "ASA" || optOutLookupRunning.value) return;
+  optOutLookupRunning.value = true;
+  optOutCloseTo.value = undefined;
+  optOutTarget.value = null;
+  try {
+    // AW-2026-054: show the address the remaining balance will be sent to before the
+    // user confirms; the node's answer is re-checked against it at send time.
+    const creator = (await store.dispatch("algod/getAssetCreator", {
+      assetId: data.assetId,
+    })) as string | undefined;
+    const closeTo = resolveOptOutCloseTo(addr, creator);
+    if (!closeTo) {
+      await store.dispatch(
+        "toast/openError",
+        t("acc_overview_assets.opt_out_creator")
+      );
+      return;
+    }
+    optOutCloseTo.value = closeTo;
+    optOutTarget.value = data;
+    optOutDialogVisible.value = true;
+  } catch (error) {
+    await store.dispatch(
+      "toast/openError",
+      error instanceof Error ? error.message : String(error)
+    );
+  } finally {
+    optOutLookupRunning.value = false;
+  }
 };
 
 const confirmOptOut = async () => {
   const target = optOutTarget.value;
   const addr = account.value?.addr;
-  if (!target || !addr || target.type !== "ASA") return;
+  if (!target || !addr || target.type !== "ASA" || !optOutCloseTo.value) return;
   optOutProcessing.value = true;
   try {
     const result = (await store.dispatch("algod/optOutAsset", {
       addr,
       assetId: target.assetId,
+      expectedCloseTo: optOutCloseTo.value,
     })) as OptOutResult;
     if (result.status === "creator") {
       await store.dispatch(
         "toast/openError",
         t("acc_overview_assets.opt_out_creator")
       );
+      return;
+    }
+    if (result.status === "failed") {
+      // Force a fresh lookup (and a fresh look at the address) before any retry.
+      optOutDialogVisible.value = false;
+      optOutCloseTo.value = undefined;
       return;
     }
     if (result.status !== "sent") return;

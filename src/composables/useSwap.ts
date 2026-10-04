@@ -586,7 +586,17 @@ export function useSwap() {
 
   const clickOptInToApps = async (): Promise<void> => {
     processingOptin.value = true;
-    const params = await store.dispatch("algod/getTransactionParams");
+    let params: algosdk.SuggestedParams;
+    try {
+      params = await store.dispatch("algod/getCheckedTransactionParams");
+    } catch (error) {
+      processingOptin.value = false;
+      store.dispatch(
+        "toast/openError",
+        error instanceof Error ? error.message : String(error),
+      );
+      return;
+    }
 
     let ret = "Processed in txs: ";
     for (const app of appsToOptIn.value) {

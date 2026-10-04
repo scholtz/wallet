@@ -134,8 +134,11 @@ const actions: ActionTree<ParticipationState, RootState> = {
         throw new Error("Address not found.");
       }
       const host = ensureParticipationHost(rootState.config);
-      const algodClient = getAlgodClient(rootState.config);
-      const suggestedParams = await algodClient.getTransactionParams().do();
+      const suggestedParams: algosdk.SuggestedParams = await dispatch(
+        "algod/getCheckedTransactionParams",
+        undefined,
+        { root: true }
+      );
       const voteFirst = getFirstValidRound(suggestedParams) + 2;
       const voteLast = voteFirst + rounds;
       const data = (await dispatch(
@@ -181,7 +184,11 @@ const actions: ActionTree<ParticipationState, RootState> = {
       }
       const host = ensureParticipationHost(rootState.config);
       const algodClient = getAlgodClient(rootState.config);
-      const suggestedParams = await algodClient.getTransactionParams().do();
+      const suggestedParams: algosdk.SuggestedParams = await dispatch(
+        "algod/getCheckedTransactionParams",
+        undefined,
+        { root: true }
+      );
       const voteFirst = getFirstValidRound(suggestedParams) + 2;
       const voteLast = voteFirst + rounds;
       const data = (await dispatch(
@@ -237,7 +244,11 @@ const actions: ActionTree<ParticipationState, RootState> = {
       }
       ensureParticipationHost(rootState.config);
       const algodClient = getAlgodClient(rootState.config);
-      const suggestedParams = await algodClient.getTransactionParams().do();
+      const suggestedParams: algosdk.SuggestedParams = await dispatch(
+        "algod/getCheckedTransactionParams",
+        undefined,
+        { root: true }
+      );
       suggestedParams.fee = BigInt(1000);
       suggestedParams.flatFee = true;
       const txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
@@ -257,14 +268,20 @@ const actions: ActionTree<ParticipationState, RootState> = {
       return undefined;
     }
   },
-  async getAccountOfflineTx({ rootState }, { account }: AccountPayload) {
+  async getAccountOfflineTx(
+    { dispatch, rootState },
+    { account }: AccountPayload
+  ) {
     try {
       if (!account) {
         throw new Error("Address not found.");
       }
       ensureParticipationHost(rootState.config);
-      const algodClient = getAlgodClient(rootState.config);
-      const suggestedParams = await algodClient.getTransactionParams().do();
+      const suggestedParams: algosdk.SuggestedParams = await dispatch(
+        "algod/getCheckedTransactionParams",
+        undefined,
+        { root: true }
+      );
       suggestedParams.fee = BigInt(1000);
       suggestedParams.flatFee = true;
       return algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({

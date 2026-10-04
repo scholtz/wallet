@@ -857,6 +857,12 @@ const fatal = computed(() => {
 });
 
 const payFrom = computed(() => {
+  // AW-2026-058: on /payWC the route account is only where "Return to WalletConnect" goes
+  // back to (the connected account); the key that signs must be the transaction's sender.
+  if (route.name === "PayFromWalletConnect") {
+    const wcSender = txn.value?.sender?.toString();
+    if (wcSender) return wcSender;
+  }
   const accountParam = toSingleParam(
     route.params.account as string | string[] | undefined
   );

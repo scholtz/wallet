@@ -10,6 +10,16 @@ import type { RootState } from "./index";
 import type { GenesisNetwork } from "./publicData";
 import { bytesToBase64, type Arc60StdSigData } from "../scripts/encoding/arc60";
 import {
+  MAX_DAPP_SIGN_DATA_ITEMS,
+  MAX_DAPP_TXNS_PER_REQUEST,
+  admitEnvelope,
+  admitSignData,
+  admitTransactions,
+  countPending,
+  REQUEST_ERROR,
+  type Admission,
+} from "../scripts/liquid/guards";
+import {
   decodeArc60Items,
   decodeSignTxnTransactions,
   type AlgoSignTxnParam,
@@ -225,6 +235,10 @@ const mutations: MutationTree<WcState> = {
     sessionRequest: WalletKitTypes.EventArguments["session_request"]
   ) {
     currentState.sessionRequests.push(sessionRequest);
+    // Raw event log, not read by the UI: keep it bounded against a request-spamming dApp.
+    if (currentState.sessionRequests.length > 100) {
+      currentState.sessionRequests.shift();
+    }
   },
   addAuthRequest(currentState, authRequest: unknown) {
     currentState.authRequests.push(authRequest);
@@ -248,6 +262,15 @@ const mutations: MutationTree<WcState> = {
     Object.assign(currentState, state());
   },
 };
+
+/** Addresses (CAIP-10 account suffix) a WalletConnect session was approved for. */
+const getSessionAccounts = (
+  web3wallet: Web3WalletInstance,
+  topic: string,
+): string[] =>
+  (web3wallet.getActiveSessions()[topic]?.namespaces?.algorand?.accounts ?? []).map(
+    (entry: string) => entry.split(":").pop() ?? "",
+  );
 
 const actions: ActionTree<WcState, RootState> = {
   async init({ commit, dispatch, rootState }) {
@@ -282,7 +305,39 @@ const actions: ActionTree<WcState, RootState> = {
     });
 
     web3wallet.on("session_request", async (sessionRequest) => {
-      commit("addSessionRequest", sessionRequest);
+      const topic = sessionRequest.topic;
+      const requestId = ensureNumericId(sessionRequest.id);
+      const pending = () =>
+        countPending(
+          rootState.wc.requests,
+          rootState.wc.signDataRequests,
+          topic,
+          requestId,
+        );
+      // Tell the user and the dApp that a request was refused (see REQUEST_ERROR).
+      const refuse = async (admission: Extract<Admission, { ok: false }>) => {
+        console.error("WalletConnect request refused:", admission.reason);
+        if (admission.silent) return;
+        dispatch(
+          "toast/openError",
+          `A dApp request was rejected: ${admission.reason}`,
+          { root: true },
+        );
+        try {
+          await web3wallet.respondSessionRequest({
+            topic,
+            response: {
+              id: requestId,
+              jsonrpc: "2.0",
+              error: { code: admission.code, message: admission.reason },
+            },
+          });
+        } catch (error) {
+          console.error("Failed to reject the WalletConnect request", error);
+        }
+      };
+      const invalid = (reason: string) =>
+        refuse({ ok: false, code: REQUEST_ERROR.invalid, reason });
 
       const request = sessionRequest?.params?.request;
 
@@ -295,50 +350,128 @@ const actions: ActionTree<WcState, RootState> = {
         const rawItems: Arc60StdSigData[] = Array.isArray(request.params?.[0])
           ? request.params[0]
           : [];
+        const envelope = admitEnvelope({
+          count: rawItems.length,
+          maxCount: MAX_DAPP_SIGN_DATA_ITEMS,
+          ...pending(),
+        });
+        if (!envelope.ok) {
+          await refuse(envelope);
+          return;
+        }
+        commit("addSessionRequest", sessionRequest);
 
-        const items: StoredSignDataItem[] = await decodeArc60Items(rawItems);
-
-        const signDataRequest: StoredSignDataRequest = {
-          id: ensureNumericId(sessionRequest.id),
-          method: request.method,
-          items,
-          topic: sessionRequest.topic,
-        };
-
-        commit("addSignDataRequest", { request: signDataRequest });
+        let items: StoredSignDataItem[];
+        try {
+          items = await decodeArc60Items(rawItems);
+        } catch (error) {
+          console.error("Undecodable WalletConnect sign data items", error);
+          await invalid("Invalid sign data request.");
+          return;
+        }
+        // AW-2026-051: only accounts approved for this session may be asked to sign data.
+        const admission = admitSignData({
+          rawCount: rawItems.length,
+          signers: items.map((item) => item.signer),
+          approved: getSessionAccounts(web3wallet, topic),
+        });
+        if (!admission.ok) {
+          await refuse(admission);
+          return;
+        }
+        // The decode above is async: re-check the envelope (cap, duplicate id) right
+        // before queueing, with no await in between.
+        const recheck = admitEnvelope({
+          count: rawItems.length,
+          maxCount: MAX_DAPP_SIGN_DATA_ITEMS,
+          ...pending(),
+        });
+        if (!recheck.ok) {
+          await refuse(recheck);
+          return;
+        }
+        commit("addSignDataRequest", {
+          request: {
+            id: requestId,
+            method: request.method,
+            items,
+            topic,
+          } satisfies StoredSignDataRequest,
+        });
         return;
       }
 
       if (request?.method !== "algo_signTxn") {
-        console.error("request.method not implemented", request?.method);
+        // Never echo the dApp-chosen method name into a toast or reply.
+        await refuse({
+          ok: false,
+          code: REQUEST_ERROR.methodNotSupported,
+          reason: "Method not supported.",
+        });
         return;
       }
 
       const firstParam: unknown = Array.isArray(request.params)
         ? request.params[0]
         : undefined;
-
       const rawTransactions: AlgoSignTxnParam[] = Array.isArray(firstParam)
         ? firstParam
         : [];
+      const envelope = admitEnvelope({
+        count: rawTransactions.length,
+        maxCount: MAX_DAPP_TXNS_PER_REQUEST,
+        ...pending(),
+      });
+      if (!envelope.ok) {
+        await refuse(envelope);
+        return;
+      }
+      commit("addSessionRequest", sessionRequest);
 
-      const transactions: DecodedTransactionSummary[] =
-        decodeSignTxnTransactions(rawTransactions, (signed) => {
-          dispatch("signer/setSigned", { signed }, { root: true });
+      // Everything from here to addRequest is synchronous, so the checks above and the
+      // queueing are atomic. Pre-signed blobs are only registered once admitted.
+      const preSignedBlobs: Uint8Array[] = [];
+      let transactions: DecodedTransactionSummary[];
+      try {
+        transactions = decodeSignTxnTransactions(rawTransactions, (signed) => {
+          preSignedBlobs.push(signed);
         });
+        // Validate every blob before registering any, so a bad one leaves nothing behind.
+        preSignedBlobs.forEach((signed) => algosdk.decodeSignedTransaction(signed));
+      } catch (error) {
+        console.error("Undecodable WalletConnect transactions", error);
+        await invalid("Invalid transaction.");
+        return;
+      }
 
-      const totalFee = transactions.reduce((fee, tx) => fee + (tx.fee ?? 0), 0);
+      // AW-2026-051: only accounts the user approved for this session may be asked to sign.
+      const admission = admitTransactions({
+        transactions: transactions.map((tx, i) => ({
+          sender: tx.txn?.sender?.toString(),
+          preSigned: tx.preSigned,
+          signers: rawTransactions[i]?.signers,
+        })),
+        approved: getSessionAccounts(web3wallet, topic),
+        own: rootState.wallet.privateAccounts.map((a) => a.addr),
+      });
+      if (!admission.ok) {
+        await refuse(admission);
+        return;
+      }
 
-      const requestToStore: StoredRequest = {
-        id: ensureNumericId(sessionRequest.id),
-        method: request.method,
-        transactions,
-        fee: totalFee,
-        ver: "2",
-        topic: sessionRequest.topic,
-      };
-
-      commit("addRequest", { request: requestToStore });
+      preSignedBlobs.forEach((signed) =>
+        commit("signer/setSigned", signed, { root: true }),
+      );
+      commit("addRequest", {
+        request: {
+          id: requestId,
+          method: request.method,
+          transactions,
+          fee: transactions.reduce((fee, tx) => fee + (tx.fee ?? 0), 0),
+          ver: "2",
+          topic,
+        } satisfies StoredRequest,
+      });
     });
 
     // "auth_request" / "call_request" / "subscription_created" /

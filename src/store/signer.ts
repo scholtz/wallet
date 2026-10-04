@@ -15,6 +15,7 @@ import type { ActionTree, MutationTree } from "vuex";
 import type { RootState } from "./index";
 import { hdSignTransactionBytes } from "../scripts/encoding/hdWallet";
 import { falconSignTransaction } from "../scripts/encoding/falcon";
+import { assertLiquidChallenge } from "../scripts/liquid/guards";
 import {
   Arc60Error,
   computeArc60Digest,
@@ -650,6 +651,10 @@ const actions: ActionTree<SignerState, RootState> = {
     { dispatch, rootState },
     payload: { from: string; challenge: Uint8Array },
   ): Promise<Uint8Array> {
+    // AW-2026-049: this is a raw ed25519 signature over service-supplied bytes. Refuse
+    // anything that is not a short nonce, so it can never double as a transaction/LogicSig
+    // signature (those start with "TX"/"MX"/"Program"... and are far longer).
+    assertLiquidChallenge(payload.challenge);
     const baseAccount = ensureAccount(rootState, payload.from);
     const env = ensureEnv(rootState);
     const signerAccount = resolveEnvRekey(rootState, baseAccount, env, payload.from);

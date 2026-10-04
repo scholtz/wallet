@@ -242,7 +242,7 @@ const submit = async () => {
     // amount, a withdrawal asks the pool for a variable payout), so the
     // displayed estimate is informational and needs no refetch here.
     const suggestedParams: algosdk.SuggestedParams = await store.dispatch(
-      "algod/getTransactionParams",
+      "algod/getCheckedTransactionParams",
     );
     const txns = buildFolksLendTxns({
       direction: props.direction,

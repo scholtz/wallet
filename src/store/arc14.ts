@@ -60,12 +60,6 @@ const getConfig = (rootState: RootState): Arc14Config => {
   return config as Arc14Config;
 };
 
-const getAlgodClient = (rootState: RootState): algosdk.Algodv2 => {
-  const config = getConfig(rootState);
-  const url = new URL(config.algod);
-  return new algosdk.Algodv2(config.algodToken, config.algod, url.port);
-};
-
 const mutations: MutationTree<Arc14State> = {
   storeArc14Auth(state, { chain, addr, realm, token }: Arc14AuthPayload) {
     const chainMap = ensureChainEntry(state, chain);
@@ -81,8 +75,11 @@ const actions: ActionTree<Arc14State, RootState> = {
   async getAuthTx({ dispatch, rootState }, { account, realm }: AuthTxPayload) {
     try {
       if (!account) throw new Error("Address not found.");
-      const algodClient = getAlgodClient(rootState);
-      const suggestedParams = await algodClient.getTransactionParams().do();
+      const suggestedParams: algosdk.SuggestedParams = await dispatch(
+        "algod/getCheckedTransactionParams",
+        undefined,
+        { root: true }
+      );
       suggestedParams.fee = 0n;
       suggestedParams.flatFee = true;
       const note = Buffer.from(realm, "utf-8");

@@ -537,7 +537,7 @@ const getAuthTxAction = (payload: { account: string; realm: string }) =>
 const returnToAction = (payload: string) =>
   store.dispatch("signer/returnTo", payload);
 const getTransactionParamsAction = () =>
-  store.dispatch("algod/getTransactionParams") as Promise<SuggestedParams>;
+  store.dispatch("algod/getCheckedTransactionParams") as Promise<SuggestedParams>;
 const setEnvAction = (payload: { env: string }) =>
   store.dispatch("config/setEnv", payload);
 
@@ -722,10 +722,22 @@ const buildKeyRegistrationTxn = (
   });
 };
 
+const toastError = (error: Error | string) =>
+  store.dispatch(
+    "toast/openError",
+    error instanceof Error ? error.message : error
+  );
+
 const clickSignParticipationTx = async () => {
   await prolongSession();
-  const suggestedParams =
-    participationData.suggestedParams ?? (await getTransactionParamsAction());
+  let suggestedParams: SuggestedParams;
+  try {
+    suggestedParams =
+      participationData.suggestedParams ?? (await getTransactionParamsAction());
+  } catch (error) {
+    await toastError(error as Error);
+    return;
+  }
   participationData.suggestedParams = suggestedParams;
   const txn = buildKeyRegistrationTxn(
     accountAddressParam.value,
@@ -742,7 +754,13 @@ const clickSignParticipationTx = async () => {
 
 const clickSignCustomKeyRegTx = async () => {
   await prolongSession();
-  const params = await getTransactionParamsAction();
+  let params: SuggestedParams;
+  try {
+    params = await getTransactionParamsAction();
+  } catch (error) {
+    await toastError(error as Error);
+    return;
+  }
   participationData.suggestedParams = params;
   const txn = buildKeyRegistrationTxn(accountAddressParam.value, params);
   if (participationData.stakingRegistration) {

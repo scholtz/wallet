@@ -127,7 +127,7 @@ async function mockFolksChain(page: Page, opts: ChainMockOptions = {}) {
       json: {
         "consensus-version": "future",
         fee: 0,
-        "genesis-hash": Buffer.alloc(32).toString("base64"),
+        "genesis-hash": "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=",
         "genesis-id": "mainnet-v1.0",
         "last-round": 100,
         "min-fee": 1000,

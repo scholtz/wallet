@@ -10,6 +10,7 @@ import {
   buildAssetOptOutTxn,
   isAssetNotFoundError,
   type OptOutResult,
+  confirmAssetCreator,
   resolveOptOutCloseTo,
 } from "../scripts/assets/optOut";
 
@@ -136,10 +137,20 @@ const base64UrlToBase64 = (input: string): string => {
 // a malicious/compromised node must not be able to have the wallet sign a
 // transaction that is valid on a different network than the one shown in
 // the UI. Mirrors the guard Sign.vue applies to externally supplied txns.
+// Real networks suggest 0 per byte; 10 x ~250 bytes is still only 0.0025 ALGO.
+const MAX_NODE_PER_BYTE_FEE = 10n;
+const MAX_NODE_MIN_FEE = 10_000n;
 const assertParamsMatchNetwork = (
   rootState: RootState,
   params: algosdk.SuggestedParams,
 ): void => {
+  // A node must not be able to turn a signature into a large fee payment (AW-2026-053):
+  // suggested params carry a per-byte fee (normally 0) and a minimum fee (normally 1000).
+  if (BigInt(params.fee ?? 0) > MAX_NODE_PER_BYTE_FEE || BigInt(params.minFee ?? 0) > MAX_NODE_MIN_FEE) {
+    throw new Error(
+      "The configured node suggested an abnormally high fee. Refusing to build the transaction.",
+    );
+  }
   const env = rootState.config.env;
   // "custom" is a UI placeholder, not a genesis id — the user has manually
   // configured their own node endpoints, so there is no selected network to
@@ -242,14 +253,19 @@ const actions: ActionTree<AlgodState, RootState> = {
   async getAlgod({ rootState }) {
     return createAlgodClient(rootState);
   },
-  async getTransactionParams({ rootState }) {
-    try {
-      const algodClient = createAlgodClient(rootState);
-      return await algodClient.getTransactionParams().do();
-    } catch (error) {
-      console.error("Failed to fetch transaction params", error);
-      return undefined;
-    }
+  /**
+   * Suggested params from the node, refused (by throwing) when the node reports another
+   * network or an abnormal fee (AW-2026-053). For callers that sign what they build and
+   * handle a rejected dispatch. Returns a fresh object on every call, so callers may adjust
+   * it (fee, flatFee) without affecting anyone else.
+   */
+  async getCheckedTransactionParams({
+    rootState,
+  }): Promise<algosdk.SuggestedParams> {
+    const algodClient = createAlgodClient(rootState);
+    const params = await algodClient.getTransactionParams().do();
+    assertParamsMatchNetwork(rootState, params);
+    return params;
   },
   async preparePayment(
     { dispatch, rootState },
@@ -373,25 +389,64 @@ const actions: ActionTree<AlgodState, RootState> = {
       return undefined;
     }
   },
+  async getAssetCreator(
+    { dispatch, rootState },
+    { assetId }: { assetId: bigint | number | string },
+  ): Promise<string | undefined> {
+    const algodClient = createAlgodClient(rootState);
+    let creator: string | undefined;
+    try {
+      const info = await algodClient.getAssetByID(BigInt(assetId)).do();
+      creator = info.params?.creator.toString();
+    } catch (error) {
+      // a deleted asset has no creator to return the balance to; any other
+      // failure (network, node) must not be mistaken for that
+      if (!isAssetNotFoundError(error)) throw error;
+      return undefined;
+    }
+    // AW-2026-054: the creator receives the whole remaining balance, so do not rely on the
+    // node alone - the indexer is a separately configured source and must agree.
+    let indexerCreator: string | undefined;
+    try {
+      const indexer: algosdk.Indexer = await dispatch("indexer/getIndexer", undefined, {
+        root: true,
+      });
+      const lookup = await indexer.lookupAssetByID(BigInt(assetId)).do();
+      indexerCreator = lookup.asset?.params?.creator?.toString();
+    } catch (error) {
+      // indexer unreachable or asset not indexed: nothing to compare against, which
+      // confirmAssetCreator treats as "not confirmed" and refuses
+      console.warn("Indexer asset lookup failed", error);
+      indexerCreator = undefined;
+    }
+    return confirmAssetCreator(creator, indexerCreator);
+  },
   async optOutAsset(
     { dispatch, rootState },
-    { addr, assetId }: { addr: string; assetId: bigint | number | string },
+    {
+      addr,
+      assetId,
+      expectedCloseTo,
+    }: {
+      addr: string;
+      assetId: bigint | number | string;
+      /** The close-to address the user confirmed; the opt-out is refused if the node now reports another (AW-2026-054). */
+      expectedCloseTo?: string;
+    },
   ): Promise<OptOutResult> {
     try {
       const algodClient = createAlgodClient(rootState);
-      let creator: string | undefined;
-      try {
-        const info = await algodClient.getAssetByID(BigInt(assetId)).do();
-        creator = info.params?.creator.toString();
-      } catch (error) {
-        // a deleted asset has no creator to return the balance to; any other
-        // failure (network, node) must not be mistaken for that
-        if (!isAssetNotFoundError(error)) throw error;
-        creator = undefined;
-      }
+      const creator: string | undefined = await dispatch("getAssetCreator", {
+        assetId,
+      });
       const closeTo = resolveOptOutCloseTo(addr, creator);
       if (!closeTo) {
         return { status: "creator" };
+      }
+      if (expectedCloseTo && closeTo !== expectedCloseTo) {
+        throw new Error(
+          "The asset creator reported by the node changed since you confirmed the opt-out. Nothing was sent.",
+        );
       }
       const params = await algodClient.getTransactionParams().do();
       assertParamsMatchNetwork(rootState, params);
