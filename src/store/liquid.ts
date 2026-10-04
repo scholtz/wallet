@@ -414,6 +414,15 @@ const actions: ActionTree<LiquidState, RootState> = {
       return;
     }
     const request = message as LiquidRequestMessage;
+    const rejectRequest = (reference: string, code: number, text: string) =>
+      respond(
+        requestId,
+        buildErrorResponse(request, reference, {
+          code,
+          message: text,
+          providerId: LIQUID_WALLET_PROVIDER_ID,
+        }),
+      );
 
     switch (request.reference) {
       case LiquidReference.helloRequest: {
@@ -445,16 +454,8 @@ const actions: ActionTree<LiquidState, RootState> = {
         const rawTransactions: AlgoSignTxnParam[] = Array.isArray(params?.txns)
           ? (params!.txns as AlgoSignTxnParam[])
           : [];
-        const reject = async (code: number, message: string) => {
-          await respond(
-            requestId,
-            buildErrorResponse(
-              request,
-              LiquidReference.signTransactionsResponse,
-              { code, message, providerId: LIQUID_WALLET_PROVIDER_ID },
-            ),
-          );
-        };
+        const reject = (code: number, text: string) =>
+          rejectRequest(LiquidReference.signTransactionsResponse, code, text);
         if (
           rawTransactions.length === 0 ||
           rawTransactions.length > LIQUID_MAX_TXNS_PER_REQUEST
@@ -484,6 +485,7 @@ const actions: ActionTree<LiquidState, RootState> = {
         const unauthorized = findUnauthorizedSenders(
           transactions.map((tx, i) => ({
             sender: tx.txn?.sender?.toString(),
+            preSigned: tx.preSigned,
             signers: rawTransactions[i]?.signers,
           })),
           [session.address],
@@ -521,13 +523,10 @@ const actions: ActionTree<LiquidState, RootState> = {
           isRequestBacklogFull(state) ||
           isRequestIdInUse(state, request.id)
         ) {
-          await respond(
-            requestId,
-            buildErrorResponse(request, LiquidReference.signDataResponse, {
-              code: LiquidErrorCode.invalidInput,
-              message: "Invalid or excessive sign data request.",
-              providerId: LIQUID_WALLET_PROVIDER_ID,
-            }),
+          await rejectRequest(
+            LiquidReference.signDataResponse,
+            LiquidErrorCode.invalidInput,
+            "Invalid or excessive sign data request.",
           );
           return;
         }

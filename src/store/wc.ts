@@ -337,6 +337,7 @@ const actions: ActionTree<WcState, RootState> = {
         findUnauthorizedSenders(
           transactions.map((tx, i) => ({
             sender: tx.txn?.sender?.toString(),
+            preSigned: tx.preSigned,
             signers: (rawTransactions[i] as AlgoSignTxnParam | undefined)
               ?.signers,
           })),

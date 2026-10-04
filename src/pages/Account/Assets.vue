@@ -459,9 +459,14 @@ const optOutTarget = ref<AssetListItem | null>(null);
 
 const optOutCloseTo = ref<string | undefined>(undefined);
 
+const optOutLookupRunning = ref(false);
+
 const askOptOut = async (data: AssetListItem) => {
   const addr = account.value?.addr;
-  if (!addr || data.type !== "ASA") return;
+  if (!addr || data.type !== "ASA" || optOutLookupRunning.value) return;
+  optOutLookupRunning.value = true;
+  optOutCloseTo.value = undefined;
+  optOutTarget.value = null;
   try {
     // AW-2026-054: show the address the remaining balance will be sent to before the
     // user confirms; the node's answer is re-checked against it at send time.
@@ -477,21 +482,22 @@ const askOptOut = async (data: AssetListItem) => {
       return;
     }
     optOutCloseTo.value = closeTo;
+    optOutTarget.value = data;
+    optOutDialogVisible.value = true;
   } catch (error) {
     await store.dispatch(
       "toast/openError",
       error instanceof Error ? error.message : String(error)
     );
-    return;
+  } finally {
+    optOutLookupRunning.value = false;
   }
-  optOutTarget.value = data;
-  optOutDialogVisible.value = true;
 };
 
 const confirmOptOut = async () => {
   const target = optOutTarget.value;
   const addr = account.value?.addr;
-  if (!target || !addr || target.type !== "ASA") return;
+  if (!target || !addr || target.type !== "ASA" || !optOutCloseTo.value) return;
   optOutProcessing.value = true;
   try {
     const result = (await store.dispatch("algod/optOutAsset", {

@@ -27,16 +27,35 @@ const MAX_METADATA_ICONS = 4;
 
 const IPV4 = /^\d{1,3}(\.\d{1,3}){3}$/;
 
-/** Prefixes the Algorand protocol (and ARC standards) sign over; never valid in a challenge. */
-const FORBIDDEN_SIGNING_PREFIXES = [
-  "TX",
-  "MX",
-  "Program",
-  "ProgData",
-  "appID",
-  "arc",
-  "ARC",
+/**
+ * Domain-separation prefixes the Algorand protocol signs over that can fit inside the
+ * length cap (a LogicSig program can be a few bytes). "TX"/"MX" are not listed: a
+ * transaction cannot fit in 64 bytes, and rejecting those two bytes would only add
+ * false positives for random nonces.
+ */
+const FORBIDDEN_SIGNING_PREFIXES = ["Program", "ProgData", "appID"];
+
+/** Hosts where unrelated tenants share one registrable domain. */
+const SHARED_HOSTING_SUFFIXES = [
+  "github.io",
+  "vercel.app",
+  "pages.dev",
+  "netlify.app",
+  "ngrok.io",
+  "ngrok.app",
+  "ngrok-free.app",
+  "herokuapp.com",
+  "azurewebsites.net",
+  "web.app",
+  "firebaseapp.com",
+  "workers.dev",
+  "onrender.com",
+  "fly.dev",
+  "gitlab.io",
+  "surge.sh",
 ];
+
+const SECOND_LEVEL_LABELS = ["co", "com", "org", "net", "gov", "ac", "edu"];
 
 function isLocalHost(hostname: string): boolean {
   return hostname === "localhost" || hostname.endsWith(".localhost");
@@ -44,7 +63,18 @@ function isLocalHost(hostname: string): boolean {
 
 function parentDomain(hostname: string): string {
   const labels = hostname.split(".");
-  return labels.slice(-2).join(".");
+  const last = labels[labels.length - 1];
+  const second = labels[labels.length - 2];
+  // co.uk-style public suffix: the registrable domain has three labels.
+  const take =
+    last.length === 2 && SECOND_LEVEL_LABELS.includes(second) ? 3 : 2;
+  return labels.slice(-take).join(".");
+}
+
+function isSharedHosting(hostname: string): boolean {
+  return SHARED_HOSTING_SUFFIXES.some(
+    (suffix) => hostname === suffix || hostname.endsWith(`.${suffix}`),
+  );
 }
 
 /**
@@ -68,23 +98,30 @@ export function assertLiquidServiceOrigin(
   if (url.username || url.password) {
     throw new Error("The Liquid Auth service address must not contain credentials.");
   }
-  if (url.protocol !== "https:" || url.port) {
-    throw new Error("The Liquid Auth service must use https on the default port.");
+  if (url.protocol !== "https:") {
+    throw new Error("The Liquid Auth service must use https.");
   }
+  // Local development: a localhost service for a localhost wallet, on any port.
   if (isLocalHost(host) && isLocalHost(walletHost)) return;
+  if (url.port) {
+    throw new Error("The Liquid Auth service must use the default https port.");
+  }
   if (IPV4.test(host) || host.includes(":") || !host.includes(".")) {
     throw new Error("The Liquid Auth service must be a named host.");
   }
   if (LIQUID_TRUSTED_SERVICE_HOSTS.includes(host)) return;
-  if (
-    !isLocalHost(walletHost) &&
-    !IPV4.test(walletHost) &&
-    walletHost.includes(".") &&
-    (host === walletHost ||
-      host.endsWith(`.${parentDomain(walletHost)}`) ||
-      host === parentDomain(walletHost))
-  ) {
-    return;
+  if (!isLocalHost(walletHost) && !IPV4.test(walletHost) && walletHost.includes(".")) {
+    // The wallet's own host or one of its subdomains is always its own.
+    if (host === walletHost || host.endsWith(`.${walletHost}`)) return;
+    // A sibling on the same registrable domain (self-hosted deployments), unless that
+    // domain is shared with unrelated tenants (github.io, vercel.app, ...).
+    const parent = parentDomain(walletHost);
+    if (
+      !isSharedHosting(walletHost) &&
+      (host === parent || host.endsWith(`.${parent}`))
+    ) {
+      return;
+    }
   }
   throw new Error(
     `Refusing to link with the untrusted Liquid Auth service "${host}". Only liquid.biatec.io or a service on this wallet's own domain is accepted.`,
@@ -150,6 +187,8 @@ export function sanitizePeerMetadata<T extends PeerMetadataLike>(peer: T): T {
 
 export interface SignRequestEntry {
   sender?: string;
+  /** The transaction already carries a signature (co-signer's); the wallet does not sign it. */
+  preSigned?: boolean;
   /** ARC-1 `signers`: an empty array means the wallet must not sign this transaction. */
   signers?: string[];
 }
@@ -166,6 +205,7 @@ export function findUnauthorizedSenders(
   const approved = new Set(approvedAddresses);
   const rejected: number[] = [];
   entries.forEach((entry, index) => {
+    if (entry.preSigned) return;
     if (Array.isArray(entry.signers) && entry.signers.length === 0) return;
     if (!entry.sender || !approved.has(entry.sender)) rejected.push(index);
   });

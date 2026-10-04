@@ -20,6 +20,13 @@ test.describe("assertLiquidServiceOrigin", () => {
     expect(() => assertLiquidServiceOrigin("https://liquid.example.org", "wallet.example.org")).not.toThrow();
   });
 
+  test("a wallet on shared hosting cannot adopt sibling tenants as its service", () => {
+    expect(() => assertLiquidServiceOrigin("https://evil.github.io", "scholtz.github.io")).toThrow();
+    expect(() => assertLiquidServiceOrigin("https://evil.vercel.app", "wallet.vercel.app")).toThrow();
+    expect(() => assertLiquidServiceOrigin("https://evil.co.uk", "wallet.example.co.uk")).toThrow();
+    expect(() => assertLiquidServiceOrigin("https://liquid.example.co.uk", "wallet.example.co.uk")).not.toThrow();
+  });
+
   test("rejects an arbitrary host (phishing link)", () => {
     expect(() => assertLiquidServiceOrigin("https://evil.example", WALLET)).toThrow(/untrusted/);
     expect(() => assertLiquidServiceOrigin("https://liquid.biatec.io.evil.example", WALLET)).toThrow();
@@ -28,6 +35,7 @@ test.describe("assertLiquidServiceOrigin", () => {
   test("rejects http, ports, credentials, IPs", () => {
     expect(() => assertLiquidServiceOrigin("http://liquid.biatec.io", WALLET)).toThrow();
     expect(() => assertLiquidServiceOrigin("https://liquid.biatec.io:8443", WALLET)).toThrow();
+    expect(() => assertLiquidServiceOrigin("https://localhost:3000", "localhost")).not.toThrow();
     expect(() => assertLiquidServiceOrigin("https://user:pw@liquid.biatec.io", WALLET)).toThrow();
     expect(() => assertLiquidServiceOrigin("https://10.0.0.5", WALLET)).toThrow();
   });
@@ -50,13 +58,18 @@ test.describe("assertLiquidChallenge", () => {
     expect(() => assertLiquidChallenge(tx)).toThrow();
   });
 
-  test("rejects a short payload that starts with a signing prefix", () => {
-    const bytes = new Uint8Array(32).fill(1);
-    bytes.set(new TextEncoder().encode("MX"), 0);
-    expect(() => assertLiquidChallenge(bytes)).toThrow(/signing payload/);
-    const program = new Uint8Array(32).fill(1);
-    program.set(new TextEncoder().encode("Program"), 0);
-    expect(() => assertLiquidChallenge(program)).toThrow();
+  test("rejects a short LogicSig-style payload that starts with a signing prefix", () => {
+    for (const prefix of ["Program", "ProgData", "appID"]) {
+      const bytes = new Uint8Array(32).fill(1);
+      bytes.set(new TextEncoder().encode(prefix), 0);
+      expect(() => assertLiquidChallenge(bytes)).toThrow(/signing payload/);
+    }
+  });
+
+  test("does not reject a random nonce that merely starts with TX", () => {
+    const nonce = new Uint8Array(32).fill(1);
+    nonce.set(new TextEncoder().encode("TX"), 0);
+    expect(() => assertLiquidChallenge(nonce)).not.toThrow();
   });
 
   test("rejects too short and too long challenges", () => {
@@ -75,6 +88,12 @@ test.describe("findUnauthorizedSenders", () => {
   test("ignores group members the wallet must not sign", () => {
     expect(
       findUnauthorizedSenders([{ sender: "A" }, { sender: "OTHER", signers: [] }], ["A"]),
+    ).toEqual([]);
+  });
+
+  test("ignores already-signed co-signer transactions", () => {
+    expect(
+      findUnauthorizedSenders([{ sender: "A" }, { sender: "OTHER", preSigned: true }], ["A"]),
     ).toEqual([]);
   });
 

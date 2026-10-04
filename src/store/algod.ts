@@ -243,19 +243,25 @@ const actions: ActionTree<AlgodState, RootState> = {
     return createAlgodClient(rootState);
   },
   async getTransactionParams({ dispatch, rootState }) {
+    let params: algosdk.SuggestedParams;
     try {
       const algodClient = createAlgodClient(rootState);
-      const params = await algodClient.getTransactionParams().do();
-      // AW-2026-053: every caller builds transactions that get signed, so none may trust a
-      // node that reports another network's genesis.
-      assertParamsMatchNetwork(rootState, params);
-      return params;
+      params = await algodClient.getTransactionParams().do();
     } catch (error) {
       console.error("Failed to fetch transaction params", error);
+      return undefined;
+    }
+    // AW-2026-053: every caller builds transactions that get signed, so none may trust a
+    // node that reports another network's genesis. Callers only see "no params", so say why.
+    try {
+      assertParamsMatchNetwork(rootState, params);
+    } catch (error) {
+      console.error("Transaction params do not match the network", error);
       const message = error instanceof Error ? error.message : String(error);
       dispatch("toast/openError", message, { root: true });
       return undefined;
     }
+    return params;
   },
   async preparePayment(
     { dispatch, rootState },
@@ -380,19 +386,39 @@ const actions: ActionTree<AlgodState, RootState> = {
     }
   },
   async getAssetCreator(
-    { rootState },
+    { dispatch, rootState },
     { assetId }: { assetId: bigint | number | string },
   ): Promise<string | undefined> {
     const algodClient = createAlgodClient(rootState);
+    let creator: string | undefined;
     try {
       const info = await algodClient.getAssetByID(BigInt(assetId)).do();
-      return info.params?.creator.toString();
+      creator = info.params?.creator.toString();
     } catch (error) {
       // a deleted asset has no creator to return the balance to; any other
       // failure (network, node) must not be mistaken for that
       if (!isAssetNotFoundError(error)) throw error;
       return undefined;
     }
+    // AW-2026-054: the creator receives the whole remaining balance, so do not rely on the
+    // node alone - the indexer is a separately configured source and must agree.
+    let indexerCreator: string | undefined;
+    try {
+      const indexer: algosdk.Indexer = await dispatch("indexer/getIndexer", undefined, {
+        root: true,
+      });
+      const lookup = await indexer.lookupAssetByID(BigInt(assetId)).do();
+      indexerCreator = lookup.asset?.params?.creator?.toString();
+    } catch {
+      // indexer unreachable or asset not indexed: nothing to compare against
+      indexerCreator = undefined;
+    }
+    if (creator && indexerCreator && creator !== indexerCreator) {
+      throw new Error(
+        "The node and the indexer disagree about the asset creator. Refusing to opt out.",
+      );
+    }
+    return creator;
   },
   async optOutAsset(
     { dispatch, rootState },
