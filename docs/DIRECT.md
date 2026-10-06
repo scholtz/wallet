@@ -32,12 +32,14 @@ Safe, EIP-6963/7039: issue [#192](https://github.com/scholtz/wallet/issues/192).
 | Every inbound message must have `event.origin === hint` **and** `event.source === window.opener`, otherwise it is ignored with no reply | `shared/direct.ts` |
 | Every outbound message uses the hinted origin as `targetOrigin`, never `"*"`; `ready` carries nothing secret | `shared/direct.ts` |
 | Exactly **one** request per popup, within 30 s of `ready`; a second one is answered `4200` | `DirectRequestGate` |
+| The channel is **single-use for the window's lifetime**: a reload or a lock/unlock cycle never announces `ready` again (the popup then asks the user to start over from the site) | `shared/direct.ts` (`sessionStorage` + in-page flag) |
 | The origin is the identity; name/icon from the dApp are shown as unverified, icons are not rendered | `DirectPopup.vue` |
 | Signing needs a prior grant for that origin (`4100` otherwise); every transaction sender / ARC-60 signer must be a granted account | `store/direct.ts` + shared guards (`scripts/liquid/guards.ts`) |
-| Network binding: the request `genesisHash` must be the wallet's active network (`4004`), and every transaction's genesis hash must equal it; unknown network fails closed (custom node excepted) | `checkRequestNetwork`, `txnGenesisMatches` |
+| Network binding: the request `genesisHash` must be the wallet's active network (`4004`), every transaction's genesis hash must equal it, and it must equal the network the site was connected on; the built-in table of well-known networks wins over the remotely fetched genesis list; unknown network fails closed (custom node: only the per-site and per-transaction binding applies) | `checkRequestNetwork`, `txnGenesisMatches`, `store/direct.ts` |
 | ARC-0060: the domain must equal the host of the verified origin | `signer/signArc60Data` with `sessionOrigin = event.origin` |
 | An unanswered request is answered `4001` on `pagehide`, logout, auto-lock or when the opener closes | `shared/direct.ts`, `direct/reset` |
-| Grants are persisted with a read-modify-write against the stored record so a stale tab cannot overwrite another tab's accounts | `wallet/wcSetItemFresh` |
+| Grants are persisted with a read-modify-write against the stored record (under a cross-tab Web Lock), and `saveWallet` takes the persisted value of shared items, so neither a stale main tab nor a concurrent popup can restore a revoked grant or drop a new one | `wallet/wcSetItemFresh`, `wallet/saveWallet` |
+| Responses are idempotent: a request is answered once; an unexpected failure answers `4000` and ends the request instead of leaving the site waiting | `store/direct.ts` |
 
 ### What this does not protect against
 
@@ -62,7 +64,7 @@ dApp                                            wallet popup
         ◄── { …, reference:"arc0027:enable:response", result:{ providerId, genesisHash, accounts:[{address,name?}] } }
  ──► arc0027:sign_transactions:request  params:{ providerId, genesisHash, txns:[{txn, signers?, authAddr?, msig?, stxn?}] }
         ◄── …:response  result:{ providerId, stxns:[base64url | null] }
- ──► arc0060:sign_data:request          params:{ providerId, items:[StdSigData] }
+ ──► arc0060:sign_data:request          params:{ providerId, genesisHash?, items:[StdSigData] }   (genesisHash optional; if present it must be the granted network)
         ◄── …:response  result:{ providerId, signatures:[base64url | null] }
  ──► arc0027:disable:request            (revokes the grant of the sender's origin)
 ```
@@ -71,8 +73,15 @@ Errors use the Liquid/ARC-0027 codes: `4001` rejected, `4003` method not support
 `4004` network, `4100` not connected / unauthorized signer, `4200` invalid (also: second request),
 `4000` limits.
 
-`genesisHash` is base64 or base64url of the 32-byte hash. Reserved: `capabilities.genesisHashes`
-is currently empty.
+`genesisHash` is base64 or base64url of the 32-byte hash, padded or not. **Compare hashes by decoded
+bytes**: the wallet answers `enable` with a *normalized* hash (base64url, no padding).
+
+`providerId` in a **response** identifies the *wallet* (a fixed id) and is not an echo of the dApp's
+`providerId`; the dApp must not compare the two. Authenticity of a response comes from the browser
+(`event.origin` + `event.source`) and from the `requestId` correlation.
+
+Reserved: `capabilities.genesisHashes` is currently empty; `capabilities.methods` lists the full
+request references the wallet implements. Error payloads are `{ code, message, providerId }`.
 
 ## Hosting requirements
 

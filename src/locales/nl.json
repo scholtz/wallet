@@ -1066,6 +1066,7 @@
       "session_removed": "Site ontkoppeld",
       "waiting": "Wachten op de aanvragende site…",
       "expired": "De site heeft niet op tijd een verzoek gestuurd. Sluit dit venster en probeer het opnieuw vanaf de site.",
+      "refused": "Het verzoek is geweigerd. De site is op de hoogte gebracht van de reden; zie het bericht ervan.",
       "framed_error": "Deze pagina kan niet in een frame worden gebruikt.",
       "no_opener_error": "Open dit venster vanaf de site die verbinding wil maken. Het kan niet rechtstreeks worden gebruikt.",
       "bad_origin_error": "De aanvragende site kon niet worden geïdentificeerd. Sluit dit venster.",

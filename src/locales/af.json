@@ -1066,6 +1066,7 @@
       "session_removed": "Werf ontkoppel",
       "waiting": "Wag vir die versoekende werf…",
       "expired": "Die werf het nie betyds 'n versoek gestuur nie. Maak hierdie venster toe en probeer weer vanaf die werf.",
+      "refused": "Die versoek is geweier. Die werf is ingelig oor die rede; sien sy boodskap.",
       "framed_error": "Hierdie bladsy kan nie binne 'n raam gebruik word nie.",
       "no_opener_error": "Maak hierdie venster oop vanaf die werf wat wil koppel. Dit kan nie direk gebruik word nie.",
       "bad_origin_error": "Die versoekende werf kon nie geïdentifiseer word nie. Maak hierdie venster toe.",

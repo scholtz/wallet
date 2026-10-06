@@ -49,6 +49,15 @@
         {{ $t("connect.direct.waiting") }}
       </div>
 
+      <div v-else-if="status === 'refused'" data-testid="direct-refused">
+        <Message severity="error" class="my-2">
+          {{ $t("connect.direct.refused") }}
+        </Message>
+        <Button @click="closeWindow">
+          {{ $t("connect.direct.close_window") }}
+        </Button>
+      </div>
+
       <div v-else-if="status === 'expired'" data-testid="direct-expired">
         <Message severity="warn" class="my-2">
           {{ $t("connect.direct.expired") }}

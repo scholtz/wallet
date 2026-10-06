@@ -69,6 +69,7 @@ export type DirectPopupStatus =
   | "expired"
   | "enable"
   | "signing"
+  | "refused"
   | "done";
 
 export interface PendingEnable {
@@ -187,7 +188,14 @@ const actions: ActionTree<DirectState, RootState> = {
    * announces `ready` to the opener; nothing is listened for anywhere else in the app.
    */
   async startPopup({ commit, dispatch }) {
-    await dispatch("loadSavedSessions");
+    try {
+      await dispatch("loadSavedSessions");
+    } catch (error) {
+      // Unreadable wallet record: never start a channel we cannot serve; tell the user.
+      console.error("Failed to load Direct sessions", error);
+      commit("setPopup", { status: "refused" });
+      return;
+    }
     const started = directChannel.start({
       onRequest: (request, dappOrigin) => {
         void dispatch("handleRequest", { request, dappOrigin });
@@ -197,14 +205,39 @@ const actions: ActionTree<DirectState, RootState> = {
       },
     });
     if (!started.ok) {
-      commit("setPopup", { status: started.error, dappOrigin: null });
+      commit("setPopup", {
+        status: started.error === "consumed" ? "expired" : started.error,
+        dappOrigin: null,
+      });
       return;
     }
     commit("setPopup", { status: "waiting", dappOrigin: started.dappOrigin });
   },
 
-  /** One accepted request: validate it completely, then queue it for the user. */
+  /**
+   * One accepted request. Any unexpected failure still answers the dApp (4000) and ends the
+   * popup single request instead of leaving both sides waiting for a timeout.
+   */
   async handleRequest(
+    { commit, dispatch },
+    payload: { request: DirectRequestMessage; dappOrigin: string },
+  ) {
+    try {
+      await dispatch("processRequest", payload);
+    } catch (error) {
+      console.error("Direct request failed", error);
+      errorReply(
+        payload.request,
+        DirectErrorCode.unknown,
+        "The wallet could not process the request.",
+      );
+      commit("setPopup", { status: "refused" });
+      directChannel.closeAfterFlush();
+    }
+  },
+
+  /** Validate a request completely, then queue it for the user. */
+  async processRequest(
     { commit, dispatch, state, rootState },
     {
       request,
@@ -215,6 +248,7 @@ const actions: ActionTree<DirectState, RootState> = {
     const refuse = (admission: { code: number; reason: string }) => {
       console.error("Direct request refused:", admission.reason);
       errorReply(request, admission.code, admission.reason);
+      commit("setPopup", { status: "refused" });
       directChannel.closeAfterFlush();
     };
     const network = async (genesisHash: unknown) => {
@@ -243,6 +277,7 @@ const actions: ActionTree<DirectState, RootState> = {
           );
           return;
         }
+        // unknown: dApp-supplied metadata is untrusted; sanitizePeerMetadata type-checks it.
         const rawMetadata = params.metadata;
         const peer: DirectPeerMetadata =
           rawMetadata && typeof rawMetadata === "object"
@@ -286,6 +321,15 @@ const actions: ActionTree<DirectState, RootState> = {
               ? { code: DirectErrorCode.invalidInput, reason: "Invalid genesisHash." }
               : check,
           );
+          return;
+        }
+        // The grant was made on one network; a site cannot carry it over to another.
+        if (session.genesisHash !== check.normalized) {
+          refuse({
+            code: DirectErrorCode.networkNotSupported,
+            reason:
+              "This site was connected on a different network. Connect it again.",
+          });
           return;
         }
         const rawTransactions: AlgoSignTxnParam[] = Array.isArray(
@@ -368,6 +412,29 @@ const actions: ActionTree<DirectState, RootState> = {
           });
           return;
         }
+        // `genesisHash` is optional for sign_data; when given it must be the granted network.
+        if (request.params.genesisHash !== undefined) {
+          const check = await network(request.params.genesisHash);
+          if (!check.ok || !check.normalized) {
+            refuse(
+              check.ok
+                ? {
+                    code: DirectErrorCode.invalidInput,
+                    reason: "Invalid genesisHash.",
+                  }
+                : check,
+            );
+            return;
+          }
+          if (session.genesisHash !== check.normalized) {
+            refuse({
+              code: DirectErrorCode.networkNotSupported,
+              reason:
+                "This site was connected on a different network. Connect it again.",
+            });
+            return;
+          }
+        }
         // unknown cast: the dApp sends untrusted data; decodeArc60Items validates each item.
         const rawItems = (Array.isArray(request.params.items)
           ? request.params.items
@@ -448,6 +515,9 @@ const actions: ActionTree<DirectState, RootState> = {
     ) {
       throw new Error("Select at least one account of this wallet.");
     }
+    // Single-use: clear the pending request before anything is awaited, so two concurrent
+    // approvals cannot both answer it.
+    commit("setPendingEnable", null);
     const now = Date.now();
     const existing = state.sessions.find((s) => s.origin === dappOrigin);
     const session: StoredDirectSession = {
@@ -474,23 +544,25 @@ const actions: ActionTree<DirectState, RootState> = {
         wallet: getWalletBrandName(),
       }),
     );
-    commit("setPendingEnable", null);
     commit("setPopup", { status: "done" });
     directChannel.closeAfterFlush();
   },
 
   rejectEnable({ commit, state }) {
     const pending = state.pendingEnable;
+    commit("setPendingEnable", null);
     if (pending) {
       errorReply(pending, DirectErrorCode.cancelled, "User rejected.");
     }
-    commit("setPendingEnable", null);
     commit("setPopup", { status: "done" });
     directChannel.closeAfterFlush();
   },
 
   /** Send back the signed transactions (null for every position left unsigned). */
-  async sendResult({ commit, rootState }, { data }: RequestPayload) {
+  async sendResult({ commit, rootState, state }, { data }: RequestPayload) {
+    // Idempotent: a request is answered once (a double click must not send two responses).
+    if (!state.requests.some((r) => String(r.id) === String(data.id))) return;
+    commit("removeRequest", data.id);
     const signedMap: SignedTxnMap =
       (rootState.signer as { signed?: SignedTxnMap }).signed ?? {};
     const stxns = data.transactions.map((item) => {
@@ -512,18 +584,18 @@ const actions: ActionTree<DirectState, RootState> = {
         { providerId: DIRECT_WALLET_PROVIDER_ID, stxns },
       ),
     );
-    commit("removeRequest", data.id);
     commit("setPopup", { status: "done" });
     directChannel.closeAfterFlush();
   },
 
-  cancelRequest({ commit }, { data }: RequestPayload) {
+  cancelRequest({ commit, state }, { data }: RequestPayload) {
+    if (!state.requests.some((r) => String(r.id) === String(data.id))) return;
+    commit("removeRequest", data.id);
     errorReply(
       { id: String(data.id), reference: DirectReference.signTransactionsRequest },
       DirectErrorCode.cancelled,
       "User rejected.",
     );
-    commit("removeRequest", data.id);
     commit("setPopup", { status: "done" });
     directChannel.closeAfterFlush();
   },
@@ -571,7 +643,10 @@ const actions: ActionTree<DirectState, RootState> = {
     });
   },
 
-  sendSignDataResult({ commit }, { data }: SignDataRequestPayload) {
+  sendSignDataResult({ commit, state }, { data }: SignDataRequestPayload) {
+    if (!state.signDataRequests.some((r) => String(r.id) === String(data.id)))
+      return;
+    commit("removeSignDataRequest", data.id);
     const signatures = data.items.map((item) =>
       item.signature
         ? toBase64Url(new Uint8Array(Buffer.from(item.signature, "base64")))
@@ -583,18 +658,19 @@ const actions: ActionTree<DirectState, RootState> = {
         signatures,
       }),
     );
-    commit("removeSignDataRequest", data.id);
     commit("setPopup", { status: "done" });
     directChannel.closeAfterFlush();
   },
 
-  cancelSignDataRequest({ commit }, { data }: SignDataRequestPayload) {
+  cancelSignDataRequest({ commit, state }, { data }: SignDataRequestPayload) {
+    if (!state.signDataRequests.some((r) => String(r.id) === String(data.id)))
+      return;
+    commit("removeSignDataRequest", data.id);
     errorReply(
       { id: String(data.id), reference: DirectReference.signDataRequest },
       DirectErrorCode.cancelled,
       "User rejected.",
     );
-    commit("removeSignDataRequest", data.id);
     commit("setPopup", { status: "done" });
     directChannel.closeAfterFlush();
   },

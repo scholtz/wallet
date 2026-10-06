@@ -1066,6 +1066,7 @@
       "session_removed": "Sitio desconectado",
       "waiting": "Esperando al sitio solicitante…",
       "expired": "El sitio no envió una solicitud a tiempo. Cierre esta ventana e inténtelo de nuevo desde el sitio.",
+      "refused": "La solicitud fue rechazada. Se ha informado al sitio del motivo; consulte su mensaje.",
       "framed_error": "Esta página no se puede usar dentro de un marco.",
       "no_opener_error": "Abra esta ventana desde el sitio que quiere conectarse. No se puede usar directamente.",
       "bad_origin_error": "No se pudo identificar el sitio solicitante. Cierre esta ventana.",

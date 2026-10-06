@@ -18,6 +18,7 @@ import {
 
 const MAINNET_HASH_B64 = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=";
 const TESTNET_PREFIX = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe";
+const TESTNET_HASH_B64 = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
 
 test.describe("parseDappOrigin", () => {
   test("accepts https origins and loopback http origins", () => {
@@ -42,6 +43,11 @@ test.describe("parseDappOrigin", () => {
     expect(parseDappOrigin("https://user:pw@dapp.example.com")).toBeUndefined();
     expect(parseDappOrigin("HTTPS://DAPP.EXAMPLE.COM")).toBeUndefined();
     expect(parseDappOrigin("https://localhost.evil.com@attacker.com")).toBeUndefined();
+  });
+
+  test("rejects a trailing-dot hostname (a lookalike of the dotless origin)", () => {
+    expect(parseDappOrigin("https://example.com.")).toBeUndefined();
+    expect(parseDappOrigin("http://localhost.:5173")).toBeUndefined();
   });
 
   test("rejects non-strings and absurd lengths", () => {
@@ -181,11 +187,25 @@ test.describe("genesis hash handling", () => {
     expect(txnGenesisMatches(bytes.slice(0, 16), normalized)).toBe(false);
   });
 
-  test("expectedGenesisReference prefers the public list, then the built-in table", () => {
-    const list = [{ network: "mainnet-v1.0", CAIP10: "algorand:LISTWINS" }];
-    expect(expectedGenesisReference("mainnet-v1.0", list)).toBe("LISTWINS");
-    expect(expectedGenesisReference("testnet-v1.0", list)).toBe(TESTNET_PREFIX);
-    expect(expectedGenesisReference("unknown-net", list)).toBeUndefined();
+  test("expectedGenesisReference: built-in table wins, the remote list only covers unknown networks", () => {
+    const poisoned = [
+      { network: "mainnet-v1.0", CAIP10: "algorand:ATTACKERCONTROLLED" },
+      { network: "privnet-v1", CAIP10: "algorand:PRIVNETREFERENCE" },
+    ];
+    // A poisoned public list cannot weaken the binding of a well-known network.
+    expect(expectedGenesisReference("mainnet-v1.0", poisoned)).toBe("wGHE2Pwdvd7S12BL5FaOP20EGYesN73k");
+    expect(expectedGenesisReference("testnet-v1.0", poisoned)).toBe(TESTNET_PREFIX);
+    expect(expectedGenesisReference("privnet-v1", poisoned)).toBe("PRIVNETREFERENCE");
+    expect(expectedGenesisReference("unknown-net", poisoned)).toBeUndefined();
+  });
+
+  test("a poisoned genesis list cannot make a foreign hash pass for mainnet", () => {
+    const result = checkRequestNetwork({
+      requestGenesisHash: TESTNET_HASH_B64,
+      env: "mainnet-v1.0",
+      genesisList: [{ network: "mainnet-v1.0", CAIP10: "algorand:" + TESTNET_PREFIX }],
+    });
+    expect(result.ok).toBe(false);
   });
 
   test("checkRequestNetwork binds the request to the active network", () => {

@@ -27,6 +27,7 @@ export interface StoredDirectSession {
 
 const ADDRESS_PATTERN = /^[A-Z2-7]{58}$/;
 
+// unknown: stored/untrusted values are type-checked field by field.
 const isPeerMetadata = (value: unknown): value is DirectPeerMetadata => {
   if (!value || typeof value !== "object") return false;
   const peer = value as Record<string, unknown>;
@@ -40,6 +41,7 @@ const isPeerMetadata = (value: unknown): value is DirectPeerMetadata => {
 };
 
 /** Corrupt or tampered entries are dropped instead of throwing, so one cannot block the page. */
+// unknown: the persisted value is parsed from storage and may be tampered with or corrupt.
 export function parseStoredDirectSessions(
   value: unknown,
 ): StoredDirectSession[] {

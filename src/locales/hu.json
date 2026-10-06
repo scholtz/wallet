@@ -1066,6 +1066,7 @@
       "session_removed": "Oldal leválasztva",
       "waiting": "Várakozás a kérő oldalra…",
       "expired": "Az oldal nem küldött kérést időben. Zárja be ezt az ablakot, és próbálja újra az oldalról.",
+      "refused": "A kérést elutasítottuk. Az oldal megkapta az okot; nézze meg az üzenetét.",
       "framed_error": "Ez az oldal nem használható keretben.",
       "no_opener_error": "Ezt az ablakot a csatlakozni kívánó oldalról nyissa meg. Közvetlenül nem használható.",
       "bad_origin_error": "A kérő oldalt nem sikerült azonosítani. Zárja be ezt az ablakot.",

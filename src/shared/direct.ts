@@ -30,7 +30,29 @@ import {
 
 export type DirectStartResult =
   | { ok: true; dappOrigin: string }
-  | { ok: false; error: "framed" | "no_opener" | "bad_origin" };
+  | { ok: false; error: "framed" | "no_opener" | "bad_origin" | "consumed" };
+
+/**
+ * A popup serves exactly one channel for its whole lifetime: a lock/unlock cycle or a reload
+ * must not announce `ready` again (a dApp could push further requests through the same popup).
+ * sessionStorage survives a reload but is not shared with other windows.
+ */
+const CONSUMED_KEY = "direct:channel-consumed";
+const isConsumed = (): boolean => {
+  try {
+    return window.sessionStorage.getItem(CONSUMED_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+const markConsumed = (): void => {
+  try {
+    window.sessionStorage.setItem(CONSUMED_KEY, "1");
+  } catch {
+    // Storage unavailable: the in-page `used` flag below still covers lock/unlock cycles.
+  }
+};
+let usedInThisPage = false;
 
 export interface DirectChannelHandlers {
   onRequest: (request: DirectRequestMessage, dappOrigin: string) => void;
@@ -60,6 +82,9 @@ class DirectChannel {
     if (window.top !== window.self) {
       return { ok: false, error: "framed" };
     }
+    if (usedInThisPage || isConsumed()) {
+      return { ok: false, error: "consumed" };
+    }
     const opener = window.opener as Window | null;
     if (!opener || opener.closed) {
       return { ok: false, error: "no_opener" };
@@ -68,6 +93,8 @@ class DirectChannel {
     if (!dappOrigin) {
       return { ok: false, error: "bad_origin" };
     }
+    usedInThisPage = true;
+    markConsumed();
     this.opener = opener;
     this.handlers = handlers;
     this.gate = new DirectRequestGate(dappOrigin);

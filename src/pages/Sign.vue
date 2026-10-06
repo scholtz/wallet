@@ -1,5 +1,5 @@
 <template>
-  <main-layout>
+  <main-layout :minimal="$store.state.direct.popup.dappOrigin !== null">
     <div v-if="!$route.params.account">
       <h1>{{ $t("pay.select_account_for_payment") }}</h1>
 

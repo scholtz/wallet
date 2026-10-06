@@ -1066,6 +1066,7 @@
       "session_removed": "Site disconnected",
       "waiting": "Waiting for the requesting site…",
       "expired": "The site did not send a request in time. Close this window and try again from the site.",
+      "refused": "The request was refused. The site has been told why; see its message.",
       "framed_error": "This page cannot be used inside a frame.",
       "no_opener_error": "Open this window from the site that wants to connect. It cannot be used directly.",
       "bad_origin_error": "The requesting site could not be identified. Close this window.",

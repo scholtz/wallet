@@ -1066,6 +1066,7 @@
       "session_removed": "Sito disconnesso",
       "waiting": "In attesa del sito richiedente…",
       "expired": "Il sito non ha inviato una richiesta in tempo. Chiudi questa finestra e riprova dal sito.",
+      "refused": "La richiesta è stata rifiutata. Il sito è stato informato del motivo; consulta il suo messaggio.",
       "framed_error": "Questa pagina non può essere usata all'interno di un frame.",
       "no_opener_error": "Apri questa finestra dal sito che vuole connettersi. Non può essere usata direttamente.",
       "bad_origin_error": "Impossibile identificare il sito richiedente. Chiudi questa finestra.",

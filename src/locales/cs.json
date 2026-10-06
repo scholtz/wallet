@@ -1066,6 +1066,7 @@
       "session_removed": "Web odpojen",
       "waiting": "Čekání na žádající web…",
       "expired": "Web neodeslal požadavek včas. Zavřete toto okno a zkuste to znovu z webu.",
+      "refused": "Požadavek byl zamítnut. Web byl informován o důvodu; podívejte se na jeho zprávu.",
       "framed_error": "Tuto stránku nelze použít uvnitř rámce.",
       "no_opener_error": "Otevřete toto okno z webu, který se chce připojit. Nelze jej použít přímo.",
       "bad_origin_error": "Žádající web se nepodařilo identifikovat. Zavřete toto okno.",

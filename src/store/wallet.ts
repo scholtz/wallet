@@ -353,6 +353,20 @@ const toErrorMessage = (error: unknown): string => {
   }
   return String(error);
 };
+/**
+ * wc items shared between tabs: written only through wcSetItemFresh (read-modify-write against
+ * the persisted record, e.g. by the Biatec Direct popup). saveWallet serializes this tab's
+ * in-memory copy of the whole wallet, which may be stale for these keys, so it takes their
+ * current persisted value instead of the in-memory one.
+ */
+const SHARED_WC_KEYS = ["direct:sessions"];
+
+/** Serializes wallet-record writes across tabs (Web Locks); a plain call where unsupported. */
+const withWalletWriteLock = <T>(fn: () => Promise<T>): Promise<T> => {
+  const locks = typeof navigator !== "undefined" ? navigator.locks : undefined;
+  return locks ? locks.request("awallet-wallet-write", fn) : fn();
+};
+
 const getRequiredLocalStorage = (key: string): string => {
   const value = localStorage.getItem(key);
   if (value === null) {
@@ -1626,27 +1640,50 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     ) {
       return false; // check not to empty the wallet
     }
-    const walletRecord = await db.wallets.get({
-      name: this.state.wallet.name,
-    });
-    if (!walletRecord) return;
-    if (!walletRecord || !walletRecord.id) {
-      dispatch("toast/openError", "Error in wallet record update", {
-        root: true,
+    return withWalletWriteLock(async () => {
+      const walletRecord = await db.wallets.get({
+        name: this.state.wallet.name,
       });
-      return false;
-    }
-    if (this.state.wallet) {
-      const data = JSON.stringify(
-        this.state.wallet,
-        (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
-      );
-      const dataencoded = await encryptWalletData(data, pass, walletRecord.data);
-      if (walletRecord && dataencoded) {
-        walletRecord.data = dataencoded;
-        await db.wallets.update(walletRecord.id, walletRecord);
+      if (!walletRecord) return;
+      if (!walletRecord || !walletRecord.id) {
+        dispatch("toast/openError", "Error in wallet record update", {
+          root: true,
+        });
+        return false;
       }
-    }
+      if (this.state.wallet) {
+        // Shared wc items: keep what is persisted (another tab may have changed it).
+        const wc = { ...(this.state.wallet.wc ?? {}) };
+        try {
+          const persisted = JSON.parse(
+            await decryptWalletData(walletRecord.data, pass)
+          );
+          for (const key of SHARED_WC_KEYS) {
+            if (persisted.wc && key in persisted.wc) {
+              wc[key] = persisted.wc[key];
+            } else {
+              delete wc[key];
+            }
+          }
+        } catch (error) {
+          // Unreadable record: fall back to this tab's copy rather than failing the save.
+          console.error("Could not merge shared wallet items", error);
+        }
+        const data = JSON.stringify(
+          { ...this.state.wallet, wc },
+          (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
+        );
+        const dataencoded = await encryptWalletData(
+          data,
+          pass,
+          walletRecord.data
+        );
+        if (walletRecord && dataencoded) {
+          walletRecord.data = dataencoded;
+          await db.wallets.update(walletRecord.id, walletRecord);
+        }
+      }
+    });
   },
   async openWallet(
     { commit, dispatch },
@@ -1918,16 +1955,24 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       this.state.wallet.pass,
       getRequiredLocalStorage("rs1")
     ).toString(CryptoJS.enc.Utf8);
-    const record = await db.wallets.get({ name: this.state.wallet.name });
-    if (!pass || !record || record.id === undefined) {
-      throw new Error("Wallet record not found");
-    }
-    const json = JSON.parse(await decryptWalletData(record.data, pass));
-    json.wc = { ...(json.wc ?? {}), [key]: safeJsonStringify(value) };
-    const encoded = await encryptWalletData(JSON.stringify(json), pass, record.data);
-    if (!encoded) throw new Error("Failed to encrypt wallet data");
-    record.data = encoded;
-    await db.wallets.update(record.id, record);
+    await withWalletWriteLock(async () => {
+      const record = await db.wallets.get({ name: this.state.wallet.name });
+      if (!pass || !record || record.id === undefined) {
+        throw new Error("Wallet record not found");
+      }
+      const decrypted = await decryptWalletData(record.data, pass);
+      if (!decrypted) throw new Error("Could not read the wallet record");
+      const json = JSON.parse(decrypted);
+      json.wc = { ...(json.wc ?? {}), [key]: safeJsonStringify(value) };
+      const encoded = await encryptWalletData(
+        JSON.stringify(json),
+        pass,
+        record.data
+      );
+      if (!encoded) throw new Error("Failed to encrypt wallet data");
+      record.data = encoded;
+      await db.wallets.update(record.id, record);
+    });
     commit("wcSetItem", { key, value });
   },
   async wcRemoveItem({ dispatch, commit }, { key }: { key: string }) {

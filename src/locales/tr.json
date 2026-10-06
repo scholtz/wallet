@@ -1066,6 +1066,7 @@
       "session_removed": "Site bağlantısı kesildi",
       "waiting": "İstekte bulunan site bekleniyor…",
       "expired": "Site isteği zamanında göndermedi. Bu pencereyi kapatıp siteden tekrar deneyin.",
+      "refused": "İstek reddedildi. Site nedeni öğrendi; mesajına bakın.",
       "framed_error": "Bu sayfa bir çerçevenin içinde kullanılamaz.",
       "no_opener_error": "Bu pencereyi bağlanmak isteyen siteden açın. Doğrudan kullanılamaz.",
       "bad_origin_error": "İstekte bulunan site tanımlanamadı. Bu pencereyi kapatın.",

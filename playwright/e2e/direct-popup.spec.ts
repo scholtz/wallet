@@ -5,6 +5,7 @@
 // real cross-origin popup/postMessage path and the browser-supplied event.origin are exercised.
 import { test, expect, type BrowserContext, type Page } from "@playwright/test";
 import algosdk from "algosdk";
+import { createHash } from "node:crypto";
 import { DEFAULT_WALLET_PASSWORD, setupFreshWallet } from "../support/wallet";
 
 const WALLET_ORIGIN = "http://localhost:8080";
@@ -12,6 +13,7 @@ const DAPP_ORIGIN = "http://127.0.0.1:8080";
 const DAPP_URL = `${DAPP_ORIGIN}/__direct-dapp.html`;
 const MAINNET_HASH = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=";
 const TESTNET_HASH = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+const WALLET_PROVIDER_ID = "8f7a1c2e-5b3d-4e9f-a6c0-1d2e3f4a5b6c";
 const OTHER_ADDR = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
 
 const FIXTURE = `<!doctype html><html><body><button id="open">open</button><script>
@@ -78,6 +80,18 @@ async function waitForMessage(dapp: Page, predicate: (m: Msg) => boolean): Promi
 
 const isReady = (m: Msg) => m.data.reference === "biatec:direct:ready";
 const reply = (id: string) => (m: Msg) => m.data.requestId === id;
+
+/** ARC-60 AUTH item for `domain`, signed by `signerAddr` (authenticatorData = SHA-256(domain)). */
+function arc60Item(signerAddr: string, domain: string) {
+  return {
+    data: Buffer.from('{"type":"auth","nonce":"1"}').toString("base64"),
+    signer: Buffer.from(algosdk.decodeAddress(signerAddr).publicKey).toString("base64"),
+    domain,
+    authenticatorData: createHash("sha256").update(domain).digest().toString("base64"),
+    scope: 1,
+    encoding: "base64",
+  };
+}
 
 /** Account address of the freshly created wallet (from /account/<addr>). */
 const walletAddress = (page: Page) => new URL(page.url()).pathname.split("/").pop()!;
@@ -153,7 +167,31 @@ test.describe("Biatec Direct popup transport", () => {
     expect(response.origin).toBe(WALLET_ORIGIN);
     expect(response.data.reference).toBe("arc0027:enable:response");
     expect((response.data.result as { accounts: { address: string }[] }).accounts.map((a) => a.address)).toEqual([address]);
+    // Wire contract with the adapter library (biatec-wallet-use-wallet-client): the wallet answers
+    // with ITS provider id and a NORMALIZED (base64url, unpadded) genesis hash; the dApp must
+    // compare decoded bytes, never strings.
+    const result = response.data.result as Record<string, unknown>;
+    expect(Object.keys(result).sort()).toEqual(["accounts", "genesisHash", "providerId", "wallet"]);
+    expect(result.providerId).toBe(WALLET_PROVIDER_ID);
+    expect(result.genesisHash).toBe("wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8");
+    expect(Object.keys(response.data).sort()).toEqual(["id", "reference", "requestId", "result"]);
     await expectClosed(popup);
+
+    // A stale main tab (unlocked before the grant existed) re-saving the wallet must not wipe
+    // the grant the popup persisted.
+    await page.evaluate(() => {
+      const app = (document.querySelector("#app") as unknown as {
+        __vue_app__: { config: { globalProperties: { $store: { dispatch: (a: string) => Promise<unknown> } } } };
+      }).__vue_app__;
+      return app.config.globalProperties.$store.dispatch("wallet/saveWallet");
+    });
+    const persisted = await page.evaluate(() => {
+      const app = (document.querySelector("#app") as unknown as {
+        __vue_app__: { config: { globalProperties: { $store: { dispatch: (a: string, p: unknown) => Promise<unknown> } } } };
+      }).__vue_app__;
+      return app.config.globalProperties.$store.dispatch("wallet/wcGetItemFresh", { key: "direct:sessions" });
+    });
+    expect(JSON.stringify(persisted)).toContain(DAPP_ORIGIN);
 
     // The main wallet tab (unlocked BEFORE the popup stored the grant) sees the grant on the
     // Connect page's Direct tab and can revoke it. A reload would lock it, so navigate in-app.
@@ -385,5 +423,121 @@ test.describe("Biatec Direct popup transport", () => {
     await frame.locator("#new_wallet_button_open").click();
     await expect(frame.getByTestId("direct-error-framed")).toBeVisible();
     await expect(frame.getByTestId("direct-approve")).toHaveCount(0);
+  });
+  test("disable revokes the grant of the sender's origin", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, { id: "d1", reference: "arc0027:disable:request", params: { providerId: "d" } });
+    const response = await waitForMessage(dapp, reply("d1"));
+    expect(response.data.reference).toBe("arc0027:disable:response");
+    expect(response.data.error).toBeUndefined();
+    await expectClosed(popup);
+
+    // Signing is refused again.
+    const popup2 = await openPopup(context, dapp);
+    await unlock(popup2);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "d2",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: MAINNET_HASH, txns: [{ txn: paymentTxn(address).b64url }] },
+    });
+    const refused = await waitForMessage(dapp, reply("d2"));
+    expect((refused.data.error as { code: number }).code).toBe(4100);
+    expect(refused.data.error).toMatchObject({ providerId: WALLET_PROVIDER_ID });
+  });
+
+  test("a reloaded popup never announces ready again (single-use channel)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const dapp = await openDapp(context);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await dapp.evaluate(() => {
+      (window as unknown as { __messages: unknown[] }).__messages.length = 0;
+    });
+    await popup.reload();
+    await unlock(popup);
+    await expect(popup.getByTestId("direct-expired")).toBeVisible();
+    expect(await messages(dapp)).toHaveLength(0);
+    await expect(popup.getByTestId("direct-approve")).toHaveCount(0);
+  });
+
+  test("sign_data: an unapproved signer is refused (4100)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "a1",
+      reference: "arc0060:sign_data:request",
+      params: { providerId: "d", items: [arc60Item(OTHER_ADDR, "127.0.0.1")] },
+    });
+    const response = await waitForMessage(dapp, reply("a1"));
+    expect((response.data.error as { code: number }).code).toBe(4100);
+  });
+
+  test("sign_data: without a grant it is refused (4100); with one an approved signer gets a 64-byte signature", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+
+    const dapp0 = await openDapp(context);
+    const popup0 = await openPopup(context, dapp0);
+    await unlock(popup0);
+    await waitForMessage(dapp0, isReady);
+    await post(dapp0, {
+      id: "a0",
+      reference: "arc0060:sign_data:request",
+      params: { providerId: "d", items: [arc60Item(address, "127.0.0.1")] },
+    });
+    const refused = await waitForMessage(dapp0, reply("a0"));
+    expect((refused.data.error as { code: number }).code).toBe(4100);
+
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "a2",
+      reference: "arc0060:sign_data:request",
+      params: { providerId: "d", genesisHash: MAINNET_HASH, items: [arc60Item(address, "127.0.0.1")] },
+    });
+    await expect(popup.getByRole("button", { name: "Sign all" })).toBeVisible();
+    await popup.getByRole("button", { name: "Sign all" }).click();
+    await popup.getByRole("button", { name: "Send back to DApp" }).click();
+    const response = await waitForMessage(dapp, reply("a2"));
+    expect(response.data.error).toBeUndefined();
+    const signatures = (response.data.result as { providerId: string; signatures: (string | null)[] }).signatures;
+    expect(signatures).toHaveLength(1);
+    expect(Buffer.from(signatures[0]!, "base64url")).toHaveLength(64);
+    await expectClosed(popup);
+  });
+
+  test("sign_data: a domain that is not the verified origin's host is not signed", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    // The item is self-consistent (authenticatorData hashes its own domain) but claims another site.
+    await post(dapp, {
+      id: "a3",
+      reference: "arc0060:sign_data:request",
+      params: { providerId: "d", items: [arc60Item(address, "victim.example.com")] },
+    });
+    await expect(popup.getByRole("button", { name: "Sign all" })).toBeVisible();
+    await popup.getByRole("button", { name: "Sign all" }).click();
+    // Signing failed: still nothing to send back; rejecting answers 4001.
+    await expect(popup.getByRole("button", { name: "Send back to DApp" })).toBeDisabled();
+    await popup.getByRole("button", { name: "Reject" }).click();
+    const response = await waitForMessage(dapp, reply("a3"));
+    expect((response.data.error as { code: number }).code).toBe(4001);
   });
 });

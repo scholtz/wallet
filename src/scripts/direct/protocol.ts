@@ -55,6 +55,7 @@ export const DirectErrorCode = {
 export interface DirectRequestMessage {
   id: string;
   reference: string;
+  // unknown values: params are untrusted postMessage data; every field is validated where used.
   params: Record<string, unknown>;
 }
 
@@ -68,6 +69,7 @@ export interface DirectResponseMessage {
   id: string;
   requestId: string;
   reference: string;
+  // unknown: heterogeneous per-method result payloads, serialized as-is by postMessage.
   result?: unknown;
   error?: DirectErrorPayload;
 }
@@ -78,6 +80,7 @@ export interface DirectReadyMessage {
   capabilities: { methods: string[]; genesisHashes: string[] };
 }
 
+// unknown: type guard over untrusted postMessage data.
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
@@ -98,6 +101,7 @@ export function isLoopbackHost(hostname: string): boolean {
  * (no path, query, credentials, trailing slash). Used for both the `origin` URL hint and the
  * browser-supplied `event.origin`.
  */
+// unknown: the origin hint / event.origin come from an untrusted page; validated below.
 export function parseDappOrigin(value: unknown): string | undefined {
   if (typeof value !== "string" || value.length === 0 || value.length > 2048) {
     return undefined;
@@ -109,6 +113,10 @@ export function parseDappOrigin(value: unknown): string | undefined {
     return undefined;
   }
   if (url.origin !== value || url.origin === "null") {
+    return undefined;
+  }
+  // `https://example.com.` is a distinct origin that looks like `https://example.com`.
+  if (url.hostname.endsWith(".")) {
     return undefined;
   }
   if (url.protocol === "https:") {
@@ -138,6 +146,7 @@ export function parseOriginHint(search: string): string | undefined {
  * Structural validation of an untrusted inbound message. Everything the wallet later reads from
  * `params` is validated again where it is used; this only guarantees the envelope.
  */
+// unknown: `data` is an untrusted postMessage payload.
 export function parseRequestEnvelope(
   data: unknown,
 ): DirectRequestMessage | undefined {
@@ -160,6 +169,7 @@ export function parseRequestEnvelope(
 export function buildDirectResponse(
   requestId: string,
   reference: string,
+  // unknown: heterogeneous per-method result payloads.
   result: unknown,
 ): DirectResponseMessage {
   return { id: newMessageId(), requestId, reference, result };
@@ -254,6 +264,7 @@ const WELL_KNOWN_GENESIS_PREFIX: Record<string, string> = {
 };
 
 /** base64 / base64url genesis hash -> 32-byte base64url with padding removed; undefined if bad. */
+// unknown: the genesis hash is untrusted request data.
 export function normalizeGenesisHash(value: unknown): string | undefined {
   if (typeof value !== "string" || value.length < 43 || value.length > 44) {
     return undefined;
@@ -268,8 +279,8 @@ export function genesisCaipReference(normalized: string): string {
 }
 
 /**
- * Expected CAIP-2 reference of the wallet's active network: from the public genesis list when
- * it is loaded, otherwise from the built-in table of well-known networks. `undefined` when
+ * Expected CAIP-2 reference of the wallet's active network: the built-in table of well-known
+ * networks first, otherwise the public genesis list (for networks the wallet does not know). `undefined` when
  * the network cannot be determined (custom node, unknown env) — callers must then fail closed
  * unless the user configured a custom node.
  */
@@ -277,12 +288,16 @@ export function expectedGenesisReference(
   env: string,
   genesisList: { network: string; CAIP10: string }[],
 ): string | undefined {
+  // The built-in table wins: the public genesis list is fetched from a remote host and must not
+  // be able to weaken the binding of a well-known network.
+  const known = WELL_KNOWN_GENESIS_PREFIX[env];
+  if (known) return known;
   const entry = genesisList.find((n) => n.network === env);
   const caip = entry?.CAIP10;
   if (typeof caip === "string" && caip.startsWith("algorand:")) {
     return caip.slice("algorand:".length);
   }
-  return WELL_KNOWN_GENESIS_PREFIX[env];
+  return undefined;
 }
 
 export type NetworkCheck =
@@ -296,6 +311,7 @@ export type NetworkCheck =
  * check (`txnGenesisMatches`) still binds the transactions to the request's hash.
  */
 export function checkRequestNetwork(input: {
+  // unknown: untrusted request data, validated by normalizeGenesisHash.
   requestGenesisHash: unknown;
   env: string;
   genesisList: { network: string; CAIP10: string }[];
