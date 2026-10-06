@@ -263,6 +263,11 @@ const WELL_KNOWN_GENESIS_PREFIX: Record<string, string> = {
   "aramidmain-v1.0": "PgeQVJJgx_LYKJfIEz7dbfNPuXmDyJ-O",
 };
 
+/** True when the network is in the built-in table, so the remote genesis list is not needed. */
+export function isWellKnownNetwork(env: string): boolean {
+  return Object.prototype.hasOwnProperty.call(WELL_KNOWN_GENESIS_PREFIX, env);
+}
+
 /** base64 / base64url genesis hash -> 32-byte base64url with padding removed; undefined if bad. */
 // unknown: the genesis hash is untrusted request data.
 export function normalizeGenesisHash(value: unknown): string | undefined {

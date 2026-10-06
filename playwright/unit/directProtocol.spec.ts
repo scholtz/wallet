@@ -8,6 +8,7 @@ import {
   checkRequestNetwork,
   expectedGenesisReference,
   isDevelopmentOrigin,
+  isWellKnownNetwork,
   normalizeGenesisHash,
   parseDappOrigin,
   parseOriginHint,
@@ -61,6 +62,14 @@ test.describe("parseDappOrigin", () => {
     expect(parseDappOrigin("http://localhost.evil.com")).toBeUndefined();
     expect(parseDappOrigin("http://127.0.0.1.evil.com")).toBeUndefined();
   });
+});
+
+test("isWellKnownNetwork: built-in networks never need the remote genesis list", () => {
+  expect(isWellKnownNetwork("mainnet-v1.0")).toBe(true);
+  expect(isWellKnownNetwork("testnet-v1.0")).toBe(true);
+  expect(isWellKnownNetwork("privnet-v1")).toBe(false);
+  expect(isWellKnownNetwork("constructor")).toBe(false);
+  expect(isWellKnownNetwork("__proto__")).toBe(false);
 });
 
 test("isDevelopmentOrigin flags loopback origins only", () => {

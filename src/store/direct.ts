@@ -29,6 +29,7 @@ import {
   buildDirectError,
   buildDirectResponse,
   checkRequestNetwork,
+  isWellKnownNetwork,
   responseReference,
   txnGenesisMatches,
   type DirectRequestMessage,
@@ -254,11 +255,16 @@ const actions: ActionTree<DirectState, RootState> = {
     };
     // unknown: untrusted request data; validated by checkRequestNetwork / normalizeGenesisHash.
     const network = async (genesisHash: unknown) => {
-      const genesisList: { network: string; CAIP10: string }[] = (await dispatch(
-        "publicData/getGenesisList",
-        undefined,
-        { root: true },
-      )) ?? [];
+      // The remote genesis list is only consulted for networks the wallet does not know; for
+      // well-known ones (and custom nodes) never wait on a network fetch.
+      const needsList =
+        rootState.config.env !== "custom" &&
+        !isWellKnownNetwork(rootState.config.env);
+      const genesisList: { network: string; CAIP10: string }[] = needsList
+        ? ((await dispatch("publicData/getGenesisList", undefined, {
+            root: true,
+          })) ?? [])
+        : [];
       return checkRequestNetwork({
         requestGenesisHash: genesisHash,
         env: rootState.config.env,
