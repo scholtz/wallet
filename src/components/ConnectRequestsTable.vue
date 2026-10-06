@@ -9,16 +9,18 @@
       :value="requests"
       responsive-layout="scroll"
       selection-mode="single"
-      :paginator="true"
+      :paginator="!compact"
       :rows="20"
     >
       <Column expander style="width: 5rem" />
       <Column
+        v-if="!compact"
         field="id"
         :header="$t('connect.request_id')"
         :sortable="true"
       />
       <Column
+        v-if="!compact"
         field="method"
         :header="$t('connect.method')"
         :sortable="true"
@@ -579,6 +581,9 @@ const props = defineProps<{
 
 const requests = computed(() => props.requests);
 const ns = computed(() => props.namespace ?? "wc");
+// The Biatec Direct popup is narrow and holds exactly one request: drop the bookkeeping
+// columns and show the transactions straight away.
+const compact = computed(() => ns.value === "direct");
 
 const store = useStore();
 const { t } = useI18n();
@@ -597,6 +602,16 @@ const selectedRequest = ref<RequestItem | null>(null);
 const selectedTransaction = ref<TransactionWrapper | null>(null);
 const expandedRequests = ref<RequestItem[]>([]);
 const expandedTransactions = ref<TransactionWrapper[]>([]);
+
+watch(
+  requests,
+  (list) => {
+    if (!compact.value) return;
+    expandedRequests.value = [...list];
+    expandedTransactions.value = list.flatMap((r) => r.transactions ?? []);
+  },
+  { immediate: true },
+);
 
 watch(
   requests,
@@ -780,10 +795,13 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
       // payment/asset transactions in the same request, and auto-accepting
       // then would relay a response with unsigned transactions still
       // missing.
+      // In the Biatec Direct popup the single request goes back to the site as soon as
+      // everything in it is signed: signing is the approval, a second click would only
+      // get in the way in a small window.
       if (
-        isArc14Auth(txn) &&
-        isArc14OnlyRequest(parentRequest) &&
-        allTransactionsSigned(parentRequest)
+        allTransactionsSigned(parentRequest) &&
+        (ns.value === "direct" ||
+          (isArc14Auth(txn) && isArc14OnlyRequest(parentRequest)))
       ) {
         await clickAccept(parentRequest);
       }

@@ -1081,7 +1081,14 @@
       "close_window": "Pencereyi kapat",
       "done": "Tamam. Bu pencereyi kapatabilirsiniz.",
       "popup_help": "Yukarıdaki site adresinin beklediğiniz adres olduğundan emin olun. Hesapları yalnızca güvendiğiniz sitelerle paylaşın.",
-      "network": "Ağ"
+      "network": "Ağ",
+      "unlock_banner": "{origin} bu cüzdanı kullanmak istiyor. İsteği incelemek için kilidini açın.",
+      "waiting_title": "Site bekleniyor",
+      "waiting_hint": "30 saniye içinde bir şey görünmezse bu pencereyi kapatıp siteden tekrar deneyin.",
+      "shared_note": "Site seçilen adresleri görecek ve onlardan imza isteyebilecek. Hesap adlarınız gizli kalır.",
+      "sign_hint": "Aşağıdaki isteği inceleyin. İmzalamak sonucu doğrudan siteye gönderir ve bu pencereyi kapatır.",
+      "done_title": "Tamamlandı",
+      "problem_title": "Bir şeyler ters gitti"
     }
   },
   "arc56": {

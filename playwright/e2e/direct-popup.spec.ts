@@ -146,8 +146,12 @@ test.describe("Biatec Direct popup transport", () => {
 
     const dapp = await openDapp(context);
     const popup = await openPopup(context, dapp);
+    // While still locked the popup already says which site is asking (from the URL hint)...
+    await expect(popup.getByTestId("direct-unlock-banner")).toContainText(DAPP_ORIGIN);
     await unlock(popup);
-    await expect(popup.getByTestId("direct-origin")).toHaveText(DAPP_ORIGIN);
+    // ...and the window title names it too.
+    await expect(popup).toHaveTitle(/127\.0\.0\.1:8080/);
+    await expect(popup.getByTestId("direct-origin")).toHaveText(`http://127.0.0.1:8080`);
     // The ready announcement reached the dApp, from the popup, from the wallet origin.
     const ready = await waitForMessage(dapp, isReady);
     expect(ready.origin).toBe(WALLET_ORIGIN);
@@ -162,6 +166,8 @@ test.describe("Biatec Direct popup transport", () => {
     });
     await expect(popup.getByTestId("direct-approve")).toBeVisible();
     await expect(popup.getByTestId(`direct-account-${address}`)).toBeVisible();
+    // The approval shows the network by its friendly name, not the raw genesis id.
+    await expect(popup.getByTestId("direct-network")).toHaveText("Algorand Mainnet");
     await popup.getByTestId("direct-approve").click();
     const response = await waitForMessage(dapp, reply("enable-1"));
     expect(response.origin).toBe(WALLET_ORIGIN);
@@ -172,6 +178,8 @@ test.describe("Biatec Direct popup transport", () => {
     // compare decoded bytes, never strings.
     const result = response.data.result as Record<string, unknown>;
     expect(Object.keys(result).sort()).toEqual(["accounts", "genesisHash", "providerId", "wallet"]);
+    // Privacy: the user's account names are never sent to the site.
+    expect((result.accounts as Record<string, unknown>[]).every((a) => Object.keys(a).join() === "address")).toBe(true);
     expect(result.providerId).toBe(WALLET_PROVIDER_ID);
     expect(result.genesisHash).toBe("wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8");
     expect(Object.keys(response.data).sort()).toEqual(["id", "reference", "requestId", "result"]);
@@ -313,8 +321,8 @@ test.describe("Biatec Direct popup transport", () => {
       params: { providerId: "d", genesisHash: MAINNET_HASH, txns: [{ txn: b64url }] },
     });
     await expect(popup.getByRole("button", { name: "Sign transaction" })).toBeVisible();
+    // Signing is the approval: the result goes straight back, no second click.
     await popup.getByRole("button", { name: "Sign transaction" }).click();
-    await popup.getByRole("button", { name: "Send back to DApp" }).click();
     const response = await waitForMessage(dapp, reply("s1"));
     expect(response.data.error).toBeUndefined();
     const stxns = (response.data.result as { stxns: (string | null)[] }).stxns;
@@ -510,7 +518,6 @@ test.describe("Biatec Direct popup transport", () => {
     });
     await expect(popup.getByRole("button", { name: "Sign all" })).toBeVisible();
     await popup.getByRole("button", { name: "Sign all" }).click();
-    await popup.getByRole("button", { name: "Send back to DApp" }).click();
     const response = await waitForMessage(dapp, reply("a2"));
     expect(response.data.error).toBeUndefined();
     const signatures = (response.data.result as { providerId: string; signatures: (string | null)[] }).signatures;
@@ -599,7 +606,6 @@ test.describe("Biatec Direct popup transport", () => {
       params: { providerId: "d", genesisHash: MAINNET_HASH, items: [arc60Item(address, "127.0.0.1:8080")] },
     });
     await popup.getByRole("button", { name: "Sign all" }).click();
-    await popup.getByRole("button", { name: "Send back to DApp" }).click();
     const response = await waitForMessage(dapp, reply("p1"));
     expect(response.data.error).toBeUndefined();
     const signatures = (response.data.result as { signatures: (string | null)[] }).signatures;

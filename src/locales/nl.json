@@ -1081,7 +1081,14 @@
       "close_window": "Venster sluiten",
       "done": "Klaar. U kunt dit venster sluiten.",
       "popup_help": "Controleer of het siteadres hierboven het adres is dat u verwacht. Deel accounts alleen met sites die u vertrouwt.",
-      "network": "Netwerk"
+      "network": "Netwerk",
+      "unlock_banner": "{origin} vraagt deze wallet te gebruiken. Ontgrendel hem om het verzoek te bekijken.",
+      "waiting_title": "Wachten op de site",
+      "waiting_hint": "Als er binnen 30 seconden niets verschijnt, sluit dit venster en probeer het opnieuw vanaf de site.",
+      "shared_note": "De site ziet de geselecteerde adressen en kan ze vragen te ondertekenen. De namen van uw accounts blijven privé.",
+      "sign_hint": "Bekijk het verzoek hieronder. Ondertekenen stuurt het resultaat direct terug naar de site en sluit dit venster.",
+      "done_title": "Klaar",
+      "problem_title": "Er is iets misgegaan"
     }
   },
   "arc56": {

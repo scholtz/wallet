@@ -27,7 +27,6 @@ import {
   DirectReference,
   MAX_DIRECT_ENABLE_ACCOUNTS,
   buildDirectError,
-  boundedAccountName,
   buildDirectResponse,
   checkRequestNetwork,
   isWellKnownNetwork,
@@ -553,10 +552,8 @@ const actions: ActionTree<DirectState, RootState> = {
       buildDirectResponse(pending.id, DirectReference.enableResponse, {
         providerId: DIRECT_WALLET_PROVIDER_ID,
         genesisHash: pending.genesisHash,
-        accounts: unique.map((address) => ({
-          address,
-          name: boundedAccountName(eligible.get(address)?.name),
-        })),
+        // Addresses only: account names are the user's private labels and are not shared.
+        accounts: unique.map((address) => ({ address })),
         wallet: getWalletBrandName(),
       }),
     );

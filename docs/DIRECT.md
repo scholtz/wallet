@@ -61,7 +61,7 @@ dApp                                            wallet popup
                                                 (unlock if locked)  → posts to opener, targetOrigin = hint
         ◄── { v:1, reference:"biatec:direct:ready", capabilities:{ methods, genesisHashes } }
  ──► { id, reference:"arc0027:enable:request", params:{ providerId, genesisHash, metadata } }
-        ◄── { …, reference:"arc0027:enable:response", result:{ providerId, genesisHash, accounts:[{address,name?}] } }
+        ◄── { …, reference:"arc0027:enable:response", result:{ providerId, genesisHash, accounts:[{address}] } }   (addresses only; account names are private)
  ──► arc0027:sign_transactions:request  params:{ providerId, genesisHash, txns:[{txn, signers?, authAddr?, msig?, stxn?}] }
         ◄── …:response  result:{ providerId, stxns:[base64url | null] }
  ──► arc0060:sign_data:request          params:{ providerId, genesisHash?, items:[StdSigData] }   (genesisHash optional; if present it must be the granted network)

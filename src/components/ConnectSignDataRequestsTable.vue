@@ -181,6 +181,10 @@ const clickSign = async (
       requestId: data.id,
       index: item.index,
     });
+    // Biatec Direct popup: once every item is signed the result goes straight back.
+    if (ns.value === "direct" && data.items.every((i) => Boolean(i.signature))) {
+      await clickAccept(data);
+    }
   } catch (ex) {
     await store.dispatch("toast/openError", {
       severity: "error",

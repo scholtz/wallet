@@ -1081,7 +1081,14 @@
       "close_window": "Chiudi finestra",
       "done": "Fatto. Puoi chiudere questa finestra.",
       "popup_help": "Assicurati che l'indirizzo del sito sopra sia quello che ti aspetti. Condividi gli account solo con siti di cui ti fidi.",
-      "network": "Rete"
+      "network": "Rete",
+      "unlock_banner": "{origin} chiede di usare questo portafoglio. Sbloccalo per esaminare la richiesta.",
+      "waiting_title": "In attesa del sito",
+      "waiting_hint": "Se non compare nulla entro 30 secondi, chiudi questa finestra e riprova dal sito.",
+      "shared_note": "Il sito vedrà gli indirizzi selezionati e potrà chiedere loro di firmare. I nomi dei tuoi account restano privati.",
+      "sign_hint": "Esamina la richiesta qui sotto. Firmando, il risultato viene inviato direttamente al sito e questa finestra si chiude.",
+      "done_title": "Fatto",
+      "problem_title": "Qualcosa è andato storto"
     }
   },
   "arc56": {

@@ -36,8 +36,6 @@ export const DIRECT_CLOSE_DELAY_MS = 150;
 
 export const MAX_DIRECT_ID_LENGTH = 128;
 export const MAX_DIRECT_ENABLE_ACCOUNTS = 16;
-/** Longest account name sent to a dApp; the dApp library rejects longer ones. */
-export const MAX_DIRECT_ACCOUNT_NAME = 128;
 /** Sessions stored per wallet; the oldest is dropped beyond this. */
 export const MAX_DIRECT_SESSIONS = 100;
 
@@ -166,12 +164,6 @@ export function parseRequestEnvelope(
   }
   if (!isRecord(params)) return undefined;
   return { id, reference, params };
-}
-
-/** Account name as sent to a dApp: bounded, and omitted when empty. */
-export function boundedAccountName(name: string | undefined): string | undefined {
-  const bounded = (name ?? "").slice(0, MAX_DIRECT_ACCOUNT_NAME);
-  return bounded.length > 0 ? bounded : undefined;
 }
 
 export function buildDirectResponse(

@@ -1081,7 +1081,14 @@
       "close_window": "Ablak bezárása",
       "done": "Kész. Ezt az ablakot bezárhatja.",
       "popup_help": "Győződjön meg róla, hogy a fenti oldalcím a várt. Csak megbízható oldalakkal ossza meg fiókjait.",
-      "network": "Hálózat"
+      "network": "Hálózat",
+      "unlock_banner": "{origin} a tárca használatát kéri. Oldja fel a kérés áttekintéséhez.",
+      "waiting_title": "Várakozás az oldalra",
+      "waiting_hint": "Ha 30 másodpercen belül nem jelenik meg semmi, zárja be ezt az ablakot, és próbálja újra az oldalról.",
+      "shared_note": "Az oldal látni fogja a kiválasztott címeket, és aláírást kérhet tőlük. A fiókjai nevei titkosak maradnak.",
+      "sign_hint": "Tekintse át az alábbi kérést. Az aláírás az eredményt közvetlenül visszaküldi az oldalnak, és bezárja ezt az ablakot.",
+      "done_title": "Kész",
+      "problem_title": "Hiba történt"
     }
   },
   "arc56": {

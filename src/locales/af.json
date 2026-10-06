@@ -1081,7 +1081,14 @@
       "close_window": "Maak venster toe",
       "done": "Klaar. Jy kan hierdie venster toe maak.",
       "popup_help": "Maak seker die werfadres hierbo is die een wat jy verwag. Deel rekeninge net met werwe wat jy vertrou.",
-      "network": "Netwerk"
+      "network": "Netwerk",
+      "unlock_banner": "{origin} vra om hierdie beursie te gebruik. Ontsluit dit om die versoek na te gaan.",
+      "waiting_title": "Wag vir die werf",
+      "waiting_hint": "As niks binne 30 sekondes verskyn nie, maak hierdie venster toe en probeer weer vanaf die werf.",
+      "shared_note": "Die werf sal die gekose adresse sien en kan hulle vra om te teken. Jou rekeningname bly privaat.",
+      "sign_hint": "Gaan die versoek hieronder na. Ondertekening stuur die resultaat direk terug na die werf en maak hierdie venster toe.",
+      "done_title": "Klaar",
+      "problem_title": "Iets het verkeerd geloop"
     }
   },
   "arc56": {

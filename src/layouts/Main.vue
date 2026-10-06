@@ -9,6 +9,14 @@
       <slot />
     </div>
     <div v-else class="flex flex-column flex-grow-1">
+      <Message
+        v-if="directOriginHint"
+        severity="info"
+        class="m-3"
+        data-testid="direct-unlock-banner"
+      >
+        {{ $t("connect.direct.unlock_banner", { origin: directOriginHint }) }}
+      </Message>
       <Login />
     </div>
     <Footer v-if="$store.state.wallet.isOpen" />
@@ -21,6 +29,7 @@ import Navbar2 from "../components/Navbar2.vue";
 import Footer from "../components/Footer.vue";
 import Login from "../components/Login.vue";
 import { mapActions } from "vuex";
+import { parseOriginHint } from "../scripts/direct/protocol";
 export default {
   props: {
     /** Popup mode (Biatec Direct): no navbar, the Footer (auto-lock timer) stays. */
@@ -31,6 +40,13 @@ export default {
     Login,
     Footer,
     Toast,
+  },
+  computed: {
+    /** Biatec Direct popup, wallet still locked: the site asking for access (from the URL hint). */
+    directOriginHint() {
+      if (!this.minimal || this.$route?.path !== "/direct") return undefined;
+      return parseOriginHint(window.location.search);
+    },
   },
   created() {
     this.setVM({ _vm: this });

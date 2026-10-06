@@ -1081,7 +1081,14 @@
       "close_window": "Zavrieť okno",
       "done": "Hotovo. Toto okno môžete zavrieť.",
       "popup_help": "Uistite sa, že adresa webu vyššie je tá, ktorú očakávate. Účty zdieľajte len s webmi, ktorým dôverujete.",
-      "network": "Sieť"
+      "network": "Sieť",
+      "unlock_banner": "{origin} žiada o použitie tejto peňaženky. Odomknite ju a skontrolujte požiadavku.",
+      "waiting_title": "Čaká sa na web",
+      "waiting_hint": "Ak sa do 30 sekúnd nič nezobrazí, zatvorte toto okno a skúste to znova z webu.",
+      "shared_note": "Web uvidí vybrané adresy a môže ich požiadať o podpis. Názvy vašich účtov zostanú súkromné.",
+      "sign_hint": "Skontrolujte požiadavku nižšie. Podpísaním sa výsledok odošle priamo späť webu a toto okno sa zatvorí.",
+      "done_title": "Hotovo",
+      "problem_title": "Niečo sa pokazilo"
     }
   },
   "arc56": {

@@ -1081,7 +1081,14 @@
       "close_window": "Close window",
       "done": "Done. You can close this window.",
       "popup_help": "Make sure the site address above is the one you expect. Only share accounts with sites you trust.",
-      "network": "Network"
+      "network": "Network",
+      "unlock_banner": "{origin} is asking to use this wallet. Unlock it to review the request.",
+      "waiting_title": "Waiting for the site",
+      "waiting_hint": "If nothing appears within 30 seconds, close this window and try again from the site.",
+      "shared_note": "The site will see the selected addresses and may ask them to sign. Your account names stay private.",
+      "sign_hint": "Review the request below. Signing sends the result straight back to the site and closes this window.",
+      "done_title": "All done",
+      "problem_title": "Something went wrong"
     }
   },
   "arc56": {
