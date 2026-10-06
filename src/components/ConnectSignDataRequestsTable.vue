@@ -1,30 +1,37 @@
 <template>
-  <div v-if="requests.length > 0">
-    <h2 id="sign-data-requests">
+  <div v-if="requests.length > 0" :class="{ 'connect-requests-compact': compact }">
+    <h2 v-if="!compact" id="sign-data-requests">
       {{ $t("connect.arc60.requests") }}
     </h2>
     <DataTable
       v-model:expandedRows="expandedRequests"
       :value="requests"
       responsive-layout="scroll"
-      :paginator="true"
+      :paginator="!compact"
       :rows="20"
     >
       <Column expander style="width: 5rem" />
-      <Column field="id" :header="$t('connect.request_id')" :sortable="true" />
-      <Column :header="$t('connect.method')">
+      <Column
+        v-if="!compact"
+        field="id"
+        :header="$t('connect.request_id')"
+        :sortable="true"
+      />
+      <Column v-if="!compact" :header="$t('connect.method')">
         <template #body>algo_signData</template>
       </Column>
       <Column>
         <template #body="slotProps">
+          <!-- Direct popup: every item is reviewed and signed individually, never in one click. -->
           <Button
             class="m-1"
-            v-if="!atLeastOneSigned(slotProps.data)"
+            v-if="!compact && !atLeastOneSigned(slotProps.data)"
             @click="clickSignAll(slotProps.data)"
           >
             {{ $t("connect.sign_all") }}
           </Button>
           <Button
+            v-if="!compact || atLeastOneSigned(slotProps.data)"
             class="m-1"
             :disabled="
               !store.state.wallet.isOpen || !atLeastOneSigned(slotProps.data)
@@ -124,7 +131,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import AlgorandAddress from "./AlgorandAddress.vue";
 import { useStore } from "../store";
 import { Arc60ScopeType } from "../scripts/encoding/arc60";
@@ -141,10 +148,20 @@ const props = defineProps<{
 
 const requests = computed(() => props.requests);
 const ns = computed(() => props.namespace ?? "wc");
+// The Biatec Direct popup is narrow and holds exactly one request: show its items straight away.
+const compact = computed(() => ns.value === "direct");
 
 const store = useStore();
 
 const expandedRequests = ref<StoredSignDataRequest[]>([]);
+
+watch(
+  requests,
+  (list) => {
+    if (compact.value) expandedRequests.value = [...list];
+  },
+  { immediate: true },
+);
 
 const prolong = async () => {
   await store.dispatch("wallet/prolong");

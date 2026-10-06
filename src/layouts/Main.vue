@@ -12,7 +12,7 @@
       <Message
         v-if="directOriginHint"
         severity="info"
-        class="m-3"
+        class="m-3" style="overflow-wrap: anywhere"
         data-testid="direct-unlock-banner"
       >
         {{ $t("connect.direct.unlock_banner", { origin: directOriginHint }) }}

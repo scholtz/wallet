@@ -516,8 +516,11 @@ test.describe("Biatec Direct popup transport", () => {
       reference: "arc0060:sign_data:request",
       params: { providerId: "d", genesisHash: MAINNET_HASH, items: [arc60Item(address, "127.0.0.1")] },
     });
-    await expect(popup.getByRole("button", { name: "Sign all" })).toBeVisible();
-    await popup.getByRole("button", { name: "Sign all" }).click();
+    // The items are visible straight away and there is no sign-everything-at-once button.
+    await expect(popup.getByRole("button", { name: "Sign data" })).toBeVisible();
+    await expect(popup.getByText("Domain")).toBeVisible();
+    await expect(popup.getByRole("button", { name: "Sign all" })).toHaveCount(0);
+    await popup.getByRole("button", { name: "Sign data" }).click();
     const response = await waitForMessage(dapp, reply("a2"));
     expect(response.data.error).toBeUndefined();
     const signatures = (response.data.result as { providerId: string; signatures: (string | null)[] }).signatures;
@@ -539,10 +542,10 @@ test.describe("Biatec Direct popup transport", () => {
       reference: "arc0060:sign_data:request",
       params: { providerId: "d", items: [arc60Item(address, "victim.example.com")] },
     });
-    await expect(popup.getByRole("button", { name: "Sign all" })).toBeVisible();
-    await popup.getByRole("button", { name: "Sign all" }).click();
-    // Signing failed: still nothing to send back; rejecting answers 4001.
-    await expect(popup.getByRole("button", { name: "Send back to DApp" })).toBeDisabled();
+    await expect(popup.getByRole("button", { name: "Sign data" })).toBeVisible();
+    await popup.getByRole("button", { name: "Sign data" }).click();
+    // Signing failed: nothing was signed or returned; rejecting answers 4001.
+    await expect(popup.getByRole("button", { name: "Send back to DApp" })).toHaveCount(0);
     await popup.getByRole("button", { name: "Reject" }).click();
     const response = await waitForMessage(dapp, reply("a3"));
     expect((response.data.error as { code: number }).code).toBe(4001);
@@ -605,10 +608,58 @@ test.describe("Biatec Direct popup transport", () => {
       reference: "arc0060:sign_data:request",
       params: { providerId: "d", genesisHash: MAINNET_HASH, items: [arc60Item(address, "127.0.0.1:8080")] },
     });
-    await popup.getByRole("button", { name: "Sign all" }).click();
+    await popup.getByRole("button", { name: "Sign data" }).click();
     const response = await waitForMessage(dapp, reply("p1"));
     expect(response.data.error).toBeUndefined();
     const signatures = (response.data.result as { signatures: (string | null)[] }).signatures;
     expect(Buffer.from(signatures[0]!, "base64url")).toHaveLength(64);
+  });
+  test("signing view: warnings and fee stay visible; a partly signed request is not returned automatically", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    // Two transactions of the granted account; the first rekeys it to another address (dangerous).
+    const first = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: address,
+      receiver: address,
+      amount: 0,
+      rekeyTo: algosdk.generateAccount().addr.toString(),
+      suggestedParams: {
+        fee: 2000,
+        flatFee: true,
+        firstValid: 1000,
+        lastValid: 2000,
+        genesisHash: new Uint8Array(Buffer.from(MAINNET_HASH, "base64")),
+        genesisID: "mainnet-v1.0",
+      },
+    });
+    const second = paymentTxn(address).txn;
+    algosdk.assignGroupID([first, second]);
+    await post(dapp, {
+      id: "g1",
+      reference: "arc0027:sign_transactions:request",
+      params: {
+        providerId: "d",
+        genesisHash: MAINNET_HASH,
+        txns: [first, second].map((t) => ({ txn: Buffer.from(algosdk.encodeUnsignedTransaction(t)).toString("base64url") })),
+      },
+    });
+    // Everything a user must see before signing is in view without any extra click.
+    await expect(popup.getByRole("cell", { name: "Rekey To:" }).first()).toBeVisible();
+    await expect(popup.getByRole("cell", { name: "Fee:" }).first()).toBeVisible();
+    await expect(popup.getByText(/0\.002000 Algo/).first()).toBeVisible();
+    // Sign only the first: the request is NOT returned automatically.
+    await popup.getByRole("button", { name: "Sign", exact: true }).first().click();
+    await popup.waitForTimeout(1500);
+    expect((await messages(dapp)).some(reply("g1"))).toBe(false);
+    await expect(popup.getByRole("button", { name: "Send back to DApp" })).toBeVisible();
+    // Signing the rest completes the request and sends it back by itself.
+    await popup.getByRole("button", { name: "Sign", exact: true }).first().click();
+    const response = await waitForMessage(dapp, reply("g1"));
+    expect(response.data.error).toBeUndefined();
+    expect((response.data.result as { stxns: (string | null)[] }).stxns.every((x) => x !== null)).toBe(true);
   });
 });

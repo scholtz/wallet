@@ -253,6 +253,10 @@
                         />
                       </td>
                     </tr>
+                    <tr>
+                      <td>{{ $t("connect.fee") }}:</td>
+                      <td>{{ $filters.formatCurrency(Number(txProps.data.txn.fee)) }}</td>
+                    </tr>
                     <tr v-if="txProps.data.txn.type == 'axfer'">
                       <td>{{ $t("connect.asset") }}:</td>
                       <td>

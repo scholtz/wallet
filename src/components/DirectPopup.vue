@@ -35,7 +35,11 @@
     <template v-else>
       <section v-if="dappOrigin && originParts" class="direct-origin-card">
         <div class="direct-label">
-          {{ $t("connect.direct.origin_label") }}
+          {{
+            originConfirmed
+              ? $t("connect.direct.origin_label")
+              : $t("connect.direct.origin_label_claimed")
+          }}
         </div>
         <div class="direct-origin" data-testid="direct-origin">
           <i
@@ -216,6 +220,11 @@ const originParts = computed(() => {
     return null;
   }
 });
+
+/** The origin is browser-verified only once a message from it has been accepted. */
+const originConfirmed = computed(() =>
+  ["enable", "signing", "done"].includes(status.value),
+);
 
 const headline = computed(() => {
   switch (status.value) {
