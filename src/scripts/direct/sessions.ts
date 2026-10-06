@@ -27,6 +27,14 @@ export interface StoredDirectSession {
 
 const ADDRESS_PATTERN = /^[A-Z2-7]{58}$/;
 
+/** Keep exactly the four known fields: dApp-supplied extra keys are never persisted. */
+export const toPeerMetadata = (peer: DirectPeerMetadata): DirectPeerMetadata => ({
+  name: peer.name,
+  description: peer.description,
+  url: peer.url,
+  icons: [...peer.icons],
+});
+
 // unknown: stored/untrusted values are type-checked field by field.
 const isPeerMetadata = (value: unknown): value is DirectPeerMetadata => {
   if (!value || typeof value !== "object") return false;
@@ -84,7 +92,7 @@ export function parseStoredDirectSessions(
       lastUsedAt: typeof record.lastUsedAt === "number" ? record.lastUsedAt : 0,
     };
     if (isPeerMetadata(record.peer)) {
-      session.peer = record.peer;
+      session.peer = toPeerMetadata(record.peer);
     }
     seen.add(origin);
     sessions.push(session);

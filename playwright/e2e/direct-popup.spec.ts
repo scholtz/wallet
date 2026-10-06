@@ -540,4 +540,49 @@ test.describe("Biatec Direct popup transport", () => {
     const response = await waitForMessage(dapp, reply("a3"));
     expect((response.data.error as { code: number }).code).toBe(4001);
   });
+  test("concurrent grant updates are atomic: none is lost", async ({ page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const result = await page.evaluate(async (addr) => {
+      type Store = { dispatch: (a: string, p?: unknown) => Promise<unknown> };
+      const store = (document.querySelector("#app") as unknown as {
+        __vue_app__: { config: { globalProperties: { $store: Store } } };
+      }).__vue_app__.config.globalProperties.$store;
+      const make = (i: number) => ({
+        origin: `https://site${i}.example.com`,
+        addresses: [addr],
+        genesisHash: "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8",
+        createdAt: i,
+        lastUsedAt: i,
+      });
+      await Promise.all(
+        Array.from({ length: 8 }, (_, i) =>
+          store.dispatch("direct/updateSessions", (sessions: { origin: string }[]) => [...sessions, make(i)]),
+        ),
+      );
+      const persisted = (await store.dispatch("wallet/wcGetItemFresh", { key: "direct:sessions" })) as { origin: string }[];
+      return persisted.map((x) => x.origin).sort();
+    }, address);
+    expect(result).toEqual(Array.from({ length: 8 }, (_, i) => `https://site${i}.example.com`));
+  });
+
+  test("locking the wallet mid-request answers the dApp with 4001 and ends the channel", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const dapp = await openDapp(context);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, { id: "l1", reference: "arc0027:enable:request", params: { providerId: "d", genesisHash: MAINNET_HASH, metadata: {} } });
+    await expect(popup.getByTestId("direct-approve")).toBeVisible();
+    await popup.evaluate(() => {
+      const app = (document.querySelector("#app") as unknown as {
+        __vue_app__: { config: { globalProperties: { $store: { dispatch: (a: string) => Promise<unknown> } } } };
+      }).__vue_app__;
+      return app.config.globalProperties.$store.dispatch("wallet/logout");
+    });
+    const response = await waitForMessage(dapp, reply("l1"));
+    expect((response.data.error as { code: number }).code).toBe(4001);
+    // The locked popup shows the login, never the stale approval.
+    await expect(popup.getByTestId("direct-approve")).toHaveCount(0);
+  });
 });

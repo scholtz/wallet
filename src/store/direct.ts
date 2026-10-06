@@ -37,6 +37,7 @@ import {
   DIRECT_SESSIONS_STORAGE_KEY,
   parseStoredDirectSessions,
   pruneDirectSessions,
+  toPeerMetadata,
   upsertDirectSession,
   type DirectPeerMetadata,
   type StoredDirectSession,
@@ -282,7 +283,7 @@ const actions: ActionTree<DirectState, RootState> = {
         const rawMetadata = params.metadata;
         const peer: DirectPeerMetadata =
           rawMetadata && typeof rawMetadata === "object"
-            ? sanitizePeerMetadata(rawMetadata as DirectPeerMetadata)
+            ? toPeerMetadata(sanitizePeerMetadata(rawMetadata as DirectPeerMetadata))
             : { name: "", description: "", url: "", icons: [] };
         commit("setPendingEnable", {
           id: request.id,
@@ -702,19 +703,16 @@ const actions: ActionTree<DirectState, RootState> = {
     { commit, dispatch },
     update: (sessions: StoredDirectSession[]) => StoredDirectSession[],
   ) {
-    const current = parseStoredDirectSessions(
-      await dispatch(
-        "wallet/wcGetItemFresh",
-        { key: DIRECT_SESSIONS_STORAGE_KEY },
-        { root: true },
-      ),
-    );
-    const next = update(current);
-    await dispatch(
-      "wallet/wcSetItemFresh",
-      { key: DIRECT_SESSIONS_STORAGE_KEY, value: next },
+    // One critical section (read, update, write) under the cross-tab wallet write lock.
+    const next = (await dispatch(
+      "wallet/wcUpdateItemFresh",
+      {
+        key: DIRECT_SESSIONS_STORAGE_KEY,
+        update: (current: unknown) =>
+          update(parseStoredDirectSessions(current)),
+      },
       { root: true },
-    );
+    )) as StoredDirectSession[];
     commit("setSessions", next);
   },
 

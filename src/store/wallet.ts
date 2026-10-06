@@ -8,6 +8,7 @@ import cryptoRandomString from "crypto-random-string";
 import db from "../shared/db";
 import wc from "../shared/wc";
 import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
+import { mergeSharedWcItems } from "@/scripts/walletSharedItems";
 import type { RootState } from "./index";
 import {
   generateHdMnemonic,
@@ -354,14 +355,6 @@ const toErrorMessage = (error: unknown): string => {
   return String(error);
 };
 /**
- * wc items shared between tabs: written only through wcSetItemFresh (read-modify-write against
- * the persisted record, e.g. by the Biatec Direct popup). saveWallet serializes this tab's
- * in-memory copy of the whole wallet, which may be stale for these keys, so it takes their
- * current persisted value instead of the in-memory one.
- */
-const SHARED_WC_KEYS = ["direct:sessions"];
-
-/**
  * Serialize the wallet for persisting, taking the persisted value of the shared wc items
  * (decrypted with `persistedPass`) instead of this tab's possibly stale in-memory copy.
  */
@@ -370,18 +363,12 @@ const serializeWalletMergingSharedItems = async (
   persistedData: string,
   persistedPass: string
 ): Promise<string> => {
-  const wc = { ...(wallet.wc ?? {}) };
+  let wc = { ...(wallet.wc ?? {}) };
   try {
     const persisted = JSON.parse(
       await decryptWalletData(persistedData, persistedPass)
     );
-    for (const key of SHARED_WC_KEYS) {
-      if (persisted.wc && key in persisted.wc) {
-        wc[key] = persisted.wc[key];
-      } else {
-        delete wc[key];
-      }
-    }
+    wc = mergeSharedWcItems(wallet.wc, persisted.wc);
   } catch (error) {
     // Unreadable record: fall back to this tab's copy rather than failing the save.
     console.error("Could not merge shared wallet items", error);
@@ -928,10 +915,16 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     // starting clean. Each reset is best-effort and must never block the
     // rest of logout (e.g. state.pass/privateAccounts still being cleared)
     // if WalletConnect's own teardown throws.
+    // Biatec Direct first and on its own: a pending popup request must be answered (4001) and
+    // its channel closed even if another transport's teardown throws.
+    try {
+      await dispatch("direct/reset", null, { root: true });
+    } catch (err) {
+      console.error("Failed to reset direct module state", err);
+    }
     try {
       await dispatch("wc/reset", null, { root: true });
       await dispatch("liquid/reset", null, { root: true });
-      await dispatch("direct/reset", null, { root: true });
     } catch (err) {
       console.error("Failed to reset wc module state", err);
     }
@@ -1867,9 +1860,13 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       clearDerivedKeys();
       commit("signer/ledgerPendingReset", null, { root: true });
       try {
+        await dispatch("direct/reset", null, { root: true });
+      } catch (err) {
+        console.error("Failed to reset direct module state", err);
+      }
+      try {
         await dispatch("wc/reset", null, { root: true });
-      await dispatch("liquid/reset", null, { root: true });
-      await dispatch("direct/reset", null, { root: true });
+        await dispatch("liquid/reset", null, { root: true });
       } catch (err) {
         console.error("Failed to reset wc module state", err);
       }
@@ -1965,19 +1962,29 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     return item ? safeJsonParse(item) : undefined;
   },
   /**
-   * Read-modify-write of ONE wc item against the persisted record, without re-saving this
-   * tab's in-memory accounts. Used for state shared between tabs, so a stale tab cannot
-   * overwrite another tab's changes (accounts, other wc items) when it stores its own item.
+   * Atomic read-modify-write of ONE wc item against the persisted record, without re-saving this
+   * tab's in-memory accounts: `update` receives the persisted value and returns the new one, and
+   * the whole read-decrypt-update-encrypt-write runs inside the cross-tab write lock. Used for
+   * state shared between tabs, so a stale tab cannot overwrite another tab's changes (accounts,
+   * other wc items, a concurrent update of the same item).
    */
-  async wcSetItemFresh(
+  async wcUpdateItemFresh(
     { commit },
-    { key, value }: { key: string; value: unknown }
+    {
+      key,
+      update,
+    }: {
+      key: string;
+      // unknown: the item is an arbitrary JSON value owned by the calling module, which
+      // validates it (e.g. parseStoredDirectSessions).
+      update: (current: unknown) => unknown;
+    }
   ) {
     const pass = CryptoJS.AES.decrypt(
       this.state.wallet.pass,
       getRequiredLocalStorage("rs1")
     ).toString(CryptoJS.enc.Utf8);
-    await withWalletWriteLock(async () => {
+    const next = await withWalletWriteLock(async () => {
       const record = await db.wallets.get({ name: this.state.wallet.name });
       if (!pass || !record || record.id === undefined) {
         throw new Error("Wallet record not found");
@@ -1985,7 +1992,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       const decrypted = await decryptWalletData(record.data, pass);
       if (!decrypted) throw new Error("Could not read the wallet record");
       const json = JSON.parse(decrypted);
-      json.wc = { ...(json.wc ?? {}), [key]: safeJsonStringify(value) };
+      const stored = json.wc?.[key];
+      const updated = update(stored ? safeJsonParse(stored) : undefined);
+      json.wc = { ...(json.wc ?? {}), [key]: safeJsonStringify(updated) };
       const encoded = await encryptWalletData(
         JSON.stringify(json),
         pass,
@@ -1994,8 +2003,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       if (!encoded) throw new Error("Failed to encrypt wallet data");
       record.data = encoded;
       await db.wallets.update(record.id, record);
+      return updated;
     });
-    commit("wcSetItem", { key, value });
+    commit("wcSetItem", { key, value: next });
+    return next;
   },
   async wcRemoveItem({ dispatch, commit }, { key }: { key: string }) {
     await commit("wcRemoveItem", { key });

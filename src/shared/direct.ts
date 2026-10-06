@@ -78,13 +78,14 @@ class DirectChannel {
 
   /** Begin listening. Posts `ready` to the opener (only ever to the hinted origin). */
   start(handlers: DirectChannelHandlers): DirectStartResult {
-    this.stop();
     if (window.top !== window.self) {
       return { ok: false, error: "framed" };
     }
+    // Checked before stop(): a refused second start must not tear down the live channel.
     if (usedInThisPage || isConsumed()) {
       return { ok: false, error: "consumed" };
     }
+    this.stop();
     const opener = window.opener as Window | null;
     if (!opener || opener.closed) {
       return { ok: false, error: "no_opener" };
