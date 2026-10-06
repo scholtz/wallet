@@ -72,6 +72,7 @@ export type DirectPopupStatus =
   | "enable"
   | "signing"
   | "refused"
+  | "declined"
   | "done";
 
 export interface PendingEnable {
@@ -567,7 +568,7 @@ const actions: ActionTree<DirectState, RootState> = {
     if (pending) {
       errorReply(pending, DirectErrorCode.cancelled, "User rejected.");
     }
-    commit("setPopup", { status: "done" });
+    commit("setPopup", { status: "declined" });
     directChannel.closeAfterFlush();
   },
 
@@ -609,7 +610,7 @@ const actions: ActionTree<DirectState, RootState> = {
       DirectErrorCode.cancelled,
       "User rejected.",
     );
-    commit("setPopup", { status: "done" });
+    commit("setPopup", { status: "declined" });
     directChannel.closeAfterFlush();
   },
 
@@ -684,7 +685,7 @@ const actions: ActionTree<DirectState, RootState> = {
       DirectErrorCode.cancelled,
       "User rejected.",
     );
-    commit("setPopup", { status: "done" });
+    commit("setPopup", { status: "declined" });
     directChannel.closeAfterFlush();
   },
 

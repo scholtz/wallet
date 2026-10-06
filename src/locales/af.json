@@ -972,6 +972,9 @@
     "app_args": "App Args",
     "app_accounts": "App Accounts",
     "app_assets": "App Foreign Assets",
+    "on_complete": "By voltooiing",
+    "clawback_from": "Teruggeneem van",
+    "clawback_warning": "Die bate word van hierdie rekening geneem, nie van die sender af nie.",
     "boxes": "Boxes",
     "name": "Name",
     "genesis": "Genesis ID",
@@ -1087,9 +1090,12 @@
       "waiting_title": "Wag vir die werf",
       "waiting_hint": "As niks binne 30 sekondes verskyn nie, maak hierdie venster toe en probeer weer vanaf die werf.",
       "shared_note": "Die werf sal die gekose adresse sien en kan hulle vra om te teken. Jou rekeningname bly privaat.",
-      "sign_hint": "Gaan die versoek hieronder na. Ondertekening stuur die resultaat direk terug na die werf en maak hierdie venster toe.",
+      "sign_hint": "Gaan elke item hieronder na. Wanneer alles geteken is, gaan die resultaat outomaties terug na die werf.",
       "done_title": "Klaar",
-      "problem_title": "Iets het verkeerd geloop"
+      "problem_title": "Iets het verkeerd geloop",
+      "declined_title": "Versoek geweier",
+      "declined": "Jy het die versoek geweier. Die werf is ingelig.",
+      "network_custom": "Pasgemaakte node: die werf kies die netwerk (genesis {hash}…). Gaan net voort as jy hierdie werf vertrou."
     }
   },
   "arc56": {

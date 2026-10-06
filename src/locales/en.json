@@ -972,6 +972,9 @@
     "app_args": "App Args",
     "app_accounts": "App Accounts",
     "app_assets": "App Foreign Assets",
+    "on_complete": "On complete",
+    "clawback_from": "Clawback from",
+    "clawback_warning": "The asset is taken from this account, not from the sender.",
     "boxes": "Boxes",
     "name": "Name",
     "genesis": "Genesis ID",
@@ -1087,9 +1090,12 @@
       "waiting_title": "Waiting for the site",
       "waiting_hint": "If nothing appears within 30 seconds, close this window and try again from the site.",
       "shared_note": "The site will see the selected addresses and may ask them to sign. Your account names stay private.",
-      "sign_hint": "Review the request below. Signing sends the result straight back to the site and closes this window.",
+      "sign_hint": "Review each item below. When everything is signed, the result goes back to the site automatically.",
       "done_title": "All done",
-      "problem_title": "Something went wrong"
+      "problem_title": "Something went wrong",
+      "declined_title": "Request declined",
+      "declined": "You declined the request. The site has been told.",
+      "network_custom": "Custom node: the site chooses the network (genesis {hash}…). Only continue if you trust this site."
     }
   },
   "arc56": {

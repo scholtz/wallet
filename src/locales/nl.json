@@ -972,6 +972,9 @@
     "app_args": "App Args",
     "app_accounts": "App Accounts",
     "app_assets": "App Foreign Assets",
+    "on_complete": "Bij voltooiing",
+    "clawback_from": "Teruggenomen van",
+    "clawback_warning": "Het activum wordt van dit account genomen, niet van de afzender.",
     "boxes": "Boxes",
     "name": "Name",
     "genesis": "Genesis ID",
@@ -1087,9 +1090,12 @@
       "waiting_title": "Wachten op de site",
       "waiting_hint": "Als er binnen 30 seconden niets verschijnt, sluit dit venster en probeer het opnieuw vanaf de site.",
       "shared_note": "De site ziet de geselecteerde adressen en kan ze vragen te ondertekenen. De namen van uw accounts blijven privé.",
-      "sign_hint": "Bekijk het verzoek hieronder. Ondertekenen stuurt het resultaat direct terug naar de site en sluit dit venster.",
+      "sign_hint": "Bekijk elk onderdeel hieronder. Zodra alles is ondertekend, gaat het resultaat automatisch terug naar de site.",
       "done_title": "Klaar",
-      "problem_title": "Er is iets misgegaan"
+      "problem_title": "Er is iets misgegaan",
+      "declined_title": "Verzoek geweigerd",
+      "declined": "U hebt het verzoek geweigerd. De site is op de hoogte gebracht.",
+      "network_custom": "Aangepaste node: de site kiest het netwerk (genesis {hash}…). Ga alleen door als u deze site vertrouwt."
     }
   },
   "arc56": {

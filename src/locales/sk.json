@@ -972,6 +972,9 @@
     "app_args": "Argumenty aplikácie",
     "app_accounts": "Účty aplikácie",
     "app_assets": "ID aktív aplikácie",
+    "on_complete": "Po dokončení",
+    "clawback_from": "Odobraté z účtu",
+    "clawback_warning": "Aktívum je odobraté z tohto účtu, nie od odosielateľa.",
     "boxes": "Boxy",
     "name": "Názov",
     "genesis": "Genesis ID",
@@ -1087,9 +1090,12 @@
       "waiting_title": "Čaká sa na web",
       "waiting_hint": "Ak sa do 30 sekúnd nič nezobrazí, zatvorte toto okno a skúste to znova z webu.",
       "shared_note": "Web uvidí vybrané adresy a môže ich požiadať o podpis. Názvy vašich účtov zostanú súkromné.",
-      "sign_hint": "Skontrolujte požiadavku nižšie. Podpísaním sa výsledok odošle priamo späť webu a toto okno sa zatvorí.",
+      "sign_hint": "Skontrolujte každú položku nižšie. Keď je všetko podpísané, výsledok sa automaticky odošle späť webu.",
       "done_title": "Hotovo",
-      "problem_title": "Niečo sa pokazilo"
+      "problem_title": "Niečo sa pokazilo",
+      "declined_title": "Požiadavka zamietnutá",
+      "declined": "Požiadavku ste zamietli. Web bol informovaný.",
+      "network_custom": "Vlastný uzol: sieť určuje web (genesis {hash}…). Pokračujte, len ak tomuto webu dôverujete."
     }
   },
   "arc56": {

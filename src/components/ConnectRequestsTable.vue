@@ -36,7 +36,10 @@
         <template #body="slotProps">
           <Button
             class="m-1"
-            v-if="!atLeastOneSigned(slotProps.data)"
+            v-if="
+              !atLeastOneSigned(slotProps.data) &&
+              !(compact && slotProps.data.transactions?.length === 1)
+            "
             @click="clickSignAll(slotProps.data)"
           >
             {{ signAllLabel(slotProps.data) }}
@@ -253,7 +256,7 @@
                         />
                       </td>
                     </tr>
-                    <tr>
+                    <tr v-if="compact">
                       <td>{{ $t("connect.fee") }}:</td>
                       <td>{{ $filters.formatCurrency(Number(txProps.data.txn.fee)) }}</td>
                     </tr>
@@ -381,6 +384,34 @@
                       </td>
                     </tr>
 
+                    <tr
+                      v-if="
+                        txProps.data.type == 'appl' &&
+                        onCompleteLabel(txProps.data.txn)
+                      "
+                    >
+                      <td>{{ $t("connect.on_complete") }}:</td>
+                      <td>
+                        <Message
+                          v-if="onCompleteIsDestructive(txProps.data.txn)"
+                          severity="warn"
+                          class="m-0"
+                          >{{ onCompleteLabel(txProps.data.txn) }}</Message
+                        >
+                        <span v-else>{{ onCompleteLabel(txProps.data.txn) }}</span>
+                      </td>
+                    </tr>
+                    <tr v-if="clawbackFrom(txProps.data.txn)">
+                      <td>{{ $t("connect.clawback_from") }}:</td>
+                      <td>
+                        <Message severity="error" class="m-0">
+                          <AlgorandAddress
+                            :address="clawbackFrom(txProps.data.txn)"
+                          />
+                          {{ $t("connect.clawback_warning") }}
+                        </Message>
+                      </td>
+                    </tr>
                     <tr v-if="txProps.data.type == 'appl'">
                       <td>{{ $t("connect.app") }}:</td>
                       <td>
@@ -959,6 +990,47 @@ const encodeAddress = (addrValue: { publicKey?: Uint8Array }) => {
 // closeRemainderTo (pay) / assetCloseTo (axfer) sends the account's entire
 // remaining balance / asset holding to this address (audit finding
 // AW-2026-001) — it must always be surfaced with a prominent warning.
+/** What the app call does to the app besides running: shown so Update/Delete/CloseOut stand out. */
+const onCompleteLabel = (txn: algosdk.Transaction): string => {
+  const onComplete = txn?.applicationCall?.onComplete;
+  switch (onComplete) {
+    case algosdk.OnApplicationComplete.NoOpOC:
+      return "NoOp";
+    case algosdk.OnApplicationComplete.OptInOC:
+      return "OptIn";
+    case algosdk.OnApplicationComplete.CloseOutOC:
+      return "CloseOut";
+    case algosdk.OnApplicationComplete.ClearStateOC:
+      return "ClearState";
+    case algosdk.OnApplicationComplete.UpdateApplicationOC:
+      return "UpdateApplication";
+    case algosdk.OnApplicationComplete.DeleteApplicationOC:
+      return "DeleteApplication";
+    default:
+      return "";
+  }
+};
+const onCompleteIsDestructive = (txn: algosdk.Transaction): boolean => {
+  const onComplete = txn?.applicationCall?.onComplete;
+  return (
+    onComplete === algosdk.OnApplicationComplete.CloseOutOC ||
+    onComplete === algosdk.OnApplicationComplete.ClearStateOC ||
+    onComplete === algosdk.OnApplicationComplete.UpdateApplicationOC ||
+    onComplete === algosdk.OnApplicationComplete.DeleteApplicationOC
+  );
+};
+/** Asset clawback: the account the funds really leave (differs from the sender). */
+const clawbackFrom = (txn: algosdk.Transaction): string => {
+  try {
+    const assetSender = txn?.assetTransfer?.assetSender;
+    if (!assetSender?.publicKey) return "";
+    const from = encodeAddress(assetSender);
+    return from === algosdk.ALGORAND_ZERO_ADDRESS_STRING ? "" : from;
+  } catch {
+    return "";
+  }
+};
+
 const getCloseTo = (txn: algosdk.Transaction): string => {
   try {
     const closeAddr =

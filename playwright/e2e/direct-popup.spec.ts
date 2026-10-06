@@ -152,6 +152,8 @@ test.describe("Biatec Direct popup transport", () => {
     // ...and the window title names it too.
     await expect(popup).toHaveTitle(/127\.0\.0\.1:8080/);
     await expect(popup.getByTestId("direct-origin")).toHaveText(`http://127.0.0.1:8080`);
+    // Until a message from that origin was accepted the address is only claimed, not verified.
+    await expect(popup.getByText("claimed, not confirmed yet")).toBeVisible();
     // The ready announcement reached the dApp, from the popup, from the wallet origin.
     const ready = await waitForMessage(dapp, isReady);
     expect(ready.origin).toBe(WALLET_ORIGIN);
@@ -165,6 +167,8 @@ test.describe("Biatec Direct popup transport", () => {
       params: { providerId: "dapp", genesisHash: MAINNET_HASH, metadata: { name: "Fixture dApp", description: "", url: "", icons: [] } },
     });
     await expect(popup.getByTestId("direct-approve")).toBeVisible();
+    await expect(popup.getByText("verified by your browser")).toBeVisible();
+    await expect(popup.getByText("claimed, not confirmed yet")).toHaveCount(0);
     await expect(popup.getByTestId(`direct-account-${address}`)).toBeVisible();
     // The approval shows the network by its friendly name, not the raw genesis id.
     await expect(popup.getByTestId("direct-network")).toHaveText("Algorand Mainnet");
@@ -320,9 +324,9 @@ test.describe("Biatec Direct popup transport", () => {
       reference: "arc0027:sign_transactions:request",
       params: { providerId: "d", genesisHash: MAINNET_HASH, txns: [{ txn: b64url }] },
     });
-    await expect(popup.getByRole("button", { name: "Sign transaction" })).toBeVisible();
+    await expect(popup.getByRole("button", { name: "Sign", exact: true })).toBeVisible();
     // Signing is the approval: the result goes straight back, no second click.
-    await popup.getByRole("button", { name: "Sign transaction" }).click();
+    await popup.getByRole("button", { name: "Sign", exact: true }).click();
     const response = await waitForMessage(dapp, reply("s1"));
     expect(response.data.error).toBeUndefined();
     const stxns = (response.data.result as { stxns: (string | null)[] }).stxns;
@@ -661,5 +665,74 @@ test.describe("Biatec Direct popup transport", () => {
     const response = await waitForMessage(dapp, reply("g1"));
     expect(response.data.error).toBeUndefined();
     expect((response.data.result as { stxns: (string | null)[] }).stxns.every((x) => x !== null)).toBe(true);
+  });
+  test("signing view: clawback source and app-call OnComplete are visible; a plain link shows no request banner", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+
+    // A bare link to /direct (no opener) must not claim that a site is asking for access.
+    const bare = await context.newPage();
+    await bare.goto(`/direct?origin=${encodeURIComponent("https://trusted.example")}`);
+    await expect(bare.locator("#new_wallet_button_open")).toBeVisible();
+    await expect(bare.getByTestId("direct-unlock-banner")).toHaveCount(0);
+    await bare.close();
+
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    const sp = {
+      fee: 1000,
+      flatFee: true,
+      firstValid: 1000,
+      lastValid: 2000,
+      genesisHash: new Uint8Array(Buffer.from(MAINNET_HASH, "base64")),
+      genesisID: "mainnet-v1.0",
+    };
+    const victim = algosdk.generateAccount().addr.toString();
+    const clawback = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+      sender: address,
+      receiver: address,
+      assetSender: victim,
+      amount: 5,
+      assetIndex: 31566704,
+      suggestedParams: sp,
+    });
+    const del = algosdk.makeApplicationDeleteTxnFromObject({
+      sender: address,
+      appIndex: 1234,
+      suggestedParams: sp,
+    });
+    algosdk.assignGroupID([clawback, del]);
+    await post(dapp, {
+      id: "c1",
+      reference: "arc0027:sign_transactions:request",
+      params: {
+        providerId: "d",
+        genesisHash: MAINNET_HASH,
+        txns: [clawback, del].map((t) => ({ txn: Buffer.from(algosdk.encodeUnsignedTransaction(t)).toString("base64url") })),
+      },
+    });
+    // The account the funds really leave, and the destructive app call, are visible unclicked.
+    await expect(popup.getByRole("cell", { name: "Clawback from:", exact: true })).toBeVisible();
+    await expect(popup.getByText("not from the sender").first()).toBeVisible();
+    await expect(popup.getByRole("cell", { name: "On complete:", exact: true })).toBeVisible();
+    await expect(popup.getByText("DeleteApplication").first()).toBeVisible();
+  });
+
+  test("single transaction: exactly one Sign button in the popup", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "one",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: MAINNET_HASH, txns: [{ txn: paymentTxn(address).b64url }] },
+    });
+    await expect(popup.getByRole("button", { name: "Sign", exact: true })).toHaveCount(1);
+    await expect(popup.getByRole("button", { name: "Sign transaction" })).toHaveCount(0);
   });
 });

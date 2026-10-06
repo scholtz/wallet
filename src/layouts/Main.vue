@@ -45,6 +45,8 @@ export default {
     /** Biatec Direct popup, wallet still locked: the site asking for access (from the URL hint). */
     directOriginHint() {
       if (!this.minimal || this.$route?.path !== "/direct") return undefined;
+      // Only a real popup (has an opener, not framed): a plain link or iframe is not a request.
+      if (!window.opener || window.top !== window.self) return undefined;
       return parseOriginHint(window.location.search);
     },
   },

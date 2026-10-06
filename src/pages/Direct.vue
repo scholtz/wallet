@@ -19,8 +19,11 @@ store.dispatch("config/setNoRedirect");
 
 // The window title names the requesting site, so the popup is recognisable in the taskbar.
 watchEffect(() => {
-  const origin =
-    store.state.direct.popup.dappOrigin ?? parseOriginHint(window.location.search);
+  const hint =
+    window.opener && window.top === window.self
+      ? parseOriginHint(window.location.search)
+      : undefined;
+  const origin = store.state.direct.popup.dappOrigin ?? hint;
   document.title = origin
     ? `${new URL(origin).host} · ${getWalletBrandName()}`
     : getWalletBrandName();

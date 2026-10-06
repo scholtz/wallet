@@ -972,6 +972,9 @@
     "app_args": "Uygulama Argümanları",
     "app_accounts": "Uygulama Hesapları",
     "app_assets": "Uygulama Yabancı Varlıkları",
+    "on_complete": "Tamamlandığında",
+    "clawback_from": "Geri alınan hesap",
+    "clawback_warning": "Varlık gönderenden değil, bu hesaptan alınır.",
     "boxes": "Kutular",
     "name": "Ad",
     "genesis": "Genesis Kimliği",
@@ -1087,9 +1090,12 @@
       "waiting_title": "Site bekleniyor",
       "waiting_hint": "30 saniye içinde bir şey görünmezse bu pencereyi kapatıp siteden tekrar deneyin.",
       "shared_note": "Site seçilen adresleri görecek ve onlardan imza isteyebilecek. Hesap adlarınız gizli kalır.",
-      "sign_hint": "Aşağıdaki isteği inceleyin. İmzalamak sonucu doğrudan siteye gönderir ve bu pencereyi kapatır.",
+      "sign_hint": "Aşağıdaki her öğeyi inceleyin. Her şey imzalandığında sonuç otomatik olarak siteye döner.",
       "done_title": "Tamamlandı",
-      "problem_title": "Bir şeyler ters gitti"
+      "problem_title": "Bir şeyler ters gitti",
+      "declined_title": "İstek reddedildi",
+      "declined": "İsteği reddettiniz. Site bilgilendirildi.",
+      "network_custom": "Özel düğüm: ağı site seçiyor (genesis {hash}…). Yalnızca bu siteye güveniyorsanız devam edin."
     }
   },
   "arc56": {

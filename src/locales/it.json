@@ -972,6 +972,9 @@
     "app_args": "App Args",
     "app_accounts": "App Accounts",
     "app_assets": "App Foreign Assets",
+    "on_complete": "Al completamento",
+    "clawback_from": "Recupero da",
+    "clawback_warning": "L'asset viene prelevato da questo account, non dal mittente.",
     "boxes": "Boxes",
     "name": "Name",
     "genesis": "Genesis ID",
@@ -1087,9 +1090,12 @@
       "waiting_title": "In attesa del sito",
       "waiting_hint": "Se non compare nulla entro 30 secondi, chiudi questa finestra e riprova dal sito.",
       "shared_note": "Il sito vedrà gli indirizzi selezionati e potrà chiedere loro di firmare. I nomi dei tuoi account restano privati.",
-      "sign_hint": "Esamina la richiesta qui sotto. Firmando, il risultato viene inviato direttamente al sito e questa finestra si chiude.",
+      "sign_hint": "Esamina ogni elemento qui sotto. Quando tutto è firmato, il risultato torna automaticamente al sito.",
       "done_title": "Fatto",
-      "problem_title": "Qualcosa è andato storto"
+      "problem_title": "Qualcosa è andato storto",
+      "declined_title": "Richiesta rifiutata",
+      "declined": "Hai rifiutato la richiesta. Il sito è stato informato.",
+      "network_custom": "Nodo personalizzato: la rete è scelta dal sito (genesis {hash}…). Continua solo se ti fidi di questo sito."
     }
   },
   "arc56": {

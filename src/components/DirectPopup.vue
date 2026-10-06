@@ -1,12 +1,14 @@
 <template>
-  <div class="direct-popup" data-testid="direct-popup">
+  <div class="direct-popup" data-testid="direct-popup" aria-live="polite">
     <header class="direct-header">
       <span class="direct-header-icon" aria-hidden="true">
         <i :class="headerIcon" />
       </span>
       <div>
-        <div class="direct-kicker">{{ $t("connect.direct.tab") }}</div>
-        <h1 class="direct-headline">{{ headline }}</h1>
+        <div class="direct-kicker">{{ brand }} Direct</div>
+        <h1 ref="headingRef" class="direct-headline" tabindex="-1">
+          {{ headline }}
+        </h1>
       </div>
     </header>
 
@@ -70,6 +72,15 @@
         </small>
       </div>
 
+      <div v-else-if="status === 'declined'" class="direct-state" data-testid="direct-declined">
+        <Message severity="info" class="my-2">
+          {{ $t("connect.direct.declined") }}
+        </Message>
+        <Button @click="closeWindow">
+          {{ $t("connect.direct.close_window") }}
+        </Button>
+      </div>
+
       <div v-else-if="status === 'refused'" class="direct-state" data-testid="direct-refused">
         <Message severity="error" class="my-2">
           {{ $t("connect.direct.refused") }}
@@ -99,6 +110,18 @@
           <span class="direct-label">{{ $t("connect.direct.network") }}</span>
           <span data-testid="direct-network">{{ networkName }}</span>
         </div>
+        <Message
+          v-if="store.state.config.env === 'custom'"
+          severity="warn"
+          class="mt-2"
+          data-testid="direct-custom-network"
+        >
+          {{
+            $t("connect.direct.network_custom", {
+              hash: pendingEnable.genesisHash.slice(0, 8),
+            })
+          }}
+        </Message>
 
         <div class="direct-label mt-3">
           {{ $t("connect.direct.select_accounts") }}
@@ -182,7 +205,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useStore } from "@/store";
 import { isDirectEligibleAccount } from "@/store/direct";
@@ -190,8 +213,11 @@ import { isDevelopmentOrigin } from "@/scripts/direct/protocol";
 import ConnectRequestsTable from "@/components/ConnectRequestsTable.vue";
 import ConnectSignDataRequestsTable from "@/components/ConnectSignDataRequestsTable.vue";
 import AlgorandAddress from "@/components/AlgorandAddress.vue";
+import { getWalletBrandName } from "@/scripts/branding";
 
 const store = useStore();
+const brand = getWalletBrandName();
+const headingRef = ref<HTMLElement | null>(null);
 const { t } = useI18n();
 
 const status = computed(() => store.state.direct.popup.status);
@@ -228,6 +254,8 @@ const originConfirmed = computed(() =>
 
 const headline = computed(() => {
   switch (status.value) {
+    case "declined":
+      return t("connect.direct.declined_title");
     case "enable":
       return t("connect.direct.enable_title");
     case "signing":
@@ -243,6 +271,8 @@ const headline = computed(() => {
 
 const headerIcon = computed(() => {
   switch (status.value) {
+    case "declined":
+      return "pi pi-times-circle";
     case "enable":
       return "pi pi-link";
     case "signing":
@@ -254,6 +284,12 @@ const headerIcon = computed(() => {
     default:
       return "pi pi-exclamation-triangle";
   }
+});
+
+// Screen readers: announce each state change by moving focus to the headline.
+watch(status, async () => {
+  await nextTick();
+  headingRef.value?.focus();
 });
 
 // Least privilege: only the last active account is pre-selected.
@@ -433,5 +469,18 @@ const closeWindow = () => {
 }
 .direct-popup :deep(.connect-requests-compact .p-datatable-row-toggle-button) {
   display: none;
+}
+/* The (hidden) expander column would otherwise still reserve 5rem of a narrow popup. */
+.direct-popup
+  :deep(
+    .connect-requests-compact
+      .p-datatable-tbody
+      > tr:not(.p-datatable-row-expansion)
+      > td:first-child
+  ) {
+  display: none;
+}
+.direct-headline:focus {
+  outline: none;
 }
 </style>
