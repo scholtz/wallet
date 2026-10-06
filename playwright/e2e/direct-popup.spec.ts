@@ -585,4 +585,24 @@ test.describe("Biatec Direct popup transport", () => {
     // The locked popup shows the login, never the stale approval.
     await expect(popup.getByTestId("direct-approve")).toHaveCount(0);
   });
+  test("sign_data: use-wallet style domain (host with port) of the verified origin is signed", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    // use-wallet sets domain = location.host, which includes the port (127.0.0.1:8080 here).
+    await post(dapp, {
+      id: "p1",
+      reference: "arc0060:sign_data:request",
+      params: { providerId: "d", genesisHash: MAINNET_HASH, items: [arc60Item(address, "127.0.0.1:8080")] },
+    });
+    await popup.getByRole("button", { name: "Sign all" }).click();
+    await popup.getByRole("button", { name: "Send back to DApp" }).click();
+    const response = await waitForMessage(dapp, reply("p1"));
+    expect(response.data.error).toBeUndefined();
+    const signatures = (response.data.result as { signatures: (string | null)[] }).signatures;
+    expect(Buffer.from(signatures[0]!, "base64url")).toHaveLength(64);
+  });
 });
