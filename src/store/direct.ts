@@ -29,6 +29,7 @@ import {
   buildDirectError,
   buildDirectResponse,
   checkRequestNetwork,
+  directUnsupportedReason,
   isWellKnownNetwork,
   responseReference,
   txnGenesisMatches,
@@ -87,7 +88,12 @@ export interface DirectState {
   sessions: StoredDirectSession[];
   requests: StoredRequest[];
   signDataRequests: StoredSignDataRequest[];
-  popup: { status: DirectPopupStatus; dappOrigin: string | null };
+  popup: {
+    status: DirectPopupStatus;
+    dappOrigin: string | null;
+    /** True once a message from the hinted origin (and opener) was accepted. */
+    verified: boolean;
+  };
   pendingEnable: PendingEnable | null;
 }
 
@@ -105,7 +111,7 @@ const state = (): DirectState => ({
   sessions: [],
   requests: [],
   signDataRequests: [],
-  popup: { status: "idle", dappOrigin: null },
+  popup: { status: "idle", dappOrigin: null, verified: false },
   pendingEnable: null,
 });
 
@@ -121,9 +127,16 @@ const mutations: MutationTree<DirectState> = {
   },
   setPopup(
     currentState,
-    popup: { status: DirectPopupStatus; dappOrigin?: string | null },
+    popup: {
+      status: DirectPopupStatus;
+      dappOrigin?: string | null;
+      verified?: boolean;
+    },
   ) {
     currentState.popup.status = popup.status;
+    if (popup.verified !== undefined) {
+      currentState.popup.verified = popup.verified;
+    }
     if (popup.dappOrigin !== undefined) {
       currentState.popup.dappOrigin = popup.dappOrigin;
     }
@@ -247,6 +260,8 @@ const actions: ActionTree<DirectState, RootState> = {
       dappOrigin,
     }: { request: DirectRequestMessage; dappOrigin: string },
   ) {
+    // A request got through the gate: the origin is now browser-verified, not just claimed.
+    commit("setPopup", { status: state.popup.status, verified: true });
     // Refuse = answer with an error and end this popup's single request.
     const refuse = (admission: { code: number; reason: string }) => {
       console.error("Direct request refused:", admission.reason);
@@ -371,6 +386,17 @@ const actions: ActionTree<DirectState, RootState> = {
           console.error("Undecodable Direct transactions", error);
           refuse({ code: REQUEST_ERROR.invalid, reason: "Invalid transaction." });
           return;
+        }
+        // Only transaction kinds the popup shows completely are signed (see protocol.ts).
+        for (const tx of transactions) {
+          const unsupported = directUnsupportedReason({
+            type: tx.type,
+            applicationCall: tx.txn?.applicationCall,
+          });
+          if (unsupported) {
+            refuse({ code: REQUEST_ERROR.invalid, reason: unsupported });
+            return;
+          }
         }
         // Every transaction must be bound to the network the request (and the wallet) is on.
         if (

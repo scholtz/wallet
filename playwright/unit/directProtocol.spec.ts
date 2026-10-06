@@ -5,6 +5,7 @@ import {
   DIRECT_ACCEPT_WINDOW_MS,
   DirectErrorCode,
   DirectRequestGate,
+  directUnsupportedReason,
   checkRequestNetwork,
   expectedGenesisReference,
   isDevelopmentOrigin,
@@ -243,5 +244,48 @@ test.describe("genesis hash handling", () => {
     expect(
       checkRequestNetwork({ requestGenesisHash: MAINNET_HASH_B64, env: "custom", genesisList: [] }).ok,
     ).toBe(true);
+  });
+});
+
+test.describe("directUnsupportedReason (what the compact popup can fully show)", () => {
+  test("allows payments, asset transfers and calls to existing apps", () => {
+    expect(directUnsupportedReason({ type: "pay" })).toBeUndefined();
+    expect(directUnsupportedReason({ type: "axfer" })).toBeUndefined();
+    expect(
+      directUnsupportedReason({ type: "appl", applicationCall: { appIndex: 1234n } }),
+    ).toBeUndefined();
+    expect(
+      directUnsupportedReason({
+        type: "appl",
+        applicationCall: { appIndex: 5, approvalProgram: new Uint8Array(0), clearProgram: new Uint8Array(0) },
+      }),
+    ).toBeUndefined();
+  });
+
+  test("refuses types whose security-relevant fields are not shown", () => {
+    for (const type of ["acfg", "afrz", "keyreg", "stpf", "hb", "unknown", undefined]) {
+      expect(directUnsupportedReason({ type })).toMatch(/not supported/);
+    }
+  });
+
+  test("refuses app creation and program updates", () => {
+    expect(directUnsupportedReason({ type: "appl", applicationCall: { appIndex: 0n } })).toMatch(/Creating/);
+    expect(directUnsupportedReason({ type: "appl" })).toMatch(/Creating/);
+    expect(
+      directUnsupportedReason({
+        type: "appl",
+        applicationCall: { appIndex: 7n, approvalProgram: new Uint8Array([1, 2, 3]) },
+      }),
+    ).toMatch(/Updating/);
+    expect(
+      directUnsupportedReason({
+        type: "appl",
+        applicationCall: { appIndex: 7n, clearProgram: new Uint8Array([1]) },
+      }),
+    ).toMatch(/Updating/);
+  });
+
+  test("a hostile type string is truncated in the message", () => {
+    expect(directUnsupportedReason({ type: "x".repeat(500) })!.length).toBeLessThan(120);
   });
 });

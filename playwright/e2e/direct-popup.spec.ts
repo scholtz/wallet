@@ -149,8 +149,8 @@ test.describe("Biatec Direct popup transport", () => {
     // While still locked the popup already says which site is asking (from the URL hint)...
     await expect(popup.getByTestId("direct-unlock-banner")).toContainText(DAPP_ORIGIN);
     await unlock(popup);
-    // ...and the window title names it too.
-    await expect(popup).toHaveTitle(/127\.0\.0\.1:8080/);
+    // The window title stays neutral until the origin is verified.
+    await expect(popup).toHaveTitle(/^AWallet$|^Biatec/);
     await expect(popup.getByTestId("direct-origin")).toHaveText(`http://127.0.0.1:8080`);
     // Until a message from that origin was accepted the address is only claimed, not verified.
     await expect(popup.getByText("claimed, not confirmed yet")).toBeVisible();
@@ -168,6 +168,8 @@ test.describe("Biatec Direct popup transport", () => {
     });
     await expect(popup.getByTestId("direct-approve")).toBeVisible();
     await expect(popup.getByText("verified by your browser")).toBeVisible();
+    // ...and then names the verified site in the window title.
+    await expect(popup).toHaveTitle(/127\.0\.0\.1:8080/);
     await expect(popup.getByText("claimed, not confirmed yet")).toHaveCount(0);
     await expect(popup.getByTestId(`direct-account-${address}`)).toBeVisible();
     // The approval shows the network by its friendly name, not the raw genesis id.
@@ -734,5 +736,77 @@ test.describe("Biatec Direct popup transport", () => {
     });
     await expect(popup.getByRole("button", { name: "Sign", exact: true })).toHaveCount(1);
     await expect(popup.getByRole("button", { name: "Sign transaction" })).toHaveCount(0);
+  });
+  test("transaction kinds the popup cannot show completely are refused (4200)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const sp = {
+      fee: 1000,
+      flatFee: true,
+      firstValid: 1000,
+      lastValid: 2000,
+      genesisHash: new Uint8Array(Buffer.from(MAINNET_HASH, "base64")),
+      genesisID: "mainnet-v1.0",
+    };
+    const attacker = algosdk.generateAccount().addr.toString();
+    const cases: { name: string; txn: algosdk.Transaction; reason: RegExp }[] = [
+      {
+        name: "asset config handing clawback to another account",
+        txn: algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
+          sender: address,
+          total: 1,
+          decimals: 0,
+          defaultFrozen: false,
+          clawback: attacker,
+          suggestedParams: sp,
+        }),
+        reason: /acfg/,
+      },
+      {
+        name: "asset freeze",
+        txn: algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject({
+          sender: address,
+          assetIndex: 31566704,
+          freezeTarget: attacker,
+          frozen: true,
+          suggestedParams: sp,
+        }),
+        reason: /afrz/,
+      },
+      {
+        name: "application creation",
+        txn: algosdk.makeApplicationCreateTxnFromObject({
+          sender: address,
+          approvalProgram: new Uint8Array([6, 129, 1]),
+          clearProgram: new Uint8Array([6, 129, 1]),
+          numGlobalByteSlices: 0,
+          numGlobalInts: 0,
+          numLocalByteSlices: 0,
+          numLocalInts: 0,
+          onComplete: algosdk.OnApplicationComplete.NoOpOC,
+          suggestedParams: sp,
+        }),
+        reason: /Creating/,
+      },
+    ];
+    const dapp = await connectSite(context, address);
+    for (const [i, c] of cases.entries()) {
+      const popup = await openPopup(context, dapp);
+      await unlock(popup);
+      await waitForMessage(dapp, isReady);
+      await post(dapp, {
+        id: `u${i}`,
+        reference: "arc0027:sign_transactions:request",
+        params: {
+          providerId: "d",
+          genesisHash: MAINNET_HASH,
+          txns: [{ txn: Buffer.from(algosdk.encodeUnsignedTransaction(c.txn)).toString("base64url") }],
+        },
+      });
+      const response = await waitForMessage(dapp, reply(`u${i}`));
+      expect((response.data.error as { code: number }).code, c.name).toBe(4200);
+      expect((response.data.error as { message: string }).message, c.name).toMatch(c.reason);
+      await expectClosed(popup);
+    }
   });
 });

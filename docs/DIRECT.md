@@ -39,6 +39,7 @@ Safe, EIP-6963/7039: issue [#192](https://github.com/scholtz/wallet/issues/192).
 | ARC-0060: the domain must equal the verified origin's `hostname` or its `host` (hostname plus a non-default port, which is what use-wallet sends); another host or port is refused | `signer/signArc60Data` with `sessionOrigin = event.origin` |
 | An unanswered request is answered `4001` on `pagehide`, logout, auto-lock or when the opener closes | `shared/direct.ts`, `direct/reset` |
 | Grants are persisted with a read-modify-write against the stored record (under a cross-tab Web Lock), and `saveWallet` takes the persisted value of shared items, so neither a stale main tab nor a concurrent popup can restore a revoked grant or drop a new one | `wallet/wcUpdateItemFresh`, `wallet/saveWallet` |
+| Only transactions the compact popup shows **completely** are signed: payments, asset transfers (with the clawback source) and calls to existing apps (with their OnComplete). Asset configuration, freeze, key registration, state proofs, heartbeats and app creation/update are refused with `4200` (use WalletConnect for those) | `directUnsupportedReason`, `store/direct.ts` |
 | Responses are idempotent: a request is answered once; an unexpected failure answers `4000` and ends the request instead of leaving the site waiting | `store/direct.ts` |
 
 ### What this does not protect against

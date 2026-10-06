@@ -9,7 +9,6 @@ import { watchEffect } from "vue";
 import MainLayout from "@/layouts/Main.vue";
 import DirectPopup from "@/components/DirectPopup.vue";
 import { useStore } from "@/store";
-import { parseOriginHint } from "@/scripts/direct/protocol";
 import { getWalletBrandName } from "@/scripts/branding";
 
 const store = useStore();
@@ -17,15 +16,13 @@ const store = useStore();
 // accounts list. This runs while the wallet is still locked (the layout shows Login).
 store.dispatch("config/setNoRedirect");
 
-// The window title names the requesting site, so the popup is recognisable in the taskbar.
+// The window title names the requesting site once it is verified, so the popup is
+// recognisable in the taskbar; before that it shows only the wallet brand.
 watchEffect(() => {
-  const hint =
-    window.opener && window.top === window.self
-      ? parseOriginHint(window.location.search)
-      : undefined;
-  const origin = store.state.direct.popup.dappOrigin ?? hint;
-  document.title = origin
-    ? `${new URL(origin).host} · ${getWalletBrandName()}`
-    : getWalletBrandName();
+  const popup = store.state.direct.popup;
+  document.title =
+    popup.verified && popup.dappOrigin
+      ? `${new URL(popup.dappOrigin).host} · ${getWalletBrandName()}`
+      : getWalletBrandName();
 });
 </script>

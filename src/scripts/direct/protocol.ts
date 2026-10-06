@@ -263,6 +263,41 @@ const WELL_KNOWN_GENESIS_PREFIX: Record<string, string> = {
   "aramidmain-v1.0": "PgeQVJJgx_LYKJfIEz7dbfNPuXmDyJ-O",
 };
 
+/**
+ * Transaction kinds Biatec Direct signs. The compact popup is the user's only review surface,
+ * so it signs only what that surface shows completely: payments, asset transfers (incl. the
+ * clawback source) and calls to EXISTING apps with their OnComplete. Asset configuration, freeze,
+ * key registration, state proofs, heartbeats and app creation/update (programs) are refused;
+ * a dApp needing them uses WalletConnect, whose full review screen shows them.
+ * Returns the refusal reason, or undefined when the transaction is allowed.
+ */
+export function directUnsupportedReason(tx: {
+  type?: string;
+  applicationCall?: {
+    appIndex?: bigint | number;
+    approvalProgram?: Uint8Array;
+    clearProgram?: Uint8Array;
+  };
+}): string | undefined {
+  switch (tx.type) {
+    case "pay":
+    case "axfer":
+      return undefined;
+    case "appl": {
+      const call = tx.applicationCall;
+      if (!call || Number(call.appIndex ?? 0) === 0) {
+        return "Creating an application is not supported by Biatec Direct.";
+      }
+      if ((call.approvalProgram?.length ?? 0) > 0 || (call.clearProgram?.length ?? 0) > 0) {
+        return "Updating application programs is not supported by Biatec Direct.";
+      }
+      return undefined;
+    }
+    default:
+      return `Transaction type "${String(tx.type).slice(0, 16)}" is not supported by Biatec Direct.`;
+  }
+}
+
 /** True when the network is in the built-in table, so the remote genesis list is not needed. */
 export function isWellKnownNetwork(env: string): boolean {
   return Object.prototype.hasOwnProperty.call(WELL_KNOWN_GENESIS_PREFIX, env);

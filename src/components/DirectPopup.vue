@@ -1,5 +1,5 @@
 <template>
-  <div class="direct-popup" data-testid="direct-popup" aria-live="polite">
+  <div class="direct-popup" data-testid="direct-popup">
     <header class="direct-header">
       <span class="direct-header-icon" aria-hidden="true">
         <i :class="headerIcon" />
@@ -248,9 +248,7 @@ const originParts = computed(() => {
 });
 
 /** The origin is browser-verified only once a message from it has been accepted. */
-const originConfirmed = computed(() =>
-  ["enable", "signing", "done"].includes(status.value),
-);
+const originConfirmed = computed(() => store.state.direct.popup.verified);
 
 const headline = computed(() => {
   switch (status.value) {
