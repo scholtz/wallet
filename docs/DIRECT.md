@@ -83,6 +83,18 @@ bytes**: the wallet answers `enable` with a *normalized* hash (base64url, no pad
 Reserved: `capabilities.genesisHashes` is currently empty; `capabilities.methods` lists the full
 request references the wallet implements. Error payloads are `{ code, message, providerId }`.
 
+## Rules for dApp implementers
+
+- Open every request with `window.open` from a real user gesture, with a **unique window name per
+  request** and the popup URL `<wallet>/direct?origin=<encodeURIComponent(location.origin)>`. A reused
+  name can navigate a popup that is still open from an earlier request; the wallet treats a window
+  as single-use and will not announce `ready` again (the user sees "start over from the site").
+- Only `https:` origins and `http:` loopback origins (`localhost`, `*.localhost`, `127.0.0.1`, `[::1]`;
+  no trailing dot) are accepted; anything else gets an error page in the popup and **no message**.
+- Wait for `ready` (checking `event.origin` and `event.source`), then send the single request
+  immediately; close the popup yourself if the request fails locally.
+- `biatec-wallet-use-wallet-client` implements all of this.
+
 ## Hosting requirements
 
 - Serve the wallet with `Content-Security-Policy: frame-ancestors 'none'` (done in

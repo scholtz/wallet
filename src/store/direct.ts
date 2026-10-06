@@ -193,7 +193,7 @@ const actions: ActionTree<DirectState, RootState> = {
     } catch (error) {
       // Unreadable wallet record: never start a channel we cannot serve; tell the user.
       console.error("Failed to load Direct sessions", error);
-      commit("setPopup", { status: "refused" });
+      commit("setPopup", { status: "expired" });
       return;
     }
     const started = directChannel.start({
@@ -251,6 +251,7 @@ const actions: ActionTree<DirectState, RootState> = {
       commit("setPopup", { status: "refused" });
       directChannel.closeAfterFlush();
     };
+    // unknown: untrusted request data; validated by checkRequestNetwork / normalizeGenesisHash.
     const network = async (genesisHash: unknown) => {
       const genesisList: { network: string; CAIP10: string }[] = (await dispatch(
         "publicData/getGenesisList",
@@ -530,9 +531,16 @@ const actions: ActionTree<DirectState, RootState> = {
     if (pending.peer.name || pending.peer.url) {
       session.peer = pending.peer;
     }
-    await dispatch("updateSessions", (sessions: StoredDirectSession[]) =>
-      upsertDirectSession(sessions, session),
-    );
+    try {
+      await dispatch("updateSessions", (sessions: StoredDirectSession[]) =>
+        upsertDirectSession(sessions, session),
+      );
+    } catch (error) {
+      // Persisting the grant failed (e.g. unreadable wallet record): the dApp has not been
+      // answered yet, so restore the request and let the user retry or reject.
+      commit("setPendingEnable", pending);
+      throw error;
+    }
     directChannel.send(
       buildDirectResponse(pending.id, DirectReference.enableResponse, {
         providerId: DIRECT_WALLET_PROVIDER_ID,

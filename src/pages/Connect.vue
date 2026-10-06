@@ -1068,7 +1068,12 @@ watch(
 );
 
 onMounted(async () => {
-  await store.dispatch("direct/loadSavedSessions");
+  try {
+    await store.dispatch("direct/loadSavedSessions");
+  } catch (error) {
+    // Unreadable record: the Direct tab shows no sites; the other tabs must keep working.
+    console.error("Failed to load Direct sessions", error);
+  }
   addr.value = accountAddress.value;
   await reloadAccount();
   await prolong();
