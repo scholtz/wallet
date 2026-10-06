@@ -387,4 +387,42 @@ const closeWindow = () => {
 .direct-peer {
   margin-bottom: 0.5rem;
 }
+
+/* Signing view: the shared request table, fitted to a narrow popup. */
+.direct-popup :deep(.connect-requests-compact .p-datatable-thead),
+.direct-popup :deep(.connect-requests-compact .p-datatable-column-header-content) {
+  display: none;
+}
+.direct-popup :deep(.connect-requests-compact .p-datatable-table-container) {
+  overflow-x: hidden;
+}
+.direct-popup :deep(.connect-requests-compact .p-datatable-table) {
+  width: 100%;
+}
+.direct-popup :deep(.connect-requests-compact td) {
+  overflow-wrap: anywhere;
+  white-space: normal;
+  padding: 0.5rem 0.4rem;
+}
+/* Detail list labels ("Genesis ID:") stay on one line; only values wrap. */
+.direct-popup :deep(.connect-requests-compact .detail-scroll td:first-child) {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  padding-right: 0.75rem;
+}
+.direct-popup :deep(.connect-requests-compact .p-button) {
+  white-space: nowrap;
+}
+.direct-popup :deep(.connect-requests-compact .p-datatable-row-expansion > td) {
+  padding: 0.5rem 0;
+}
+.direct-popup :deep(.connect-requests-compact .detail-scroll) {
+  padding: 0.5rem 0.25rem;
+}
+.direct-popup :deep(.connect-requests-compact .m-1) {
+  margin: 0.15rem;
+}
+.direct-popup :deep(.connect-requests-compact .p-datatable-row-toggle-button) {
+  display: none;
+}
 </style>

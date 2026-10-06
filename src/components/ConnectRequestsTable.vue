@@ -1,6 +1,6 @@
 <template>
-  <div v-if="requests.length > 0">
-    <h2 id="requests">
+  <div v-if="requests.length > 0" :class="{ 'connect-requests-compact': compact }">
+    <h2 v-if="!compact" id="requests">
       {{ $t("connect.requests") }}
     </h2>
     <DataTable
@@ -27,7 +27,9 @@
       />
       <Column :header="$t('connect.total_fee')">
         <template #body="slotProps">
-          {{ $filters.formatCurrency(slotProps.data.fee) }}
+          <span v-if="compact" class="text-color-secondary"
+            >{{ $t("connect.total_fee") }}: </span
+          >{{ $filters.formatCurrency(slotProps.data.fee) }}
         </template>
       </Column>
       <Column>
@@ -44,6 +46,7 @@
             :transactions="slotProps.data.transactions"
           />
           <Button
+            v-if="!compact || atLeastOneSigned(slotProps.data)"
             class="m-1"
             :disabled="
               !store.state.wallet.isOpen || !atLeastOneSigned(slotProps.data)
@@ -52,10 +55,14 @@
           >
             {{ $t("connect.sendBack") }}
           </Button>
-          <Button class="m-1" @click="clickCopyPayload(slotProps.data)">
+          <Button
+            v-if="!compact"
+            class="m-1"
+            @click="clickCopyPayload(slotProps.data)"
+          >
             <i class="pi pi-copy"></i>
           </Button>
-          <span v-if="!atLeastOneSigned(slotProps.data)" class="m-2">
+          <span v-if="!compact && !atLeastOneSigned(slotProps.data)" class="m-2">
             {{ $t("connect.sign_txs") }}
           </span>
           <Button
@@ -100,6 +107,7 @@
               </template>
             </Column>
             <Column
+              v-if="!compact"
               field="index"
               :header="$t('connect.index')"
               :sortable="true"
@@ -123,6 +131,7 @@
               </template>
             </Column>
             <Column
+              v-if="!compact"
               field="sender"
               :header="$t('connect.from')"
               :sortable="true"
@@ -134,11 +143,13 @@
               </template>
             </Column>
             <Column
+              v-if="!compact"
               field="asset"
               :header="$t('connect.asset')"
               :sortable="true"
             />
             <Column
+              v-if="!compact"
               field="amount"
               :header="$t('connect.amount')"
               :sortable="true"
@@ -167,7 +178,12 @@
                 </div>
               </template>
             </Column>
-            <Column field="fee" :header="$t('connect.fee')" :sortable="true">
+            <Column
+              v-if="!compact"
+              field="fee"
+              :header="$t('connect.fee')"
+              :sortable="true"
+            >
               <template #body="slotProps">
                 {{ $filters.formatCurrency(slotProps.data["fee"]) }}
               </template>
