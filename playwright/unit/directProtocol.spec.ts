@@ -5,6 +5,8 @@ import {
   DIRECT_ACCEPT_WINDOW_MS,
   DirectErrorCode,
   DirectRequestGate,
+  MAX_DIRECT_ACCOUNT_NAME,
+  boundedAccountName,
   checkRequestNetwork,
   expectedGenesisReference,
   isDevelopmentOrigin,
@@ -70,6 +72,14 @@ test("isWellKnownNetwork: built-in networks never need the remote genesis list",
   expect(isWellKnownNetwork("privnet-v1")).toBe(false);
   expect(isWellKnownNetwork("constructor")).toBe(false);
   expect(isWellKnownNetwork("__proto__")).toBe(false);
+});
+
+test("boundedAccountName caps the name the dApp library accepts and omits empty names", () => {
+  expect(boundedAccountName("Main account")).toBe("Main account");
+  expect(boundedAccountName("x".repeat(500))).toHaveLength(MAX_DIRECT_ACCOUNT_NAME);
+  expect(MAX_DIRECT_ACCOUNT_NAME).toBe(128);
+  expect(boundedAccountName("")).toBeUndefined();
+  expect(boundedAccountName(undefined)).toBeUndefined();
 });
 
 test("isDevelopmentOrigin flags loopback origins only", () => {
