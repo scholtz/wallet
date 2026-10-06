@@ -83,7 +83,10 @@
                         ? $t("connect.liquid.connected_app_unknown")
                         : $t("connect.arc60.connected_app_unknown"))
                     }}
-                    <span v-if="sessionPeer(slotProps.data.topic)?.url">
+                    <span v-if="ns === 'direct'">
+                      ({{ slotProps.data.topic }})
+                    </span>
+                    <span v-else-if="sessionPeer(slotProps.data.topic)?.url">
                       ({{ sessionPeer(slotProps.data.topic)?.url }})
                     </span>
                     <Message
@@ -132,8 +135,8 @@ import type {
 
 const props = defineProps<{
   requests: StoredSignDataRequest[];
-  /** Store module that owns these requests: WalletConnect (default) or Liquid Auth. */
-  namespace?: "wc" | "liquid";
+  /** Store module that owns these requests: WalletConnect (default), Liquid Auth or Biatec Direct. */
+  namespace?: "wc" | "liquid" | "direct";
 }>();
 
 const requests = computed(() => props.requests);
@@ -154,10 +157,16 @@ const scopeLabel = (scope: number): string =>
 // be trusted on its own (see signer/signArc60Data's real check) - show the
 // WalletConnect session's actual peer identity alongside it so the user has
 // something independent to compare against.
-const sessionPeer = (topic: string) =>
-  ns.value === "liquid"
-    ? store.state.liquid.sessions.find((s) => s.requestId === topic)?.peer
-    : store.state.wc.activeSessions.find((s) => s.topic === topic)?.peer;
+const sessionPeer = (topic: string) => {
+  if (ns.value === "liquid") {
+    return store.state.liquid.sessions.find((s) => s.requestId === topic)?.peer;
+  }
+  if (ns.value === "direct") {
+    // Direct sessions are keyed by the browser-verified origin, which is the topic.
+    return store.state.direct.sessions.find((s) => s.origin === topic)?.peer;
+  }
+  return store.state.wc.activeSessions.find((s) => s.topic === topic)?.peer;
+};
 
 const atLeastOneSigned = (data: StoredSignDataRequest) =>
   data.items.some((item) => Boolean(item.signature));

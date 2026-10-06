@@ -573,8 +573,8 @@ interface RequestItem {
 const props = defineProps<{
   requests: RequestItem[];
   accountAddress?: string;
-  /** Store module that owns these requests: WalletConnect (default) or Liquid Auth. */
-  namespace?: "wc" | "liquid";
+  /** Store module that owns these requests: WalletConnect (default), Liquid Auth or Biatec Direct. */
+  namespace?: "wc" | "liquid" | "direct";
 }>();
 
 const requests = computed(() => props.requests);

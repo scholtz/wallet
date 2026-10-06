@@ -1799,7 +1799,9 @@ const retToWalletConnect = () => {
   const accountParam = toSingleParam(
     route.params.account as string | string[] | undefined
   );
-  router.push(connectReturnPath(accountParam));
+  router.push(
+    connectReturnPath(accountParam, store.state.direct.popup.dappOrigin !== null),
+  );
 };
 
 const retToSignAll = () => {

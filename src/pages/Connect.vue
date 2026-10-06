@@ -41,6 +41,7 @@
                   :value="liquidRequests.length + liquidSignDataRequests.length"
                 />
               </Tab>
+              <Tab value="3">{{ $t("connect.direct.tab") }}</Tab>
             </TabList>
             <TabPanels>
               <TabPanel value="0">
@@ -586,6 +587,57 @@
                   </Message>
                 </div>
               </TabPanel>
+              <TabPanel value="3">
+                <p>{{ $t("connect.direct.intro") }}</p>
+                <h2>{{ $t("connect.direct.sessions") }}</h2>
+                <p v-if="directSessions.length === 0" data-testid="direct-no-sessions">
+                  {{ $t("connect.direct.no_sessions") }}
+                </p>
+                <DataTable
+                  v-else
+                  :value="directSessions"
+                  responsive-layout="scroll"
+                  :paginator="true"
+                  :rows="20"
+                >
+                  <Column
+                    field="origin"
+                    :header="$t('connect.direct.origin')"
+                    :sortable="true"
+                  />
+                  <Column :header="$t('connect.direct.accounts')">
+                    <template #body="slotProps">
+                      <div v-for="a in slotProps.data.addresses" :key="a">
+                        <AlgorandAddress :address="a" />
+                      </div>
+                    </template>
+                  </Column>
+                  <Column :header="$t('connect.direct.connected_at')">
+                    <template #body="slotProps">
+                      {{ new Date(slotProps.data.createdAt).toLocaleString() }}
+                    </template>
+                  </Column>
+                  <Column>
+                    <template #body="slotProps">
+                      <Button
+                        variant="secondary"
+                        class="m-1"
+                        @click="clickDisconnectDirect(slotProps.data.origin)"
+                      >
+                        {{ $t("connect.disconnect") }}
+                      </Button>
+                    </template>
+                  </Column>
+                </DataTable>
+                <Button
+                  v-if="directSessions.length > 1"
+                  class="m-1"
+                  variant="secondary"
+                  @click="clickDisconnectAllDirect"
+                >
+                  {{ $t("connect.direct.disconnect_all") }}
+                </Button>
+              </TabPanel>
             </TabPanels>
           </Tabs>
         </template>
@@ -963,6 +1015,28 @@ const clickDisconnectLiquid = async (requestId: string) => {
   });
 };
 
+const directSessions = computed(() => store.state.direct.sessions);
+
+const clickDisconnectDirect = async (origin: string) => {
+  await prolong();
+  await store.dispatch("direct/disconnect", { origin });
+  await store.dispatch("toast/openSuccess", {
+    severity: "info",
+    summary: t("connect.direct.session_removed"),
+    life: 3000,
+  });
+};
+
+const clickDisconnectAllDirect = async () => {
+  await prolong();
+  await store.dispatch("direct/disconnectAll");
+  await store.dispatch("toast/openSuccess", {
+    severity: "info",
+    summary: t("connect.direct.session_removed"),
+    life: 3000,
+  });
+};
+
 const clickReconnectLiquid = async () => {
   await prolong();
   liquidError.value = "";
@@ -994,6 +1068,7 @@ watch(
 );
 
 onMounted(async () => {
+  await store.dispatch("direct/loadSavedSessions");
   addr.value = accountAddress.value;
   await reloadAccount();
   await prolong();

@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-column h-full">
-    <Navbar2 />
+    <Navbar2 v-if="!minimal" />
     <Toast />
     <div
       v-if="$store.state.wallet.isOpen"
@@ -22,6 +22,10 @@ import Footer from "../components/Footer.vue";
 import Login from "../components/Login.vue";
 import { mapActions } from "vuex";
 export default {
+  props: {
+    /** Popup mode (Biatec Direct): no navbar, the Footer (auto-lock timer) stays. */
+    minimal: { type: Boolean, default: false },
+  },
   components: {
     Navbar2,
     Login,

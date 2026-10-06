@@ -1,0 +1,389 @@
+// Biatec Direct: relay-free popup + postMessage dApp transport (wallet side), end to end.
+//
+// The "dApp" is a tiny fixture page served on a DIFFERENT origin than the wallet
+// (http://127.0.0.1:8080 vs http://localhost:8080 - same dev server, different origin), so the
+// real cross-origin popup/postMessage path and the browser-supplied event.origin are exercised.
+import { test, expect, type BrowserContext, type Page } from "@playwright/test";
+import algosdk from "algosdk";
+import { DEFAULT_WALLET_PASSWORD, setupFreshWallet } from "../support/wallet";
+
+const WALLET_ORIGIN = "http://localhost:8080";
+const DAPP_ORIGIN = "http://127.0.0.1:8080";
+const DAPP_URL = `${DAPP_ORIGIN}/__direct-dapp.html`;
+const MAINNET_HASH = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=";
+const TESTNET_HASH = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+const OTHER_ADDR = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
+
+const FIXTURE = `<!doctype html><html><body><button id="open">open</button><script>
+const WALLET = ${JSON.stringify(WALLET_ORIGIN)};
+window.__messages = [];
+window.__popup = null;
+window.addEventListener("message", (e) => {
+  window.__messages.push({ origin: e.origin, data: e.data, fromPopup: e.source === window.__popup });
+});
+window.__hint = location.origin;
+document.getElementById("open").addEventListener("click", () => {
+  window.__popup = window.open(WALLET + "/direct?origin=" + encodeURIComponent(window.__hint),
+    "biatec-wallet-direct", "popup,width=480,height=720");
+});
+window.__post = (msg) => window.__popup.postMessage(msg, WALLET);
+window.__closePopup = () => window.__popup.close();
+</script></body></html>`;
+
+async function openDapp(context: BrowserContext): Promise<Page> {
+  await context.route(DAPP_URL, (route) =>
+    route.fulfill({ contentType: "text/html", body: FIXTURE }),
+  );
+  const dapp = await context.newPage();
+  await dapp.goto(DAPP_URL);
+  return dapp;
+}
+
+async function openPopup(context: BrowserContext, dapp: Page): Promise<Page> {
+  // Messages of a previous popup (e.g. its `ready`) must not satisfy waits for this one.
+  await dapp.evaluate(() => {
+    (window as unknown as { __messages: unknown[] }).__messages.length = 0;
+  });
+  const [popup] = await Promise.all([
+    context.waitForEvent("page"),
+    dapp.locator("#open").click(),
+  ]);
+  return popup;
+}
+
+async function unlock(popup: Page) {
+  await expect(popup.locator("#new_wallet_button_open")).toBeVisible();
+  await popup.locator("#wallet-pass").fill(DEFAULT_WALLET_PASSWORD);
+  await popup.locator("#new_wallet_button_open").click();
+}
+
+/** The popup closes itself shortly after replying; poll instead of racing a close event. */
+const expectClosed = (popup: Page) => expect.poll(() => popup.isClosed()).toBe(true);
+
+type Msg = { origin: string; data: Record<string, unknown>; fromPopup: boolean };
+const messages = (dapp: Page) => dapp.evaluate(() => (window as unknown as { __messages: Msg[] }).__messages);
+const post = (dapp: Page, msg: unknown) =>
+  dapp.evaluate((m) => (window as unknown as { __post: (x: unknown) => void }).__post(m), msg);
+
+async function waitForMessage(dapp: Page, predicate: (m: Msg) => boolean): Promise<Msg> {
+  let found: Msg | undefined;
+  await expect
+    .poll(async () => {
+      found = (await messages(dapp)).find(predicate);
+      return Boolean(found);
+    })
+    .toBe(true);
+  return found!;
+}
+
+const isReady = (m: Msg) => m.data.reference === "biatec:direct:ready";
+const reply = (id: string) => (m: Msg) => m.data.requestId === id;
+
+/** Account address of the freshly created wallet (from /account/<addr>). */
+const walletAddress = (page: Page) => new URL(page.url()).pathname.split("/").pop()!;
+
+function paymentTxn(sender: string, genesisHash = MAINNET_HASH, genesisID = "mainnet-v1.0") {
+  const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    sender,
+    receiver: sender,
+    amount: 0,
+    suggestedParams: {
+      fee: 1000,
+      flatFee: true,
+      firstValid: 1000,
+      lastValid: 2000,
+      genesisHash: new Uint8Array(Buffer.from(genesisHash, "base64")),
+      genesisID,
+    },
+  });
+  return {
+    txn,
+    b64url: Buffer.from(algosdk.encodeUnsignedTransaction(txn)).toString("base64url"),
+  };
+}
+
+/** Run the connect (enable) flow for the wallet's account; returns the dApp page. */
+async function connectSite(context: BrowserContext, address: string): Promise<Page> {
+  const dapp = await openDapp(context);
+  const popup = await openPopup(context, dapp);
+  await unlock(popup);
+  await expect(popup.getByTestId("direct-origin")).toHaveText(DAPP_ORIGIN);
+  await waitForMessage(dapp, isReady);
+  await post(dapp, {
+    id: "enable-1",
+    reference: "arc0027:enable:request",
+    params: { providerId: "dapp", genesisHash: MAINNET_HASH, metadata: { name: "Fixture dApp", description: "", url: "", icons: [] } },
+  });
+  await popup.getByTestId("direct-approve").click();
+  const response = await waitForMessage(dapp, reply("enable-1"));
+  expect(response.data.error).toBeUndefined();
+  expect((response.data.result as { accounts: { address: string }[] }).accounts[0].address).toBe(address);
+  await expectClosed(popup);
+  return dapp;
+}
+
+test.describe("Biatec Direct popup transport", () => {
+  // Every popup is a separate wallet unlock (PBKDF2); flows with several popups are slow.
+  test.describe.configure({ timeout: 240000 });
+
+  test("connect: the popup shows the browser-verified origin, replies only to it, and closes", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+
+    const dapp = await openDapp(context);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await expect(popup.getByTestId("direct-origin")).toHaveText(DAPP_ORIGIN);
+    // The ready announcement reached the dApp, from the popup, from the wallet origin.
+    const ready = await waitForMessage(dapp, isReady);
+    expect(ready.origin).toBe(WALLET_ORIGIN);
+    expect(ready.fromPopup).toBe(true);
+    // 127.0.0.1 is a loopback host: flagged as a development address.
+    await expect(popup.getByText("Development address on this computer")).toBeVisible();
+
+    await post(dapp, {
+      id: "enable-1",
+      reference: "arc0027:enable:request",
+      params: { providerId: "dapp", genesisHash: MAINNET_HASH, metadata: { name: "Fixture dApp", description: "", url: "", icons: [] } },
+    });
+    await expect(popup.getByTestId("direct-approve")).toBeVisible();
+    await expect(popup.getByTestId(`direct-account-${address}`)).toBeVisible();
+    await popup.getByTestId("direct-approve").click();
+    const response = await waitForMessage(dapp, reply("enable-1"));
+    expect(response.origin).toBe(WALLET_ORIGIN);
+    expect(response.data.reference).toBe("arc0027:enable:response");
+    expect((response.data.result as { accounts: { address: string }[] }).accounts.map((a) => a.address)).toEqual([address]);
+    await expectClosed(popup);
+
+    // The main wallet tab (unlocked BEFORE the popup stored the grant) sees the grant on the
+    // Connect page's Direct tab and can revoke it. A reload would lock it, so navigate in-app.
+    await page.evaluate(() => {
+      const app = (document.querySelector("#app") as unknown as {
+        __vue_app__: { config: { globalProperties: { $router: { push: (to: string) => void } } } };
+      }).__vue_app__;
+      app.config.globalProperties.$router.push("/connect");
+    });
+    await page.getByRole("tab", { name: "Direct (popup)" }).click();
+    await expect(page.getByText(DAPP_ORIGIN, { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Disconnect" }).click();
+    await expect(page.getByTestId("direct-no-sessions")).toBeVisible();
+
+    // ...and with the grant revoked, signing is refused again (4100).
+    const dapp2 = await openDapp(context);
+    const popup2 = await openPopup(context, dapp2);
+    await unlock(popup2);
+    await waitForMessage(dapp2, isReady);
+    await post(dapp2, {
+      id: "s-revoked",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: MAINNET_HASH, txns: [{ txn: paymentTxn(address).b64url }] },
+    });
+    const refused = await waitForMessage(dapp2, reply("s-revoked"));
+    expect((refused.data.error as { code: number }).code).toBe(4100);
+  });
+
+  test("reject answers 4001 and closes the popup", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const dapp = await openDapp(context);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, { id: "e1", reference: "arc0027:enable:request", params: { providerId: "d", genesisHash: MAINNET_HASH, metadata: {} } });
+    await popup.getByTestId("direct-reject").click();
+    const response = await waitForMessage(dapp, reply("e1"));
+    expect((response.data.error as { code: number }).code).toBe(4001);
+    await expectClosed(popup);
+  });
+
+  test("closing the popup with an unanswered request is visible to the dApp (closed handle)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const dapp = await openDapp(context);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, { id: "e1", reference: "arc0027:enable:request", params: { providerId: "d", genesisHash: MAINNET_HASH, metadata: {} } });
+    await expect(popup.getByTestId("direct-approve")).toBeVisible();
+    await popup.close();
+    await expect
+      .poll(() => dapp.evaluate(() => (window as unknown as { __popup: Window }).__popup.closed))
+      .toBe(true);
+  });
+
+  test("a second request in the same popup is refused with 4200 (one request per popup)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const dapp = await openDapp(context);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, { id: "e1", reference: "arc0027:enable:request", params: { providerId: "d", genesisHash: MAINNET_HASH, metadata: {} } });
+    await expect(popup.getByTestId("direct-approve")).toBeVisible();
+    await post(dapp, { id: "e2", reference: "arc0027:enable:request", params: { providerId: "d", genesisHash: MAINNET_HASH, metadata: {} } });
+    const second = await waitForMessage(dapp, reply("e2"));
+    expect((second.data.error as { code: number }).code).toBe(4200);
+    // The first request is untouched and still pending.
+    await expect(popup.getByTestId("direct-approve")).toBeVisible();
+  });
+
+  test("a mismatching origin hint: ready is never delivered and the dApp's request is ignored", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const dapp = await openDapp(context);
+    // The dApp claims a different origin in the hint than the one it really has.
+    await dapp.evaluate(() => {
+      (window as unknown as { __hint: string }).__hint = "http://localhost:9999";
+    });
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await expect(popup.getByTestId("direct-origin")).toHaveText("http://localhost:9999");
+    await post(dapp, { id: "e1", reference: "arc0027:enable:request", params: { providerId: "d", genesisHash: MAINNET_HASH, metadata: {} } });
+    await popup.waitForTimeout(1500);
+    // Nothing came back (ready went to localhost:9999, the request was dropped without a reply)
+    // and no approval UI appeared.
+    expect(await messages(dapp)).toHaveLength(0);
+    await expect(popup.getByTestId("direct-approve")).toHaveCount(0);
+    await expect(popup.getByTestId("direct-waiting")).toBeVisible();
+  });
+
+  test("sign: refused without a connected site (4100)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const { b64url } = paymentTxn(address);
+    const dapp0 = await openDapp(context);
+    const popup0 = await openPopup(context, dapp0);
+    await unlock(popup0);
+    await waitForMessage(dapp0, isReady);
+    await post(dapp0, {
+      id: "s0",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: MAINNET_HASH, txns: [{ txn: b64url }] },
+    });
+    const refused = await waitForMessage(dapp0, reply("s0"));
+    expect((refused.data.error as { code: number }).code).toBe(4100);
+    await expectClosed(popup0);
+  });
+
+  test("sign: after connecting, signs and returns a valid signature", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const { txn, b64url } = paymentTxn(address);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "s1",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: MAINNET_HASH, txns: [{ txn: b64url }] },
+    });
+    await expect(popup.getByRole("button", { name: "Sign transaction" })).toBeVisible();
+    await popup.getByRole("button", { name: "Sign transaction" }).click();
+    await popup.getByRole("button", { name: "Send back to DApp" }).click();
+    const response = await waitForMessage(dapp, reply("s1"));
+    expect(response.data.error).toBeUndefined();
+    const stxns = (response.data.result as { stxns: (string | null)[] }).stxns;
+    expect(stxns).toHaveLength(1);
+    const signed = algosdk.decodeSignedTransaction(new Uint8Array(Buffer.from(stxns[0]!, "base64url")));
+    expect(signed.txn.txID()).toBe(txn.txID());
+    expect(signed.sig).toBeDefined();
+    expect(signed.sig!.length).toBe(64);
+    await expectClosed(popup);
+  });
+
+  test("sign: a sender that is not an approved account is refused (4100)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "s2",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: MAINNET_HASH, txns: [{ txn: paymentTxn(OTHER_ADDR).b64url }] },
+    });
+    const response = await waitForMessage(dapp, reply("s2"));
+    expect((response.data.error as { code: number }).code).toBe(4100);
+    await expectClosed(popup);
+  });
+
+  test("sign: a request for another network is refused (4004)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "s3",
+      reference: "arc0027:sign_transactions:request",
+      params: {
+        providerId: "d",
+        genesisHash: TESTNET_HASH,
+        txns: [{ txn: paymentTxn(address, TESTNET_HASH, "testnet-v1.0").b64url }],
+      },
+    });
+    const response = await waitForMessage(dapp, reply("s3"));
+    expect((response.data.error as { code: number }).code).toBe(4004);
+    await expectClosed(popup);
+  });
+
+  test("sign: a transaction whose genesis differs from the request's is refused (4004)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    // Request claims mainnet (the wallet's network) but the transaction is a testnet one.
+    await post(dapp, {
+      id: "s4",
+      reference: "arc0027:sign_transactions:request",
+      params: {
+        providerId: "d",
+        genesisHash: MAINNET_HASH,
+        txns: [{ txn: paymentTxn(address, TESTNET_HASH, "testnet-v1.0").b64url }],
+      },
+    });
+    const response = await waitForMessage(dapp, reply("s4"));
+    expect((response.data.error as { code: number }).code).toBe(4004);
+  });
+
+  test("/direct opened directly (no opener) shows an error and posts nothing", async ({ page }) => {
+    await setupFreshWallet(page);
+    const tab = await page.context().newPage();
+    await tab.goto(`/direct?origin=${encodeURIComponent(DAPP_ORIGIN)}`);
+    await unlock(tab);
+    await expect(tab.getByTestId("direct-error-no-opener")).toBeVisible();
+    await expect(tab.getByTestId("direct-approve")).toHaveCount(0);
+  });
+
+  test("/direct without a valid origin hint is refused", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const dapp = await openDapp(context);
+    await dapp.evaluate(() => {
+      (window as unknown as { __hint: string }).__hint = "http://evil.example.com";
+    });
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await expect(popup.getByTestId("direct-error-bad-origin")).toBeVisible();
+    expect(await messages(dapp)).toHaveLength(0);
+  });
+
+  test("/direct refuses to run inside a frame (clickjacking)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    // Same-site parent (so the framed wallet can reach its IndexedDB, unpartitioned): only the
+    // framing check can stop it.
+    await context.route(`${WALLET_ORIGIN}/__framer.html`, (route) =>
+      route.fulfill({
+        contentType: "text/html",
+        body: `<iframe id="f" src="${WALLET_ORIGIN}/direct?origin=${encodeURIComponent(WALLET_ORIGIN)}" width="900" height="700"></iframe>`,
+      }),
+    );
+    const framer = await context.newPage();
+    await framer.goto(`${WALLET_ORIGIN}/__framer.html`);
+    const frame = framer.frameLocator("#f");
+    await frame.locator("#wallet-pass").fill(DEFAULT_WALLET_PASSWORD);
+    await frame.locator("#new_wallet_button_open").click();
+    await expect(frame.getByTestId("direct-error-framed")).toBeVisible();
+    await expect(frame.getByTestId("direct-approve")).toHaveCount(0);
+  });
+});

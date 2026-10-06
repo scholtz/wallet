@@ -886,6 +886,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     try {
       await dispatch("wc/reset", null, { root: true });
       await dispatch("liquid/reset", null, { root: true });
+      await dispatch("direct/reset", null, { root: true });
     } catch (err) {
       console.error("Failed to reset wc module state", err);
     }
@@ -1809,6 +1810,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       try {
         await dispatch("wc/reset", null, { root: true });
       await dispatch("liquid/reset", null, { root: true });
+      await dispatch("direct/reset", null, { root: true });
       } catch (err) {
         console.error("Failed to reset wc module state", err);
       }
@@ -1887,6 +1889,46 @@ const actionHandlers: Record<string, WalletActionHandler> = {
   ) {
     await commit("wcSetItem", { key, value });
     await dispatch("saveWallet");
+  },
+  /**
+   * Latest value of a wc item as persisted in IndexedDB. Another tab or popup (e.g. the Biatec
+   * Direct popup) may have changed it since this tab unlocked the wallet.
+   */
+  async wcGetItemFresh(_context, { key }: { key: string }) {
+    const pass = CryptoJS.AES.decrypt(
+      this.state.wallet.pass,
+      getRequiredLocalStorage("rs1")
+    ).toString(CryptoJS.enc.Utf8);
+    const record = await db.wallets.get({ name: this.state.wallet.name });
+    if (!pass || !record) return undefined;
+    const json = JSON.parse(await decryptWalletData(record.data, pass));
+    const item = json.wc?.[key];
+    return item ? safeJsonParse(item) : undefined;
+  },
+  /**
+   * Read-modify-write of ONE wc item against the persisted record, without re-saving this
+   * tab's in-memory accounts. Used for state shared between tabs, so a stale tab cannot
+   * overwrite another tab's changes (accounts, other wc items) when it stores its own item.
+   */
+  async wcSetItemFresh(
+    { commit },
+    { key, value }: { key: string; value: unknown }
+  ) {
+    const pass = CryptoJS.AES.decrypt(
+      this.state.wallet.pass,
+      getRequiredLocalStorage("rs1")
+    ).toString(CryptoJS.enc.Utf8);
+    const record = await db.wallets.get({ name: this.state.wallet.name });
+    if (!pass || !record || record.id === undefined) {
+      throw new Error("Wallet record not found");
+    }
+    const json = JSON.parse(await decryptWalletData(record.data, pass));
+    json.wc = { ...(json.wc ?? {}), [key]: safeJsonStringify(value) };
+    const encoded = await encryptWalletData(JSON.stringify(json), pass, record.data);
+    if (!encoded) throw new Error("Failed to encrypt wallet data");
+    record.data = encoded;
+    await db.wallets.update(record.id, record);
+    commit("wcSetItem", { key, value });
   },
   async wcRemoveItem({ dispatch, commit }, { key }: { key: string }) {
     await commit("wcRemoveItem", { key });

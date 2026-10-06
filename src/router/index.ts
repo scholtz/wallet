@@ -18,6 +18,7 @@ import SignAll from "@/pages/SignAll.vue";
 import Merchant from "@/pages/Merchant.vue";
 import ReceivePayment from "@/pages/ReceivePayment.vue";
 import Connect from "@/pages/Connect.vue";
+import Direct from "@/pages/Direct.vue";
 import Settings from "@/pages/Settings.vue";
 import Asset from "@/pages/AssetList.vue";
 import AssetCreate from "@/pages/Asset/Create.vue";
@@ -199,6 +200,11 @@ const routes = [
     path: "/account/connect/:account",
     name: "ConnectWithAccount",
     component: Connect,
+  },
+  {
+    path: "/direct",
+    name: "Direct",
+    component: Direct,
   },
   {
     path: "/connect",
