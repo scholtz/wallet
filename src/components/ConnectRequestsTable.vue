@@ -1,6 +1,6 @@
 <template>
-  <div v-if="requests.length > 0">
-    <h2 id="requests">
+  <div v-if="requests.length > 0" :class="{ 'connect-requests-compact': compact }">
+    <h2 v-if="!compact" id="requests">
       {{ $t("connect.requests") }}
     </h2>
     <DataTable
@@ -9,30 +9,37 @@
       :value="requests"
       responsive-layout="scroll"
       selection-mode="single"
-      :paginator="true"
+      :paginator="!compact"
       :rows="20"
     >
       <Column expander style="width: 5rem" />
       <Column
+        v-if="!compact"
         field="id"
         :header="$t('connect.request_id')"
         :sortable="true"
       />
       <Column
+        v-if="!compact"
         field="method"
         :header="$t('connect.method')"
         :sortable="true"
       />
       <Column :header="$t('connect.total_fee')">
         <template #body="slotProps">
-          {{ $filters.formatCurrency(slotProps.data.fee) }}
+          <span v-if="compact" class="text-color-secondary"
+            >{{ $t("connect.total_fee") }}: </span
+          >{{ $filters.formatCurrency(slotProps.data.fee) }}
         </template>
       </Column>
       <Column>
         <template #body="slotProps">
           <Button
             class="m-1"
-            v-if="!atLeastOneSigned(slotProps.data)"
+            v-if="
+              !atLeastOneSigned(slotProps.data) &&
+              !(compact && slotProps.data.transactions?.length === 1)
+            "
             @click="clickSignAll(slotProps.data)"
           >
             {{ signAllLabel(slotProps.data) }}
@@ -42,6 +49,7 @@
             :transactions="slotProps.data.transactions"
           />
           <Button
+            v-if="!compact || atLeastOneSigned(slotProps.data)"
             class="m-1"
             :disabled="
               !store.state.wallet.isOpen || !atLeastOneSigned(slotProps.data)
@@ -50,10 +58,14 @@
           >
             {{ $t("connect.sendBack") }}
           </Button>
-          <Button class="m-1" @click="clickCopyPayload(slotProps.data)">
+          <Button
+            v-if="!compact"
+            class="m-1"
+            @click="clickCopyPayload(slotProps.data)"
+          >
             <i class="pi pi-copy"></i>
           </Button>
-          <span v-if="!atLeastOneSigned(slotProps.data)" class="m-2">
+          <span v-if="!compact && !atLeastOneSigned(slotProps.data)" class="m-2">
             {{ $t("connect.sign_txs") }}
           </span>
           <Button
@@ -98,6 +110,7 @@
               </template>
             </Column>
             <Column
+              v-if="!compact"
               field="index"
               :header="$t('connect.index')"
               :sortable="true"
@@ -121,6 +134,7 @@
               </template>
             </Column>
             <Column
+              v-if="!compact"
               field="sender"
               :header="$t('connect.from')"
               :sortable="true"
@@ -132,11 +146,13 @@
               </template>
             </Column>
             <Column
+              v-if="!compact"
               field="asset"
               :header="$t('connect.asset')"
               :sortable="true"
             />
             <Column
+              v-if="!compact"
               field="amount"
               :header="$t('connect.amount')"
               :sortable="true"
@@ -165,7 +181,12 @@
                 </div>
               </template>
             </Column>
-            <Column field="fee" :header="$t('connect.fee')" :sortable="true">
+            <Column
+              v-if="!compact"
+              field="fee"
+              :header="$t('connect.fee')"
+              :sortable="true"
+            >
               <template #body="slotProps">
                 {{ $filters.formatCurrency(slotProps.data["fee"]) }}
               </template>
@@ -234,6 +255,10 @@
                           "
                         />
                       </td>
+                    </tr>
+                    <tr v-if="compact">
+                      <td>{{ $t("connect.fee") }}:</td>
+                      <td>{{ $filters.formatCurrency(Number(txProps.data.txn.fee)) }}</td>
                     </tr>
                     <tr v-if="txProps.data.txn.type == 'axfer'">
                       <td>{{ $t("connect.asset") }}:</td>
@@ -359,6 +384,34 @@
                       </td>
                     </tr>
 
+                    <tr
+                      v-if="
+                        txProps.data.type == 'appl' &&
+                        onCompleteLabel(txProps.data.txn)
+                      "
+                    >
+                      <td>{{ $t("connect.on_complete") }}:</td>
+                      <td>
+                        <Message
+                          v-if="onCompleteIsDestructive(txProps.data.txn)"
+                          severity="warn"
+                          class="m-0"
+                          >{{ onCompleteLabel(txProps.data.txn) }}</Message
+                        >
+                        <span v-else>{{ onCompleteLabel(txProps.data.txn) }}</span>
+                      </td>
+                    </tr>
+                    <tr v-if="clawbackFrom(txProps.data.txn)">
+                      <td>{{ $t("connect.clawback_from") }}:</td>
+                      <td>
+                        <Message severity="error" class="m-0">
+                          <AlgorandAddress
+                            :address="clawbackFrom(txProps.data.txn)"
+                          />
+                          {{ $t("connect.clawback_warning") }}
+                        </Message>
+                      </td>
+                    </tr>
                     <tr v-if="txProps.data.type == 'appl'">
                       <td>{{ $t("connect.app") }}:</td>
                       <td>
@@ -573,12 +626,15 @@ interface RequestItem {
 const props = defineProps<{
   requests: RequestItem[];
   accountAddress?: string;
-  /** Store module that owns these requests: WalletConnect (default) or Liquid Auth. */
-  namespace?: "wc" | "liquid";
+  /** Store module that owns these requests: WalletConnect (default), Liquid Auth or Biatec Direct. */
+  namespace?: "wc" | "liquid" | "direct";
 }>();
 
 const requests = computed(() => props.requests);
 const ns = computed(() => props.namespace ?? "wc");
+// The Biatec Direct popup is narrow and holds exactly one request: drop the bookkeeping
+// columns and show the transactions straight away.
+const compact = computed(() => ns.value === "direct");
 
 const store = useStore();
 const { t } = useI18n();
@@ -597,6 +653,16 @@ const selectedRequest = ref<RequestItem | null>(null);
 const selectedTransaction = ref<TransactionWrapper | null>(null);
 const expandedRequests = ref<RequestItem[]>([]);
 const expandedTransactions = ref<TransactionWrapper[]>([]);
+
+watch(
+  requests,
+  (list) => {
+    if (!compact.value) return;
+    expandedRequests.value = [...list];
+    expandedTransactions.value = list.flatMap((r) => r.transactions ?? []);
+  },
+  { immediate: true },
+);
 
 watch(
   requests,
@@ -780,10 +846,13 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
       // payment/asset transactions in the same request, and auto-accepting
       // then would relay a response with unsigned transactions still
       // missing.
+      // In the Biatec Direct popup the single request goes back to the site as soon as
+      // everything in it is signed: signing is the approval, a second click would only
+      // get in the way in a small window.
       if (
-        isArc14Auth(txn) &&
-        isArc14OnlyRequest(parentRequest) &&
-        allTransactionsSigned(parentRequest)
+        allTransactionsSigned(parentRequest) &&
+        (ns.value === "direct" ||
+          (isArc14Auth(txn) && isArc14OnlyRequest(parentRequest)))
       ) {
         await clickAccept(parentRequest);
       }
@@ -921,6 +990,47 @@ const encodeAddress = (addrValue: { publicKey?: Uint8Array }) => {
 // closeRemainderTo (pay) / assetCloseTo (axfer) sends the account's entire
 // remaining balance / asset holding to this address (audit finding
 // AW-2026-001) — it must always be surfaced with a prominent warning.
+/** What the app call does to the app besides running: shown so Update/Delete/CloseOut stand out. */
+const onCompleteLabel = (txn: algosdk.Transaction): string => {
+  const onComplete = txn?.applicationCall?.onComplete;
+  switch (onComplete) {
+    case algosdk.OnApplicationComplete.NoOpOC:
+      return "NoOp";
+    case algosdk.OnApplicationComplete.OptInOC:
+      return "OptIn";
+    case algosdk.OnApplicationComplete.CloseOutOC:
+      return "CloseOut";
+    case algosdk.OnApplicationComplete.ClearStateOC:
+      return "ClearState";
+    case algosdk.OnApplicationComplete.UpdateApplicationOC:
+      return "UpdateApplication";
+    case algosdk.OnApplicationComplete.DeleteApplicationOC:
+      return "DeleteApplication";
+    default:
+      return "";
+  }
+};
+const onCompleteIsDestructive = (txn: algosdk.Transaction): boolean => {
+  const onComplete = txn?.applicationCall?.onComplete;
+  return (
+    onComplete === algosdk.OnApplicationComplete.CloseOutOC ||
+    onComplete === algosdk.OnApplicationComplete.ClearStateOC ||
+    onComplete === algosdk.OnApplicationComplete.UpdateApplicationOC ||
+    onComplete === algosdk.OnApplicationComplete.DeleteApplicationOC
+  );
+};
+/** Asset clawback: the account the funds really leave (differs from the sender). */
+const clawbackFrom = (txn: algosdk.Transaction): string => {
+  try {
+    const assetSender = txn?.assetTransfer?.assetSender;
+    if (!assetSender?.publicKey) return "";
+    const from = encodeAddress(assetSender);
+    return from === algosdk.ALGORAND_ZERO_ADDRESS_STRING ? "" : from;
+  } catch {
+    return "";
+  }
+};
+
 const getCloseTo = (txn: algosdk.Transaction): string => {
   try {
     const closeAddr =

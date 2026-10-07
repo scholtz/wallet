@@ -1,30 +1,37 @@
 <template>
-  <div v-if="requests.length > 0">
-    <h2 id="sign-data-requests">
+  <div v-if="requests.length > 0" :class="{ 'connect-requests-compact': compact }">
+    <h2 v-if="!compact" id="sign-data-requests">
       {{ $t("connect.arc60.requests") }}
     </h2>
     <DataTable
       v-model:expandedRows="expandedRequests"
       :value="requests"
       responsive-layout="scroll"
-      :paginator="true"
+      :paginator="!compact"
       :rows="20"
     >
       <Column expander style="width: 5rem" />
-      <Column field="id" :header="$t('connect.request_id')" :sortable="true" />
-      <Column :header="$t('connect.method')">
+      <Column
+        v-if="!compact"
+        field="id"
+        :header="$t('connect.request_id')"
+        :sortable="true"
+      />
+      <Column v-if="!compact" :header="$t('connect.method')">
         <template #body>algo_signData</template>
       </Column>
       <Column>
         <template #body="slotProps">
+          <!-- Direct popup: every item is reviewed and signed individually, never in one click. -->
           <Button
             class="m-1"
-            v-if="!atLeastOneSigned(slotProps.data)"
+            v-if="!compact && !atLeastOneSigned(slotProps.data)"
             @click="clickSignAll(slotProps.data)"
           >
             {{ $t("connect.sign_all") }}
           </Button>
           <Button
+            v-if="!compact || atLeastOneSigned(slotProps.data)"
             class="m-1"
             :disabled="
               !store.state.wallet.isOpen || !atLeastOneSigned(slotProps.data)
@@ -83,7 +90,10 @@
                         ? $t("connect.liquid.connected_app_unknown")
                         : $t("connect.arc60.connected_app_unknown"))
                     }}
-                    <span v-if="sessionPeer(slotProps.data.topic)?.url">
+                    <span v-if="ns === 'direct'">
+                      ({{ slotProps.data.topic }})
+                    </span>
+                    <span v-else-if="sessionPeer(slotProps.data.topic)?.url">
                       ({{ sessionPeer(slotProps.data.topic)?.url }})
                     </span>
                     <Message
@@ -121,7 +131,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import AlgorandAddress from "./AlgorandAddress.vue";
 import { useStore } from "../store";
 import { Arc60ScopeType } from "../scripts/encoding/arc60";
@@ -132,16 +142,26 @@ import type {
 
 const props = defineProps<{
   requests: StoredSignDataRequest[];
-  /** Store module that owns these requests: WalletConnect (default) or Liquid Auth. */
-  namespace?: "wc" | "liquid";
+  /** Store module that owns these requests: WalletConnect (default), Liquid Auth or Biatec Direct. */
+  namespace?: "wc" | "liquid" | "direct";
 }>();
 
 const requests = computed(() => props.requests);
 const ns = computed(() => props.namespace ?? "wc");
+// The Biatec Direct popup is narrow and holds exactly one request: show its items straight away.
+const compact = computed(() => ns.value === "direct");
 
 const store = useStore();
 
 const expandedRequests = ref<StoredSignDataRequest[]>([]);
+
+watch(
+  requests,
+  (list) => {
+    if (compact.value) expandedRequests.value = [...list];
+  },
+  { immediate: true },
+);
 
 const prolong = async () => {
   await store.dispatch("wallet/prolong");
@@ -154,10 +174,16 @@ const scopeLabel = (scope: number): string =>
 // be trusted on its own (see signer/signArc60Data's real check) - show the
 // WalletConnect session's actual peer identity alongside it so the user has
 // something independent to compare against.
-const sessionPeer = (topic: string) =>
-  ns.value === "liquid"
-    ? store.state.liquid.sessions.find((s) => s.requestId === topic)?.peer
-    : store.state.wc.activeSessions.find((s) => s.topic === topic)?.peer;
+const sessionPeer = (topic: string) => {
+  if (ns.value === "liquid") {
+    return store.state.liquid.sessions.find((s) => s.requestId === topic)?.peer;
+  }
+  if (ns.value === "direct") {
+    // Direct sessions are keyed by the browser-verified origin, which is the topic.
+    return store.state.direct.sessions.find((s) => s.origin === topic)?.peer;
+  }
+  return store.state.wc.activeSessions.find((s) => s.topic === topic)?.peer;
+};
 
 const atLeastOneSigned = (data: StoredSignDataRequest) =>
   data.items.some((item) => Boolean(item.signature));
@@ -172,6 +198,10 @@ const clickSign = async (
       requestId: data.id,
       index: item.index,
     });
+    // Biatec Direct popup: once every item is signed the result goes straight back.
+    if (ns.value === "direct" && data.items.every((i) => Boolean(i.signature))) {
+      await clickAccept(data);
+    }
   } catch (ex) {
     await store.dispatch("toast/openError", {
       severity: "error",

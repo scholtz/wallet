@@ -106,27 +106,8 @@ export async function validateAuthenticatorDataDomain(
   return bytesEqual(authenticatorData.slice(0, 32), expected);
 }
 
-/**
- * AW-2026-044: the self-consistency check above cannot detect a DApp lying
- * about its own domain, since it only checks the request against itself.
- * This compares the claimed `domain` against the hostname of the actual
- * WalletConnect session peer (`session.peer.metadata.url`), which is set by
- * the DApp at connect time but reported to the wallet by the WalletConnect
- * relay/session record - not something a single malicious request can spoof
- * after the fact.
- */
-export function domainMatchesSessionOrigin(
-  domain: string,
-  sessionOriginUrl: string | undefined | null,
-): boolean {
-  if (!domain || !sessionOriginUrl) return false;
-  try {
-    const originHost = new URL(sessionOriginUrl).hostname.toLowerCase();
-    return domain.trim().toLowerCase() === originHost;
-  } catch {
-    return false;
-  }
-}
+// AW-2026-044 domain <-> session origin binding lives in ./arc60Domain (import-free, unit-tested).
+export { domainMatchesSessionOrigin } from "./arc60Domain";
 
 /** EdDSA(SHA256(data) + SHA256(authenticatorData)), per ARC-60's AUTH scope. */
 export async function computeArc60Digest(

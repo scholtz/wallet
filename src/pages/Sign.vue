@@ -1,5 +1,5 @@
 <template>
-  <main-layout>
+  <main-layout :minimal="$store.state.direct.popup.dappOrigin !== null">
     <div v-if="!$route.params.account">
       <h1>{{ $t("pay.select_account_for_payment") }}</h1>
 
@@ -1799,7 +1799,9 @@ const retToWalletConnect = () => {
   const accountParam = toSingleParam(
     route.params.account as string | string[] | undefined
   );
-  router.push(connectReturnPath(accountParam));
+  router.push(
+    connectReturnPath(accountParam, store.state.direct.popup.dappOrigin !== null),
+  );
 };
 
 const retToSignAll = () => {

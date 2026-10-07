@@ -30,4 +30,10 @@ test.describe("connectReturnPath", () => {
     expect(connectReturnPath("")).toBe("/connect");
     expect(connectReturnPath(undefined)).toBe("/connect");
   });
+
+  test("inside a Biatec Direct popup the return path is /direct", () => {
+    expect(connectReturnPath(ADDR, true)).toBe("/direct");
+    expect(connectReturnPath(undefined, true)).toBe("/direct");
+    expect(connectReturnPath(ADDR, false)).toBe(`/account/connect/${ADDR}`);
+  });
 });
