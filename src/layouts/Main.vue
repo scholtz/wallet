@@ -56,7 +56,6 @@ export default {
     Toast,
   },
   computed: {
-    /** Biatec Direct popup, wallet still locked: the site asking for access (from the URL hint). */
     /** Scheme and host of the hint, shown separately so the host stands out. */
     directOriginParts() {
       try {
@@ -66,6 +65,7 @@ export default {
         return { scheme: "", host: this.directOriginHint };
       }
     },
+    /** Biatec Direct popup, wallet still locked: the site asking for access (from the URL hint). */
     directOriginHint() {
       if (!this.minimal || this.$route?.path !== "/direct") return undefined;
       // Only a real popup (has an opener, not framed): a plain link or iframe is not a request.
