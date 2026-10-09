@@ -35,7 +35,7 @@ Safe, EIP-6963/7039: issue [#192](https://github.com/scholtz/wallet/issues/192).
 | The channel is **single-use for the window's lifetime**: a reload or a lock/unlock cycle never announces `ready` again (the popup then asks the user to start over from the site) | `shared/direct.ts` (`sessionStorage` + in-page flag) |
 | The origin is the identity; name/icon from the dApp are shown as unverified, icons are not rendered | `DirectPopup.vue` |
 | Signing needs a prior grant for that origin (`4100` otherwise); every transaction sender / ARC-60 signer must be a granted account | `store/direct.ts` + shared guards (`scripts/liquid/guards.ts`) |
-| Network binding: the request `genesisHash` must be the wallet's active network (`4004`), every transaction's genesis hash must equal it, and it must equal the network the site was connected on; the built-in table of well-known networks wins over the remotely fetched genesis list; unknown network fails closed (custom node: only the per-site and per-transaction binding applies) | `checkRequestNetwork`, `txnGenesisMatches`, `store/direct.ts` |
+| Any network is supported: the wallet signs on every chain a dApp uses and never compares the request with its selected network. The request `genesisHash` must be well-formed (`4200` otherwise), every transaction must carry exactly that genesis hash (`4200`) and, for a **known** network, a non-empty genesis ID must be that network's (e.g. `testnet-v1.0`; `4200`), so a request cannot show one network and sign for another. The popup shows the network on every request (name, "Test network" badge, a warning for an unrecognised network with its genesis hash, a note when it differs from the wallet's selected network). Asset names, ARC-56 details and the node preview come from the wallet's own network and are shown only when the request is on the wallet's selected network. The site grant is per origin and accounts, not per network | `resolveRequestNetwork`, `genesisIdConsistent`, `txnGenesisMatches`, `store/direct.ts` |
 | ARC-0060: the domain must equal the verified origin's `hostname` or its `host` (hostname plus a non-default port, which is what use-wallet sends); another host or port is refused | `signer/signArc60Data` with `sessionOrigin = event.origin` |
 | An unanswered request is answered `4001` on `pagehide`, logout, auto-lock or when the opener closes | `shared/direct.ts`, `direct/reset` |
 | Grants are persisted with a read-modify-write against the stored record (under a cross-tab Web Lock), and `saveWallet` takes the persisted value of shared items, so neither a stale main tab nor a concurrent popup can restore a revoked grant or drop a new one | `wallet/wcUpdateItemFresh`, `wallet/saveWallet` |
@@ -65,14 +65,15 @@ dApp                                            wallet popup
         ◄── { …, reference:"arc0027:enable:response", result:{ providerId, genesisHash, accounts:[{address}] } }   (addresses only; account names are private)
  ──► arc0027:sign_transactions:request  params:{ providerId, genesisHash, txns:[{txn, signers?, authAddr?, msig?, stxn?}] }
         ◄── …:response  result:{ providerId, stxns:[base64url | null] }
- ──► arc0060:sign_data:request          params:{ providerId, genesisHash?, items:[StdSigData] }   (genesisHash optional; if present it must be the granted network)
+ ──► arc0060:sign_data:request          params:{ providerId, genesisHash?, items:[StdSigData] }   (genesisHash optional; if present it must be well-formed and is shown to the user)
         ◄── …:response  result:{ providerId, signatures:[base64url | null] }
  ──► arc0027:disable:request            (revokes the grant of the sender's origin)
 ```
 
 Errors use the Liquid/ARC-0027 codes: `4001` rejected, `4003` method not supported,
-`4004` network, `4100` not connected / unauthorized signer, `4200` invalid (also: second request),
-`4000` limits.
+`4100` not connected / unauthorized signer, `4200` invalid (malformed `genesisHash`, a transaction for another
+genesis hash or with a contradicting genesis ID, second request), `4000` limits. `4004` (network not supported)
+is no longer returned: a request for a different network than the wallet's selected one is signed.
 
 `genesisHash` is base64 or base64url of the 32-byte hash, padded or not. **Compare hashes by decoded
 bytes**: the wallet answers `enable` with a *normalized* hash (base64url, no padding).

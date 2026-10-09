@@ -5,7 +5,7 @@
 // real cross-origin popup/postMessage path and the browser-supplied event.origin are exercised.
 import { test, expect, type BrowserContext, type Page } from "@playwright/test";
 import algosdk from "algosdk";
-import { createHash } from "node:crypto";
+import { createHash, createPublicKey, verify } from "node:crypto";
 import { DEFAULT_WALLET_PASSWORD, setupFreshWallet } from "../support/wallet";
 
 const WALLET_ORIGIN = "http://localhost:8080";
@@ -13,6 +13,7 @@ const DAPP_ORIGIN = "http://127.0.0.1:8080";
 const DAPP_URL = `${DAPP_ORIGIN}/__direct-dapp.html`;
 const MAINNET_HASH = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=";
 const TESTNET_HASH = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+const VOI_HASH = "r20fSQI8gWe/kFZziNonSPCXLwcQmH/nxROvnnueWOk=";
 const WALLET_PROVIDER_ID = "8f7a1c2e-5b3d-4e9f-a6c0-1d2e3f4a5b6c";
 const OTHER_ADDR = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
 
@@ -116,6 +117,33 @@ function paymentTxn(sender: string, genesisHash = MAINNET_HASH, genesisID = "mai
   };
 }
 
+/** Suggested params of a Testnet transaction. */
+const testnetParams = () => ({
+  fee: 1000,
+  flatFee: true,
+  firstValid: 1000,
+  lastValid: 2000,
+  genesisHash: new Uint8Array(Buffer.from(TESTNET_HASH, "base64")),
+  genesisID: "testnet-v1.0",
+});
+
+const encode = (txn: algosdk.Transaction) => ({
+  txn: Buffer.from(algosdk.encodeUnsignedTransaction(txn)).toString("base64url"),
+});
+
+/** The returned stxn is for `txn` and carries a valid ed25519 signature of `address`. */
+function expectValidSignature(stxn: string, txn: algosdk.Transaction, address: string) {
+  const signed = algosdk.decodeSignedTransaction(new Uint8Array(Buffer.from(stxn, "base64url")));
+  expect(signed.txn.txID()).toBe(txn.txID());
+  const spkiPrefix = Buffer.from("302a300506032b6570032100", "hex");
+  const key = createPublicKey({
+    key: Buffer.concat([spkiPrefix, Buffer.from(algosdk.decodeAddress(address).publicKey)]),
+    format: "der",
+    type: "spki",
+  });
+  expect(verify(null, Buffer.from(txn.bytesToSign()), key, Buffer.from(signed.sig!))).toBe(true);
+}
+
 /** Run the connect (enable) flow for the wallet's account; returns the dApp page. */
 async function connectSite(context: BrowserContext, address: string): Promise<Page> {
   const dapp = await openDapp(context);
@@ -174,6 +202,7 @@ test.describe("Biatec Direct popup transport", () => {
     await expect(popup.getByTestId(`direct-account-${address}`)).toBeVisible();
     // The approval shows the network by its friendly name, not the raw genesis id.
     await expect(popup.getByTestId("direct-network")).toHaveText("Algorand Mainnet");
+    await expect(popup.getByTestId("direct-network-differs")).toHaveCount(0);
     await popup.getByTestId("direct-approve").click();
     const response = await waitForMessage(dapp, reply("enable-1"));
     expect(response.origin).toBe(WALLET_ORIGIN);
@@ -327,6 +356,13 @@ test.describe("Biatec Direct popup transport", () => {
       params: { providerId: "d", genesisHash: MAINNET_HASH, txns: [{ txn: b64url }] },
     });
     await expect(popup.getByRole("button", { name: "Sign", exact: true })).toBeVisible();
+    // On the wallet's own network the card names it, with no "different network" note, and the
+    // wallet-network enrichment (node preview) stays.
+    await expect(popup.getByTestId("direct-network")).toHaveText("Algorand Mainnet");
+    await expect(popup.getByTestId("direct-network-differs")).toHaveCount(0);
+    await expect(popup.getByTestId("direct-network-test")).toHaveCount(0);
+    await expect(popup.getByTestId("direct-foreign-note")).toHaveCount(0);
+    await expect(popup.getByText("Node-reported preview")).toBeVisible();
     // Signing is the approval: the result goes straight back, no second click.
     await popup.getByRole("button", { name: "Sign", exact: true }).click();
     const response = await waitForMessage(dapp, reply("s1"));
@@ -357,35 +393,108 @@ test.describe("Biatec Direct popup transport", () => {
     await expectClosed(popup);
   });
 
-  test("sign: a request for another network is refused (4004)", async ({ context, page }) => {
+  test("sign: a TESTNET request is signed while the wallet is on mainnet; the popup says which network", async ({ context, page }) => {
     await setupFreshWallet(page);
     const address = walletAddress(page);
+    // The site was connected on mainnet; the grant is not bound to a network.
     const dapp = await connectSite(context, address);
     const popup = await openPopup(context, dapp);
     await unlock(popup);
     await waitForMessage(dapp, isReady);
+    const sp = testnetParams();
+    const pay = algosdk.makePaymentTxnWithSuggestedParamsFromObject({ sender: address, receiver: address, amount: 1_500_000, suggestedParams: sp });
+    const axfer = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({ sender: address, receiver: address, amount: 5, assetIndex: 31566704, suggestedParams: sp });
+    algosdk.assignGroupID([pay, axfer]);
     await post(dapp, {
-      id: "s3",
+      id: "t1",
       reference: "arc0027:sign_transactions:request",
-      params: {
-        providerId: "d",
-        genesisHash: TESTNET_HASH,
-        txns: [{ txn: paymentTxn(address, TESTNET_HASH, "testnet-v1.0").b64url }],
-      },
+      params: { providerId: "d", genesisHash: TESTNET_HASH, txns: [pay, axfer].map(encode) },
     });
-    const response = await waitForMessage(dapp, reply("s3"));
-    expect((response.data.error as { code: number }).code).toBe(4004);
+    await expect(popup.getByTestId("direct-network")).toHaveText("Algorand Testnet");
+    await expect(popup.getByTestId("direct-network-test")).toHaveText("Test network");
+    await expect(popup.getByTestId("direct-network-differs")).toContainText("Different from the network selected in the wallet (");
+    await expect(popup.getByTestId("direct-network-unknown")).toHaveCount(0);
+    // Native amounts / fees are in the network's own token; the asset is only its id (no name
+    // from another network's indexer, never "Algo").
+    await expect(popup.getByText("1.500000 Algo").first()).toBeVisible();
+    await expect(popup.getByText("0.001000 Algo").first()).toBeVisible();
+    await expect(popup.getByText("5 asset 31566704").first()).toBeVisible();
+    // Nothing from the wallet's own network is shown for another network.
+    await expect(popup.getByTestId("direct-foreign-note")).toContainText("not shown for another network");
+    await expect(popup.getByText("Node-reported preview")).toHaveCount(0);
+    // Security-relevant rows stay.
+    await expect(popup.getByRole("cell", { name: "Fee:" }).first()).toBeVisible();
+    await expect(popup.getByRole("cell", { name: "Genesis ID:" }).first()).toBeVisible();
+    await expect(popup.getByText("testnet-v1.0").first()).toBeVisible();
+    await popup.getByRole("button", { name: "Sign", exact: true }).first().click();
+    await popup.getByRole("button", { name: "Sign", exact: true }).first().click();
+    const response = await waitForMessage(dapp, reply("t1"));
+    expect(response.data.error).toBeUndefined();
+    const stxns = (response.data.result as { stxns: (string | null)[] }).stxns;
+    expect(stxns).toHaveLength(2);
+    [pay, axfer].forEach((txn, i) => expectValidSignature(stxns[i]!, txn, address));
     await expectClosed(popup);
   });
 
-  test("sign: a transaction whose genesis differs from the request's is refused (4004)", async ({ context, page }) => {
+  test("sign: a Voi mainnet request is signed and amounts are in VOI", async ({ context, page }) => {
     await setupFreshWallet(page);
     const address = walletAddress(page);
     const dapp = await connectSite(context, address);
     const popup = await openPopup(context, dapp);
     await unlock(popup);
     await waitForMessage(dapp, isReady);
-    // Request claims mainnet (the wallet's network) but the transaction is a testnet one.
+    const { txn, b64url } = paymentTxn(address, VOI_HASH, "voimain-v1.0");
+    await post(dapp, {
+      id: "v1",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: VOI_HASH, txns: [{ txn: b64url }] },
+    });
+    await expect(popup.getByTestId("direct-network")).toHaveText("Voi Mainnet");
+    await expect(popup.getByTestId("direct-network-test")).toHaveCount(0);
+    await expect(popup.getByText("0.001000 VOI").first()).toBeVisible();
+    await popup.getByRole("button", { name: "Sign", exact: true }).click();
+    const response = await waitForMessage(dapp, reply("v1"));
+    expect(response.data.error).toBeUndefined();
+    expectValidSignature((response.data.result as { stxns: string[] }).stxns[0], txn, address);
+    await expectClosed(popup);
+  });
+
+  test("sign: an UNKNOWN network is signed only after the user is warned and shown the genesis hash", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    const hash = Buffer.from(algosdk.generateAccount().addr.publicKey).toString("base64");
+    const { txn, b64url } = paymentTxn(address, hash, "my-private-net-v1");
+    await post(dapp, {
+      id: "u1",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: hash, txns: [{ txn: b64url }] },
+    });
+    await expect(popup.getByTestId("direct-network")).toHaveText("Unknown network");
+    await expect(popup.getByTestId("direct-network-unknown")).toContainText("Only continue if you recognise it");
+    await expect(popup.getByTestId("direct-network-hash")).toHaveText(hash.replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_"));
+    // No token is known: the raw base units are shown, not a guessed scaling.
+    await expect(popup.getByText("1,000 units").first()).toBeVisible();
+    await expect(popup.getByText("my-private-net-v1").first()).toBeVisible();
+    expect((await messages(dapp)).some(reply("u1"))).toBe(false);
+    await popup.getByRole("button", { name: "Sign", exact: true }).click();
+    const response = await waitForMessage(dapp, reply("u1"));
+    expect(response.data.error).toBeUndefined();
+    expectValidSignature((response.data.result as { stxns: string[] }).stxns[0], txn, address);
+    await expectClosed(popup);
+  });
+
+  test("sign: a transaction whose genesis hash differs from the request's is refused (4200)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    // The request claims mainnet but the transaction is a testnet one.
     await post(dapp, {
       id: "s4",
       reference: "arc0027:sign_transactions:request",
@@ -396,7 +505,71 @@ test.describe("Biatec Direct popup transport", () => {
       },
     });
     const response = await waitForMessage(dapp, reply("s4"));
-    expect((response.data.error as { code: number }).code).toBe(4004);
+    expect((response.data.error as { code: number }).code).toBe(4200);
+    expect((response.data.error as { message: string }).message).toContain("different network");
+    await expectClosed(popup);
+  });
+
+  test("sign: a known network with a contradicting genesis ID is refused (4200)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    // Testnet hash, but the transaction says it is mainnet: the label must not lie.
+    await post(dapp, {
+      id: "s5",
+      reference: "arc0027:sign_transactions:request",
+      params: {
+        providerId: "d",
+        genesisHash: TESTNET_HASH,
+        txns: [{ txn: paymentTxn(address, TESTNET_HASH, "mainnet-v1.0").b64url }],
+      },
+    });
+    const response = await waitForMessage(dapp, reply("s5"));
+    expect((response.data.error as { code: number }).code).toBe(4200);
+    expect((response.data.error as { message: string }).message).toContain("genesis ID");
+    await expectClosed(popup);
+  });
+
+  test("sign: a malformed genesis hash is refused (4200)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "s6",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: "not-a-hash", txns: [{ txn: paymentTxn(address).b64url }] },
+    });
+    const response = await waitForMessage(dapp, reply("s6"));
+    expect((response.data.error as { code: number }).code).toBe(4200);
+    await expectClosed(popup);
+  });
+
+  test("sign_data: a request naming another network is signed and shows that network", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "a9",
+      reference: "arc0060:sign_data:request",
+      params: { providerId: "d", genesisHash: TESTNET_HASH, items: [arc60Item(address, "127.0.0.1")] },
+    });
+    await expect(popup.getByTestId("direct-network")).toHaveText("Algorand Testnet");
+    await expect(popup.getByTestId("direct-network-test")).toBeVisible();
+    await popup.getByRole("button", { name: "Sign data" }).click();
+    const response = await waitForMessage(dapp, reply("a9"));
+    expect(response.data.error).toBeUndefined();
+    const signatures = (response.data.result as { signatures: (string | null)[] }).signatures;
+    expect(Buffer.from(signatures[0]!, "base64url")).toHaveLength(64);
+    await expectClosed(popup);
   });
 
   test("/direct opened directly (no opener) shows an error and posts nothing", async ({ page }) => {

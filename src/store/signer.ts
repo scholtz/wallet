@@ -74,6 +74,11 @@ interface SignArc60DataPayload {
   sessionOrigin: string | undefined;
   /** Addresses approved for the WalletConnect session the request arrived on - see AW-2026-046. */
   approvedAccounts: string[];
+  /**
+   * Network (genesis ID / env id) whose rekey mappings apply, when the request names one that is
+   * not necessarily the wallet's selected network (Biatec Direct). Defaults to the selected env.
+   */
+  env?: string;
 }
 
 export interface SignerState {
@@ -610,7 +615,7 @@ const actions: ActionTree<SignerState, RootState> = {
       payload.authenticatorData,
     );
     const baseAccount = ensureAccount(rootState, payload.from);
-    const env = ensureEnv(rootState);
+    const env = payload.env ?? ensureEnv(rootState);
     const signerAccount = resolveEnvRekey(rootState, baseAccount, env, payload.from);
     if (signerAccount.type === "hd") {
       if (!signerAccount.hdRootAddr) {

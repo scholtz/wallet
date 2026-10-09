@@ -251,17 +251,7 @@ export class DirectRequestGate {
   }
 }
 
-// ---------- Network binding ----------
-
-/** CAIP-2 reference of well-known networks (base64url, first 32 chars of the genesis hash). */
-const WELL_KNOWN_GENESIS_PREFIX: Record<string, string> = {
-  "mainnet-v1.0": "wGHE2Pwdvd7S12BL5FaOP20EGYesN73k",
-  "testnet-v1.0": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe",
-  "betanet-v1.0": "mFgazF-2uRS1tMiL9dsj01hJGySEmPN2",
-  "fnet-v1": "kUt08LxeVAAGHnh4JoAoAMM9ql_hBwSo",
-  "voimain-v1.0": "r20fSQI8gWe_kFZziNonSPCXLwcQmH_n",
-  "aramidmain-v1.0": "PgeQVJJgx_LYKJfIEz7dbfNPuXmDyJ-O",
-};
+// ---------- Genesis hashes ----------
 
 /**
  * Transaction kinds Biatec Direct signs. The compact popup is the user's only review surface,
@@ -298,11 +288,6 @@ export function directUnsupportedReason(tx: {
   }
 }
 
-/** True when the network is in the built-in table, so the remote genesis list is not needed. */
-export function isWellKnownNetwork(env: string): boolean {
-  return Object.prototype.hasOwnProperty.call(WELL_KNOWN_GENESIS_PREFIX, env);
-}
-
 /** base64 / base64url genesis hash -> 32-byte base64url with padding removed; undefined if bad. */
 // unknown: the genesis hash is untrusted request data.
 export function normalizeGenesisHash(value: unknown): string | undefined {
@@ -316,73 +301,6 @@ export function normalizeGenesisHash(value: unknown): string | undefined {
 /** First 32 base64url chars of a genesis hash — what a CAIP-2 `algorand:` reference carries. */
 export function genesisCaipReference(normalized: string): string {
   return normalized.slice(0, 32);
-}
-
-/**
- * Expected CAIP-2 reference of the wallet's active network: the built-in table of well-known
- * networks first, otherwise the public genesis list (for networks the wallet does not know). `undefined` when
- * the network cannot be determined (custom node, unknown env) — callers must then fail closed
- * unless the user configured a custom node.
- */
-export function expectedGenesisReference(
-  env: string,
-  genesisList: { network: string; CAIP10: string }[],
-): string | undefined {
-  // The built-in table wins: the public genesis list is fetched from a remote host and must not
-  // be able to weaken the binding of a well-known network.
-  const known = WELL_KNOWN_GENESIS_PREFIX[env];
-  if (known) return known;
-  const entry = genesisList.find((n) => n.network === env);
-  const caip = entry?.CAIP10;
-  if (typeof caip === "string" && caip.startsWith("algorand:")) {
-    return caip.slice("algorand:".length);
-  }
-  return undefined;
-}
-
-export type NetworkCheck =
-  | { ok: true }
-  | { ok: false; code: number; reason: string };
-
-/**
- * The request's `genesisHash` must be well-formed and denote the wallet's active network
- * (AW network binding: a dApp cannot get a signature for another chain's transaction).
- * With a custom node (`env === "custom"`) there is nothing to compare with; the per-transaction
- * check (`txnGenesisMatches`) still binds the transactions to the request's hash.
- */
-export function checkRequestNetwork(input: {
-  // unknown: untrusted request data, validated by normalizeGenesisHash.
-  requestGenesisHash: unknown;
-  env: string;
-  genesisList: { network: string; CAIP10: string }[];
-}): NetworkCheck & { normalized?: string } {
-  const normalized = normalizeGenesisHash(input.requestGenesisHash);
-  if (!normalized) {
-    return {
-      ok: false,
-      code: DirectErrorCode.invalidInput,
-      reason: "Invalid genesisHash.",
-    };
-  }
-  if (input.env === "custom") {
-    return { ok: true, normalized };
-  }
-  const expected = expectedGenesisReference(input.env, input.genesisList);
-  if (!expected) {
-    return {
-      ok: false,
-      code: DirectErrorCode.networkNotSupported,
-      reason: "The wallet cannot verify its active network.",
-    };
-  }
-  if (genesisCaipReference(normalized) !== expected) {
-    return {
-      ok: false,
-      code: DirectErrorCode.networkNotSupported,
-      reason: "The request targets a different network than the wallet's active network.",
-    };
-  }
-  return { ok: true, normalized };
 }
 
 /** A decoded transaction's genesis hash bytes must equal the request's `genesisHash`. */

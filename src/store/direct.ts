@@ -28,13 +28,17 @@ import {
   MAX_DIRECT_ENABLE_ACCOUNTS,
   buildDirectError,
   buildDirectResponse,
-  checkRequestNetwork,
   directUnsupportedReason,
-  isWellKnownNetwork,
   responseReference,
   txnGenesisMatches,
   type DirectRequestMessage,
 } from "../scripts/direct/protocol";
+import {
+  genesisIdConsistent,
+  resolveRequestNetwork,
+  toNetworkView,
+  type DirectNetworkView,
+} from "../scripts/direct/networks";
 import {
   DIRECT_SESSIONS_STORAGE_KEY,
   parseStoredDirectSessions,
@@ -81,6 +85,8 @@ export interface PendingEnable {
   reference: string;
   /** Normalized genesis hash the dApp asked for. */
   genesisHash: string;
+  /** The network the site asks to be connected on, as shown to the user. */
+  network: DirectNetworkView;
   peer: DirectPeerMetadata;
 }
 
@@ -93,6 +99,8 @@ export interface DirectState {
     dappOrigin: string | null;
     /** True once a message from the hinted origin (and opener) was accepted. */
     verified: boolean;
+    /** The network of the accepted request (enable, sign_transactions, sign_data), if it names one. */
+    network: DirectNetworkView | null;
   };
   pendingEnable: PendingEnable | null;
 }
@@ -111,7 +119,7 @@ const state = (): DirectState => ({
   sessions: [],
   requests: [],
   signDataRequests: [],
-  popup: { status: "idle", dappOrigin: null, verified: false },
+  popup: { status: "idle", dappOrigin: null, verified: false, network: null },
   pendingEnable: null,
 });
 
@@ -140,6 +148,9 @@ const mutations: MutationTree<DirectState> = {
     if (popup.dappOrigin !== undefined) {
       currentState.popup.dappOrigin = popup.dappOrigin;
     }
+  },
+  setNetwork(currentState, network: DirectNetworkView | null) {
+    currentState.popup.network = network;
   },
   setPendingEnable(currentState, pending: PendingEnable | null) {
     currentState.pendingEnable = pending;
@@ -269,36 +280,26 @@ const actions: ActionTree<DirectState, RootState> = {
       commit("setPopup", { status: "refused" });
       directChannel.closeAfterFlush();
     };
-    // unknown: untrusted request data; validated by checkRequestNetwork / normalizeGenesisHash.
-    const network = async (genesisHash: unknown) => {
-      // The remote genesis list is only consulted for networks the wallet does not know; for
-      // well-known ones (and custom nodes) never wait on a network fetch.
-      const needsList =
-        rootState.config.env !== "custom" &&
-        !isWellKnownNetwork(rootState.config.env);
-      const genesisList: { network: string; CAIP10: string }[] = needsList
-        ? ((await dispatch("publicData/getGenesisList", undefined, {
-            root: true,
-          })) ?? [])
-        : [];
-      return checkRequestNetwork({
-        requestGenesisHash: genesisHash,
-        env: rootState.config.env,
-        genesisList,
-      });
+    // Biatec Direct signs on every network: a request is only refused for a malformed hash. The
+    // network is shown to the user on every request instead of being compared with the wallet's.
+    // unknown: untrusted request data; validated by resolveRequestNetwork.
+    const network = (genesisHash: unknown) => {
+      const resolved = resolveRequestNetwork(genesisHash);
+      return resolved.ok
+        ? {
+            ok: true as const,
+            network: toNetworkView(resolved.network, rootState.config.env),
+          }
+        : resolved;
     };
     const session = state.sessions.find((s) => s.origin === dappOrigin);
 
     switch (request.reference) {
       case DirectReference.enableRequest: {
         const params = request.params;
-        const check = await network(params.genesisHash);
-        if (!check.ok || !check.normalized) {
-          refuse(
-            check.ok
-              ? { code: DirectErrorCode.invalidInput, reason: "Invalid genesisHash." }
-              : check,
-          );
+        const check = network(params.genesisHash);
+        if (!check.ok) {
+          refuse(check);
           return;
         }
         // unknown: dApp-supplied metadata is untrusted; sanitizePeerMetadata type-checks it.
@@ -310,9 +311,11 @@ const actions: ActionTree<DirectState, RootState> = {
         commit("setPendingEnable", {
           id: request.id,
           reference: request.reference,
-          genesisHash: check.normalized,
+          genesisHash: check.network.genesisHash,
+          network: check.network,
           peer,
         } satisfies PendingEnable);
+        commit("setNetwork", check.network);
         commit("setPopup", { status: "enable" });
         return;
       }
@@ -338,22 +341,9 @@ const actions: ActionTree<DirectState, RootState> = {
           });
           return;
         }
-        const check = await network(request.params.genesisHash);
-        if (!check.ok || !check.normalized) {
-          refuse(
-            check.ok
-              ? { code: DirectErrorCode.invalidInput, reason: "Invalid genesisHash." }
-              : check,
-          );
-          return;
-        }
-        // The grant was made on one network; a site cannot carry it over to another.
-        if (session.genesisHash !== check.normalized) {
-          refuse({
-            code: DirectErrorCode.networkNotSupported,
-            reason:
-              "This site was connected on a different network. Connect it again.",
-          });
+        const check = network(request.params.genesisHash);
+        if (!check.ok) {
+          refuse(check);
           return;
         }
         const rawTransactions: AlgoSignTxnParam[] = Array.isArray(
@@ -398,15 +388,29 @@ const actions: ActionTree<DirectState, RootState> = {
             return;
           }
         }
-        // Every transaction must be bound to the network the request (and the wallet) is on.
+        // Every transaction must be bound to the network the request names (and that the user is
+        // shown): same genesis hash, and for a known network a matching genesis ID, so a request
+        // cannot display one network and sign for another.
         if (
           transactions.some(
-            (tx) => !txnGenesisMatches(tx.txn?.genesisHash, check.normalized!),
+            (tx) =>
+              !txnGenesisMatches(tx.txn?.genesisHash, check.network.genesisHash),
           )
         ) {
           refuse({
-            code: DirectErrorCode.networkNotSupported,
+            code: DirectErrorCode.invalidInput,
             reason: "A transaction targets a different network than the request.",
+          });
+          return;
+        }
+        if (
+          transactions.some(
+            (tx) => !genesisIdConsistent(check.network, tx.txn?.genesisID),
+          )
+        ) {
+          refuse({
+            code: DirectErrorCode.invalidInput,
+            reason: "A transaction's genesis ID does not match its genesis hash.",
           });
           return;
         }
@@ -436,6 +440,7 @@ const actions: ActionTree<DirectState, RootState> = {
             topic: dappOrigin,
           } satisfies StoredRequest,
         });
+        commit("setNetwork", check.network);
         commit("setPopup", { status: "signing" });
         return;
       }
@@ -447,28 +452,16 @@ const actions: ActionTree<DirectState, RootState> = {
           });
           return;
         }
-        // `genesisHash` is optional for sign_data; when given it must be the granted network.
+        // `genesisHash` is optional for sign_data; when given it must be well-formed, and the
+        // network it names is shown to the user.
+        let dataNetwork: DirectNetworkView | null = null;
         if (request.params.genesisHash !== undefined) {
-          const check = await network(request.params.genesisHash);
-          if (!check.ok || !check.normalized) {
-            refuse(
-              check.ok
-                ? {
-                    code: DirectErrorCode.invalidInput,
-                    reason: "Invalid genesisHash.",
-                  }
-                : check,
-            );
+          const check = network(request.params.genesisHash);
+          if (!check.ok) {
+            refuse(check);
             return;
           }
-          if (session.genesisHash !== check.normalized) {
-            refuse({
-              code: DirectErrorCode.networkNotSupported,
-              reason:
-                "This site was connected on a different network. Connect it again.",
-            });
-            return;
-          }
+          dataNetwork = check.network;
         }
         // unknown cast: the dApp sends untrusted data; decodeArc60Items validates each item.
         const rawItems = (Array.isArray(request.params.items)
@@ -516,6 +509,7 @@ const actions: ActionTree<DirectState, RootState> = {
             topic: dappOrigin,
           } satisfies StoredSignDataRequest,
         });
+        commit("setNetwork", dataNetwork);
         commit("setPopup", { status: "signing" });
         return;
       }
@@ -673,6 +667,10 @@ const actions: ActionTree<DirectState, RootState> = {
         domain: item.domain,
         sessionOrigin: session.origin,
         approvedAccounts: session.addresses,
+        // Rekey mappings are per network: follow the network the request names, not the wallet's.
+        env: state.popup.network
+          ? (state.popup.network.env ?? state.popup.network.genesisHash)
+          : undefined,
       },
       { root: true },
     );

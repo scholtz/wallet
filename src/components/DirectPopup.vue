@@ -62,6 +62,11 @@
         </Message>
       </section>
 
+      <DirectNetworkCard
+        v-if="network && (status === 'enable' || status === 'signing')"
+        :network="network"
+      />
+
       <div v-if="status === 'waiting'" class="direct-state" data-testid="direct-waiting">
         <p>
           <i class="pi pi-spin pi-spinner mr-2" aria-hidden="true" />
@@ -106,22 +111,6 @@
             {{ $t("connect.direct.peer_unverified") }}
           </small>
         </div>
-        <div class="direct-row">
-          <span class="direct-label">{{ $t("connect.direct.network") }}</span>
-          <span data-testid="direct-network">{{ networkName }}</span>
-        </div>
-        <Message
-          v-if="store.state.config.env === 'custom'"
-          severity="warn"
-          class="mt-2"
-          data-testid="direct-custom-network"
-        >
-          {{
-            $t("connect.direct.network_custom", {
-              hash: pendingEnable.genesisHash.slice(0, 8),
-            })
-          }}
-        </Message>
 
         <div class="direct-label mt-3">
           {{ $t("connect.direct.select_accounts") }}
@@ -183,6 +172,7 @@
         <ConnectRequestsTable
           v-if="requests.length > 0"
           :requests="requests"
+          :network="network ?? undefined"
           namespace="direct"
         />
         <ConnectSignDataRequestsTable
@@ -212,6 +202,7 @@ import { isDirectEligibleAccount } from "@/store/direct";
 import { isDevelopmentOrigin } from "@/scripts/direct/protocol";
 import ConnectRequestsTable from "@/components/ConnectRequestsTable.vue";
 import ConnectSignDataRequestsTable from "@/components/ConnectSignDataRequestsTable.vue";
+import DirectNetworkCard from "@/components/DirectNetworkCard.vue";
 import AlgorandAddress from "@/components/AlgorandAddress.vue";
 import { getWalletBrandName } from "@/scripts/branding";
 
@@ -228,9 +219,8 @@ const signDataRequests = computed(() => store.state.direct.signDataRequests);
 const eligibleAccounts = computed(() =>
   store.state.wallet.privateAccounts.filter(isDirectEligibleAccount),
 );
-const networkName = computed(
-  () => store.state.config.envName || store.state.config.env,
-);
+/** The network the site's request names (shown on every request; Direct signs on any chain). */
+const network = computed(() => store.state.direct.popup.network);
 
 /** Scheme and host of the verified origin, shown separately so the host stands out. */
 const originParts = computed(() => {
