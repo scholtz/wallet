@@ -50,6 +50,36 @@ test.describe("mergePrivateAccounts (AW-2026-059)", () => {
     expect(merged.map((a) => a.addr).sort()).toEqual(["A", "B", "C"]);
   });
 
+  test("an account another tab deleted is not written back by this tab", () => {
+    const merged = mergePrivateAccounts(
+      [acct("A"), acct("B")],
+      [acct("A")],
+      new Set(["A", "B"]),
+    );
+    expect(merged.map((a) => a.addr)).toEqual(["A"]);
+  });
+
+  test("a new account of this tab (never persisted) is kept even though it is absent", () => {
+    const merged = mergePrivateAccounts([acct("A"), acct("N")], [acct("A")], new Set(["A"]));
+    expect(merged.map((a) => a.addr)).toEqual(["A", "N"]);
+  });
+
+  test("legacy persisted entries with a non-string address are ignored, not duplicated", () => {
+    const legacy = { addr: { publicKey: [1, 2, 3] } } as unknown as { addr: string };
+    const merged = mergePrivateAccounts([acct("A")], [legacy, acct("A")], new Set());
+    expect(merged.map((a) => a.addr)).toEqual(["A"]);
+  });
+
+  test("a legacy persisted record does not make this tab drop its known accounts", () => {
+    const legacy = { addr: { publicKey: [1, 2, 3] } } as unknown as { addr: string };
+    const merged = mergePrivateAccounts([acct("A")], [legacy], new Set(["A"]));
+    expect(merged.map((a) => a.addr)).toEqual(["A"]);
+  });
+
+  test("an empty persisted list does not wipe this tab's accounts", () => {
+    expect(mergePrivateAccounts([acct("A")], [], new Set(["A"]))).toHaveLength(1);
+  });
+
   test("a missing persisted list changes nothing", () => {
     const memory = [acct("A")];
     expect(mergePrivateAccounts(memory, undefined, new Set())).toEqual(memory);

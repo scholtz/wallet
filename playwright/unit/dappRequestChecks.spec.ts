@@ -63,7 +63,8 @@ test.describe("checkTxGenesis (AW-2026-063)", () => {
 });
 
 test.describe("checkTransactionGroup (AW-2026-064)", () => {
-  const make = () => [1, 2, 3].map((n) => payment(MAINNET_HASH, "mainnet-v1.0", n));
+  const make = (offset = 0) =>
+    [1, 2, 3].map((n) => payment(MAINNET_HASH, "mainnet-v1.0", n + offset));
 
   test("ungrouped transactions are fine", () => {
     expect(checkTransactionGroup(make().slice(0, 1))).toBe("ok");
@@ -81,15 +82,37 @@ test.describe("checkTransactionGroup (AW-2026-064)", () => {
     expect(checkTransactionGroup(txns.slice(0, 2))).toBe("incomplete");
   });
 
+  test("several complete groups in one request are fine", () => {
+    const a = make();
+    const b = make(100);
+    algosdk.assignGroupID(a);
+    algosdk.assignGroupID(b);
+    expect(checkTransactionGroup([...a, ...b])).toBe("ok");
+  });
+
+  test("a complete group next to an ungrouped transaction is fine", () => {
+    const a = make();
+    algosdk.assignGroupID(a);
+    expect(checkTransactionGroup([...a, payment(MAINNET_HASH, "mainnet-v1.0", 9)])).toBe("ok");
+  });
+
+  test("one incomplete group among complete ones is refused", () => {
+    const a = make();
+    const b = make(100);
+    algosdk.assignGroupID(a);
+    algosdk.assignGroupID(b);
+    expect(checkTransactionGroup([...a, b[0], b[1]])).toBe("incomplete");
+  });
+
   test("members of different groups are refused", () => {
     const a = make();
-    const b = make();
+    const b = make(100);
     algosdk.assignGroupID(a);
     algosdk.assignGroupID(b);
     expect(checkTransactionGroup([a[0], b[1]])).toBe("incomplete");
   });
 
-  test("a mix of grouped and ungrouped transactions is refused", () => {
+  test("a group member next to an ungrouped transaction is still an incomplete group", () => {
     const txns = make();
     algosdk.assignGroupID(txns);
     const loose = payment(MAINNET_HASH, "mainnet-v1.0", 9);

@@ -74,8 +74,8 @@
       >
         {{
           $t("connect.direct.network_changed", {
-            granted: networkChange.granted.name,
-            requested: networkChange.requested.name,
+            granted: networkLabel(networkChange.granted),
+            requested: networkLabel(networkChange.requested),
           })
         }}
       </Message>
@@ -244,6 +244,9 @@ const eligibleAccounts = computed(() =>
 const network = computed(() => store.state.direct.popup.network);
 /** Set when the site was connected on another network than this request is on. */
 const networkChange = computed(() => store.state.direct.popup.networkChange);
+/** Unknown networks all share one name, so they are told apart by their genesis hash. */
+const networkLabel = (net: { name: string; kind: string; genesisHash: string }) =>
+  net.kind === "unknown" ? `${net.name} (${net.genesisHash.slice(0, 8)}…)` : net.name;
 
 /** Scheme and host of the verified origin, shown separately so the host stands out. */
 const originParts = computed(() => {

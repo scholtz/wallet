@@ -827,6 +827,7 @@ const mutations: MutationTree<WalletState> = {
     state.privateAccounts = [];
     state.lastActiveAccount = "";
     state.lastActiveAccountName = "";
+    state.lastPayTo = "";
     // Wallet-scoped WalletConnect key/value storage (see WCKeyValueStore) —
     // must not linger in memory once the wallet closes, so it can't leak
     // into a differently-opened wallet before openWallet's setWC runs.
@@ -1752,13 +1753,13 @@ const actionHandlers: Record<string, WalletActionHandler> = {
         } catch (error) {
           if (!(error instanceof PersistedWalletUnreadableError)) throw error;
           // The record no longer opens with this tab's password (changed or replaced in another
-          // tab): never overwrite it. Lock this tab so the user signs in again (AW-2026-060).
+          // tab): never overwrite it (AW-2026-060). The session is kept, not logged out, so a key
+          // created here but not yet saved is not discarded and can still be backed up.
           dispatch(
             "toast/openError",
-            "The wallet was changed in another window. Please sign in again.",
+            "The wallet was changed in another window and could not be saved here. Back up any new account, then sign in again.",
             { root: true }
           );
-          await dispatch("logout");
           return false;
         }
         const dataencoded = await encryptWalletData(
@@ -1861,12 +1862,15 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       });
       return false;
     }
-    // A new wallet starts empty: close any open wallet first so its keys, WalletConnect store
-    // and wrapped password can never be copied into the new record (AW-2026-061).
-    if (this.state.wallet.isOpen) {
-      await dispatch("logout");
-    }
-    const data = serializePersistedWallet(this.state.wallet);
+    // A new wallet starts empty and never inherits anything from the open one: its keys,
+    // WalletConnect store, last pay-to address and wrapped password stay out of the new record
+    // (AW-2026-061).
+    const data = serializePersistedWallet({
+      privateAccounts: [],
+      lastPayTo: "",
+      lastActiveAccount: "",
+      wc: {},
+    });
     const dataencoded = await encryptWalletData(data, pass);
 
     try {
@@ -1877,6 +1881,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
         root: true,
       });
       return false;
+    }
+    // Only now, with the new record written, close the previously open wallet.
+    if (this.state.wallet.isOpen) {
+      await dispatch("logout");
     }
     await commit("setIsOpen", { name, pass });
     await dispatch("saveWallet");

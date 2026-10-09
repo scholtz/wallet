@@ -12,11 +12,14 @@ export interface PersistableWallet<A extends { addr: string }> {
 }
 
 /**
- * Merge this tab's accounts with the persisted ones so a stale tab cannot erase an account
- * another tab created (AW-2026-059). `known` is the set of addresses this tab has already seen
- * (loaded or saved): a persisted account missing here that is not in `known` was added elsewhere
- * and is kept; one that is in `known` but absent from `memory` was removed by this tab and stays
- * removed. This tab's copy wins for accounts present on both sides.
+ * Merge this tab's accounts with the persisted ones so a stale tab neither erases an account
+ * another tab created nor resurrects one another tab deleted (AW-2026-059). `known` is the set of
+ * addresses this tab has already seen in the persisted record (loaded or saved):
+ * - persisted, not in memory, not in `known`: added elsewhere, kept;
+ * - in memory and in `known` but no longer persisted: deleted elsewhere, dropped;
+ * - in memory, never persisted: new in this tab, kept.
+ * This tab's copy wins for accounts present on both sides. Legacy persisted entries whose
+ * address is not a string cannot be compared and are ignored (openWallet normalized them).
  */
 export function mergePrivateAccounts<A extends { addr: string }>(
   memory: A[],
@@ -24,9 +27,22 @@ export function mergePrivateAccounts<A extends { addr: string }>(
   known: ReadonlySet<string>,
 ): A[] {
   if (!persisted) return memory;
-  const have = new Set(memory.map((a) => a.addr));
-  const added = persisted.filter((a) => !have.has(a.addr) && !known.has(a.addr));
-  return added.length === 0 ? memory : [...memory, ...added];
+  const persistedAddrs = new Set(
+    persisted.map((a) => a.addr).filter((addr) => typeof addr === "string"),
+  );
+  // Dropping is only trusted when the persisted list is readable and non-empty.
+  const trustworthy =
+    persisted.length > 0 && persisted.every((a) => typeof a.addr === "string");
+  const kept = trustworthy
+    ? memory.filter((a) => !(known.has(a.addr) && !persistedAddrs.has(a.addr)))
+    : memory;
+  const have = new Set(kept.map((a) => a.addr));
+  const added = persisted.filter(
+    (a) => typeof a.addr === "string" && !have.has(a.addr) && !known.has(a.addr),
+  );
+  return kept.length === memory.length && added.length === 0
+    ? memory
+    : [...kept, ...added];
 }
 
 /**

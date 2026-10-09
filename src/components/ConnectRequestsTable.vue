@@ -826,6 +826,11 @@ const clickSignAll = async (data: RequestItem) => {
   try {
     await prolong();
     const list: TransactionWrapper[] = data?.transactions ?? [];
+    // AW-2026-063: one transaction of another network voids the whole request - sign none.
+    if (list.some((tx) => genesisMismatch(tx.txn))) {
+      await store.dispatch("toast/openError", t("connect.genesis_mismatch"));
+      return;
+    }
     for (const tx of list) {
       await clickSign(tx, data);
     }

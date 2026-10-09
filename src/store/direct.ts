@@ -326,6 +326,7 @@ const actions: ActionTree<DirectState, RootState> = {
           peer,
         } satisfies PendingEnable);
         commit("setNetwork", check.network);
+        commit("setNetworkChange", null);
         commit("setPopup", { status: "enable" });
         return;
       }

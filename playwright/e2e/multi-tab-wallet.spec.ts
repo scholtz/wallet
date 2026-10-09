@@ -79,7 +79,7 @@ test.describe("Two tabs, one wallet", () => {
     await expect(tabC.getByText("Account From Tab B").first()).toBeVisible();
   });
 
-  test("a stale tab cannot revert a password change and is locked instead (AW-2026-060)", async ({
+  test("a stale tab cannot revert a password change (AW-2026-060)", async ({
     page,
     context,
   }) => {
@@ -92,11 +92,13 @@ test.describe("Two tabs, one wallet", () => {
     await openSettings(page);
     await submitPasswordChange(page, DEFAULT_WALLET_PASSWORD, NEW_PASSWORD);
 
-    // Tab B still holds the old password; its next save is refused and the tab is locked.
+    // Tab B still holds the old password; its next save is refused with an error. The session
+    // stays open so a key created there is not thrown away.
     await createEd25519Account(tabB, "Stale Tab Account");
-    await expect(tabB.locator("#new_wallet_button_open")).toBeVisible({
-      timeout: 15000,
-    });
+    await expect(
+      tabB.locator(".p-toast-message", { hasText: "changed in another window" }).first(),
+    ).toBeVisible({ timeout: 15000 });
+    await expect(tabB.locator("#new_wallet_button_open")).toHaveCount(0);
 
     // The new password opens the wallet, the old one no longer does.
     const fresh = await context.newPage();

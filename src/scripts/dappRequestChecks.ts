@@ -40,25 +40,35 @@ export type TxGroupCheck = "ok" | "incomplete";
 
 /**
  * A request must carry every transaction of any group it mentions (AW-2026-064): the wallet is
- * the only party that can show the user the whole group. Ungrouped transactions are fine; a
- * request mixing grouped and ungrouped ones, several groups, or a group whose recomputed id does
- * not match is refused.
+ * the only party that can show the user the whole group. Ungrouped transactions are fine and a
+ * request may hold several complete groups; each group id is recomputed from its members (in
+ * request order) and a group that is incomplete, reordered or tampered with is refused.
  */
 export function checkTransactionGroup(txns: algosdk.Transaction[]): TxGroupCheck {
-  const grouped = txns.filter((tx) => tx.group && tx.group.length > 0);
-  if (grouped.length === 0) return "ok";
-  if (grouped.length !== txns.length) return "incomplete";
-  const first = Buffer.from(grouped[0].group!).toString("base64");
-  if (grouped.some((tx) => Buffer.from(tx.group!).toString("base64") !== first)) {
+  try {
+    const groups = new Map<string, algosdk.Transaction[]>();
+    for (const tx of txns) {
+      if (!tx.group || tx.group.length === 0) continue;
+      const id = Buffer.from(tx.group).toString("base64");
+      const members = groups.get(id);
+      if (members) members.push(tx);
+      else groups.set(id, [tx]);
+    }
+    for (const [id, members] of groups) {
+      const stripped = members.map((tx) => {
+        const copy = algosdk.decodeUnsignedTransaction(
+          algosdk.encodeUnsignedTransaction(tx),
+        );
+        copy.group = undefined;
+        return copy;
+      });
+      const recomputed = Buffer.from(algosdk.computeGroupID(stripped)).toString("base64");
+      if (recomputed !== id) return "incomplete";
+    }
+    return "ok";
+  } catch (error) {
+    // Odd but decodable transactions must be refused, not leave the request unanswered.
+    console.error("Could not verify the transaction group", error);
     return "incomplete";
   }
-  const stripped = txns.map((tx) => {
-    const copy = algosdk.decodeUnsignedTransaction(
-      algosdk.encodeUnsignedTransaction(tx),
-    );
-    copy.group = undefined;
-    return copy;
-  });
-  const recomputed = Buffer.from(algosdk.computeGroupID(stripped)).toString("base64");
-  return recomputed === first ? "ok" : "incomplete";
 }
