@@ -14,11 +14,11 @@ Never delete a row. When a risk is fixed, set Status to `Closed` and keep the ro
 
 | Field                                  | Value                                              |
 | -------------------------------------- | -------------------------------------------------- |
-| Last updated by audit report           | `audits/reports/2026-10-07-381ae2b-fable-5-1.md` |
-| Last updated (audited commit)          | `381ae2bcbde14d6606b977eb4331896acd13edd3` |
-| Last updated (commit date)             | `2026-10-07` |
+| Last updated by audit report           | `audits/reports/2026-10-10-604098a-sonnet-5-5.md` |
+| Last updated (audited commit)          | `604098ad00b2c2ead3d08f865ea075948b0d7487` |
+| Last updated (commit date)             | `2026-10-09` |
 | Last updated (AWallet package version) | `2.0.0` |
-| Last updated by                        | `claude-fable-5-1` |
+| Last updated by                        | `claude-sonnet-5-5` |
 | Instructions file version used         | `e0b7178` |
 
 ## How to read this table
@@ -107,6 +107,9 @@ Never delete a row. When a risk is fixed, set Status to `Closed` and keep the ro
 | AW-2026-065 | `signer.signed` pre-populated with dApp-supplied pre-signed blobs (no signature check, shown as "Signed") and never cleared on logout | Low | Very Low (~2%) | Open | `store/signer.ts`, `store/{wc,liquid,direct}.ts`, `store/wallet.ts` (`logout`) | `2026-10-07-381ae2b-fable-5-1.md` @ `381ae2b` (2026-10-07) | `2026-10-07-381ae2b-fable-5-1.md` @ `381ae2b` (2026-10-07) |
 | AW-2026-066 | Empty/weak passwords accepted on create and change; whole `WalletState` (incl. rs1-wrapped `pass`, `isOpen`, `time`) serialized into every encrypted blob | Low | Low (~3%) | Open | `store/wallet.ts`, `components/NewWallet.vue`, `pages/Settings.vue` | `2026-10-07-381ae2b-fable-5-1.md` @ `381ae2b` (2026-10-07) | `2026-10-07-381ae2b-fable-5-1.md` @ `381ae2b` (2026-10-07) |
 | AW-2026-067 | Biatec Direct residuals: custom node lets the dApp choose the network (warned); ARC-60 RP-ID collapses ports of one host; opener may navigate the popup (reload locks); anti-framing header-less on Pages/Vercel; grant `lastUsedAt` never updated | Informational | Very Low (<2%) | Open | `scripts/direct/protocol.ts`, `scripts/encoding/arc60Domain.ts`, `shared/direct.ts`, `docker/default.conf` | `2026-10-07-381ae2b-fable-5-1.md` @ `381ae2b` (2026-10-07) | `2026-10-07-381ae2b-fable-5-1.md` @ `381ae2b` (2026-10-07) |
+| AW-2026-068 | Direct grant no longer bound to the network it was made on (stored `genesisHash` never read); sign_data without `genesisHash` shows no network | Medium | Low (~6%) | Open | `store/direct.ts`, `scripts/direct/sessions.ts`, `docs/DIRECT.md` | `2026-10-10-604098a-sonnet-5-5.md` @ `604098a` (2026-10-10) | `2026-10-10-604098a-sonnet-5-5.md` @ `604098a` (2026-10-10) |
+| AW-2026-069 | Reduced review fidelity for Direct requests on a foreign network (no ARC-56 decoding, simulation, asset names; raw "units") | Low | Low (~3%) | Open | `components/ConnectRequestsTable.vue` | `2026-10-10-604098a-sonnet-5-5.md` @ `604098a` (2026-10-10) | `2026-10-10-604098a-sonnet-5-5.md` @ `604098a` (2026-10-10) |
+| AW-2026-070 | Direct popup self-resizes for any opener before origin verification; duplicate hard-coded genesis-hash table (`KNOWN_NETWORKS`) | Informational | Very Low (<2%) | Open | `pages/Direct.vue`, `scripts/direct/{windowSize,networks}.ts` | `2026-10-10-604098a-sonnet-5-5.md` @ `604098a` (2026-10-10) | `2026-10-10-604098a-sonnet-5-5.md` @ `604098a` (2026-10-10) |
 | AW-2026-029 | Password sharing / weak or reused user passwords                                                                                                                                                                                                                                                                         | Critical (impact) | Medium (~20%)                                                       | Accepted  | User behavior — no code surface; `store/wallet.ts` KDF is the only mitigating lever                                                                                                      | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09)        | same                                                                                                                                                                                                |
 | AW-2026-030 | Shared/unattended device or stolen device with an unlocked or persistently-decrypted session                                                                                                                                                                                                                             | High (impact)     | Medium (~15%)                                                       | Accepted  | User behavior + `store/wallet.ts` (no auto-lock, see AW-2026-012 for the one in-scope lever)                                                                                             | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09)        | same                                                                                                                                                                                                |
 | AW-2026-031 | Phishing of the wallet's own UI (fake AWallet site/app, fake update, fake support)                                                                                                                                                                                                                                       | Critical (impact) | High (~40%)                                                         | Accepted  | Outside the app itself — domain/app-store/distribution integrity, user vigilance                                                                                                         | `2026-07-09-ebe2059-fable-5.md` @ `ebe2059` (2026-07-09)        | same                                                                                                                                                                                                |
@@ -173,6 +176,14 @@ copy, confirmation friction, education) can be evaluated against them over time.
 _(Closed rows stay in the table above with Status = Closed; this section is for any
 narrative context on closures — e.g. "fixed by commit `abc1234`, verified in audit
 `audits/reports/YYYY-MM-DD-....md`" — that doesn't fit in the table.)_
+
+**2026-10-10 — audit `audits/reports/2026-10-10-604098a-sonnet-5-5.md` @ `604098a`**
+(covers `381ae2b..604098a`: Biatec Direct "sign on every network", popup UI refresh, CI Docker login order):
+
+- **No Critical/High finding.** Direct now resolves the request's network from the full 32-byte genesis hash, shows it on every request (warning for unknown networks), binds each transaction to that hash and a consistent genesis ID, and picks rekey mappings from the verified network (partial improvement over AW-2026-063 for Direct only).
+- **AW-2026-068 (New, Medium):** the "grants are network-bound" property recorded on 2026-10-07 no longer holds; the session's `genesisHash` is stored but never read. **AW-2026-069 (New, Low):** ARC-56/simulation/asset-name enrichment is suppressed on foreign networks, so reviews are thinner. **AW-2026-070 (New, Informational):** pre-verification window resize; duplicated hash table.
+- **All of AW-2026-059..067 carried forward unchanged** (the files behind them were not modified); AW-2026-059 (High) remains the top open item.
+- **Verification:** unit 181/181, lint, check-locales, build clean; `direct-popup.spec.ts` 33/33. `pnpm audit --prod` 9 advisories, unchanged. Other E2E specs and live WC/Liquid/Ledger/swap flows not run.
 
 **2026-10-07 — audit `audits/reports/2026-10-07-381ae2b-fable-5-1.md` @ `381ae2b`**
 (covers `fdce6c2..381ae2b`: the AW-2026-049..058 remediation pass `fbecfe7` and
