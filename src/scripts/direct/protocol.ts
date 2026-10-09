@@ -298,11 +298,6 @@ export function normalizeGenesisHash(value: unknown): string | undefined {
   return value.replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
 }
 
-/** First 32 base64url chars of a genesis hash — what a CAIP-2 `algorand:` reference carries. */
-export function genesisCaipReference(normalized: string): string {
-  return normalized.slice(0, 32);
-}
-
 /** A decoded transaction's genesis hash bytes must equal the request's `genesisHash`. */
 export function txnGenesisMatches(
   txnGenesisHash: Uint8Array | undefined,

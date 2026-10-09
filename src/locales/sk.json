@@ -945,6 +945,7 @@
     "asset": "Aktívum",
     "amount": "Čiastka",
     "rekeyto": "Zmena autorizačnej adresy",
+    "close_to": "Uzavrieť na adresu",
     "method": "Method",
     "client_id": "ID klienta",
     "request_id": "ID requestu",
@@ -1101,7 +1102,8 @@
       "network_unknown_warning": "Túto sieť peňaženka nepozná. Pokračujte, len ak ju spoznávate; skontrolujte genesis hash.",
       "network_differs": "Líši sa od siete vybranej v peňaženke ({selected}). Názvy aktív, podrobnosti aplikácií a náhľad transakcie nie sú pre túto sieť k dispozícii; sumy sú zobrazené v jednotkách danej siete.",
       "network_foreign_note": "Podrobnosti zo siete peňaženky sa pre inú sieť nezobrazujú.",
-      "genesis_hash_label": "Genesis hash"
+      "genesis_hash_label": "Genesis hash",
+      "network_not_named": "Web nezadal žiadnu sieť. Podpisy údajov nie sú viazané na sieť."
     }
   },
   "arc56": {

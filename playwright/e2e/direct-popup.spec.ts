@@ -533,6 +533,73 @@ test.describe("Biatec Direct popup transport", () => {
     await expectClosed(popup);
   });
 
+  test("sign: a hash that only starts like mainnet is an UNKNOWN network, never shown as mainnet", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    // First 24 bytes of mainnet's genesis hash, then junk: the CAIP-2 prefix matches, the hash does not.
+    const spoof = Buffer.concat([Buffer.from(MAINNET_HASH, "base64").subarray(0, 24), Buffer.alloc(8, 7)]).toString("base64");
+    const { txn, b64url } = paymentTxn(address, spoof, "my-private-net-v1");
+    await post(dapp, {
+      id: "sp1",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: spoof, txns: [{ txn: b64url }] },
+    });
+    await expect(popup.getByTestId("direct-network")).toHaveText("Unknown network");
+    await expect(popup.getByTestId("direct-network-unknown")).toBeVisible();
+    await expect(popup.getByTestId("direct-network")).not.toContainText("Mainnet");
+    // No enrichment from the wallet's (mainnet) node.
+    await expect(popup.getByText("Node-reported preview")).toHaveCount(0);
+    await expect(popup.getByTestId("direct-foreign-note")).toBeVisible();
+    await popup.getByRole("button", { name: "Sign", exact: true }).click();
+    const response = await waitForMessage(dapp, reply("sp1"));
+    expect(response.data.error).toBeUndefined();
+    expectValidSignature((response.data.result as { stxns: string[] }).stxns[0], txn, address);
+    await expectClosed(popup);
+  });
+
+  test("sign: an unknown hash labelled with a known genesis ID is refused (4200)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    const spoof = Buffer.concat([Buffer.from(MAINNET_HASH, "base64").subarray(0, 24), Buffer.alloc(8, 7)]).toString("base64");
+    await post(dapp, {
+      id: "sp2",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: spoof, txns: [{ txn: paymentTxn(address, spoof, "mainnet-v1.0").b64url }] },
+    });
+    const response = await waitForMessage(dapp, reply("sp2"));
+    expect((response.data.error as { code: number }).code).toBe(4200);
+    expect((response.data.error as { message: string }).message).toContain("genesis ID");
+    await expectClosed(popup);
+  });
+
+  test("sign_data: a request without genesisHash says that no network was named", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "a10",
+      reference: "arc0060:sign_data:request",
+      params: { providerId: "d", items: [arc60Item(address, "127.0.0.1")] },
+    });
+    await expect(popup.getByTestId("direct-network-none")).toContainText("did not name a network");
+    await expect(popup.getByTestId("direct-network-card")).toHaveCount(0);
+    await popup.getByRole("button", { name: "Sign data" }).click();
+    const response = await waitForMessage(dapp, reply("a10"));
+    expect(response.data.error).toBeUndefined();
+    await expectClosed(popup);
+  });
+
   test("sign: a malformed genesis hash is refused (4200)", async ({ context, page }) => {
     await setupFreshWallet(page);
     const address = walletAddress(page);

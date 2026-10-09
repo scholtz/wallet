@@ -945,6 +945,7 @@
     "asset": "Eszköz",
     "amount": "Mennyiség",
     "rekeyto": "Átkulcsolás ide",
+    "close_to": "Lezárás erre a címre",
     "method": "Módszer",
     "client_id": "Kliens ID",
     "request_id": "Kérés ID",
@@ -1101,7 +1102,8 @@
       "network_unknown_warning": "Ezt a hálózatot a tárca nem ismeri. Csak akkor folytassa, ha felismeri; ellenőrizze a genezis hash-t.",
       "network_differs": "Eltér a tárcában kiválasztott hálózattól ({selected}). Az eszköznevek, az alkalmazásadatok és a tranzakció előnézete ehhez a hálózathoz nem érhetők el; az összegek a hálózat saját egységeiben jelennek meg.",
       "network_foreign_note": "A tárca hálózatának adatai más hálózatnál nem jelennek meg.",
-      "genesis_hash_label": "Genezis hash"
+      "genesis_hash_label": "Genezis hash",
+      "network_not_named": "Az oldal nem adott meg hálózatot. Az adataláírások nem kötődnek hálózathoz."
     }
   },
   "arc56": {

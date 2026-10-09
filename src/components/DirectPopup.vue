@@ -66,6 +66,14 @@
         v-if="network && (status === 'enable' || status === 'signing')"
         :network="network"
       />
+      <p
+        v-else-if="status === 'signing' && !network && signDataRequests.length > 0"
+        class="direct-network-none"
+        data-testid="direct-network-none"
+      >
+        <i class="pi pi-info-circle" aria-hidden="true" />
+        {{ $t("connect.direct.network_not_named") }}
+      </p>
 
       <div v-if="status === 'waiting'" class="direct-state" data-testid="direct-waiting">
         <p>
@@ -471,6 +479,13 @@ const closeWindow = () => {
       > td:first-child
   ) {
   display: none;
+}
+.direct-network-none {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-border-radius-md, 6px);
+  color: var(--p-text-muted-color);
 }
 .direct-headline:focus {
   outline: none;

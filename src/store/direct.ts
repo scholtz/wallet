@@ -36,6 +36,7 @@ import {
 import {
   genesisIdConsistent,
   resolveRequestNetwork,
+  signingEnvOf,
   toNetworkView,
   type DirectNetworkView,
 } from "../scripts/direct/networks";
@@ -669,7 +670,7 @@ const actions: ActionTree<DirectState, RootState> = {
         approvedAccounts: session.addresses,
         // Rekey mappings are per network: follow the network the request names, not the wallet's.
         env: state.popup.network
-          ? (state.popup.network.env ?? state.popup.network.genesisHash)
+          ? signingEnvOf(state.popup.network)
           : undefined,
       },
       { root: true },

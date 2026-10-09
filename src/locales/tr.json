@@ -945,6 +945,7 @@
     "asset": "Varlık",
     "amount": "Tutar",
     "rekeyto": "Yeniden Anahtarla",
+    "close_to": "Şu adrese kapat",
     "method": "Yöntem",
     "client_id": "Müşteri Kimliği",
     "request_id": "İstek Kimliği",
@@ -1101,7 +1102,8 @@
       "network_unknown_warning": "Bu ağ cüzdanın tanıdığı bir ağ değil. Yalnızca tanıyorsanız devam edin; genesis hash değerini kontrol edin.",
       "network_differs": "Cüzdanda seçili ağdan farklı ({selected}). Bu ağ için varlık adları, uygulama ayrıntıları ve işlem önizlemesi kullanılamaz; tutarlar ağın kendi birimleriyle gösterilir.",
       "network_foreign_note": "Cüzdanın ağına ait ayrıntılar başka bir ağ için gösterilmez.",
-      "genesis_hash_label": "Genesis hash"
+      "genesis_hash_label": "Genesis hash",
+      "network_not_named": "Site bir ağ belirtmedi. Veri imzaları bir ağa bağlı değildir."
     }
   },
   "arc56": {

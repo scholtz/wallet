@@ -945,6 +945,7 @@
     "asset": "Asset",
     "amount": "Amount",
     "rekeyto": "Rekey To",
+    "close_to": "Sluiten naar",
     "method": "Method",
     "client_id": "Client ID",
     "request_id": "Request ID",
@@ -1101,7 +1102,8 @@
       "network_unknown_warning": "Dit netwerk is niet bekend bij de wallet. Ga alleen verder als u het herkent; controleer de genesis-hash.",
       "network_differs": "Anders dan het netwerk dat in de wallet is geselecteerd ({selected}). Assetnamen, app-details en het transactievoorbeeld zijn voor dit netwerk niet beschikbaar; bedragen worden in de eigen eenheden van het netwerk getoond.",
       "network_foreign_note": "Details van het netwerk van de wallet worden niet getoond voor een ander netwerk.",
-      "genesis_hash_label": "Genesis-hash"
+      "genesis_hash_label": "Genesis-hash",
+      "network_not_named": "De site heeft geen netwerk opgegeven. Handtekeningen van gegevens zijn niet aan een netwerk gebonden."
     }
   },
   "arc56": {

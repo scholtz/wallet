@@ -945,6 +945,7 @@
     "asset": "Asset",
     "amount": "Amount",
     "rekeyto": "Rekey To",
+    "close_to": "Uzavřít na adresu",
     "method": "Method",
     "client_id": "Client ID",
     "request_id": "Request ID",
@@ -1101,7 +1102,8 @@
       "network_unknown_warning": "Tuto síť peněženka nezná. Pokračujte, jen pokud ji poznáváte; zkontrolujte genesis hash.",
       "network_differs": "Liší se od sítě vybrané v peněžence ({selected}). Názvy aktiv, podrobnosti aplikací a náhled transakce nejsou pro tuto síť k dispozici; částky jsou zobrazeny v jednotkách dané sítě.",
       "network_foreign_note": "Podrobnosti ze sítě peněženky se pro jinou síť nezobrazují.",
-      "genesis_hash_label": "Genesis hash"
+      "genesis_hash_label": "Genesis hash",
+      "network_not_named": "Web nezadal žádnou síť. Podpisy dat nejsou vázány na síť."
     }
   },
   "arc56": {

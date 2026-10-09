@@ -6,11 +6,7 @@
  * selected in the wallet. What it does instead is to work out which network the request names,
  * show it to the user on every request, and say so when it does not recognise it.
  */
-import {
-  DirectErrorCode,
-  genesisCaipReference,
-  normalizeGenesisHash,
-} from "./protocol";
+import { DirectErrorCode, normalizeGenesisHash } from "./protocol";
 
 export type DirectNetworkKind = "main" | "test" | "unknown";
 
@@ -32,51 +28,66 @@ export interface DirectNetworkView extends DirectNetwork {
 }
 
 interface KnownNetwork {
-  /** CAIP-2 reference: the first 32 base64url chars of the genesis hash. */
-  prefix: string;
+  /**
+   * The FULL genesis hash (base64 or base64url, as published). Only an exact match of all 32
+   * bytes makes a network "known": a dApp supplies the whole hash, so matching just a prefix
+   * (the CAIP-2 reference) would let it impersonate a known network.
+   */
+  hash: string;
   name: string;
   token?: string;
   kind: Exclude<DirectNetworkKind, "unknown">;
 }
 
-/** Built-in table of well-known networks, keyed by wallet environment id (= genesis ID). */
-const KNOWN_NETWORKS: Record<string, KnownNetwork> = {
+/**
+ * Built-in table of well-known networks, keyed by wallet environment id (= genesis ID).
+ * Hashes: @txnlab/use-wallet default network configs (mainnet, testnet, betanet, fnet) and
+ * BIATEC_EXTRA_NETWORKS of biatec-wallet-use-wallet-client (voimain, aramidmain).
+ */
+export const KNOWN_NETWORKS: Record<string, KnownNetwork> = {
   "mainnet-v1.0": {
-    prefix: "wGHE2Pwdvd7S12BL5FaOP20EGYesN73k",
+    hash: "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=",
     name: "Algorand Mainnet",
     token: "Algo",
     kind: "main",
   },
   "testnet-v1.0": {
-    prefix: "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe",
+    hash: "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
     name: "Algorand Testnet",
     token: "Algo",
     kind: "test",
   },
   "betanet-v1.0": {
-    prefix: "mFgazF-2uRS1tMiL9dsj01hJGySEmPN2",
+    hash: "mFgazF-2uRS1tMiL9dsj01hJGySEmPN2OvOTQHJ6iQg=",
     name: "Algorand Betanet",
     token: "Algo",
     kind: "test",
   },
   "fnet-v1": {
-    prefix: "kUt08LxeVAAGHnh4JoAoAMM9ql_hBwSo",
+    hash: "kUt08LxeVAAGHnh4JoAoAMM9ql_hBwSoRrQQKWSVgxk=",
     name: "Algorand Fnet",
     token: "Algo",
     kind: "test",
   },
   "voimain-v1.0": {
-    prefix: "r20fSQI8gWe_kFZziNonSPCXLwcQmH_n",
+    hash: "r20fSQI8gWe/kFZziNonSPCXLwcQmH/nxROvnnueWOk=",
     name: "Voi Mainnet",
     token: "VOI",
     kind: "main",
   },
   "aramidmain-v1.0": {
-    prefix: "PgeQVJJgx_LYKJfIEz7dbfNPuXmDyJ-O",
+    hash: "PgeQVJJgx/LYKJfIEz7dbfNPuXmDyJ+O7FwQ4XL9tE8=",
     name: "Aramid Mainnet",
     kind: "main",
   },
 };
+
+const hasOwn = (object: object, key: string) =>
+  Object.prototype.hasOwnProperty.call(object, key);
+
+/** True when `genesisId` is the env id of a network in the built-in table. */
+export const isKnownEnvId = (genesisId: string): boolean =>
+  hasOwn(KNOWN_NETWORKS, genesisId);
 
 export const UNKNOWN_NETWORK_NAME = "Unknown network";
 
@@ -100,9 +111,8 @@ export function resolveRequestNetwork(
       reason: "Invalid genesisHash.",
     };
   }
-  const reference = genesisCaipReference(genesisHash);
   for (const [env, known] of Object.entries(KNOWN_NETWORKS)) {
-    if (known.prefix === reference) {
+    if (normalizeGenesisHash(known.hash) === genesisHash) {
       return {
         ok: true,
         network: {
@@ -123,17 +133,27 @@ export function resolveRequestNetwork(
 
 /**
  * A transaction's `genesisID` must not contradict the network its genesis hash identifies, so a
- * request cannot show one network label and sign for another. Unknown networks accept any ID;
- * an absent / empty ID is accepted (the hash is what the chain verifies).
+ * request cannot show one network label and sign for another. A known network accepts only its
+ * own ID; an unknown network accepts any ID except one that belongs to a known network (a
+ * foreign hash labelled `mainnet-v1.0`). An absent / empty ID is accepted (the hash is what the
+ * chain verifies).
  */
 export function genesisIdConsistent(
   network: Pick<DirectNetwork, "env">,
   genesisId: string | undefined,
 ): boolean {
-  if (!network.env) return true;
   if (!genesisId) return true;
+  if (!network.env) return !isKnownEnvId(genesisId);
   return genesisId === network.env;
 }
+
+/**
+ * The environment id whose per-account data (rekey mappings) applies to a request on this
+ * network: the known env id, or the genesis hash of an unknown network (which has no data).
+ * Derived from the verified network, never from a dApp-chosen string.
+ */
+export const signingEnvOf = (network: Pick<DirectNetwork, "env" | "genesisHash">) =>
+  network.env ?? network.genesisHash;
 
 /** The view shown in the popup: the network plus whether it is the wallet's selected one. */
 export function toNetworkView(

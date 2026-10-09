@@ -575,7 +575,8 @@ import TransactionGroupSimulation from "./TransactionGroupSimulation.vue";
 import { useStore } from "../store";
 import { getArc14Realm, isArc14AuthTransaction } from "../scripts/encoding/arc14";
 import { isAssetOptIn } from "../scripts/transactionTypes";
-import type { DirectNetworkView } from "../scripts/direct/networks";
+import { signingEnvOf, type DirectNetworkView } from "../scripts/direct/networks";
+import { pickSigningEnv } from "../scripts/signingEnv";
 
 type GlobalFilters = {
   formatCurrencyBigInt: (
@@ -756,8 +757,20 @@ const formatGenesisHash = (genesisHash: Uint8Array | string) => {
   }
 };
 
+/**
+ * Biatec Direct: the network the wallet verified and showed to the user. It decides which
+ * rekey mapping applies, never the transaction's own (dApp-supplied) genesis ID.
+ */
+const signEnv = computed(() =>
+  props.network ? signingEnvOf(props.network) : undefined,
+);
+
 const getSignerTypeLocal = (from: string, genesisId?: string): SignerType => {
-  const env = genesisId || store.state.config.env;
+  const env = pickSigningEnv({
+    verifiedEnv: signEnv.value,
+    txGenesisId: genesisId,
+    walletEnv: store.state.config.env,
+  });
   if (!env) return "?";
   const baseAccount = store.state.wallet.privateAccounts.find(
     (item) => item.addr === from
@@ -831,6 +844,7 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
     const signerType = (await store.dispatch("signer/getSignerType", {
       from: data.txn.sender.toString(),
       tx: data.txn,
+      env: signEnv.value,
     })) as SignerType;
     if (signerType === "msig") {
       await store.dispatch("signer/toSign", { tx: txn });
@@ -849,6 +863,7 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
         from: data.txn.sender.toString(),
         signator: data.txn.sender.toString(),
         tx: txn,
+        env: signEnv.value,
       });
       // ARC14 auth requests can't be broadcast to the chain, so there is no
       // decision left for the user to make once every transaction in the
