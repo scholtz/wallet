@@ -945,6 +945,7 @@
     "asset": "Asset",
     "amount": "Amount",
     "rekeyto": "Rekey To",
+    "close_to": "Sluit na",
     "method": "Method",
     "client_id": "Client ID",
     "request_id": "Request ID",
@@ -1085,7 +1086,6 @@
       "close_window": "Maak venster toe",
       "done": "Klaar. Jy kan hierdie venster toe maak.",
       "popup_help": "Maak seker die werfadres hierbo is die een wat jy verwag. Deel rekeninge net met werwe wat jy vertrou.",
-      "network": "Netwerk",
       "unlock_title": "'n Webwerf wil jou beursie gebruik",
       "unlock_note": "Hierdie adres kom van die skakel wat hierdie venster oopgemaak het en is nog nie geverifieer nie. Ontsluit jou beursie om die versoek na te gaan.",
       "waiting_title": "Wag vir die werf",
@@ -1096,7 +1096,14 @@
       "problem_title": "Iets het verkeerd geloop",
       "declined_title": "Versoek geweier",
       "declined": "Jy het die versoek geweier. Die werf is ingelig.",
-      "network_custom": "Pasgemaakte node: die werf kies die netwerk (genesis {hash}…). Gaan net voort as jy hierdie werf vertrou."
+      "signing_on": "Netwerk",
+      "network_test": "Toetsnetwerk",
+      "network_unknown": "Onbekende netwerk",
+      "network_unknown_warning": "Hierdie netwerk is nie een wat die beursie ken nie. Gaan net voort as jy dit herken; kontroleer die genesis-hash.",
+      "network_differs": "Verskil van die netwerk wat in die beursie gekies is ({selected}). Bate-name, toepassingbesonderhede en die transaksievoorskou is nie vir hierdie netwerk beskikbaar nie; bedrae word in die netwerk se eie eenhede getoon.",
+      "network_foreign_note": "Besonderhede van die beursie se netwerk word nie vir 'n ander netwerk getoon nie.",
+      "genesis_hash_label": "Genesis-hash",
+      "network_not_named": "Die werf het nie 'n netwerk genoem nie. Datahandtekeninge is nie aan 'n netwerk gebind nie."
     }
   },
   "arc56": {

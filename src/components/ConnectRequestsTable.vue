@@ -29,7 +29,7 @@
         <template #body="slotProps">
           <span v-if="compact" class="text-color-secondary"
             >{{ $t("connect.total_fee") }}: </span
-          >{{ $filters.formatCurrency(slotProps.data.fee) }}
+          >{{ formatNative(slotProps.data.fee) }}
         </template>
       </Column>
       <Column>
@@ -45,7 +45,7 @@
             {{ signAllLabel(slotProps.data) }}
           </Button>
           <Arc56RiskIcon
-            v-if="!atLeastOneSigned(slotProps.data)"
+            v-if="!foreignNetwork && !atLeastOneSigned(slotProps.data)"
             :transactions="slotProps.data.transactions"
           />
           <Button
@@ -79,7 +79,18 @@
       </Column>
       <template #expansion="requestSlotProps">
         <div class="p-3">
-          <Arc56RequestSummary :transactions="requestSlotProps.data.transactions" />
+          <Message
+            v-if="foreignNetwork"
+            severity="secondary"
+            class="m-0 mb-2"
+            data-testid="direct-foreign-note"
+          >
+            {{ $t("connect.direct.network_foreign_note") }}
+          </Message>
+          <Arc56RequestSummary
+            v-if="!foreignNetwork"
+            :transactions="requestSlotProps.data.transactions"
+          />
           <DataTable
             v-model:expandedRows="expandedTransactions"
             v-model:selection="selectedTransaction"
@@ -160,21 +171,16 @@
               <template #body="slotProps">
                 <div v-if="slotProps.data.txn">
                   <div v-if="slotProps.data.txn.type == 'pay'" class="text-end">
-                    {{
-                      $filters.formatCurrency(slotProps.data.txn.payment?.amount)
-                    }}
+                    {{ formatNative(slotProps.data.txn.payment?.amount) }}
                   </div>
                   <div
                     v-else-if="slotProps.data.txn.type == 'axfer'"
                     class="text-end"
                   >
                     {{
-                      $filters.formatCurrency(
+                      formatAssetAmount(
                         slotProps.data.txn.assetTransfer?.amount,
-                        getAssetName(slotProps.data.txn.assetTransfer?.assetIndex),
-                        getAssetDecimals(
-                          slotProps.data.txn.assetTransfer?.assetIndex
-                        )
+                        slotProps.data.txn.assetTransfer?.assetIndex
                       )
                     }}
                   </div>
@@ -188,7 +194,7 @@
               :sortable="true"
             >
               <template #body="slotProps">
-                {{ $filters.formatCurrency(slotProps.data["fee"]) }}
+                {{ formatNative(slotProps.data["fee"]) }}
               </template>
             </Column>
             <Column :header="$t('connect.rekeyto')" :sortable="true">
@@ -258,7 +264,7 @@
                     </tr>
                     <tr v-if="compact">
                       <td>{{ $t("connect.fee") }}:</td>
-                      <td>{{ $filters.formatCurrency(Number(txProps.data.txn.fee)) }}</td>
+                      <td>{{ formatNative(Number(txProps.data.txn.fee)) }}</td>
                     </tr>
                     <tr v-if="txProps.data.txn.type == 'axfer'">
                       <td>{{ $t("connect.asset") }}:</td>
@@ -278,22 +284,13 @@
                       <td>{{ $t("connect.amount") }}:</td>
                       <td>
                         <div v-if="txProps.data.txn.type == 'pay'">
-                          {{
-                            $filters.formatCurrency(
-                              txProps.data.txn.payment?.amount
-                            )
-                          }}
+                          {{ formatNative(txProps.data.txn.payment?.amount) }}
                         </div>
                         <div v-else>
                           {{
-                            $filters.formatCurrency(
+                            formatAssetAmount(
                               txProps.data.txn.assetTransfer?.amount,
-                              getAssetName(
-                                txProps.data.txn.assetTransfer?.assetIndex
-                              ),
-                              getAssetDecimals(
-                                txProps.data.txn.assetTransfer?.assetIndex
-                              )
+                              txProps.data.txn.assetTransfer?.assetIndex
                             )
                           }}
                         </div>
@@ -419,7 +416,7 @@
                       </td>
                     </tr>
 
-                    <tr v-if="txProps.data.type == 'appl'">
+                    <tr v-if="txProps.data.type == 'appl' && !foreignNetwork">
                       <td colspan="2">
                         <Arc56CallDetails
                           :app-index="
@@ -545,7 +542,10 @@
             </template>
           </DataTable>
           <TransactionGroupSimulation
-            v-if="simulatableTransactions(requestSlotProps.data).length > 0"
+            v-if="
+              !foreignNetwork &&
+              simulatableTransactions(requestSlotProps.data).length > 0
+            "
             :transactions="simulatableTransactions(requestSlotProps.data)"
           />
         </div>
@@ -575,6 +575,8 @@ import TransactionGroupSimulation from "./TransactionGroupSimulation.vue";
 import { useStore } from "../store";
 import { getArc14Realm, isArc14AuthTransaction } from "../scripts/encoding/arc14";
 import { isAssetOptIn } from "../scripts/transactionTypes";
+import { signingEnvOf, type DirectNetworkView } from "../scripts/direct/networks";
+import { pickSigningEnv } from "../scripts/signingEnv";
 
 type GlobalFilters = {
   formatCurrencyBigInt: (
@@ -628,6 +630,12 @@ const props = defineProps<{
   accountAddress?: string;
   /** Store module that owns these requests: WalletConnect (default), Liquid Auth or Biatec Direct. */
   namespace?: "wc" | "liquid" | "direct";
+  /**
+   * Biatec Direct only: the network the request names. When it is not the wallet's selected
+   * network nothing from the wallet's own network (asset names, ARC-56 registry, simulation) is
+   * shown, because it could describe a different asset or app with the same id.
+   */
+  network?: DirectNetworkView;
 }>();
 
 const requests = computed(() => props.requests);
@@ -635,6 +643,10 @@ const ns = computed(() => props.namespace ?? "wc");
 // The Biatec Direct popup is narrow and holds exactly one request: drop the bookkeeping
 // columns and show the transactions straight away.
 const compact = computed(() => ns.value === "direct");
+/** The request is for a network other than the wallet's selected one (Biatec Direct). */
+const foreignNetwork = computed(
+  () => props.network !== undefined && !props.network.matchesWalletEnv,
+);
 
 const store = useStore();
 const { t } = useI18n();
@@ -667,6 +679,8 @@ watch(
 watch(
   requests,
   (list) => {
+    // Asset names come from the wallet's own network: never look them up for another one.
+    if (foreignNetwork.value) return;
     const assetIndexes = new Set<bigint>();
     for (const request of list) {
       for (const tx of request.transactions ?? []) {
@@ -743,8 +757,20 @@ const formatGenesisHash = (genesisHash: Uint8Array | string) => {
   }
 };
 
+/**
+ * Biatec Direct: the network the wallet verified and showed to the user. It decides which
+ * rekey mapping applies, never the transaction's own (dApp-supplied) genesis ID.
+ */
+const signEnv = computed(() =>
+  props.network ? signingEnvOf(props.network) : undefined,
+);
+
 const getSignerTypeLocal = (from: string, genesisId?: string): SignerType => {
-  const env = genesisId || store.state.config.env;
+  const env = pickSigningEnv({
+    verifiedEnv: signEnv.value,
+    txGenesisId: genesisId,
+    walletEnv: store.state.config.env,
+  });
   if (!env) return "?";
   const baseAccount = store.state.wallet.privateAccounts.find(
     (item) => item.addr === from
@@ -818,6 +844,7 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
     const signerType = (await store.dispatch("signer/getSignerType", {
       from: data.txn.sender.toString(),
       tx: data.txn,
+      env: signEnv.value,
     })) as SignerType;
     if (signerType === "msig") {
       await store.dispatch("signer/toSign", { tx: txn });
@@ -836,6 +863,7 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
         from: data.txn.sender.toString(),
         signator: data.txn.sender.toString(),
         tx: txn,
+        env: signEnv.value,
       });
       // ARC14 auth requests can't be broadcast to the chain, so there is no
       // decision left for the user to make once every transaction in the
@@ -1043,6 +1071,8 @@ const getCloseTo = (txn: algosdk.Transaction): string => {
 };
 
 const genesisMismatch = (txn: algosdk.Transaction): boolean => {
+  // Biatec Direct accepts every network and shows it in its own network card.
+  if (ns.value === "direct") return false;
   const genesisId = txn?.genesisID;
   const env = store.state.config.env;
   // "custom" is a UI placeholder, not a genesis id - a manually configured
@@ -1109,6 +1139,8 @@ const signAllLabel = (data: RequestItem): string => {
 };
 
 const getAssetSync = (id: bigint | number | string) => {
+  // The cached assets belong to the wallet's selected network.
+  if (foreignNetwork.value) return undefined;
   try {
     const normalized = BigInt(id);
     return store.state.indexer.assets.find(
@@ -1123,6 +1155,31 @@ const getAssetName = (id: bigint | number | string) => getAssetSync(id)?.name;
 
 const getAssetDecimals = (id: bigint | number | string) =>
   getAssetSync(id)?.decimals ?? 0;
+
+/**
+ * Native amount / fee. On another network the currency is that network's own token; a network
+ * without a known token shows the raw base units (not a guessed decimal scaling).
+ */
+const formatNative = (value?: number | bigint): string => {
+  if (!foreignNetwork.value) return $filters.formatCurrency(value);
+  const token = props.network?.token;
+  return $filters.formatCurrency(value, token ?? "units", token ? 6 : 0);
+};
+
+/** Asset transfer amount: with the asset's name and decimals only when they are known locally. */
+const formatAssetAmount = (
+  amount: number | bigint | undefined,
+  assetIndex: bigint | number | undefined,
+): string => {
+  if (foreignNetwork.value) {
+    return $filters.formatCurrency(amount, `asset ${assetIndex ?? ""}`, 0);
+  }
+  return $filters.formatCurrency(
+    amount,
+    getAssetName(assetIndex ?? 0),
+    getAssetDecimals(assetIndex ?? 0),
+  );
+};
 </script>
 
 <style scoped>

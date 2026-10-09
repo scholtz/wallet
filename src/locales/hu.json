@@ -945,6 +945,7 @@
     "asset": "Eszköz",
     "amount": "Mennyiség",
     "rekeyto": "Átkulcsolás ide",
+    "close_to": "Lezárás erre a címre",
     "method": "Módszer",
     "client_id": "Kliens ID",
     "request_id": "Kérés ID",
@@ -1085,7 +1086,6 @@
       "close_window": "Ablak bezárása",
       "done": "Kész. Ezt az ablakot bezárhatja.",
       "popup_help": "Győződjön meg róla, hogy a fenti oldalcím a várt. Csak megbízható oldalakkal ossza meg fiókjait.",
-      "network": "Hálózat",
       "unlock_title": "Egy weboldal használni szeretné a tárcáját",
       "unlock_note": "Ez a cím az ablakot megnyitó hivatkozásból származik, és még nincs ellenőrizve. Oldja fel a tárcát a kérés áttekintéséhez.",
       "waiting_title": "Várakozás az oldalra",
@@ -1096,7 +1096,14 @@
       "problem_title": "Hiba történt",
       "declined_title": "Kérés elutasítva",
       "declined": "Elutasította a kérést. Az oldal értesült róla.",
-      "network_custom": "Egyéni csomópont: a hálózatot az oldal választja (genezis {hash}…). Csak akkor folytassa, ha megbízik az oldalban."
+      "signing_on": "Hálózat",
+      "network_test": "Teszthálózat",
+      "network_unknown": "Ismeretlen hálózat",
+      "network_unknown_warning": "Ezt a hálózatot a tárca nem ismeri. Csak akkor folytassa, ha felismeri; ellenőrizze a genezis hash-t.",
+      "network_differs": "Eltér a tárcában kiválasztott hálózattól ({selected}). Az eszköznevek, az alkalmazásadatok és a tranzakció előnézete ehhez a hálózathoz nem érhetők el; az összegek a hálózat saját egységeiben jelennek meg.",
+      "network_foreign_note": "A tárca hálózatának adatai más hálózatnál nem jelennek meg.",
+      "genesis_hash_label": "Genezis hash",
+      "network_not_named": "Az oldal nem adott meg hálózatot. Az adataláírások nem kötődnek hálózathoz."
     }
   },
   "arc56": {

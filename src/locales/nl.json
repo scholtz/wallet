@@ -945,6 +945,7 @@
     "asset": "Asset",
     "amount": "Amount",
     "rekeyto": "Rekey To",
+    "close_to": "Sluiten naar",
     "method": "Method",
     "client_id": "Client ID",
     "request_id": "Request ID",
@@ -1085,7 +1086,6 @@
       "close_window": "Venster sluiten",
       "done": "Klaar. U kunt dit venster sluiten.",
       "popup_help": "Controleer of het siteadres hierboven het adres is dat u verwacht. Deel accounts alleen met sites die u vertrouwt.",
-      "network": "Netwerk",
       "unlock_title": "Een website wil uw wallet gebruiken",
       "unlock_note": "Dit adres komt uit de link die dit venster opende en is nog niet geverifieerd. Ontgrendel uw wallet om het verzoek te bekijken.",
       "waiting_title": "Wachten op de site",
@@ -1096,7 +1096,14 @@
       "problem_title": "Er is iets misgegaan",
       "declined_title": "Verzoek geweigerd",
       "declined": "U hebt het verzoek geweigerd. De site is op de hoogte gebracht.",
-      "network_custom": "Aangepaste node: de site kiest het netwerk (genesis {hash}…). Ga alleen door als u deze site vertrouwt."
+      "signing_on": "Netwerk",
+      "network_test": "Testnetwerk",
+      "network_unknown": "Onbekend netwerk",
+      "network_unknown_warning": "Dit netwerk is niet bekend bij de wallet. Ga alleen verder als u het herkent; controleer de genesis-hash.",
+      "network_differs": "Anders dan het netwerk dat in de wallet is geselecteerd ({selected}). Assetnamen, app-details en het transactievoorbeeld zijn voor dit netwerk niet beschikbaar; bedragen worden in de eigen eenheden van het netwerk getoond.",
+      "network_foreign_note": "Details van het netwerk van de wallet worden niet getoond voor een ander netwerk.",
+      "genesis_hash_label": "Genesis-hash",
+      "network_not_named": "De site heeft geen netwerk opgegeven. Handtekeningen van gegevens zijn niet aan een netwerk gebonden."
     }
   },
   "arc56": {

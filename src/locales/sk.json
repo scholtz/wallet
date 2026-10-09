@@ -945,6 +945,7 @@
     "asset": "Aktívum",
     "amount": "Čiastka",
     "rekeyto": "Zmena autorizačnej adresy",
+    "close_to": "Uzavrieť na adresu",
     "method": "Method",
     "client_id": "ID klienta",
     "request_id": "ID requestu",
@@ -1085,7 +1086,6 @@
       "close_window": "Zavrieť okno",
       "done": "Hotovo. Toto okno môžete zavrieť.",
       "popup_help": "Uistite sa, že adresa webu vyššie je tá, ktorú očakávate. Účty zdieľajte len s webmi, ktorým dôverujete.",
-      "network": "Sieť",
       "unlock_title": "Web chce použiť vašu peňaženku",
       "unlock_note": "Táto adresa pochádza z odkazu, ktorý otvoril toto okno, a zatiaľ nie je overená. Odomknite peňaženku a skontrolujte požiadavku.",
       "waiting_title": "Čaká sa na web",
@@ -1096,7 +1096,14 @@
       "problem_title": "Niečo sa pokazilo",
       "declined_title": "Požiadavka zamietnutá",
       "declined": "Požiadavku ste zamietli. Web bol informovaný.",
-      "network_custom": "Vlastný uzol: sieť určuje web (genesis {hash}…). Pokračujte, len ak tomuto webu dôverujete."
+      "signing_on": "Sieť",
+      "network_test": "Testovacia sieť",
+      "network_unknown": "Neznáma sieť",
+      "network_unknown_warning": "Túto sieť peňaženka nepozná. Pokračujte, len ak ju spoznávate; skontrolujte genesis hash.",
+      "network_differs": "Líši sa od siete vybranej v peňaženke ({selected}). Názvy aktív, podrobnosti aplikácií a náhľad transakcie nie sú pre túto sieť k dispozícii; sumy sú zobrazené v jednotkách danej siete.",
+      "network_foreign_note": "Podrobnosti zo siete peňaženky sa pre inú sieť nezobrazujú.",
+      "genesis_hash_label": "Genesis hash",
+      "network_not_named": "Web nezadal žiadnu sieť. Podpisy údajov nie sú viazané na sieť."
     }
   },
   "arc56": {

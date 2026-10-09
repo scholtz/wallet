@@ -945,6 +945,7 @@
     "asset": "Asset",
     "amount": "Amount",
     "rekeyto": "Rekey To",
+    "close_to": "Chiudi verso",
     "method": "Method",
     "client_id": "Client ID",
     "request_id": "Request ID",
@@ -1085,7 +1086,6 @@
       "close_window": "Chiudi finestra",
       "done": "Fatto. Puoi chiudere questa finestra.",
       "popup_help": "Assicurati che l'indirizzo del sito sopra sia quello che ti aspetti. Condividi gli account solo con siti di cui ti fidi.",
-      "network": "Rete",
       "unlock_title": "Un sito web vuole usare il tuo portafoglio",
       "unlock_note": "Questo indirizzo proviene dal link che ha aperto questa finestra e non è ancora verificato. Sblocca il portafoglio per esaminare la richiesta.",
       "waiting_title": "In attesa del sito",
@@ -1096,7 +1096,14 @@
       "problem_title": "Qualcosa è andato storto",
       "declined_title": "Richiesta rifiutata",
       "declined": "Hai rifiutato la richiesta. Il sito è stato informato.",
-      "network_custom": "Nodo personalizzato: la rete è scelta dal sito (genesis {hash}…). Continua solo se ti fidi di questo sito."
+      "signing_on": "Rete",
+      "network_test": "Rete di test",
+      "network_unknown": "Rete sconosciuta",
+      "network_unknown_warning": "Questa rete non è una di quelle note al portafoglio. Continua solo se la riconosci; controlla l'hash genesis.",
+      "network_differs": "Diversa dalla rete selezionata nel portafoglio ({selected}). I nomi degli asset, i dettagli delle app e l'anteprima della transazione non sono disponibili per questa rete; gli importi sono mostrati nelle unità proprie della rete.",
+      "network_foreign_note": "I dettagli della rete del portafoglio non vengono mostrati per un'altra rete.",
+      "genesis_hash_label": "Hash genesis",
+      "network_not_named": "Il sito non ha indicato alcuna rete. Le firme dei dati non sono legate a una rete."
     }
   },
   "arc56": {

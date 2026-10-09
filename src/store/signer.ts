@@ -16,6 +16,7 @@ import type { RootState } from "./index";
 import { hdSignTransactionBytes } from "../scripts/encoding/hdWallet";
 import { falconSignTransaction } from "../scripts/encoding/falcon";
 import { assertLiquidChallenge } from "../scripts/liquid/guards";
+import { pickSigningEnv } from "../scripts/signingEnv";
 import {
   Arc60Error,
   computeArc60Digest,
@@ -40,6 +41,8 @@ interface SignTransactionPayload {
   from: string;
   signator?: string;
   tx: Transaction;
+  /** Network verified by the wallet (Biatec Direct); wins over the transaction's own genesis ID. */
+  env?: string;
 }
 
 interface ToSignPayload {
@@ -74,6 +77,11 @@ interface SignArc60DataPayload {
   sessionOrigin: string | undefined;
   /** Addresses approved for the WalletConnect session the request arrived on - see AW-2026-046. */
   approvedAccounts: string[];
+  /**
+   * Network (genesis ID / env id) whose rekey mappings apply, when the request names one that is
+   * not necessarily the wallet's selected network (Biatec Direct). Defaults to the selected env.
+   */
+  env?: string;
 }
 
 export interface SignerState {
@@ -113,12 +121,21 @@ const ensureEnv = (rootState: RootState): string => {
 // externally supplied (WalletConnect/pasted) tx for a network other than the
 // one currently selected. Falls back to the selected network only when the
 // tx has no genesisID at all.
-const resolveTxEnv = (rootState: RootState, tx: Transaction): string => {
+const resolveTxEnv = (
+  rootState: RootState,
+  tx: Transaction,
+  verifiedEnv?: string,
+): string => {
   const genesisId = (tx as unknown as { genesisID?: string })?.genesisID;
-  if (typeof genesisId === "string" && genesisId.length > 0) {
-    return genesisId;
+  const env = pickSigningEnv({
+    verifiedEnv,
+    txGenesisId: typeof genesisId === "string" ? genesisId : undefined,
+    walletEnv: rootState.config.env,
+  });
+  if (!env) {
+    throw new Error(envErrorMessage);
   }
-  return ensureEnv(rootState);
+  return env;
 };
 
 const ensureAccount = (
@@ -256,7 +273,7 @@ const actions: ActionTree<SignerState, RootState> = {
     payload: SignTransactionPayload,
   ): Promise<undefined | Uint8Array<ArrayBufferLike>> {
     try {
-      const env = resolveTxEnv(rootState, payload.tx);
+      const env = resolveTxEnv(rootState, payload.tx, payload.env);
       const baseAccount = ensureAccount(rootState, payload.from);
       const signerAccount = resolveEnvRekey(
         rootState,
@@ -339,10 +356,12 @@ const actions: ActionTree<SignerState, RootState> = {
   },
   getSignerType(
     { dispatch, rootState },
-    { from, tx }: { from: string; tx?: Transaction },
+    { from, tx, env: verifiedEnv }: { from: string; tx?: Transaction; env?: string },
   ): "ledger" | "msig" | "sk" | "hd" | "falcon1024" | "?" {
     try {
-      const env = tx ? resolveTxEnv(rootState, tx) : ensureEnv(rootState);
+      const env = tx
+        ? resolveTxEnv(rootState, tx, verifiedEnv)
+        : (verifiedEnv ?? ensureEnv(rootState));
       const baseAccount = ensureAccount(rootState, from);
       const resolvedAccount = resolveEnvRekey(
         rootState,
@@ -610,7 +629,7 @@ const actions: ActionTree<SignerState, RootState> = {
       payload.authenticatorData,
     );
     const baseAccount = ensureAccount(rootState, payload.from);
-    const env = ensureEnv(rootState);
+    const env = payload.env ?? ensureEnv(rootState);
     const signerAccount = resolveEnvRekey(rootState, baseAccount, env, payload.from);
     if (signerAccount.type === "hd") {
       if (!signerAccount.hdRootAddr) {

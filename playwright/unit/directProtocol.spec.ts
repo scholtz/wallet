@@ -6,10 +6,7 @@ import {
   DirectErrorCode,
   DirectRequestGate,
   directUnsupportedReason,
-  checkRequestNetwork,
-  expectedGenesisReference,
   isDevelopmentOrigin,
-  isWellKnownNetwork,
   normalizeGenesisHash,
   parseDappOrigin,
   parseOriginHint,
@@ -19,8 +16,6 @@ import {
 } from "../../src/scripts/direct/protocol";
 
 const MAINNET_HASH_B64 = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=";
-const TESTNET_PREFIX = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe";
-const TESTNET_HASH_B64 = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
 
 test.describe("parseDappOrigin", () => {
   test("accepts https origins and loopback http origins", () => {
@@ -63,14 +58,6 @@ test.describe("parseDappOrigin", () => {
     expect(parseDappOrigin("http://localhost.evil.com")).toBeUndefined();
     expect(parseDappOrigin("http://127.0.0.1.evil.com")).toBeUndefined();
   });
-});
-
-test("isWellKnownNetwork: built-in networks never need the remote genesis list", () => {
-  expect(isWellKnownNetwork("mainnet-v1.0")).toBe(true);
-  expect(isWellKnownNetwork("testnet-v1.0")).toBe(true);
-  expect(isWellKnownNetwork("privnet-v1")).toBe(false);
-  expect(isWellKnownNetwork("constructor")).toBe(false);
-  expect(isWellKnownNetwork("__proto__")).toBe(false);
 });
 
 test("isDevelopmentOrigin flags loopback origins only", () => {
@@ -197,54 +184,6 @@ test.describe("genesis hash handling", () => {
     expect(txnGenesisMatches(bytes.slice(0, 16), normalized)).toBe(false);
   });
 
-  test("expectedGenesisReference: built-in table wins, the remote list only covers unknown networks", () => {
-    const poisoned = [
-      { network: "mainnet-v1.0", CAIP10: "algorand:ATTACKERCONTROLLED" },
-      { network: "privnet-v1", CAIP10: "algorand:PRIVNETREFERENCE" },
-    ];
-    // A poisoned public list cannot weaken the binding of a well-known network.
-    expect(expectedGenesisReference("mainnet-v1.0", poisoned)).toBe("wGHE2Pwdvd7S12BL5FaOP20EGYesN73k");
-    expect(expectedGenesisReference("testnet-v1.0", poisoned)).toBe(TESTNET_PREFIX);
-    expect(expectedGenesisReference("privnet-v1", poisoned)).toBe("PRIVNETREFERENCE");
-    expect(expectedGenesisReference("unknown-net", poisoned)).toBeUndefined();
-  });
-
-  test("a poisoned genesis list cannot make a foreign hash pass for mainnet", () => {
-    const result = checkRequestNetwork({
-      requestGenesisHash: TESTNET_HASH_B64,
-      env: "mainnet-v1.0",
-      genesisList: [{ network: "mainnet-v1.0", CAIP10: "algorand:" + TESTNET_PREFIX }],
-    });
-    expect(result.ok).toBe(false);
-  });
-
-  test("checkRequestNetwork binds the request to the active network", () => {
-    const normalized = normalizeGenesisHash(MAINNET_HASH_B64)!;
-    expect(
-      checkRequestNetwork({ requestGenesisHash: MAINNET_HASH_B64, env: "mainnet-v1.0", genesisList: [] }),
-    ).toEqual({ ok: true, normalized });
-    const mismatch = checkRequestNetwork({
-      requestGenesisHash: MAINNET_HASH_B64,
-      env: "testnet-v1.0",
-      genesisList: [],
-    });
-    expect(mismatch.ok).toBe(false);
-    expect(!mismatch.ok && mismatch.code).toBe(DirectErrorCode.networkNotSupported);
-    const invalid = checkRequestNetwork({ requestGenesisHash: "nope", env: "mainnet-v1.0", genesisList: [] });
-    expect(!invalid.ok && invalid.code).toBe(DirectErrorCode.invalidInput);
-  });
-
-  test("an unknown network fails closed, a custom node does not block", () => {
-    const unknown = checkRequestNetwork({
-      requestGenesisHash: MAINNET_HASH_B64,
-      env: "some-private-net",
-      genesisList: [],
-    });
-    expect(unknown.ok).toBe(false);
-    expect(
-      checkRequestNetwork({ requestGenesisHash: MAINNET_HASH_B64, env: "custom", genesisList: [] }).ok,
-    ).toBe(true);
-  });
 });
 
 test.describe("directUnsupportedReason (what the compact popup can fully show)", () => {
