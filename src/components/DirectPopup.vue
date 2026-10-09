@@ -331,6 +331,10 @@ const closeWindow = () => {
 </script>
 
 <style scoped>
+.direct-popup {
+  max-width: 760px;
+  margin: 0 auto;
+}
 .direct-header {
   display: flex;
   align-items: center;
