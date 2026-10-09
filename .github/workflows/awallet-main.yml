@@ -30,14 +30,19 @@ jobs:
           echo "git_commit=$GIT_COMMIT" >> "$GITHUB_OUTPUT"
           echo "build_date=$BUILD_DATE" >> "$GITHUB_OUTPUT"
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
+      # Log in to Docker Hub BEFORE setting up Buildx: setting up the builder pulls the
+      # moby/buildkit helper image from Docker Hub. Anonymously that pull goes through a shared
+      # runner account and a slow/throttled token request on auth.docker.io fails the whole
+      # deploy ("Client.Timeout exceeded while awaiting headers"); with our own credentials
+      # the pull is authenticated with this account's (higher) limits.
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to Harbor
         uses: docker/login-action@v3
