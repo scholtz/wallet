@@ -3,6 +3,7 @@ import { WalletKit, type WalletKitTypes } from "@reown/walletkit";
 import { parseUri } from "@walletconnect/utils";
 import type { SessionTypes } from "@walletconnect/types";
 import algosdk from "algosdk";
+import { checkTransactionGroup } from "../scripts/dappRequestChecks";
 import type { ActionTree, MutationTree } from "vuex";
 import wc from "../shared/wc";
 import WCKeyValueStore from "../shared/WCKeyValueStore";
@@ -441,6 +442,12 @@ const actions: ActionTree<WcState, RootState> = {
       } catch (error) {
         console.error("Undecodable WalletConnect transactions", error);
         await invalid("Invalid transaction.");
+        return;
+      }
+
+      // AW-2026-064: a request must carry every transaction of any group it mentions.
+      if (checkTransactionGroup(transactions.map((tx) => tx.txn)) !== "ok") {
+        await invalid("Incomplete or inconsistent transaction group.");
         return;
       }
 

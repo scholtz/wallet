@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, watchEffect } from "vue";
+import { watch, watchEffect } from "vue";
 import MainLayout from "@/layouts/Main.vue";
 import DirectPopup from "@/components/DirectPopup.vue";
 import { useStore } from "@/store";
@@ -18,8 +18,13 @@ const store = useStore();
 store.dispatch("config/setNoRedirect");
 
 // dApps on an older adapter open this popup at 480x720. Enlarge such a window (allowed for
-// windows a script opened); best effort, a refusal by the browser changes nothing.
-onMounted(() => {
+// windows a script opened); best effort, a refusal by the browser changes nothing. Only done
+// once the opener's origin is verified, so an arbitrary page that opens /direct cannot make
+// the wallet move or resize its window (AW-2026-070).
+let resized = false;
+const enlargeOnce = () => {
+  if (resized) return;
+  resized = true;
   if (!window.opener || window.top !== window.self) return;
   const geometry = enlargedPopupGeometry(
     {
@@ -38,7 +43,14 @@ onMounted(() => {
   } catch {
     // The browser refused (not a script-opened window): keep the current size.
   }
-});
+};
+watch(
+  () => store.state.direct.popup.verified,
+  (verified) => {
+    if (verified) enlargeOnce();
+  },
+  { immediate: true },
+);
 
 // The window title names the requesting site once it is verified, so the popup is
 // recognisable in the taskbar; before that it shows only the wallet brand.

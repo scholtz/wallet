@@ -5,6 +5,17 @@ import type { Table } from "dexie";
 
 import db from "./db";
 import type { RootState } from "../store";
+import {
+  decodeSignTxnTransactions,
+  type DecodedTransactionSummary,
+} from "./decodeSignRequests";
+import {
+  MAX_DAPP_TXNS_PER_REQUEST,
+  admitEnvelope,
+  admitTransactions,
+  countPending,
+} from "../scripts/liquid/guards";
+import { checkTransactionGroup } from "../scripts/dappRequestChecks";
 
 interface WalletConnectRecord {
   id: string;
@@ -53,6 +64,7 @@ interface SessionRequestPayload {
 
 interface AlgoTxnParam {
   txn: string;
+  signers?: string[];
 }
 
 interface WalletConnectRequestPayload {
@@ -78,26 +90,6 @@ interface WalletConnectState {
   requestById: Record<string, RequestEntry>;
 }
 
-interface DecodedTxnFields {
-  type: string;
-  fee?: number;
-  amount?: number | string | bigint;
-  assetIndex?: number | string;
-  from?: { publicKey: Uint8Array };
-  rekeyTo?: { publicKey: Uint8Array };
-}
-
-interface TransactionPreview {
-  index: number;
-  type: string;
-  from?: string;
-  fee?: number | bigint;
-  asset: string | number;
-  amount?: string | number | bigint;
-  rekeyTo?: string;
-  txn: Transaction;
-}
-
 const wcTable: Table<WalletConnectRecord, string> = db.table("wc");
 
 const state: WalletConnectState = {
@@ -115,81 +107,22 @@ const requireStore = (): Store<RootState> => {
   return state.store;
 };
 
+/**
+ * Decode a v1 request with the same decoder the v2 / Liquid / Direct transports use, so the
+ * summary fields are populated correctly (algosdk v3 keeps amount/asset under payment.* /
+ * assetTransfer.*). Pre-signed blobs are returned, not registered, until the request is admitted.
+ */
 const decodeTransactions = (
-  payload: WalletConnectRequestPayload
-): TransactionPreview[] => {
-  const store = requireStore();
-  const [group] = payload.params ?? [];
-  if (!Array.isArray(group)) {
-    return [];
-  }
-
-  return group.map((item, index) => {
-    const txnB64 = item.txn;
-    const txnBuffer = Buffer.from(txnB64, "base64");
-    const decodedObj = algosdk.decodeObj(txnBuffer) as Record<
-      string,
-      unknown
-    > & {
-      type?: string;
-      txn?: Record<string, unknown> & { type?: string };
-      // Raw msgpack-decoded signature bytes when the item is already a
-      // signed-transaction envelope, absent when it's a bare unsigned txn.
-      sig?: Uint8Array;
-    };
-
-    let decodedTx = decodedObj;
-    if (!decodedTx.type && decodedTx.txn?.type) {
-      if (decodedTx.sig) {
-        store.dispatch("signer/setSigned", {
-          signed: new Uint8Array(txnBuffer),
-        });
-      }
-      decodedTx = decodedTx.txn;
-    }
-
-    const decoded = algosdk.decodeUnsignedTransaction(
-      algosdk.encodeObj(decodedTx as Record<string, unknown>)
-    ) as Transaction & DecodedTxnFields;
-
-    let asset: string | number = "";
-    switch (decoded.type) {
-      case "pay":
-        asset = "ALGO";
-        break;
-      case "axfer":
-        asset = decoded.assetIndex ?? "";
-        break;
-    }
-
-    let amount: string | number | bigint | undefined = decoded.amount;
-    if (decoded.type === "pay" || decoded.type === "axfer") {
-      amount = amount ?? "0";
-    }
-
-    let from: string | undefined;
-    if (decoded.from?.publicKey) {
-      from = algosdk.encodeAddress(decoded.from.publicKey);
-    }
-
-    let rekeyTo: string | undefined;
-    if (decoded.rekeyTo?.publicKey) {
-      rekeyTo = algosdk.encodeAddress(decoded.rekeyTo.publicKey);
-    }
-
-    return {
-      index,
-      type: decoded.type,
-      from,
-      fee: decoded.fee,
-      asset,
-      amount,
-      rekeyTo,
-      txn: decoded,
-    };
+  rawTransactions: AlgoTxnParam[]
+): { transactions: DecodedTransactionSummary[]; preSigned: Uint8Array[] } => {
+  const preSigned: Uint8Array[] = [];
+  const transactions = decodeSignTxnTransactions(rawTransactions, (signed) => {
+    preSigned.push(signed);
   });
+  // Validate every blob before any is registered.
+  preSigned.forEach((signed) => algosdk.decodeSignedTransaction(signed));
+  return { transactions, preSigned };
 };
-
 const removeConnector = async (id: string): Promise<void> => {
   const entry = state.connectorById[id];
   if (!entry) {
@@ -272,7 +205,66 @@ const handleCallRequest = async (
     return;
   }
 
-  const transactions = decodeTransactions(payload);
+  const reject = (code: number, message: string) => {
+    console.error("WalletConnect v1 request refused:", message);
+    store.dispatch(
+      "toast/openError",
+      `A dApp request was rejected: ${message}`,
+      { root: true }
+    );
+    connector.rejectRequest({ id: payload.id, error: { code, message } });
+  };
+
+  // Same admission rules as the other dApp transports (AW-2026-062): caps and duplicate ids,
+  // then a group check and the sender scope below.
+  const rawTransactions: AlgoTxnParam[] = Array.isArray(payload.params?.[0])
+    ? payload.params[0]
+    : [];
+  const envelope = admitEnvelope({
+    count: rawTransactions.length,
+    maxCount: MAX_DAPP_TXNS_PER_REQUEST,
+    ...countPending(
+      store.state.wc.requests,
+      store.state.wc.signDataRequests,
+      String(connector.clientId),
+      payload.id
+    ),
+  });
+  if (!envelope.ok) {
+    if (!envelope.silent) reject(envelope.code, envelope.reason);
+    return;
+  }
+
+  let decoded: ReturnType<typeof decodeTransactions>;
+  try {
+    decoded = decodeTransactions(rawTransactions);
+  } catch (error) {
+    console.error("Undecodable WalletConnect v1 transactions", error);
+    reject(4200, "Invalid transaction.");
+    return;
+  }
+  const { transactions, preSigned } = decoded;
+  if (checkTransactionGroup(transactions.map((tx) => tx.txn)) !== "ok") {
+    reject(4200, "Incomplete or inconsistent transaction group.");
+    return;
+  }
+  // The v1 session is bound to the one account chosen when pairing.
+  const admission = admitTransactions({
+    transactions: transactions.map((tx, i) => ({
+      sender: tx.txn?.sender?.toString(),
+      preSigned: tx.preSigned,
+      signers: rawTransactions[i]?.signers,
+    })),
+    approved: [address],
+    own: store.state.wallet.privateAccounts.map((a) => a.addr),
+  });
+  if (!admission.ok) {
+    reject(admission.code, admission.reason);
+    return;
+  }
+  preSigned.forEach((signed) =>
+    store.commit("signer/setSigned", signed, { root: true })
+  );
   const totalFee = transactions.reduce(
     (sum, tx) => sum + Number(tx.fee ?? 0),
     0
@@ -296,6 +288,8 @@ const handleCallRequest = async (
       method: payload.method,
       transactions,
       fee: totalFee,
+      ver: "1",
+      topic: String(connector.clientId),
     },
   });
 };

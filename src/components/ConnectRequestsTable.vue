@@ -528,6 +528,14 @@
                         >
                           {{ $t("connect.genesis_mismatch") }}
                         </Message>
+                        <Message
+                          v-else-if="genesisUnverified(txProps.data.txn)"
+                          severity="warn"
+                          class="m-0"
+                          data-testid="genesis-unverified"
+                        >
+                          {{ $t("connect.genesis_unverified") }}
+                        </Message>
                       </td>
                     </tr>
                     <tr>
@@ -577,6 +585,11 @@ import { getArc14Realm, isArc14AuthTransaction } from "../scripts/encoding/arc14
 import { isAssetOptIn } from "../scripts/transactionTypes";
 import { signingEnvOf, type DirectNetworkView } from "../scripts/direct/networks";
 import { pickSigningEnv } from "../scripts/signingEnv";
+import {
+  checkTxGenesis,
+  isBlockingGenesisCheck,
+  type TxGenesisCheck,
+} from "../scripts/dappRequestChecks";
 
 type GlobalFilters = {
   formatCurrencyBigInt: (
@@ -841,6 +854,11 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
     if (txId in (store.state.signer.signed ?? {})) {
       return;
     }
+    // AW-2026-063: never sign a transaction of a network other than the selected one.
+    if (genesisMismatch(txn)) {
+      await store.dispatch("toast/openError", t("connect.genesis_mismatch"));
+      return;
+    }
     const signerType = (await store.dispatch("signer/getSignerType", {
       from: data.txn.sender.toString(),
       tx: data.txn,
@@ -1070,16 +1088,19 @@ const getCloseTo = (txn: algosdk.Transaction): string => {
   }
 };
 
-const genesisMismatch = (txn: algosdk.Transaction): boolean => {
+const genesisVerdict = (txn: algosdk.Transaction): TxGenesisCheck => {
   // Biatec Direct accepts every network and shows it in its own network card.
-  if (ns.value === "direct") return false;
-  const genesisId = txn?.genesisID;
-  const env = store.state.config.env;
-  // "custom" is a UI placeholder, not a genesis id - a manually configured
-  // node has no expected network to compare the transaction's genesis to.
-  if (env === "custom") return false;
-  return Boolean(genesisId && env && genesisId !== env);
+  if (ns.value === "direct") return "ok";
+  // Compares the genesis hash (not just the dApp-chosen genesis ID) for known networks;
+  // "custom" is a UI placeholder - a manually configured node has no expected network.
+  return checkTxGenesis(txn, store.state.config.env);
 };
+/** The transaction is for another network than the selected one: it must not be signed. */
+const genesisMismatch = (txn: algosdk.Transaction): boolean =>
+  isBlockingGenesisCheck(genesisVerdict(txn));
+/** The transaction names no genesis ID (the hash matches): warn, but allow. */
+const genesisUnverified = (txn: algosdk.Transaction): boolean =>
+  genesisVerdict(txn) === "missing_id";
 
 const isArc14Auth = (txn: algosdk.Transaction) => isArc14AuthTransaction(txn);
 

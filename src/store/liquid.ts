@@ -14,6 +14,7 @@
  * renders them with the same components.
  */
 import algosdk from "algosdk";
+import { checkTransactionGroup } from "../scripts/dappRequestChecks";
 import type { ActionTree, MutationTree } from "vuex";
 import type { RootState } from "./index";
 import type { StoredRequest, StoredSignDataRequest } from "./wc";
@@ -480,6 +481,15 @@ const actions: ActionTree<LiquidState, RootState> = {
             ok: false,
             code: LiquidErrorCode.invalidInput,
             reason: "Invalid transaction.",
+          });
+          return;
+        }
+        // AW-2026-064: a request must carry every transaction of any group it mentions.
+        if (checkTransactionGroup(transactions.map((tx) => tx.txn)) !== "ok") {
+          await refuse(LiquidReference.signTransactionsResponse, {
+            ok: false,
+            code: LiquidErrorCode.invalidInput,
+            reason: "Incomplete or inconsistent transaction group.",
           });
           return;
         }

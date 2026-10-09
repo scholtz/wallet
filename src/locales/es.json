@@ -634,6 +634,7 @@
     "genesis_hash": "Hash del Génesis",
     "close_to": "Cerrar hacia",
     "genesis_mismatch": "Esta transacción es para una red diferente a la seleccionada actualmente",
+    "genesis_unverified": "Esta transacción no indica la red (genesis ID). Su hash de génesis coincide con la red seleccionada.",
     "verification": "Verificación",
     "domain_verified": "Dominio verificado",
     "domain_mismatch": "El dominio no coincide con los metadatos proporcionados por la aplicación",
@@ -1101,6 +1102,7 @@
       "network_unknown": "Red desconocida",
       "network_unknown_warning": "Esta red no es una que la cartera conozca. Continúe solo si la reconoce; compruebe el hash génesis.",
       "network_differs": "Distinta de la red seleccionada en la cartera ({selected}). Los nombres de activos, los detalles de aplicaciones y la vista previa de la transacción no están disponibles para esta red; los importes se muestran en las unidades propias de la red.",
+      "network_changed": "Este sitio se conectó en {granted}, pero esta solicitud es en {requested}. Comprueba la red antes de firmar.",
       "network_foreign_note": "Los detalles de la red de la cartera no se muestran para otra red.",
       "genesis_hash_label": "Hash génesis",
       "network_not_named": "El sitio no indicó ninguna red. Las firmas de datos no están ligadas a una red."

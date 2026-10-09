@@ -634,6 +634,7 @@
     "genesis_hash": "Genesis hash",
     "close_to": "Sluit na",
     "genesis_mismatch": "Hierdie transaksie is vir 'n ander netwerk as die tans gekose een",
+    "genesis_unverified": "This transaction names no network (genesis ID). Its genesis hash matches the selected network.",
     "verification": "Verifikasie",
     "domain_verified": "Domein geverifieer",
     "domain_mismatch": "Die domein stem nie ooreen met die metadata wat die app verskaf het nie",
@@ -1101,6 +1102,7 @@
       "network_unknown": "Onbekende netwerk",
       "network_unknown_warning": "Hierdie netwerk is nie een wat die beursie ken nie. Gaan net voort as jy dit herken; kontroleer die genesis-hash.",
       "network_differs": "Verskil van die netwerk wat in die beursie gekies is ({selected}). Bate-name, toepassingbesonderhede en die transaksievoorskou is nie vir hierdie netwerk beskikbaar nie; bedrae word in die netwerk se eie eenhede getoon.",
+      "network_changed": "This site was connected on {granted}, but this request is on {requested}. Check the network before you sign.",
       "network_foreign_note": "Besonderhede van die beursie se netwerk word nie vir 'n ander netwerk getoon nie.",
       "genesis_hash_label": "Genesis-hash",
       "network_not_named": "Die werf het nie 'n netwerk genoem nie. Datahandtekeninge is nie aan 'n netwerk gebind nie."

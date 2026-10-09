@@ -9,6 +9,12 @@ import db from "../shared/db";
 import wc from "../shared/wc";
 import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
 import { mergeSharedWcItems } from "@/scripts/walletSharedItems";
+import {
+  MIN_PASSWORD_LENGTH,
+  mergePrivateAccounts,
+  serializePersistedWallet,
+  validateNewPassword,
+} from "@/scripts/walletPersist";
 import type { RootState } from "./index";
 import {
   generateHdMnemonic,
@@ -355,28 +361,58 @@ const toErrorMessage = (error: unknown): string => {
   return String(error);
 };
 /**
- * Serialize the wallet for persisting, taking the persisted value of the shared wc items
- * (decrypted with `persistedPass`) instead of this tab's possibly stale in-memory copy.
+ * Thrown when the persisted wallet record cannot be decrypted with this tab's password, i.e.
+ * another tab changed the password or replaced the record. Writing anyway would re-encrypt the
+ * wallet with a stale password (AW-2026-060), so the save is refused.
+ */
+class PersistedWalletUnreadableError extends Error {
+  constructor() {
+    super("The stored wallet could not be read with this tab's password.");
+    this.name = "PersistedWalletUnreadableError";
+  }
+}
+
+/**
+ * Addresses this tab has already seen in the persisted record (loaded or saved). An account
+ * that is persisted but not in this set was added by another tab and must survive this tab's
+ * save (AW-2026-059).
+ */
+let knownAddresses = new Set<string>();
+const rememberAddresses = (accounts: { addr: string }[]) => {
+  knownAddresses = new Set(accounts.map((a) => a.addr));
+};
+
+/**
+ * Serialize the wallet for persisting, taking the persisted value of the shared wc items and the
+ * accounts other tabs added (decrypted with `persistedPass`) instead of only this tab's
+ * possibly stale in-memory copy. Throws PersistedWalletUnreadableError if the record cannot be
+ * read - never falls back to overwriting it.
  */
 const serializeWalletMergingSharedItems = async (
   wallet: WalletState,
   persistedData: string,
   persistedPass: string
-): Promise<string> => {
-  let wc = { ...(wallet.wc ?? {}) };
+): Promise<{ data: string; privateAccounts: WalletAccount[] }> => {
+  let persisted: {
+    wc?: Record<string, string>;
+    privateAccounts?: WalletAccount[];
+  };
   try {
-    const persisted = JSON.parse(
-      await decryptWalletData(persistedData, persistedPass)
-    );
-    wc = mergeSharedWcItems(wallet.wc, persisted.wc);
+    persisted = JSON.parse(await decryptWalletData(persistedData, persistedPass));
   } catch (error) {
-    // Unreadable record: fall back to this tab's copy rather than failing the save.
-    console.error("Could not merge shared wallet items", error);
+    console.error("Could not read the stored wallet before saving", error);
+    throw new PersistedWalletUnreadableError();
   }
-  return JSON.stringify(
-    { ...wallet, wc },
-    (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
+  const wc = mergeSharedWcItems(wallet.wc, persisted.wc);
+  const privateAccounts = mergePrivateAccounts(
+    wallet.privateAccounts,
+    persisted.privateAccounts,
+    knownAddresses
   );
+  return {
+    data: serializePersistedWallet(wallet, { wc, privateAccounts }),
+    privateAccounts,
+  };
 };
 
 /** Serializes wallet-record writes across tabs (Web Locks); a plain call where unsupported. */
@@ -900,6 +936,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     // First, before any await: a Ledger request must not start or complete into
     // a session that is closing.
     commit("signer/ledgerPendingReset", null, { root: true });
+    // Signed-transaction cache (may hold dApp-supplied pre-signed blobs): not for the next
+    // session to see (AW-2026-065).
+    commit("signer/clearSignedCache", null, { root: true });
     try {
       wc.clear();
     } catch (err) {
@@ -933,6 +972,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     } catch (err) {
       console.error("Failed to reset wcClient module state", err);
     }
+    knownAddresses = new Set();
     await commit("logout");
   },
   async prolong({ commit }) {
@@ -1608,6 +1648,14 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return;
     }
 
+    if (validateNewPassword(passw2)) {
+      dispatch(
+        "toast/openError",
+        `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
+        { root: true }
+      );
+      return;
+    }
     const check = await dispatch("openWallet", { name, pass: passw1 });
     if (!check) {
       dispatch("toast/openError", "Password is incorrect", {
@@ -1628,13 +1676,24 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       }
       // Re-read under the lock: keep shared items another tab (e.g. the Biatec Direct popup)
       // persisted since openWallet loaded this tab's copy.
-      const data = await serializeWalletMergingSharedItems(
-        this.state.wallet,
-        walletRecord.data,
-        passw1
-      );
-      walletRecord.data = await encryptWalletData(data, passw2);
+      let merged: Awaited<ReturnType<typeof serializeWalletMergingSharedItems>>;
+      try {
+        merged = await serializeWalletMergingSharedItems(
+          this.state.wallet,
+          walletRecord.data,
+          passw1
+        );
+      } catch (error) {
+        if (!(error instanceof PersistedWalletUnreadableError)) throw error;
+        dispatch("toast/openError", "Wallet record changed, try again", {
+          root: true,
+        });
+        return false;
+      }
+      walletRecord.data = await encryptWalletData(merged.data, passw2);
       await db.wallets.update(walletRecord.id, walletRecord);
+      commit("setPrivateAccounts", merged.privateAccounts);
+      rememberAddresses(merged.privateAccounts);
       return true;
     });
     if (!saved) return;
@@ -1646,7 +1705,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     commit("setIsOpen", { name, pass: passw2 });
     return true;
   },
-  async saveWallet({ dispatch }) {
+  async saveWallet({ dispatch, commit }) {
     const encryptedPass = this.state.wallet.pass;
     const rs1 = getRequiredLocalStorage("rs1");
     const decryptedData = await CryptoJS.AES.decrypt(encryptedPass, rs1);
@@ -1683,19 +1742,38 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       }
       if (this.state.wallet) {
         // Shared wc items: keep what is persisted (another tab may have changed it).
-        const data = await serializeWalletMergingSharedItems(
-          this.state.wallet,
-          walletRecord.data,
-          pass
-        );
+        let merged: Awaited<ReturnType<typeof serializeWalletMergingSharedItems>>;
+        try {
+          merged = await serializeWalletMergingSharedItems(
+            this.state.wallet,
+            walletRecord.data,
+            pass
+          );
+        } catch (error) {
+          if (!(error instanceof PersistedWalletUnreadableError)) throw error;
+          // The record no longer opens with this tab's password (changed or replaced in another
+          // tab): never overwrite it. Lock this tab so the user signs in again (AW-2026-060).
+          dispatch(
+            "toast/openError",
+            "The wallet was changed in another window. Please sign in again.",
+            { root: true }
+          );
+          await dispatch("logout");
+          return false;
+        }
         const dataencoded = await encryptWalletData(
-          data,
+          merged.data,
           pass,
           walletRecord.data
         );
         if (walletRecord && dataencoded) {
           walletRecord.data = dataencoded;
           await db.wallets.update(walletRecord.id, walletRecord);
+          // Adopt accounts another tab added, so this tab shows (and keeps saving) them.
+          if (merged.privateAccounts !== this.state.wallet.privateAccounts) {
+            commit("setPrivateAccounts", merged.privateAccounts);
+          }
+          rememberAddresses(merged.privateAccounts);
         }
       }
     });
@@ -1716,6 +1794,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       const decryptedData = await decryptWalletData(encryptedData, pass);
       const json = JSON.parse(decryptedData);
       await commit("setPrivateAccounts", json.privateAccounts);
+      rememberAddresses(this.state.wallet.privateAccounts);
       await commit("lastPayTo", json.lastPayTo);
       await commit("lastActiveAccount", json.lastActiveAccount);
       await commit("setWC", json.wc);
@@ -1767,6 +1846,14 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       });
       return false;
     }
+    if (validateNewPassword(pass)) {
+      dispatch(
+        "toast/openError",
+        `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
+        { root: true }
+      );
+      return false;
+    }
     const existingWallets = await db.wallets.toArray();
     if (existingWallets.some((wallet) => wallet.name === name)) {
       dispatch("toast/openError", "Wallet with the same name already exists", {
@@ -1774,10 +1861,12 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       });
       return false;
     }
-    const data = JSON.stringify(
-      this.state.wallet,
-      (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
-    );
+    // A new wallet starts empty: close any open wallet first so its keys, WalletConnect store
+    // and wrapped password can never be copied into the new record (AW-2026-061).
+    if (this.state.wallet.isOpen) {
+      await dispatch("logout");
+    }
+    const data = serializePersistedWallet(this.state.wallet);
     const dataencoded = await encryptWalletData(data, pass);
 
     try {

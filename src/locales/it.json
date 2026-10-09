@@ -634,6 +634,7 @@
     "genesis_hash": "Hash Genesis",
     "close_to": "Chiudi verso",
     "genesis_mismatch": "Questa transazione è destinata a una rete diversa da quella attualmente selezionata",
+    "genesis_unverified": "Questa transazione non indica la rete (genesis ID). Il suo genesis hash corrisponde alla rete selezionata.",
     "verification": "Verifica",
     "domain_verified": "Dominio verificato",
     "domain_mismatch": "Il dominio non corrisponde ai metadati forniti dall'app",
@@ -1101,6 +1102,7 @@
       "network_unknown": "Rete sconosciuta",
       "network_unknown_warning": "Questa rete non è una di quelle note al portafoglio. Continua solo se la riconosci; controlla l'hash genesis.",
       "network_differs": "Diversa dalla rete selezionata nel portafoglio ({selected}). I nomi degli asset, i dettagli delle app e l'anteprima della transazione non sono disponibili per questa rete; gli importi sono mostrati nelle unità proprie della rete.",
+      "network_changed": "Questo sito è stato collegato su {granted}, ma questa richiesta è su {requested}. Controlla la rete prima di firmare.",
       "network_foreign_note": "I dettagli della rete del portafoglio non vengono mostrati per un'altra rete.",
       "genesis_hash_label": "Hash genesis",
       "network_not_named": "Il sito non ha indicato alcuna rete. Le firme dei dati non sono legate a una rete."
