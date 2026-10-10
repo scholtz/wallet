@@ -26,7 +26,7 @@ export function mergePrivateAccounts<A extends { addr: string }>(
   persisted: A[] | undefined,
   known: ReadonlySet<string>,
 ): A[] {
-  if (!persisted) return memory;
+  if (!Array.isArray(persisted)) return memory;
   const persistedAddrs = new Set(
     persisted.map((a) => a.addr).filter((addr) => typeof addr === "string"),
   );

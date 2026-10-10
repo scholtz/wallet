@@ -1736,24 +1736,23 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       await db.wallets.update(walletRecord.id, walletRecord);
       commit("applyAccountMerge", merged);
       rememberAddresses(merged.addresses);
+      // state.pass must wrap the new password before the lock is released: a save queued behind
+      // this one reads it inside the lock, and with the old password it would fail to decrypt
+      // the record just re-encrypted (AW-2026-025 / -060).
+      commit("setIsOpen", { name, pass: passw2 });
       return true;
     });
     if (!saved) return;
-    // openWallet above committed setIsOpen with the *old* password (passw1)
-    // to verify it; without re-committing here, state.pass keeps wrapping
-    // passw1, so the next saveWallet() (triggered by almost any subsequent
-    // action) would silently re-encrypt the wallet record under the old
-    // password again, undoing this change (audit finding AW-2026-025).
-    commit("setIsOpen", { name, pass: passw2 });
     return true;
   },
   async saveWallet({ dispatch, commit }) {
-    const encryptedPass = this.state.wallet.pass;
-    const rs1 = getRequiredLocalStorage("rs1");
-    const decryptedData = await CryptoJS.AES.decrypt(encryptedPass, rs1);
-    const pass = decryptedData.toString(CryptoJS.enc.Utf8);
+    const readSessionPassword = async () => {
+      const rs1 = getRequiredLocalStorage("rs1");
+      const decryptedData = await CryptoJS.AES.decrypt(this.state.wallet.pass, rs1);
+      return decryptedData.toString(CryptoJS.enc.Utf8);
+    };
 
-    if (!pass) {
+    if (!(await readSessionPassword())) {
       // password not yet initialized
       return false;
     }
@@ -1772,6 +1771,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return false; // check not to empty the wallet
     }
     return withWalletWriteLock(async () => {
+      // Read inside the lock: a password change that ran just before us has re-keyed state.pass.
+      const pass = await readSessionPassword();
+      if (!pass) return false;
       const walletRecord = await db.wallets.get({
         name: this.state.wallet.name,
       });

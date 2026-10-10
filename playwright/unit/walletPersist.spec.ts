@@ -80,6 +80,12 @@ test.describe("mergePrivateAccounts (AW-2026-059)", () => {
     expect(mergePrivateAccounts([acct("A")], [], new Set(["A"]))).toHaveLength(1);
   });
 
+  test("a persisted value that is not a list changes nothing instead of throwing", () => {
+    const memory = [acct("A")];
+    const broken = "oops" as unknown as { addr: string }[];
+    expect(mergePrivateAccounts(memory, broken, new Set(["A"]))).toEqual(memory);
+  });
+
   test("a missing persisted list changes nothing", () => {
     const memory = [acct("A")];
     expect(mergePrivateAccounts(memory, undefined, new Set())).toEqual(memory);
