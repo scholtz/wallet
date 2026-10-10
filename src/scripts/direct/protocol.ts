@@ -143,6 +143,19 @@ export function parseOriginHint(search: string): string | undefined {
 }
 
 /**
+ * Read the dApp's `lang` hint (the language it is shown in) from the popup's query string and
+ * return the matching wallet language, or `undefined` for a missing / unsupported value.
+ * Regional tags (`sk-SK`) match their base language. Purely cosmetic: it is never part of the
+ * trust decision and an unknown value is silently ignored.
+ */
+export function parseLangHint(search: string, available: readonly string[]): string | undefined {
+  const raw = new URLSearchParams(search).get("lang");
+  if (!raw) return undefined;
+  const base = raw.split("-")[0]?.toLowerCase() ?? "";
+  return available.find((locale) => locale === base);
+}
+
+/**
  * Structural validation of an untrusted inbound message. Everything the wallet later reads from
  * `params` is validated again where it is used; this only guarantees the envelope.
  */

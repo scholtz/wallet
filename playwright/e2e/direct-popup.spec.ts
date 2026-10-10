@@ -37,6 +37,31 @@ test.describe("Biatec Direct popup transport", () => {
   // Every popup is a separate wallet unlock (PBKDF2); flows with several popups are slow.
   test.describe.configure({ timeout: 240000 });
 
+  test("language: the popup opens in the language the dApp passes in ?lang=", async ({ context, page }) => {
+    // The wallet's own preference is English; the dApp (Slovak) wins for this popup only.
+    await setupFreshWallet(page);
+    await page.evaluate(() => localStorage.setItem("lang", "en"));
+    const dapp = await openDapp(context);
+    await dapp.evaluate(() => {
+      (window as unknown as { __lang: string }).__lang = "sk";
+    });
+    const popup = await openPopup(context, dapp);
+    await expect(popup.getByTestId("direct-unlock-banner")).toContainText("Web chce použiť vašu peňaženku");
+    // The user's stored wallet language is not overwritten by the dApp's hint.
+    expect(await popup.evaluate(() => localStorage.getItem("lang"))).not.toBe("sk");
+  });
+
+  test("language: an unsupported ?lang= keeps the wallet's own language", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    await page.evaluate(() => localStorage.setItem("lang", "en"));
+    const dapp = await openDapp(context);
+    await dapp.evaluate(() => {
+      (window as unknown as { __lang: string }).__lang = "xx";
+    });
+    const popup = await openPopup(context, dapp);
+    await expect(popup.getByTestId("direct-unlock-banner")).toContainText("A website wants to use your wallet");
+  });
+
   test("connect: the popup shows the browser-verified origin, replies only to it, and closes", async ({ context, page }) => {
     await setupFreshWallet(page);
     const address = walletAddress(page);

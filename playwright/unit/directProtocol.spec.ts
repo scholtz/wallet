@@ -9,6 +9,7 @@ import {
   isDevelopmentOrigin,
   normalizeGenesisHash,
   parseDappOrigin,
+  parseLangHint,
   parseOriginHint,
   parseRequestEnvelope,
   responseReference,
@@ -226,5 +227,27 @@ test.describe("directUnsupportedReason (what the compact popup can fully show)",
 
   test("a hostile type string is truncated in the message", () => {
     expect(directUnsupportedReason({ type: "x".repeat(500) })!.length).toBeLessThan(120);
+  });
+});
+
+test.describe("parseLangHint", () => {
+  const available = ["af", "cs", "en", "es", "hu", "it", "nl", "ru", "sk", "tr"];
+
+  test("reads a supported language from the ?lang= query parameter", () => {
+    expect(parseLangHint("?origin=https%3A%2F%2Fdapp.example&lang=sk", available)).toBe("sk");
+    expect(parseLangHint("?lang=en", available)).toBe("en");
+  });
+
+  test("matches regional tags and ignores case", () => {
+    expect(parseLangHint("?lang=sk-SK", available)).toBe("sk");
+    expect(parseLangHint("?lang=HU", available)).toBe("hu");
+  });
+
+  test("ignores missing, empty and unsupported values", () => {
+    expect(parseLangHint("", available)).toBeUndefined();
+    expect(parseLangHint("?lang=", available)).toBeUndefined();
+    expect(parseLangHint("?lang=de", available)).toBeUndefined();
+    expect(parseLangHint("?lang=__proto__", available)).toBeUndefined();
+    expect(parseLangHint("?lang=sk", [])).toBeUndefined();
   });
 });

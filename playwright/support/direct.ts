@@ -21,8 +21,10 @@ window.addEventListener("message", (e) => {
   window.__messages.push({ origin: e.origin, data: e.data, fromPopup: e.source === window.__popup });
 });
 window.__hint = location.origin;
+window.__lang = "";
 document.getElementById("open").addEventListener("click", () => {
-  window.__popup = window.open(WALLET + "/direct?origin=" + encodeURIComponent(window.__hint),
+  window.__popup = window.open(WALLET + "/direct?origin=" + encodeURIComponent(window.__hint) +
+    (window.__lang ? "&lang=" + encodeURIComponent(window.__lang) : ""),
     "biatec-wallet-direct", "popup,width=480,height=720");
 });
 window.__post = (msg) => window.__popup.postMessage(msg, WALLET);

@@ -9,10 +9,16 @@ import { watch, watchEffect } from "vue";
 import MainLayout from "@/layouts/Main.vue";
 import DirectPopup from "@/components/DirectPopup.vue";
 import { useStore } from "@/store";
+import i18n from "@/i18n";
+import { parseLangHint } from "@/scripts/direct/protocol";
 import { getWalletBrandName } from "@/scripts/branding";
 import { enlargedPopupGeometry } from "@/scripts/direct/windowSize";
 
 const store = useStore();
+// Open in the language of the dApp that opened the popup (`?lang=`). Applied for this popup only:
+// the user's own stored language preference is left untouched.
+const dappLang = parseLangHint(window.location.search, i18n.global.availableLocales);
+if (dappLang) i18n.global.locale.value = dappLang;
 // The popup lives on /direct: after unlocking the wallet it must stay here, not jump to the
 // accounts list. This runs while the wallet is still locked (the layout shows Login).
 store.dispatch("config/setNoRedirect");
