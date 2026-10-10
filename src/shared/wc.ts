@@ -15,7 +15,7 @@ import {
   admitTransactions,
   countPending,
 } from "../scripts/liquid/guards";
-import { checkTransactionGroup } from "../scripts/dappRequestChecks";
+import { checkTransactionGroup, findGenesisMismatch } from "../scripts/dappRequestChecks";
 
 interface WalletConnectRecord {
   id: string;
@@ -244,6 +244,10 @@ const handleCallRequest = async (
     return;
   }
   const { transactions, preSigned } = decoded;
+  if (findGenesisMismatch(transactions.map((tx) => tx.txn), store.state.config.env) !== undefined) {
+    reject(4200, "A transaction is for a different network than the selected one.");
+    return;
+  }
   if (checkTransactionGroup(transactions.map((tx) => tx.txn)) !== "ok") {
     reject(4200, "Incomplete or inconsistent transaction group.");
     return;

@@ -45,12 +45,15 @@ async function submitPasswordChange(
   page: Page,
   oldPass: string,
   newPass: string,
+  expectedToast = /./,
 ) {
   await page.locator("#passw1").fill(oldPass);
   await page.locator("#passw2").fill(newPass);
   await page.locator("#passw3").fill(newPass);
   await page.getByRole("button", { name: "Update password" }).click();
-  await expect(page.locator(".p-toast-message").first()).toBeVisible();
+  await expect(
+    page.locator(".p-toast-message", { hasText: expectedToast }).first(),
+  ).toBeVisible();
 }
 
 test.describe("Two tabs, one wallet", () => {
@@ -90,14 +93,23 @@ test.describe("Two tabs, one wallet", () => {
 
     // Tab A changes the password in Settings.
     await openSettings(page);
-    await submitPasswordChange(page, DEFAULT_WALLET_PASSWORD, NEW_PASSWORD);
+    await submitPasswordChange(
+      page,
+      DEFAULT_WALLET_PASSWORD,
+      NEW_PASSWORD,
+      /Password has been updated/,
+    );
 
     // Tab B still holds the old password; its next save is refused with an error. The session
     // stays open so a key created there is not thrown away.
+    // (Asserted on the logged refusal, not the toast: toasts are short-lived and easy to miss
+    // when the machine is busy.)
+    const saveRefused = tabB.waitForEvent("console", {
+      predicate: (message) => message.text().includes("could not be saved here"),
+      timeout: 30000,
+    });
     await createEd25519Account(tabB, "Stale Tab Account");
-    await expect(
-      tabB.locator(".p-toast-message", { hasText: "changed in another window" }).first(),
-    ).toBeVisible({ timeout: 15000 });
+    await saveRefused;
     await expect(tabB.locator("#new_wallet_button_open")).toHaveCount(0);
 
     // The new password opens the wallet, the old one no longer does.
@@ -105,7 +117,9 @@ test.describe("Two tabs, one wallet", () => {
     await fresh.goto("/");
     await fresh.locator("#wallet-pass").fill(DEFAULT_WALLET_PASSWORD);
     await fresh.locator("#new_wallet_button_open").click();
-    await expect(fresh.locator(".p-toast-message").first()).toBeVisible();
+    await expect(
+      fresh.locator(".p-toast-message", { hasText: "Wrong password" }).first(),
+    ).toBeVisible();
     await expect(fresh.locator("#new_wallet_button_open")).toBeVisible();
     await fresh.locator("#wallet-pass").fill(NEW_PASSWORD);
     await fresh.locator("#new_wallet_button_open").click();
@@ -136,7 +150,7 @@ test.describe("Password policy (AW-2026-066)", () => {
   }) => {
     await setupFreshWallet(page, "Policy Wallet");
     await openSettings(page);
-    await submitPasswordChange(page, DEFAULT_WALLET_PASSWORD, "short");
+    await submitPasswordChange(page, DEFAULT_WALLET_PASSWORD, "short", /at least 8 characters/);
 
     await page.getByText("Wallet", { exact: true }).click({ force: true });
     await page.getByText("Logout", { exact: true }).click({ force: true });

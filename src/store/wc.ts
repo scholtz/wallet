@@ -3,7 +3,7 @@ import { WalletKit, type WalletKitTypes } from "@reown/walletkit";
 import { parseUri } from "@walletconnect/utils";
 import type { SessionTypes } from "@walletconnect/types";
 import algosdk from "algosdk";
-import { checkTransactionGroup } from "../scripts/dappRequestChecks";
+import { checkTransactionGroup, findGenesisMismatch } from "../scripts/dappRequestChecks";
 import type { ActionTree, MutationTree } from "vuex";
 import wc from "../shared/wc";
 import WCKeyValueStore from "../shared/WCKeyValueStore";
@@ -445,6 +445,11 @@ const actions: ActionTree<WcState, RootState> = {
         return;
       }
 
+      // AW-2026-063: a transaction of another network voids the whole request.
+      if (findGenesisMismatch(transactions.map((tx) => tx.txn), rootState.config.env) !== undefined) {
+        await invalid("A transaction is for a different network than the selected one.");
+        return;
+      }
       // AW-2026-064: a request must carry every transaction of any group it mentions.
       if (checkTransactionGroup(transactions.map((tx) => tx.txn)) !== "ok") {
         await invalid("Incomplete or inconsistent transaction group.");

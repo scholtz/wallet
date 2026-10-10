@@ -316,6 +316,11 @@ test("Liquid Auth stays offline until initialized and restores saved signing ses
       flatFee: true,
       firstValid: 1,
       lastValid: 100,
+      // A real transaction names its network; admission refuses one that is not for the selected network.
+      genesisHash: new Uint8Array(
+        Buffer.from("wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=", "base64"),
+      ),
+      genesisID: "mainnet-v1.0",
     },
   });
   await page.evaluate(

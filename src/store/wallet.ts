@@ -382,6 +382,25 @@ const rememberAddresses = (accounts: { addr: string }[]) => {
   knownAddresses = new Set(accounts.map((a) => a.addr));
 };
 
+/** Toasts and returns true when `pass` is not acceptable as a new wallet password (AW-2026-066). */
+const rejectWeakPassword = (
+  dispatch: (type: string, payload: string, options: { root: true }) => unknown,
+  pass: string
+): boolean => {
+  if (!validateNewPassword(pass)) return false;
+  dispatch("toast/openError", `Password must be at least ${MIN_PASSWORD_LENGTH} characters`, {
+    root: true,
+  });
+  return true;
+};
+
+interface MergedWallet {
+  data: string;
+  privateAccounts: WalletAccount[];
+  added: WalletAccount[];
+  removed: string[];
+}
+
 /**
  * Serialize the wallet for persisting, taking the persisted value of the shared wc items and the
  * accounts other tabs added (decrypted with `persistedPass`) instead of only this tab's
@@ -392,7 +411,7 @@ const serializeWalletMergingSharedItems = async (
   wallet: WalletState,
   persistedData: string,
   persistedPass: string
-): Promise<{ data: string; privateAccounts: WalletAccount[] }> => {
+): Promise<MergedWallet> => {
   let persisted: {
     wc?: Record<string, string>;
     privateAccounts?: WalletAccount[];
@@ -404,6 +423,7 @@ const serializeWalletMergingSharedItems = async (
     throw new PersistedWalletUnreadableError();
   }
   const wc = mergeSharedWcItems(wallet.wc, persisted.wc);
+  const beforeAddrs = new Set(wallet.privateAccounts.map((a) => a.addr));
   const privateAccounts = mergePrivateAccounts(
     wallet.privateAccounts,
     persisted.privateAccounts,
@@ -412,6 +432,12 @@ const serializeWalletMergingSharedItems = async (
   return {
     data: serializePersistedWallet(wallet, { wc, privateAccounts }),
     privateAccounts,
+    // What the merge changed relative to this tab: applied to the live state after the awaits,
+    // so accounts created meanwhile are not overwritten.
+    added: privateAccounts.filter((a) => !beforeAddrs.has(a.addr)),
+    removed: [...beforeAddrs].filter(
+      (addr) => !privateAccounts.some((a) => a.addr === addr)
+    ),
   };
 };
 
@@ -789,6 +815,23 @@ const mutations: MutationTree<WalletState> = {
     state.privateAccounts.push(account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
+  },
+  // Apply what a save merged in from another tab to the live list (not a wholesale replace,
+  // which would drop an account created while the save was awaiting).
+  applyAccountMerge(
+    state,
+    { added, removed }: { added: WalletAccount[]; removed: string[] }
+  ) {
+    for (const account of added) {
+      if (!state.privateAccounts.some((a) => a.addr === account.addr)) {
+        state.privateAccounts.push(account);
+      }
+    }
+    if (removed.length > 0) {
+      state.privateAccounts = state.privateAccounts.filter(
+        (a) => !removed.includes(a.addr)
+      );
+    }
   },
   setPrivateAccounts(state, accts?: WalletAccount[]) {
     if (accts) {
@@ -1649,14 +1692,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return;
     }
 
-    if (validateNewPassword(passw2)) {
-      dispatch(
-        "toast/openError",
-        `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
-        { root: true }
-      );
-      return;
-    }
+    if (rejectWeakPassword(dispatch, passw2)) return;
     const check = await dispatch("openWallet", { name, pass: passw1 });
     if (!check) {
       dispatch("toast/openError", "Password is incorrect", {
@@ -1693,7 +1729,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       }
       walletRecord.data = await encryptWalletData(merged.data, passw2);
       await db.wallets.update(walletRecord.id, walletRecord);
-      commit("setPrivateAccounts", merged.privateAccounts);
+      commit("applyAccountMerge", merged);
       rememberAddresses(merged.privateAccounts);
       return true;
     });
@@ -1772,7 +1808,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
           await db.wallets.update(walletRecord.id, walletRecord);
           // Adopt accounts another tab added, so this tab shows (and keeps saving) them.
           if (merged.privateAccounts !== this.state.wallet.privateAccounts) {
-            commit("setPrivateAccounts", merged.privateAccounts);
+            commit("applyAccountMerge", merged);
           }
           rememberAddresses(merged.privateAccounts);
         }
@@ -1847,14 +1883,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       });
       return false;
     }
-    if (validateNewPassword(pass)) {
-      dispatch(
-        "toast/openError",
-        `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
-        { root: true }
-      );
-      return false;
-    }
+    if (rejectWeakPassword(dispatch, pass)) return false;
     const existingWallets = await db.wallets.toArray();
     if (existingWallets.some((wallet) => wallet.name === name)) {
       dispatch("toast/openError", "Wallet with the same name already exists", {

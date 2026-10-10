@@ -36,6 +36,19 @@ export function checkTxGenesis(
   return known ? "missing_id" : "ok";
 }
 
+/**
+ * Index of the first transaction in a request that is for another network than the selected one
+ * (a blocking verdict), or `undefined` when none is. Used at admission so the whole request is
+ * refused rather than partly signed (AW-2026-063).
+ */
+export function findGenesisMismatch(
+  txns: { genesisID?: string; genesisHash?: Uint8Array }[],
+  walletEnv: string,
+): number | undefined {
+  const index = txns.findIndex((tx) => isBlockingGenesisCheck(checkTxGenesis(tx, walletEnv)));
+  return index === -1 ? undefined : index;
+}
+
 export type TxGroupCheck = "ok" | "incomplete";
 
 /**

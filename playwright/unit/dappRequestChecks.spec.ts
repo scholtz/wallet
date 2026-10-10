@@ -5,6 +5,7 @@ import algosdk from "algosdk";
 import {
   checkTransactionGroup,
   checkTxGenesis,
+  findGenesisMismatch,
 } from "../../src/scripts/dappRequestChecks";
 import { KNOWN_NETWORKS } from "../../src/scripts/direct/networks";
 
@@ -117,5 +118,21 @@ test.describe("checkTransactionGroup (AW-2026-064)", () => {
     algosdk.assignGroupID(txns);
     const loose = payment(MAINNET_HASH, "mainnet-v1.0", 9);
     expect(checkTransactionGroup([txns[0], loose])).toBe("incomplete");
+  });
+});
+
+test.describe("findGenesisMismatch (AW-2026-063, request admission)", () => {
+  test("returns undefined when every transaction is on the selected network", () => {
+    const txns = [payment(MAINNET_HASH, "mainnet-v1.0"), payment(MAINNET_HASH, "mainnet-v1.0", 2)];
+    expect(findGenesisMismatch(txns, "mainnet-v1.0")).toBeUndefined();
+  });
+
+  test("returns the index of the first transaction of another network", () => {
+    const txns = [payment(MAINNET_HASH, "mainnet-v1.0"), payment(TESTNET_HASH, "testnet-v1.0")];
+    expect(findGenesisMismatch(txns, "mainnet-v1.0")).toBe(1);
+  });
+
+  test("a missing genesis ID alone does not refuse the request", () => {
+    expect(findGenesisMismatch([payment(MAINNET_HASH, "")], "mainnet-v1.0")).toBeUndefined();
   });
 });

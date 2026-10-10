@@ -14,7 +14,7 @@
  * renders them with the same components.
  */
 import algosdk from "algosdk";
-import { checkTransactionGroup } from "../scripts/dappRequestChecks";
+import { checkTransactionGroup, findGenesisMismatch } from "../scripts/dappRequestChecks";
 import type { ActionTree, MutationTree } from "vuex";
 import type { RootState } from "./index";
 import type { StoredRequest, StoredSignDataRequest } from "./wc";
@@ -481,6 +481,15 @@ const actions: ActionTree<LiquidState, RootState> = {
             ok: false,
             code: LiquidErrorCode.invalidInput,
             reason: "Invalid transaction.",
+          });
+          return;
+        }
+        // AW-2026-063: a transaction of another network voids the whole request.
+        if (findGenesisMismatch(transactions.map((tx) => tx.txn), rootState.config.env) !== undefined) {
+          await refuse(LiquidReference.signTransactionsResponse, {
+            ok: false,
+            code: LiquidErrorCode.invalidInput,
+            reason: "A transaction is for a different network than the selected one.",
           });
           return;
         }
