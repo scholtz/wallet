@@ -66,8 +66,21 @@
         v-if="network && (status === 'enable' || status === 'signing')"
         :network="network"
       />
+      <Message
+        v-if="networkChange && status === 'signing'"
+        severity="warn"
+        class="mb-3"
+        data-testid="direct-network-changed"
+      >
+        {{
+          $t("connect.direct.network_changed", {
+            granted: networkLabel(networkChange.granted),
+            requested: networkLabel(networkChange.requested),
+          })
+        }}
+      </Message>
       <p
-        v-else-if="status === 'signing' && !network && signDataRequests.length > 0"
+        v-if="status === 'signing' && !network && signDataRequests.length > 0"
         class="direct-network-none"
         data-testid="direct-network-none"
       >
@@ -229,6 +242,11 @@ const eligibleAccounts = computed(() =>
 );
 /** The network the site's request names (shown on every request; Direct signs on any chain). */
 const network = computed(() => store.state.direct.popup.network);
+/** Set when the site was connected on another network than this request is on. */
+const networkChange = computed(() => store.state.direct.popup.networkChange);
+/** Unknown networks all share one name, so they are told apart by their full genesis hash. */
+const networkLabel = (net: { name: string; kind: string; genesisHash: string }) =>
+  net.kind === "unknown" ? `${net.name} (${net.genesisHash})` : net.name;
 
 /** Scheme and host of the verified origin, shown separately so the host stands out. */
 const originParts = computed(() => {

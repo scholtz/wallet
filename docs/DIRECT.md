@@ -73,7 +73,7 @@ dApp                                            wallet popup
 Errors use the Liquid/ARC-0027 codes: `4001` rejected, `4003` method not supported,
 `4100` not connected / unauthorized signer, `4200` invalid (malformed `genesisHash`, a transaction for another
 genesis hash or with a contradicting genesis ID, second request), `4000` limits. `4004` (network not supported)
-is no longer returned: a request for a different network than the wallet's selected one is signed.
+is no longer returned: a request for a different network than the wallet's selected one is signed. A request on a different network than the one the site was connected on shows a "network changed" warning in the popup, and application calls on a network the wallet does not recognise are refused (4200).
 
 `genesisHash` is base64 or base64url of the 32-byte hash, padded or not. **Compare hashes by decoded
 bytes**: the wallet answers `enable` with a *normalized* hash (base64url, no padding).

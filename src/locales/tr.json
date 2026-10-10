@@ -981,6 +981,8 @@
     "genesis": "Genesis Kimliği",
     "genesis_hash": "Genesis Karması",
     "genesis_mismatch": "Bu işlem, şu anda seçili olandan farklı bir ağ içindir",
+    "genesis_unverified": "Bu işlem bir ağ (genesis ID) belirtmiyor. Genesis hash'i seçili ağla eşleşiyor.",
+    "genesis_id_differs": "Bu işlemin genesis ID'si seçili ağın kimliğinden farklı ve cüzdan bu ortamda ağı doğrulayamıyor. İmzalamadan önce ağı kontrol edin.",
     "verification": "Doğrulama",
     "domain_verified": "Alan adı doğrulandı",
     "domain_mismatch": "Alan adı, uygulamanın sağladığı meta verilerle eşleşmiyor",
@@ -1101,6 +1103,7 @@
       "network_unknown": "Bilinmeyen ağ",
       "network_unknown_warning": "Bu ağ cüzdanın tanıdığı bir ağ değil. Yalnızca tanıyorsanız devam edin; genesis hash değerini kontrol edin.",
       "network_differs": "Cüzdanda seçili ağdan farklı ({selected}). Bu ağ için varlık adları, uygulama ayrıntıları ve işlem önizlemesi kullanılamaz; tutarlar ağın kendi birimleriyle gösterilir.",
+      "network_changed": "Bu site {granted} ağında bağlandı, ancak bu istek {requested} ağında. İmzalamadan önce ağı kontrol edin.",
       "network_foreign_note": "Cüzdanın ağına ait ayrıntılar başka bir ağ için gösterilmez.",
       "genesis_hash_label": "Genesis hash",
       "network_not_named": "Site bir ağ belirtmedi. Veri imzaları bir ağa bağlı değildir."

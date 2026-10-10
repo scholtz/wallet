@@ -3,6 +3,8 @@
 import { test, expect } from "@playwright/test";
 import {
   KNOWN_NETWORKS,
+  applicationCallRefusedOnNetwork,
+  describeNetworkChange,
   genesisIdConsistent,
   resolveRequestNetwork,
   signingEnvOf,
@@ -19,6 +21,53 @@ const BETANET = "mFgazF-2uRS1tMiL9dsj01hJGySEmPN2OvOTQHJ6iQg=";
 const FNET = "kUt08LxeVAAGHnh4JoAoAMM9ql_hBwSoRrQQKWSVgxk=";
 const ARAMID = "PgeQVJJgx/LYKJfIEz7dbfNPuXmDyJ+O7FwQ4XL9tE8=";
 const RANDOM = "Zm9vYmFyYmF6cXV4Zm9vYmFyYmF6cXV4Zm9vYmFyYmE";
+
+test.describe("describeNetworkChange (AW-2026-068)", () => {
+  const net = (hash: string) => {
+    const result = resolveRequestNetwork(hash);
+    if (!result.ok) throw new Error("bad hash");
+    return result.network;
+  };
+
+  test("a request on the granted network is not a change", () => {
+    expect(describeNetworkChange(net(TESTNET).genesisHash, net(TESTNET))).toBeUndefined();
+  });
+
+  test("a request on another network names both networks", () => {
+    const change = describeNetworkChange(net(TESTNET).genesisHash, net(MAINNET));
+    expect(change?.granted.name).toBe("Algorand Testnet");
+    expect(change?.requested.name).toBe("Algorand Mainnet");
+  });
+
+  test("an unknown granted network is described as unknown", () => {
+    const change = describeNetworkChange(RANDOM, net(MAINNET));
+    expect(change?.granted.kind).toBe("unknown");
+  });
+
+  test("a request that names no network is not a change", () => {
+    expect(describeNetworkChange(net(TESTNET).genesisHash, null)).toBeUndefined();
+  });
+});
+
+test.describe("applicationCallRefusedOnNetwork (AW-2026-069)", () => {
+  const net = (hash: string) => {
+    const result = resolveRequestNetwork(hash);
+    if (!result.ok) throw new Error("bad hash");
+    return result.network;
+  };
+
+  test("application calls are refused on an unrecognised network", () => {
+    expect(applicationCallRefusedOnNetwork(net(RANDOM), "appl")).toBeDefined();
+  });
+
+  test("application calls stay allowed on a known network", () => {
+    expect(applicationCallRefusedOnNetwork(net(MAINNET), "appl")).toBeUndefined();
+  });
+
+  test("other transaction types are never refused on an unknown network", () => {
+    expect(applicationCallRefusedOnNetwork(net(RANDOM), "pay")).toBeUndefined();
+  });
+});
 
 test.describe("resolveRequestNetwork", () => {
   const cases: [string, string, string, string | undefined, string][] = [

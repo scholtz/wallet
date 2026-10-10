@@ -155,6 +155,44 @@ export function genesisIdConsistent(
 export const signingEnvOf = (network: Pick<DirectNetwork, "env" | "genesisHash">) =>
   network.env ?? network.genesisHash;
 
+export interface DirectNetworkChange {
+  /** The network the site was connected on. */
+  granted: DirectNetwork;
+  /** The network the current request is on. */
+  requested: DirectNetwork;
+}
+
+/**
+ * A site's connection is granted on one network; when a later request names another, the user is
+ * told explicitly (AW-2026-068). `undefined` when the request is on the granted network or names
+ * no network (sign_data without a genesis hash).
+ */
+export function describeNetworkChange(
+  grantedGenesisHash: string,
+  requested: DirectNetwork | null,
+): DirectNetworkChange | undefined {
+  if (!requested) return undefined;
+  const granted = resolveRequestNetwork(grantedGenesisHash);
+  if (!granted.ok) return undefined;
+  if (granted.network.genesisHash === requested.genesisHash) return undefined;
+  return { granted: granted.network, requested };
+}
+
+/**
+ * Application calls on a network the wallet does not recognise cannot be explained to the user
+ * (no ARC-56 data, no simulation, nothing is known about the app), so they are refused
+ * (AW-2026-069). Returns the refusal reason, or `undefined` when the transaction may proceed.
+ */
+export function applicationCallRefusedOnNetwork(
+  network: Pick<DirectNetwork, "kind">,
+  txType: string,
+): string | undefined {
+  if (network.kind === "unknown" && txType === "appl") {
+    return "Application calls are not supported on a network the wallet does not recognise.";
+  }
+  return undefined;
+}
+
 /** The view shown in the popup: the network plus whether it is the wallet's selected one. */
 export function toNetworkView(
   network: DirectNetwork,

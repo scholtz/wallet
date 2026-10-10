@@ -487,6 +487,76 @@ test.describe("Biatec Direct popup transport", () => {
     await expectClosed(popup);
   });
 
+  test("sign: a request on the network the site was connected on shows no network-change warning (AW-2026-068)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    const { b64url } = paymentTxn(address);
+    await post(dapp, {
+      id: "same-net",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: MAINNET_HASH, txns: [{ txn: b64url }] },
+    });
+    await expect(popup.getByTestId("direct-network")).toHaveText("Algorand Mainnet");
+    await expect(popup.getByTestId("direct-network-changed")).toHaveCount(0);
+  });
+
+  test("sign: an application call on an UNKNOWN network is refused (4200) (AW-2026-069)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    const hash = Buffer.from(algosdk.generateAccount().addr.publicKey).toString("base64");
+    const appCall = algosdk.makeApplicationNoOpTxnFromObject({
+      sender: address,
+      appIndex: 1234,
+      suggestedParams: {
+        fee: 1000,
+        flatFee: true,
+        firstValid: 1000,
+        lastValid: 2000,
+        genesisHash: new Uint8Array(Buffer.from(hash, "base64")),
+        genesisID: "my-private-net-v1",
+      },
+    });
+    await post(dapp, {
+      id: "unk-app",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: hash, txns: [encode(appCall)] },
+    });
+    const response = await waitForMessage(dapp, reply("unk-app"));
+    expect((response.data.error as { code: number }).code).toBe(4200);
+    expect((response.data.error as { message: string }).message).toContain("does not recognise");
+    await expectClosed(popup);
+  });
+
+  test("sign: a request carrying only part of a transaction group is refused (4200) (AW-2026-064)", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    const first = paymentTxn(address).txn;
+    const second = paymentTxn(address).txn;
+    second.note = new Uint8Array([1]);
+    algosdk.assignGroupID([first, second]);
+    await post(dapp, {
+      id: "partial",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: MAINNET_HASH, txns: [encode(first)] },
+    });
+    const response = await waitForMessage(dapp, reply("partial"));
+    expect((response.data.error as { code: number }).code).toBe(4200);
+    expect((response.data.error as { message: string }).message).toContain("transaction group");
+    await expectClosed(popup);
+  });
+
   test("sign: a transaction whose genesis hash differs from the request's is refused (4200)", async ({ context, page }) => {
     await setupFreshWallet(page);
     const address = walletAddress(page);

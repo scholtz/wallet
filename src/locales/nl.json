@@ -981,6 +981,8 @@
     "genesis": "Genesis ID",
     "genesis_hash": "Genesis Hash",
     "genesis_mismatch": "Deze transactie is bedoeld voor een ander netwerk dan het momenteel geselecteerde",
+    "genesis_unverified": "Deze transactie noemt geen netwerk (genesis-ID). De genesis-hash komt overeen met het geselecteerde netwerk.",
+    "genesis_id_differs": "De genesis-ID van deze transactie wijkt af van de ID van het geselecteerde netwerk en de wallet kan het netwerk in deze omgeving niet verifiëren. Controleer het netwerk voordat je ondertekent.",
     "verification": "Verificatie",
     "domain_verified": "Domein geverifieerd",
     "domain_mismatch": "Het domein komt niet overeen met de door de app opgegeven metadata",
@@ -1101,6 +1103,7 @@
       "network_unknown": "Onbekend netwerk",
       "network_unknown_warning": "Dit netwerk is niet bekend bij de wallet. Ga alleen verder als u het herkent; controleer de genesis-hash.",
       "network_differs": "Anders dan het netwerk dat in de wallet is geselecteerd ({selected}). Assetnamen, app-details en het transactievoorbeeld zijn voor dit netwerk niet beschikbaar; bedragen worden in de eigen eenheden van het netwerk getoond.",
+      "network_changed": "Deze site is verbonden op {granted}, maar dit verzoek is op {requested}. Controleer het netwerk voordat je ondertekent.",
       "network_foreign_note": "Details van het netwerk van de wallet worden niet getoond voor een ander netwerk.",
       "genesis_hash_label": "Genesis-hash",
       "network_not_named": "De site heeft geen netwerk opgegeven. Handtekeningen van gegevens zijn niet aan een netwerk gebonden."

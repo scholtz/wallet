@@ -981,6 +981,8 @@
     "genesis": "Genesis ID",
     "genesis_hash": "Genesis Hash",
     "genesis_mismatch": "Táto transakcia je určená pre inú sieť, než je aktuálne zvolená",
+    "genesis_unverified": "Táto transakcia neuvádza sieť (genesis ID). Jej genesis hash zodpovedá zvolenej sieti.",
+    "genesis_id_differs": "Genesis ID tejto transakcie sa líši od ID zvolenej siete a peňaženka v tomto prostredí nemôže sieť overiť. Pred podpisom skontrolujte sieť.",
     "verification": "Overenie",
     "domain_verified": "Doména overená",
     "domain_mismatch": "Doména sa nezhoduje s údajmi, ktoré aplikácia uviedla",
@@ -1101,6 +1103,7 @@
       "network_unknown": "Neznáma sieť",
       "network_unknown_warning": "Túto sieť peňaženka nepozná. Pokračujte, len ak ju spoznávate; skontrolujte genesis hash.",
       "network_differs": "Líši sa od siete vybranej v peňaženke ({selected}). Názvy aktív, podrobnosti aplikácií a náhľad transakcie nie sú pre túto sieť k dispozícii; sumy sú zobrazené v jednotkách danej siete.",
+      "network_changed": "Táto stránka bola pripojená v sieti {granted}, ale táto požiadavka je v sieti {requested}. Pred podpisom skontrolujte sieť.",
       "network_foreign_note": "Podrobnosti zo siete peňaženky sa pre inú sieť nezobrazujú.",
       "genesis_hash_label": "Genesis hash",
       "network_not_named": "Web nezadal žiadnu sieť. Podpisy údajov nie sú viazané na sieť."

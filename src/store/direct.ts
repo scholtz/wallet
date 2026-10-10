@@ -12,6 +12,7 @@
  * domain binding rests on a trustworthy origin.
  */
 import algosdk from "algosdk";
+import { checkTransactionGroup } from "../scripts/dappRequestChecks";
 import type { ActionTree, MutationTree } from "vuex";
 import type { RootState } from "./index";
 import type { StoredRequest, StoredSignDataRequest } from "./wc";
@@ -37,6 +38,9 @@ import {
   genesisIdConsistent,
   resolveRequestNetwork,
   signingEnvOf,
+  applicationCallRefusedOnNetwork,
+  describeNetworkChange,
+  type DirectNetworkChange,
   toNetworkView,
   type DirectNetworkView,
 } from "../scripts/direct/networks";
@@ -102,6 +106,8 @@ export interface DirectState {
     verified: boolean;
     /** The network of the accepted request (enable, sign_transactions, sign_data), if it names one. */
     network: DirectNetworkView | null;
+    /** Set when the request is on another network than the one the site was connected on. */
+    networkChange: DirectNetworkChange | null;
   };
   pendingEnable: PendingEnable | null;
 }
@@ -120,7 +126,7 @@ const state = (): DirectState => ({
   sessions: [],
   requests: [],
   signDataRequests: [],
-  popup: { status: "idle", dappOrigin: null, verified: false, network: null },
+  popup: { status: "idle", dappOrigin: null, verified: false, network: null, networkChange: null },
   pendingEnable: null,
 });
 
@@ -152,6 +158,9 @@ const mutations: MutationTree<DirectState> = {
   },
   setNetwork(currentState, network: DirectNetworkView | null) {
     currentState.popup.network = network;
+  },
+  setNetworkChange(currentState, change: DirectNetworkChange | null) {
+    currentState.popup.networkChange = change;
   },
   setPendingEnable(currentState, pending: PendingEnable | null) {
     currentState.pendingEnable = pending;
@@ -317,6 +326,7 @@ const actions: ActionTree<DirectState, RootState> = {
           peer,
         } satisfies PendingEnable);
         commit("setNetwork", check.network);
+        commit("setNetworkChange", null);
         commit("setPopup", { status: "enable" });
         return;
       }
@@ -378,12 +388,21 @@ const actions: ActionTree<DirectState, RootState> = {
           refuse({ code: REQUEST_ERROR.invalid, reason: "Invalid transaction." });
           return;
         }
+        // AW-2026-064: a request must carry every transaction of any group it mentions.
+        if (checkTransactionGroup(transactions.map((tx) => tx.txn)) !== "ok") {
+          refuse({
+            code: REQUEST_ERROR.invalid,
+            reason: "Incomplete or inconsistent transaction group.",
+          });
+          return;
+        }
         // Only transaction kinds the popup shows completely are signed (see protocol.ts).
         for (const tx of transactions) {
-          const unsupported = directUnsupportedReason({
-            type: tx.type,
-            applicationCall: tx.txn?.applicationCall,
-          });
+          const unsupported =
+            directUnsupportedReason({
+              type: tx.type,
+              applicationCall: tx.txn?.applicationCall,
+            }) ?? applicationCallRefusedOnNetwork(check.network, tx.type);
           if (unsupported) {
             refuse({ code: REQUEST_ERROR.invalid, reason: unsupported });
             return;
@@ -442,6 +461,10 @@ const actions: ActionTree<DirectState, RootState> = {
           } satisfies StoredRequest,
         });
         commit("setNetwork", check.network);
+        commit(
+          "setNetworkChange",
+          describeNetworkChange(session.genesisHash, check.network) ?? null,
+        );
         commit("setPopup", { status: "signing" });
         return;
       }
@@ -511,6 +534,10 @@ const actions: ActionTree<DirectState, RootState> = {
           } satisfies StoredSignDataRequest,
         });
         commit("setNetwork", dataNetwork);
+        commit(
+          "setNetworkChange",
+          describeNetworkChange(session.genesisHash, dataNetwork) ?? null,
+        );
         commit("setPopup", { status: "signing" });
         return;
       }
