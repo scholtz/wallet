@@ -192,7 +192,8 @@ test.describe("Biatec Direct: application lifecycle", () => {
     });
     await expect(popup.getByTestId("direct-tx-line")).toHaveCount(2);
     await expect(popup.getByTestId("direct-app-card")).toHaveCount(1);
-    await expect(popup.getByText("Application call summary")).toBeVisible();
+    // Only the deployment gets the lifecycle card; the ordinary call keeps its normal row.
+    await expect(popup.getByTestId("direct-tx-app-kind")).toHaveCount(1);
   });
 
   test("an ordinary app call shows no lifecycle card and stays collapsed", async ({ context, page }) => {

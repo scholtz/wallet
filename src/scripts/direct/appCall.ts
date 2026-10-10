@@ -69,7 +69,7 @@ export interface ApplicationTransactionLike {
 }
 
 /** Bytes of a program shown in the popup; the hash always covers the whole program. */
-export const PROGRAM_PREVIEW_BYTES = 4096;
+export const PROGRAM_PREVIEW_BYTES = 65536; // well above the largest allowed program (4 pages x 8 KB)
 
 // algosdk OnApplicationComplete values.
 const ON_COMPLETE = ["NoOp", "OptIn", "CloseOut", "ClearState", "UpdateApplication", "DeleteApplication"];
@@ -98,7 +98,9 @@ export function describeApplicationCall(txn: ApplicationTransactionLike): AppCal
   const call = txn.applicationCall;
   const appIndex = call.appIndex ?? 0;
   const onComplete = call.onComplete ?? 0;
-  const onCompleteName = ON_COMPLETE[onComplete] ?? "NoOp";
+  // An out-of-range value is shown as such (and flagged), never passed off as a harmless NoOp.
+  const unknownOnComplete = ON_COMPLETE[onComplete] === undefined;
+  const onCompleteName = ON_COMPLETE[onComplete] ?? `Unknown (${onComplete})`;
   const isCreate = Number(appIndex) === 0;
 
   let kind: AppCallKind;
@@ -122,6 +124,7 @@ export function describeApplicationCall(txn: ApplicationTransactionLike): AppCal
     kind = "optIn";
   } else {
     kind = "call";
+    if (unknownOnComplete) risk = "high";
   }
 
   const summary: AppCallSummary = {

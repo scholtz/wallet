@@ -831,11 +831,12 @@ const appSummary = (tx: TransactionWrapper) => {
 };
 
 /**
- * The transactions the ARC-56 call summary describes: all but create/update/delete of a contract
- * (those have their own application card and the summary only says "not an ABI call").
+ * The transactions the ARC-56 call summary describes: all but contract creations (a new contract
+ * has no registry entry; its application card shows the programs). Update and delete of an
+ * existing app keep the decoded summary, with trust and publisher.
  */
 const summaryTransactions = (request: RequestItem) =>
-  (request.transactions ?? []).filter((tx) => appSummary(tx)?.risk !== "high");
+  (request.transactions ?? []).filter((tx) => appSummary(tx)?.kind !== "create");
 
 /** Create / update / delete of a contract get their own name in the collapsed summary. */
 const appKindLabel = (tx: TransactionWrapper): string => {
@@ -864,15 +865,16 @@ const txSummaryAmount = (tx: TransactionWrapper): string => {
     );
   }
   if (txn?.type === "appl") {
-    const summary = describeApplicationCall(txn);
+    const summary = appSummary(tx);
     const appIndex = txn.applicationCall?.appIndex;
     const call = onCompleteLabel(txn);
     // A program change names the new code by the start of its hash (full hash in the details).
     const hash = summary?.approval ? `${summary.approval.sha256.slice(0, 8)}…` : "";
-    const parts =
-      summary?.kind === "create"
-        ? [hash]
-        : [appIndex ? `${t("connect.app")} ${appIndex}` : "", call, hash];
+    const parts = [
+      summary?.kind === "create" || !appIndex ? "" : `${t("connect.app")} ${appIndex}`,
+      call,
+      hash,
+    ];
     return parts.filter(Boolean).join(" · ");
   }
   return "";

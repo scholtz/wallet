@@ -3,7 +3,7 @@
 import { test, expect } from "@playwright/test";
 import algosdk from "algosdk";
 import { createHash } from "node:crypto";
-import { describeApplicationCall } from "../../src/scripts/direct/appCall";
+import { PROGRAM_PREVIEW_BYTES, describeApplicationCall } from "../../src/scripts/direct/appCall";
 import { directUnsupportedReason } from "../../src/scripts/direct/protocol";
 
 const sender = algosdk.generateAccount().addr.toString();
@@ -146,6 +146,30 @@ test.describe("describeApplicationCall", () => {
     expect(describeApplicationCall(txn)!.argsCount).toBe(3);
   });
 
+  test("a program of the largest allowed size (4 pages) is shown in full", () => {
+    const max = new Uint8Array(4 * 2048 * 4).fill(0x11); // 32 KB
+    const summary = describeApplicationCall(create({ approvalProgram: max }))!;
+    expect(summary.approval?.truncated).toBeUndefined();
+    expect(summary.approval?.hex.length).toBe(max.length * 2);
+    expect(summary.approval?.sha256).toBe(sha256Hex(max));
+  });
+
+  test("a create that also deletes or closes out stays high impact and says so", () => {
+    const summary = describeApplicationCall(create({ onComplete: algosdk.OnApplicationComplete.DeleteApplicationOC }))!;
+    expect(summary.kind).toBe("create");
+    expect(summary.risk).toBe("high");
+    expect(summary.onComplete).toBe("Delete");
+  });
+
+  test("an unknown OnComplete value is not reported as a harmless NoOp", () => {
+    const summary = describeApplicationCall({
+      type: "appl",
+      applicationCall: { appIndex: 5n, onComplete: 9 },
+    })!;
+    expect(summary.onComplete).toBe("Unknown (9)");
+    expect(summary.risk).toBe("high");
+  });
+
   test("a payment has no application summary", () => {
     const pay = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       sender,
@@ -157,11 +181,11 @@ test.describe("describeApplicationCall", () => {
   });
 
   test("very large programs keep their full hash but a bounded byte preview", () => {
-    const big = new Uint8Array(20000).fill(0xab);
+    const big = new Uint8Array(70000).fill(0xab);
     const summary = describeApplicationCall(create({ approvalProgram: big }))!;
-    expect(summary.approval?.size).toBe(20000);
+    expect(summary.approval?.size).toBe(70000);
     expect(summary.approval?.sha256).toBe(sha256Hex(big));
-    expect(summary.approval!.hex.length).toBeLessThanOrEqual(4096 * 2 + 3);
+    expect(summary.approval!.hex.length).toBe(PROGRAM_PREVIEW_BYTES * 2);
     expect(summary.approval?.truncated).toBe(true);
   });
 });
