@@ -187,7 +187,7 @@ test.describe("describeApplicationCall", () => {
   });
 
   test("a program of the largest allowed size (4 pages) is shown in full", () => {
-    const max = new Uint8Array(4 * 2048 * 4).fill(0x11); // 32 KB
+    const max = new Uint8Array(4 * 2048).fill(0x11); // 4 pages x 2048 bytes = 8 KB
     const summary = describeApplicationCall(create({ approvalProgram: max }))!;
     expect(summary.approval?.truncated).toBeUndefined();
     expect(summary.approval?.hex.length).toBe(max.length * 2);

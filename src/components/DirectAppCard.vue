@@ -88,13 +88,13 @@
           >{{ program.info.sha256 }}</code
         >
         <Button
-          icon="pi pi-copy"
+          :icon="copyState[program.key] === 'ok' ? 'pi pi-check' : copyState[program.key] === 'failed' ? 'pi pi-times' : 'pi pi-copy'"
           severity="secondary"
           text
           rounded
           size="small"
           :aria-label="$t('connect.direct.app_copy_hash')"
-          @click="copy(program.info.sha256)"
+          @click="copy(program.key, program.info.sha256)"
         />
       </div>
       <button
@@ -202,12 +202,19 @@ const schemaText = (schema: StateSchema) =>
     schema.byteSlices,
   )}`;
 
-const copy = async (value: string) => {
+// The copy button shows a check (or a cross when the browser refuses): a silent failure would
+// let the user paste a stale clipboard value into an explorer and compare the wrong hash.
+const copyState = reactive<Record<string, "ok" | "failed" | undefined>>({});
+const copy = async (key: string, value: string) => {
   try {
     await navigator.clipboard.writeText(value);
+    copyState[key] = "ok";
   } catch {
-    // Clipboard access can be denied in a popup; the hash stays selectable on screen.
+    copyState[key] = "failed";
   }
+  setTimeout(() => {
+    copyState[key] = undefined;
+  }, 2500);
 };
 </script>
 

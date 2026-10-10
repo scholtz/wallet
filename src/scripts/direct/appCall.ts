@@ -69,7 +69,8 @@ export interface ApplicationTransactionLike {
 }
 
 /** Bytes of a program shown in the popup; the hash always covers the whole program. */
-export const PROGRAM_PREVIEW_BYTES = 65536; // well above the largest allowed program (4 pages x 8 KB)
+// A defensive cap only: a valid program is at most 2048 bytes x 4 pages = 8 KB, far below it.
+export const PROGRAM_PREVIEW_BYTES = 65536;
 
 // algosdk OnApplicationComplete values.
 const ON_COMPLETE = ["NoOp", "OptIn", "CloseOut", "ClearState", "UpdateApplication", "DeleteApplication"];

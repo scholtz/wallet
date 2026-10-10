@@ -78,7 +78,7 @@
                   <AlgorandAddress :address="clawbackFrom(tx.txn)" />
                 </span>
                 <Badge
-                  v-if="onCompleteIsDestructive(tx.txn)"
+                  v-if="onCompleteIsDestructive(tx.txn) && !isLifecycle(appSummary(tx))"
                   severity="danger"
                   :value="onCompleteLabel(tx.txn)"
                   data-testid="direct-tx-destructive"
@@ -319,7 +319,7 @@
               <div class="p-3 detail-scroll">
                 <table class="detail-table">
                   <tbody>
-                    <tr v-if="isLifecycle(appSummary(txProps.data))">
+                    <tr v-if="showAppCard(txProps.data)">
                       <td colspan="2">
                         <DirectAppCard :summary="appSummary(txProps.data)!" />
                       </td>
@@ -483,7 +483,7 @@
                     <tr
                       v-if="
                         txProps.data.type == 'appl' &&
-                        !isLifecycle(appSummary(txProps.data)) &&
+                        !showAppCard(txProps.data) &&
                         onCompleteLabel(txProps.data.txn)
                       "
                     >
@@ -512,7 +512,7 @@
                     <tr
                       v-if="
                         txProps.data.type == 'appl' &&
-                        !isLifecycle(appSummary(txProps.data))
+                        !showAppCard(txProps.data)
                       "
                     >
                       <td>{{ $t("connect.app") }}:</td>
@@ -830,6 +830,9 @@ const appSummary = (tx: TransactionWrapper) => {
   return appSummaryCache.get(tx.txn);
 };
 
+/** Biatec Direct shows create / update / delete of a contract as an application card (WalletConnect keeps its rows). */
+const showAppCard = (tx: TransactionWrapper) => compact.value && isLifecycle(appSummary(tx));
+
 /** Create / update / delete of a contract get their own name in the collapsed summary. */
 const appKindLabel = (tx: TransactionWrapper): string => {
   const summary = appSummary(tx);
@@ -925,6 +928,13 @@ watch(
       expandedRequests.value = [...expandedRequests.value, request];
       expandedTransactions.value = [...expandedTransactions.value, ...high];
     }
+    // Answered or removed requests must not stay in the expanded lists (each check compares rows).
+    const liveRequests = new Set<object>(list);
+    expandedRequests.value = expandedRequests.value.filter((open) => liveRequests.has(open));
+    const liveTransactions = new Set<object>(list.flatMap((request) => request.transactions ?? []));
+    expandedTransactions.value = expandedTransactions.value.filter((open) =>
+      liveTransactions.has(open),
+    );
   },
   { immediate: true },
 );
