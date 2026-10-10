@@ -576,6 +576,8 @@
     "arc14_auth_notice": "Dit is een ARC14-authenticatieverzoek voor \"{realm}\". Ondertekenen hiervan verplaatst geen geld.",
     "arc14_authenticate": "Authenticeren bij {realm}",
     "return_to_wc": "Return to WalletConnect",
+    "return_to_direct": "Terug naar de website",
+    "return_to_direct_partial": "Gedeeltelijk ondertekend terug naar de website",
     "select_account_for_payment": "Select account from which you want to make the payment",
     "create_multisig_proposal": "Create multisig proposal",
     "2fa_code": "2FA code",
@@ -1104,6 +1106,9 @@
       "network_unknown_warning": "Dit netwerk is niet bekend bij de wallet. Ga alleen verder als u het herkent; controleer de genesis-hash.",
       "network_differs": "Anders dan het netwerk dat in de wallet is geselecteerd ({selected}). Assetnamen, app-details en het transactievoorbeeld zijn voor dit netwerk niet beschikbaar; bedragen worden in de eigen eenheden van het netwerk getoond.",
       "network_changed": "Deze site is verbonden op {granted}, maar dit verzoek is op {requested}. Controleer het netwerk voordat je ondertekent.",
+      "tx_count": "Transacties: {count}",
+      "falcon_fee_warning": "Dit account gebruikt een Falcon-1024-sleutel (post-quantum). De handtekening is groot, dus het netwerk vraagt een hogere vergoeding (ongeveer drie keer de minimumvergoeding per transactie) dan de website heeft ingesteld ({fee}). De transactie kan worden geweigerd als andere transacties in de groep het verschil niet dekken.",
+      "partial_msig_note": "Deze multisig-transactie heeft een deel van de benodigde handtekeningen, maar niet alle. Terugsturen levert haar gedeeltelijk ondertekend op: de website moet de overige handtekeningen verzamelen.",
       "network_foreign_note": "Details van het netwerk van de wallet worden niet getoond voor een ander netwerk.",
       "genesis_hash_label": "Genesis-hash",
       "network_not_named": "De site heeft geen netwerk opgegeven. Handtekeningen van gegevens zijn niet aan een netwerk gebonden."

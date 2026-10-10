@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import {
+  groupFeeShortfall,
   FALCON1024_EXTRA_USAGE,
   MAX_AUTO_FEE_MICROALGOS,
   USAGE_PER_MIN_FEE,
@@ -84,5 +85,36 @@ test.describe("resolveRequiredFee", () => {
         falcon1024Signer: true,
       }),
     ).toBeLessThan(MAX_AUTO_FEE_MICROALGOS);
+  });
+});
+
+test.describe("groupFeeShortfall (Falcon fee warning in the Direct popup)", () => {
+  test("a Falcon transaction paying one min fee is short by two", () => {
+    expect(groupFeeShortfall([{ fee: 1000n, falcon1024: true }])).toBe(2000n);
+  });
+
+  test("a Falcon transaction paying three min fees is not short", () => {
+    expect(groupFeeShortfall([{ fee: 3000n, falcon1024: true }])).toBe(0n);
+  });
+
+  test("an ordinary transaction paying one min fee is not short", () => {
+    expect(groupFeeShortfall([{ fee: 1000n, falcon1024: false }])).toBe(0n);
+  });
+
+  test("fee pooling: another transaction of the group can cover the Falcon one", () => {
+    expect(
+      groupFeeShortfall([
+        { fee: 0n, falcon1024: true },
+        { fee: 4000n, falcon1024: false },
+      ]),
+    ).toBe(0n);
+  });
+
+  test("no transactions, no shortfall", () => {
+    expect(groupFeeShortfall([])).toBe(0n);
+  });
+
+  test("a different network minimum fee scales the requirement", () => {
+    expect(groupFeeShortfall([{ fee: 3000n, falcon1024: true }], 2000n)).toBe(3000n);
   });
 });

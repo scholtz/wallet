@@ -25,6 +25,83 @@
         :header="$t('connect.method')"
         :sortable="true"
       />
+      <Column v-if="compact" class="direct-summary-column">
+        <template #body="slotProps">
+          <div class="direct-tx-summary" data-testid="direct-tx-summary">
+            <div class="direct-tx-count text-color-secondary">
+              {{
+                $t("connect.direct.tx_count", {
+                  count: slotProps.data.transactions?.length ?? 0,
+                })
+              }}
+            </div>
+            <ul class="direct-tx-lines">
+              <li
+                v-for="tx in slotProps.data.transactions"
+                :key="tx.index"
+                data-testid="direct-tx-line"
+              >
+                <AlgorandAddress
+                  v-if="encodeAddress(tx.txn.sender) !== '-'"
+                  :address="encodeAddress(tx.txn.sender)"
+                  data-testid="direct-tx-from"
+                />
+                <i class="pi pi-arrow-right direct-tx-arrow" aria-hidden="true" />
+                <strong>{{ txTypeLabel(tx) }}</strong>
+                <span v-if="txSummaryAmount(tx)" class="direct-tx-amount">
+                  {{ txSummaryAmount(tx) }}
+                </span>
+                <template v-if="txSummaryTo(tx)">
+                  <i class="pi pi-arrow-right direct-tx-arrow" aria-hidden="true" />
+                  <AlgorandAddress :address="txSummaryTo(tx)" />
+                </template>
+                <span v-if="tx.txn.rekeyTo" class="direct-tx-flag" data-testid="direct-tx-rekey">
+                  <Badge severity="danger" :value="$t('connect.rekeyto')" />
+                  <AlgorandAddress :address="encodeAddress(tx.txn.rekeyTo)" />
+                </span>
+                <span v-if="getCloseTo(tx.txn)" class="direct-tx-flag" data-testid="direct-tx-close">
+                  <Badge severity="danger" :value="$t('connect.close_to')" />
+                  <AlgorandAddress :address="getCloseTo(tx.txn)" />
+                </span>
+                <span v-if="clawbackFrom(tx.txn)" class="direct-tx-flag">
+                  <Badge
+                    severity="danger"
+                    :value="$t('connect.clawback_from')"
+                    data-testid="direct-tx-clawback"
+                  />
+                  <AlgorandAddress :address="clawbackFrom(tx.txn)" />
+                </span>
+                <Badge
+                  v-if="onCompleteIsDestructive(tx.txn)"
+                  severity="danger"
+                  :value="onCompleteLabel(tx.txn)"
+                  data-testid="direct-tx-destructive"
+                />
+              </li>
+            </ul>
+            <Message
+              v-if="hasPartialMultisig(slotProps.data)"
+              severity="warn"
+              class="m-0 mt-2"
+              data-testid="direct-partial-msig"
+            >
+              {{ $t("connect.direct.partial_msig_note") }}
+            </Message>
+            <Message
+              v-if="lowFalconFee(slotProps.data) !== undefined"
+              severity="warn"
+              class="m-0 mt-2"
+              data-testid="direct-falcon-fee"
+            >
+              {{
+                $t("connect.direct.falcon_fee_warning", {
+                  fee: formatNative(lowFalconFee(slotProps.data)),
+                })
+              }}
+            </Message>
+          </div>
+        </template>
+      </Column>
       <Column :header="$t('connect.total_fee')">
         <template #body="slotProps">
           <span v-if="compact" class="text-color-secondary"
@@ -36,10 +113,7 @@
         <template #body="slotProps">
           <Button
             class="m-1"
-            v-if="
-              !atLeastOneSigned(slotProps.data) &&
-              !(compact && slotProps.data.transactions?.length === 1)
-            "
+            v-if="needsSigning(slotProps.data)"
             @click="clickSignAll(slotProps.data)"
           >
             {{ signAllLabel(slotProps.data) }}
@@ -52,7 +126,9 @@
             v-if="!compact || atLeastOneSigned(slotProps.data)"
             class="m-1"
             :disabled="
-              !store.state.wallet.isOpen || !atLeastOneSigned(slotProps.data)
+              !store.state.wallet.isOpen ||
+              !atLeastOneSigned(slotProps.data) ||
+              (compact && hasUnsignedTransaction(slotProps.data))
             "
             @click="clickAccept(slotProps.data)"
           >
@@ -86,6 +162,18 @@
             data-testid="direct-foreign-note"
           >
             {{ $t("connect.direct.network_foreign_note") }}
+          </Message>
+          <Message
+            v-if="!compact && lowFalconFee(requestSlotProps.data) !== undefined"
+            severity="warn"
+            class="m-0 mb-2"
+            data-testid="falcon-fee-warning"
+          >
+            {{
+              $t("connect.direct.falcon_fee_warning", {
+                fee: formatNative(lowFalconFee(requestSlotProps.data)),
+              })
+            }}
           </Message>
           <Arc56RequestSummary
             v-if="!foreignNetwork"
@@ -577,6 +665,7 @@ import algosdk from "algosdk";
 import {
   computed,
   getCurrentInstance,
+  onMounted,
   ref,
   type ComponentPublicInstance,
   watch,
@@ -593,6 +682,7 @@ import { getArc14Realm, isArc14AuthTransaction } from "../scripts/encoding/arc14
 import { isAssetOptIn } from "../scripts/transactionTypes";
 import { signingEnvOf, type DirectNetworkView } from "../scripts/direct/networks";
 import { pickSigningEnv } from "../scripts/signingEnv";
+import { groupFeeShortfall } from "../scripts/fees";
 import {
   checkTxGenesis,
   isBlockingGenesisCheck,
@@ -624,7 +714,7 @@ type GlobalFilters = {
   formatPercent: (value?: number) => string;
 };
 
-type SignerType = "ledger" | "msig" | "sk" | "?";
+type SignerType = "ledger" | "msig" | "sk" | "hd" | "falcon1024" | "?";
 
 interface TransactionWrapper {
   index: number;
@@ -687,15 +777,8 @@ const selectedTransaction = ref<TransactionWrapper | null>(null);
 const expandedRequests = ref<RequestItem[]>([]);
 const expandedTransactions = ref<TransactionWrapper[]>([]);
 
-watch(
-  requests,
-  (list) => {
-    if (!compact.value) return;
-    expandedRequests.value = [...list];
-    expandedTransactions.value = list.flatMap((r) => r.transactions ?? []);
-  },
-  { immediate: true },
-);
+// Like the WalletConnect request list, the Direct popup starts collapsed: every request shows a
+// one-line summary per transaction (the summary column) and opens its details on demand.
 
 watch(
   requests,
@@ -717,6 +800,55 @@ watch(
   },
   { immediate: true, deep: true }
 );
+
+/** Compact (Direct) summary of one transaction: its kind, what moves and to whom. */
+const txTypeLabel = (tx: TransactionWrapper): string =>
+  isAssetOptIn(tx.txn) ? t("pay.asset_optin") : String(tx.type ?? "");
+const txSummaryAmount = (tx: TransactionWrapper): string => {
+  const txn = tx.txn;
+  if (txn?.type === "pay") return formatNative(txn.payment?.amount);
+  if (txn?.type === "axfer" && !isAssetOptIn(txn)) {
+    return formatAssetAmount(
+      txn.assetTransfer?.amount,
+      txn.assetTransfer?.assetIndex,
+    );
+  }
+  if (txn?.type === "appl") {
+    const appIndex = txn.applicationCall?.appIndex;
+    const call = onCompleteLabel(txn);
+    return appIndex ? `${t("connect.app")} ${appIndex} · ${call}` : call;
+  }
+  return "";
+};
+const txSummaryTo = (tx: TransactionWrapper): string => {
+  const receiver =
+    tx.txn?.payment?.receiver ?? tx.txn?.assetTransfer?.receiver;
+  const encoded = receiver ? encodeAddress(receiver) : "";
+  return encoded === "-" ? "" : encoded;
+};
+
+// Biatec Direct: back from the multisig signing page with everything signed - the request goes
+// to the site without another click (a request that only held pre-signed data is not sent here:
+// the flag is only set by the signing page).
+onMounted(() => {
+  if (ns.value !== "direct") return;
+  const returned = store.state.direct.popup.returnedFromSigning;
+  if (!returned || Date.now() - returned.at > 15_000) {
+    store.commit("direct/setReturnedFromSigning", null);
+    return;
+  }
+  // Only the request holding the transaction the user just signed is sent on; the flag is kept
+  // (it expires on its own) until that request is found.
+  for (const request of requests.value) {
+    const holdsIt = (request.transactions ?? []).some(
+      (tx) => tx.txn?.txID?.() === returned.txId,
+    );
+    if (!holdsIt) continue;
+    store.commit("direct/setReturnedFromSigning", null);
+    if (allTransactionsSigned(request)) void clickAccept(request);
+    break;
+  }
+});
 
 const prolong = async () => {
   await store.dispatch("wallet/prolong");
@@ -805,10 +937,20 @@ const getSignerTypeLocal = (from: string, genesisId?: string): SignerType => {
     );
     if (rekeyAccount) {
       resolvedAccount = rekeyAccount;
+    } else if (compact.value) {
+      // Biatec Direct: rekeyed (on this network) to an account this wallet does not hold, so
+      // nothing here can sign (as signer/getSignerType; WalletConnect/Liquid keep their fallback).
+      return "?";
     }
   }
   if (resolvedAccount.type === "ledger") {
     return "ledger";
+  }
+  if (resolvedAccount.type === "hd") {
+    return "hd";
+  }
+  if (resolvedAccount.type === "falcon1024") {
+    return "falcon1024";
   }
   if (resolvedAccount.params) {
     return "msig";
@@ -817,6 +959,34 @@ const getSignerTypeLocal = (from: string, genesisId?: string): SignerType => {
     return "sk";
   }
   return "?";
+};
+
+/**
+ * A Falcon-1024 signature is large, so the network charges about three minimum fees for it. The
+ * site fixed the fee (and the group id), the wallet cannot raise it: when the group's pooled fees
+ * do not cover what its signers need, this returns the total fee the site set (else undefined).
+ */
+const lowFalconFee = (request: RequestItem): number | undefined => {
+  // Fees pool only inside an atomic group; an ungrouped transaction stands alone.
+  const groups = new Map<string, { fee: bigint; falcon1024: boolean }[]>();
+  (request.transactions ?? []).forEach((tx, index) => {
+    const sender = tx.txn?.sender ? encodeAddress(tx.txn.sender) : "";
+    const falcon1024 =
+      sender !== "" && getSignerTypeLocal(sender, tx.txn.genesisID) === "falcon1024";
+    const group = tx.txn?.group?.length
+      ? Buffer.from(tx.txn.group).toString("base64")
+      : `solo-${index}`;
+    const members = groups.get(group) ?? [];
+    members.push({ fee: BigInt(tx.txn?.fee ?? 0), falcon1024 });
+    groups.set(group, members);
+  });
+  for (const members of groups.values()) {
+    if (!members.some((m) => m.falcon1024)) continue;
+    if (groupFeeShortfall(members) > 0n) {
+      return Number(members.reduce((sum, m) => sum + m.fee, 0n));
+    }
+  }
+  return undefined;
 };
 
 const _arrayBufferToBase64 = (buffer: Uint8Array) => {
@@ -872,11 +1042,22 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
       await store.dispatch("toast/openError", t("connect.genesis_mismatch"));
       return;
     }
+    if (compact.value && isForeignTransaction(data)) return; // not ours to sign (Direct)
     const signerType = (await store.dispatch("signer/getSignerType", {
       from: data.txn.sender.toString(),
       tx: data.txn,
       env: signEnv.value,
     })) as SignerType;
+    if (compact.value && signerType === "?") {
+      // Biatec Direct only (WalletConnect/Liquid route "?" accounts, e.g. wc, to their own signer).
+      // A transaction of another party is simply not ours to sign; for one of this wallet's own
+      // accounts it means the key is gone, e.g. rekeyed on this network to an account not held here.
+      await store.dispatch(
+        "toast/openError",
+        "This wallet cannot sign for this account on this network (it may be rekeyed to an account this wallet does not hold).",
+      );
+      return;
+    }
     if (signerType === "msig") {
       await store.dispatch("signer/toSign", { tx: txn });
       const encoded = algosdk.encodeUnsignedTransaction(txn);
@@ -1028,6 +1209,36 @@ const toBeSigned = (data: TransactionWrapper) => {
   return false;
 };
 
+/**
+ * Whether the request still needs the user to sign. The compact (Direct) list starts collapsed, so
+ * its Sign button stays until every transaction holds a signature (a multisig below its threshold
+ * is returned as it is, see hasPartialMultisig); WalletConnect's list hides it once anything is
+ * signed.
+ */
+const needsSigning = (data: RequestItem) =>
+  compact.value ? hasUnsignedTransaction(data) : !atLeastOneSigned(data);
+
+/** A multisig transaction with some, but not enough, signatures (Direct returns it as is). */
+const hasPartialMultisig = (data: RequestItem) => {
+  const signedMap = store.state.signer.signed ?? {};
+  return (data.transactions ?? []).some(
+    (tx) => !!tx?.txn?.txID && tx.txn.txID() in signedMap && toBeSigned(tx),
+  );
+};
+
+/**
+ * A transaction this wallet is expected to sign (its sender is an account the wallet can sign for)
+ * that has no signature yet: the request must not be sent back yet (Direct). Transactions of
+ * other parties (the site's own, a co-signer's) are never ours to sign and do not hold it up.
+ */
+const hasUnsignedTransaction = (data: RequestItem) => {
+  const signedMap = store.state.signer.signed ?? {};
+  return (data.transactions ?? []).some((tx) => {
+    if (!tx?.txn?.txID || isForeignTransaction(tx)) return false;
+    return !(tx.txn.txID() in signedMap);
+  });
+};
+
 const atLeastOneSigned = (data: RequestItem) => {
   const signedMap = store.state.signer.signed ?? {};
   return (data.transactions ?? []).some((tx: TransactionWrapper) => {
@@ -1152,8 +1363,18 @@ const isArc14OnlyRequest = (data: RequestItem): boolean => {
 // required co-signature is present, well before its threshold is met -
 // toBeSigned() already decodes the msig subsig count against the threshold.
 const allTransactionsSigned = (data: RequestItem): boolean => {
-  const list = data.transactions ?? [];
+  // Direct: other parties' transactions (never signed here) do not keep the request open.
+  const list = (data.transactions ?? []).filter(
+    (tx) => !compact.value || !isForeignTransaction(tx),
+  );
   return list.length > 0 && !list.some((tx) => toBeSigned(tx));
+};
+
+/** The sender is not an account of this wallet (the site's own or a co-signer's transaction). */
+const isForeignTransaction = (tx: TransactionWrapper): boolean => {
+  if (!tx?.txn?.sender) return true;
+  const sender = encodeAddress(tx.txn.sender);
+  return !store.state.wallet.privateAccounts.some((a) => a.addr === sender);
 };
 
 // ARC14 auth transactions are signed with fee=0 and are never broadcast, so
