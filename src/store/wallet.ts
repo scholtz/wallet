@@ -378,8 +378,8 @@ class PersistedWalletUnreadableError extends Error {
  * save (AW-2026-059).
  */
 let knownAddresses = new Set<string>();
-const rememberAddresses = (accounts: { addr: string }[]) => {
-  knownAddresses = new Set(accounts.map((a) => a.addr));
+const rememberAddresses = (addresses: string[]) => {
+  knownAddresses = new Set(addresses);
 };
 
 /** Toasts and returns true when `pass` is not acceptable as a new wallet password (AW-2026-066). */
@@ -399,6 +399,8 @@ interface MergedWallet {
   privateAccounts: WalletAccount[];
   added: WalletAccount[];
   removed: string[];
+  /** Addresses of the merged list at serialize time (a snapshot, not the live array). */
+  addresses: string[];
 }
 
 /**
@@ -432,6 +434,7 @@ const serializeWalletMergingSharedItems = async (
   return {
     data: serializePersistedWallet(wallet, { wc, privateAccounts }),
     privateAccounts,
+    addresses: privateAccounts.map((a) => a.addr),
     // What the merge changed relative to this tab: applied to the live state after the awaits,
     // so accounts created meanwhile are not overwritten.
     added: privateAccounts.filter((a) => !beforeAddrs.has(a.addr)),
@@ -1732,7 +1735,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       walletRecord.data = await encryptWalletData(merged.data, passw2);
       await db.wallets.update(walletRecord.id, walletRecord);
       commit("applyAccountMerge", merged);
-      rememberAddresses(merged.privateAccounts);
+      rememberAddresses(merged.addresses);
       return true;
     });
     if (!saved) return;
@@ -1813,7 +1816,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
           if (merged.privateAccounts !== this.state.wallet.privateAccounts) {
             commit("applyAccountMerge", merged);
           }
-          rememberAddresses(merged.privateAccounts);
+          rememberAddresses(merged.addresses);
         }
       }
     });
@@ -1834,7 +1837,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       const decryptedData = await decryptWalletData(encryptedData, pass);
       const json = JSON.parse(decryptedData);
       await commit("setPrivateAccounts", json.privateAccounts);
-      rememberAddresses(this.state.wallet.privateAccounts);
+      rememberAddresses(this.state.wallet.privateAccounts.map((a) => a.addr));
       await commit("lastPayTo", json.lastPayTo);
       await commit("lastActiveAccount", json.lastActiveAccount);
       await commit("setWC", json.wc);
