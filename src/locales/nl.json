@@ -1130,6 +1130,7 @@
       "app_slices": "{n} byte-reeks | {n} byte-reeksen",
       "app_extra_pages": "Extra programmapagina's",
       "app_copy_hash": "Hash kopiëren",
+      "app_program_none": "Geen programma (leeg)",
       "network_foreign_note": "Details van het netwerk van de wallet worden niet getoond voor een ander netwerk.",
       "genesis_hash_label": "Genesis-hash",
       "network_not_named": "De site heeft geen netwerk opgegeven. Handtekeningen van gegevens zijn niet aan een netwerk gebonden."

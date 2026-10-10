@@ -1130,6 +1130,7 @@
       "app_slices": "{n} bajtová hodnota | {n} bajtových hodnot",
       "app_extra_pages": "Další stránky programu",
       "app_copy_hash": "Kopírovat hash",
+      "app_program_none": "Žádný program (prázdný)",
       "network_foreign_note": "Podrobnosti ze sítě peněženky se pro jinou síť nezobrazují.",
       "genesis_hash_label": "Genesis hash",
       "network_not_named": "Web nezadal žádnou síť. Podpisy dat nejsou vázány na síť."

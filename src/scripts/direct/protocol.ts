@@ -279,6 +279,7 @@ export function directUnsupportedReason(tx: {
   type?: string;
   applicationCall?: {
     appIndex?: bigint | number;
+    onComplete?: number;
     approvalProgram?: Uint8Array;
     clearProgram?: Uint8Array;
   };
@@ -287,12 +288,25 @@ export function directUnsupportedReason(tx: {
     case "pay":
     case "axfer":
       return undefined;
-    case "appl":
+    case "appl": {
       // The whole lifecycle is signable (create, update, delete, calls, opt-in, close-out,
       // clear-state): the popup describes each one (scripts/direct/appCall.ts).
-      return tx.applicationCall
-        ? undefined
-        : "An application transaction without a call body is not supported by Biatec Direct.";
+      const call = tx.applicationCall;
+      if (!call) {
+        return "An application transaction without a call body is not supported by Biatec Direct.";
+      }
+      if (call.onComplete !== undefined && (call.onComplete < 0 || call.onComplete > 5)) {
+        return "An application call with an unknown OnComplete is not supported by Biatec Direct.";
+      }
+      // Programs belong to a create (app id 0) or an update (OnComplete 4) only; on any other
+      // call they would be code the popup does not show.
+      const hasProgram =
+        (call.approvalProgram?.length ?? 0) > 0 || (call.clearProgram?.length ?? 0) > 0;
+      if (hasProgram && Number(call.appIndex ?? 0) !== 0 && call.onComplete !== 4) {
+        return "Program bytes on this application call are not supported by Biatec Direct.";
+      }
+      return undefined;
+    }
     default:
       return `Transaction type "${String(tx.type).slice(0, 16)}" is not supported by Biatec Direct.`;
   }

@@ -3,7 +3,7 @@
 import { test, expect } from "@playwright/test";
 import algosdk from "algosdk";
 import { createHash } from "node:crypto";
-import { PROGRAM_PREVIEW_BYTES, describeApplicationCall } from "../../src/scripts/direct/appCall";
+import { PROGRAM_PREVIEW_BYTES, describeApplicationCall, isLifecycle } from "../../src/scripts/direct/appCall";
 import { directUnsupportedReason } from "../../src/scripts/direct/protocol";
 
 const sender = algosdk.generateAccount().addr.toString();
@@ -80,6 +80,27 @@ test.describe("directUnsupportedReason: the application lifecycle is signable", 
   test("types the popup still cannot show are refused", () => {
     expect(directUnsupportedReason({ type: "keyreg" })).toMatch(/not supported/);
     expect(directUnsupportedReason({ type: "acfg" })).toMatch(/not supported/);
+  });
+
+  test("program bytes on a call that is not a create or an update are refused", () => {
+    expect(
+      directUnsupportedReason({
+        type: "appl",
+        applicationCall: { appIndex: 9n, onComplete: 0, approvalProgram: new Uint8Array([1]) },
+      }),
+    ).toMatch(/not supported/);
+    expect(
+      directUnsupportedReason({
+        type: "appl",
+        applicationCall: { appIndex: 9n, onComplete: 5, clearProgram: new Uint8Array([1]) },
+      }),
+    ).toMatch(/not supported/);
+  });
+
+  test("an unknown OnComplete value is refused", () => {
+    expect(
+      directUnsupportedReason({ type: "appl", applicationCall: { appIndex: 9n, onComplete: 9 } }),
+    ).toMatch(/not supported/);
   });
 
   test("an application transaction without a call body is refused", () => {
@@ -187,5 +208,16 @@ test.describe("describeApplicationCall", () => {
     expect(summary.approval?.sha256).toBe(sha256Hex(big));
     expect(summary.approval!.hex.length).toBe(PROGRAM_PREVIEW_BYTES * 2);
     expect(summary.approval?.truncated).toBe(true);
+  });
+});
+
+test.describe("isLifecycle", () => {
+  test("only create, update and delete get the lifecycle card", () => {
+    expect(isLifecycle(describeApplicationCall(create()))).toBe(true);
+    expect(isLifecycle(describeApplicationCall(call(algosdk.OnApplicationComplete.UpdateApplicationOC)))).toBe(true);
+    expect(isLifecycle(describeApplicationCall(call(algosdk.OnApplicationComplete.DeleteApplicationOC)))).toBe(true);
+    expect(isLifecycle(describeApplicationCall(call(algosdk.OnApplicationComplete.CloseOutOC)))).toBe(false);
+    expect(isLifecycle(describeApplicationCall(call(algosdk.OnApplicationComplete.NoOpOC)))).toBe(false);
+    expect(isLifecycle(undefined)).toBe(false);
   });
 });

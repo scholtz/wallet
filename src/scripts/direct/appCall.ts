@@ -36,7 +36,7 @@ export interface StateSchema {
   byteSlices: number;
 }
 
-export interface AppCallSummary {
+export interface ApplicationCallReview {
   kind: AppCallKind;
   risk: AppCallRisk;
   /** 0 for a creation (the id is assigned when it is confirmed). */
@@ -93,7 +93,11 @@ function programInfo(program: Uint8Array | undefined): ProgramInfo | undefined {
   return info;
 }
 
-export function describeApplicationCall(txn: ApplicationTransactionLike): AppCallSummary | undefined {
+/** Create, update and delete of a contract: these get the application card. */
+export const isLifecycle = (review: ApplicationCallReview | undefined): boolean =>
+  review?.kind === "create" || review?.kind === "update" || review?.kind === "delete";
+
+export function describeApplicationCall(txn: ApplicationTransactionLike): ApplicationCallReview | undefined {
   if (txn.type !== "appl" || !txn.applicationCall) return undefined;
   const call = txn.applicationCall;
   const appIndex = call.appIndex ?? 0;
@@ -127,7 +131,7 @@ export function describeApplicationCall(txn: ApplicationTransactionLike): AppCal
     if (unknownOnComplete) risk = "high";
   }
 
-  const summary: AppCallSummary = {
+  const summary: ApplicationCallReview = {
     kind,
     risk,
     // App ids fit a JS number in practice; keep a bigint only for an absurdly large one.

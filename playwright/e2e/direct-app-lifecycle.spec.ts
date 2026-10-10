@@ -196,6 +196,22 @@ test.describe("Biatec Direct: application lifecycle", () => {
     await expect(popup.getByTestId("direct-tx-app-kind")).toHaveCount(1);
   });
 
+  test("an update whose program is empty says so instead of hiding the row", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const txn = algosdk.makeApplicationUpdateTxnFromObject({
+      sender: address,
+      suggestedParams: params(),
+      appIndex: 55,
+      approvalProgram: APPROVAL,
+      clearProgram: new Uint8Array(0),
+    });
+    const { popup } = await requestApp(context, address, "empty-clear", txn);
+    const card = popup.getByTestId("direct-app-card");
+    await expect(card.getByTestId("direct-app-approval-hash")).toHaveText(sha256Hex(APPROVAL));
+    await expect(card.getByTestId("direct-app-clear-none")).toContainText("No program");
+  });
+
   test("an ordinary app call shows no lifecycle card and stays collapsed", async ({ context, page }) => {
     await setupFreshWallet(page);
     const address = walletAddress(page);

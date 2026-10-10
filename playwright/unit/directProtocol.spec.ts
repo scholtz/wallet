@@ -213,7 +213,7 @@ test.describe("directUnsupportedReason (what the compact popup can fully show)",
     expect(
       directUnsupportedReason({
         type: "appl",
-        applicationCall: { appIndex: 7n, approvalProgram: new Uint8Array([1, 2, 3]) },
+        applicationCall: { appIndex: 7n, onComplete: 4, approvalProgram: new Uint8Array([1, 2, 3]) },
       }),
     ).toBeUndefined();
   });

@@ -126,7 +126,7 @@
           </Button>
           <Arc56RiskIcon
             v-if="!foreignNetwork && !atLeastOneSigned(slotProps.data)"
-            :transactions="slotProps.data.transactions"
+            :transactions="summaryTransactions(slotProps.data)"
           />
           <Button
             v-if="!compact || atLeastOneSigned(slotProps.data)"
@@ -319,7 +319,7 @@
               <div class="p-3 detail-scroll">
                 <table class="detail-table">
                   <tbody>
-                    <tr v-if="appSummary(txProps.data)?.risk === 'high'">
+                    <tr v-if="isLifecycle(appSummary(txProps.data))">
                       <td colspan="2">
                         <DirectAppCard :summary="appSummary(txProps.data)!" />
                       </td>
@@ -700,7 +700,7 @@ import { isAssetOptIn } from "../scripts/transactionTypes";
 import { signingEnvOf, type DirectNetworkView } from "../scripts/direct/networks";
 import { pickSigningEnv } from "../scripts/signingEnv";
 import { groupFeeShortfall } from "../scripts/fees";
-import { describeApplicationCall } from "../scripts/direct/appCall";
+import { describeApplicationCall, isLifecycle } from "../scripts/direct/appCall";
 import DirectAppCard from "./DirectAppCard.vue";
 import {
   checkTxGenesis,
@@ -819,9 +819,9 @@ watch(
   { immediate: true, deep: true }
 );
 
-/** The application lifecycle review model of a transaction (undefined for non-appl). */
 // describeApplicationCall hashes the programs: do it once per transaction, not per render.
 const appSummaryCache = new WeakMap<object, ReturnType<typeof describeApplicationCall>>();
+/** The application review model of a transaction (undefined for non-appl). */
 const appSummary = (tx: TransactionWrapper) => {
   if (!tx?.txn) return undefined;
   if (!appSummaryCache.has(tx.txn)) {
@@ -841,14 +841,15 @@ const summaryTransactions = (request: RequestItem) =>
 /** Create / update / delete of a contract get their own name in the collapsed summary. */
 const appKindLabel = (tx: TransactionWrapper): string => {
   const summary = appSummary(tx);
-  if (summary?.risk !== "high") return "";
-  switch (summary.kind) {
+  switch (isLifecycle(summary) ? summary?.kind : undefined) {
     case "create":
       return t("connect.direct.app_kind_create");
     case "update":
       return t("connect.direct.app_kind_update");
-    default:
+    case "delete":
       return t("connect.direct.app_kind_delete");
+    default:
+      return "";
   }
 };
 
@@ -924,7 +925,7 @@ watch(
     for (const request of list) {
       if (autoExpanded.has(request.id)) continue;
       const high = (request.transactions ?? []).filter(
-        (tx) => appSummary(tx)?.risk === "high",
+        (tx) => isLifecycle(appSummary(tx)),
       );
       if (high.length === 0) continue;
       autoExpanded.add(request.id);

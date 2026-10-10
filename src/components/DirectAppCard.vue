@@ -56,11 +56,22 @@
     >
       <div class="app-program-head">
         <strong>{{ program.label }}</strong>
-        <span class="app-program-size" :data-testid="'direct-app-' + program.key + '-size'">
+        <span
+          v-if="program.info"
+          class="app-program-size"
+          :data-testid="'direct-app-' + program.key + '-size'"
+        >
           {{ $t("connect.direct.app_program_size", { size: program.info.size }) }}
         </span>
       </div>
-      <div class="app-program-hash-row">
+      <div
+        v-if="!program.info"
+        class="app-program-none"
+        :data-testid="'direct-app-' + program.key + '-none'"
+      >
+        {{ $t("connect.direct.app_program_none") }}
+      </div>
+      <div v-if="program.info" class="app-program-hash-row">
         <span class="app-program-hash-label">{{ $t("connect.direct.app_program_hash") }}</span>
         <code
           class="app-program-hash"
@@ -78,6 +89,7 @@
         />
       </div>
       <button
+        v-if="program.info"
         type="button"
         class="app-program-toggle"
         :data-testid="'direct-app-' + program.key + '-bytes-toggle'"
@@ -87,7 +99,7 @@
         <i :class="open[program.key] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" aria-hidden="true" />
         {{ open[program.key] ? $t("connect.direct.app_hide_bytes") : $t("connect.direct.app_show_bytes") }}
       </button>
-      <div v-if="open[program.key]" class="app-program-bytes-wrap">
+      <div v-if="program.info && open[program.key]" class="app-program-bytes-wrap">
         <code class="app-program-bytes" :data-testid="'direct-app-' + program.key + '-bytes'">{{
           program.info.hex
         }}</code>
@@ -107,9 +119,9 @@
 <script lang="ts" setup>
 import { computed, reactive } from "vue";
 import { useI18n } from "vue-i18n";
-import type { AppCallSummary, ProgramInfo, StateSchema } from "@/scripts/direct/appCall";
+import type { ApplicationCallReview, ProgramInfo, StateSchema } from "@/scripts/direct/appCall";
 
-const props = defineProps<{ summary: AppCallSummary }>();
+const props = defineProps<{ summary: ApplicationCallReview }>();
 const { t } = useI18n();
 
 // Explicit keys (not built by concatenation) so the locale-key spec can check every one.
@@ -145,17 +157,21 @@ const icon = computed(() =>
       : "pi pi-trash",
 );
 
+// A create and an update always list both programs; a missing/empty one says so instead of
+// silently disappearing (the warning promises "the programs below").
 const programs = computed(() => {
-  const list: { key: string; label: string; info: ProgramInfo }[] = [];
-  if (props.summary.approval) {
+  const list: { key: string; label: string; info?: ProgramInfo }[] = [];
+  if (props.summary.kind === "create" || props.summary.kind === "update") {
     list.push({
       key: "approval",
       label: t("connect.direct.app_approval_program"),
       info: props.summary.approval,
     });
-  }
-  if (props.summary.clear) {
-    list.push({ key: "clear", label: t("connect.direct.app_clear_program"), info: props.summary.clear });
+    list.push({
+      key: "clear",
+      label: t("connect.direct.app_clear_program"),
+      info: props.summary.clear,
+    });
   }
   return list;
 });
@@ -278,6 +294,11 @@ const copy = async (value: string) => {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.8rem;
   overflow-wrap: anywhere;
+}
+.app-program-none {
+  margin-top: 0.25rem;
+  color: var(--p-text-muted-color);
+  font-style: italic;
 }
 .app-program-toggle {
   margin-top: 0.25rem;
