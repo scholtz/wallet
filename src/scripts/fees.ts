@@ -43,6 +43,24 @@ export const requiredFeeFromUsage = (
 export const minimumUsageForSigner = (falcon1024: boolean): bigint =>
   USAGE_PER_MIN_FEE + (falcon1024 ? FALCON1024_EXTRA_USAGE : 0n);
 
+/**
+ * How many microalgos a group is short of the fee its signature types require: the declared fees
+ * are pooled (one transaction can pay for another), each Falcon-1024 signer needs three min fees
+ * and every other signer one. Zero when covered.
+ */
+export const groupFeeShortfall = (
+  transactions: { fee: bigint; falcon1024: boolean }[],
+  minFee: bigint = 1000n,
+): bigint => {
+  let required = 0n;
+  let declared = 0n;
+  for (const tx of transactions) {
+    required += requiredFeeFromUsage(minFee, minimumUsageForSigner(tx.falcon1024));
+    declared += tx.fee;
+  }
+  return required > declared ? required - declared : 0n;
+};
+
 export interface ResolveRequiredFeeInput {
   /** Network minimum fee in microalgos (from suggested params). */
   minFee: bigint;

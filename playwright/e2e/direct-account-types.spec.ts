@@ -246,6 +246,8 @@ test.describe("Biatec Direct signs for every account type", () => {
     const popup = await requestSignature(context, dapp, "collapsed", [pay, axfer]);
     await expect(popup.getByTestId("direct-tx-summary")).toBeVisible();
     await expect(popup.getByTestId("direct-tx-line")).toHaveCount(2);
+    // The sender of every transaction is on its summary line (which granted account signs).
+    await expect(popup.getByTestId("direct-tx-from")).toHaveCount(2);
     await expect(popup.getByTestId("direct-tx-line").first()).toContainText("pay");
     await expect(popup.getByTestId("direct-tx-line").nth(1)).toContainText("axfer");
     // Details (and the per-transaction Sign buttons) stay closed until the row is expanded.

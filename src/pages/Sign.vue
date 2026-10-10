@@ -712,6 +712,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, getCurrentInstance } from "vue";
 import { connectReturnPath } from "@/scripts/wcNavigation";
+import { canSignLocally } from "@/scripts/direct/eligibility";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
@@ -912,7 +913,9 @@ const accountsFromMultisig = computed(() => {
   const params = multisigParams.value;
   if (!params?.addrs) return [];
   const eligible = walletAccounts.value.filter(
-    (a) => params.addrs.includes(a.addr) && (!!a.sk || a.type == "ledger" || a.type == "hd")
+    (a) => params.addrs.includes(a.addr) && (!!a.sk ||
+        a.type == "ledger" ||
+        (a.type == "hd" && canSignLocally(a, walletAccounts.value)))
   );
   const subsig = multisigDecoded.value?.msig?.subsig;
   if (!subsig) {

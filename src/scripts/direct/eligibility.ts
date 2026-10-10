@@ -10,12 +10,13 @@
 export interface EligibilityAccount {
   addr: string;
   type?: string;
-  sk?: unknown;
+  /** Secret key: bytes, or the index-keyed object a JSON round trip turns them into. */
+  sk?: Uint8Array | Record<string, number>;
   /** algosdk multisig metadata: addresses are strings or Address objects. */
   params?: { addrs?: (string | { toString(): string })[] };
   hdRootAddr?: string;
   hdMnemonic?: string;
-  falconPrivateKey?: unknown;
+  falconPrivateKey?: Uint8Array | Record<string, number>;
   isHidden?: boolean;
   /** Per-network account data; only the rekey target is read. */
   data?: Record<string, { rekeyedTo?: string } | undefined>;
@@ -42,12 +43,16 @@ export function canSignLocally(
   if (visited.has(account.addr)) return false;
   visited.add(account.addr);
   if (holdsKey(account, all)) return true;
-  if (account.params?.addrs) {
-    return account.params.addrs.some((entry) => {
-      const addr = String(entry);
+  // A multisig is offered when the wallet holds at least one of its signators (it can be
+  // returned partially signed); otherwise fall through to a possible rekey of the account.
+  const signators = (account.params?.addrs ?? []).map(String);
+  if (
+    signators.some((addr) => {
       const signator = all.find((a) => a.addr === addr);
       return !!signator && canSignLocally(signator, all, visited);
-    });
+    })
+  ) {
+    return true;
   }
   for (const entry of Object.values(account.data ?? {})) {
     const target = entry?.rekeyedTo;

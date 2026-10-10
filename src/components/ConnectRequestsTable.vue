@@ -41,6 +41,12 @@
                 :key="tx.index"
                 data-testid="direct-tx-line"
               >
+                <AlgorandAddress
+                  v-if="encodeAddress(tx.txn.sender) !== '-'"
+                  :address="encodeAddress(tx.txn.sender)"
+                  data-testid="direct-tx-from"
+                />
+                <i class="pi pi-arrow-right direct-tx-arrow" aria-hidden="true" />
                 <strong>{{ txTypeLabel(tx) }}</strong>
                 <span v-if="txSummaryAmount(tx)" class="direct-tx-amount">
                   {{ txSummaryAmount(tx) }}
@@ -49,22 +55,22 @@
                   <i class="pi pi-arrow-right direct-tx-arrow" aria-hidden="true" />
                   <AlgorandAddress :address="txSummaryTo(tx)" />
                 </template>
-                <Badge
-                  v-if="tx.txn.rekeyTo"
-                  severity="danger"
-                  :value="$t('connect.rekeyto')"
-                />
-                <Badge
-                  v-if="getCloseTo(tx.txn)"
-                  severity="danger"
-                  :value="$t('connect.close_to')"
-                />
-                <Badge
-                  v-if="clawbackFrom(tx.txn)"
-                  severity="danger"
-                  :value="$t('connect.clawback_from')"
-                  data-testid="direct-tx-clawback"
-                />
+                <span v-if="tx.txn.rekeyTo" class="direct-tx-flag" data-testid="direct-tx-rekey">
+                  <Badge severity="danger" :value="$t('connect.rekeyto')" />
+                  <AlgorandAddress :address="encodeAddress(tx.txn.rekeyTo)" />
+                </span>
+                <span v-if="getCloseTo(tx.txn)" class="direct-tx-flag" data-testid="direct-tx-close">
+                  <Badge severity="danger" :value="$t('connect.close_to')" />
+                  <AlgorandAddress :address="getCloseTo(tx.txn)" />
+                </span>
+                <span v-if="clawbackFrom(tx.txn)" class="direct-tx-flag">
+                  <Badge
+                    severity="danger"
+                    :value="$t('connect.clawback_from')"
+                    data-testid="direct-tx-clawback"
+                  />
+                  <AlgorandAddress :address="clawbackFrom(tx.txn)" />
+                </span>
                 <Badge
                   v-if="onCompleteIsDestructive(tx.txn)"
                   severity="danger"
@@ -668,6 +674,7 @@ import { getArc14Realm, isArc14AuthTransaction } from "../scripts/encoding/arc14
 import { isAssetOptIn } from "../scripts/transactionTypes";
 import { signingEnvOf, type DirectNetworkView } from "../scripts/direct/networks";
 import { pickSigningEnv } from "../scripts/signingEnv";
+import { groupFeeShortfall } from "../scripts/fees";
 import {
   checkTxGenesis,
   isBlockingGenesisCheck,
@@ -798,8 +805,10 @@ const txSummaryAmount = (tx: TransactionWrapper): string => {
       txn.assetTransfer?.assetIndex,
     );
   }
-  if (txn?.type === "appl" && txn.applicationCall?.appIndex) {
-    return `${t("connect.app")} ${txn.applicationCall.appIndex}`;
+  if (txn?.type === "appl") {
+    const appIndex = txn.applicationCall?.appIndex;
+    const call = onCompleteLabel(txn);
+    return appIndex ? `${t("connect.app")} ${appIndex} · ${call}` : call;
   }
   return "";
 };
@@ -930,18 +939,20 @@ const getSignerTypeLocal = (from: string, genesisId?: string): SignerType => {
 
 /**
  * A Falcon-1024 signature is large, so the network charges about three minimum fees for it. The
- * site fixed the fee (and the group id), the wallet cannot raise it: warn when it is too low.
+ * site fixed the fee (and the group id), the wallet cannot raise it: when the group's pooled fees
+ * do not cover what its signers need, this returns the total fee the site set (else undefined).
  */
-const FALCON_MIN_FEE = 3000;
 const lowFalconFee = (request: RequestItem): number | undefined => {
-  for (const tx of request.transactions ?? []) {
-    if (!tx.txn?.sender) continue;
-    const from = encodeAddress(tx.txn.sender);
-    if (getSignerTypeLocal(from, tx.txn.genesisID) !== "falcon1024") continue;
-    const fee = Number(tx.txn.fee ?? 0);
-    if (fee < FALCON_MIN_FEE) return fee;
-  }
-  return undefined;
+  let anyFalcon = false;
+  const fees = (request.transactions ?? []).map((tx) => {
+    const sender = tx.txn?.sender ? encodeAddress(tx.txn.sender) : "";
+    const falcon1024 =
+      sender !== "" && getSignerTypeLocal(sender, tx.txn.genesisID) === "falcon1024";
+    anyFalcon ||= falcon1024;
+    return { fee: BigInt(tx.txn?.fee ?? 0), falcon1024 };
+  });
+  if (!anyFalcon || groupFeeShortfall(fees) === 0n) return undefined;
+  return Number(fees.reduce((sum, tx) => sum + tx.fee, 0n));
 };
 
 const _arrayBufferToBase64 = (buffer: Uint8Array) => {

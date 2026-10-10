@@ -176,6 +176,8 @@ const mutations: MutationTree<DirectState> = {
     currentState.pendingEnable = pending;
   },
   addRequest(currentState, { request }: { request: StoredRequest }) {
+    // A flag left over from an earlier visit to the signing page must not auto-send this one.
+    currentState.popup.returnedFromSigning = false;
     currentState.requests.push(request);
   },
   removeRequest(currentState, id: number | string) {

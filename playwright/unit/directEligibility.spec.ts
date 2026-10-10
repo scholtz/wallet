@@ -66,6 +66,16 @@ test.describe("canSignLocally", () => {
     expect(canSignLocally(msig, [hd, msig])).toBe(true);
   });
 
+  test("a multisig with no local signator but rekeyed to a local key can sign", () => {
+    const local = acct("L", { type: "ledger" });
+    const msig = acct("M", {
+      type: "msig",
+      params: { addrs: ["X", "Y"] },
+      data: { "mainnet-v1.0": { rekeyedTo: "L" } },
+    });
+    expect(canSignLocally(msig, [local, msig])).toBe(true);
+  });
+
   test("a watch-only account cannot sign", () => {
     const a = acct("W");
     expect(canSignLocally(a, [a])).toBe(false);

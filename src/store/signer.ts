@@ -181,6 +181,24 @@ interface DecodedMultisigTxn {
 const decodeMultisigTxn = (msigTx: Uint8Array) =>
   algosdk.decodeObj(msigTx) as DecodedMultisigTxn;
 
+/** Put `sig` into the subsignature slot of `signator`; throws when it is not a signator. */
+const attachMultisigSubsig = (
+  signedTxn: DecodedMultisigTxn,
+  signator: string,
+  sig: Uint8Array | undefined,
+) => {
+  let found = false;
+  signedTxn.msig.subsig.forEach((subsig, index: number) => {
+    if (algosdk.encodeAddress(subsig.pk) === signator) {
+      found = true;
+      signedTxn.msig.subsig[index].s = sig;
+    }
+  });
+  if (!found) {
+    throw new Error(`Multisig key is missing for address ${signator}`);
+  }
+};
+
 // Mirrors the historical `error?.response ? error.response : error?.message
 // ?? String(error)` shape used by every signing action's catch block, but
 // works from `unknown` (the type TS actually gives caught errors) instead of
@@ -764,19 +782,7 @@ const actions: ActionTree<SignerState, RootState> = {
           );
     const sigInnerTx = algosdk.signTransaction(payload.txn, skBytes);
     const sigInnerTxObj = algosdk.decodeSignedTransaction(sigInnerTx.blob);
-    let keyExist = false;
-    signedTxn.msig.subsig.forEach((subsig, index: number) => {
-      const subsigAddr = algosdk.encodeAddress(subsig.pk);
-      if (subsigAddr === payload.signator) {
-        keyExist = true;
-        signedTxn.msig.subsig[index].s = sigInnerTxObj.sig;
-      }
-    });
-    if (!keyExist) {
-      throw new Error(
-        `Multisig key is missing for address ${payload.signator}`,
-      );
-    }
+    attachMultisigSubsig(signedTxn, payload.signator, sigInnerTxObj.sig);
     const ret = algosdk.encodeObj(signedTxn);
     commit("setSigned", ret);
     return ret;
@@ -804,18 +810,7 @@ const actions: ActionTree<SignerState, RootState> = {
       0,
       txn.bytesToSign(),
     );
-    let keyExist = false;
-    signedTxn.msig.subsig.forEach((subsig, index: number) => {
-      if (algosdk.encodeAddress(subsig.pk) === payload.signator) {
-        keyExist = true;
-        signedTxn.msig.subsig[index].s = sig;
-      }
-    });
-    if (!keyExist) {
-      throw new Error(
-        `Multisig key is missing for address ${payload.signator}`,
-      );
-    }
+    attachMultisigSubsig(signedTxn, payload.signator, sig);
     const ret = algosdk.encodeObj(signedTxn);
     commit("setSigned", ret);
     return ret;
@@ -833,19 +828,7 @@ const actions: ActionTree<SignerState, RootState> = {
       tx: txn,
     });
     const sigInnerTxObj = algosdk.decodeSignedTransaction(sigInnerTx);
-    let keyExist = false;
-    signedTxn.msig.subsig.forEach((subsig, index: number) => {
-      const subsigAddr = algosdk.encodeAddress(subsig.pk);
-      if (subsigAddr === payload.signator) {
-        keyExist = true;
-        signedTxn.msig.subsig[index].s = sigInnerTxObj.sig;
-      }
-    });
-    if (!keyExist) {
-      throw new Error(
-        `Multisig key is missing for address ${payload.signator}`,
-      );
-    }
+    attachMultisigSubsig(signedTxn, payload.signator, sigInnerTxObj.sig);
     const ret = algosdk.encodeObj(signedTxn);
     commit("setSigned", ret);
     return ret;
@@ -872,19 +855,7 @@ const actions: ActionTree<SignerState, RootState> = {
       });
     }
     const sigInnerTxObj = algosdk.decodeSignedTransaction(sigInnerTx);
-    let keyExist = false;
-    signedTxn.msig.subsig.forEach((subsig, index: number) => {
-      const subsigAddr = algosdk.encodeAddress(subsig.pk);
-      if (subsigAddr === payload.signator) {
-        keyExist = true;
-        signedTxn.msig.subsig[index].s = sigInnerTxObj.sig;
-      }
-    });
-    if (!keyExist) {
-      throw new Error(
-        `Multisig key is missing for address ${payload.signator}`,
-      );
-    }
+    attachMultisigSubsig(signedTxn, payload.signator, sigInnerTxObj.sig);
     const ret = algosdk.encodeObj(signedTxn);
     commit("setSigned", ret);
     return ret;
