@@ -909,35 +909,7 @@ onMounted(() => {
   }
 });
 
-// Like the WalletConnect request list, the Direct popup starts collapsed: every request shows a
-// one-line summary per transaction (the summary column) and opens its details on demand. The
-// exception is a request that creates, updates or deletes a contract: it opens by itself, so the
-// programs and the warning are in view before anything is signed.
-const autoExpanded = new WeakSet<object>(); // by object: a re-emitted request opens again
-watch(
-  () => [...requests.value],
-  (list) => {
-    if (!compact.value) return;
-    for (const request of list) {
-      if (autoExpanded.has(request)) continue;
-      const high = (request.transactions ?? []).filter(
-        (tx) => isLifecycle(appSummary(tx)),
-      );
-      if (high.length === 0) continue;
-      autoExpanded.add(request);
-      expandedRequests.value = [...expandedRequests.value, request];
-      expandedTransactions.value = [...expandedTransactions.value, ...high];
-    }
-    // Answered or removed requests must not stay in the expanded lists (each check compares rows).
-    const liveRequests = new Set<object>(list);
-    expandedRequests.value = expandedRequests.value.filter((open) => liveRequests.has(open));
-    const liveTransactions = new Set<object>(list.flatMap((request) => request.transactions ?? []));
-    expandedTransactions.value = expandedTransactions.value.filter((open) =>
-      liveTransactions.has(open),
-    );
-  },
-  { immediate: true },
-);
+
 
 const prolong = async () => {
   await store.dispatch("wallet/prolong");
@@ -1527,6 +1499,38 @@ const formatAssetAmount = (
     getAssetDecimals(assetIndex ?? 0),
   );
 };
+
+// Declared last: the immediate run below uses helpers defined further up (const arrow functions).
+// Like the WalletConnect request list, the Direct popup starts collapsed: every request shows a
+// one-line summary per transaction (the summary column) and opens its details on demand. The
+// exception is a request that creates, updates or deletes a contract: it opens by itself, so the
+// programs and the warning are in view before anything is signed.
+const autoExpanded = new WeakSet<object>(); // by object: a re-emitted request opens again
+watch(
+  () => [...requests.value],
+  (list) => {
+    if (!compact.value) return;
+    for (const request of list) {
+      if (autoExpanded.has(request)) continue;
+      // Only transactions this wallet is asked to sign (not another party's) open by themselves.
+      const high = (request.transactions ?? []).filter(
+        (tx) => isLifecycle(appSummary(tx)) && !isForeignTransaction(tx),
+      );
+      if (high.length === 0) continue;
+      autoExpanded.add(request);
+      expandedRequests.value = [...expandedRequests.value, request];
+      expandedTransactions.value = [...expandedTransactions.value, ...high];
+    }
+    // Answered or removed requests must not stay in the expanded lists (each check compares rows).
+    const liveRequests = new Set<object>(list);
+    expandedRequests.value = expandedRequests.value.filter((open) => liveRequests.has(open));
+    const liveTransactions = new Set<object>(list.flatMap((request) => request.transactions ?? []));
+    expandedTransactions.value = expandedTransactions.value.filter((open) =>
+      liveTransactions.has(open),
+    );
+  },
+  { immediate: true },
+);
 </script>
 
 <style scoped>

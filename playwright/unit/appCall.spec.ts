@@ -108,6 +108,13 @@ test.describe("directUnsupportedReason: the application lifecycle is signable", 
     ).toBeUndefined();
   });
 
+  test("a program above the AVM limit (4 pages x 2048 bytes) is refused before anything is hashed", () => {
+    const tooBig = new Uint8Array(8193);
+    expect(directUnsupportedReason(create({ approvalProgram: tooBig }))).toMatch(/not supported/);
+    expect(directUnsupportedReason(create({ clearProgram: tooBig }))).toMatch(/not supported/);
+    expect(directUnsupportedReason(create({ approvalProgram: new Uint8Array(8192) }))).toBeUndefined();
+  });
+
   test("an unknown OnComplete value is refused", () => {
     expect(
       directUnsupportedReason({ type: "appl", applicationCall: { appIndex: 9n, onComplete: 9 } }),

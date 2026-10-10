@@ -298,6 +298,13 @@ export function directUnsupportedReason(tx: {
       if (call.onComplete !== undefined && (call.onComplete < 0 || call.onComplete > 5)) {
         return "An application call with an unknown OnComplete is not supported by Biatec Direct.";
       }
+      // The AVM caps a program at 4 pages x 2048 bytes: refuse more before anything hashes it.
+      if (
+        (call.approvalProgram?.length ?? 0) > 8192 ||
+        (call.clearProgram?.length ?? 0) > 8192
+      ) {
+        return "A program above the maximum size is not supported by Biatec Direct.";
+      }
       // OnComplete values: 0 NoOp, 1 OptIn, 2 CloseOut, 3 ClearState, 4 Update, 5 Delete (the same
       // table as scripts/direct/appCall.ts). A creation cannot close out or clear state.
       if (Number(call.appIndex ?? 0) === 0 && (call.onComplete === 2 || call.onComplete === 3)) {

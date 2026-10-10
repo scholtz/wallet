@@ -927,7 +927,7 @@ test.describe("Biatec Direct popup transport", () => {
     });
     // The warnings are on the collapsed summary; the detail rows name the accounts and calls.
     await expect(popup.getByTestId("direct-tx-clawback")).toBeVisible();
-    await expect(popup.getByTestId("direct-tx-destructive")).toBeVisible();
+    await expect(popup.getByTestId("direct-tx-app-kind")).toHaveText("Delete application");
     await expandAll(popup);
     await expect(popup.getByRole("cell", { name: "Clawback from:", exact: true })).toBeVisible();
     await expect(popup.getByText("not from the sender").first()).toBeVisible();
