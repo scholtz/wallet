@@ -208,21 +208,18 @@ test.describe("directUnsupportedReason (what the compact popup can fully show)",
     }
   });
 
-  test("refuses app creation and program updates", () => {
-    expect(directUnsupportedReason({ type: "appl", applicationCall: { appIndex: 0n } })).toMatch(/Creating/);
-    expect(directUnsupportedReason({ type: "appl" })).toMatch(/Creating/);
+  test("allows app creation and program updates (the popup describes them)", () => {
+    expect(directUnsupportedReason({ type: "appl", applicationCall: { appIndex: 0n } })).toBeUndefined();
     expect(
       directUnsupportedReason({
         type: "appl",
-        applicationCall: { appIndex: 7n, approvalProgram: new Uint8Array([1, 2, 3]) },
+        applicationCall: { appIndex: 7n, onComplete: 4, approvalProgram: new Uint8Array([1, 2, 3]) },
       }),
-    ).toMatch(/Updating/);
-    expect(
-      directUnsupportedReason({
-        type: "appl",
-        applicationCall: { appIndex: 7n, clearProgram: new Uint8Array([1]) },
-      }),
-    ).toMatch(/Updating/);
+    ).toBeUndefined();
+  });
+
+  test("refuses an application transaction without a call body", () => {
+    expect(directUnsupportedReason({ type: "appl" })).toMatch(/not supported/);
   });
 
   test("a hostile type string is truncated in the message", () => {

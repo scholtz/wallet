@@ -269,15 +269,18 @@ export class DirectRequestGate {
 /**
  * Transaction kinds Biatec Direct signs. The compact popup is the user's only review surface,
  * so it signs only what that surface shows completely: payments, asset transfers (incl. the
- * clawback source) and calls to EXISTING apps with their OnComplete. Asset configuration, freeze,
- * key registration, state proofs, heartbeats and app creation/update (programs) are refused;
- * a dApp needing them uses WalletConnect, whose full review screen shows them.
+ * clawback source) and application calls over the whole lifecycle (create, update, delete, call,
+ * opt-in, close-out, clear-state), with the programs shown as size + hash. Asset configuration,
+ * freeze, key registration, state proofs and heartbeats are refused; a dApp needing them uses
+ * WalletConnect, whose full review screen shows them.
  * Returns the refusal reason, or undefined when the transaction is allowed.
  */
 export function directUnsupportedReason(tx: {
   type?: string;
   applicationCall?: {
     appIndex?: bigint | number;
+    onComplete?: number;
+    extraPages?: number;
     approvalProgram?: Uint8Array;
     clearProgram?: Uint8Array;
   };
@@ -287,12 +290,43 @@ export function directUnsupportedReason(tx: {
     case "axfer":
       return undefined;
     case "appl": {
+      // The whole lifecycle is signable (create, update, delete, calls, opt-in, close-out,
+      // clear-state): the popup describes each one (scripts/direct/appCall.ts).
       const call = tx.applicationCall;
-      if (!call || Number(call.appIndex ?? 0) === 0) {
-        return "Creating an application is not supported by Biatec Direct.";
+      if (!call) {
+        return "An application transaction without a call body is not supported by Biatec Direct.";
       }
-      if ((call.approvalProgram?.length ?? 0) > 0 || (call.clearProgram?.length ?? 0) > 0) {
-        return "Updating application programs is not supported by Biatec Direct.";
+      if (call.onComplete !== undefined && (call.onComplete < 0 || call.onComplete > 5)) {
+        return "An application call with an unknown OnComplete is not supported by Biatec Direct.";
+      }
+      // AVM limits: approval + clear programs together fit (1 + extraPages) x 2048 bytes, with
+      // at most 3 extra pages (so 8 KB at most). Refuse more before anything hashes it.
+      const pages = Number(call.extraPages ?? 0);
+      const programBytes =
+        (call.approvalProgram?.length ?? 0) + (call.clearProgram?.length ?? 0);
+      if (Number(call.appIndex ?? 0) === 0) {
+        // A creation declares the pages. (An update carries extraPages 0: the pages belong to the
+        // app, so it is only held to the absolute maximum.)
+        if (pages > 3 || programBytes > (1 + pages) * 2048) {
+          return "Programs that do not fit the declared pages are not supported by Biatec Direct.";
+        }
+      } else if (pages !== 0) {
+        // extraPages only means something on a creation; elsewhere it is unshown signed data.
+        return "Extra pages on this application call are not supported by Biatec Direct.";
+      } else if (programBytes > 4 * 2048) {
+        return "Programs above the maximum size are not supported by Biatec Direct.";
+      }
+      // OnComplete values: 0 NoOp, 1 OptIn, 2 CloseOut, 3 ClearState, 4 Update, 5 Delete (the same
+      // table as scripts/direct/appCall.ts). A creation cannot close out or clear state.
+      if (Number(call.appIndex ?? 0) === 0 && (call.onComplete === 2 || call.onComplete === 3)) {
+        return "An application creation with this OnComplete is not supported by Biatec Direct.";
+      }
+      // Programs belong to a create (app id 0) or an update (OnComplete 4) only; on any other
+      // call they would be code the popup does not show.
+      const hasProgram =
+        (call.approvalProgram?.length ?? 0) > 0 || (call.clearProgram?.length ?? 0) > 0;
+      if (hasProgram && Number(call.appIndex ?? 0) !== 0 && call.onComplete !== 4) {
+        return "Program bytes on this application call are not supported by Biatec Direct.";
       }
       return undefined;
     }

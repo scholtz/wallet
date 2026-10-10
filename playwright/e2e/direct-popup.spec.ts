@@ -927,12 +927,12 @@ test.describe("Biatec Direct popup transport", () => {
     });
     // The warnings are on the collapsed summary; the detail rows name the accounts and calls.
     await expect(popup.getByTestId("direct-tx-clawback")).toBeVisible();
-    await expect(popup.getByTestId("direct-tx-destructive")).toBeVisible();
+    await expect(popup.getByTestId("direct-tx-app-kind")).toHaveText("Delete application");
     await expandAll(popup);
     await expect(popup.getByRole("cell", { name: "Clawback from:", exact: true })).toBeVisible();
     await expect(popup.getByText("not from the sender").first()).toBeVisible();
-    await expect(popup.getByRole("cell", { name: "On complete:", exact: true })).toBeVisible();
-    await expect(popup.getByText("DeleteApplication").first()).toBeVisible();
+    // The destructive app call is a lifecycle transaction: its application card says what it does.
+    await expect(popup.getByTestId("direct-app-card")).toContainText("Delete application");
   });
 
   test("single transaction: exactly one Sign button in the collapsed popup", async ({ context, page }) => {
@@ -989,19 +989,13 @@ test.describe("Biatec Direct popup transport", () => {
         reason: /afrz/,
       },
       {
-        name: "application creation",
-        txn: algosdk.makeApplicationCreateTxnFromObject({
+        name: "key registration",
+        txn: algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
           sender: address,
-          approvalProgram: new Uint8Array([6, 129, 1]),
-          clearProgram: new Uint8Array([6, 129, 1]),
-          numGlobalByteSlices: 0,
-          numGlobalInts: 0,
-          numLocalByteSlices: 0,
-          numLocalInts: 0,
-          onComplete: algosdk.OnApplicationComplete.NoOpOC,
+          nonParticipation: true,
           suggestedParams: sp,
         }),
-        reason: /Creating/,
+        reason: /keyreg/,
       },
     ];
     const dapp = await connectSite(context, address);

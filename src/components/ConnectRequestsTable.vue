@@ -47,7 +47,13 @@
                   data-testid="direct-tx-from"
                 />
                 <i class="pi pi-arrow-right direct-tx-arrow" aria-hidden="true" />
-                <strong>{{ txTypeLabel(tx) }}</strong>
+                <Badge
+                  v-if="appKindLabel(tx)"
+                  severity="danger"
+                  :value="appKindLabel(tx)"
+                  data-testid="direct-tx-app-kind"
+                />
+                <strong v-else>{{ txTypeLabel(tx) }}</strong>
                 <span v-if="txSummaryAmount(tx)" class="direct-tx-amount">
                   {{ txSummaryAmount(tx) }}
                 </span>
@@ -72,7 +78,7 @@
                   <AlgorandAddress :address="clawbackFrom(tx.txn)" />
                 </span>
                 <Badge
-                  v-if="onCompleteIsDestructive(tx.txn)"
+                  v-if="onCompleteIsDestructive(tx.txn) && !isLifecycle(appSummary(tx))"
                   severity="danger"
                   :value="onCompleteLabel(tx.txn)"
                   data-testid="direct-tx-destructive"
@@ -311,8 +317,13 @@
             </Column>
             <template #expansion="txProps">
               <div class="p-3 detail-scroll">
-                <table>
+                <table class="detail-table">
                   <tbody>
+                    <tr v-if="showAppCard(txProps.data)">
+                      <td colspan="2">
+                        <DirectAppCard :summary="appSummary(txProps.data)!" />
+                      </td>
+                    </tr>
                     <tr v-if="isArc14Auth(txProps.data.txn)">
                       <td colspan="2">
                         <Message severity="info" class="m-0">
@@ -472,6 +483,7 @@
                     <tr
                       v-if="
                         txProps.data.type == 'appl' &&
+                        !showAppCard(txProps.data) &&
                         onCompleteLabel(txProps.data.txn)
                       "
                     >
@@ -497,14 +509,25 @@
                         </Message>
                       </td>
                     </tr>
-                    <tr v-if="txProps.data.type == 'appl'">
+                    <tr
+                      v-if="
+                        txProps.data.type == 'appl' &&
+                        !showAppCard(txProps.data)
+                      "
+                    >
                       <td>{{ $t("connect.app") }}:</td>
                       <td>
                         {{ txProps.data.txn.applicationCall?.appIndex }}
                       </td>
                     </tr>
 
-                    <tr v-if="txProps.data.type == 'appl' && !foreignNetwork">
+                    <tr
+                      v-if="
+                        txProps.data.type == 'appl' &&
+                        !foreignNetwork &&
+                        !showAppCard(txProps.data)
+                      "
+                    >
                       <td colspan="2">
                         <Arc56CallDetails
                           :app-index="
@@ -683,6 +706,8 @@ import { isAssetOptIn } from "../scripts/transactionTypes";
 import { signingEnvOf, type DirectNetworkView } from "../scripts/direct/networks";
 import { pickSigningEnv } from "../scripts/signingEnv";
 import { groupFeeShortfall } from "../scripts/fees";
+import { describeApplicationCall, isLifecycle } from "../scripts/direct/appCall";
+import DirectAppCard from "./DirectAppCard.vue";
 import {
   checkTxGenesis,
   isBlockingGenesisCheck,
@@ -777,8 +802,7 @@ const selectedTransaction = ref<TransactionWrapper | null>(null);
 const expandedRequests = ref<RequestItem[]>([]);
 const expandedTransactions = ref<TransactionWrapper[]>([]);
 
-// Like the WalletConnect request list, the Direct popup starts collapsed: every request shows a
-// one-line summary per transaction (the summary column) and opens its details on demand.
+
 
 watch(
   requests,
@@ -801,6 +825,35 @@ watch(
   { immediate: true, deep: true }
 );
 
+// describeApplicationCall hashes the programs: do it once per transaction, not per render.
+const appSummaryCache = new WeakMap<object, ReturnType<typeof describeApplicationCall>>();
+/** The application review model of a transaction (undefined for non-appl). */
+const appSummary = (tx: TransactionWrapper) => {
+  if (!tx?.txn) return undefined;
+  if (!appSummaryCache.has(tx.txn)) {
+    appSummaryCache.set(tx.txn, describeApplicationCall(tx.txn));
+  }
+  return appSummaryCache.get(tx.txn);
+};
+
+/** Biatec Direct shows create / update / delete of a contract as an application card (WalletConnect keeps its rows). */
+const showAppCard = (tx: TransactionWrapper) => compact.value && isLifecycle(appSummary(tx));
+
+/** Create / update / delete of a contract get their own name in the collapsed summary. */
+const appKindLabel = (tx: TransactionWrapper): string => {
+  const summary = appSummary(tx);
+  switch (isLifecycle(summary) ? summary?.kind : undefined) {
+    case "create":
+      return t("connect.direct.app_kind_create");
+    case "update":
+      return t("connect.direct.app_kind_update");
+    case "delete":
+      return t("connect.direct.app_kind_delete");
+    default:
+      return "";
+  }
+};
+
 /** Compact (Direct) summary of one transaction: its kind, what moves and to whom. */
 const txTypeLabel = (tx: TransactionWrapper): string =>
   isAssetOptIn(tx.txn) ? t("pay.asset_optin") : String(tx.type ?? "");
@@ -814,9 +867,22 @@ const txSummaryAmount = (tx: TransactionWrapper): string => {
     );
   }
   if (txn?.type === "appl") {
+    const summary = appSummary(tx);
     const appIndex = txn.applicationCall?.appIndex;
     const call = onCompleteLabel(txn);
-    return appIndex ? `${t("connect.app")} ${appIndex} · ${call}` : call;
+    // A program change names the new code by the start of its program address (the value algod
+    // compile reports; both hashes are in full in the details).
+    // Both programs are fingerprinted: swapping only the clear-state program must show too.
+    const hash = [summary?.approval, summary?.clear]
+      .filter((program) => !!program)
+      .map((program) => `${program.address.slice(0, 12)}…`)
+      .join(" / ");
+    const parts = [
+      summary?.kind === "create" || !appIndex ? "" : `${t("connect.app")} ${appIndex}`,
+      call,
+      hash,
+    ];
+    return parts.filter(Boolean).join(" · ");
   }
   return "";
 };
@@ -849,6 +915,8 @@ onMounted(() => {
     break;
   }
 });
+
+
 
 const prolong = async () => {
   await store.dispatch("wallet/prolong");
@@ -1000,7 +1068,24 @@ const _arrayBufferToBase64 = (buffer: Uint8Array) => {
 const base642base64url = (input: string) =>
   input.replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 
+/**
+ * Biatec Direct: a contract create/update/delete must be looked at before it is signed. If its
+ * details are closed, the first press only opens them (and returns true); the user then signs.
+ */
+const revealLifecycleFirst = (data: RequestItem, only?: TransactionWrapper): boolean => {
+  if (!compact.value) return false;
+  const own = (data.transactions ?? []).filter(
+    (tx) => (!only || tx === only) && isLifecycle(appSummary(tx)) && !isForeignTransaction(tx),
+  );
+  const closedTx = own.filter((tx) => !expandedTransactions.value.includes(tx));
+  const closedRequest = !expandedRequests.value.includes(data);
+  if (own.length === 0 || (!closedRequest && closedTx.length === 0)) return false;
+  if (closedRequest) expandedRequests.value = [...expandedRequests.value, data];
+  expandedTransactions.value = [...expandedTransactions.value, ...closedTx];
+  return true;
+};
 const clickSignAll = async (data: RequestItem) => {
+  if (revealLifecycleFirst(data)) return;
   try {
     await prolong();
     const list: TransactionWrapper[] = data?.transactions ?? [];
@@ -1023,6 +1108,7 @@ const clickSignAll = async (data: RequestItem) => {
 };
 
 const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) => {
+  if (revealLifecycleFirst(parentRequest, data)) return;
   try {
     const txn = data?.txn;
     if (!txn?.txID) {
@@ -1438,10 +1524,54 @@ const formatAssetAmount = (
     getAssetDecimals(assetIndex ?? 0),
   );
 };
+
+// Declared last: the immediate run below uses helpers defined further up (const arrow functions).
+// Like the WalletConnect request list, the Direct popup starts collapsed: every request shows a
+// one-line summary per transaction (the summary column) and opens its details on demand. The
+// exception is a request that creates, updates or deletes a contract: it opens by itself, so the
+// programs and the warning are in view before anything is signed.
+const autoExpanded = new WeakSet<object>(); // by object: a re-emitted request opens again
+watch(
+  // Also re-run when the accounts load: "foreign" depends on them.
+  [() => [...requests.value], () => store.state.wallet.privateAccounts.length],
+  ([list]) => {
+    if (!compact.value) return;
+    for (const request of list) {
+      if (autoExpanded.has(request)) continue;
+      // Only transactions this wallet is asked to sign (not another party's) open by themselves.
+      const high = (request.transactions ?? []).filter(
+        (tx) => isLifecycle(appSummary(tx)) && !isForeignTransaction(tx),
+      );
+      if (high.length === 0) continue;
+      autoExpanded.add(request);
+      expandedRequests.value = [...expandedRequests.value, request];
+      expandedTransactions.value = [...expandedTransactions.value, ...high];
+    }
+    // Answered or removed requests must not stay in the expanded lists (each check compares rows).
+    // Match by id / encoded transaction, not object identity (the store may rebuild wrappers).
+    const keptRequests = expandedRequests.value.filter((open) =>
+      list.some((request) => request.id === open.id),
+    );
+    if (keptRequests.length !== expandedRequests.value.length) expandedRequests.value = keptRequests;
+    const liveTransactions = new Set<string>(
+      list.flatMap((request) => (request.transactions ?? []).map((tx) => tx.txnB64)),
+    );
+    const keptTransactions = expandedTransactions.value.filter((open) =>
+      liveTransactions.has(open.txnB64),
+    );
+    if (keptTransactions.length !== expandedTransactions.value.length) {
+      expandedTransactions.value = keptTransactions;
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <style scoped>
 .detail-scroll {
   overflow-x: auto;
+}
+.detail-scroll .detail-table {
+  width: 100%;
 }
 </style>
