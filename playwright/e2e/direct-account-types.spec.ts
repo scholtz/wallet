@@ -343,6 +343,7 @@ test.describe("Biatec Direct signs for every account type", () => {
     await popup.locator(".p-multiselect-option").filter({ hasText: "Second Signer" }).click();
     await popup.keyboard.press("Escape");
     await popup.getByRole("button", { name: "Sign", exact: true }).click();
+    await expect(popup.getByText(/Signatures 1 \/ 2/)).toBeVisible();
     const back = popup.getByTestId("return-to-dapp");
     await expect(back).toHaveText("Return partially signed to the website");
     await expect(back).toBeEnabled();
