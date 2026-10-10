@@ -576,6 +576,8 @@
     "arc14_auth_notice": "Ez egy ARC14 hitelesítési kérés a(z) \"{realm}\" számára. Az aláírása nem utal át semmilyen összeget.",
     "arc14_authenticate": "Hitelesítés itt: {realm}",
     "return_to_wc": "Visszatérés a WalletConnect-hez",
+    "return_to_direct": "Vissza a weboldalra",
+    "return_to_direct_partial": "Részben aláírva vissza a weboldalra",
     "select_account_for_payment": "Válaszd ki, hogy melyik számláról szeretnél fizetési műveletet indítani",
     "create_multisig_proposal": "Multisig javaslat létrehozása",
     "2fa_code": "Második faktor kód",
@@ -1104,6 +1106,9 @@
       "network_unknown_warning": "Ezt a hálózatot a tárca nem ismeri. Csak akkor folytassa, ha felismeri; ellenőrizze a genezis hash-t.",
       "network_differs": "Eltér a tárcában kiválasztott hálózattól ({selected}). Az eszköznevek, az alkalmazásadatok és a tranzakció előnézete ehhez a hálózathoz nem érhetők el; az összegek a hálózat saját egységeiben jelennek meg.",
       "network_changed": "Ez az oldal a(z) {granted} hálózaton lett csatlakoztatva, de ez a kérés a(z) {requested} hálózaton van. Aláírás előtt ellenőrizze a hálózatot.",
+      "tx_count": "Tranzakciók: {count}",
+      "falcon_fee_warning": "Ez a fiók Falcon-1024 (poszt-kvantum) kulcsot használ. Az aláírása nagy, ezért a hálózat magasabb díjat kér (tranzakciónként nagyjából a minimális díj háromszorosát), mint amit a weboldal megadott ({fee}). A tranzakciót elutasíthatják, ha a csoport többi tranzakciója nem fedezi a különbséget.",
+      "partial_msig_note": "Ennek a multisig tranzakciónak van néhány, de nem az összes szükséges aláírása. Visszaküldve részben aláírva kerül vissza: a hiányzó aláírásokat a weboldalnak kell begyűjtenie.",
       "network_foreign_note": "A tárca hálózatának adatai más hálózatnál nem jelennek meg.",
       "genesis_hash_label": "Genezis hash",
       "network_not_named": "Az oldal nem adott meg hálózatot. Az adataláírások nem kötődnek hálózathoz."

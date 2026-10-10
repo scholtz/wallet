@@ -35,6 +35,10 @@ import {
   type DirectRequestMessage,
 } from "../scripts/direct/protocol";
 import {
+  canSignData,
+  isDirectEligibleAccount as isEligible,
+} from "../scripts/direct/eligibility";
+import {
   genesisIdConsistent,
   resolveRequestNetwork,
   signingEnvOf,
@@ -108,6 +112,12 @@ export interface DirectState {
     network: DirectNetworkView | null;
     /** Set when the request is on another network than the one the site was connected on. */
     networkChange: DirectNetworkChange | null;
+    /**
+     * Set when the user comes back from the multisig signing page (/payWC) with the id of the
+     * transaction signed there: the fully signed request holding it is then sent on without
+     * another click. Only a recent return counts, so a stale value can never send anything unasked.
+     */
+    returnedFromSigning: { at: number; txId: string } | null;
   };
   pendingEnable: PendingEnable | null;
 }
@@ -126,14 +136,18 @@ const state = (): DirectState => ({
   sessions: [],
   requests: [],
   signDataRequests: [],
-  popup: { status: "idle", dappOrigin: null, verified: false, network: null, networkChange: null },
+  popup: { status: "idle", dappOrigin: null, verified: false, network: null, networkChange: null, returnedFromSigning: null },
   pendingEnable: null,
 });
 
-/** Accounts a dApp may be granted: anything the wallet signs for itself except proxied (wc) ones. */
+/**
+ * Accounts a dApp may be granted: every account this wallet can sign for (any key type, Ledger,
+ * multisig with a local signator, rekeyed to one of those), see scripts/direct/eligibility.ts.
+ */
 export const isDirectEligibleAccount = (
   account: RootState["wallet"]["privateAccounts"][number],
-) => account.type !== "wc" && !account.isHidden;
+  all: RootState["wallet"]["privateAccounts"],
+) => isEligible(account, all);
 
 
 const mutations: MutationTree<DirectState> = {
@@ -158,6 +172,12 @@ const mutations: MutationTree<DirectState> = {
   },
   setNetwork(currentState, network: DirectNetworkView | null) {
     currentState.popup.network = network;
+  },
+  setReturnedFromSigning(
+    currentState,
+    value: { at: number; txId: string } | null,
+  ) {
+    currentState.popup.returnedFromSigning = value;
   },
   setNetworkChange(currentState, change: DirectNetworkChange | null) {
     currentState.popup.networkChange = change;
@@ -525,6 +545,28 @@ const actions: ActionTree<DirectState, RootState> = {
           refuse(admission);
           return;
         }
+        // ARC-60 needs an ed25519 key: refuse up front for a Ledger, Falcon or multisig signer
+        // instead of failing after the user clicked.
+        const accounts = rootState.wallet.privateAccounts;
+        if (
+          items.some((item) => {
+            const account = accounts.find((a) => a.addr === item.signer);
+            return (
+              !account ||
+              !canSignData(
+                account,
+                accounts,
+                dataNetwork ? signingEnvOf(dataNetwork) : rootState.config.env,
+              )
+            );
+          })
+        ) {
+          refuse({
+            code: REQUEST_ERROR.invalid,
+            reason: "This account cannot sign data (only plain and HD keys can).",
+          });
+          return;
+        }
         commit("addSignDataRequest", {
           request: {
             id: request.id,
@@ -561,7 +603,7 @@ const actions: ActionTree<DirectState, RootState> = {
     }
     const eligible = new Map(
       rootState.wallet.privateAccounts
-        .filter(isDirectEligibleAccount)
+        .filter((a, _i, all) => isDirectEligibleAccount(a, all))
         .map((a) => [a.addr, a]),
     );
     const unique = [...new Set(addresses)];
@@ -787,7 +829,7 @@ const actions: ActionTree<DirectState, RootState> = {
       pruneDirectSessions(
         stored,
         rootState.wallet.privateAccounts
-          .filter(isDirectEligibleAccount)
+          .filter((a, _i, all) => isDirectEligibleAccount(a, all))
           .map((a) => a.addr),
       ),
     );

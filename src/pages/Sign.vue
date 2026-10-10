@@ -604,10 +604,17 @@
               <Button
                 v-if="$route.name == 'PayFromWalletConnect'"
                 class="m-2"
-                :disabled="!thresholdMet"
+                :disabled="inDirectPopup ? !isSignedByAny : !thresholdMet"
+                data-testid="return-to-dapp"
                 @click="retToWalletConnect"
               >
-                {{ $t("pay.return_to_wc") }}
+                {{
+                  inDirectPopup
+                    ? thresholdMet
+                      ? $t("pay.return_to_direct")
+                      : $t("pay.return_to_direct_partial")
+                    : $t("pay.return_to_wc")
+                }}
               </Button>
               <Button
                 v-if="$store.state.signer.returnTo == 'SignAll'"
@@ -705,6 +712,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, getCurrentInstance } from "vue";
 import { connectReturnPath } from "@/scripts/wcNavigation";
+import { canSignMultisigPart } from "@/scripts/direct/eligibility";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
@@ -905,7 +913,7 @@ const accountsFromMultisig = computed(() => {
   const params = multisigParams.value;
   if (!params?.addrs) return [];
   const eligible = walletAccounts.value.filter(
-    (a) => params.addrs.includes(a.addr) && (!!a.sk || a.type == "ledger")
+    (a) => params.addrs.includes(a.addr) && canSignMultisigPart(a, walletAccounts.value)
   );
   const subsig = multisigDecoded.value?.msig?.subsig;
   if (!subsig) {
@@ -1794,8 +1802,24 @@ const combineSignatures = async (e?: Event) => {
   }
 };
 
+/** This page runs inside the Biatec Direct popup (the site asked for the signature). */
+const inDirectPopup = computed(
+  () => store.state.direct.popup.dappOrigin !== null,
+);
+
 const retToWalletConnect = () => {
   returnToAction("");
+  // Back in the popup the request is sent to the site straight away once everything is signed.
+  if (inDirectPopup.value) {
+    const txId = (() => {
+      try {
+        return (txn.value as algosdk.Transaction | null)?.txID?.() ?? "";
+      } catch {
+        return "";
+      }
+    })();
+    if (txId) store.commit("direct/setReturnedFromSigning", { at: Date.now(), txId });
+  }
   const accountParam = toSingleParam(
     route.params.account as string | string[] | undefined
   );
