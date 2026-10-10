@@ -8,6 +8,11 @@ import { normalizeGenesisHash, txnGenesisMatches } from "./direct/protocol";
 
 export type TxGenesisCheck = "ok" | "id_mismatch" | "hash_mismatch" | "missing_id";
 
+/** Normalized genesis hash per built-in environment, computed once. */
+const EXPECTED_HASH: Record<string, string | undefined> = Object.fromEntries(
+  Object.entries(KNOWN_NETWORKS).map(([env, known]) => [env, normalizeGenesisHash(known.hash)]),
+);
+
 /** Verdicts that must stop the wallet from signing. */
 export const isBlockingGenesisCheck = (check: TxGenesisCheck): boolean =>
   check === "id_mismatch" || check === "hash_mismatch";
@@ -23,11 +28,9 @@ export function checkTxGenesis(
   walletEnv: string,
 ): TxGenesisCheck {
   if (!walletEnv || walletEnv === "custom") return "ok";
-  const known = Object.prototype.hasOwnProperty.call(KNOWN_NETWORKS, walletEnv)
-    ? KNOWN_NETWORKS[walletEnv]
-    : undefined;
+  const known = Object.prototype.hasOwnProperty.call(KNOWN_NETWORKS, walletEnv);
   if (known) {
-    const expected = normalizeGenesisHash(known.hash);
+    const expected = EXPECTED_HASH[walletEnv];
     if (!expected || !txnGenesisMatches(tx.genesisHash, expected)) {
       return "hash_mismatch";
     }
