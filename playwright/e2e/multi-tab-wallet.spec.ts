@@ -13,7 +13,7 @@ async function unlock(page: Page, password = DEFAULT_WALLET_PASSWORD) {
   await expect(page.locator("#new_wallet_button_open")).toBeVisible();
   await page.locator("#wallet-pass").fill(password);
   await page.locator("#new_wallet_button_open").click();
-  await page.waitForURL(/\/account\/|\/accounts/, { timeout: 30000 });
+  await page.waitForURL(/\/account\/|\/accounts/, { timeout: 90000 });
   await expect(page.locator("#new_wallet_button_open")).toHaveCount(0);
 }
 
@@ -57,6 +57,9 @@ async function submitPasswordChange(
 }
 
 test.describe("Two tabs, one wallet", () => {
+  // Several PBKDF2 unlocks across tabs: slow on a shared CI runner.
+  test.describe.configure({ timeout: 300000 });
+
   test("an account created in one tab survives the other tab saving (AW-2026-059)", async ({
     page,
     context,
@@ -106,7 +109,7 @@ test.describe("Two tabs, one wallet", () => {
     // when the machine is busy.)
     const saveRefused = tabB.waitForEvent("console", {
       predicate: (message) => message.text().includes("could not be saved here"),
-      timeout: 30000,
+      timeout: 90000,
     });
     await createEd25519Account(tabB, "Stale Tab Account");
     await saveRefused;
@@ -123,11 +126,12 @@ test.describe("Two tabs, one wallet", () => {
     await expect(fresh.locator("#new_wallet_button_open")).toBeVisible();
     await fresh.locator("#wallet-pass").fill(NEW_PASSWORD);
     await fresh.locator("#new_wallet_button_open").click();
-    await fresh.waitForURL(/\/account\/|\/accounts/, { timeout: 30000 });
+    await fresh.waitForURL(/\/account\/|\/accounts/, { timeout: 90000 });
   });
 });
 
 test.describe("Password policy (AW-2026-066)", () => {
+  test.describe.configure({ timeout: 240000 });
   for (const [label, password] of [
     ["an empty password", ""],
     ["a too short password", "abc123"],
@@ -156,6 +160,6 @@ test.describe("Password policy (AW-2026-066)", () => {
     await page.getByText("Logout", { exact: true }).click({ force: true });
     await page.locator("#wallet-pass").fill(DEFAULT_WALLET_PASSWORD);
     await page.locator("#new_wallet_button_open").click();
-    await page.waitForURL(/\/account\/|\/accounts/, { timeout: 30000 });
+    await page.waitForURL(/\/account\/|\/accounts/, { timeout: 90000 });
   });
 });
