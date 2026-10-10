@@ -3,7 +3,7 @@
  * Biatec Direct). Pure, so they are unit-testable under Node.
  */
 import algosdk from "algosdk";
-import { KNOWN_NETWORKS } from "./direct/networks";
+import { KNOWN_NETWORKS, isKnownEnvId } from "./direct/networks";
 import { normalizeGenesisHash, txnGenesisMatches } from "./direct/protocol";
 
 export type TxGenesisCheck = "ok" | "id_mismatch" | "hash_mismatch" | "missing_id";
@@ -28,7 +28,7 @@ export function checkTxGenesis(
   walletEnv: string,
 ): TxGenesisCheck {
   if (!walletEnv || walletEnv === "custom") return "ok";
-  const known = Object.prototype.hasOwnProperty.call(KNOWN_NETWORKS, walletEnv);
+  const known = isKnownEnvId(walletEnv);
   if (known) {
     const expected = EXPECTED_HASH[walletEnv];
     if (!expected || !txnGenesisMatches(tx.genesisHash, expected)) {

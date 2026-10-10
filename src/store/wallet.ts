@@ -1693,7 +1693,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     }
 
     if (rejectWeakPassword(dispatch, passw2)) return;
-    const check = await dispatch("openWallet", { name, pass: passw1 });
+    // Verify the old password without reopening the wallet: reopening would replace the
+    // in-memory accounts and discard one that is not saved yet.
+    const check = await dispatch("checkPassword", { pass: passw1 });
     if (!check) {
       dispatch("toast/openError", "Password is incorrect", {
         root: true,
