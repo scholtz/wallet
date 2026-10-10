@@ -1108,6 +1108,7 @@
       "network_changed": "This site was connected on {granted}, but this request is on {requested}. Check the network before you sign.",
       "tx_count": "Transactions: {count}",
       "falcon_fee_warning": "This account uses a Falcon-1024 (post-quantum) key. Its signature is large, so the network needs a higher fee (about three times the minimum fee per transaction) than the website set ({fee}). The transaction may be rejected unless other transactions in the group cover the difference.",
+      "partial_msig_note": "This multisig transaction has some, but not all, of the signatures it needs. Sending it back returns it partially signed: the website has to collect the remaining signatures.",
       "network_foreign_note": "Details from the wallet's network are not shown for another network.",
       "genesis_hash_label": "Genesis hash",
       "network_not_named": "The site did not name a network. Data signatures are not tied to a network."

@@ -4,6 +4,7 @@
 // accounts, ARC-76 accounts without a stored key, hidden accounts and WalletConnect accounts do not.
 import { test, expect } from "@playwright/test";
 import {
+  canSignData,
   canSignLocally,
   holdsHdKey,
   isDirectEligibleAccount,
@@ -143,5 +144,32 @@ test.describe("holdsHdKey", () => {
 
   test("not HD at all", () => {
     expect(holdsHdKey(acct("A", { sk: KEY }), [])).toBe(false);
+  });
+});
+
+test.describe("canSignData (ARC-60: plain and HD keys only)", () => {
+  test("plain and HD accounts", () => {
+    const hd = acct("H", { type: "hd", hdMnemonic: "w", hdRootAddr: "H" });
+    const plain = acct("A", { sk: KEY });
+    expect(canSignData(hd, [hd])).toBe(true);
+    expect(canSignData(plain, [plain])).toBe(true);
+  });
+
+  test("Ledger, Falcon-1024 and multisig accounts cannot sign data", () => {
+    expect(canSignData(acct("L", { type: "ledger" }), [])).toBe(false);
+    expect(canSignData(acct("F", { type: "falcon1024", falconPrivateKey: KEY }), [])).toBe(false);
+    expect(canSignData(acct("M", { type: "msig", params: { addrs: ["A"] } }), [acct("A", { sk: KEY })])).toBe(false);
+  });
+
+  test("a watch-only account rekeyed to a plain key can", () => {
+    const plain = acct("A", { sk: KEY });
+    const watched = acct("W", { data: { n: { rekeyedTo: "A" } } });
+    expect(canSignData(watched, [plain, watched])).toBe(true);
+  });
+
+  test("an account rekeyed to a Ledger cannot", () => {
+    const ledger = acct("L", { type: "ledger" });
+    const watched = acct("W", { data: { n: { rekeyedTo: "L" } } });
+    expect(canSignData(watched, [ledger, watched])).toBe(false);
   });
 });

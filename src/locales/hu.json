@@ -1108,6 +1108,7 @@
       "network_changed": "Ez az oldal a(z) {granted} hálózaton lett csatlakoztatva, de ez a kérés a(z) {requested} hálózaton van. Aláírás előtt ellenőrizze a hálózatot.",
       "tx_count": "Tranzakciók: {count}",
       "falcon_fee_warning": "Ez a fiók Falcon-1024 (poszt-kvantum) kulcsot használ. Az aláírása nagy, ezért a hálózat magasabb díjat kér (tranzakciónként nagyjából a minimális díj háromszorosát), mint amit a weboldal megadott ({fee}). A tranzakciót elutasíthatják, ha a csoport többi tranzakciója nem fedezi a különbséget.",
+      "partial_msig_note": "Ennek a multisig tranzakciónak van néhány, de nem az összes szükséges aláírása. Visszaküldve részben aláírva kerül vissza: a hiányzó aláírásokat a weboldalnak kell begyűjtenie.",
       "network_foreign_note": "A tárca hálózatának adatai más hálózatnál nem jelennek meg.",
       "genesis_hash_label": "Genezis hash",
       "network_not_named": "Az oldal nem adott meg hálózatot. Az adataláírások nem kötődnek hálózathoz."

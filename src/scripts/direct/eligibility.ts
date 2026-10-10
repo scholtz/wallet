@@ -36,7 +36,7 @@ export function holdsHdKey(
  * The account can add a subsignature to a multisig: key held (plain, HD) or a Ledger. Falcon-1024
  * keys cannot (a multisig subsignature is ed25519) and WalletConnect accounts sign elsewhere.
  */
-function canSignMultisigPart(
+export function canSignMultisigPart(
   account: EligibilityAccount,
   all: EligibilityAccount[],
 ): boolean {
@@ -88,4 +88,31 @@ export function isDirectEligibleAccount(
   all: EligibilityAccount[],
 ): boolean {
   return account.type !== "wc" && !account.isHidden && canSignLocally(account, all);
+}
+
+/**
+ * ARC-60 data signing is an ed25519 signature made with a plain or HD key (the wallet cannot make
+ * one with a Ledger, a Falcon key or a multisig), on the account itself or on the key it is
+ * rekeyed to.
+ */
+export function canSignData(
+  account: EligibilityAccount,
+  all: EligibilityAccount[],
+  visited: Set<string> = new Set(),
+): boolean {
+  if (visited.has(account.addr)) return false;
+  visited.add(account.addr);
+  if (account.type === "hd") return holdsHdKey(account, all);
+  if (account.type === "ledger" || account.type === "falcon1024" || account.type === "wc") {
+    return false;
+  }
+  if (account.params) return false;
+  if (account.sk) return true;
+  for (const entry of Object.values(account.data ?? {})) {
+    const target = entry?.rekeyedTo;
+    if (!target || target === account.addr) continue;
+    const rekeyed = all.find((a) => a.addr === target);
+    if (rekeyed && canSignData(rekeyed, all, visited)) return true;
+  }
+  return false;
 }

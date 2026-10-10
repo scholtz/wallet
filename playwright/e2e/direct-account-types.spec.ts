@@ -7,6 +7,7 @@ import algosdk from "algosdk";
 import { setupFreshWallet } from "../support/wallet";
 import {
   MAINNET_HASH,
+  arc60Item,
   encode,
   expectClosed,
   expandAll,
@@ -379,7 +380,10 @@ test.describe("Biatec Direct signs for every account type", () => {
     await expect(back).toHaveText("Return partially signed to the website");
     await expect(back).toBeEnabled();
     await back.click();
-    // Not complete, so nothing was sent on its own: the user decides to send it back.
+    // Not complete: the list says so, offers no further Sign, and nothing is sent on its own.
+    await expect(popup.getByTestId("direct-partial-msig")).toBeVisible();
+    await expect(popup.getByRole("button", { name: "Sign transaction" })).toHaveCount(0);
+    // The user decides to send it back.
     expect((await messages(dapp)).some(reply("msig-partial"))).toBe(false);
     await popup.getByRole("button", { name: "Send back to DApp" }).click();
     const response = await waitForMessage(dapp, reply("msig-partial"));
@@ -426,5 +430,41 @@ test.describe("Biatec Direct signs for every account type", () => {
     expect(raw.pqsig).toBeDefined();
     expect(algosdk.encodeAddress(raw.sgnr!)).toBe(falcon);
     await expectClosed(popup);
+  });
+
+  test("sign_data for a Falcon account is refused up front (ARC-60 needs an ed25519 key)", async ({
+    context,
+    page,
+  }) => {
+    await setupFreshWallet(page);
+    const falcon = await addFalcon(page, "Falcon Account");
+    const dapp = await connectFor(context, [falcon]);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "data-falcon",
+      reference: "arc0060:sign_data:request",
+      params: { providerId: "d", items: [arc60Item(falcon, "127.0.0.1")] },
+    });
+    const response = await waitForMessage(dapp, reply("data-falcon"));
+    expect((response.data.error as { message: string }).message).toContain("cannot sign data");
+    await expectClosed(popup);
+  });
+
+  test("sign_data for a plain account is still accepted", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const plain = await addEd25519(page, "Plain Account");
+    const dapp = await connectFor(context, [plain]);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "data-plain",
+      reference: "arc0060:sign_data:request",
+      params: { providerId: "d", items: [arc60Item(plain, "127.0.0.1")] },
+    });
+    await expect(popup.getByTestId("direct-network-none")).toBeVisible();
+    expect((await messages(dapp)).some(reply("data-plain"))).toBe(false);
   });
 });

@@ -1108,6 +1108,7 @@
       "network_changed": "Este sitio se conectó en {granted}, pero esta solicitud es en {requested}. Comprueba la red antes de firmar.",
       "tx_count": "Transacciones: {count}",
       "falcon_fee_warning": "Esta cuenta usa una clave Falcon-1024 (poscuántica). Su firma es grande, por lo que la red exige una comisión mayor (unas tres veces la comisión mínima por transacción) que la fijada por el sitio ({fee}). La transacción puede ser rechazada si otras transacciones del grupo no cubren la diferencia.",
+      "partial_msig_note": "Esta transacción multisig tiene algunas de las firmas necesarias, pero no todas. Al enviarla de vuelta se devuelve parcialmente firmada: el sitio web debe reunir las firmas restantes.",
       "network_foreign_note": "Los detalles de la red de la cartera no se muestran para otra red.",
       "genesis_hash_label": "Hash génesis",
       "network_not_named": "El sitio no indicó ninguna red. Las firmas de datos no están ligadas a una red."

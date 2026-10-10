@@ -34,7 +34,10 @@ import {
   txnGenesisMatches,
   type DirectRequestMessage,
 } from "../scripts/direct/protocol";
-import { isDirectEligibleAccount as isEligible } from "../scripts/direct/eligibility";
+import {
+  canSignData,
+  isDirectEligibleAccount as isEligible,
+} from "../scripts/direct/eligibility";
 import {
   genesisIdConsistent,
   resolveRequestNetwork,
@@ -110,11 +113,11 @@ export interface DirectState {
     /** Set when the request is on another network than the one the site was connected on. */
     networkChange: DirectNetworkChange | null;
     /**
-     * When (ms since epoch, 0 = never) the user came back from the multisig signing page
-     * (/payWC): a fully signed request is then sent on without another click. Only a recent
-     * return counts, so a stale value can never send a later request unasked.
+     * Set when the user comes back from the multisig signing page (/payWC) with the id of the
+     * transaction signed there: the fully signed request holding it is then sent on without
+     * another click. Only a recent return counts, so a stale value can never send anything unasked.
      */
-    returnedFromSigning: number;
+    returnedFromSigning: { at: number; txId: string } | null;
   };
   pendingEnable: PendingEnable | null;
 }
@@ -133,7 +136,7 @@ const state = (): DirectState => ({
   sessions: [],
   requests: [],
   signDataRequests: [],
-  popup: { status: "idle", dappOrigin: null, verified: false, network: null, networkChange: null, returnedFromSigning: 0 },
+  popup: { status: "idle", dappOrigin: null, verified: false, network: null, networkChange: null, returnedFromSigning: null },
   pendingEnable: null,
 });
 
@@ -170,7 +173,10 @@ const mutations: MutationTree<DirectState> = {
   setNetwork(currentState, network: DirectNetworkView | null) {
     currentState.popup.network = network;
   },
-  setReturnedFromSigning(currentState, value: number) {
+  setReturnedFromSigning(
+    currentState,
+    value: { at: number; txId: string } | null,
+  ) {
     currentState.popup.returnedFromSigning = value;
   },
   setNetworkChange(currentState, change: DirectNetworkChange | null) {
@@ -537,6 +543,21 @@ const actions: ActionTree<DirectState, RootState> = {
         });
         if (!admission.ok) {
           refuse(admission);
+          return;
+        }
+        // ARC-60 needs an ed25519 key: refuse up front for a Ledger, Falcon or multisig signer
+        // instead of failing after the user clicked.
+        const accounts = rootState.wallet.privateAccounts;
+        if (
+          items.some((item) => {
+            const account = accounts.find((a) => a.addr === item.signer);
+            return !account || !canSignData(account, accounts);
+          })
+        ) {
+          refuse({
+            code: REQUEST_ERROR.invalid,
+            reason: "This account cannot sign data (only plain and HD keys can).",
+          });
           return;
         }
         commit("addSignDataRequest", {

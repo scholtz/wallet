@@ -80,6 +80,14 @@
               </li>
             </ul>
             <Message
+              v-if="hasPartialMultisig(slotProps.data)"
+              severity="warn"
+              class="m-0 mt-2"
+              data-testid="direct-partial-msig"
+            >
+              {{ $t("connect.direct.partial_msig_note") }}
+            </Message>
+            <Message
               v-if="lowFalconFee(slotProps.data) !== undefined"
               severity="warn"
               class="m-0 mt-2"
@@ -824,11 +832,15 @@ const txSummaryTo = (tx: TransactionWrapper): string => {
 // the flag is only set by the signing page).
 onMounted(() => {
   if (ns.value !== "direct") return;
-  const returnedAt = store.state.direct.popup.returnedFromSigning;
-  store.commit("direct/setReturnedFromSigning", 0);
-  if (!returnedAt || Date.now() - returnedAt > 15_000) return;
+  const returned = store.state.direct.popup.returnedFromSigning;
+  store.commit("direct/setReturnedFromSigning", null);
+  if (!returned || Date.now() - returned.at > 15_000) return;
+  // Only the request holding the transaction the user just signed is sent on.
   for (const request of requests.value) {
-    if (allTransactionsSigned(request)) void clickAccept(request);
+    const holdsIt = (request.transactions ?? []).some(
+      (tx) => tx.txn?.txID?.() === returned.txId,
+    );
+    if (holdsIt && allTransactionsSigned(request)) void clickAccept(request);
   }
 });
 
@@ -1168,13 +1180,20 @@ const toBeSigned = (data: TransactionWrapper) => {
 
 /**
  * Whether the request still needs the user to sign. The compact (Direct) list starts collapsed, so
- * its Sign button stays until nothing is left to sign (a multisig below its threshold counts as
- * left to sign); WalletConnect's list hides it once anything is signed.
+ * its Sign button stays until every transaction holds a signature (a multisig below its threshold
+ * is returned as it is, see hasPartialMultisig); WalletConnect's list hides it once anything is
+ * signed.
  */
 const needsSigning = (data: RequestItem) =>
-  compact.value
-    ? (data.transactions ?? []).some((tx) => toBeSigned(tx))
-    : !atLeastOneSigned(data);
+  compact.value ? hasUnsignedTransaction(data) : !atLeastOneSigned(data);
+
+/** A multisig transaction with some, but not enough, signatures (Direct returns it as is). */
+const hasPartialMultisig = (data: RequestItem) => {
+  const signedMap = store.state.signer.signed ?? {};
+  return (data.transactions ?? []).some(
+    (tx) => !!tx?.txn?.txID && tx.txn.txID() in signedMap && toBeSigned(tx),
+  );
+};
 
 /** A transaction with no signature at all: the request must not be sent back yet (Direct). */
 const hasUnsignedTransaction = (data: RequestItem) => {

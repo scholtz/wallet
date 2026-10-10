@@ -1108,6 +1108,7 @@
       "network_changed": "Deze site is verbonden op {granted}, maar dit verzoek is op {requested}. Controleer het netwerk voordat je ondertekent.",
       "tx_count": "Transacties: {count}",
       "falcon_fee_warning": "Dit account gebruikt een Falcon-1024-sleutel (post-quantum). De handtekening is groot, dus het netwerk vraagt een hogere vergoeding (ongeveer drie keer de minimumvergoeding per transactie) dan de website heeft ingesteld ({fee}). De transactie kan worden geweigerd als andere transacties in de groep het verschil niet dekken.",
+      "partial_msig_note": "Deze multisig-transactie heeft een deel van de benodigde handtekeningen, maar niet alle. Terugsturen levert haar gedeeltelijk ondertekend op: de website moet de overige handtekeningen verzamelen.",
       "network_foreign_note": "Details van het netwerk van de wallet worden niet getoond voor een ander netwerk.",
       "genesis_hash_label": "Genesis-hash",
       "network_not_named": "De site heeft geen netwerk opgegeven. Handtekeningen van gegevens zijn niet aan een netwerk gebonden."

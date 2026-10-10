@@ -712,7 +712,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, getCurrentInstance } from "vue";
 import { connectReturnPath } from "@/scripts/wcNavigation";
-import { holdsHdKey } from "@/scripts/direct/eligibility";
+import { canSignMultisigPart } from "@/scripts/direct/eligibility";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
@@ -913,9 +913,7 @@ const accountsFromMultisig = computed(() => {
   const params = multisigParams.value;
   if (!params?.addrs) return [];
   const eligible = walletAccounts.value.filter(
-    (a) => params.addrs.includes(a.addr) && (!!a.sk ||
-        a.type == "ledger" ||
-        (a.type == "hd" && holdsHdKey(a, walletAccounts.value)))
+    (a) => params.addrs.includes(a.addr) && canSignMultisigPart(a, walletAccounts.value)
   );
   const subsig = multisigDecoded.value?.msig?.subsig;
   if (!subsig) {
@@ -1812,7 +1810,16 @@ const inDirectPopup = computed(
 const retToWalletConnect = () => {
   returnToAction("");
   // Back in the popup the request is sent to the site straight away once everything is signed.
-  if (inDirectPopup.value) store.commit("direct/setReturnedFromSigning", Date.now());
+  if (inDirectPopup.value) {
+    const txId = (() => {
+      try {
+        return (txn.value as algosdk.Transaction | null)?.txID?.() ?? "";
+      } catch {
+        return "";
+      }
+    })();
+    store.commit("direct/setReturnedFromSigning", { at: Date.now(), txId });
+  }
   const accountParam = toSingleParam(
     route.params.account as string | string[] | undefined
   );

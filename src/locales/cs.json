@@ -1108,6 +1108,7 @@
       "network_changed": "Tento web byl připojen v síti {granted}, ale tento požadavek je v síti {requested}. Před podpisem zkontrolujte síť.",
       "tx_count": "Transakce: {count}",
       "falcon_fee_warning": "Tento účet používá klíč Falcon-1024 (postkvantový). Jeho podpis je velký, proto síť vyžaduje vyšší poplatek (asi trojnásobek minimálního poplatku za transakci), než nastavil web ({fee}). Transakce může být zamítnuta, pokud rozdíl nepokryjí jiné transakce ve skupině.",
+      "partial_msig_note": "Tato multisig transakce má jen část potřebných podpisů. Po odeslání zpět se vrátí částečně podepsaná: zbývající podpisy musí získat web.",
       "network_foreign_note": "Podrobnosti ze sítě peněženky se pro jinou síť nezobrazují.",
       "genesis_hash_label": "Genesis hash",
       "network_not_named": "Web nezadal žádnou síť. Podpisy dat nejsou vázány na síť."
