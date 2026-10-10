@@ -34,6 +34,7 @@ import {
   txnGenesisMatches,
   type DirectRequestMessage,
 } from "../scripts/direct/protocol";
+import { isDirectEligibleAccount as isEligible } from "../scripts/direct/eligibility";
 import {
   genesisIdConsistent,
   resolveRequestNetwork,
@@ -108,6 +109,8 @@ export interface DirectState {
     network: DirectNetworkView | null;
     /** Set when the request is on another network than the one the site was connected on. */
     networkChange: DirectNetworkChange | null;
+    /** The user came back from the multisig signing page (/payWC): send a fully signed request on. */
+    returnedFromSigning: boolean;
   };
   pendingEnable: PendingEnable | null;
 }
@@ -126,14 +129,18 @@ const state = (): DirectState => ({
   sessions: [],
   requests: [],
   signDataRequests: [],
-  popup: { status: "idle", dappOrigin: null, verified: false, network: null, networkChange: null },
+  popup: { status: "idle", dappOrigin: null, verified: false, network: null, networkChange: null, returnedFromSigning: false },
   pendingEnable: null,
 });
 
-/** Accounts a dApp may be granted: anything the wallet signs for itself except proxied (wc) ones. */
+/**
+ * Accounts a dApp may be granted: every account this wallet can sign for (any key type, Ledger,
+ * multisig with a local signator, rekeyed to one of those), see scripts/direct/eligibility.ts.
+ */
 export const isDirectEligibleAccount = (
   account: RootState["wallet"]["privateAccounts"][number],
-) => account.type !== "wc" && !account.isHidden;
+  all: RootState["wallet"]["privateAccounts"],
+) => isEligible(account, all);
 
 
 const mutations: MutationTree<DirectState> = {
@@ -158,6 +165,9 @@ const mutations: MutationTree<DirectState> = {
   },
   setNetwork(currentState, network: DirectNetworkView | null) {
     currentState.popup.network = network;
+  },
+  setReturnedFromSigning(currentState, value: boolean) {
+    currentState.popup.returnedFromSigning = value;
   },
   setNetworkChange(currentState, change: DirectNetworkChange | null) {
     currentState.popup.networkChange = change;
@@ -561,7 +571,7 @@ const actions: ActionTree<DirectState, RootState> = {
     }
     const eligible = new Map(
       rootState.wallet.privateAccounts
-        .filter(isDirectEligibleAccount)
+        .filter((a, _i, all) => isDirectEligibleAccount(a, all))
         .map((a) => [a.addr, a]),
     );
     const unique = [...new Set(addresses)];
@@ -787,7 +797,7 @@ const actions: ActionTree<DirectState, RootState> = {
       pruneDirectSessions(
         stored,
         rootState.wallet.privateAccounts
-          .filter(isDirectEligibleAccount)
+          .filter((a, _i, all) => isDirectEligibleAccount(a, all))
           .map((a) => a.addr),
       ),
     );

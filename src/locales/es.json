@@ -576,6 +576,8 @@
     "arc14_auth_notice": "Esta es una solicitud de autenticación ARC14 para \"{realm}\". Firmarla no transfiere ningún fondo.",
     "arc14_authenticate": "Autenticar en {realm}",
     "return_to_wc": "Regresar a WalletConnect",
+    "return_to_direct": "Volver al sitio web",
+    "return_to_direct_partial": "Devolver parcialmente firmada al sitio web",
     "select_account_for_payment": "Seleccione la cuenta desde la que desea realizar el pago",
     "create_multisig_proposal": "Crear propuesta multifirma",
     "2fa_code": "Código 2FA",
@@ -1104,6 +1106,8 @@
       "network_unknown_warning": "Esta red no es una que la cartera conozca. Continúe solo si la reconoce; compruebe el hash génesis.",
       "network_differs": "Distinta de la red seleccionada en la cartera ({selected}). Los nombres de activos, los detalles de aplicaciones y la vista previa de la transacción no están disponibles para esta red; los importes se muestran en las unidades propias de la red.",
       "network_changed": "Este sitio se conectó en {granted}, pero esta solicitud es en {requested}. Comprueba la red antes de firmar.",
+      "tx_count": "Transacciones: {count}",
+      "falcon_fee_warning": "Esta cuenta usa una clave Falcon-1024 (poscuántica). Su firma es grande, por lo que la red exige una comisión mayor (unos 0,003 Algo por transacción) que la fijada por el sitio ({fee}). La transacción puede ser rechazada si otras transacciones del grupo no cubren la diferencia.",
       "network_foreign_note": "Los detalles de la red de la cartera no se muestran para otra red.",
       "genesis_hash_label": "Hash génesis",
       "network_not_named": "El sitio no indicó ninguna red. Las firmas de datos no están ligadas a una red."

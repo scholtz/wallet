@@ -735,6 +735,9 @@ const actions: ActionTree<SignerState, RootState> = {
     if (signatorAccount.type === "wc") {
       return await dispatch("signMultisigByWC", payload);
     }
+    if (signatorAccount.type === "hd") {
+      return await dispatch("signMultisigByHd", payload);
+    }
     if (signatorAccount.sk) {
       return await dispatch("signMultisigBySk", payload);
     }
@@ -767,6 +770,45 @@ const actions: ActionTree<SignerState, RootState> = {
       if (subsigAddr === payload.signator) {
         keyExist = true;
         signedTxn.msig.subsig[index].s = sigInnerTxObj.sig;
+      }
+    });
+    if (!keyExist) {
+      throw new Error(
+        `Multisig key is missing for address ${payload.signator}`,
+      );
+    }
+    const ret = algosdk.encodeObj(signedTxn);
+    commit("setSigned", ret);
+    return ret;
+  },
+  /** An HD (ARC-52) account as one of the multisig signators: derive its key and add its subsignature. */
+  async signMultisigByHd(
+    { commit, rootState },
+    payload: MultisigPayload,
+  ): Promise<Uint8Array<ArrayBufferLike>> {
+    const signedTxn = decodeMultisigTxn(payload.msigTx);
+    const txn = algosdk.decodeUnsignedTransaction(
+      algosdk.encodeObj(signedTxn.txn),
+    );
+    const signatorAccount = ensureAccount(rootState, payload.signator);
+    if (!signatorAccount.hdRootAddr) {
+      throw new Error("HD wallet root account address was not found");
+    }
+    const rootAccount = ensureAccount(rootState, signatorAccount.hdRootAddr);
+    if (!rootAccount.hdMnemonic) {
+      throw new Error("HD wallet master mnemonic was not found");
+    }
+    const sig = await hdSignTransactionBytes(
+      rootAccount.hdMnemonic,
+      signatorAccount.hdAccountIndex ?? 0,
+      0,
+      txn.bytesToSign(),
+    );
+    let keyExist = false;
+    signedTxn.msig.subsig.forEach((subsig, index: number) => {
+      if (algosdk.encodeAddress(subsig.pk) === payload.signator) {
+        keyExist = true;
+        signedTxn.msig.subsig[index].s = sig;
       }
     });
     if (!keyExist) {

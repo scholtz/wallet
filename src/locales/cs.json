@@ -576,6 +576,8 @@
     "arc14_auth_notice": "Toto je ověřovací požadavek ARC14 pro „{realm}“. Jeho podpisem se nepřevádí žádné prostředky.",
     "arc14_authenticate": "Ověřit u {realm}",
     "return_to_wc": "Vrátit se do WalletConnect",
+    "return_to_direct": "Vrátit se na web",
+    "return_to_direct_partial": "Vrátit částečně podepsané na web",
     "select_account_for_payment": "Vyberte účet ze kterého chcete provést platbu",
     "create_multisig_proposal": "Vytvořit multisig návrh",
     "2fa_code": "2FA kód",
@@ -1104,6 +1106,8 @@
       "network_unknown_warning": "Tuto síť peněženka nezná. Pokračujte, jen pokud ji poznáváte; zkontrolujte genesis hash.",
       "network_differs": "Liší se od sítě vybrané v peněžence ({selected}). Názvy aktiv, podrobnosti aplikací a náhled transakce nejsou pro tuto síť k dispozici; částky jsou zobrazeny v jednotkách dané sítě.",
       "network_changed": "Tento web byl připojen v síti {granted}, ale tento požadavek je v síti {requested}. Před podpisem zkontrolujte síť.",
+      "tx_count": "Transakce: {count}",
+      "falcon_fee_warning": "Tento účet používá klíč Falcon-1024 (postkvantový). Jeho podpis je velký, proto síť vyžaduje vyšší poplatek (asi 0,003 Algo za transakci), než nastavil web ({fee}). Transakce může být zamítnuta, pokud rozdíl nepokryjí jiné transakce ve skupině.",
       "network_foreign_note": "Podrobnosti ze sítě peněženky se pro jinou síť nezobrazují.",
       "genesis_hash_label": "Genesis hash",
       "network_not_named": "Web nezadal žádnou síť. Podpisy dat nejsou vázány na síť."

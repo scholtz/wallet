@@ -238,7 +238,9 @@ const pendingEnable = computed(() => store.state.direct.pendingEnable);
 const requests = computed(() => store.state.direct.requests);
 const signDataRequests = computed(() => store.state.direct.signDataRequests);
 const eligibleAccounts = computed(() =>
-  store.state.wallet.privateAccounts.filter(isDirectEligibleAccount),
+  store.state.wallet.privateAccounts.filter((account, _index, all) =>
+    isDirectEligibleAccount(account, all),
+  ),
 );
 /** The network the site's request names (shown on every request; Direct signs on any chain). */
 const network = computed(() => store.state.direct.popup.network);
@@ -485,10 +487,7 @@ const closeWindow = () => {
 .direct-popup :deep(.connect-requests-compact .m-1) {
   margin: 0.15rem;
 }
-.direct-popup :deep(.connect-requests-compact .p-datatable-row-toggle-button) {
-  display: none;
-}
-/* The (hidden) expander column would otherwise still reserve 5rem of a narrow popup. */
+/* The expander column is narrow: the request list starts collapsed and opens on demand. */
 .direct-popup
   :deep(
     .connect-requests-compact
@@ -496,7 +495,24 @@ const closeWindow = () => {
       > tr:not(.p-datatable-row-expansion)
       > td:first-child
   ) {
-  display: none;
+  width: 2.5rem;
+  padding-right: 0;
+}
+.direct-popup :deep(.connect-requests-compact .direct-tx-lines) {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+}
+.direct-popup :deep(.connect-requests-compact .direct-tx-lines li) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0;
+}
+.direct-popup :deep(.connect-requests-compact .direct-tx-arrow) {
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
 }
 .direct-network-none {
   margin: 0 0 1rem;

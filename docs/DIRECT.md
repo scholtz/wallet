@@ -23,6 +23,27 @@ Safe, EIP-6963/7039: issue [#192](https://github.com/scholtz/wallet/issues/192).
 5. Every signature opens a **new** popup with the request, the same review tables as WalletConnect
    and an explicit approval. There is never silent signing.
 
+## Account types
+
+The popup offers every account the wallet can sign for, and signs transactions for each kind:
+
+| Account | How the signature is made in the popup |
+| --- | --- |
+| Plain ed25519, ARC-76 (key stored) | Signed in the popup with the stored key. |
+| HD (ARC-52) root and derived | Derived from the root mnemonic at signing time. |
+| Falcon-1024 (post-quantum) | A `pqsig` envelope is returned. The signature is large, so the network needs about three minimum fees; the site fixes the fee (it is part of the group id), so the popup warns when the fee is below that. |
+| Ledger | Confirmed on the device (WebHID/WebUSB, allowed in a popup the user opened); the "Confirm on your Ledger" notice is shown. |
+| Multisig (incl. 2FA) | The popup opens the multisig page, the user picks which local signators sign (plain, HD or Ledger keys), and the signed transaction goes back automatically once the threshold is met. Below the threshold the user can return it partially signed. |
+| Rekeyed account | Signed by the key it is rekeyed to on the network of the request (see `scripts/signingEnv.ts`). |
+
+Not offered: watch-only accounts, ARC-76 accounts whose key was not stored, hidden accounts and
+WalletConnect accounts (see `scripts/direct/eligibility.ts`). ARC-60 `sign_data` is limited to
+plain and HD keys.
+
+The request list starts collapsed: one summary line per transaction (kind, amount, receiver, rekey
+and close-to flags), the details open on demand, and a single transaction can be signed from the
+collapsed row.
+
 ## Security model
 
 | Rule | Where enforced |

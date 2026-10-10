@@ -1,168 +1,37 @@
 // Biatec Direct: relay-free popup + postMessage dApp transport (wallet side), end to end.
 //
-// The "dApp" is a tiny fixture page served on a DIFFERENT origin than the wallet
-// (http://127.0.0.1:8080 vs http://localhost:8080 - same dev server, different origin), so the
-// real cross-origin popup/postMessage path and the browser-supplied event.origin are exercised.
 import { test, expect, type BrowserContext, type Page } from "@playwright/test";
 import algosdk from "algosdk";
-import { createHash, createPublicKey, verify } from "node:crypto";
+import { createHash } from "node:crypto";
 import { DEFAULT_WALLET_PASSWORD, setupFreshWallet } from "../support/wallet";
-
-const WALLET_ORIGIN = "http://localhost:8080";
-const DAPP_ORIGIN = "http://127.0.0.1:8080";
-const DAPP_URL = `${DAPP_ORIGIN}/__direct-dapp.html`;
-const MAINNET_HASH = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=";
-const TESTNET_HASH = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
-const VOI_HASH = "r20fSQI8gWe/kFZziNonSPCXLwcQmH/nxROvnnueWOk=";
-const WALLET_PROVIDER_ID = "8f7a1c2e-5b3d-4e9f-a6c0-1d2e3f4a5b6c";
-const OTHER_ADDR = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
-
-const FIXTURE = `<!doctype html><html><body><button id="open">open</button><script>
-const WALLET = ${JSON.stringify(WALLET_ORIGIN)};
-window.__messages = [];
-window.__popup = null;
-window.addEventListener("message", (e) => {
-  window.__messages.push({ origin: e.origin, data: e.data, fromPopup: e.source === window.__popup });
-});
-window.__hint = location.origin;
-document.getElementById("open").addEventListener("click", () => {
-  window.__popup = window.open(WALLET + "/direct?origin=" + encodeURIComponent(window.__hint),
-    "biatec-wallet-direct", "popup,width=480,height=720");
-});
-window.__post = (msg) => window.__popup.postMessage(msg, WALLET);
-window.__closePopup = () => window.__popup.close();
-</script></body></html>`;
-
-async function openDapp(context: BrowserContext): Promise<Page> {
-  await context.route(DAPP_URL, (route) =>
-    route.fulfill({ contentType: "text/html", body: FIXTURE }),
-  );
-  const dapp = await context.newPage();
-  await dapp.goto(DAPP_URL);
-  return dapp;
-}
-
-async function openPopup(context: BrowserContext, dapp: Page): Promise<Page> {
-  // Messages of a previous popup (e.g. its `ready`) must not satisfy waits for this one.
-  await dapp.evaluate(() => {
-    (window as unknown as { __messages: unknown[] }).__messages.length = 0;
-  });
-  const [popup] = await Promise.all([
-    context.waitForEvent("page"),
-    dapp.locator("#open").click(),
-  ]);
-  return popup;
-}
-
-async function unlock(popup: Page) {
-  await expect(popup.locator("#new_wallet_button_open")).toBeVisible();
-  await popup.locator("#wallet-pass").fill(DEFAULT_WALLET_PASSWORD);
-  await popup.locator("#new_wallet_button_open").click();
-}
-
-/** The popup closes itself shortly after replying; poll instead of racing a close event. */
-const expectClosed = (popup: Page) => expect.poll(() => popup.isClosed()).toBe(true);
-
-type Msg = { origin: string; data: Record<string, unknown>; fromPopup: boolean };
-const messages = (dapp: Page) => dapp.evaluate(() => (window as unknown as { __messages: Msg[] }).__messages);
-const post = (dapp: Page, msg: unknown) =>
-  dapp.evaluate((m) => (window as unknown as { __post: (x: unknown) => void }).__post(m), msg);
-
-async function waitForMessage(dapp: Page, predicate: (m: Msg) => boolean): Promise<Msg> {
-  let found: Msg | undefined;
-  await expect
-    .poll(async () => {
-      found = (await messages(dapp)).find(predicate);
-      return Boolean(found);
-    })
-    .toBe(true);
-  return found!;
-}
-
-const isReady = (m: Msg) => m.data.reference === "biatec:direct:ready";
-const reply = (id: string) => (m: Msg) => m.data.requestId === id;
-
-/** ARC-60 AUTH item for `domain`, signed by `signerAddr` (authenticatorData = SHA-256(domain)). */
-function arc60Item(signerAddr: string, domain: string) {
-  return {
-    data: Buffer.from('{"type":"auth","nonce":"1"}').toString("base64"),
-    signer: Buffer.from(algosdk.decodeAddress(signerAddr).publicKey).toString("base64"),
-    domain,
-    authenticatorData: createHash("sha256").update(domain).digest().toString("base64"),
-    scope: 1,
-    encoding: "base64",
-  };
-}
-
-/** Account address of the freshly created wallet (from /account/<addr>). */
-const walletAddress = (page: Page) => new URL(page.url()).pathname.split("/").pop()!;
-
-function paymentTxn(sender: string, genesisHash = MAINNET_HASH, genesisID = "mainnet-v1.0") {
-  const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    sender,
-    receiver: sender,
-    amount: 0,
-    suggestedParams: {
-      fee: 1000,
-      flatFee: true,
-      firstValid: 1000,
-      lastValid: 2000,
-      genesisHash: new Uint8Array(Buffer.from(genesisHash, "base64")),
-      genesisID,
-    },
-  });
-  return {
-    txn,
-    b64url: Buffer.from(algosdk.encodeUnsignedTransaction(txn)).toString("base64url"),
-  };
-}
-
-/** Suggested params of a Testnet transaction. */
-const testnetParams = () => ({
-  fee: 1000,
-  flatFee: true,
-  firstValid: 1000,
-  lastValid: 2000,
-  genesisHash: new Uint8Array(Buffer.from(TESTNET_HASH, "base64")),
-  genesisID: "testnet-v1.0",
-});
-
-const encode = (txn: algosdk.Transaction) => ({
-  txn: Buffer.from(algosdk.encodeUnsignedTransaction(txn)).toString("base64url"),
-});
-
-/** The returned stxn is for `txn` and carries a valid ed25519 signature of `address`. */
-function expectValidSignature(stxn: string, txn: algosdk.Transaction, address: string) {
-  const signed = algosdk.decodeSignedTransaction(new Uint8Array(Buffer.from(stxn, "base64url")));
-  expect(signed.txn.txID()).toBe(txn.txID());
-  const spkiPrefix = Buffer.from("302a300506032b6570032100", "hex");
-  const key = createPublicKey({
-    key: Buffer.concat([spkiPrefix, Buffer.from(algosdk.decodeAddress(address).publicKey)]),
-    format: "der",
-    type: "spki",
-  });
-  expect(verify(null, Buffer.from(txn.bytesToSign()), key, Buffer.from(signed.sig!))).toBe(true);
-}
-
-/** Run the connect (enable) flow for the wallet's account; returns the dApp page. */
-async function connectSite(context: BrowserContext, address: string): Promise<Page> {
-  const dapp = await openDapp(context);
-  const popup = await openPopup(context, dapp);
-  await unlock(popup);
-  await expect(popup.getByTestId("direct-origin")).toHaveText(DAPP_ORIGIN);
-  await waitForMessage(dapp, isReady);
-  await post(dapp, {
-    id: "enable-1",
-    reference: "arc0027:enable:request",
-    params: { providerId: "dapp", genesisHash: MAINNET_HASH, metadata: { name: "Fixture dApp", description: "", url: "", icons: [] } },
-  });
-  await popup.getByTestId("direct-approve").click();
-  const response = await waitForMessage(dapp, reply("enable-1"));
-  expect(response.data.error).toBeUndefined();
-  expect((response.data.result as { accounts: { address: string }[] }).accounts[0].address).toBe(address);
-  await expectClosed(popup);
-  return dapp;
-}
+import {
+  WALLET_ORIGIN,
+  DAPP_ORIGIN,
+  DAPP_URL,
+  MAINNET_HASH,
+  TESTNET_HASH,
+  VOI_HASH,
+  WALLET_PROVIDER_ID,
+  OTHER_ADDR,
+  openDapp,
+  openPopup,
+  unlock,
+  expectClosed,
+  Msg,
+  messages,
+  post,
+  waitForMessage,
+  isReady,
+  reply,
+  arc60Item,
+  walletAddress,
+  paymentTxn,
+  testnetParams,
+  encode,
+  expectValidSignature,
+  connectSite,
+  expandAll,
+} from "../support/direct";
 
 test.describe("Biatec Direct popup transport", () => {
   // Every popup is a separate wallet unlock (PBKDF2); flows with several popups are slow.
@@ -355,16 +224,17 @@ test.describe("Biatec Direct popup transport", () => {
       reference: "arc0027:sign_transactions:request",
       params: { providerId: "d", genesisHash: MAINNET_HASH, txns: [{ txn: b64url }] },
     });
-    await expect(popup.getByRole("button", { name: "Sign", exact: true })).toBeVisible();
+    await expect(popup.getByRole("button", { name: "Sign transaction" })).toBeVisible();
     // On the wallet's own network the card names it, with no "different network" note, and the
     // wallet-network enrichment (node preview) stays.
     await expect(popup.getByTestId("direct-network")).toHaveText("Algorand Mainnet");
     await expect(popup.getByTestId("direct-network-differs")).toHaveCount(0);
     await expect(popup.getByTestId("direct-network-test")).toHaveCount(0);
     await expect(popup.getByTestId("direct-foreign-note")).toHaveCount(0);
+    await expandAll(popup);
     await expect(popup.getByText("Node-reported preview")).toBeVisible();
     // Signing is the approval: the result goes straight back, no second click.
-    await popup.getByRole("button", { name: "Sign", exact: true }).click();
+    await popup.getByRole("button", { name: "Sign transaction" }).click();
     const response = await waitForMessage(dapp, reply("s1"));
     expect(response.data.error).toBeUndefined();
     const stxns = (response.data.result as { stxns: (string | null)[] }).stxns;
@@ -414,6 +284,7 @@ test.describe("Biatec Direct popup transport", () => {
     await expect(popup.getByTestId("direct-network-test")).toHaveText("Test network");
     await expect(popup.getByTestId("direct-network-differs")).toContainText("Different from the network selected in the wallet (");
     await expect(popup.getByTestId("direct-network-unknown")).toHaveCount(0);
+    await expandAll(popup);
     // Native amounts / fees are in the network's own token; the asset is only its id (no name
     // from another network's indexer, never "Algo").
     await expect(popup.getByText("1.500000 Algo").first()).toBeVisible();
@@ -451,8 +322,9 @@ test.describe("Biatec Direct popup transport", () => {
     });
     await expect(popup.getByTestId("direct-network")).toHaveText("Voi Mainnet");
     await expect(popup.getByTestId("direct-network-test")).toHaveCount(0);
+    await expandAll(popup);
     await expect(popup.getByText("0.001000 VOI").first()).toBeVisible();
-    await popup.getByRole("button", { name: "Sign", exact: true }).click();
+    await popup.getByRole("button", { name: "Sign transaction" }).click();
     const response = await waitForMessage(dapp, reply("v1"));
     expect(response.data.error).toBeUndefined();
     expectValidSignature((response.data.result as { stxns: string[] }).stxns[0], txn, address);
@@ -476,11 +348,12 @@ test.describe("Biatec Direct popup transport", () => {
     await expect(popup.getByTestId("direct-network")).toHaveText("Unknown network");
     await expect(popup.getByTestId("direct-network-unknown")).toContainText("Only continue if you recognise it");
     await expect(popup.getByTestId("direct-network-hash")).toHaveText(hash.replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_"));
+    await expandAll(popup);
     // No token is known: the raw base units are shown, not a guessed scaling.
     await expect(popup.getByText("1,000 units").first()).toBeVisible();
     await expect(popup.getByText("my-private-net-v1").first()).toBeVisible();
     expect((await messages(dapp)).some(reply("u1"))).toBe(false);
-    await popup.getByRole("button", { name: "Sign", exact: true }).click();
+    await popup.getByRole("button", { name: "Sign transaction" }).click();
     const response = await waitForMessage(dapp, reply("u1"));
     expect(response.data.error).toBeUndefined();
     expectValidSignature((response.data.result as { stxns: string[] }).stxns[0], txn, address);
@@ -623,8 +496,9 @@ test.describe("Biatec Direct popup transport", () => {
     await expect(popup.getByTestId("direct-network")).not.toContainText("Mainnet");
     // No enrichment from the wallet's (mainnet) node.
     await expect(popup.getByText("Node-reported preview")).toHaveCount(0);
+    await expandAll(popup);
     await expect(popup.getByTestId("direct-foreign-note")).toBeVisible();
-    await popup.getByRole("button", { name: "Sign", exact: true }).click();
+    await popup.getByRole("button", { name: "Sign transaction" }).click();
     const response = await waitForMessage(dapp, reply("sp1"));
     expect(response.data.error).toBeUndefined();
     expectValidSignature((response.data.result as { stxns: string[] }).stxns[0], txn, address);
@@ -963,7 +837,8 @@ test.describe("Biatec Direct popup transport", () => {
         txns: [first, second].map((t) => ({ txn: Buffer.from(algosdk.encodeUnsignedTransaction(t)).toString("base64url") })),
       },
     });
-    // Everything a user must see before signing is in view without any extra click.
+    // The collapsed rows carry the warnings; opening them shows every field before signing.
+    await expandAll(popup);
     await expect(popup.getByRole("cell", { name: "Rekey To:" }).first()).toBeVisible();
     await expect(popup.getByRole("cell", { name: "Fee:" }).first()).toBeVisible();
     await expect(popup.getByText(/0\.002000 Algo/).first()).toBeVisible();
@@ -1025,14 +900,17 @@ test.describe("Biatec Direct popup transport", () => {
         txns: [clawback, del].map((t) => ({ txn: Buffer.from(algosdk.encodeUnsignedTransaction(t)).toString("base64url") })),
       },
     });
-    // The account the funds really leave, and the destructive app call, are visible unclicked.
+    // The warnings are on the collapsed summary; the detail rows name the accounts and calls.
+    await expect(popup.getByTestId("direct-tx-clawback")).toBeVisible();
+    await expect(popup.getByTestId("direct-tx-destructive")).toBeVisible();
+    await expandAll(popup);
     await expect(popup.getByRole("cell", { name: "Clawback from:", exact: true })).toBeVisible();
     await expect(popup.getByText("not from the sender").first()).toBeVisible();
     await expect(popup.getByRole("cell", { name: "On complete:", exact: true })).toBeVisible();
     await expect(popup.getByText("DeleteApplication").first()).toBeVisible();
   });
 
-  test("single transaction: exactly one Sign button in the popup", async ({ context, page }) => {
+  test("single transaction: exactly one Sign button in the collapsed popup", async ({ context, page }) => {
     await setupFreshWallet(page);
     const address = walletAddress(page);
     const dapp = await connectSite(context, address);
@@ -1044,8 +922,10 @@ test.describe("Biatec Direct popup transport", () => {
       reference: "arc0027:sign_transactions:request",
       params: { providerId: "d", genesisHash: MAINNET_HASH, txns: [{ txn: paymentTxn(address).b64url }] },
     });
-    await expect(popup.getByRole("button", { name: "Sign", exact: true })).toHaveCount(1);
-    await expect(popup.getByRole("button", { name: "Sign transaction" })).toHaveCount(0);
+    // Collapsed: one Sign button for the single transaction and no "Sign all".
+    await expect(popup.getByRole("button", { name: "Sign transaction" })).toHaveCount(1);
+    await expect(popup.getByRole("button", { name: "Sign all" })).toHaveCount(0);
+    await expect(popup.getByRole("button", { name: "Sign", exact: true })).toHaveCount(0);
   });
   test("transaction kinds the popup cannot show completely are refused (4200)", async ({ context, page }) => {
     await setupFreshWallet(page);

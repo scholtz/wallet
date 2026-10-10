@@ -25,6 +25,69 @@
         :header="$t('connect.method')"
         :sortable="true"
       />
+      <Column v-if="compact" class="direct-summary-column">
+        <template #body="slotProps">
+          <div class="direct-tx-summary" data-testid="direct-tx-summary">
+            <div class="direct-tx-count text-color-secondary">
+              {{
+                $t("connect.direct.tx_count", {
+                  count: slotProps.data.transactions?.length ?? 0,
+                })
+              }}
+            </div>
+            <ul class="direct-tx-lines">
+              <li
+                v-for="tx in slotProps.data.transactions"
+                :key="tx.index"
+                data-testid="direct-tx-line"
+              >
+                <strong>{{ txTypeLabel(tx) }}</strong>
+                <span v-if="txSummaryAmount(tx)" class="direct-tx-amount">
+                  {{ txSummaryAmount(tx) }}
+                </span>
+                <template v-if="txSummaryTo(tx)">
+                  <i class="pi pi-arrow-right direct-tx-arrow" aria-hidden="true" />
+                  <AlgorandAddress :address="txSummaryTo(tx)" />
+                </template>
+                <Badge
+                  v-if="tx.txn.rekeyTo"
+                  severity="danger"
+                  :value="$t('connect.rekeyto')"
+                />
+                <Badge
+                  v-if="getCloseTo(tx.txn)"
+                  severity="danger"
+                  :value="$t('connect.close_to')"
+                />
+                <Badge
+                  v-if="clawbackFrom(tx.txn)"
+                  severity="danger"
+                  :value="$t('connect.clawback_from')"
+                  data-testid="direct-tx-clawback"
+                />
+                <Badge
+                  v-if="onCompleteIsDestructive(tx.txn)"
+                  severity="danger"
+                  :value="onCompleteLabel(tx.txn)"
+                  data-testid="direct-tx-destructive"
+                />
+              </li>
+            </ul>
+            <Message
+              v-if="lowFalconFee(slotProps.data) !== undefined"
+              severity="warn"
+              class="m-0 mt-2"
+              data-testid="direct-falcon-fee"
+            >
+              {{
+                $t("connect.direct.falcon_fee_warning", {
+                  fee: formatNative(lowFalconFee(slotProps.data)),
+                })
+              }}
+            </Message>
+          </div>
+        </template>
+      </Column>
       <Column :header="$t('connect.total_fee')">
         <template #body="slotProps">
           <span v-if="compact" class="text-color-secondary"
@@ -37,8 +100,7 @@
           <Button
             class="m-1"
             v-if="
-              !atLeastOneSigned(slotProps.data) &&
-              !(compact && slotProps.data.transactions?.length === 1)
+              !atLeastOneSigned(slotProps.data)
             "
             @click="clickSignAll(slotProps.data)"
           >
@@ -86,6 +148,18 @@
             data-testid="direct-foreign-note"
           >
             {{ $t("connect.direct.network_foreign_note") }}
+          </Message>
+          <Message
+            v-if="!compact && lowFalconFee(requestSlotProps.data) !== undefined"
+            severity="warn"
+            class="m-0 mb-2"
+            data-testid="falcon-fee-warning"
+          >
+            {{
+              $t("connect.direct.falcon_fee_warning", {
+                fee: formatNative(lowFalconFee(requestSlotProps.data)),
+              })
+            }}
           </Message>
           <Arc56RequestSummary
             v-if="!foreignNetwork"
@@ -577,6 +651,7 @@ import algosdk from "algosdk";
 import {
   computed,
   getCurrentInstance,
+  onMounted,
   ref,
   type ComponentPublicInstance,
   watch,
@@ -624,7 +699,7 @@ type GlobalFilters = {
   formatPercent: (value?: number) => string;
 };
 
-type SignerType = "ledger" | "msig" | "sk" | "?";
+type SignerType = "ledger" | "msig" | "sk" | "hd" | "falcon1024" | "?";
 
 interface TransactionWrapper {
   index: number;
@@ -687,15 +762,8 @@ const selectedTransaction = ref<TransactionWrapper | null>(null);
 const expandedRequests = ref<RequestItem[]>([]);
 const expandedTransactions = ref<TransactionWrapper[]>([]);
 
-watch(
-  requests,
-  (list) => {
-    if (!compact.value) return;
-    expandedRequests.value = [...list];
-    expandedTransactions.value = list.flatMap((r) => r.transactions ?? []);
-  },
-  { immediate: true },
-);
+// Like the WalletConnect request list, the Direct popup starts collapsed: every request shows a
+// one-line summary per transaction (the summary column) and opens its details on demand.
 
 watch(
   requests,
@@ -717,6 +785,41 @@ watch(
   },
   { immediate: true, deep: true }
 );
+
+/** Compact (Direct) summary of one transaction: its kind, what moves and to whom. */
+const txTypeLabel = (tx: TransactionWrapper): string =>
+  isAssetOptIn(tx.txn) ? t("pay.asset_optin") : String(tx.type ?? "");
+const txSummaryAmount = (tx: TransactionWrapper): string => {
+  const txn = tx.txn;
+  if (txn?.type === "pay") return formatNative(txn.payment?.amount);
+  if (txn?.type === "axfer" && !isAssetOptIn(txn)) {
+    return formatAssetAmount(
+      txn.assetTransfer?.amount,
+      txn.assetTransfer?.assetIndex,
+    );
+  }
+  if (txn?.type === "appl" && txn.applicationCall?.appIndex) {
+    return `${t("connect.app")} ${txn.applicationCall.appIndex}`;
+  }
+  return "";
+};
+const txSummaryTo = (tx: TransactionWrapper): string => {
+  const receiver =
+    tx.txn?.payment?.receiver ?? tx.txn?.assetTransfer?.receiver;
+  const encoded = receiver ? encodeAddress(receiver) : "";
+  return encoded === "-" ? "" : encoded;
+};
+
+// Biatec Direct: back from the multisig signing page with everything signed - the request goes
+// to the site without another click (a request that only held pre-signed data is not sent here:
+// the flag is only set by the signing page).
+onMounted(() => {
+  if (ns.value !== "direct" || !store.state.direct.popup.returnedFromSigning) return;
+  store.commit("direct/setReturnedFromSigning", false);
+  for (const request of requests.value) {
+    if (allTransactionsSigned(request)) void clickAccept(request);
+  }
+});
 
 const prolong = async () => {
   await store.dispatch("wallet/prolong");
@@ -810,6 +913,12 @@ const getSignerTypeLocal = (from: string, genesisId?: string): SignerType => {
   if (resolvedAccount.type === "ledger") {
     return "ledger";
   }
+  if (resolvedAccount.type === "hd") {
+    return "hd";
+  }
+  if (resolvedAccount.type === "falcon1024") {
+    return "falcon1024";
+  }
   if (resolvedAccount.params) {
     return "msig";
   }
@@ -817,6 +926,22 @@ const getSignerTypeLocal = (from: string, genesisId?: string): SignerType => {
     return "sk";
   }
   return "?";
+};
+
+/**
+ * A Falcon-1024 signature is large, so the network charges about three minimum fees for it. The
+ * site fixed the fee (and the group id), the wallet cannot raise it: warn when it is too low.
+ */
+const FALCON_MIN_FEE = 3000;
+const lowFalconFee = (request: RequestItem): number | undefined => {
+  for (const tx of request.transactions ?? []) {
+    if (!tx.txn?.sender) continue;
+    const from = encodeAddress(tx.txn.sender);
+    if (getSignerTypeLocal(from, tx.txn.genesisID) !== "falcon1024") continue;
+    const fee = Number(tx.txn.fee ?? 0);
+    if (fee < FALCON_MIN_FEE) return fee;
+  }
+  return undefined;
 };
 
 const _arrayBufferToBase64 = (buffer: Uint8Array) => {

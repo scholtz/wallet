@@ -576,6 +576,8 @@
     "arc14_auth_notice": "Bu, \"{realm}\" için bir ARC14 kimlik doğrulama isteğidir. İmzalanması herhangi bir fon transferi yapmaz.",
     "arc14_authenticate": "{realm} için kimlik doğrula",
     "return_to_wc": "WalletConnect'e Geri Dön",
+    "return_to_direct": "Web sitesine dön",
+    "return_to_direct_partial": "Kısmen imzalı olarak web sitesine dön",
     "select_account_for_payment": "Ödemeyi yapmak istediğiniz hesabı seçin",
     "create_multisig_proposal": "Çoklu imza teklifi oluştur",
     "2fa_code": "2FA kodu",
@@ -1104,6 +1106,8 @@
       "network_unknown_warning": "Bu ağ cüzdanın tanıdığı bir ağ değil. Yalnızca tanıyorsanız devam edin; genesis hash değerini kontrol edin.",
       "network_differs": "Cüzdanda seçili ağdan farklı ({selected}). Bu ağ için varlık adları, uygulama ayrıntıları ve işlem önizlemesi kullanılamaz; tutarlar ağın kendi birimleriyle gösterilir.",
       "network_changed": "Bu site {granted} ağında bağlandı, ancak bu istek {requested} ağında. İmzalamadan önce ağı kontrol edin.",
+      "tx_count": "İşlemler: {count}",
+      "falcon_fee_warning": "Bu hesap Falcon-1024 (kuantum sonrası) anahtarı kullanıyor. İmzası büyük olduğundan ağ, sitenin belirlediğinden ({fee}) daha yüksek bir ücret ister (işlem başına yaklaşık 0,003 Algo). Gruptaki diğer işlemler farkı karşılamazsa işlem reddedilebilir.",
       "network_foreign_note": "Cüzdanın ağına ait ayrıntılar başka bir ağ için gösterilmez.",
       "genesis_hash_label": "Genesis hash",
       "network_not_named": "Site bir ağ belirtmedi. Veri imzaları bir ağa bağlı değildir."
