@@ -44,6 +44,22 @@ The request list starts collapsed: one summary line per transaction (kind, amoun
 and close-to flags), the details open on demand, and a single transaction can be signed from the
 collapsed row.
 
+## Smart contract lifecycle
+
+A site can deploy and manage a contract through the popup (for example the first step of Algo Safe,
+deploying its application). Create, update and delete are high-impact, so the request opens by
+itself (not collapsed) with an application card (`DirectAppCard.vue`, model in
+`scripts/direct/appCall.ts`):
+
+- **Create:** "Create application", the approval and clear-state programs (size, SHA-256, raw bytes
+  on demand), global/local state schema, extra pages; the id is assigned on confirmation.
+- **Update:** "Update application", the application id and the replacement programs - it replaces
+  the contract code for everyone who uses it.
+- **Delete:** "Delete application" and the id - the contract and its global state are removed.
+
+The collapsed row names the kind (not "appl") with the first characters of the program hash;
+close-out and clear-state keep their destructive flag. Nothing is sent before the user signs.
+
 ## Security model
 
 | Rule | Where enforced |
@@ -61,7 +77,7 @@ collapsed row.
 | ARC-0060: the domain must equal the verified origin's `hostname` or its `host` (hostname plus a non-default port, which is what use-wallet sends); another host or port is refused | `signer/signArc60Data` with `sessionOrigin = event.origin` |
 | An unanswered request is answered `4001` on `pagehide`, logout, auto-lock or when the opener closes | `shared/direct.ts`, `direct/reset` |
 | Grants are persisted with a read-modify-write against the stored record (under a cross-tab Web Lock), and `saveWallet` takes the persisted value of shared items, so neither a stale main tab nor a concurrent popup can restore a revoked grant or drop a new one | `wallet/wcUpdateItemFresh`, `wallet/saveWallet` |
-| Only transactions the compact popup shows **completely** are signed: payments, asset transfers (with the clawback source) and calls to existing apps (with their OnComplete). Asset configuration, freeze, key registration, state proofs, heartbeats and app creation/update are refused with `4200` (use WalletConnect for those) | `directUnsupportedReason`, `store/direct.ts` |
+| Only transactions the compact popup shows **completely** are signed: payments, asset transfers (with the clawback source) and application calls over the whole lifecycle (create, update, delete, call, opt-in, close-out, clear-state). Asset configuration, freeze, key registration, state proofs and heartbeats are refused with `4200` (use WalletConnect for those) | `directUnsupportedReason`, `store/direct.ts` |
 | Responses are idempotent: a request is answered once; an unexpected failure answers `4000` and ends the request instead of leaving the site waiting | `store/direct.ts` |
 
 ### What this does not protect against

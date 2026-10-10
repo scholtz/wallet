@@ -36,6 +36,7 @@ const CHECKED = [
   "components/ConnectRequestsTable.vue",
   "components/DirectPopup.vue",
   "components/DirectNetworkCard.vue",
+  "components/DirectAppCard.vue",
   "layouts/Main.vue",
 ];
 

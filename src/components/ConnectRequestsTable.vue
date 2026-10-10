@@ -47,7 +47,13 @@
                   data-testid="direct-tx-from"
                 />
                 <i class="pi pi-arrow-right direct-tx-arrow" aria-hidden="true" />
-                <strong>{{ txTypeLabel(tx) }}</strong>
+                <Badge
+                  v-if="appKindLabel(tx)"
+                  severity="danger"
+                  :value="appKindLabel(tx)"
+                  data-testid="direct-tx-app-kind"
+                />
+                <strong v-else>{{ txTypeLabel(tx) }}</strong>
                 <span v-if="txSummaryAmount(tx)" class="direct-tx-amount">
                   {{ txSummaryAmount(tx) }}
                 </span>
@@ -176,7 +182,7 @@
             }}
           </Message>
           <Arc56RequestSummary
-            v-if="!foreignNetwork"
+            v-if="!foreignNetwork && !hasLifecycleTransaction(requestSlotProps.data)"
             :transactions="requestSlotProps.data.transactions"
           />
           <DataTable
@@ -311,8 +317,13 @@
             </Column>
             <template #expansion="txProps">
               <div class="p-3 detail-scroll">
-                <table>
+                <table class="detail-table">
                   <tbody>
+                    <tr v-if="appSummary(txProps.data)?.risk === 'high'">
+                      <td colspan="2">
+                        <DirectAppCard :summary="appSummary(txProps.data)!" />
+                      </td>
+                    </tr>
                     <tr v-if="isArc14Auth(txProps.data.txn)">
                       <td colspan="2">
                         <Message severity="info" class="m-0">
@@ -504,7 +515,13 @@
                       </td>
                     </tr>
 
-                    <tr v-if="txProps.data.type == 'appl' && !foreignNetwork">
+                    <tr
+                      v-if="
+                        txProps.data.type == 'appl' &&
+                        !foreignNetwork &&
+                        Number(txProps.data.txn.applicationCall?.appIndex ?? 0) !== 0
+                      "
+                    >
                       <td colspan="2">
                         <Arc56CallDetails
                           :app-index="
@@ -683,6 +700,8 @@ import { isAssetOptIn } from "../scripts/transactionTypes";
 import { signingEnvOf, type DirectNetworkView } from "../scripts/direct/networks";
 import { pickSigningEnv } from "../scripts/signingEnv";
 import { groupFeeShortfall } from "../scripts/fees";
+import { describeApplicationCall } from "../scripts/direct/appCall";
+import DirectAppCard from "./DirectAppCard.vue";
 import {
   checkTxGenesis,
   isBlockingGenesisCheck,
@@ -777,8 +796,7 @@ const selectedTransaction = ref<TransactionWrapper | null>(null);
 const expandedRequests = ref<RequestItem[]>([]);
 const expandedTransactions = ref<TransactionWrapper[]>([]);
 
-// Like the WalletConnect request list, the Direct popup starts collapsed: every request shows a
-// one-line summary per transaction (the summary column) and opens its details on demand.
+
 
 watch(
   requests,
@@ -801,6 +819,27 @@ watch(
   { immediate: true, deep: true }
 );
 
+/** The application lifecycle review model of a transaction (undefined for non-appl). */
+const appSummary = (tx: TransactionWrapper) => describeApplicationCall(tx.txn);
+
+/** The request creates, updates or deletes a contract (the ARC-56 call summary adds nothing). */
+const hasLifecycleTransaction = (request: RequestItem) =>
+  (request.transactions ?? []).some((tx) => appSummary(tx)?.risk === "high");
+
+/** Create / update / delete of a contract get their own name in the collapsed summary. */
+const appKindLabel = (tx: TransactionWrapper): string => {
+  const summary = appSummary(tx);
+  if (summary?.risk !== "high") return "";
+  switch (summary.kind) {
+    case "create":
+      return t("connect.direct.app_kind_create");
+    case "update":
+      return t("connect.direct.app_kind_update");
+    default:
+      return t("connect.direct.app_kind_delete");
+  }
+};
+
 /** Compact (Direct) summary of one transaction: its kind, what moves and to whom. */
 const txTypeLabel = (tx: TransactionWrapper): string =>
   isAssetOptIn(tx.txn) ? t("pay.asset_optin") : String(tx.type ?? "");
@@ -814,9 +853,13 @@ const txSummaryAmount = (tx: TransactionWrapper): string => {
     );
   }
   if (txn?.type === "appl") {
+    const summary = describeApplicationCall(txn);
     const appIndex = txn.applicationCall?.appIndex;
     const call = onCompleteLabel(txn);
-    return appIndex ? `${t("connect.app")} ${appIndex} · ${call}` : call;
+    // A program change names the new code by the start of its hash (full hash in the details).
+    const program = summary?.approval ? ` · ${summary.approval.sha256.slice(0, 8)}…` : "";
+    if (summary?.kind === "create") return program.slice(3);
+    return (appIndex ? `${t("connect.app")} ${appIndex} · ${call}` : call) + program;
   }
   return "";
 };
@@ -849,6 +892,29 @@ onMounted(() => {
     break;
   }
 });
+
+// Like the WalletConnect request list, the Direct popup starts collapsed: every request shows a
+// one-line summary per transaction (the summary column) and opens its details on demand. The
+// exception is a request that creates, updates or deletes a contract: it opens by itself, so the
+// programs and the warning are in view before anything is signed.
+const autoExpanded = new Set<RequestItem["id"]>();
+watch(
+  requests,
+  (list) => {
+    if (!compact.value) return;
+    for (const request of list) {
+      if (autoExpanded.has(request.id)) continue;
+      const high = (request.transactions ?? []).filter(
+        (tx) => appSummary(tx)?.risk === "high",
+      );
+      if (high.length === 0) continue;
+      autoExpanded.add(request.id);
+      expandedRequests.value = [...expandedRequests.value, request];
+      expandedTransactions.value = [...expandedTransactions.value, ...high];
+    }
+  },
+  { immediate: true, deep: true },
+);
 
 const prolong = async () => {
   await store.dispatch("wallet/prolong");
@@ -1443,5 +1509,8 @@ const formatAssetAmount = (
 <style scoped>
 .detail-scroll {
   overflow-x: auto;
+}
+.detail-scroll .detail-table {
+  width: 100%;
 }
 </style>

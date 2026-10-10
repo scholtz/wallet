@@ -269,9 +269,10 @@ export class DirectRequestGate {
 /**
  * Transaction kinds Biatec Direct signs. The compact popup is the user's only review surface,
  * so it signs only what that surface shows completely: payments, asset transfers (incl. the
- * clawback source) and calls to EXISTING apps with their OnComplete. Asset configuration, freeze,
- * key registration, state proofs, heartbeats and app creation/update (programs) are refused;
- * a dApp needing them uses WalletConnect, whose full review screen shows them.
+ * clawback source) and application calls over the whole lifecycle (create, update, delete, call,
+ * opt-in, close-out, clear-state), with the programs shown as size + hash. Asset configuration,
+ * freeze, key registration, state proofs and heartbeats are refused; a dApp needing them uses
+ * WalletConnect, whose full review screen shows them.
  * Returns the refusal reason, or undefined when the transaction is allowed.
  */
 export function directUnsupportedReason(tx: {
@@ -286,16 +287,12 @@ export function directUnsupportedReason(tx: {
     case "pay":
     case "axfer":
       return undefined;
-    case "appl": {
-      const call = tx.applicationCall;
-      if (!call || Number(call.appIndex ?? 0) === 0) {
-        return "Creating an application is not supported by Biatec Direct.";
-      }
-      if ((call.approvalProgram?.length ?? 0) > 0 || (call.clearProgram?.length ?? 0) > 0) {
-        return "Updating application programs is not supported by Biatec Direct.";
-      }
-      return undefined;
-    }
+    case "appl":
+      // The whole lifecycle is signable (create, update, delete, calls, opt-in, close-out,
+      // clear-state): the popup describes each one (scripts/direct/appCall.ts).
+      return tx.applicationCall
+        ? undefined
+        : "An application transaction without a call body is not supported by Biatec Direct.";
     default:
       return `Transaction type "${String(tx.type).slice(0, 16)}" is not supported by Biatec Direct.`;
   }

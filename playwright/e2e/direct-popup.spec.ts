@@ -989,19 +989,13 @@ test.describe("Biatec Direct popup transport", () => {
         reason: /afrz/,
       },
       {
-        name: "application creation",
-        txn: algosdk.makeApplicationCreateTxnFromObject({
+        name: "key registration",
+        txn: algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
           sender: address,
-          approvalProgram: new Uint8Array([6, 129, 1]),
-          clearProgram: new Uint8Array([6, 129, 1]),
-          numGlobalByteSlices: 0,
-          numGlobalInts: 0,
-          numLocalByteSlices: 0,
-          numLocalInts: 0,
-          onComplete: algosdk.OnApplicationComplete.NoOpOC,
+          nonParticipation: true,
           suggestedParams: sp,
         }),
-        reason: /Creating/,
+        reason: /keyreg/,
       },
     ];
     const dapp = await connectSite(context, address);
