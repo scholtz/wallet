@@ -27,12 +27,18 @@ export function mergePrivateAccounts<A extends { addr: string }>(
   known: ReadonlySet<string>,
 ): A[] {
   if (!Array.isArray(persisted)) return memory;
+  // Corrupt entries (null, primitives) cannot be compared and are ignored.
+  const readable = persisted.filter((a) => typeof a === "object" && a !== null);
+  const hadCorrupt = readable.length !== persisted.length;
+  persisted = readable;
   const persistedAddrs = new Set(
     persisted.map((a) => a.addr).filter((addr) => typeof addr === "string"),
   );
   // Dropping is only trusted when the persisted list is readable and non-empty.
   const trustworthy =
-    persisted.length > 0 && persisted.every((a) => typeof a.addr === "string");
+    !hadCorrupt &&
+    persisted.length > 0 &&
+    persisted.every((a) => typeof a.addr === "string");
   const kept = trustworthy
     ? memory.filter((a) => !(known.has(a.addr) && !persistedAddrs.has(a.addr)))
     : memory;

@@ -6,7 +6,17 @@ import algosdk from "algosdk";
 import { KNOWN_NETWORKS, isKnownEnvId } from "./direct/networks";
 import { normalizeGenesisHash, txnGenesisMatches } from "./direct/protocol";
 
-export type TxGenesisCheck = "ok" | "id_mismatch" | "hash_mismatch" | "missing_id";
+/**
+ * `id_differs` / `missing_id` are warnings only: on an environment without a built-in genesis hash
+ * (devnet, localnet, a custom preset) the env id is not guaranteed to equal the chain's real
+ * genesis ID, so a difference cannot block signing.
+ */
+export type TxGenesisCheck =
+  | "ok"
+  | "id_mismatch"
+  | "hash_mismatch"
+  | "missing_id"
+  | "id_differs";
 
 /** Normalized genesis hash per built-in environment, computed once. */
 const EXPECTED_HASH: Record<string, string | undefined> = Object.fromEntries(
@@ -35,7 +45,10 @@ export function checkTxGenesis(
       return "hash_mismatch";
     }
   }
-  if (tx.genesisID) return tx.genesisID === walletEnv ? "ok" : "id_mismatch";
+  if (tx.genesisID) {
+    if (tx.genesisID === walletEnv) return "ok";
+    return known ? "id_mismatch" : "id_differs";
+  }
   return known ? "missing_id" : "ok";
 }
 

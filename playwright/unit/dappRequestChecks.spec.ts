@@ -56,10 +56,10 @@ test.describe("checkTxGenesis (AW-2026-063)", () => {
     expect(checkTxGenesis(tx, "custom")).toBe("ok");
   });
 
-  test("an environment outside the built-in table is checked by genesis ID only", () => {
+  test("an environment outside the built-in table only warns when the genesis ID differs (never blocks)", () => {
     const tx = payment(TESTNET_HASH, "somenet-v1");
     expect(checkTxGenesis(tx, "somenet-v1")).toBe("ok");
-    expect(checkTxGenesis(tx, "othernet-v1")).toBe("id_mismatch");
+    expect(checkTxGenesis(tx, "othernet-v1")).toBe("id_differs");
   });
 });
 
@@ -135,4 +135,9 @@ test.describe("findGenesisMismatch (AW-2026-063, request admission)", () => {
   test("a missing genesis ID alone does not refuse the request", () => {
     expect(findGenesisMismatch([payment(MAINNET_HASH, "")], "mainnet-v1.0")).toBeUndefined();
   });
+});
+
+test("a local chain with its own genesis ID is not refused on a preset env (AW-2026-063 regression guard)", () => {
+  const tx = payment(TESTNET_HASH, "dockernet-v1");
+  expect(findGenesisMismatch([tx], "sandnet-v1")).toBeUndefined();
 });

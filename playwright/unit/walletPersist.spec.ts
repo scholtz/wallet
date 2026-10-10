@@ -86,6 +86,13 @@ test.describe("mergePrivateAccounts (AW-2026-059)", () => {
     expect(mergePrivateAccounts(memory, broken, new Set(["A"]))).toEqual(memory);
   });
 
+  test("null or primitive entries in the persisted list are ignored", () => {
+    const corrupt = [null, 5, acct("B")] as unknown as { addr: string }[];
+    // A corrupt list is not trusted for deletions: A (known, not listed) is kept.
+    const merged = mergePrivateAccounts([acct("A")], corrupt, new Set(["A"]));
+    expect(merged.map((a) => a.addr)).toEqual(["A", "B"]);
+  });
+
   test("a missing persisted list changes nothing", () => {
     const memory = [acct("A")];
     expect(mergePrivateAccounts(memory, undefined, new Set())).toEqual(memory);

@@ -1105,7 +1105,7 @@ const genesisMismatch = (txn: algosdk.Transaction): boolean =>
   isBlockingGenesisCheck(genesisVerdict(txn));
 /** The transaction names no genesis ID (the hash matches): warn, but allow. */
 const genesisUnverified = (txn: algosdk.Transaction): boolean =>
-  genesisVerdict(txn) === "missing_id";
+  ["missing_id", "id_differs"].includes(genesisVerdict(txn));
 
 const isArc14Auth = (txn: algosdk.Transaction) => isArc14AuthTransaction(txn);
 
