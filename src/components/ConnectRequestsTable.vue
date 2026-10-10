@@ -521,7 +521,13 @@
                       </td>
                     </tr>
 
-                    <tr v-if="txProps.data.type == 'appl' && !foreignNetwork">
+                    <tr
+                      v-if="
+                        txProps.data.type == 'appl' &&
+                        !foreignNetwork &&
+                        !showAppCard(txProps.data)
+                      "
+                    >
                       <td colspan="2">
                         <Arc56CallDetails
                           :app-index="
@@ -864,11 +870,12 @@ const txSummaryAmount = (tx: TransactionWrapper): string => {
     const summary = appSummary(tx);
     const appIndex = txn.applicationCall?.appIndex;
     const call = onCompleteLabel(txn);
-    // A program change names the new code by the start of its hash (full hash in the details).
+    // A program change names the new code by the start of its program address (the value algod
+    // compile reports; both hashes are in full in the details).
     // Both programs are fingerprinted: swapping only the clear-state program must show too.
     const hash = [summary?.approval, summary?.clear]
       .filter((program) => !!program)
-      .map((program) => `${program.sha256.slice(0, 12)}…`)
+      .map((program) => `${program.address.slice(0, 12)}…`)
       .join(" / ");
     const parts = [
       summary?.kind === "create" || !appIndex ? "" : `${t("connect.app")} ${appIndex}`,
@@ -1541,11 +1548,17 @@ watch(
       expandedTransactions.value = [...expandedTransactions.value, ...high];
     }
     // Answered or removed requests must not stay in the expanded lists (each check compares rows).
-    const liveRequests = new Set<object>(list);
-    const keptRequests = expandedRequests.value.filter((open) => liveRequests.has(open));
+    // Match by id / encoded transaction, not object identity (the store may rebuild wrappers).
+    const keptRequests = expandedRequests.value.filter((open) =>
+      list.some((request) => request.id === open.id),
+    );
     if (keptRequests.length !== expandedRequests.value.length) expandedRequests.value = keptRequests;
-    const liveTransactions = new Set<object>(list.flatMap((request) => request.transactions ?? []));
-    const keptTransactions = expandedTransactions.value.filter((open) => liveTransactions.has(open));
+    const liveTransactions = new Set<string>(
+      list.flatMap((request) => (request.transactions ?? []).map((tx) => tx.txnB64)),
+    );
+    const keptTransactions = expandedTransactions.value.filter((open) =>
+      liveTransactions.has(open.txnB64),
+    );
     if (keptTransactions.length !== expandedTransactions.value.length) {
       expandedTransactions.value = keptTransactions;
     }
