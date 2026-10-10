@@ -529,6 +529,14 @@
                           {{ $t("connect.genesis_mismatch") }}
                         </Message>
                         <Message
+                          v-else-if="genesisIdDiffers(txProps.data.txn)"
+                          severity="warn"
+                          class="m-0"
+                          data-testid="genesis-id-differs"
+                        >
+                          {{ $t("connect.genesis_mismatch") }}
+                        </Message>
+                        <Message
                           v-else-if="genesisUnverified(txProps.data.txn)"
                           severity="warn"
                           class="m-0"
@@ -1105,7 +1113,10 @@ const genesisMismatch = (txn: algosdk.Transaction): boolean =>
   isBlockingGenesisCheck(genesisVerdict(txn));
 /** The transaction names no genesis ID (the hash matches): warn, but allow. */
 const genesisUnverified = (txn: algosdk.Transaction): boolean =>
-  ["missing_id", "id_differs"].includes(genesisVerdict(txn));
+  genesisVerdict(txn) === "missing_id";
+/** A preset env with no hash of its own: the genesis ID differs from the env id (warn only). */
+const genesisIdDiffers = (txn: algosdk.Transaction): boolean =>
+  genesisVerdict(txn) === "id_differs";
 
 const isArc14Auth = (txn: algosdk.Transaction) => isArc14AuthTransaction(txn);
 

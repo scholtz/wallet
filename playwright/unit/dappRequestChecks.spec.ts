@@ -57,7 +57,7 @@ test.describe("checkTxGenesis (AW-2026-063)", () => {
   });
 
   test("an environment outside the built-in table only warns when the genesis ID differs (never blocks)", () => {
-    const tx = payment(TESTNET_HASH, "somenet-v1");
+    const tx = payment(Buffer.alloc(32, 9), "somenet-v1");
     expect(checkTxGenesis(tx, "somenet-v1")).toBe("ok");
     expect(checkTxGenesis(tx, "othernet-v1")).toBe("id_differs");
   });
@@ -138,6 +138,17 @@ test.describe("findGenesisMismatch (AW-2026-063, request admission)", () => {
 });
 
 test("a local chain with its own genesis ID is not refused on a preset env (AW-2026-063 regression guard)", () => {
-  const tx = payment(TESTNET_HASH, "dockernet-v1");
+  const localHash = Buffer.alloc(32, 7);
+  const tx = payment(localHash, "dockernet-v1");
   expect(findGenesisMismatch([tx], "sandnet-v1")).toBeUndefined();
+});
+
+test("a built-in network's transaction is blocked while a non built-in env is selected", () => {
+  const tx = payment(MAINNET_HASH, "mainnet-v1.0");
+  expect(checkTxGenesis(tx, "sandnet-v1")).toBe("hash_mismatch");
+  expect(findGenesisMismatch([tx], "sandnet-v1")).toBe(0);
+});
+
+test("a custom node stays unrestricted", () => {
+  expect(checkTxGenesis(payment(MAINNET_HASH, "mainnet-v1.0"), "custom")).toBe("ok");
 });

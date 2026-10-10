@@ -23,6 +23,16 @@ const EXPECTED_HASH: Record<string, string | undefined> = Object.fromEntries(
   Object.entries(KNOWN_NETWORKS).map(([env, known]) => [env, normalizeGenesisHash(known.hash)]),
 );
 
+function isHashOfAnotherBuiltInNetwork(
+  genesisHash: Uint8Array | undefined,
+  walletEnv: string,
+): boolean {
+  return Object.entries(EXPECTED_HASH).some(
+    ([env, expected]) =>
+      env !== walletEnv && !!expected && txnGenesisMatches(genesisHash, expected),
+  );
+}
+
 /** Verdicts that must stop the wallet from signing. */
 export const isBlockingGenesisCheck = (check: TxGenesisCheck): boolean =>
   check === "id_mismatch" || check === "hash_mismatch";
@@ -44,6 +54,11 @@ export function checkTxGenesis(
     if (!expected || !txnGenesisMatches(tx.genesisHash, expected)) {
       return "hash_mismatch";
     }
+  }
+  if (!known && isHashOfAnotherBuiltInNetwork(tx.genesisHash, walletEnv)) {
+    // The environment has no hash of its own to compare, but a transaction that is really for a
+    // built-in network (e.g. Algorand mainnet) must not be signed while another one is selected.
+    return "hash_mismatch";
   }
   if (tx.genesisID) {
     if (tx.genesisID === walletEnv) return "ok";
