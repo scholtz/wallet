@@ -378,11 +378,6 @@ class PersistedWalletUnreadableError extends Error {
  * save (AW-2026-059).
  */
 let knownAddresses = new Set<string>();
-/**
- * Set once a save found the stored record unreadable (changed in another window). Later saves
- * return quietly instead of repeating the error on every navigation; cleared by login/logout.
- */
-let saveBlocked = false;
 const rememberAddresses = (accounts: { addr: string }[]) => {
   knownAddresses = new Set(accounts.map((a) => a.addr));
 };
@@ -1022,7 +1017,6 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       console.error("Failed to reset wcClient module state", err);
     }
     knownAddresses = new Set();
-    saveBlocked = false;
     await commit("logout");
   },
   async prolong({ commit }) {
@@ -1749,7 +1743,6 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     return true;
   },
   async saveWallet({ dispatch, commit }) {
-    if (saveBlocked) return false;
     const encryptedPass = this.state.wallet.pass;
     const rs1 = getRequiredLocalStorage("rs1");
     const decryptedData = await CryptoJS.AES.decrypt(encryptedPass, rs1);
@@ -1797,9 +1790,8 @@ const actionHandlers: Record<string, WalletActionHandler> = {
           if (!(error instanceof PersistedWalletUnreadableError)) throw error;
           // The record no longer opens with this tab's password (changed or replaced in another
           // tab): never overwrite it (AW-2026-060). The session is kept, not logged out, so a key
-          // created here but not yet saved is not discarded and can still be backed up. Further
-          // saves are skipped quietly (one error is enough) until the user signs in again.
-          saveBlocked = true;
+          // created here but not yet saved is not discarded and can still be backed up. The error is
+          // shown on every refused save: failing loudly beats silently losing a new key.
           dispatch(
             "toast/openError",
             "The wallet was changed in another window and could not be saved here. Back up any new account, then sign in again.",
@@ -1841,7 +1833,6 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       const json = JSON.parse(decryptedData);
       await commit("setPrivateAccounts", json.privateAccounts);
       rememberAddresses(this.state.wallet.privateAccounts);
-      saveBlocked = false;
       await commit("lastPayTo", json.lastPayTo);
       await commit("lastActiveAccount", json.lastActiveAccount);
       await commit("setWC", json.wc);
@@ -1997,7 +1988,6 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       commit("signer/ledgerPendingReset", null, { root: true });
       commit("signer/clearSignedCache", null, { root: true });
       knownAddresses = new Set();
-      saveBlocked = false;
       try {
         await dispatch("direct/reset", null, { root: true });
       } catch (err) {
