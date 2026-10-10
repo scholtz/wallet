@@ -27,8 +27,6 @@ export interface ProgramInfo {
   sha256: string;
   /** Hex of the program bytes (bounded: see `truncated`). */
   hex: string;
-  /** Base64 of the program bytes (bounded: see `truncated`). */
-  base64: string;
   /** The byte views were cut at PROGRAM_PREVIEW_BYTES; the hash covers the whole program. */
   truncated?: true;
 }
@@ -79,18 +77,17 @@ const ON_COMPLETE = ["NoOp", "OptIn", "CloseOut", "ClearState", "UpdateApplicati
 const toHex = (bytes: Uint8Array) =>
   Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 
-const toBase64 = (bytes: Uint8Array) => Buffer.from(bytes).toString("base64");
-
 function programInfo(program: Uint8Array | undefined): ProgramInfo | undefined {
   if (!program || program.length === 0) return undefined;
   const preview = program.length > PROGRAM_PREVIEW_BYTES ? program.subarray(0, PROGRAM_PREVIEW_BYTES) : program;
   const info: ProgramInfo = {
     size: program.length,
+    // unknown cast: crypto-js types WordArray.create() as number[] only, but at runtime it
+    // accepts a Uint8Array (typed-array support), which is what the program is.
     sha256: CryptoJS.SHA256(CryptoJS.lib.WordArray.create(program as unknown as number[])).toString(
       CryptoJS.enc.Hex,
     ),
     hex: toHex(preview),
-    base64: toBase64(preview),
   };
   if (preview !== program) info.truncated = true;
   return info;

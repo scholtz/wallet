@@ -97,7 +97,6 @@ test.describe("describeApplicationCall", () => {
       size: APPROVAL.length,
       sha256: sha256Hex(APPROVAL),
       hex: "0a810143",
-      base64: Buffer.from(APPROVAL).toString("base64"),
     });
     expect(summary.clear?.sha256).toBe(sha256Hex(CLEAR));
     expect(summary.globalSchema).toEqual({ ints: 2, byteSlices: 3 });

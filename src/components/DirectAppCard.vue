@@ -119,8 +119,10 @@ const title = computed(() => {
       return t("connect.direct.app_kind_create");
     case "update":
       return t("connect.direct.app_kind_update");
-    default:
+    case "delete":
       return t("connect.direct.app_kind_delete");
+    default:
+      return "";
   }
 });
 const warning = computed(() => {
@@ -129,8 +131,10 @@ const warning = computed(() => {
       return t("connect.direct.app_warning_create");
     case "update":
       return t("connect.direct.app_warning_update");
-    default:
+    case "delete":
       return t("connect.direct.app_warning_delete");
+    default:
+      return "";
   }
 });
 const icon = computed(() =>

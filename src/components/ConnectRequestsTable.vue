@@ -182,8 +182,8 @@
             }}
           </Message>
           <Arc56RequestSummary
-            v-if="!foreignNetwork && !hasLifecycleTransaction(requestSlotProps.data)"
-            :transactions="requestSlotProps.data.transactions"
+            v-if="!foreignNetwork && summaryTransactions(requestSlotProps.data).length > 0"
+            :transactions="summaryTransactions(requestSlotProps.data)"
           />
           <DataTable
             v-model:expandedRows="expandedTransactions"
@@ -820,11 +820,22 @@ watch(
 );
 
 /** The application lifecycle review model of a transaction (undefined for non-appl). */
-const appSummary = (tx: TransactionWrapper) => describeApplicationCall(tx.txn);
+// describeApplicationCall hashes the programs: do it once per transaction, not per render.
+const appSummaryCache = new WeakMap<object, ReturnType<typeof describeApplicationCall>>();
+const appSummary = (tx: TransactionWrapper) => {
+  if (!tx?.txn) return undefined;
+  if (!appSummaryCache.has(tx.txn)) {
+    appSummaryCache.set(tx.txn, describeApplicationCall(tx.txn));
+  }
+  return appSummaryCache.get(tx.txn);
+};
 
-/** The request creates, updates or deletes a contract (the ARC-56 call summary adds nothing). */
-const hasLifecycleTransaction = (request: RequestItem) =>
-  (request.transactions ?? []).some((tx) => appSummary(tx)?.risk === "high");
+/**
+ * The transactions the ARC-56 call summary describes: all but create/update/delete of a contract
+ * (those have their own application card and the summary only says "not an ABI call").
+ */
+const summaryTransactions = (request: RequestItem) =>
+  (request.transactions ?? []).filter((tx) => appSummary(tx)?.risk !== "high");
 
 /** Create / update / delete of a contract get their own name in the collapsed summary. */
 const appKindLabel = (tx: TransactionWrapper): string => {
@@ -857,9 +868,12 @@ const txSummaryAmount = (tx: TransactionWrapper): string => {
     const appIndex = txn.applicationCall?.appIndex;
     const call = onCompleteLabel(txn);
     // A program change names the new code by the start of its hash (full hash in the details).
-    const program = summary?.approval ? ` · ${summary.approval.sha256.slice(0, 8)}…` : "";
-    if (summary?.kind === "create") return program.slice(3);
-    return (appIndex ? `${t("connect.app")} ${appIndex} · ${call}` : call) + program;
+    const hash = summary?.approval ? `${summary.approval.sha256.slice(0, 8)}…` : "";
+    const parts =
+      summary?.kind === "create"
+        ? [hash]
+        : [appIndex ? `${t("connect.app")} ${appIndex}` : "", call, hash];
+    return parts.filter(Boolean).join(" · ");
   }
   return "";
 };
@@ -902,6 +916,9 @@ watch(
   requests,
   (list) => {
     if (!compact.value) return;
+    for (const id of autoExpanded) {
+      if (!list.some((request) => request.id === id)) autoExpanded.delete(id);
+    }
     for (const request of list) {
       if (autoExpanded.has(request.id)) continue;
       const high = (request.transactions ?? []).filter(

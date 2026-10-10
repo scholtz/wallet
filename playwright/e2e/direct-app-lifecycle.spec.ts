@@ -158,6 +158,43 @@ test.describe("Biatec Direct: application lifecycle", () => {
     await expectClosed(popup);
   });
 
+  test("a group mixing a deployment with an ordinary call shows the card only for the deployment", async ({
+    context,
+    page,
+  }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const create = algosdk.makeApplicationCreateTxnFromObject({
+      sender: address,
+      suggestedParams: params(),
+      onComplete: algosdk.OnApplicationComplete.NoOpOC,
+      approvalProgram: APPROVAL,
+      clearProgram: CLEAR,
+      numGlobalInts: 0,
+      numGlobalByteSlices: 0,
+      numLocalInts: 0,
+      numLocalByteSlices: 0,
+    });
+    const noop = algosdk.makeApplicationNoOpTxnFromObject({
+      sender: address,
+      suggestedParams: params(),
+      appIndex: 1234,
+    });
+    algosdk.assignGroupID([create, noop]);
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "mixed-app",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: MAINNET_HASH, txns: [encode(create), encode(noop)] },
+    });
+    await expect(popup.getByTestId("direct-tx-line")).toHaveCount(2);
+    await expect(popup.getByTestId("direct-app-card")).toHaveCount(1);
+    await expect(popup.getByText("Application call summary")).toBeVisible();
+  });
+
   test("an ordinary app call shows no lifecycle card and stays collapsed", async ({ context, page }) => {
     await setupFreshWallet(page);
     const address = walletAddress(page);
