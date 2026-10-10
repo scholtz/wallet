@@ -110,9 +110,30 @@ test.describe("directUnsupportedReason: the application lifecycle is signable", 
 
   test("a program above the AVM limit (4 pages x 2048 bytes) is refused before anything is hashed", () => {
     const tooBig = new Uint8Array(8193);
-    expect(directUnsupportedReason(create({ approvalProgram: tooBig }))).toMatch(/not supported/);
-    expect(directUnsupportedReason(create({ clearProgram: tooBig }))).toMatch(/not supported/);
-    expect(directUnsupportedReason(create({ approvalProgram: new Uint8Array(8192) }))).toBeUndefined();
+    expect(directUnsupportedReason(create({ approvalProgram: tooBig, extraPages: 3 }))).toMatch(/not supported/);
+    expect(directUnsupportedReason(create({ clearProgram: tooBig, extraPages: 3 }))).toMatch(/not supported/);
+    expect(
+      directUnsupportedReason(create({ approvalProgram: new Uint8Array(8188), extraPages: 3 })),
+    ).toBeUndefined();
+  });
+
+  test("programs that do not fit the declared pages are refused", () => {
+    // 1 page = 2048 bytes for approval + clear together; each extra page adds 2048 (max 3).
+    expect(
+      directUnsupportedReason(
+        create({ approvalProgram: new Uint8Array(1500), clearProgram: new Uint8Array(1500), extraPages: 0 }),
+      ),
+    ).toMatch(/not supported/);
+    expect(
+      directUnsupportedReason(
+        create({ approvalProgram: new Uint8Array(1500), clearProgram: new Uint8Array(1500), extraPages: 1 }),
+      ),
+    ).toBeUndefined();
+  });
+
+  test("more than three extra pages are refused", () => {
+    expect(directUnsupportedReason(create({ extraPages: 4 }))).toMatch(/not supported/);
+    expect(directUnsupportedReason(create({ extraPages: 3 }))).toBeUndefined();
   });
 
   test("an unknown OnComplete value is refused", () => {

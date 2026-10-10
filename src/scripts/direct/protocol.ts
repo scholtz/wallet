@@ -280,6 +280,7 @@ export function directUnsupportedReason(tx: {
   applicationCall?: {
     appIndex?: bigint | number;
     onComplete?: number;
+    extraPages?: number;
     approvalProgram?: Uint8Array;
     clearProgram?: Uint8Array;
   };
@@ -298,12 +299,13 @@ export function directUnsupportedReason(tx: {
       if (call.onComplete !== undefined && (call.onComplete < 0 || call.onComplete > 5)) {
         return "An application call with an unknown OnComplete is not supported by Biatec Direct.";
       }
-      // The AVM caps a program at 4 pages x 2048 bytes: refuse more before anything hashes it.
-      if (
-        (call.approvalProgram?.length ?? 0) > 8192 ||
-        (call.clearProgram?.length ?? 0) > 8192
-      ) {
-        return "A program above the maximum size is not supported by Biatec Direct.";
+      // AVM limits: approval + clear programs together fit (1 + extraPages) x 2048 bytes, with
+      // at most 3 extra pages (so 8 KB at most). Refuse more before anything hashes it.
+      const pages = Number(call.extraPages ?? 0);
+      const programBytes =
+        (call.approvalProgram?.length ?? 0) + (call.clearProgram?.length ?? 0);
+      if (pages > 3 || programBytes > (1 + pages) * 2048) {
+        return "Programs that do not fit the declared pages are not supported by Biatec Direct.";
       }
       // OnComplete values: 0 NoOp, 1 OptIn, 2 CloseOut, 3 ClearState, 4 Update, 5 Delete (the same
       // table as scripts/direct/appCall.ts). A creation cannot close out or clear state.

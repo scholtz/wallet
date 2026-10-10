@@ -1507,8 +1507,9 @@ const formatAssetAmount = (
 // programs and the warning are in view before anything is signed.
 const autoExpanded = new WeakSet<object>(); // by object: a re-emitted request opens again
 watch(
-  () => [...requests.value],
-  (list) => {
+  // Also re-run when the accounts load: "foreign" depends on them.
+  [() => [...requests.value], () => store.state.wallet.privateAccounts.length],
+  ([list]) => {
     if (!compact.value) return;
     for (const request of list) {
       if (autoExpanded.has(request)) continue;

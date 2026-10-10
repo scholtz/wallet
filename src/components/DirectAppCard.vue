@@ -126,7 +126,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, watch } from "vue";
+import { computed, onBeforeUnmount, reactive, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import type { ApplicationCallReview, ProgramInfo, StateSchema } from "@/scripts/direct/appCall";
 
@@ -205,6 +205,7 @@ const schemaText = (schema: StateSchema) =>
 // The copy button shows a check (or a cross when the browser refuses): a silent failure would
 // let the user paste a stale clipboard value into an explorer and compare the wrong hash.
 const copyState = reactive<Record<string, "ok" | "failed" | undefined>>({});
+const copyTimers: Record<string, ReturnType<typeof setTimeout> | undefined> = {};
 const copy = async (key: string, value: string) => {
   try {
     await navigator.clipboard.writeText(value);
@@ -212,10 +213,12 @@ const copy = async (key: string, value: string) => {
   } catch {
     copyState[key] = "failed";
   }
-  setTimeout(() => {
+  clearTimeout(copyTimers[key]); // a second copy restarts the feedback
+  copyTimers[key] = setTimeout(() => {
     copyState[key] = undefined;
   }, 2500);
 };
+onBeforeUnmount(() => Object.values(copyTimers).forEach((timer) => clearTimeout(timer)));
 </script>
 
 <style scoped>
