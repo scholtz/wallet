@@ -173,3 +173,24 @@ test.describe("canSignData (ARC-60: plain and HD keys only)", () => {
     expect(canSignData(watched, [ledger, watched])).toBe(false);
   });
 });
+
+test.describe("canSignData on a given network", () => {
+  test("a plain key rekeyed on THIS network to a Ledger cannot sign data there", () => {
+    const ledger = acct("L", { type: "ledger" });
+    const plain = acct("A", { sk: KEY, data: { "mainnet-v1.0": { rekeyedTo: "L" } } });
+    expect(canSignData(plain, [ledger, plain], "mainnet-v1.0")).toBe(false);
+  });
+
+  test("a rekey on another network does not matter", () => {
+    const ledger = acct("L", { type: "ledger" });
+    const plain = acct("A", { sk: KEY, data: { "testnet-v1.0": { rekeyedTo: "L" } } });
+    expect(canSignData(plain, [ledger, plain], "mainnet-v1.0")).toBe(true);
+  });
+
+  test("a rekey on this network to a plain key signs with that key", () => {
+    const other = acct("B", { sk: KEY });
+    const watched = acct("W", { data: { "mainnet-v1.0": { rekeyedTo: "B" } } });
+    expect(canSignData(watched, [other, watched], "mainnet-v1.0")).toBe(true);
+    expect(canSignData(watched, [other, watched], "testnet-v1.0")).toBe(false);
+  });
+});

@@ -92,27 +92,36 @@ export function isDirectEligibleAccount(
 
 /**
  * ARC-60 data signing is an ed25519 signature made with a plain or HD key (the wallet cannot make
- * one with a Ledger, a Falcon key or a multisig), on the account itself or on the key it is
- * rekeyed to.
+ * one with a Ledger, a Falcon key or a multisig). With `env` (the network of the request) the
+ * rekey of that network decides which key signs, as in signer/signArc60Data; without it any
+ * network's rekey may.
  */
 export function canSignData(
   account: EligibilityAccount,
   all: EligibilityAccount[],
+  env?: string,
   visited: Set<string> = new Set(),
 ): boolean {
   if (visited.has(account.addr)) return false;
   visited.add(account.addr);
+  const targets = env
+    ? [account.data?.[env]?.rekeyedTo]
+    : Object.values(account.data ?? {}).map((entry) => entry?.rekeyedTo);
+  const rekeyTarget = targets.find((target) => target && target !== account.addr);
+  if (env && rekeyTarget) {
+    const rekeyed = all.find((a) => a.addr === rekeyTarget);
+    return !!rekeyed && canSignData(rekeyed, all, env, visited);
+  }
   if (account.type === "hd") return holdsHdKey(account, all);
   if (account.type === "ledger" || account.type === "falcon1024" || account.type === "wc") {
     return false;
   }
   if (account.params) return false;
   if (account.sk) return true;
-  for (const entry of Object.values(account.data ?? {})) {
-    const target = entry?.rekeyedTo;
+  for (const target of targets) {
     if (!target || target === account.addr) continue;
     const rekeyed = all.find((a) => a.addr === target);
-    if (rekeyed && canSignData(rekeyed, all, visited)) return true;
+    if (rekeyed && canSignData(rekeyed, all, env, visited)) return true;
   }
   return false;
 }

@@ -468,7 +468,7 @@ test.describe("Biatec Direct signs for every account type", () => {
     expect((await messages(dapp)).some(reply("data-plain"))).toBe(false);
   });
 
-  test("a group with another party's transaction is not held up by it; Send back returns null for it", async ({
+  test("a group with another party's transaction is not held up by it and goes back with null for it", async ({
     context,
     page,
   }) => {
@@ -497,9 +497,7 @@ test.describe("Biatec Direct signs for every account type", () => {
       },
     });
     await popup.getByRole("button", { name: "Sign all" }).click();
-    const sendBack = popup.getByRole("button", { name: "Send back to DApp" });
-    await expect(sendBack).toBeEnabled();
-    await sendBack.click();
+    // Only our transaction needed signing: the request goes back by itself, no error shown.
     const response = await waitForMessage(dapp, reply("mixed"));
     expect(response.data.error).toBeUndefined();
     const stxns = stxnsOf(response);

@@ -551,7 +551,14 @@ const actions: ActionTree<DirectState, RootState> = {
         if (
           items.some((item) => {
             const account = accounts.find((a) => a.addr === item.signer);
-            return !account || !canSignData(account, accounts);
+            return (
+              !account ||
+              !canSignData(
+                account,
+                accounts,
+                dataNetwork ? signingEnvOf(dataNetwork) : rootState.config.env,
+              )
+            );
           })
         ) {
           refuse({

@@ -1818,7 +1818,7 @@ const retToWalletConnect = () => {
         return "";
       }
     })();
-    store.commit("direct/setReturnedFromSigning", { at: Date.now(), txId });
+    if (txId) store.commit("direct/setReturnedFromSigning", { at: Date.now(), txId });
   }
   const accountParam = toSingleParam(
     route.params.account as string | string[] | undefined

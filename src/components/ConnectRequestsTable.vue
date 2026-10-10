@@ -962,16 +962,26 @@ const getSignerTypeLocal = (from: string, genesisId?: string): SignerType => {
  * do not cover what its signers need, this returns the total fee the site set (else undefined).
  */
 const lowFalconFee = (request: RequestItem): number | undefined => {
-  let anyFalcon = false;
-  const fees = (request.transactions ?? []).map((tx) => {
+  // Fees pool only inside an atomic group; an ungrouped transaction stands alone.
+  const groups = new Map<string, { fee: bigint; falcon1024: boolean }[]>();
+  (request.transactions ?? []).forEach((tx, index) => {
     const sender = tx.txn?.sender ? encodeAddress(tx.txn.sender) : "";
     const falcon1024 =
       sender !== "" && getSignerTypeLocal(sender, tx.txn.genesisID) === "falcon1024";
-    anyFalcon ||= falcon1024;
-    return { fee: BigInt(tx.txn?.fee ?? 0), falcon1024 };
+    const group = tx.txn?.group?.length
+      ? Buffer.from(tx.txn.group).toString("base64")
+      : `solo-${index}`;
+    const members = groups.get(group) ?? [];
+    members.push({ fee: BigInt(tx.txn?.fee ?? 0), falcon1024 });
+    groups.set(group, members);
   });
-  if (!anyFalcon || groupFeeShortfall(fees) === 0n) return undefined;
-  return Number(fees.reduce((sum, tx) => sum + tx.fee, 0n));
+  for (const members of groups.values()) {
+    if (!members.some((m) => m.falcon1024)) continue;
+    if (groupFeeShortfall(members) > 0n) {
+      return Number(members.reduce((sum, m) => sum + m.fee, 0n));
+    }
+  }
+  return undefined;
 };
 
 const _arrayBufferToBase64 = (buffer: Uint8Array) => {
@@ -1032,12 +1042,19 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
       tx: data.txn,
       env: signEnv.value,
     })) as SignerType;
-    if (signerType === "?") {
-      // E.g. the account is rekeyed (on this network) to an account this wallet does not hold.
-      await store.dispatch(
-        "toast/openError",
-        "This wallet cannot sign for this account on this network (it may be rekeyed to an account this wallet does not hold).",
+    if (compact.value && signerType === "?") {
+      // Biatec Direct only (WalletConnect/Liquid route "?" accounts, e.g. wc, to their own signer).
+      // A transaction of another party is simply not ours to sign; for one of this wallet's own
+      // accounts it means the key is gone, e.g. rekeyed on this network to an account not held here.
+      const isOwnAccount = store.state.wallet.privateAccounts.some(
+        (a) => a.addr === data.txn.sender.toString(),
       );
+      if (isOwnAccount) {
+        await store.dispatch(
+          "toast/openError",
+          "This wallet cannot sign for this account on this network (it may be rekeyed to an account this wallet does not hold).",
+        );
+      }
       return;
     }
     if (signerType === "msig") {
@@ -1347,8 +1364,19 @@ const isArc14OnlyRequest = (data: RequestItem): boolean => {
 // required co-signature is present, well before its threshold is met -
 // toBeSigned() already decodes the msig subsig count against the threshold.
 const allTransactionsSigned = (data: RequestItem): boolean => {
-  const list = data.transactions ?? [];
+  // Direct: other parties' transactions (never signed here) do not keep the request open.
+  const list = (data.transactions ?? []).filter(
+    (tx) => !compact.value || !isForeignTransaction(tx),
+  );
   return list.length > 0 && !list.some((tx) => toBeSigned(tx));
+};
+
+/** The sender is not an account this wallet can sign for (the site's own or a co-signer's). */
+const isForeignTransaction = (tx: TransactionWrapper): boolean => {
+  if (!tx?.txn?.sender) return true;
+  return (
+    getSignerTypeLocal(encodeAddress(tx.txn.sender), tx.txn.genesisID) === "?"
+  );
 };
 
 // ARC14 auth transactions are signed with fee=0 and are never broadcast, so
