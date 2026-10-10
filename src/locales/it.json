@@ -1107,7 +1107,7 @@
       "network_differs": "Diversa dalla rete selezionata nel portafoglio ({selected}). I nomi degli asset, i dettagli delle app e l'anteprima della transazione non sono disponibili per questa rete; gli importi sono mostrati nelle unità proprie della rete.",
       "network_changed": "Questo sito è stato collegato su {granted}, ma questa richiesta è su {requested}. Controlla la rete prima di firmare.",
       "tx_count": "Transazioni: {count}",
-      "falcon_fee_warning": "Questo account usa una chiave Falcon-1024 (post-quantistica). La firma è grande, quindi la rete richiede una commissione più alta (circa 0,003 Algo per transazione) di quella impostata dal sito ({fee}). La transazione può essere rifiutata se altre transazioni del gruppo non coprono la differenza.",
+      "falcon_fee_warning": "Questo account usa una chiave Falcon-1024 (post-quantistica). La firma è grande, quindi la rete richiede una commissione più alta (circa tre volte la commissione minima per transazione) di quella impostata dal sito ({fee}). La transazione può essere rifiutata se altre transazioni del gruppo non coprono la differenza.",
       "network_foreign_note": "I dettagli della rete del portafoglio non vengono mostrati per un'altra rete.",
       "genesis_hash_label": "Hash genesis",
       "network_not_named": "Il sito non ha indicato alcuna rete. Le firme dei dati non sono legate a una rete."

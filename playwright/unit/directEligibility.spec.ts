@@ -5,6 +5,7 @@
 import { test, expect } from "@playwright/test";
 import {
   canSignLocally,
+  holdsHdKey,
   isDirectEligibleAccount,
   type EligibilityAccount,
 } from "../../src/scripts/direct/eligibility";
@@ -76,6 +77,12 @@ test.describe("canSignLocally", () => {
     expect(canSignLocally(msig, [local, msig])).toBe(true);
   });
 
+  test("a multisig whose only local signator is a Falcon account is not offered (Falcon cannot be a multisig subsigner)", () => {
+    const falcon = acct("F", { type: "falcon1024", falconPrivateKey: KEY });
+    const msig = acct("M", { type: "msig", params: { addrs: ["F", "X"] } });
+    expect(canSignLocally(msig, [falcon, msig])).toBe(false);
+  });
+
   test("a watch-only account cannot sign", () => {
     const a = acct("W");
     expect(canSignLocally(a, [a])).toBe(false);
@@ -115,5 +122,26 @@ test.describe("isDirectEligibleAccount", () => {
   test("a watch-only account is not offered", () => {
     const a = acct("A");
     expect(isDirectEligibleAccount(a, [a])).toBe(false);
+  });
+});
+
+test.describe("holdsHdKey", () => {
+  test("true only when the mnemonic is reachable", () => {
+    const root = acct("R", { type: "hd", hdMnemonic: "w", hdRootAddr: "R" });
+    const child = acct("C", { type: "hd", hdRootAddr: "R" });
+    const orphan = acct("O", { type: "hd", hdRootAddr: "Z" });
+    expect(holdsHdKey(root, [root, child, orphan])).toBe(true);
+    expect(holdsHdKey(child, [root, child, orphan])).toBe(true);
+    expect(holdsHdKey(orphan, [root, child, orphan])).toBe(false);
+  });
+
+  test("an orphan HD account rekeyed to a local key is still not an HD signer", () => {
+    const local = acct("L", { sk: KEY });
+    const orphan = acct("O", { type: "hd", hdRootAddr: "Z", data: { n: { rekeyedTo: "L" } } });
+    expect(holdsHdKey(orphan, [local, orphan])).toBe(false);
+  });
+
+  test("not HD at all", () => {
+    expect(holdsHdKey(acct("A", { sk: KEY }), [])).toBe(false);
   });
 });

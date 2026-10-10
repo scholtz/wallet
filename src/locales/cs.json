@@ -1107,7 +1107,7 @@
       "network_differs": "Liší se od sítě vybrané v peněžence ({selected}). Názvy aktiv, podrobnosti aplikací a náhled transakce nejsou pro tuto síť k dispozici; částky jsou zobrazeny v jednotkách dané sítě.",
       "network_changed": "Tento web byl připojen v síti {granted}, ale tento požadavek je v síti {requested}. Před podpisem zkontrolujte síť.",
       "tx_count": "Transakce: {count}",
-      "falcon_fee_warning": "Tento účet používá klíč Falcon-1024 (postkvantový). Jeho podpis je velký, proto síť vyžaduje vyšší poplatek (asi 0,003 Algo za transakci), než nastavil web ({fee}). Transakce může být zamítnuta, pokud rozdíl nepokryjí jiné transakce ve skupině.",
+      "falcon_fee_warning": "Tento účet používá klíč Falcon-1024 (postkvantový). Jeho podpis je velký, proto síť vyžaduje vyšší poplatek (asi trojnásobek minimálního poplatku za transakci), než nastavil web ({fee}). Transakce může být zamítnuta, pokud rozdíl nepokryjí jiné transakce ve skupině.",
       "network_foreign_note": "Podrobnosti ze sítě peněženky se pro jinou síť nezobrazují.",
       "genesis_hash_label": "Genesis hash",
       "network_not_named": "Web nezadal žádnou síť. Podpisy dat nejsou vázány na síť."

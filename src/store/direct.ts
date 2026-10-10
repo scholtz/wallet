@@ -109,8 +109,12 @@ export interface DirectState {
     network: DirectNetworkView | null;
     /** Set when the request is on another network than the one the site was connected on. */
     networkChange: DirectNetworkChange | null;
-    /** The user came back from the multisig signing page (/payWC): send a fully signed request on. */
-    returnedFromSigning: boolean;
+    /**
+     * When (ms since epoch, 0 = never) the user came back from the multisig signing page
+     * (/payWC): a fully signed request is then sent on without another click. Only a recent
+     * return counts, so a stale value can never send a later request unasked.
+     */
+    returnedFromSigning: number;
   };
   pendingEnable: PendingEnable | null;
 }
@@ -129,7 +133,7 @@ const state = (): DirectState => ({
   sessions: [],
   requests: [],
   signDataRequests: [],
-  popup: { status: "idle", dappOrigin: null, verified: false, network: null, networkChange: null, returnedFromSigning: false },
+  popup: { status: "idle", dappOrigin: null, verified: false, network: null, networkChange: null, returnedFromSigning: 0 },
   pendingEnable: null,
 });
 
@@ -166,7 +170,7 @@ const mutations: MutationTree<DirectState> = {
   setNetwork(currentState, network: DirectNetworkView | null) {
     currentState.popup.network = network;
   },
-  setReturnedFromSigning(currentState, value: boolean) {
+  setReturnedFromSigning(currentState, value: number) {
     currentState.popup.returnedFromSigning = value;
   },
   setNetworkChange(currentState, change: DirectNetworkChange | null) {
@@ -176,8 +180,6 @@ const mutations: MutationTree<DirectState> = {
     currentState.pendingEnable = pending;
   },
   addRequest(currentState, { request }: { request: StoredRequest }) {
-    // A flag left over from an earlier visit to the signing page must not auto-send this one.
-    currentState.popup.returnedFromSigning = false;
     currentState.requests.push(request);
   },
   removeRequest(currentState, id: number | string) {

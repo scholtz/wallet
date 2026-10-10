@@ -105,9 +105,7 @@
         <template #body="slotProps">
           <Button
             class="m-1"
-            v-if="
-              !atLeastOneSigned(slotProps.data)
-            "
+            v-if="needsSigning(slotProps.data)"
             @click="clickSignAll(slotProps.data)"
           >
             {{ signAllLabel(slotProps.data) }}
@@ -120,7 +118,9 @@
             v-if="!compact || atLeastOneSigned(slotProps.data)"
             class="m-1"
             :disabled="
-              !store.state.wallet.isOpen || !atLeastOneSigned(slotProps.data)
+              !store.state.wallet.isOpen ||
+              !atLeastOneSigned(slotProps.data) ||
+              (compact && hasUnsignedTransaction(slotProps.data))
             "
             @click="clickAccept(slotProps.data)"
           >
@@ -823,8 +823,10 @@ const txSummaryTo = (tx: TransactionWrapper): string => {
 // to the site without another click (a request that only held pre-signed data is not sent here:
 // the flag is only set by the signing page).
 onMounted(() => {
-  if (ns.value !== "direct" || !store.state.direct.popup.returnedFromSigning) return;
-  store.commit("direct/setReturnedFromSigning", false);
+  if (ns.value !== "direct") return;
+  const returnedAt = store.state.direct.popup.returnedFromSigning;
+  store.commit("direct/setReturnedFromSigning", 0);
+  if (!returnedAt || Date.now() - returnedAt > 15_000) return;
   for (const request of requests.value) {
     if (allTransactionsSigned(request)) void clickAccept(request);
   }
@@ -1162,6 +1164,24 @@ const toBeSigned = (data: TransactionWrapper) => {
     return signedCount < threshold;
   }
   return false;
+};
+
+/**
+ * Whether the request still needs the user to sign. The compact (Direct) list starts collapsed, so
+ * its Sign button stays until nothing is left to sign (a multisig below its threshold counts as
+ * left to sign); WalletConnect's list hides it once anything is signed.
+ */
+const needsSigning = (data: RequestItem) =>
+  compact.value
+    ? (data.transactions ?? []).some((tx) => toBeSigned(tx))
+    : !atLeastOneSigned(data);
+
+/** A transaction with no signature at all: the request must not be sent back yet (Direct). */
+const hasUnsignedTransaction = (data: RequestItem) => {
+  const signedMap = store.state.signer.signed ?? {};
+  return (data.transactions ?? []).some(
+    (tx) => !tx?.txn?.txID || !(tx.txn.txID() in signedMap),
+  );
 };
 
 const atLeastOneSigned = (data: RequestItem) => {

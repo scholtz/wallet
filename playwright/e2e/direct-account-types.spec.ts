@@ -9,6 +9,7 @@ import {
   MAINNET_HASH,
   encode,
   expectClosed,
+  expandAll,
   expectValidSignature,
   isReady,
   messages,
@@ -258,6 +259,34 @@ test.describe("Biatec Direct signs for every account type", () => {
     await expect(popup.getByRole("button", { name: "Sign", exact: true })).toHaveCount(2);
   });
 
+  test("a partly signed group cannot be sent back and keeps its Sign button on the collapsed row", async ({
+    context,
+    page,
+  }) => {
+    await setupFreshWallet(page);
+    const plain = await addEd25519(page, "Plain Account");
+    const dapp = await connectFor(context, [plain]);
+    const first = paymentTxn(plain).txn;
+    const second = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: plain,
+      receiver: plain,
+      amount: 7,
+      suggestedParams: mainnetParams(),
+    });
+    algosdk.assignGroupID([first, second]);
+    const popup = await requestSignature(context, dapp, "partial-group", [first, second]);
+    await expandAll(popup);
+    await popup.getByRole("button", { name: "Sign", exact: true }).first().click();
+    await expect(popup.getByRole("button", { name: "Send back to DApp" })).toBeDisabled();
+    await expect(popup.getByRole("button", { name: "Sign all" })).toBeVisible();
+    expect((await messages(dapp)).some(reply("partial-group"))).toBe(false);
+    await popup.getByRole("button", { name: "Sign all" }).click();
+    const response = await waitForMessage(dapp, reply("partial-group"));
+    expect(response.data.error).toBeUndefined();
+    expect(stxnsOf(response)).toHaveLength(2);
+    await expectClosed(popup);
+  });
+
   test("a single transaction can be signed from the collapsed row", async ({ context, page }) => {
     await setupFreshWallet(page);
     const plain = await addEd25519(page, "Plain Account");
@@ -281,7 +310,7 @@ test.describe("Biatec Direct signs for every account type", () => {
     const { txn } = paymentTxn(falcon);
     const popup = await requestSignature(context, dapp, "pq-fee", [txn]);
     await expect(popup.getByTestId("direct-falcon-fee")).toContainText("Falcon-1024");
-    await expect(popup.getByTestId("direct-falcon-fee")).toContainText("0.003");
+    await expect(popup.getByTestId("direct-falcon-fee")).toContainText("three times the minimum fee");
   });
 
   test("an ordinary sender gets no Falcon fee warning", async ({ context, page }) => {

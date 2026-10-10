@@ -51,7 +51,8 @@ export async function openPopup(context: BrowserContext, dapp: Page): Promise<Pa
 }
 
 export async function unlock(popup: Page) {
-  await expect(popup.locator("#new_wallet_button_open")).toBeVisible();
+  // A fresh popup loads the whole app: allow for a busy machine or CI runner.
+  await expect(popup.locator("#new_wallet_button_open")).toBeVisible({ timeout: 60000 });
   await popup.locator("#wallet-pass").fill(DEFAULT_WALLET_PASSWORD);
   await popup.locator("#new_wallet_button_open").click();
 }

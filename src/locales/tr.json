@@ -1107,7 +1107,7 @@
       "network_differs": "Cüzdanda seçili ağdan farklı ({selected}). Bu ağ için varlık adları, uygulama ayrıntıları ve işlem önizlemesi kullanılamaz; tutarlar ağın kendi birimleriyle gösterilir.",
       "network_changed": "Bu site {granted} ağında bağlandı, ancak bu istek {requested} ağında. İmzalamadan önce ağı kontrol edin.",
       "tx_count": "İşlemler: {count}",
-      "falcon_fee_warning": "Bu hesap Falcon-1024 (kuantum sonrası) anahtarı kullanıyor. İmzası büyük olduğundan ağ, sitenin belirlediğinden ({fee}) daha yüksek bir ücret ister (işlem başına yaklaşık 0,003 Algo). Gruptaki diğer işlemler farkı karşılamazsa işlem reddedilebilir.",
+      "falcon_fee_warning": "Bu hesap Falcon-1024 (kuantum sonrası) anahtarı kullanıyor. İmzası büyük olduğundan ağ, sitenin belirlediğinden ({fee}) daha yüksek bir ücret ister (işlem başına asgari ücretin yaklaşık üç katı). Gruptaki diğer işlemler farkı karşılamazsa işlem reddedilebilir.",
       "network_foreign_note": "Cüzdanın ağına ait ayrıntılar başka bir ağ için gösterilmez.",
       "genesis_hash_label": "Genesis hash",
       "network_not_named": "Site bir ağ belirtmedi. Veri imzaları bir ağa bağlı değildir."

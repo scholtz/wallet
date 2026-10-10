@@ -22,16 +22,36 @@ export interface EligibilityAccount {
   data?: Record<string, { rekeyedTo?: string } | undefined>;
 }
 
+/** An HD account whose root mnemonic is in the wallet (the key is derived at signing time). */
+export function holdsHdKey(
+  account: EligibilityAccount,
+  all: EligibilityAccount[],
+): boolean {
+  if (account.type !== "hd") return false;
+  if (account.hdMnemonic) return true;
+  return !!all.find((a) => a.addr === account.hdRootAddr)?.hdMnemonic;
+}
+
+/**
+ * The account can add a subsignature to a multisig: key held (plain, HD) or a Ledger. Falcon-1024
+ * keys cannot (a multisig subsignature is ed25519) and WalletConnect accounts sign elsewhere.
+ */
+function canSignMultisigPart(
+  account: EligibilityAccount,
+  all: EligibilityAccount[],
+): boolean {
+  if (account.type === "ledger") return true;
+  if (account.type === "hd") return holdsHdKey(account, all);
+  if (account.type === "falcon1024" || account.type === "wc") return false;
+  return !!account.sk;
+}
+
 /** The account's own key material (or device) lets the wallet sign for it. */
 function holdsKey(account: EligibilityAccount, all: EligibilityAccount[]): boolean {
   if (account.type === "wc") return false;
   if (account.type === "ledger") return true;
   if (account.type === "falcon1024") return !!account.falconPrivateKey;
-  if (account.type === "hd") {
-    if (account.hdMnemonic) return true;
-    const root = all.find((a) => a.addr === account.hdRootAddr);
-    return !!root?.hdMnemonic;
-  }
+  if (account.type === "hd") return holdsHdKey(account, all);
   return !!account.sk;
 }
 
@@ -49,7 +69,7 @@ export function canSignLocally(
   if (
     signators.some((addr) => {
       const signator = all.find((a) => a.addr === addr);
-      return !!signator && canSignLocally(signator, all, visited);
+      return !!signator && canSignMultisigPart(signator, all);
     })
   ) {
     return true;
