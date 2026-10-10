@@ -935,9 +935,13 @@ const getSignerTypeLocal = (from: string, genesisId?: string): SignerType => {
     const rekeyAccount = store.state.wallet.privateAccounts.find(
       (item) => item.addr === envRekey
     );
-    // Rekeyed (on this network) to an account this wallet does not hold: nothing here can sign.
-    if (!rekeyAccount) return "?";
-    resolvedAccount = rekeyAccount;
+    if (rekeyAccount) {
+      resolvedAccount = rekeyAccount;
+    } else if (compact.value) {
+      // Biatec Direct: rekeyed (on this network) to an account this wallet does not hold, so
+      // nothing here can sign (as signer/getSignerType; WalletConnect/Liquid keep their fallback).
+      return "?";
+    }
   }
   if (resolvedAccount.type === "ledger") {
     return "ledger";
