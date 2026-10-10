@@ -25,8 +25,10 @@ window.addEventListener("message", (e) => {
   window.__messages.push({ origin: e.origin, data: e.data, fromPopup: e.source === window.__popup });
 });
 window.__hint = location.origin;
+window.__lang = "";
 document.getElementById("open").addEventListener("click", () => {
-  window.__popup = window.open(WALLET + "/direct?origin=" + encodeURIComponent(window.__hint),
+  window.__popup = window.open(WALLET + "/direct?origin=" + encodeURIComponent(window.__hint) +
+      (window.__lang ? "&lang=" + encodeURIComponent(window.__lang) : ""),
     "biatec-wallet-direct", "popup,width=480,height=720");
 });
 window.__post = (msg) => window.__popup.postMessage(msg, WALLET);
@@ -167,6 +169,32 @@ async function connectSite(context: BrowserContext, address: string): Promise<Pa
 test.describe("Biatec Direct popup transport", () => {
   // Every popup is a separate wallet unlock (PBKDF2); flows with several popups are slow.
   test.describe.configure({ timeout: 240000 });
+
+  test("language: the popup opens in the language the dApp passes in ?lang=", async ({ context, page }) => {
+    // The wallet's own preference is English; the dApp (Slovak) wins for this popup only.
+    await setupFreshWallet(page);
+    await page.evaluate(() => localStorage.setItem("lang", "en"));
+    const dapp = await openDapp(context);
+    await dapp.evaluate(() => {
+      (window as unknown as { __lang: string }).__lang = "sk";
+    });
+    const popup = await openPopup(context, dapp);
+    await expect(popup.getByTestId("direct-unlock-banner")).toContainText("Web chce použiť vašu peňaženku");
+    // The user's stored wallet language is not overwritten by the dApp's hint.
+    expect(await popup.evaluate(() => localStorage.getItem("lang"))).not.toBe("sk");
+  });
+
+  test("language: an unsupported or missing ?lang= keeps the wallet's own language", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    await page.evaluate(() => localStorage.setItem("lang", "en"));
+    const dapp = await openDapp(context);
+    await dapp.evaluate(() => {
+      (window as unknown as { __lang: string }).__lang = "xx";
+    });
+    const popup = await openPopup(context, dapp);
+    await expect(popup.getByTestId("direct-unlock-banner")).toBeVisible();
+    await expect(popup.getByTestId("direct-unlock-banner")).toContainText("A website wants to use your wallet");
+  });
 
   test("connect: the popup shows the browser-verified origin, replies only to it, and closes", async ({ context, page }) => {
     await setupFreshWallet(page);

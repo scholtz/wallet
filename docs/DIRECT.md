@@ -29,6 +29,7 @@ Safe, EIP-6963/7039: issue [#192](https://github.com/scholtz/wallet/issues/192).
 | --- | --- |
 | Popup only (never an iframe): clickjacking, partitioned storage, Safari WebAuthn | `shared/direct.ts` refuses when `window.top !== window`; nginx `frame-ancestors 'none'` + `X-Frame-Options: DENY` |
 | Needs an opener and a valid `?origin=` hint (https, or http on loopback only, canonical form) | `shared/direct.ts`, `scripts/direct/protocol.ts` `parseDappOrigin` |
+| Optional `?lang=` hint (a wallet language; regional tags match their base): the popup opens in the dApp's language for that window only and the stored wallet language is not changed. Unknown values are ignored. Cosmetic, never part of the trust decision | `parseLangHint` in `scripts/direct/protocol.ts`, `pages/Direct.vue` |
 | Every inbound message must have `event.origin === hint` **and** `event.source === window.opener`, otherwise it is ignored with no reply | `shared/direct.ts` |
 | Every outbound message uses the hinted origin as `targetOrigin`, never `"*"`; `ready` carries nothing secret | `shared/direct.ts` |
 | Exactly **one** request per popup, within 30 s of `ready`; a second one is answered `4200` | `DirectRequestGate` |
