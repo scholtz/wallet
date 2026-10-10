@@ -868,7 +868,7 @@ const txSummaryAmount = (tx: TransactionWrapper): string => {
     // Both programs are fingerprinted: swapping only the clear-state program must show too.
     const hash = [summary?.approval, summary?.clear]
       .filter((program) => !!program)
-      .map((program) => `${program.sha256.slice(0, 8)}…`)
+      .map((program) => `${program.sha256.slice(0, 12)}…`)
       .join(" / ");
     const parts = [
       summary?.kind === "create" || !appIndex ? "" : `${t("connect.app")} ${appIndex}`,
@@ -1542,11 +1542,13 @@ watch(
     }
     // Answered or removed requests must not stay in the expanded lists (each check compares rows).
     const liveRequests = new Set<object>(list);
-    expandedRequests.value = expandedRequests.value.filter((open) => liveRequests.has(open));
+    const keptRequests = expandedRequests.value.filter((open) => liveRequests.has(open));
+    if (keptRequests.length !== expandedRequests.value.length) expandedRequests.value = keptRequests;
     const liveTransactions = new Set<object>(list.flatMap((request) => request.transactions ?? []));
-    expandedTransactions.value = expandedTransactions.value.filter((open) =>
-      liveTransactions.has(open),
-    );
+    const keptTransactions = expandedTransactions.value.filter((open) => liveTransactions.has(open));
+    if (keptTransactions.length !== expandedTransactions.value.length) {
+      expandedTransactions.value = keptTransactions;
+    }
   },
   { immediate: true },
 );

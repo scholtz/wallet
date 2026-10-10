@@ -310,6 +310,9 @@ export function directUnsupportedReason(tx: {
         if (pages > 3 || programBytes > (1 + pages) * 2048) {
           return "Programs that do not fit the declared pages are not supported by Biatec Direct.";
         }
+      } else if (pages !== 0) {
+        // extraPages only means something on a creation; elsewhere it is unshown signed data.
+        return "Extra pages on this application call are not supported by Biatec Direct.";
       } else if (programBytes > 4 * 2048) {
         return "Programs above the maximum size are not supported by Biatec Direct.";
       }

@@ -160,6 +160,15 @@ test.describe("directUnsupportedReason: the application lifecycle is signable", 
     ).toMatch(/not supported/);
   });
 
+  test("extra pages on an update or a call are refused (data the popup does not show)", () => {
+    expect(
+      directUnsupportedReason({
+        type: "appl",
+        applicationCall: { appIndex: 9n, onComplete: 0, extraPages: 1 },
+      }),
+    ).toMatch(/not supported/);
+  });
+
   test("more than three extra pages are refused", () => {
     expect(directUnsupportedReason(create({ extraPages: 4 }))).toMatch(/not supported/);
     expect(directUnsupportedReason(create({ extraPages: 3 }))).toBeUndefined();
