@@ -1061,7 +1061,24 @@ const _arrayBufferToBase64 = (buffer: Uint8Array) => {
 const base642base64url = (input: string) =>
   input.replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 
+/**
+ * Biatec Direct: a contract create/update/delete must be looked at before it is signed. If its
+ * details are closed, the first press only opens them (and returns true); the user then signs.
+ */
+const revealLifecycleFirst = (data: RequestItem, only?: TransactionWrapper): boolean => {
+  if (!compact.value) return false;
+  const own = (data.transactions ?? []).filter(
+    (tx) => (!only || tx === only) && isLifecycle(appSummary(tx)) && !isForeignTransaction(tx),
+  );
+  const closedTx = own.filter((tx) => !expandedTransactions.value.includes(tx));
+  const closedRequest = !expandedRequests.value.includes(data);
+  if (own.length === 0 || (!closedRequest && closedTx.length === 0)) return false;
+  if (closedRequest) expandedRequests.value = [...expandedRequests.value, data];
+  expandedTransactions.value = [...expandedTransactions.value, ...closedTx];
+  return true;
+};
 const clickSignAll = async (data: RequestItem) => {
+  if (revealLifecycleFirst(data)) return;
   try {
     await prolong();
     const list: TransactionWrapper[] = data?.transactions ?? [];
@@ -1084,6 +1101,7 @@ const clickSignAll = async (data: RequestItem) => {
 };
 
 const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) => {
+  if (revealLifecycleFirst(parentRequest, data)) return;
   try {
     const txn = data?.txn;
     if (!txn?.txID) {

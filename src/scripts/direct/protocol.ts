@@ -304,8 +304,14 @@ export function directUnsupportedReason(tx: {
       const pages = Number(call.extraPages ?? 0);
       const programBytes =
         (call.approvalProgram?.length ?? 0) + (call.clearProgram?.length ?? 0);
-      if (pages > 3 || programBytes > (1 + pages) * 2048) {
-        return "Programs that do not fit the declared pages are not supported by Biatec Direct.";
+      if (Number(call.appIndex ?? 0) === 0) {
+        // A creation declares the pages. (An update carries extraPages 0: the pages belong to the
+        // app, so it is only held to the absolute maximum.)
+        if (pages > 3 || programBytes > (1 + pages) * 2048) {
+          return "Programs that do not fit the declared pages are not supported by Biatec Direct.";
+        }
+      } else if (programBytes > 4 * 2048) {
+        return "Programs above the maximum size are not supported by Biatec Direct.";
       }
       // OnComplete values: 0 NoOp, 1 OptIn, 2 CloseOut, 3 ClearState, 4 Update, 5 Delete (the same
       // table as scripts/direct/appCall.ts). A creation cannot close out or clear state.

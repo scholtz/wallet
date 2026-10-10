@@ -1121,6 +1121,7 @@
       "app_clear_program": "Programma clear-state",
       "app_program_size": "{size} byte",
       "app_program_hash": "SHA-256",
+      "app_program_address": "Indirizzo del programma (come riportato da algod compile)",
       "app_show_bytes": "Mostra byte (hex)",
       "app_hide_bytes": "Nascondi byte",
       "app_bytes_truncated": "Mostrati i primi {shown} di {size} byte. L'hash copre l'intero programma.",

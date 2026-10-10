@@ -12,6 +12,7 @@ import {
   expectClosed,
   expectValidSignature,
   isReady,
+  messages,
   openPopup,
   post,
   reply,
@@ -249,6 +250,64 @@ test.describe("Biatec Direct: application lifecycle", () => {
     await expect(popup.getByTestId("direct-app-create-also")).toHaveCount(0);
   });
 
+  test("the card shows the program address algod compile reports", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const txn = algosdk.makeApplicationUpdateTxnFromObject({
+      sender: address,
+      suggestedParams: params(),
+      appIndex: 321,
+      approvalProgram: APPROVAL,
+      clearProgram: CLEAR,
+    });
+    const { popup } = await requestApp(context, address, "addr", txn);
+    const card = popup.getByTestId("direct-app-card");
+    await expect(card.getByTestId("direct-app-approval-address")).toHaveText(
+      new algosdk.LogicSigAccount(APPROVAL).address().toString(),
+    );
+  });
+
+  test("a closed lifecycle request opens first and is signed only on the next press", async ({
+    context,
+    page,
+  }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const txn = algosdk.makeApplicationDeleteTxnFromObject({
+      sender: address,
+      suggestedParams: params(),
+      appIndex: 99,
+    });
+    const { dapp, popup } = await requestApp(context, address, "review-first", txn);
+    await expect(popup.getByTestId("direct-app-card")).toBeVisible();
+    // The user collapses it again.
+    await popup.locator(".p-datatable-row-toggle-button").first().click();
+    await expect(popup.getByTestId("direct-app-card")).toHaveCount(0);
+    // Sign only opens the details...
+    await popup.getByRole("button", { name: "Sign transaction" }).click();
+    await expect(popup.getByTestId("direct-app-card")).toBeVisible();
+    expect((await messages(dapp)).some(reply("review-first"))).toBe(false);
+    // ...and the next press signs.
+    await popup.getByRole("button", { name: "Sign transaction" }).click();
+    const response = await waitForMessage(dapp, reply("review-first"));
+    expect(response.data.error).toBeUndefined();
+    expectValidSignature(stxn(response), txn, address);
+  });
+
+  test("an update with a program larger than one page is accepted", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const big = new Uint8Array(6000).fill(0x0a);
+    const txn = algosdk.makeApplicationUpdateTxnFromObject({
+      sender: address,
+      suggestedParams: params(),
+      appIndex: 5,
+      approvalProgram: big,
+      clearProgram: CLEAR,
+    });
+    const { popup } = await requestApp(context, address, "big-update", txn);
+    await expect(popup.getByTestId("direct-app-approval-size")).toContainText("6000 bytes");
+  });
   test("an ordinary app call shows no lifecycle card and stays collapsed", async ({ context, page }) => {
     await setupFreshWallet(page);
     const address = walletAddress(page);

@@ -1121,6 +1121,7 @@
       "app_clear_program": "Program na vymazanie stavu",
       "app_program_size": "{size} bajtov",
       "app_program_hash": "SHA-256",
+      "app_program_address": "Adresa programu (ako ju hlási algod compile)",
       "app_show_bytes": "Zobraziť bajty (hex)",
       "app_hide_bytes": "Skryť bajty",
       "app_bytes_truncated": "Zobrazených je prvých {shown} z {size} bajtov. Hash pokrýva celý program.",

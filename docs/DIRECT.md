@@ -51,14 +51,18 @@ deploying its application). Create, update and delete are high-impact, so the re
 itself (not collapsed) with an application card (`DirectAppCard.vue`, model in
 `scripts/direct/appCall.ts`):
 
-- **Create:** "Create application", the approval and clear-state programs (size, SHA-256, raw bytes
-  on demand), global/local state schema, extra pages; the id is assigned on confirmation.
+- **Create:** "Create application", the approval and clear-state programs (size, SHA-256, the
+  program address as `algod /v2/teal/compile` reports it, raw bytes on demand), global/local state
+  schema, extra pages; the id is assigned on confirmation. A creation that also opts in is flagged.
 - **Update:** "Update application", the application id and the replacement programs - it replaces
   the contract code for everyone who uses it.
 - **Delete:** "Delete application" and the id - the contract and its global state are removed.
 
-The collapsed row names the kind (not "appl") with the first characters of the program hash;
-close-out and clear-state keep their destructive flag. Nothing is sent before the user signs.
+The collapsed row names the kind (not "appl") with the first characters of both program hashes;
+close-out and clear-state keep their destructive flag. If the details are closed, the first press of
+Sign only opens them, so a contract change is never signed unseen. Programs above the AVM limits
+(approval + clear within (1 + extra pages) x 2048 bytes, at most 3 extra pages) and unknown
+OnComplete values are refused with `4200`. Nothing is sent before the user signs.
 
 ## Security model
 

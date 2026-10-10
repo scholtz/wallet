@@ -7,7 +7,9 @@
  * destroys it. The programs are shown as size + SHA-256 (comparable with what a build tool or an
  * explorer reports) and as raw bytes on demand.
  */
+import algosdk from "algosdk";
 import CryptoJS from "crypto-js";
+import { sha512_256 } from "js-sha512";
 
 export type AppCallKind =
   | "create"
@@ -25,6 +27,12 @@ export interface ProgramInfo {
   size: number;
   /** Lower-case hex SHA-256 of the whole program. */
   sha256: string;
+  /**
+   * The program address: SHA-512/256 of "Program" + bytes as an Algorand address. This is the
+   * hash `algod /v2/teal/compile` and `goal clerk compile` report, so it can be compared with a
+   * build output (the plain SHA-256 above cannot).
+   */
+  address: string;
   /** Hex of the program bytes (bounded: see `truncated`). */
   hex: string;
   /** The byte views were cut at PROGRAM_PREVIEW_BYTES; the hash covers the whole program. */
@@ -78,11 +86,25 @@ const ON_COMPLETE = ["NoOp", "OptIn", "CloseOut", "ClearState", "UpdateApplicati
 const toHex = (bytes: Uint8Array) =>
   Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 
+/**
+ * SHA-512/256 of "Program" + bytes as an address (what algod reports for a compiled program).
+ * Computed directly: algosdk's LogicSigAccount refuses programs that look like text, and a
+ * hostile program must never make the review model throw.
+ */
+function programAddress(program: Uint8Array): string {
+  const prefix = new TextEncoder().encode("Program");
+  const input = new Uint8Array(prefix.length + program.length);
+  input.set(prefix, 0);
+  input.set(program, prefix.length);
+  return algosdk.encodeAddress(Uint8Array.from(sha512_256.array(input)));
+}
+
 function programInfo(program: Uint8Array | undefined): ProgramInfo | undefined {
   if (!program || program.length === 0) return undefined;
   const preview = program.length > PROGRAM_PREVIEW_BYTES ? program.subarray(0, PROGRAM_PREVIEW_BYTES) : program;
   const info: ProgramInfo = {
     size: program.length,
+    address: programAddress(program),
     // unknown cast: crypto-js types WordArray.create() as number[] only, but at runtime it
     // accepts a Uint8Array (typed-array support), which is what the program is.
     sha256: CryptoJS.SHA256(CryptoJS.lib.WordArray.create(program as unknown as number[])).toString(

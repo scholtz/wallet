@@ -1121,6 +1121,7 @@
       "app_clear_program": "Állapottörlő program",
       "app_program_size": "{size} bájt",
       "app_program_hash": "SHA-256",
+      "app_program_address": "Program címe (ahogy az algod compile jelzi)",
       "app_show_bytes": "Bájtok megjelenítése (hex)",
       "app_hide_bytes": "Bájtok elrejtése",
       "app_bytes_truncated": "A(z) {size} bájtból az első {shown} látható. A hash a teljes programra vonatkozik.",

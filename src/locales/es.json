@@ -1121,6 +1121,7 @@
       "app_clear_program": "Programa de borrado de estado",
       "app_program_size": "{size} bytes",
       "app_program_hash": "SHA-256",
+      "app_program_address": "Dirección del programa (como la informa algod compile)",
       "app_show_bytes": "Mostrar bytes (hex)",
       "app_hide_bytes": "Ocultar bytes",
       "app_bytes_truncated": "Se muestran los primeros {shown} de {size} bytes. El hash cubre todo el programa.",

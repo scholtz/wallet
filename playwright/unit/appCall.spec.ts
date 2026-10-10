@@ -131,6 +131,35 @@ test.describe("directUnsupportedReason: the application lifecycle is signable", 
     ).toBeUndefined();
   });
 
+  test("an update may carry a program larger than one page (extra pages belong to the app, not the update)", () => {
+    const big = new Uint8Array(6000).fill(0x0a);
+    expect(
+      directUnsupportedReason(
+        algosdk.makeApplicationUpdateTxnFromObject({
+          sender,
+          suggestedParams: params,
+          appIndex: 77,
+          approvalProgram: big,
+          clearProgram: CLEAR,
+        }),
+      ),
+    ).toBeUndefined();
+  });
+
+  test("an update above the absolute maximum is refused", () => {
+    expect(
+      directUnsupportedReason(
+        algosdk.makeApplicationUpdateTxnFromObject({
+          sender,
+          suggestedParams: params,
+          appIndex: 77,
+          approvalProgram: new Uint8Array(9000),
+          clearProgram: CLEAR,
+        }),
+      ),
+    ).toMatch(/not supported/);
+  });
+
   test("more than three extra pages are refused", () => {
     expect(directUnsupportedReason(create({ extraPages: 4 }))).toMatch(/not supported/);
     expect(directUnsupportedReason(create({ extraPages: 3 }))).toBeUndefined();
@@ -157,11 +186,25 @@ test.describe("describeApplicationCall", () => {
       size: APPROVAL.length,
       sha256: sha256Hex(APPROVAL),
       hex: "0a810143",
+      address: new algosdk.LogicSigAccount(APPROVAL).address().toString(),
     });
     expect(summary.clear?.sha256).toBe(sha256Hex(CLEAR));
     expect(summary.globalSchema).toEqual({ ints: 2, byteSlices: 3 });
     expect(summary.localSchema).toEqual({ ints: 1, byteSlices: 4 });
     expect(summary.extraPages).toBe(1);
+  });
+
+  test("the program address matches what algod compile reports (SHA-512/256 of Program + bytes)", () => {
+    const summary = describeApplicationCall(create())!;
+    const expected = new algosdk.LogicSigAccount(APPROVAL).address().toString();
+    expect(summary.approval?.address).toBe(expected);
+    expect(summary.clear?.address).toBe(new algosdk.LogicSigAccount(CLEAR).address().toString());
+  });
+
+  test("a program made only of printable characters (rejected by LogicSigAccount) still gets an address", () => {
+    const text = new TextEncoder().encode("hello world, not teal");
+    const summary = describeApplicationCall(create({ approvalProgram: text }))!;
+    expect(summary.approval?.address).toMatch(/^[A-Z2-7]{58}$/);
   });
 
   test("a creation that also opts the creator in is still a create", () => {

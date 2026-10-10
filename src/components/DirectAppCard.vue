@@ -97,6 +97,14 @@
           @click="copy(program.key, program.info.sha256)"
         />
       </div>
+      <div v-if="program.info" class="app-program-hash-row">
+        <span class="app-program-hash-label">{{ $t("connect.direct.app_program_address") }}</span>
+        <code
+          class="app-program-hash"
+          :data-testid="'direct-app-' + program.key + '-address'"
+          >{{ program.info.address }}</code
+        >
+      </div>
       <button
         v-if="program.info"
         type="button"
@@ -186,12 +194,15 @@ const programs = computed(() => {
 });
 
 const open = reactive<Record<string, boolean>>({});
+const copyState = reactive<Record<string, "ok" | "failed" | undefined>>({});
 // A card reused for another transaction starts with its bytes closed.
 watch(
   () => props.summary,
   () => {
     open.approval = false;
     open.clear = false;
+    copyState.approval = undefined;
+    copyState.clear = undefined;
   },
 );
 
@@ -204,7 +215,6 @@ const schemaText = (schema: StateSchema) =>
 
 // The copy button shows a check (or a cross when the browser refuses): a silent failure would
 // let the user paste a stale clipboard value into an explorer and compare the wrong hash.
-const copyState = reactive<Record<string, "ok" | "failed" | undefined>>({});
 const copyTimers: Record<string, ReturnType<typeof setTimeout> | undefined> = {};
 const copy = async (key: string, value: string) => {
   try {

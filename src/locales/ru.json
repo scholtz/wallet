@@ -1121,6 +1121,7 @@
       "app_clear_program": "Программа очистки состояния",
       "app_program_size": "{size} байт",
       "app_program_hash": "SHA-256",
+      "app_program_address": "Адрес программы (как сообщает algod compile)",
       "app_show_bytes": "Показать байты (hex)",
       "app_hide_bytes": "Скрыть байты",
       "app_bytes_truncated": "Показаны первые {shown} из {size} байт. Хеш охватывает всю программу.",
