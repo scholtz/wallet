@@ -97,6 +97,17 @@ test.describe("directUnsupportedReason: the application lifecycle is signable", 
     ).toMatch(/not supported/);
   });
 
+  test("a creation with a ClearState or CloseOut OnComplete is refused (invalid on chain)", () => {
+    for (const onComplete of [2, 3]) {
+      expect(
+        directUnsupportedReason({ type: "appl", applicationCall: { appIndex: 0n, onComplete } }),
+      ).toMatch(/not supported/);
+    }
+    expect(
+      directUnsupportedReason({ type: "appl", applicationCall: { appIndex: 0n, onComplete: 1 } }),
+    ).toBeUndefined();
+  });
+
   test("an unknown OnComplete value is refused", () => {
     expect(
       directUnsupportedReason({ type: "appl", applicationCall: { appIndex: 9n, onComplete: 9 } }),

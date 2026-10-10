@@ -298,6 +298,11 @@ export function directUnsupportedReason(tx: {
       if (call.onComplete !== undefined && (call.onComplete < 0 || call.onComplete > 5)) {
         return "An application call with an unknown OnComplete is not supported by Biatec Direct.";
       }
+      // OnComplete values: 0 NoOp, 1 OptIn, 2 CloseOut, 3 ClearState, 4 Update, 5 Delete (the same
+      // table as scripts/direct/appCall.ts). A creation cannot close out or clear state.
+      if (Number(call.appIndex ?? 0) === 0 && (call.onComplete === 2 || call.onComplete === 3)) {
+        return "An application creation with this OnComplete is not supported by Biatec Direct.";
+      }
       // Programs belong to a create (app id 0) or an update (OnComplete 4) only; on any other
       // call they would be code the popup does not show.
       const hasProgram =

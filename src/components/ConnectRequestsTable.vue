@@ -126,7 +126,7 @@
           </Button>
           <Arc56RiskIcon
             v-if="!foreignNetwork && !atLeastOneSigned(slotProps.data)"
-            :transactions="summaryTransactions(slotProps.data)"
+            :transactions="slotProps.data.transactions"
           />
           <Button
             v-if="!compact || atLeastOneSigned(slotProps.data)"
@@ -182,8 +182,8 @@
             }}
           </Message>
           <Arc56RequestSummary
-            v-if="!foreignNetwork && summaryTransactions(requestSlotProps.data).length > 0"
-            :transactions="summaryTransactions(requestSlotProps.data)"
+            v-if="!foreignNetwork"
+            :transactions="requestSlotProps.data.transactions"
           />
           <DataTable
             v-model:expandedRows="expandedTransactions"
@@ -521,13 +521,7 @@
                       </td>
                     </tr>
 
-                    <tr
-                      v-if="
-                        txProps.data.type == 'appl' &&
-                        !foreignNetwork &&
-                        Number(txProps.data.txn.applicationCall?.appIndex ?? 0) !== 0
-                      "
-                    >
+                    <tr v-if="txProps.data.type == 'appl' && !foreignNetwork">
                       <td colspan="2">
                         <Arc56CallDetails
                           :app-index="
@@ -836,14 +830,6 @@ const appSummary = (tx: TransactionWrapper) => {
   return appSummaryCache.get(tx.txn);
 };
 
-/**
- * The transactions the ARC-56 call summary describes: all but contract creations (a new contract
- * has no registry entry; its application card shows the programs). Update and delete of an
- * existing app keep the decoded summary, with trust and publisher.
- */
-const summaryTransactions = (request: RequestItem) =>
-  (request.transactions ?? []).filter((tx) => appSummary(tx)?.kind !== "create");
-
 /** Create / update / delete of a contract get their own name in the collapsed summary. */
 const appKindLabel = (tx: TransactionWrapper): string => {
   const summary = appSummary(tx);
@@ -926,7 +912,7 @@ onMounted(() => {
 // programs and the warning are in view before anything is signed.
 const autoExpanded = new WeakSet<object>(); // by object: a re-emitted request opens again
 watch(
-  requests,
+  () => [...requests.value],
   (list) => {
     if (!compact.value) return;
     for (const request of list) {
@@ -940,7 +926,7 @@ watch(
       expandedTransactions.value = [...expandedTransactions.value, ...high];
     }
   },
-  { immediate: true, deep: true },
+  { immediate: true },
 );
 
 const prolong = async () => {

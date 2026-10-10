@@ -126,7 +126,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive } from "vue";
+import { computed, reactive, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import type { ApplicationCallReview, ProgramInfo, StateSchema } from "@/scripts/direct/appCall";
 
@@ -186,6 +186,14 @@ const programs = computed(() => {
 });
 
 const open = reactive<Record<string, boolean>>({});
+// A card reused for another transaction starts with its bytes closed.
+watch(
+  () => props.summary,
+  () => {
+    open.approval = false;
+    open.clear = false;
+  },
+);
 
 const schemaText = (schema: StateSchema) =>
   `${t("connect.direct.app_ints", { n: schema.ints }, schema.ints)}, ${t(

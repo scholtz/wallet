@@ -931,8 +931,8 @@ test.describe("Biatec Direct popup transport", () => {
     await expandAll(popup);
     await expect(popup.getByRole("cell", { name: "Clawback from:", exact: true })).toBeVisible();
     await expect(popup.getByText("not from the sender").first()).toBeVisible();
-    await expect(popup.getByRole("cell", { name: "On complete:", exact: true })).toBeVisible();
-    await expect(popup.getByText("DeleteApplication").first()).toBeVisible();
+    // The destructive app call is a lifecycle transaction: its application card says what it does.
+    await expect(popup.getByTestId("direct-app-card")).toContainText("Delete application");
   });
 
   test("single transaction: exactly one Sign button in the collapsed popup", async ({ context, page }) => {
