@@ -833,14 +833,19 @@ const txSummaryTo = (tx: TransactionWrapper): string => {
 onMounted(() => {
   if (ns.value !== "direct") return;
   const returned = store.state.direct.popup.returnedFromSigning;
-  store.commit("direct/setReturnedFromSigning", null);
-  if (!returned || Date.now() - returned.at > 15_000) return;
-  // Only the request holding the transaction the user just signed is sent on.
+  if (!returned || Date.now() - returned.at > 15_000) {
+    store.commit("direct/setReturnedFromSigning", null);
+    return;
+  }
+  // Only the request holding the transaction the user just signed is sent on; the flag is kept
+  // (it expires on its own) until that request is found.
   for (const request of requests.value) {
     const holdsIt = (request.transactions ?? []).some(
       (tx) => tx.txn?.txID?.() === returned.txId,
     );
-    if (holdsIt && allTransactionsSigned(request)) void clickAccept(request);
+    if (!holdsIt) continue;
+    store.commit("direct/setReturnedFromSigning", null);
+    if (allTransactionsSigned(request)) void clickAccept(request);
   }
 });
 
@@ -1027,6 +1032,14 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
       tx: data.txn,
       env: signEnv.value,
     })) as SignerType;
+    if (signerType === "?") {
+      // E.g. the account is rekeyed (on this network) to an account this wallet does not hold.
+      await store.dispatch(
+        "toast/openError",
+        "This wallet cannot sign for this account on this network (it may be rekeyed to an account this wallet does not hold).",
+      );
+      return;
+    }
     if (signerType === "msig") {
       await store.dispatch("signer/toSign", { tx: txn });
       const encoded = algosdk.encodeUnsignedTransaction(txn);
@@ -1195,12 +1208,19 @@ const hasPartialMultisig = (data: RequestItem) => {
   );
 };
 
-/** A transaction with no signature at all: the request must not be sent back yet (Direct). */
+/**
+ * A transaction this wallet is expected to sign (its sender is an account the wallet can sign for)
+ * that has no signature yet: the request must not be sent back yet (Direct). Transactions of
+ * other parties (the site's own, a co-signer's) are never ours to sign and do not hold it up.
+ */
 const hasUnsignedTransaction = (data: RequestItem) => {
   const signedMap = store.state.signer.signed ?? {};
-  return (data.transactions ?? []).some(
-    (tx) => !tx?.txn?.txID || !(tx.txn.txID() in signedMap),
-  );
+  return (data.transactions ?? []).some((tx) => {
+    if (!tx?.txn?.txID || !tx.txn.sender) return false;
+    const sender = encodeAddress(tx.txn.sender);
+    if (getSignerTypeLocal(sender, tx.txn.genesisID) === "?") return false;
+    return !(tx.txn.txID() in signedMap);
+  });
 };
 
 const atLeastOneSigned = (data: RequestItem) => {

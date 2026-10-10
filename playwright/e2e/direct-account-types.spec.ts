@@ -467,4 +467,72 @@ test.describe("Biatec Direct signs for every account type", () => {
     await expect(popup.getByTestId("direct-network-none")).toBeVisible();
     expect((await messages(dapp)).some(reply("data-plain"))).toBe(false);
   });
+
+  test("a group with another party's transaction is not held up by it; Send back returns null for it", async ({
+    context,
+    page,
+  }) => {
+    await setupFreshWallet(page);
+    const plain = await addEd25519(page, "Plain Account");
+    const stranger = algosdk.generateAccount().addr.toString();
+    const mine = paymentTxn(plain).txn;
+    const theirs = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: stranger,
+      receiver: stranger,
+      amount: 3,
+      suggestedParams: mainnetParams(),
+    });
+    algosdk.assignGroupID([mine, theirs]);
+    const dapp = await connectFor(context, [plain]);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "mixed",
+      reference: "arc0027:sign_transactions:request",
+      params: {
+        providerId: "d",
+        genesisHash: MAINNET_HASH,
+        txns: [encode(mine), { ...encode(theirs), signers: [] }],
+      },
+    });
+    await popup.getByRole("button", { name: "Sign all" }).click();
+    const sendBack = popup.getByRole("button", { name: "Send back to DApp" });
+    await expect(sendBack).toBeEnabled();
+    await sendBack.click();
+    const response = await waitForMessage(dapp, reply("mixed"));
+    expect(response.data.error).toBeUndefined();
+    const stxns = stxnsOf(response);
+    expectValidSignature(stxns[0]!, mine, plain);
+    expect(stxns[1]).toBeNull();
+    await expectClosed(popup);
+  });
+
+  test("an account rekeyed away to a key this wallet does not hold says so instead of silently doing nothing", async ({
+    context,
+    page,
+  }) => {
+    await setupFreshWallet(page);
+    const plain = await addEd25519(page, "Rekeyed Away");
+    const elsewhere = algosdk.generateAccount().addr.toString();
+    await page.evaluate(
+      ([addr, target]) => {
+        const host = document.querySelector("#app") as AppHost | null;
+        const store = host?.__vue_app__?.config.globalProperties.$store as unknown as {
+          commit: (type: string, payload: unknown) => void;
+          dispatch: (type: string) => Promise<unknown>;
+        };
+        store.commit("wallet/setAccountRekey", { addr, network: "mainnet-v1.0", rekeyedTo: target });
+        return store.dispatch("wallet/saveWallet");
+      },
+      [plain, elsewhere] as [string, string],
+    );
+    const dapp = await connectFor(context, [plain]);
+    const popup = await requestSignature(context, dapp, "away", [paymentTxn(plain).txn]);
+    await popup.getByRole("button", { name: "Sign transaction" }).click();
+    await expect(
+      popup.locator(".p-toast-message", { hasText: "cannot sign for this account" }).first(),
+    ).toBeVisible();
+    expect((await messages(dapp)).some(reply("away"))).toBe(false);
+  });
 });
