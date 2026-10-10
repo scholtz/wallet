@@ -846,6 +846,7 @@ onMounted(() => {
     if (!holdsIt) continue;
     store.commit("direct/setReturnedFromSigning", null);
     if (allTransactionsSigned(request)) void clickAccept(request);
+    break;
   }
 });
 
@@ -934,9 +935,9 @@ const getSignerTypeLocal = (from: string, genesisId?: string): SignerType => {
     const rekeyAccount = store.state.wallet.privateAccounts.find(
       (item) => item.addr === envRekey
     );
-    if (rekeyAccount) {
-      resolvedAccount = rekeyAccount;
-    }
+    // Rekeyed (on this network) to an account this wallet does not hold: nothing here can sign.
+    if (!rekeyAccount) return "?";
+    resolvedAccount = rekeyAccount;
   }
   if (resolvedAccount.type === "ledger") {
     return "ledger";
@@ -1037,6 +1038,7 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
       await store.dispatch("toast/openError", t("connect.genesis_mismatch"));
       return;
     }
+    if (compact.value && isForeignTransaction(data)) return; // not ours to sign (Direct)
     const signerType = (await store.dispatch("signer/getSignerType", {
       from: data.txn.sender.toString(),
       tx: data.txn,
@@ -1046,15 +1048,10 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
       // Biatec Direct only (WalletConnect/Liquid route "?" accounts, e.g. wc, to their own signer).
       // A transaction of another party is simply not ours to sign; for one of this wallet's own
       // accounts it means the key is gone, e.g. rekeyed on this network to an account not held here.
-      const isOwnAccount = store.state.wallet.privateAccounts.some(
-        (a) => a.addr === data.txn.sender.toString(),
+      await store.dispatch(
+        "toast/openError",
+        "This wallet cannot sign for this account on this network (it may be rekeyed to an account this wallet does not hold).",
       );
-      if (isOwnAccount) {
-        await store.dispatch(
-          "toast/openError",
-          "This wallet cannot sign for this account on this network (it may be rekeyed to an account this wallet does not hold).",
-        );
-      }
       return;
     }
     if (signerType === "msig") {
@@ -1233,9 +1230,7 @@ const hasPartialMultisig = (data: RequestItem) => {
 const hasUnsignedTransaction = (data: RequestItem) => {
   const signedMap = store.state.signer.signed ?? {};
   return (data.transactions ?? []).some((tx) => {
-    if (!tx?.txn?.txID || !tx.txn.sender) return false;
-    const sender = encodeAddress(tx.txn.sender);
-    if (getSignerTypeLocal(sender, tx.txn.genesisID) === "?") return false;
+    if (!tx?.txn?.txID || isForeignTransaction(tx)) return false;
     return !(tx.txn.txID() in signedMap);
   });
 };
@@ -1371,12 +1366,11 @@ const allTransactionsSigned = (data: RequestItem): boolean => {
   return list.length > 0 && !list.some((tx) => toBeSigned(tx));
 };
 
-/** The sender is not an account this wallet can sign for (the site's own or a co-signer's). */
+/** The sender is not an account of this wallet (the site's own or a co-signer's transaction). */
 const isForeignTransaction = (tx: TransactionWrapper): boolean => {
   if (!tx?.txn?.sender) return true;
-  return (
-    getSignerTypeLocal(encodeAddress(tx.txn.sender), tx.txn.genesisID) === "?"
-  );
+  const sender = encodeAddress(tx.txn.sender);
+  return !store.state.wallet.privateAccounts.some((a) => a.addr === sender);
 };
 
 // ARC14 auth transactions are signed with fee=0 and are never broadcast, so
