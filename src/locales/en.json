@@ -1131,6 +1131,7 @@
       "app_extra_pages": "Extra program pages",
       "app_copy_hash": "Copy hash",
       "app_program_none": "No program (empty)",
+      "app_create_also": "The same transaction also performs: {action}.",
       "network_foreign_note": "Details from the wallet's network are not shown for another network.",
       "genesis_hash_label": "Genesis hash",
       "network_not_named": "The site did not name a network. Data signatures are not tied to a network."

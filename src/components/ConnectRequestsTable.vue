@@ -483,6 +483,7 @@
                     <tr
                       v-if="
                         txProps.data.type == 'appl' &&
+                        !isLifecycle(appSummary(txProps.data)) &&
                         onCompleteLabel(txProps.data.txn)
                       "
                     >
@@ -508,7 +509,12 @@
                         </Message>
                       </td>
                     </tr>
-                    <tr v-if="txProps.data.type == 'appl'">
+                    <tr
+                      v-if="
+                        txProps.data.type == 'appl' &&
+                        !isLifecycle(appSummary(txProps.data))
+                      "
+                    >
                       <td>{{ $t("connect.app") }}:</td>
                       <td>
                         {{ txProps.data.txn.applicationCall?.appIndex }}
@@ -870,7 +876,11 @@ const txSummaryAmount = (tx: TransactionWrapper): string => {
     const appIndex = txn.applicationCall?.appIndex;
     const call = onCompleteLabel(txn);
     // A program change names the new code by the start of its hash (full hash in the details).
-    const hash = summary?.approval ? `${summary.approval.sha256.slice(0, 8)}…` : "";
+    // Both programs are fingerprinted: swapping only the clear-state program must show too.
+    const hash = [summary?.approval, summary?.clear]
+      .filter((program) => !!program)
+      .map((program) => `${program.sha256.slice(0, 8)}…`)
+      .join(" / ");
     const parts = [
       summary?.kind === "create" || !appIndex ? "" : `${t("connect.app")} ${appIndex}`,
       call,
@@ -914,21 +924,18 @@ onMounted(() => {
 // one-line summary per transaction (the summary column) and opens its details on demand. The
 // exception is a request that creates, updates or deletes a contract: it opens by itself, so the
 // programs and the warning are in view before anything is signed.
-const autoExpanded = new Set<RequestItem["id"]>();
+const autoExpanded = new WeakSet<object>(); // by object: a re-emitted request opens again
 watch(
   requests,
   (list) => {
     if (!compact.value) return;
-    for (const id of autoExpanded) {
-      if (!list.some((request) => request.id === id)) autoExpanded.delete(id);
-    }
     for (const request of list) {
-      if (autoExpanded.has(request.id)) continue;
+      if (autoExpanded.has(request)) continue;
       const high = (request.transactions ?? []).filter(
         (tx) => isLifecycle(appSummary(tx)),
       );
       if (high.length === 0) continue;
-      autoExpanded.add(request.id);
+      autoExpanded.add(request);
       expandedRequests.value = [...expandedRequests.value, request];
       expandedTransactions.value = [...expandedTransactions.value, ...high];
     }

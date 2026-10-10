@@ -167,6 +167,14 @@ test.describe("describeApplicationCall", () => {
     expect(describeApplicationCall(txn)!.argsCount).toBe(3);
   });
 
+  test("the hash of a program that is a view into a larger buffer covers only the view", () => {
+    const backing = new Uint8Array(100).fill(0x22);
+    const view = backing.subarray(10, 40);
+    const summary = describeApplicationCall(create({ approvalProgram: view }))!;
+    expect(summary.approval?.size).toBe(30);
+    expect(summary.approval?.sha256).toBe(sha256Hex(view));
+  });
+
   test("a program of the largest allowed size (4 pages) is shown in full", () => {
     const max = new Uint8Array(4 * 2048 * 4).fill(0x11); // 32 KB
     const summary = describeApplicationCall(create({ approvalProgram: max }))!;

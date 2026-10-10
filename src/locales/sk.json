@@ -1131,6 +1131,7 @@
       "app_extra_pages": "Ďalšie stránky programu",
       "app_copy_hash": "Kopírovať hash",
       "app_program_none": "Žiadny program (prázdny)",
+      "app_create_also": "Tá istá transakcia tiež vykoná: {action}.",
       "network_foreign_note": "Podrobnosti zo siete peňaženky sa pre inú sieť nezobrazujú.",
       "genesis_hash_label": "Genesis hash",
       "network_not_named": "Web nezadal žiadnu sieť. Podpisy údajov nie sú viazané na sieť."

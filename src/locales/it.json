@@ -1131,6 +1131,7 @@
       "app_extra_pages": "Pagine extra del programma",
       "app_copy_hash": "Copia hash",
       "app_program_none": "Nessun programma (vuoto)",
+      "app_create_also": "La stessa transazione esegue anche: {action}.",
       "network_foreign_note": "I dettagli della rete del portafoglio non vengono mostrati per un'altra rete.",
       "genesis_hash_label": "Hash genesis",
       "network_not_named": "Il sito non ha indicato alcuna rete. Le firme dei dati non sono legate a una rete."

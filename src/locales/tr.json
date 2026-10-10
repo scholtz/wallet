@@ -1131,6 +1131,7 @@
       "app_extra_pages": "Ek program sayfaları",
       "app_copy_hash": "Karmayı kopyala",
       "app_program_none": "Program yok (boş)",
+      "app_create_also": "Aynı işlem ayrıca şunu da yapar: {action}.",
       "network_foreign_note": "Cüzdanın ağına ait ayrıntılar başka bir ağ için gösterilmez.",
       "genesis_hash_label": "Genesis hash",
       "network_not_named": "Site bir ağ belirtmedi. Veri imzaları bir ağa bağlı değildir."

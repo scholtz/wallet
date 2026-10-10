@@ -1131,6 +1131,7 @@
       "app_extra_pages": "Extra programoldalak",
       "app_copy_hash": "Hash másolása",
       "app_program_none": "Nincs program (üres)",
+      "app_create_also": "Ugyanez a tranzakció emellett végrehajtja: {action}.",
       "network_foreign_note": "A tárca hálózatának adatai más hálózatnál nem jelennek meg.",
       "genesis_hash_label": "Genezis hash",
       "network_not_named": "Az oldal nem adott meg hálózatot. Az adataláírások nem kötődnek hálózathoz."

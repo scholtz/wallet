@@ -212,6 +212,43 @@ test.describe("Biatec Direct: application lifecycle", () => {
     await expect(card.getByTestId("direct-app-clear-none")).toContainText("No program");
   });
 
+  test("a creation that also opts in is flagged for what else it does", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const txn = algosdk.makeApplicationCreateTxnFromObject({
+      sender: address,
+      suggestedParams: params(),
+      onComplete: algosdk.OnApplicationComplete.OptInOC,
+      approvalProgram: APPROVAL,
+      clearProgram: CLEAR,
+      numGlobalInts: 0,
+      numGlobalByteSlices: 0,
+      numLocalInts: 1,
+      numLocalByteSlices: 0,
+    });
+    const { popup } = await requestApp(context, address, "create-optin", txn);
+    await expect(popup.getByTestId("direct-app-create-also")).toContainText("OptIn");
+  });
+
+  test("a plain creation has no extra-effect flag", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    const txn = algosdk.makeApplicationCreateTxnFromObject({
+      sender: address,
+      suggestedParams: params(),
+      onComplete: algosdk.OnApplicationComplete.NoOpOC,
+      approvalProgram: APPROVAL,
+      clearProgram: CLEAR,
+      numGlobalInts: 0,
+      numGlobalByteSlices: 0,
+      numLocalInts: 0,
+      numLocalByteSlices: 0,
+    });
+    const { popup } = await requestApp(context, address, "create-plain", txn);
+    await expect(popup.getByTestId("direct-app-card")).toBeVisible();
+    await expect(popup.getByTestId("direct-app-create-also")).toHaveCount(0);
+  });
+
   test("an ordinary app call shows no lifecycle card and stays collapsed", async ({ context, page }) => {
     await setupFreshWallet(page);
     const address = walletAddress(page);

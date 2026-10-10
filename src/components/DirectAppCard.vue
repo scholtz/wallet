@@ -21,6 +21,15 @@
       {{ warning }}
     </Message>
 
+    <Message
+      v-if="summary.kind === 'create' && summary.onComplete !== 'NoOp'"
+      severity="error"
+      class="m-0"
+      data-testid="direct-app-create-also"
+    >
+      {{ $t("connect.direct.app_create_also", { action: summary.onComplete }) }}
+    </Message>
+
     <dl class="app-card-grid">
       <dt>{{ $t("connect.direct.app_id_label") }}</dt>
       <dd data-testid="direct-app-id">
