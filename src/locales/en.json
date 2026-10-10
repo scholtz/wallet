@@ -982,6 +982,7 @@
     "genesis_hash": "Genesis Hash",
     "genesis_mismatch": "This transaction is for a different network than the currently selected one",
     "genesis_unverified": "This transaction names no network (genesis ID). Its genesis hash matches the selected network.",
+    "genesis_id_differs": "This transaction's genesis ID differs from the ID of the selected network, and the wallet cannot verify the network for this environment. Check the network before you sign.",
     "verification": "Verification",
     "domain_verified": "Domain verified",
     "domain_mismatch": "Domain does not match the metadata provided by the app",

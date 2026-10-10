@@ -982,6 +982,7 @@
     "genesis_hash": "Genesis Hash",
     "genesis_mismatch": "Tato transakce je určena pro jinou síť, než je aktuálně zvolená",
     "genesis_unverified": "Tato transakce neuvádí síť (genesis ID). Její genesis hash odpovídá zvolené síti.",
+    "genesis_id_differs": "Genesis ID této transakce se liší od ID zvolené sítě a peněženka v tomto prostředí nemůže síť ověřit. Před podpisem zkontrolujte síť.",
     "verification": "Ověření",
     "domain_verified": "Doména ověřena",
     "domain_mismatch": "Doména se neshoduje s údaji, které aplikace uvedla",

@@ -982,6 +982,7 @@
     "genesis_hash": "Genesis Karması",
     "genesis_mismatch": "Bu işlem, şu anda seçili olandan farklı bir ağ içindir",
     "genesis_unverified": "Bu işlem bir ağ (genesis ID) belirtmiyor. Genesis hash'i seçili ağla eşleşiyor.",
+    "genesis_id_differs": "Bu işlemin genesis ID'si seçili ağın kimliğinden farklı ve cüzdan bu ortamda ağı doğrulayamıyor. İmzalamadan önce ağı kontrol edin.",
     "verification": "Doğrulama",
     "domain_verified": "Alan adı doğrulandı",
     "domain_mismatch": "Alan adı, uygulamanın sağladığı meta verilerle eşleşmiyor",

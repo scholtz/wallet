@@ -982,6 +982,7 @@
     "genesis_hash": "Genesis Hash",
     "genesis_mismatch": "Questa transazione è destinata a una rete diversa da quella attualmente selezionata",
     "genesis_unverified": "Questa transazione non indica la rete (genesis ID). Il suo genesis hash corrisponde alla rete selezionata.",
+    "genesis_id_differs": "Il genesis ID di questa transazione è diverso dall'ID della rete selezionata e il portafoglio non può verificare la rete in questo ambiente. Controlla la rete prima di firmare.",
     "verification": "Verifica",
     "domain_verified": "Dominio verificato",
     "domain_mismatch": "Il dominio non corrisponde ai metadati forniti dall'app",

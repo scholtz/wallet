@@ -387,10 +387,15 @@ const rejectWeakPassword = (
   dispatch: (type: string, payload: string, options: { root: true }) => unknown,
   pass: string
 ): boolean => {
-  if (!validateNewPassword(pass)) return false;
-  dispatch("toast/openError", `Password must be at least ${MIN_PASSWORD_LENGTH} characters`, {
-    root: true,
-  });
+  const problem = validateNewPassword(pass);
+  if (!problem) return false;
+  dispatch(
+    "toast/openError",
+    problem === "empty"
+      ? "Password must not be empty"
+      : `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
+    { root: true }
+  );
   return true;
 };
 
@@ -2116,11 +2121,12 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       update: (current: unknown) => unknown;
     }
   ) {
-    const pass = CryptoJS.AES.decrypt(
-      this.state.wallet.pass,
-      getRequiredLocalStorage("rs1")
-    ).toString(CryptoJS.enc.Utf8);
     const next = await withWalletWriteLock(async () => {
+      // Read inside the lock: a password change that ran just before us has re-keyed state.pass.
+      const pass = CryptoJS.AES.decrypt(
+        this.state.wallet.pass,
+        getRequiredLocalStorage("rs1")
+      ).toString(CryptoJS.enc.Utf8);
       const record = await db.wallets.get({ name: this.state.wallet.name });
       if (!pass || !record || record.id === undefined) {
         throw new Error("Wallet record not found");

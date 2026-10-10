@@ -534,7 +534,7 @@
                           class="m-0"
                           data-testid="genesis-id-differs"
                         >
-                          {{ $t("connect.genesis_mismatch") }}
+                          {{ $t("connect.genesis_id_differs") }}
                         </Message>
                         <Message
                           v-else-if="genesisUnverified(txProps.data.txn)"

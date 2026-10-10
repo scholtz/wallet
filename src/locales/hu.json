@@ -982,6 +982,7 @@
     "genesis_hash": "Genezis hash",
     "genesis_mismatch": "Ez a tranzakció más hálózathoz tartozik, mint a jelenleg kiválasztott",
     "genesis_unverified": "Ez a tranzakció nem nevez meg hálózatot (genesis ID). A genesis hash megegyezik a kiválasztott hálózatéval.",
+    "genesis_id_differs": "Ennek a tranzakciónak a genesis ID-ja eltér a kiválasztott hálózat azonosítójától, és a tárca ebben a környezetben nem tudja ellenőrizni a hálózatot. Aláírás előtt ellenőrizze a hálózatot.",
     "verification": "Ellenőrzés",
     "domain_verified": "Ellenőrzött domain",
     "domain_mismatch": "A domain nem egyezik az alkalmazás által megadott adatokkal",

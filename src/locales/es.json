@@ -982,6 +982,7 @@
     "genesis_hash": "Hash de Genesis",
     "genesis_mismatch": "Esta transacción es para una red diferente a la seleccionada actualmente",
     "genesis_unverified": "Esta transacción no indica la red (genesis ID). Su hash de génesis coincide con la red seleccionada.",
+    "genesis_id_differs": "El genesis ID de esta transacción difiere del ID de la red seleccionada y la cartera no puede verificar la red en este entorno. Comprueba la red antes de firmar.",
     "verification": "Verificación",
     "domain_verified": "Dominio verificado",
     "domain_mismatch": "El dominio no coincide con los metadatos proporcionados por la aplicación",
