@@ -231,8 +231,10 @@ const copyState = reactive<Record<string, "ok" | "failed" | undefined>>({});
 const deployed = reactive<Record<string, DeployedComparison | "checking" | "foreign" | undefined>>({});
 // A card reused for another transaction starts with its bytes closed.
 watch(
-  () => props.summary,
-  async (summary) => {
+  // Also re-checked when the network view arrives or changes: a lookup made before it is known
+  // could compare against the wrong chain's app.
+  [() => props.summary, () => props.foreignNetwork] as const,
+  async ([summary]) => {
     open.approval = false;
     open.clear = false;
     copyState.approval = undefined;
@@ -248,17 +250,17 @@ watch(
     }
     deployed.approval = "checking";
     deployed.clear = "checking";
-    let programs: { approvalProgram?: Uint8Array; clearStateProgram?: Uint8Array } | undefined;
+    let deployedPrograms: { approvalProgram?: Uint8Array; clearStateProgram?: Uint8Array } | undefined;
     try {
-      programs = await store.dispatch("algod/getApplicationPrograms", {
+      deployedPrograms = await store.dispatch("algod/getApplicationPrograms", {
         appIndex: BigInt(summary.appIndex),
       });
     } catch {
-      programs = undefined;
+      deployedPrograms = undefined;
     }
-    if (props.summary !== summary) return; // the card moved on to another transaction
-    deployed.approval = compareWithDeployed(summary.approval, programs?.approvalProgram);
-    deployed.clear = compareWithDeployed(summary.clear, programs?.clearStateProgram);
+    if (props.summary !== summary || deployed.approval !== "checking") return; // moved on / re-checked
+    deployed.approval = compareWithDeployed(summary.approval, deployedPrograms?.approvalProgram);
+    deployed.clear = compareWithDeployed(summary.clear, deployedPrograms?.clearStateProgram);
   },
   { immediate: true },
 );

@@ -222,6 +222,7 @@ test.describe("Biatec Direct: application lifecycle", () => {
     });
     const card = popup.getByTestId("direct-app-card");
     await expect(card.getByTestId("direct-app-approval-deployed")).toContainText("Not compared");
+    await page.waitForTimeout(1500); // a late request would still count
     expect(lookups).toBe(0);
   });
 
