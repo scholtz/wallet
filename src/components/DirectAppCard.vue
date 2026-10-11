@@ -107,21 +107,11 @@
       </div>
       <Message
         v-if="program.info && deployed[program.key]"
-        :severity="deployed[program.key] === 'different' ? 'warn' : deployed[program.key] === 'same' ? 'info' : 'secondary'"
+        :severity="deployedView(deployed[program.key]!).severity"
         class="m-0"
         :data-testid="'direct-app-' + program.key + '-deployed'"
       >
-        {{
-          deployed[program.key] === "same"
-            ? $t("connect.direct.app_deployed_same")
-            : deployed[program.key] === "different"
-              ? $t("connect.direct.app_deployed_different")
-              : deployed[program.key] === "checking"
-                ? $t("connect.direct.app_deployed_checking")
-                : deployed[program.key] === "foreign"
-                  ? $t("connect.direct.app_deployed_foreign")
-                  : $t("connect.direct.app_deployed_unavailable")
-        }}
+        {{ deployedView(deployed[program.key]!).text }}
       </Message>
       <button
         v-if="program.info"
@@ -165,8 +155,12 @@ import {
 
 const props = defineProps<{
   summary: ApplicationCallReview;
-  /** The request is for another network than the one the wallet's node serves: no lookup. */
-  foreignNetwork?: boolean;
+  /**
+   * Whether the request is known to be for the network the wallet's node serves. Without that
+   * (another network, or the network not known yet) there is no lookup: an app id there says
+   * nothing about this request's chain.
+   */
+  compareDeployed?: boolean;
 }>();
 const { t } = useI18n();
 const store = useStore();
@@ -223,18 +217,33 @@ const programs = computed(() => {
   return list;
 });
 
+type DeployedState = DeployedComparison | "checking" | "foreign";
+// One table for every state, so a missing one is a type error rather than a silent fallback.
+const deployedView = (state: DeployedState): { severity: string; text: string } => {
+  const views: Record<DeployedState, { severity: string; text: string }> = {
+    same: { severity: "info", text: t("connect.direct.app_deployed_same") },
+    different: { severity: "warn", text: t("connect.direct.app_deployed_different") },
+    unavailable: { severity: "secondary", text: t("connect.direct.app_deployed_unavailable") },
+    checking: { severity: "secondary", text: t("connect.direct.app_deployed_checking") },
+    foreign: { severity: "secondary", text: t("connect.direct.app_deployed_foreign") },
+  };
+  return views[state];
+};
+
 const open = reactive<Record<string, boolean>>({});
 const copyState = reactive<Record<string, "ok" | "failed" | undefined>>({});
 // For an update: does each program differ from the one deployed now? The deployed programs come
 // from the user's own node (unauthenticated, AW-2026-010/011); a failed lookup says so rather
 // than reading as "unchanged".
-const deployed = reactive<Record<string, DeployedComparison | "checking" | "foreign" | undefined>>({});
+let lookupRun = 0; // a newer check supersedes an older lookup still in flight
+const deployed = reactive<Record<string, DeployedState | undefined>>({});
 // A card reused for another transaction starts with its bytes closed.
 watch(
   // Also re-checked when the network view arrives or changes: a lookup made before it is known
   // could compare against the wrong chain's app.
-  [() => props.summary, () => props.foreignNetwork] as const,
+  [() => props.summary, () => props.compareDeployed] as const,
   async ([summary]) => {
+    const run = ++lookupRun; // supersedes any lookup still in flight
     open.approval = false;
     open.clear = false;
     copyState.approval = undefined;
@@ -242,7 +251,7 @@ watch(
     deployed.approval = undefined;
     deployed.clear = undefined;
     if (summary.kind !== "update") return;
-    if (props.foreignNetwork) {
+    if (!props.compareDeployed) {
       // The node serves the wallet's network: app ids there say nothing about this request's.
       deployed.approval = "foreign";
       deployed.clear = "foreign";
@@ -258,7 +267,7 @@ watch(
     } catch {
       deployedPrograms = undefined;
     }
-    if (props.summary !== summary || deployed.approval !== "checking") return; // moved on / re-checked
+    if (run !== lookupRun) return; // the card moved on or was re-checked meanwhile
     deployed.approval = compareWithDeployed(summary.approval, deployedPrograms?.approvalProgram);
     deployed.clear = compareWithDeployed(summary.clear, deployedPrograms?.clearStateProgram);
   },
