@@ -202,7 +202,7 @@ const icon = computed(() =>
 // A create and an update always list both programs; a missing/empty one says so instead of
 // silently disappearing (the warning promises "the programs below").
 const programs = computed(() => {
-  const list: { key: string; label: string; info?: ProgramInfo }[] = [];
+  const list: { key: ProgramKey; label: string; info?: ProgramInfo }[] = [];
   if (props.summary.kind === "create" || props.summary.kind === "update") {
     list.push({
       key: "approval",
@@ -218,6 +218,7 @@ const programs = computed(() => {
   return list;
 });
 
+type ProgramKey = "approval" | "clear";
 type DeployedState = DeployedComparison | "checking" | "foreign";
 // One table for every state, so a missing one is a type error rather than a silent fallback.
 const deployedView = (state: DeployedState): { severity: string; text: string } => {
@@ -237,7 +238,7 @@ const copyState = reactive<Record<string, "ok" | "failed" | undefined>>({});
 // from the user's own node (unauthenticated, AW-2026-010/011); a failed lookup says so rather
 // than reading as "unchanged".
 let lookupRun = 0; // a newer check supersedes an older lookup still in flight
-const deployed = reactive<Record<string, DeployedState | undefined>>({});
+const deployed = reactive<Partial<Record<ProgramKey, DeployedState>>>({});
 // A card reused for another transaction starts with its bytes closed.
 watch(
   () => props.summary,
@@ -267,7 +268,7 @@ watch(
     }
     deployed.approval = "checking";
     deployed.clear = "checking";
-    const nodeBefore = store.state.config.algod; // the lookup uses the configured node
+    const nodeBefore = `${store.state.config.algod}|${store.state.config.algodToken}`; // the lookup uses the configured node
     let deployedPrograms: ApplicationPrograms | undefined;
     try {
       deployedPrograms = await store.dispatch("algod/getApplicationPrograms", {
@@ -277,7 +278,7 @@ watch(
       deployedPrograms = undefined;
     }
     if (run !== lookupRun) return; // the card moved on or was re-checked: the newer run owns the state
-    if (store.state.config.algod !== nodeBefore) {
+    if (`${store.state.config.algod}|${store.state.config.algodToken}` !== nodeBefore) {
       // The wallet switched node meanwhile: the answer may be from another chain, so claim nothing.
       deployed.approval = "unavailable";
       deployed.clear = "unavailable";

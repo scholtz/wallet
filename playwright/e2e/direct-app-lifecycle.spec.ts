@@ -221,7 +221,7 @@ test.describe("Biatec Direct: application lifecycle", () => {
       params: { providerId: "d", genesisHash: TESTNET_HASH, txns: [encode(txn)] },
     });
     const card = popup.getByTestId("direct-app-card");
-    await expect(card.getByTestId("direct-app-approval-deployed")).toContainText("Not compared");
+    await expect(card.getByTestId("direct-app-approval-deployed")).toContainText("Not compared with the deployed program");
     await page.waitForTimeout(1500); // a late request would still count
     expect(lookups).toBe(0);
   });
