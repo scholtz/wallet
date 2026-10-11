@@ -133,6 +133,67 @@ test.describe("Biatec Direct: application lifecycle", () => {
     await expectClosed(popup);
   });
 
+  // AW-2026-071: an update is compared with the program deployed now (as the node reports it).
+  const mockDeployed = async (
+    context: Parameters<typeof openPopup>[0],
+    approval: Uint8Array,
+    clear: Uint8Array,
+  ) =>
+    context.route(/\/v2\/applications\/987654(\?.*)?$/, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: 987654,
+          params: {
+            creator: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "approval-program": Buffer.from(approval).toString("base64"),
+            "clear-state-program": Buffer.from(clear).toString("base64"),
+          },
+        }),
+      }),
+    );
+  const updateTxn = (address: string, approval: Uint8Array) =>
+    algosdk.makeApplicationUpdateTxnFromObject({
+      sender: address,
+      suggestedParams: params(),
+      appIndex: 987654,
+      approvalProgram: approval,
+      clearProgram: CLEAR,
+    });
+
+  test("an update identical to the deployed program says so", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    await mockDeployed(context, APPROVAL, CLEAR);
+    const { popup } = await requestApp(context, address, "same", updateTxn(address, APPROVAL));
+    const card = popup.getByTestId("direct-app-card");
+    await expect(card.getByTestId("direct-app-approval-deployed")).toContainText("Same as the program deployed now");
+    await expect(card.getByTestId("direct-app-clear-deployed")).toContainText("Same as the program deployed now");
+  });
+
+  test("an update that differs from the deployed program is flagged", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    await mockDeployed(context, new Uint8Array([0x0a, 0x81, 0x00, 0x43]), CLEAR);
+    const { popup } = await requestApp(context, address, "diff", updateTxn(address, APPROVAL));
+    const card = popup.getByTestId("direct-app-card");
+    await expect(card.getByTestId("direct-app-approval-deployed")).toContainText("DIFFERENT from the program deployed now");
+    await expect(card.getByTestId("direct-app-clear-deployed")).toContainText("Same as the program deployed now");
+  });
+
+  test("an update whose deployed program cannot be fetched never reads as unchanged", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    await context.route(/\/v2\/applications\/987654(\?.*)?$/, (route) =>
+      route.fulfill({ status: 500, body: "{}" }),
+    );
+    const { popup } = await requestApp(context, address, "unavail", updateTxn(address, APPROVAL));
+    const card = popup.getByTestId("direct-app-card");
+    await expect(card.getByTestId("direct-app-approval-deployed")).toContainText("could not be fetched");
+    await expect(card.getByText("Same as the program deployed now")).toHaveCount(0);
+  });
+
   test("deleting an application is signed and says it destroys the contract", async ({
     context,
     page,

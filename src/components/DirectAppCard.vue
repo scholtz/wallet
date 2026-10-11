@@ -105,6 +105,20 @@
           >{{ program.info.address }}</code
         >
       </div>
+      <Message
+        v-if="program.info && deployed[program.key]"
+        :severity="deployed[program.key] === 'different' ? 'warn' : deployed[program.key] === 'same' ? 'success' : 'secondary'"
+        class="m-0"
+        :data-testid="'direct-app-' + program.key + '-deployed'"
+      >
+        {{
+          deployed[program.key] === "same"
+            ? $t("connect.direct.app_deployed_same")
+            : deployed[program.key] === "different"
+              ? $t("connect.direct.app_deployed_different")
+              : $t("connect.direct.app_deployed_unavailable")
+        }}
+      </Message>
       <button
         v-if="program.info"
         type="button"
@@ -136,10 +150,18 @@
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, reactive, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import type { ApplicationCallReview, ProgramInfo, StateSchema } from "@/scripts/direct/appCall";
+import { useStore } from "@/store";
+import {
+  compareWithDeployed,
+  type ApplicationCallReview,
+  type DeployedComparison,
+  type ProgramInfo,
+  type StateSchema,
+} from "@/scripts/direct/appCall";
 
 const props = defineProps<{ summary: ApplicationCallReview }>();
 const { t } = useI18n();
+const store = useStore();
 
 // Explicit keys (not built by concatenation) so the locale-key spec can check every one.
 const title = computed(() => {
@@ -195,15 +217,34 @@ const programs = computed(() => {
 
 const open = reactive<Record<string, boolean>>({});
 const copyState = reactive<Record<string, "ok" | "failed" | undefined>>({});
+// For an update: does each program differ from the one deployed now? The deployed programs come
+// from the user's own node (unauthenticated, AW-2026-010/011); a failed lookup says so rather
+// than reading as "unchanged".
+const deployed = reactive<Record<string, DeployedComparison | undefined>>({});
 // A card reused for another transaction starts with its bytes closed.
 watch(
   () => props.summary,
-  () => {
+  async (summary) => {
     open.approval = false;
     open.clear = false;
     copyState.approval = undefined;
     copyState.clear = undefined;
+    deployed.approval = undefined;
+    deployed.clear = undefined;
+    if (summary.kind !== "update") return;
+    let programs: { approvalProgram?: Uint8Array; clearStateProgram?: Uint8Array } | undefined;
+    try {
+      programs = await store.dispatch("algod/getApplicationPrograms", {
+        appIndex: BigInt(summary.appIndex),
+      });
+    } catch {
+      programs = undefined;
+    }
+    if (props.summary !== summary) return; // the card moved on to another transaction
+    deployed.approval = compareWithDeployed(summary.approval, programs?.approvalProgram);
+    deployed.clear = compareWithDeployed(summary.clear, programs?.clearStateProgram);
   },
+  { immediate: true },
 );
 
 const schemaText = (schema: StateSchema) =>

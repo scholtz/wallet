@@ -18,7 +18,10 @@ export interface PersistableWallet<A extends { addr: string }> {
  * - persisted, not in memory, not in `known`: added elsewhere, kept;
  * - in memory and in `known` but no longer persisted: deleted elsewhere, dropped;
  * - in memory, never persisted: new in this tab, kept.
- * This tab's copy wins for accounts present on both sides. Legacy persisted entries whose
+ * This tab's copy wins for accounts present on both sides (AW-2026-073, accepted: account secrets
+ * never change after creation, so the only loss is another tab's newer metadata such as a name).
+ * A persisted list that is empty is not trusted for dropping: a stale tab then re-adds accounts
+ * another tab deleted, which errs on the side of keeping keys. Legacy persisted entries whose
  * address is not a string cannot be compared and are ignored (openWallet normalized them).
  */
 export function mergePrivateAccounts<A extends { addr: string }>(
