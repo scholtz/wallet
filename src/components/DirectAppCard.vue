@@ -105,6 +105,14 @@
           >{{ program.info.address }}</code
         >
       </div>
+      <Message
+        v-if="program.info && deployed[program.key]"
+        :severity="deployedView(deployed[program.key]!).severity"
+        class="m-0"
+        :data-testid="'direct-app-' + program.key + '-deployed'"
+      >
+        {{ deployedView(deployed[program.key]!).text }}
+      </Message>
       <button
         v-if="program.info"
         type="button"
@@ -136,10 +144,27 @@
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, reactive, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import type { ApplicationCallReview, ProgramInfo, StateSchema } from "@/scripts/direct/appCall";
+import { useStore } from "@/store";
+import type { ApplicationPrograms } from "@/store/algod";
+import {
+  compareWithDeployed,
+  type ApplicationCallReview,
+  type DeployedComparison,
+  type ProgramInfo,
+  type StateSchema,
+} from "@/scripts/direct/appCall";
 
-const props = defineProps<{ summary: ApplicationCallReview }>();
+const props = defineProps<{
+  summary: ApplicationCallReview;
+  /**
+   * Whether the request is for the network the wallet's node serves: true compares with the
+   * deployed program, false says it is not compared (another network), undefined (network not
+   * known yet) shows nothing. An app id on another chain says nothing about this request's.
+   */
+  compareDeployed?: boolean;
+}>();
 const { t } = useI18n();
+const store = useStore();
 
 // Explicit keys (not built by concatenation) so the locale-key spec can check every one.
 const title = computed(() => {
@@ -177,7 +202,7 @@ const icon = computed(() =>
 // A create and an update always list both programs; a missing/empty one says so instead of
 // silently disappearing (the warning promises "the programs below").
 const programs = computed(() => {
-  const list: { key: string; label: string; info?: ProgramInfo }[] = [];
+  const list: { key: ProgramKey; label: string; info?: ProgramInfo }[] = [];
   if (props.summary.kind === "create" || props.summary.kind === "update") {
     list.push({
       key: "approval",
@@ -193,8 +218,27 @@ const programs = computed(() => {
   return list;
 });
 
+type ProgramKey = "approval" | "clear";
+type DeployedState = DeployedComparison | "checking" | "foreign";
+// One table for every state, so a missing one is a type error rather than a silent fallback.
+const deployedView = (state: DeployedState): { severity: string; text: string } => {
+  const views: Record<DeployedState, { severity: string; text: string }> = {
+    same: { severity: "info", text: t("connect.direct.app_deployed_same") },
+    different: { severity: "warn", text: t("connect.direct.app_deployed_different") },
+    unavailable: { severity: "warn", text: t("connect.direct.app_deployed_unavailable") },
+    checking: { severity: "secondary", text: t("connect.direct.app_deployed_checking") },
+    foreign: { severity: "secondary", text: t("connect.direct.app_deployed_foreign") },
+  };
+  return views[state];
+};
+
 const open = reactive<Record<string, boolean>>({});
 const copyState = reactive<Record<string, "ok" | "failed" | undefined>>({});
+// For an update: does each program differ from the one deployed now? The deployed programs come
+// from the user's own node (unauthenticated, AW-2026-010/011); a failed lookup says so rather
+// than reading as "unchanged".
+let lookupRun = 0; // a newer check supersedes an older lookup still in flight
+const deployed = reactive<Partial<Record<ProgramKey, DeployedState>>>({});
 // A card reused for another transaction starts with its bytes closed.
 watch(
   () => props.summary,
@@ -204,6 +248,46 @@ watch(
     copyState.approval = undefined;
     copyState.clear = undefined;
   },
+);
+watch(
+  // Also re-checked when the network view arrives or changes: a lookup made before it is known
+  // could compare against the wrong chain's app. (Resets of the byte view live in the watcher above.)
+  [() => props.summary, () => props.compareDeployed] as const,
+  async ([summary]) => {
+    const run = ++lookupRun; // supersedes any lookup still in flight
+    deployed.approval = undefined;
+    deployed.clear = undefined;
+    if (summary.kind !== "update") return;
+    // Network not known yet (undefined): show nothing until it is, rather than a wrong claim.
+    if (props.compareDeployed === undefined) return;
+    if (!props.compareDeployed) {
+      // The node serves the wallet's network: app ids there say nothing about this request's.
+      deployed.approval = "foreign";
+      deployed.clear = "foreign";
+      return;
+    }
+    deployed.approval = "checking";
+    deployed.clear = "checking";
+    const nodeBefore = `${store.state.config.algod}|${store.state.config.algodToken}`; // the lookup uses the configured node
+    let deployedPrograms: ApplicationPrograms | undefined;
+    try {
+      deployedPrograms = await store.dispatch("algod/getApplicationPrograms", {
+        appIndex: BigInt(summary.appIndex),
+      });
+    } catch {
+      deployedPrograms = undefined;
+    }
+    if (run !== lookupRun) return; // the card moved on or was re-checked: the newer run owns the state
+    if (`${store.state.config.algod}|${store.state.config.algodToken}` !== nodeBefore) {
+      // The wallet switched node meanwhile: the answer may be from another chain, so claim nothing.
+      deployed.approval = "unavailable";
+      deployed.clear = "unavailable";
+      return;
+    }
+    deployed.approval = compareWithDeployed(summary.approval, deployedPrograms?.approvalProgram);
+    deployed.clear = compareWithDeployed(summary.clear, deployedPrograms?.clearStateProgram);
+  },
+  { immediate: true },
 );
 
 const schemaText = (schema: StateSchema) =>
@@ -228,7 +312,10 @@ const copy = async (key: string, value: string) => {
     copyState[key] = undefined;
   }, 2500);
 };
-onBeforeUnmount(() => Object.values(copyTimers).forEach((timer) => clearTimeout(timer)));
+onBeforeUnmount(() => {
+  lookupRun += 1; // an unmounted card ignores a lookup still in flight
+  Object.values(copyTimers).forEach((timer) => clearTimeout(timer));
+});
 </script>
 
 <style scoped>

@@ -321,7 +321,7 @@
                   <tbody>
                     <tr v-if="showAppCard(txProps.data)">
                       <td colspan="2">
-                        <DirectAppCard :summary="appSummary(txProps.data)!" />
+                        <DirectAppCard :summary="appSummary(txProps.data)!" :compare-deployed="compareDeployedPrograms" />
                       </td>
                     </tr>
                     <tr v-if="isArc14Auth(txProps.data.txn)">
@@ -782,6 +782,18 @@ const compact = computed(() => ns.value === "direct");
 /** The request is for a network other than the wallet's selected one (Biatec Direct). */
 const foreignNetwork = computed(
   () => props.network !== undefined && !props.network.matchesWalletEnv,
+);
+
+/**
+ * Whether a contract update may be compared with the program deployed on the wallet's node:
+ * true on the wallet's network, false on another one or a hand-configured node, undefined until
+ * the network is known.
+ */
+const compareDeployedPrograms = computed(() =>
+  props.network === undefined
+    ? undefined
+    : // A hand-configured node can serve any chain, whatever the env label says (AW-2026-010).
+      !foreignNetwork.value && store.state.config.env !== "custom",
 );
 
 const store = useStore();

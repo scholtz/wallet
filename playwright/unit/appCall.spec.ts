@@ -3,7 +3,12 @@
 import { test, expect } from "@playwright/test";
 import algosdk from "algosdk";
 import { createHash } from "node:crypto";
-import { PROGRAM_PREVIEW_BYTES, describeApplicationCall, isLifecycle } from "../../src/scripts/direct/appCall";
+import {
+  PROGRAM_PREVIEW_BYTES,
+  compareWithDeployed,
+  describeApplicationCall,
+  isLifecycle,
+} from "../../src/scripts/direct/appCall";
 import { directUnsupportedReason } from "../../src/scripts/direct/protocol";
 
 const sender = algosdk.generateAccount().addr.toString();
@@ -318,5 +323,20 @@ test.describe("isLifecycle", () => {
     expect(isLifecycle(describeApplicationCall(call(algosdk.OnApplicationComplete.CloseOutOC)))).toBe(false);
     expect(isLifecycle(describeApplicationCall(call(algosdk.OnApplicationComplete.NoOpOC)))).toBe(false);
     expect(isLifecycle(undefined)).toBe(false);
+  });
+});
+
+test.describe("compareWithDeployed (AW-2026-071)", () => {
+  const proposed = describeApplicationCall(create())!.approval;
+  test("identical bytes are the same", () => {
+    expect(compareWithDeployed(proposed, new Uint8Array(APPROVAL))).toBe("same");
+  });
+  test("different bytes are flagged different", () => {
+    expect(compareWithDeployed(proposed, new Uint8Array([0x0a, 0x81, 0x00, 0x43]))).toBe("different");
+  });
+  test("a missing or empty deployed program is unavailable, never same", () => {
+    expect(compareWithDeployed(proposed, undefined)).toBe("unavailable");
+    expect(compareWithDeployed(proposed, new Uint8Array())).toBe("unavailable");
+    expect(compareWithDeployed(undefined, APPROVAL)).toBe("unavailable");
   });
 });

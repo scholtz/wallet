@@ -105,15 +105,35 @@ function programInfo(program: Uint8Array | undefined): ProgramInfo | undefined {
   const info: ProgramInfo = {
     size: program.length,
     address: programAddress(program),
-    // unknown cast: crypto-js types WordArray.create() as number[] only, but at runtime it
-    // accepts a Uint8Array (typed-array support), which is what the program is.
-    sha256: CryptoJS.SHA256(CryptoJS.lib.WordArray.create(program as unknown as number[])).toString(
-      CryptoJS.enc.Hex,
-    ),
+    sha256: programSha256(program),
     hex: toHex(preview),
   };
   if (preview !== program) info.truncated = true;
   return info;
+}
+
+export type DeployedComparison = "same" | "different" | "unavailable";
+
+/** SHA-256 (lower-case hex) of a program: the same value `ProgramInfo.sha256` carries. */
+export function programSha256(program: Uint8Array): string {
+  // unknown cast: crypto-js types WordArray.create() as number[] only, but at runtime it
+  // accepts a Uint8Array (typed-array support), which is what the program is.
+  return CryptoJS.SHA256(CryptoJS.lib.WordArray.create(program as unknown as number[])).toString(
+    CryptoJS.enc.Hex,
+  );
+}
+
+/**
+ * Compares the program an update carries with the one deployed now (as reported by the user's
+ * node, which is itself unauthenticated: AW-2026-010/011). `unavailable` when either side is
+ * missing, so a failed lookup is never presented as "same".
+ */
+export function compareWithDeployed(
+  proposed: ProgramInfo | undefined,
+  deployed: Uint8Array | undefined,
+): DeployedComparison {
+  if (!proposed || !deployed || deployed.length === 0) return "unavailable";
+  return programSha256(deployed) === proposed.sha256 ? "same" : "different";
 }
 
 /** Create, update and delete of a contract: these get the application card. */
