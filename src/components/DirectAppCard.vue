@@ -276,8 +276,13 @@ watch(
     } catch {
       deployedPrograms = undefined;
     }
-    // The card moved on, was re-checked, or the wallet switched node meanwhile.
-    if (run !== lookupRun || store.state.config.algod !== nodeBefore) return;
+    if (run !== lookupRun) return; // the card moved on or was re-checked: the newer run owns the state
+    if (store.state.config.algod !== nodeBefore) {
+      // The wallet switched node meanwhile: the answer may be from another chain, so claim nothing.
+      deployed.approval = "unavailable";
+      deployed.clear = "unavailable";
+      return;
+    }
     deployed.approval = compareWithDeployed(summary.approval, deployedPrograms?.approvalProgram);
     deployed.clear = compareWithDeployed(summary.clear, deployedPrograms?.clearStateProgram);
   },
