@@ -145,6 +145,7 @@
 import { computed, onBeforeUnmount, reactive, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useStore } from "@/store";
+import type { ApplicationPrograms } from "@/store/algod";
 import {
   compareWithDeployed,
   type ApplicationCallReview,
@@ -223,7 +224,7 @@ const deployedView = (state: DeployedState): { severity: string; text: string } 
   const views: Record<DeployedState, { severity: string; text: string }> = {
     same: { severity: "info", text: t("connect.direct.app_deployed_same") },
     different: { severity: "warn", text: t("connect.direct.app_deployed_different") },
-    unavailable: { severity: "secondary", text: t("connect.direct.app_deployed_unavailable") },
+    unavailable: { severity: "warn", text: t("connect.direct.app_deployed_unavailable") },
     checking: { severity: "secondary", text: t("connect.direct.app_deployed_checking") },
     foreign: { severity: "secondary", text: t("connect.direct.app_deployed_foreign") },
   };
@@ -266,7 +267,8 @@ watch(
     }
     deployed.approval = "checking";
     deployed.clear = "checking";
-    let deployedPrograms: { approvalProgram?: Uint8Array; clearStateProgram?: Uint8Array } | undefined;
+    const nodeBefore = store.state.config.algod; // the lookup uses the configured node
+    let deployedPrograms: ApplicationPrograms | undefined;
     try {
       deployedPrograms = await store.dispatch("algod/getApplicationPrograms", {
         appIndex: BigInt(summary.appIndex),
@@ -274,7 +276,8 @@ watch(
     } catch {
       deployedPrograms = undefined;
     }
-    if (run !== lookupRun) return; // the card moved on or was re-checked meanwhile
+    // The card moved on, was re-checked, or the wallet switched node meanwhile.
+    if (run !== lookupRun || store.state.config.algod !== nodeBefore) return;
     deployed.approval = compareWithDeployed(summary.approval, deployedPrograms?.approvalProgram);
     deployed.clear = compareWithDeployed(summary.clear, deployedPrograms?.clearStateProgram);
   },
