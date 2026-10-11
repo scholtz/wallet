@@ -321,7 +321,7 @@
                   <tbody>
                     <tr v-if="showAppCard(txProps.data)">
                       <td colspan="2">
-                        <DirectAppCard :summary="appSummary(txProps.data)!" />
+                        <DirectAppCard :summary="appSummary(txProps.data)!" :foreign-network="foreignNetwork" />
                       </td>
                     </tr>
                     <tr v-if="isArc14Auth(txProps.data.txn)">

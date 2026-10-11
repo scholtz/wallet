@@ -1134,6 +1134,8 @@
       "app_deployed_same": "Şu anda dağıtılmış programla aynı (düğümünüz bildirdi)",
       "app_deployed_different": "Şu anda dağıtılmış programdan FARKLI (düğümünüz bildirdi)",
       "app_deployed_unavailable": "Dağıtılmış program alınamadı, bu yüzden karşılaştırma yapılamıyor",
+      "app_deployed_checking": "Dağıtılmış program kontrol ediliyor…",
+      "app_deployed_foreign": "Karşılaştırılmadı: bu istek, düğümünüzün hizmet verdiği ağdan farklı bir ağ için",
       "app_program_none": "Program yok (boş)",
       "app_create_also": "Aynı işlem ayrıca şunu da yapar: {action}.",
       "network_foreign_note": "Cüzdanın ağına ait ayrıntılar başka bir ağ için gösterilmez.",

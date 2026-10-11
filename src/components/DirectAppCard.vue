@@ -107,7 +107,7 @@
       </div>
       <Message
         v-if="program.info && deployed[program.key]"
-        :severity="deployed[program.key] === 'different' ? 'warn' : deployed[program.key] === 'same' ? 'success' : 'secondary'"
+        :severity="deployed[program.key] === 'different' ? 'warn' : deployed[program.key] === 'same' ? 'info' : 'secondary'"
         class="m-0"
         :data-testid="'direct-app-' + program.key + '-deployed'"
       >
@@ -116,7 +116,11 @@
             ? $t("connect.direct.app_deployed_same")
             : deployed[program.key] === "different"
               ? $t("connect.direct.app_deployed_different")
-              : $t("connect.direct.app_deployed_unavailable")
+              : deployed[program.key] === "checking"
+                ? $t("connect.direct.app_deployed_checking")
+                : deployed[program.key] === "foreign"
+                  ? $t("connect.direct.app_deployed_foreign")
+                  : $t("connect.direct.app_deployed_unavailable")
         }}
       </Message>
       <button
@@ -159,7 +163,11 @@ import {
   type StateSchema,
 } from "@/scripts/direct/appCall";
 
-const props = defineProps<{ summary: ApplicationCallReview }>();
+const props = defineProps<{
+  summary: ApplicationCallReview;
+  /** The request is for another network than the one the wallet's node serves: no lookup. */
+  foreignNetwork?: boolean;
+}>();
 const { t } = useI18n();
 const store = useStore();
 
@@ -220,7 +228,7 @@ const copyState = reactive<Record<string, "ok" | "failed" | undefined>>({});
 // For an update: does each program differ from the one deployed now? The deployed programs come
 // from the user's own node (unauthenticated, AW-2026-010/011); a failed lookup says so rather
 // than reading as "unchanged".
-const deployed = reactive<Record<string, DeployedComparison | undefined>>({});
+const deployed = reactive<Record<string, DeployedComparison | "checking" | "foreign" | undefined>>({});
 // A card reused for another transaction starts with its bytes closed.
 watch(
   () => props.summary,
@@ -232,6 +240,14 @@ watch(
     deployed.approval = undefined;
     deployed.clear = undefined;
     if (summary.kind !== "update") return;
+    if (props.foreignNetwork) {
+      // The node serves the wallet's network: app ids there say nothing about this request's.
+      deployed.approval = "foreign";
+      deployed.clear = "foreign";
+      return;
+    }
+    deployed.approval = "checking";
+    deployed.clear = "checking";
     let programs: { approvalProgram?: Uint8Array; clearStateProgram?: Uint8Array } | undefined;
     try {
       programs = await store.dispatch("algod/getApplicationPrograms", {

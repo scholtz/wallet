@@ -1134,6 +1134,8 @@
       "app_deployed_same": "Megegyezik a jelenleg telepített programmal (a csomópontod jelzése)",
       "app_deployed_different": "ELTÉR a jelenleg telepített programtól (a csomópontod jelzése)",
       "app_deployed_unavailable": "A telepített programot nem sikerült lekérni, ezért az összehasonlítás nem lehetséges",
+      "app_deployed_checking": "A telepített program ellenőrzése…",
+      "app_deployed_foreign": "Nincs összehasonlítva: ez a kérés más hálózatra vonatkozik, mint amelyet a csomópontod kiszolgál",
       "app_program_none": "Nincs program (üres)",
       "app_create_also": "Ugyanez a tranzakció emellett végrehajtja: {action}.",
       "network_foreign_note": "A tárca hálózatának adatai más hálózatnál nem jelennek meg.",

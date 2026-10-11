@@ -1134,6 +1134,8 @@
       "app_deployed_same": "Igual que el programa desplegado actualmente (informado por tu nodo)",
       "app_deployed_different": "DISTINTO del programa desplegado actualmente (informado por tu nodo)",
       "app_deployed_unavailable": "No se pudo obtener el programa desplegado, por lo que no es posible compararlo",
+      "app_deployed_checking": "Comprobando el programa desplegado…",
+      "app_deployed_foreign": "No comparado: esta solicitud es para otra red distinta de la que atiende tu nodo",
       "app_program_none": "Sin programa (vacío)",
       "app_create_also": "La misma transacción también realiza: {action}.",
       "network_foreign_note": "Los detalles de la red de la cartera no se muestran para otra red.",

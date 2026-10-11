@@ -7,6 +7,8 @@ import { createHash } from "node:crypto";
 import { setupFreshWallet } from "../support/wallet";
 import {
   MAINNET_HASH,
+  TESTNET_HASH,
+  testnetParams,
   connectSite,
   encode,
   expectClosed,
@@ -192,6 +194,35 @@ test.describe("Biatec Direct: application lifecycle", () => {
     const card = popup.getByTestId("direct-app-card");
     await expect(card.getByTestId("direct-app-approval-deployed")).toContainText("could not be fetched");
     await expect(card.getByText("Same as the program deployed now")).toHaveCount(0);
+  });
+
+  test("an update for another network is not compared with the wallet's node", async ({ context, page }) => {
+    await setupFreshWallet(page);
+    const address = walletAddress(page);
+    let lookups = 0;
+    await context.route(/\/v2\/applications\/987654(\?.*)?$/, (route) => {
+      lookups += 1;
+      return route.fulfill({ status: 500, body: "{}" });
+    });
+    const txn = algosdk.makeApplicationUpdateTxnFromObject({
+      sender: address,
+      suggestedParams: testnetParams(),
+      appIndex: 987654,
+      approvalProgram: APPROVAL,
+      clearProgram: CLEAR,
+    });
+    const dapp = await connectSite(context, address);
+    const popup = await openPopup(context, dapp);
+    await unlock(popup);
+    await waitForMessage(dapp, isReady);
+    await post(dapp, {
+      id: "foreign",
+      reference: "arc0027:sign_transactions:request",
+      params: { providerId: "d", genesisHash: TESTNET_HASH, txns: [encode(txn)] },
+    });
+    const card = popup.getByTestId("direct-app-card");
+    await expect(card.getByTestId("direct-app-approval-deployed")).toContainText("Not compared");
+    expect(lookups).toBe(0);
   });
 
   test("deleting an application is signed and says it destroys the contract", async ({

@@ -105,11 +105,7 @@ function programInfo(program: Uint8Array | undefined): ProgramInfo | undefined {
   const info: ProgramInfo = {
     size: program.length,
     address: programAddress(program),
-    // unknown cast: crypto-js types WordArray.create() as number[] only, but at runtime it
-    // accepts a Uint8Array (typed-array support), which is what the program is.
-    sha256: CryptoJS.SHA256(CryptoJS.lib.WordArray.create(program as unknown as number[])).toString(
-      CryptoJS.enc.Hex,
-    ),
+    sha256: programSha256(program),
     hex: toHex(preview),
   };
   if (preview !== program) info.truncated = true;
@@ -120,6 +116,8 @@ export type DeployedComparison = "same" | "different" | "unavailable";
 
 /** SHA-256 (lower-case hex) of a program: the same value `ProgramInfo.sha256` carries. */
 export function programSha256(program: Uint8Array): string {
+  // unknown cast: crypto-js types WordArray.create() as number[] only, but at runtime it
+  // accepts a Uint8Array (typed-array support), which is what the program is.
   return CryptoJS.SHA256(CryptoJS.lib.WordArray.create(program as unknown as number[])).toString(
     CryptoJS.enc.Hex,
   );

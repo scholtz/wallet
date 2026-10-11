@@ -1134,6 +1134,8 @@
       "app_deployed_same": "Uguale al programma attualmente distribuito (riportato dal tuo nodo)",
       "app_deployed_different": "DIVERSO dal programma attualmente distribuito (riportato dal tuo nodo)",
       "app_deployed_unavailable": "Impossibile recuperare il programma distribuito, quindi non è possibile confrontarlo",
+      "app_deployed_checking": "Verifica del programma distribuito…",
+      "app_deployed_foreign": "Non confrontato: questa richiesta è per una rete diversa da quella servita dal tuo nodo",
       "app_program_none": "Nessun programma (vuoto)",
       "app_create_also": "La stessa transazione esegue anche: {action}.",
       "network_foreign_note": "I dettagli della rete del portafoglio non vengono mostrati per un'altra rete.",

@@ -165,7 +165,7 @@ test.describe("mergePrivateAccounts documented behaviour (AW-2026-073)", () => {
     expect(merged).toEqual([acct("A", { name: "mine" })]);
   });
 
-  test("an empty persisted list never makes a tab drop accounts (keys are kept, not lost)", () => {
+  test("an empty persisted list is not trusted for dropping: a stale tab keeps (re-adds) its accounts, the key-safe direction", () => {
     const memory = [acct("A"), acct("B")];
     expect(mergePrivateAccounts(memory, [], new Set(["A", "B"]))).toEqual(memory);
   });
