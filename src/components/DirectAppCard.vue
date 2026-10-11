@@ -156,9 +156,9 @@ import {
 const props = defineProps<{
   summary: ApplicationCallReview;
   /**
-   * Whether the request is known to be for the network the wallet's node serves. Without that
-   * (another network, or the network not known yet) there is no lookup: an app id there says
-   * nothing about this request's chain.
+   * Whether the request is for the network the wallet's node serves: true compares with the
+   * deployed program, false says it is not compared (another network), undefined (network not
+   * known yet) shows nothing. An app id on another chain says nothing about this request's.
    */
   compareDeployed?: boolean;
 }>();
@@ -239,18 +239,25 @@ let lookupRun = 0; // a newer check supersedes an older lookup still in flight
 const deployed = reactive<Record<string, DeployedState | undefined>>({});
 // A card reused for another transaction starts with its bytes closed.
 watch(
-  // Also re-checked when the network view arrives or changes: a lookup made before it is known
-  // could compare against the wrong chain's app.
-  [() => props.summary, () => props.compareDeployed] as const,
-  async ([summary]) => {
-    const run = ++lookupRun; // supersedes any lookup still in flight
+  () => props.summary,
+  () => {
     open.approval = false;
     open.clear = false;
     copyState.approval = undefined;
     copyState.clear = undefined;
+  },
+);
+watch(
+  // Also re-checked when the network view arrives or changes: a lookup made before it is known
+  // could compare against the wrong chain's app. (Resets of the byte view live in the watcher above.)
+  [() => props.summary, () => props.compareDeployed] as const,
+  async ([summary]) => {
+    const run = ++lookupRun; // supersedes any lookup still in flight
     deployed.approval = undefined;
     deployed.clear = undefined;
     if (summary.kind !== "update") return;
+    // Network not known yet (undefined): show nothing until it is, rather than a wrong claim.
+    if (props.compareDeployed === undefined) return;
     if (!props.compareDeployed) {
       // The node serves the wallet's network: app ids there say nothing about this request's.
       deployed.approval = "foreign";
@@ -296,7 +303,10 @@ const copy = async (key: string, value: string) => {
     copyState[key] = undefined;
   }, 2500);
 };
-onBeforeUnmount(() => Object.values(copyTimers).forEach((timer) => clearTimeout(timer)));
+onBeforeUnmount(() => {
+  lookupRun += 1; // an unmounted card ignores a lookup still in flight
+  Object.values(copyTimers).forEach((timer) => clearTimeout(timer));
+});
 </script>
 
 <style scoped>

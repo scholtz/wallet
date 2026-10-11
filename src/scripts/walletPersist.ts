@@ -22,7 +22,8 @@ export interface PersistableWallet<A extends { addr: string }> {
  * fields are fixed when an account is created; what a stale save can undo is newer metadata such as
  * a name, a hidden flag or the cached rekey data, which `wallet/syncAccountSigner` refreshes).
  * A persisted list that is empty is not trusted for dropping: a stale tab then re-adds accounts
- * another tab deleted, which errs on the side of keeping keys. Legacy persisted entries whose
+ * another tab deleted. That is deliberate: losing a key the user still needs is worse than
+ * a deleted one lingering until they delete it again. Legacy persisted entries whose
  * address is not a string cannot be compared and are ignored (openWallet normalized them).
  */
 export function mergePrivateAccounts<A extends { addr: string }>(
