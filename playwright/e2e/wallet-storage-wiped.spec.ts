@@ -81,6 +81,8 @@ test.describe("Wallet storage wiped by the browser", () => {
     await page.getByRole("button", { name: "Delete wallet" }).click();
     await expect(page.locator("#new_wallet_button_open, #new_wallet_button_create").first()).toBeVisible();
 
+    const cookies = await page.context().cookies();
+    expect(cookies.some((c) => c.name === "awallet_had_wallet")).toBe(false);
     await page.goto("/");
     await expect(page).toHaveURL(/new-wallet/);
     await expect(page.locator("#storage-notice")).toHaveCount(0);
