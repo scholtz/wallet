@@ -30,7 +30,10 @@
     "new_wallet_button_open": "Otevřít peněženku",
     "basic_usage": "Základní použití",
     "tether_usage": "Jak používat Tether (USDt)",
-    "source_code": "Zdrojový kód AWallet"
+    "source_code": "Zdrojový kód AWallet",
+    "storage_error": "Peněženku se nepodařilo načíst z úložiště prohlížeče. Obnovte stránku; pokud potíže přetrvají, obnovte peněženku ze zálohy.",
+    "storage_lost": "V tomto prohlížeči už není uložena žádná peněženka, ačkoli zde dříve nějaká byla. Prohlížeč pravděpodobně smazal data stránek. Vytvořte novou peněženku nebo importujte zálohu.",
+    "storage_not_persistent": "Váš prohlížeč může data peněženky sám smazat (například při nedostatku místa na disku). Peněženku pravidelně zálohujte (Nastavení) a zálohu bezpečně uložte."
   },
   "global": {
     "go_back": "Zpět",

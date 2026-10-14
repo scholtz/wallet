@@ -30,7 +30,10 @@
     "new_wallet_button_open": "Open portemonnee",
     "basic_usage": "Basic usage",
     "tether_usage": "How to use Tether  (USDt)",
-    "source_code": "AWallet source code"
+    "source_code": "AWallet source code",
+    "storage_error": "De portemonnee kon niet worden gelezen uit de opslag van deze browser. Laad de pagina opnieuw; als dit aanhoudt, herstel dan je portemonnee vanaf een back-up.",
+    "storage_lost": "Deze browser heeft geen portemonnee meer opgeslagen, hoewel er hier eerder een werd gebruikt. De browser heeft waarschijnlijk de sitegegevens verwijderd. Maak een nieuwe portemonnee of importeer je back-up.",
+    "storage_not_persistent": "Je browser kan de gegevens van de portemonnee zelf verwijderen (bijvoorbeeld bij weinig schijfruimte). Maak regelmatig een back-up van je portemonnee (Instellingen) en bewaar die veilig."
   },
   "global": {
     "go_back": "Ga terug",

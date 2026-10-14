@@ -30,7 +30,10 @@
     "new_wallet_button_open": "Open wallet",
     "basic_usage": "Basic usage",
     "tether_usage": "How to use Tether  (USDt)",
-    "source_code": "AWallet source code"
+    "source_code": "AWallet source code",
+    "storage_error": "Your wallet could not be read from this browser's storage. Reload the page; if this persists, restore your wallet from a backup.",
+    "storage_lost": "This browser has no wallet stored any more, although one was used here before. The browser has probably deleted its site data. Create a new wallet or import your backup.",
+    "storage_not_persistent": "Your browser may delete the wallet data on its own (for example when disk space is low). Back up your wallet regularly (Settings) and keep the backup safe."
   },
   "global": {
     "go_back": "Go back",

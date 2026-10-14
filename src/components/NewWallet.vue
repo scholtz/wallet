@@ -112,10 +112,15 @@ export default {
     };
   },
   async mounted() {
-    this.wallets = (await this.getWallets())?.map((w) => ({
-      name: w,
-      code: w,
-    }));
+    try {
+      this.wallets = (await this.getWallets()).map((w) => ({
+        name: w,
+        code: w,
+      }));
+    } catch (error) {
+      console.error("Cannot read the wallet database", error);
+      this.wallets = [];
+    }
     this.wallet = localStorage.getItem("lastUsedWallet");
 
     this.newWalletForm = this.wallets.length == 0;

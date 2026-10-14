@@ -30,7 +30,10 @@
     "new_wallet_button_open": "Abrir billetera",
     "basic_usage": "Uso básico",
     "tether_usage": "Cómo utilizar Tether? (USDt)",
-    "source_code": "código fuente de AWallet"
+    "source_code": "código fuente de AWallet",
+    "storage_error": "No se pudo leer la cartera del almacenamiento de este navegador. Recargue la página; si el problema continúa, restaure su cartera desde una copia de seguridad.",
+    "storage_lost": "Este navegador ya no tiene ninguna cartera guardada, aunque antes se usó una aquí. Probablemente el navegador eliminó los datos del sitio. Cree una cartera nueva o importe su copia de seguridad.",
+    "storage_not_persistent": "Su navegador puede eliminar por sí solo los datos de la cartera (por ejemplo, con poco espacio en disco). Haga copias de seguridad de su cartera con regularidad (Ajustes) y guárdelas en un lugar seguro."
   },
   "global": {
     "go_back": "Retroceder",

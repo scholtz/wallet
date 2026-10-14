@@ -30,7 +30,10 @@
     "new_wallet_button_open": "Cüzdan aç",
     "basic_usage": "Temel kullanım",
     "tether_usage": "Tether nasıl kullanılır?  (USDt)",
-    "source_code": "AWallet kaynak kodu"
+    "source_code": "AWallet kaynak kodu",
+    "storage_error": "Cüzdan bu tarayıcının depolamasından okunamadı. Sayfayı yenileyin; sorun sürerse cüzdanınızı bir yedekten geri yükleyin.",
+    "storage_lost": "Bu tarayıcıda artık kayıtlı bir cüzdan yok, oysa burada daha önce bir cüzdan kullanılmıştı. Tarayıcı büyük olasılıkla site verilerini sildi. Yeni bir cüzdan oluşturun veya yedeğinizi içe aktarın.",
+    "storage_not_persistent": "Tarayıcınız cüzdan verilerini kendiliğinden silebilir (örneğin disk alanı azaldığında). Cüzdanınızı düzenli olarak yedekleyin (Ayarlar) ve yedeği güvenli bir yerde saklayın."
   },
   "global": {
     "go_back": "Geri dön",

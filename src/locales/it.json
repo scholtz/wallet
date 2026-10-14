@@ -30,7 +30,10 @@
     "new_wallet_button_open": "Apri il wallet",
     "basic_usage": "Basic usage",
     "tether_usage": "How to use Tether  (USDt)",
-    "source_code": "AWallet source code"
+    "source_code": "AWallet source code",
+    "storage_error": "Impossibile leggere il portafoglio dalla memoria di questo browser. Ricarica la pagina; se il problema persiste, ripristina il portafoglio da un backup.",
+    "storage_lost": "In questo browser non è più memorizzato alcun portafoglio, anche se qui ne era stato usato uno. Probabilmente il browser ha eliminato i dati del sito. Crea un nuovo portafoglio o importa il tuo backup.",
+    "storage_not_persistent": "Il browser potrebbe eliminare da solo i dati del portafoglio (ad esempio con poco spazio su disco). Esegui regolarmente il backup del portafoglio (Impostazioni) e conserva il backup in un luogo sicuro."
   },
   "global": {
     "go_back": "Indietro",

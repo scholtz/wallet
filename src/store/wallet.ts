@@ -6,6 +6,7 @@ import algosdk, {
 import CryptoJS from "crypto-js";
 import cryptoRandomString from "crypto-random-string";
 import db from "../shared/db";
+import { requestPersistentStorage } from "@/scripts/storagePersistence";
 import wc from "../shared/wc";
 import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
 import { mergeSharedWcItems } from "@/scripts/walletSharedItems";
@@ -1851,6 +1852,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       await commit("setIsOpen", { name, pass });
 
       localStorage.setItem("lastUsedWallet", name);
+      void requestPersistentStorage();
 
       if (isLegacyEncryptedData(encryptedData)) {
         // Transparently upgrade wallets encrypted with the legacy
@@ -1928,6 +1930,8 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     if (this.state.wallet.isOpen) {
       await dispatch("logout");
     }
+    localStorage.setItem("lastUsedWallet", name);
+    void requestPersistentStorage();
     await commit("setIsOpen", { name, pass });
     await dispatch("saveWallet");
     return true;
@@ -1945,12 +1949,16 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       );
     //db.wallets.clear();
     //db.wallets.drop();
+    // An IndexedDB failure (blocked/closed connection, quota, corrupted profile) is NOT "no wallet
+    // exists": returning [] sent the user to "create new wallet" as if the wallet had been wiped.
+    // Retry once on a fresh connection, then let the caller show the error.
     try {
-      const w = await db.wallets.toArray();
-      return w.map((wallet) => wallet.name);
-    } catch {
-      console.error("no wallet exists yet");
-      return [];
+      return (await db.wallets.toArray()).map((wallet) => wallet.name);
+    } catch (firstError) {
+      console.error("reading wallets failed, retrying", firstError);
+      db.close();
+      await db.open();
+      return (await db.wallets.toArray()).map((wallet) => wallet.name);
     }
   },
   async backupWallet({ dispatch }) {
@@ -2044,6 +2052,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     }
     await db.wallets.add({ name, data });
     localStorage.setItem("lastUsedWallet", name);
+    void requestPersistentStorage();
     return true;
   },
   encrypt: async (store: WalletActionContext, { data }: { data: string }) => {

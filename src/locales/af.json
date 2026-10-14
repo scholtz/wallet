@@ -30,7 +30,10 @@
     "new_wallet_button_open": "Oop beursie",
     "basic_usage": "Basiese gebruik",
     "tether_usage": "Hoe om Tether (USDt) te gebruik",
-    "source_code": "AWallet bronkode"
+    "source_code": "AWallet bronkode",
+    "storage_error": "Die beursie kon nie uit hierdie blaaier se berging gelees word nie. Herlaai die bladsy; as dit voortduur, herstel jou beursie vanaf 'n rugsteun.",
+    "storage_lost": "Hierdie blaaier het nie meer 'n beursie gestoor nie, hoewel daar voorheen een gebruik is. Die blaaier het waarskynlik die werfdata uitgevee. Skep 'n nuwe beursie of voer jou rugsteun in.",
+    "storage_not_persistent": "Jou blaaier kan die beursiedata self uitvee (byvoorbeeld wanneer skyfspasie min is). Maak gereeld 'n rugsteun van jou beursie (Instellings) en bewaar dit veilig."
   },
   "global": {
     "go_back": "Gaan terug",

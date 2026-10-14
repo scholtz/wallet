@@ -30,7 +30,10 @@
     "new_wallet_button_open": "Pénztárca megnyitása",
     "basic_usage": "Alapműveletek",
     "tether_usage": "Tether (USDt) használata",
-    "source_code": "AWallet forráskód"
+    "source_code": "AWallet forráskód",
+    "storage_error": "A tárcát nem sikerült beolvasni a böngésző tárhelyéről. Töltse újra az oldalt; ha a hiba marad, állítsa vissza a tárcát biztonsági mentésből.",
+    "storage_lost": "Ebben a böngészőben már nincs tárolt tárca, pedig korábban használtak itt egyet. A böngésző valószínűleg törölte az oldal adatait. Hozzon létre új tárcát, vagy importálja a biztonsági mentését.",
+    "storage_not_persistent": "A böngésző önmagától törölheti a tárca adatait (például kevés lemezterületnél). Rendszeresen mentse a tárcáját (Beállítások), és tartsa biztonságban a mentést."
   },
   "global": {
     "go_back": "Vissza",
