@@ -80,7 +80,15 @@
         </div>
       </form>
     </Panel>
-    <Panel v-if="!newWalletForm" class="auth-panel">
+    <Panel v-if="dbError" class="auth-panel">
+      <template #header>
+        {{ $t("login.open_wallet") }}
+      </template>
+      <p class="my-2 auth-help" role="alert" id="storage-notice">
+        {{ notice }}
+      </p>
+    </Panel>
+    <Panel v-if="!newWalletForm && !dbError" class="auth-panel">
       <template #header>
         {{ $t("login.open_wallet") }}
       </template>
@@ -187,6 +195,7 @@ export default {
       wallet: "",
       wallets: [{ label: "a", code: "a" }],
       notice: "",
+      dbError: false,
     };
   },
   async mounted() {
@@ -199,6 +208,7 @@ export default {
       console.error("Cannot read the wallet database", error);
       this.wallets = [];
       this.newWalletForm = false;
+      this.dbError = true;
       this.notice = this.$t("login.storage_error");
       return;
     }
@@ -212,8 +222,9 @@ export default {
 
     if (this.wallets.length === 0) {
       if (hasHadWalletMarker()) {
-        // This browser opened a wallet before (flag cookie, which survives an origin-wide eviction
-        // that also wipes localStorage; the lastUsedWallet key would be stale after a deliberate destroy), yet none is stored any more: the browser deleted the site data. Say so instead of silently presenting a blank "new wallet" screen.
+        // The flag cookie says a wallet was opened here before, yet none is stored any more: the
+        // browser deleted the site data (the cookie outlives an origin-wide eviction, unlike
+        // localStorage). Say so instead of silently presenting a blank "new wallet" screen.
         this.notice = this.$t("login.storage_lost");
       } else {
         this.$router.push("/new-wallet");

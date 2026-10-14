@@ -676,7 +676,7 @@
     "q1": "What private information about me do you collect?",
     "a1": "None. Besides IP address and browser which is stored in logs for every internet service, we do not collect any form of private information such as your name, email or address.",
     "q2": "What do you store in cookies?",
-    "a2": "Nothing. We do not use cookies. We use persistent local storage called IndexedDB for the storage of your wallet.",
+    "a2": "Byna niks. Jou beursie en sleutels word nooit in koekies gestoor nie - hulle bly in die permanente plaaslike berging genaamd IndexedDB. Die enigste koekie is 'n klein vlag (awallet_had_wallet=1, geen persoonlike data, een jaar bewaar) wat ons toelaat om jou te waarsku as jou blaaier die gestoorde beursie uitvee.",
     "q3": "How do you collect analytics information?",
     "a3": "We do not. We do not use any form of analytics service, e.g. google analytics, so that you can feel safer. The website is purely HTML with javascript. We do know your IP address only when you make requests to the server. Depending on your settings and your algod server or indexer, the selected server also may know your IP address.",
     "q4": "Does use of this service affect the ads I see?",

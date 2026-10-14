@@ -15,7 +15,7 @@
       <p v-if="notice" class="my-2 auth-help" role="alert" id="storage-notice">
         {{ notice }}
       </p>
-      <form autocomplete="off" @submit="createWalletClick">
+      <form v-if="!dbError" autocomplete="off" @submit="createWalletClick">
         <div class="field grid">
           <label for="newwallet-name" class="col-12 mb-1">
             {{ $t("login.new_wallet_name") }}
@@ -114,10 +114,10 @@ export default {
       wallet: "",
       wallets: [{ label: "a", code: "a" }],
       notice: "",
+      dbError: false,
     };
   },
   async mounted() {
-    let dbFailed = false;
     try {
       this.wallets = (await this.getWallets()).map((w) => ({
         name: w,
@@ -126,13 +126,13 @@ export default {
     } catch (error) {
       console.error("Cannot read the wallet database", error);
       this.wallets = [];
-      dbFailed = true;
-      this.$store.dispatch("toast/openError", this.$t("login.storage_error"));
+      this.dbError = true;
+      this.notice = this.$t("login.storage_error");
     }
     this.wallet = localStorage.getItem("lastUsedWallet");
 
     // A failed read is not "no wallet": do not offer to create one next to an unreadable one.
-    this.newWalletForm = !dbFailed && this.wallets.length == 0;
+    this.newWalletForm = !this.dbError && this.wallets.length == 0;
     if (this.newWalletForm && hasHadWalletMarker()) {
       this.notice = this.$t("login.storage_lost");
     }

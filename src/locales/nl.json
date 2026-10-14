@@ -676,7 +676,7 @@
     "q1": "Welke privé-informatie over mij verzamel je?",
     "a1": "Geen. Behalve IP-adres en browser, die voor elke internetdienst in logboeken wordt opgeslagen. Wij verzamelen geen enkele vorm van prive-informatie zoals uw naam, email of adres.",
     "q2": "Wat sla je op in cookies?",
-    "a2": "Niets. Wij gebruiken geen cookies. We gebruiken persistente lokale opslag genaamd indexdb voor het bewaren van uw portemonnee.",
+    "a2": "Bijna niets. Je portemonnee en sleutels worden nooit in cookies opgeslagen - ze staan in de persistente lokale opslag genaamd IndexedDB. Het enige cookie is een kleine vlag (awallet_had_wallet=1, geen persoonsgegevens, een jaar bewaard) waarmee we je kunnen waarschuwen als je browser de opgeslagen portemonnee verwijdert.",
     "q3": "Hoe verzamel je analytische informatie?",
     "a3": "Dat doen we niet. Wij gebruiken geen enkele vorm van analytics service bv google analytics, zodat u zich veiliger kunt voelen. Het web is puur html met javascript, en wij kennen uw IP adres alleen als u de server opvraagt. Afhankelijk van uw instellingen en uw algod server of indexer, kan de geselecteerde server ook uw IP-adres weten.",
     "q4": "Heeft het gebruik van deze dienst invloed op de advertenties die ik zie?",
