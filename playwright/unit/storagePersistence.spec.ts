@@ -44,7 +44,7 @@ test.describe("requestPersistentStorage", () => {
       persist: async () => true,
     });
     expect(status).toBe("unsupported");
-    expect(isStorageAtRisk(status)).toBe(true);
+    expect(isStorageAtRisk(status)).toBe(false);
   });
 
   test("granted storage is not at risk", () => {

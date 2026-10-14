@@ -35,7 +35,10 @@ export async function requestPersistentStorage(
   }
 }
 
-/** True when the browser may silently delete the wallet, i.e. the user should keep a backup. */
+/**
+ * True when the browser positively refused persistence, i.e. it may silently delete the wallet and
+ * the user should keep a backup. An unsupported API (e.g. insecure context) is not a known risk.
+ */
 export function isStorageAtRisk(status: PersistenceStatus): boolean {
-  return status === "denied" || status === "unsupported";
+  return status === "denied";
 }

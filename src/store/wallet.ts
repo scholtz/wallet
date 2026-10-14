@@ -39,6 +39,15 @@ type WalletAccountData = Record<string, IAccountData>;
 
 type AmountLike = number | bigint;
 
+/**
+ * Remember the wallet this browser uses (so a later, vanished wallet can be reported as such) and
+ * ask the browser not to evict the wallet database.
+ */
+function markWalletUsed(name: string) {
+  localStorage.setItem("lastUsedWallet", name);
+  void requestPersistentStorage();
+}
+
 export interface AccountAssetHolding {
   assetId: bigint;
   amount: AmountLike;
@@ -1851,8 +1860,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       await commit("setWC", json.wc);
       await commit("setIsOpen", { name, pass });
 
-      localStorage.setItem("lastUsedWallet", name);
-      void requestPersistentStorage();
+      markWalletUsed(name);
 
       if (isLegacyEncryptedData(encryptedData)) {
         // Transparently upgrade wallets encrypted with the legacy
@@ -1930,8 +1938,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     if (this.state.wallet.isOpen) {
       await dispatch("logout");
     }
-    localStorage.setItem("lastUsedWallet", name);
-    void requestPersistentStorage();
+    markWalletUsed(name);
     await commit("setIsOpen", { name, pass });
     await dispatch("saveWallet");
     return true;
@@ -1956,8 +1963,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return (await db.wallets.toArray()).map((wallet) => wallet.name);
     } catch (firstError) {
       console.error("reading wallets failed, retrying", firstError);
-      db.close();
-      await db.open();
+      if (!db.isOpen()) await db.open();
       return (await db.wallets.toArray()).map((wallet) => wallet.name);
     }
   },
@@ -2003,6 +2009,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       const walletRecord = await db.wallets.get({ name });
       if (walletRecord?.id !== undefined) {
         await db.wallets.delete(walletRecord.id);
+      }
+      // A deliberately destroyed wallet must not later be reported as "deleted by the browser".
+      if (localStorage.getItem("lastUsedWallet") === name) {
+        localStorage.removeItem("lastUsedWallet");
       }
       clearDerivedKeys();
       commit("signer/ledgerPendingReset", null, { root: true });
@@ -2051,8 +2061,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return;
     }
     await db.wallets.add({ name, data });
-    localStorage.setItem("lastUsedWallet", name);
-    void requestPersistentStorage();
+    markWalletUsed(name);
     return true;
   },
   encrypt: async (store: WalletActionContext, { data }: { data: string }) => {

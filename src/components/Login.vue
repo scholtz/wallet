@@ -217,8 +217,12 @@ export default {
       } else {
         this.$router.push("/new-wallet");
       }
-    } else if (isStorageAtRisk(await requestPersistentStorage())) {
-      this.notice = this.$t("login.storage_not_persistent");
+    } else {
+      requestPersistentStorage().then((status) => {
+        if (isStorageAtRisk(status) && !this.notice) {
+          this.notice = this.$t("login.storage_not_persistent");
+        }
+      });
     }
     if (this.wallets.length === 1) {
       this.wallet = this.wallets[0].code;

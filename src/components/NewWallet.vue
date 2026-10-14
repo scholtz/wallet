@@ -120,6 +120,7 @@ export default {
     } catch (error) {
       console.error("Cannot read the wallet database", error);
       this.wallets = [];
+      this.$store.dispatch("toast/openError", this.$t("login.storage_error"));
     }
     this.wallet = localStorage.getItem("lastUsedWallet");
 
