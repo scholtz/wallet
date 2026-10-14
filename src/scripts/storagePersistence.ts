@@ -63,7 +63,8 @@ export async function checkPersistentStorage(
 /**
  * A browser evicting the origin's storage wipes IndexedDB *and* localStorage together, but not
  * cookies, so a long-lived flag cookie is what still tells us "a wallet used to be here". It holds
- * no wallet data or name - only the fact that one existed.
+ * no wallet data or name - only the fact that one existed. It is scoped to the origin (path=/), so a
+ * different app on the same origin could clear it; the worst case is a missed or spurious notice.
  */
 const HAD_WALLET_COOKIE = "awallet_had_wallet";
 

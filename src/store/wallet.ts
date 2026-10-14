@@ -2019,7 +2019,11 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       if (localStorage.getItem("lastUsedWallet") === name) {
         localStorage.removeItem("lastUsedWallet");
       }
-      if ((await db.wallets.count()) === 0) clearHadWalletMarker();
+      try {
+        if ((await db.wallets.count()) === 0) clearHadWalletMarker();
+      } catch (err) {
+        console.error("Could not update the wallet marker", err);
+      }
       clearDerivedKeys();
       commit("signer/ledgerPendingReset", null, { root: true });
       commit("signer/clearSignedCache", null, { root: true });

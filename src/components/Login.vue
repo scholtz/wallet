@@ -211,9 +211,9 @@ export default {
     this.newWalletForm = this.wallets.length == 0;
 
     if (this.wallets.length === 0) {
-      if (this.wallet || hasHadWalletMarker()) {
-        // This browser opened a wallet before (localStorage key, or the flag cookie that survives
-        // an origin-wide eviction), yet none is stored any more: the browser deleted the site data. Say so instead of silently presenting a blank "new wallet" screen.
+      if (hasHadWalletMarker()) {
+        // This browser opened a wallet before (flag cookie, which survives an origin-wide eviction
+        // that also wipes localStorage; the lastUsedWallet key would be stale after a deliberate destroy), yet none is stored any more: the browser deleted the site data. Say so instead of silently presenting a blank "new wallet" screen.
         this.notice = this.$t("login.storage_lost");
       } else {
         this.$router.push("/new-wallet");
