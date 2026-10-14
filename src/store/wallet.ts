@@ -6,7 +6,11 @@ import algosdk, {
 import CryptoJS from "crypto-js";
 import cryptoRandomString from "crypto-random-string";
 import db from "../shared/db";
-import { requestPersistentStorage } from "@/scripts/storagePersistence";
+import {
+  clearHadWalletMarker,
+  requestPersistentStorage,
+  setHadWalletMarker,
+} from "@/scripts/storagePersistence";
 import wc from "../shared/wc";
 import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
 import { mergeSharedWcItems } from "@/scripts/walletSharedItems";
@@ -45,6 +49,7 @@ type AmountLike = number | bigint;
  */
 function markWalletUsed(name: string) {
   localStorage.setItem("lastUsedWallet", name);
+  setHadWalletMarker();
   void requestPersistentStorage();
 }
 
@@ -2014,6 +2019,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       if (localStorage.getItem("lastUsedWallet") === name) {
         localStorage.removeItem("lastUsedWallet");
       }
+      if ((await db.wallets.count()) === 0) clearHadWalletMarker();
       clearDerivedKeys();
       commit("signer/ledgerPendingReset", null, { root: true });
       commit("signer/clearSignedCache", null, { root: true });

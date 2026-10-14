@@ -112,6 +112,7 @@ export default {
     };
   },
   async mounted() {
+    let dbFailed = false;
     try {
       this.wallets = (await this.getWallets()).map((w) => ({
         name: w,
@@ -120,11 +121,13 @@ export default {
     } catch (error) {
       console.error("Cannot read the wallet database", error);
       this.wallets = [];
+      dbFailed = true;
       this.$store.dispatch("toast/openError", this.$t("login.storage_error"));
     }
     this.wallet = localStorage.getItem("lastUsedWallet");
 
-    this.newWalletForm = this.wallets.length == 0;
+    // A failed read is not "no wallet": do not offer to create one next to an unreadable one.
+    this.newWalletForm = !dbFailed && this.wallets.length == 0;
   },
   methods: {
     ...mapActions({

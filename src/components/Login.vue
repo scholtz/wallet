@@ -171,8 +171,9 @@
 <script>
 import { mapActions } from "vuex";
 import {
+  checkPersistentStorage,
+  hasHadWalletMarker,
   isStorageAtRisk,
-  requestPersistentStorage,
 } from "../scripts/storagePersistence";
 import heroImage from "../assets/img/hero-login.jpg";
 
@@ -210,15 +211,15 @@ export default {
     this.newWalletForm = this.wallets.length == 0;
 
     if (this.wallets.length === 0) {
-      if (this.wallet) {
-        // This browser opened a wallet before, yet none is stored any more: the browser deleted
-        // the site data. Say so instead of silently presenting a blank "new wallet" screen.
+      if (this.wallet || hasHadWalletMarker()) {
+        // This browser opened a wallet before (localStorage key, or the flag cookie that survives
+        // an origin-wide eviction), yet none is stored any more: the browser deleted the site data. Say so instead of silently presenting a blank "new wallet" screen.
         this.notice = this.$t("login.storage_lost");
       } else {
         this.$router.push("/new-wallet");
       }
     } else {
-      requestPersistentStorage().then((status) => {
+      checkPersistentStorage().then((status) => {
         if (isStorageAtRisk(status) && !this.notice) {
           this.notice = this.$t("login.storage_not_persistent");
         }
