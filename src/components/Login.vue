@@ -218,7 +218,9 @@ export default {
       } else {
         this.$router.push("/new-wallet");
       }
-    } else {
+    } else if (hasHadWalletMarker()) {
+      // Only after a wallet was opened here (which asks the browser for persistence) does "not
+      // persistent" mean the browser refused, rather than that it was never asked.
       checkPersistentStorage().then((status) => {
         if (isStorageAtRisk(status) && !this.notice) {
           this.notice = this.$t("login.storage_not_persistent");

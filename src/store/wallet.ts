@@ -2022,7 +2022,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       try {
         if ((await db.wallets.count()) === 0) clearHadWalletMarker();
       } catch (err) {
-        console.error("Could not update the wallet marker", err);
+        // Unknown whether other wallets remain; a missed notice beats a false "wallet deleted" alarm.
+        console.error("Could not read the remaining wallets", err);
+        clearHadWalletMarker();
       }
       clearDerivedKeys();
       commit("signer/ledgerPendingReset", null, { root: true });

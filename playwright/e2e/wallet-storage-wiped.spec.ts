@@ -66,6 +66,26 @@ test.describe("Wallet storage wiped by the browser", () => {
     await expect(page).not.toHaveURL(/new-wallet/);
   });
 
+  test("a wallet the user destroyed on purpose is not reported as lost", async ({
+    page,
+  }) => {
+    await setupFreshWallet(page, "Destroyed Wallet");
+    await page.getByRole("menuitem", { name: /Algorand Mainnet/ }).click();
+    await page
+      .locator(".p-menubar-item-label:visible", { hasText: /^Settings$/ })
+      .first()
+      .click();
+    await expect(page).toHaveURL(/\/settings/);
+    await page.getByRole("button", { name: "Create backup" }).click();
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Delete wallet" }).click();
+    await expect(page.locator("#new_wallet_button_open, #new_wallet_button_create").first()).toBeVisible();
+
+    await page.goto("/");
+    await expect(page).toHaveURL(/new-wallet/);
+    await expect(page.locator("#storage-notice")).toHaveCount(0);
+  });
+
   test("a first-time visitor is still sent to create a wallet, without a warning", async ({
     page,
   }) => {
