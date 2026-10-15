@@ -29,9 +29,9 @@ const { defaultBrowserType: _browser, ...pixel } = devices["Pixel 7"];
 const MIN_TARGET = 44;
 
 const SIZES = [
-  { name: "Pixel-class portrait 360x640", viewport: { width: 360, height: 640 } },
-  { name: "small phone 320x568", viewport: { width: 320, height: 568 } },
-  { name: "phone landscape 740x360", viewport: { width: 740, height: 360 } },
+  { name: "Pixel-class portrait 360x640", viewport: { width: 360, height: 640 }, stacked: true },
+  { name: "small phone 320x568", viewport: { width: 320, height: 568 }, stacked: true },
+  { name: "phone landscape 740x360", viewport: { width: 740, height: 360 }, stacked: false },
 ];
 
 async function expectNoHorizontalScroll(page: Page) {
@@ -95,7 +95,8 @@ for (const size of SIZES) {
       await expect(popup.locator(".app-footer-minimal .footer-text")).toBeHidden();
       // Sticky actions: on screen even at the top of a page taller than the viewport.
       await popup.evaluate(() => window.scrollTo(0, 0));
-      if (size.viewport.width <= 640) await expectInViewport(popup, approve);
+      // Stacked (<=640px) layouts pin the actions; wider landscape keeps the inline desktop row.
+      if (size.stacked) await expectInViewport(popup, approve);
       await expectTapTarget(popup.locator(".direct-account").first(), 0);
       await approve.tap();
       const response = await waitForMessage(dapp, reply("m1"));
