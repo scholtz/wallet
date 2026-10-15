@@ -1968,7 +1968,15 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return (await db.wallets.toArray()).map((wallet) => wallet.name);
     } catch (firstError) {
       console.error("reading wallets failed, retrying", firstError);
-      if (!db.isOpen()) await db.open();
+      if (!db.isOpen()) {
+        // A blocked open (an old tab holding an upgrade lock) never settles: fail instead of hanging.
+        await Promise.race([
+          db.open(),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(firstError), 5000)
+          ),
+        ]);
+      }
       return (await db.wallets.toArray()).map((wallet) => wallet.name);
     }
   },
