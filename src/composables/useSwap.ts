@@ -24,7 +24,7 @@ import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import {
   balanceSnapshot,
-  refreshUntilChanged,
+  settleAfterSwap,
 } from "../scripts/swap/refreshBalance";
 import { RootState } from "@/store";
 import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
@@ -75,6 +75,7 @@ export function useSwap() {
   // re-read, so the spent quote cannot be executed a second time.
   const settlingSwap: Ref<boolean> = ref(false);
   let makeAssetsRun = 0;
+  let txSentByExecute = false;
   // A "custom" network (Settings > Network > Custom, user-supplied algod/indexer
   // URLs) has no fixed identity - it could be pointing at a mainnet fork, a
   // testnet fork, or a private network. checkNetwork() can't infer which chain
@@ -114,7 +115,8 @@ export function useSwap() {
         asset.value !== null &&
         toAsset.value !== null &&
         payamount.value > 0 &&
-        !processingQuote.value
+        !processingQuote.value &&
+        !settlingSwap.value
       )
   );
 
@@ -338,10 +340,18 @@ export function useSwap() {
     getSK: (config: { addr: string }) => store.dispatch("wallet/getSK", config),
     getAsset: (config: { assetIndex: number | bigint }) =>
       store.dispatch("indexer/getAsset", config),
-    sendRawTransaction: (config: {
+    sendRawTransaction: async (config: {
       signedTxn: Uint8Array | Uint8Array[];
-    }): Promise<algosdk.modelsv2.PostTransactionsResponse> =>
-      store.dispatch("algod/sendRawTransaction", config),
+    }): Promise<algosdk.modelsv2.PostTransactionsResponse> => {
+      const res: algosdk.modelsv2.PostTransactionsResponse = await store.dispatch(
+        "algod/sendRawTransaction",
+        config
+      );
+      // Remembered for executeAndRefresh: once a transaction left the wallet
+      // the quote is spent, whatever happens next.
+      if (res?.txid) txSentByExecute = true;
+      return res;
+    },
     waitForConfirmation: (config: { txId: string; timeout: number }) =>
       store.dispatch("algod/waitForConfirmation", config),
     prolong: () => store.dispatch("wallet/prolong"),
@@ -433,9 +443,14 @@ export function useSwap() {
       });
     }
 
-    if (accountData.value && accountData.value.assets) {
+    // Snapshot: a background reload may replace the holdings while the asset
+    // lookups below are awaited, and infos must be zipped with the same list.
+    const holdings: AccountAssetHolding[] | undefined = accountData.value
+      ? [...(accountData.value.assets ?? [])]
+      : undefined;
+    if (holdings) {
       // Parallel fetch all asset infos
-      const assetPromises = accountData.value.assets.map(
+      const assetPromises = holdings.map(
         (asset: AccountAssetHolding) =>
           store
             .dispatch("indexer/getAsset", {
@@ -451,28 +466,28 @@ export function useSwap() {
             .catch(() => null) // Ignore errors for individual assets
       );
       const assetInfos = (await Promise.all(assetPromises)) as StoredAsset[];
-      for (let index = 0; index < accountData.value.assets.length; index++) {
+      for (let index = 0; index < holdings.length; index++) {
         const assetInfo = assetInfos[index];
         if (assetInfo) {
           const balance = formatCurrency(
-            accountData.value.assets[index]["amount"],
+            holdings[index]["amount"],
             assetInfo.unitName ? assetInfo.unitName : assetInfo.name ?? "",
             assetInfo.decimals ?? 6
           );
 
           next.push({
-            assetId: BigInt(accountData.value.assets[index].assetId),
-            amount: BigInt(accountData.value.assets[index]["amount"]),
+            assetId: BigInt(holdings[index].assetId),
+            amount: BigInt(holdings[index]["amount"]),
             name: assetInfo.name ?? "",
             decimals: assetInfo.decimals ?? 6,
             unitName: assetInfo.unitName ?? "",
             type: "ASA",
-            label: `${assetInfo["name"]} (ASA ${accountData.value.assets[index].assetId}) Balance: ${balance}`,
+            label: `${assetInfo["name"]} (ASA ${holdings[index].assetId}) Balance: ${balance}`,
           });
         } else {
           console.error(
             "Asset not loaded",
-            accountData.value.assets[index].assetId
+            holdings[index].assetId
           );
         }
       }
@@ -587,30 +602,33 @@ export function useSwap() {
     // wait for the indexer, and the route then points somewhere else.
     const swapAccount = route.params.account;
     const watched = [asset.value, toAsset.value];
+    const amountAtStart = payamount.value;
     try {
       // Taken before executing: the aggregator reloads the account itself, and
       // that (possibly stale) read must not hide the change we wait for.
       const before = balanceSnapshot(accountData.value, watched);
+      txSentByExecute = false;
       await agg.execute(context);
-      // A rejected/invalid swap sets an error and may be retried as is.
-      if (error.value !== "") return;
-      // Otherwise the quote must be considered spent - also when the swap was
-      // sent but not confirmed in time, it may still land on chain.
-      clearQuotes();
-      // The indexer trails algod by a few seconds - keep reading until it
-      // shows the swap, otherwise the old balance stays on screen.
-      await refreshUntilChanged(
-        async () => {
-          if (route.params.account === swapAccount) await reloadAccount();
+      // The indexer trails algod by a few seconds - settleAfterSwap keeps
+      // reading until it shows the swap, otherwise the old balance stays.
+      await settleAfterSwap({
+        txSent: txSentByExecute,
+        clearQuotes,
+        reload: reloadAccount,
+        read: () => balanceSnapshot(accountData.value, watched),
+        before,
+        stillHere: () => route.params.account === swapAccount,
+        rebuildAssets: () => makeAssets(true),
+        formUnchanged: () =>
+          payamount.value === amountAtStart &&
+          asset.value === watched[0] &&
+          toAsset.value === watched[1],
+        clampAmount: () => {
+          if (payamount.value > maxAmount.value) {
+            payamount.value = Math.max(maxAmount.value, 0);
+          }
         },
-        () => balanceSnapshot(accountData.value, watched),
-        before
-      );
-      if (route.params.account !== swapAccount) return;
-      await makeAssets(true);
-      if (payamount.value > maxAmount.value) {
-        payamount.value = Math.max(maxAmount.value, 0);
-      }
+      });
     } finally {
       settlingSwap.value = false;
     }

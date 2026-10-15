@@ -11,6 +11,8 @@ export const POST_SWAP_REFRESH_DELAY_MS = 2_000;
 
 interface HoldingLike {
   assetId?: number | bigint | string;
+  /** legacy cached wallet data still carries the raw indexer key */
+  "asset-id"?: number | bigint | string;
   amount?: number | bigint | string;
 }
 
@@ -29,10 +31,13 @@ export const balanceSnapshot = (
   assetIds?: Array<number | bigint | null>
 ): string => {
   if (!data) return "";
-  const wanted = assetIds?.filter((id) => id !== null).map((id) => String(id));
+  const picked = assetIds?.filter((id) => id !== null).map((id) => String(id));
+  // No asset to watch means no filter (everything is part of the fingerprint).
+  const wanted = picked && picked.length > 0 ? picked : undefined;
+  const idOf = (a: HoldingLike) => String(a.assetId ?? a["asset-id"]);
   const holdings = (data.assets ?? [])
-    .filter((a) => !wanted || wanted.includes(String(a.assetId)))
-    .map((a) => `${String(a.assetId)}:${String(a.amount)}`)
+    .filter((a) => !wanted || wanted.includes(idOf(a)))
+    .map((a) => `${idOf(a)}:${String(a.amount)}`)
     .sort()
     .join(",");
   // ALGO (asset 0) is not in `assets`; without a filter it is always part.
@@ -73,4 +78,48 @@ export const refreshUntilChanged = async (
     if (i < attempts - 1) await sleep(delayMs);
   }
   return false;
+};
+
+export interface SettleSwapDeps {
+  /** whether the aggregator actually submitted a transaction to the network */
+  txSent: boolean;
+  /** drops the quote and its prepared transactions */
+  clearQuotes: () => void;
+  reload: () => Promise<void>;
+  read: () => string;
+  before: string;
+  /** false once the user left the account/page the swap belongs to */
+  stillHere: () => boolean;
+  rebuildAssets: () => Promise<void>;
+  /** called only when the user has not touched the form in the meantime */
+  clampAmount: () => void;
+  /** whether the pay amount / asset pair are still what they were at submit */
+  formUnchanged: () => boolean;
+  options?: RefreshUntilChangedOptions;
+}
+
+/**
+ * What happens after an aggregator's execute() returned. Nothing submitted
+ * (no signer, rejected, unsafe transaction) leaves the quote usable; anything
+ * submitted - confirmed or not, even only the first group of several - spends
+ * it, and the balance is re-read until the indexer shows the swap.
+ */
+export const settleAfterSwap = async (
+  d: SettleSwapDeps
+): Promise<"nothing-sent" | "settled"> => {
+  if (!d.txSent) return "nothing-sent";
+  d.clearQuotes();
+  await refreshUntilChanged(
+    async () => {
+      if (d.stillHere()) await d.reload();
+    },
+    d.read,
+    d.before,
+    d.options
+  );
+  if (d.stillHere()) {
+    await d.rebuildAssets();
+    if (d.formUnchanged()) d.clampAmount();
+  }
+  return "settled";
 };

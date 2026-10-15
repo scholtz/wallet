@@ -2,6 +2,8 @@ import { test, expect } from "@playwright/test";
 import {
   balanceSnapshot,
   refreshUntilChanged,
+  settleAfterSwap,
+  type SettleSwapDeps,
 } from "../../src/scripts/swap/refreshBalance";
 
 const noSleep = async () => {};
@@ -99,4 +101,63 @@ test.describe("refreshUntilChanged", () => {
     });
     expect(sleeps).toEqual([7, 7]);
   });
+});
+
+test.describe("settleAfterSwap", () => {
+  const make = (over: Partial<SettleSwapDeps> = {}) => {
+    const log: string[] = [];
+    let balance = "old";
+    let reloads = 0;
+    const deps: SettleSwapDeps = {
+      txSent: true,
+      clearQuotes: () => log.push("clear"),
+      reload: async () => {
+        reloads++;
+        log.push("reload");
+        if (reloads === 2) balance = "new";
+      },
+      read: () => balance,
+      before: "old",
+      stillHere: () => true,
+      rebuildAssets: async () => {
+        log.push("rebuild");
+      },
+      formUnchanged: () => true,
+      clampAmount: () => log.push("clamp"),
+      options: { attempts: 5, delayMs: 0, sleep: noSleep },
+      ...over,
+    };
+    return { deps, log };
+  };
+
+  test("a submitted swap spends the quote, waits for the indexer, rebuilds and clamps", async () => {
+    const { deps, log } = make();
+    expect(await settleAfterSwap(deps)).toBe("settled");
+    expect(log).toEqual(["clear", "reload", "reload", "rebuild", "clamp"]);
+  });
+  test("nothing submitted keeps the quote and does not wait", async () => {
+    const { deps, log } = make({ txSent: false });
+    expect(await settleAfterSwap(deps)).toBe("nothing-sent");
+    expect(log).toEqual([]);
+  });
+  test("the user's edits during the wait are not overwritten", async () => {
+    const { deps, log } = make({ formUnchanged: () => false });
+    await settleAfterSwap(deps);
+    expect(log).not.toContain("clamp");
+  });
+  test("having left the account, nothing is reloaded or rebuilt", async () => {
+    const { deps, log } = make({ stillHere: () => false });
+    await settleAfterSwap(deps);
+    expect(log).toEqual(["clear"]);
+  });
+});
+
+test("legacy holdings keyed by asset-id are fingerprinted too", () => {
+  const a = balanceSnapshot({ amount: 1, assets: [{ "asset-id": 7, amount: 10 }] }, [7]);
+  const b = balanceSnapshot({ amount: 1, assets: [{ "asset-id": 7, amount: 3 }] }, [7]);
+  expect(a).not.toBe(b);
+  // nothing to watch -> unfiltered, still sensitive to changes
+  expect(balanceSnapshot({ amount: 1 }, [null, null])).not.toBe(
+    balanceSnapshot({ amount: 2 }, [null, null])
+  );
 });
