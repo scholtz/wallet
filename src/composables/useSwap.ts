@@ -22,6 +22,10 @@ import {
 import type { Account, SwapStore } from "../types/swap";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
+import {
+  balanceSnapshot,
+  settleAfterSwap,
+} from "../scripts/swap/refreshBalance";
 import { RootState } from "@/store";
 import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
 import { AccountAssetHolding, WalletAccount } from "@/store/wallet";
@@ -67,6 +71,11 @@ export function useSwap() {
   const slippageProtectionEnabled: Ref<boolean> = ref(true);
   const fee: Ref<number> = ref(0);
   const loadingAssets: Ref<boolean> = ref(true);
+  // True from the moment a swap is submitted until the balance has been
+  // re-read, so the spent quote cannot be executed a second time.
+  const settlingSwap: Ref<boolean> = ref(false);
+  let makeAssetsRun = 0;
+  let txSentByExecute = false;
   // A "custom" network (Settings > Network > Custom, user-supplied algod/indexer
   // URLs) has no fixed identity - it could be pointing at a mainnet fork, a
   // testnet fork, or a private network. checkNetwork() can't infer which chain
@@ -106,7 +115,8 @@ export function useSwap() {
         asset.value !== null &&
         toAsset.value !== null &&
         payamount.value > 0 &&
-        !processingQuote.value
+        !processingQuote.value &&
+        !settlingSwap.value
       )
   );
 
@@ -330,10 +340,18 @@ export function useSwap() {
     getSK: (config: { addr: string }) => store.dispatch("wallet/getSK", config),
     getAsset: (config: { assetIndex: number | bigint }) =>
       store.dispatch("indexer/getAsset", config),
-    sendRawTransaction: (config: {
+    sendRawTransaction: async (config: {
       signedTxn: Uint8Array | Uint8Array[];
-    }): Promise<algosdk.modelsv2.PostTransactionsResponse> =>
-      store.dispatch("algod/sendRawTransaction", config),
+    }): Promise<algosdk.modelsv2.PostTransactionsResponse> => {
+      const res: algosdk.modelsv2.PostTransactionsResponse = await store.dispatch(
+        "algod/sendRawTransaction",
+        config
+      );
+      // Remembered for executeAndRefresh: once a transaction left the wallet
+      // the quote is spent, whatever happens next.
+      if (res?.txid) txSentByExecute = true;
+      return res;
+    },
     waitForConfirmation: (config: { txId: string; timeout: number }) =>
       store.dispatch("algod/waitForConfirmation", config),
     prolong: () => store.dispatch("wallet/prolong"),
@@ -345,21 +363,25 @@ export function useSwap() {
 
   // Computed properties dependent on context
   const allowExecuteDeflex = computed<boolean>(() => {
+    if (settlingSwap.value) return false;
     const agg = dexAggregators.find((a) => a.name === "deflex");
     return agg ? agg.allowExecute(context) : false;
   });
 
   const allowExecuteFolks = computed<boolean>(() => {
+    if (settlingSwap.value) return false;
     const agg = dexAggregators.find((a) => a.name === "folks");
     return agg ? agg.allowExecute(context) : false;
   });
 
   const allowExecuteBiatec = computed<boolean>(() => {
+    if (settlingSwap.value) return false;
     const agg = dexAggregators.find((a) => a.name === "biatec");
     return agg ? agg.allowExecute(context) : false;
   });
 
   const allowExecuteBiatecStage = computed<boolean>(() => {
+    if (settlingSwap.value) return false;
     const agg = dexAggregators.find((a) => a.name === "biatecStage");
     return agg ? agg.allowExecute(context) : false;
   });
@@ -385,16 +407,21 @@ export function useSwap() {
   });
 
   // Methods dependent on context or other methods
-  const makeAssets = async (): Promise<void> => {
-    loadingAssets.value = true;
-    assets.value = [];
+  // `silent` rebuilds the list in the background (balance refresh): no
+  // spinner, and the selector keeps its old list until the new one is ready.
+  const makeAssets = async (silent = false): Promise<void> => {
+    // Only the newest rebuild may publish its result: a slower, older one
+    // (e.g. a background refresh) must not overwrite it.
+    const run = ++makeAssetsRun;
+    if (!silent) loadingAssets.value = true;
+    const next: ExtendedStoredAsset[] = [];
     if (accountData.value) {
       const balance = formatCurrency(
         accountData.value.amount,
         store.state.config.tokenSymbol,
         6
       );
-      assets.value.push({
+      next.push({
         assetId: 0n,
         amount: BigInt(accountData.value.amount ?? 0n),
         name: store.state.config.tokenSymbol,
@@ -405,7 +432,7 @@ export function useSwap() {
       });
     } else {
       const balance = formatCurrency(0, store.state.config.tokenSymbol, 6);
-      assets.value.push({
+      next.push({
         assetId: 0n,
         amount: 0n,
         name: store.state.config.tokenSymbol,
@@ -416,9 +443,14 @@ export function useSwap() {
       });
     }
 
-    if (accountData.value && accountData.value.assets) {
+    // Snapshot: a background reload may replace the holdings while the asset
+    // lookups below are awaited, and infos must be zipped with the same list.
+    const holdings: AccountAssetHolding[] | undefined = accountData.value
+      ? [...(accountData.value.assets ?? [])]
+      : undefined;
+    if (holdings) {
       // Parallel fetch all asset infos
-      const assetPromises = accountData.value.assets.map(
+      const assetPromises = holdings.map(
         (asset: AccountAssetHolding) =>
           store
             .dispatch("indexer/getAsset", {
@@ -434,34 +466,36 @@ export function useSwap() {
             .catch(() => null) // Ignore errors for individual assets
       );
       const assetInfos = (await Promise.all(assetPromises)) as StoredAsset[];
-      for (let index = 0; index < accountData.value.assets.length; index++) {
+      for (let index = 0; index < holdings.length; index++) {
         const assetInfo = assetInfos[index];
         if (assetInfo) {
           const balance = formatCurrency(
-            accountData.value.assets[index]["amount"],
+            holdings[index]["amount"],
             assetInfo.unitName ? assetInfo.unitName : assetInfo.name ?? "",
             assetInfo.decimals ?? 6
           );
 
-          assets.value.push({
-            assetId: BigInt(accountData.value.assets[index].assetId),
-            amount: BigInt(accountData.value.assets[index]["amount"]),
+          next.push({
+            assetId: BigInt(holdings[index].assetId),
+            amount: BigInt(holdings[index]["amount"]),
             name: assetInfo.name ?? "",
             decimals: assetInfo.decimals ?? 6,
             unitName: assetInfo.unitName ?? "",
             type: "ASA",
-            label: `${assetInfo["name"]} (ASA ${accountData.value.assets[index].assetId}) Balance: ${balance}`,
+            label: `${assetInfo["name"]} (ASA ${holdings[index].assetId}) Balance: ${balance}`,
           });
         } else {
           console.error(
             "Asset not loaded",
-            accountData.value.assets[index].assetId
+            holdings[index].assetId
           );
         }
       }
     }
     // Older assets (lower ASA id) first; ALGO (id 0n) always sorts to the top.
-    assets.value.sort((a, b) => (a.assetId < b.assetId ? -1 : a.assetId > b.assetId ? 1 : 0));
+    if (run !== makeAssetsRun) return;
+    next.sort((a, b) => (a.assetId < b.assetId ? -1 : a.assetId > b.assetId ? 1 : 0));
+    assets.value = next;
     loadingAssets.value = false;
   };
 
@@ -518,6 +552,14 @@ export function useSwap() {
     }
   };
 
+  const clearQuotes = (): void => {
+    dexAggregators.forEach((agg) => {
+      aggregatorData[agg.quotesKey].value = {};
+      aggregatorData[agg.txnsKey].value =
+        agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
+    });
+  };
+
   const clickGetQuote = async (): Promise<void> => {
     await store.dispatch("wallet/prolong");
     note.value = "";
@@ -525,12 +567,7 @@ export function useSwap() {
     processingQuote.value = true;
     txsDetails.value = "";
 
-    // Reset all aggregator data
-    dexAggregators.forEach((agg) => {
-      aggregatorData[agg.quotesKey].value = {};
-      aggregatorData[agg.txnsKey].value =
-        agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
-    });
+    clearQuotes();
 
     const enabledAggregators = dexAggregators.filter(
       (agg) => aggregatorData[agg.enabledKey].value
@@ -546,37 +583,62 @@ export function useSwap() {
     processingQuote.value = false;
   };
 
-  const clickExecuteFolks = async (): Promise<void> => {
-    const agg = dexAggregators.find((a) => a.name === "folks");
-    if (agg) {
-      await agg.execute(context);
+  // Re-reads the account and rebuilds the asset list without any spinner.
+  // Used by the periodic refresh and after a swap; never throws.
+  const refreshBalance = async (): Promise<void> => {
+    try {
       await reloadAccount();
+      await makeAssets(true);
+    } catch (e) {
+      console.error("Unable to refresh the balance", e);
     }
   };
 
-  const clickExecuteBiatec = async (): Promise<void> => {
-    const agg = dexAggregators.find((a) => a.name === "biatec");
-    if (agg) {
+  const executeAndRefresh = async (name: string): Promise<void> => {
+    const agg = dexAggregators.find((a) => a.name === name);
+    if (!agg) return;
+    settlingSwap.value = true;
+    // The account the swap belongs to: the user may navigate away while we
+    // wait for the indexer, and the route then points somewhere else.
+    const swapAccount = route.params.account;
+    const watched = [asset.value, toAsset.value];
+    const amountAtStart = payamount.value;
+    try {
+      // Taken before executing: the aggregator reloads the account itself, and
+      // that (possibly stale) read must not hide the change we wait for.
+      const before = balanceSnapshot(accountData.value, watched);
+      txSentByExecute = false;
       await agg.execute(context);
-      await reloadAccount();
+      // The indexer trails algod by a few seconds - settleAfterSwap keeps
+      // reading until it shows the swap, otherwise the old balance stays.
+      await settleAfterSwap({
+        txSent: txSentByExecute,
+        clearQuotes,
+        reload: reloadAccount,
+        read: () => balanceSnapshot(accountData.value, watched),
+        before,
+        stillHere: () => route.params.account === swapAccount,
+        rebuildAssets: () => makeAssets(true),
+        formUnchanged: () =>
+          payamount.value === amountAtStart &&
+          asset.value === watched[0] &&
+          toAsset.value === watched[1],
+        clampAmount: () => {
+          if (payamount.value > maxAmount.value) {
+            payamount.value = Math.max(maxAmount.value, 0);
+          }
+        },
+      });
+    } finally {
+      settlingSwap.value = false;
     }
   };
 
-  const clickExecuteBiatecStage = async (): Promise<void> => {
-    const agg = dexAggregators.find((a) => a.name === "biatecStage");
-    if (agg) {
-      await agg.execute(context);
-      await reloadAccount();
-    }
-  };
-
-  const clickExecuteDeflex = async (): Promise<void> => {
-    const agg = dexAggregators.find((a) => a.name === "deflex");
-    if (agg) {
-      await agg.execute(context);
-      await reloadAccount();
-    }
-  };
+  const clickExecuteFolks = (): Promise<void> => executeAndRefresh("folks");
+  const clickExecuteBiatec = (): Promise<void> => executeAndRefresh("biatec");
+  const clickExecuteBiatecStage = (): Promise<void> =>
+    executeAndRefresh("biatecStage");
+  const clickExecuteDeflex = (): Promise<void> => executeAndRefresh("deflex");
 
   const swapTokens = (): void => {
     const tmp = toAsset.value;
@@ -655,6 +717,7 @@ export function useSwap() {
     fee,
     aggregatorData,
     loadingAssets,
+    settlingSwap,
     dexAggregators,
     customNetworkKind,
 
@@ -682,6 +745,8 @@ export function useSwap() {
 
     // Methods
     reloadAccount,
+    clearQuotes,
+    refreshBalance,
     makeAssets,
     clickGetQuote,
     checkNetwork,
