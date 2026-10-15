@@ -165,7 +165,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch, computed } from "vue";
+import { onMounted, onBeforeUnmount, watch, computed } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
@@ -187,6 +187,7 @@ import {
   FOLKS_USDC_POOL,
   isFolksLendNetwork,
 } from "../scripts/folksLend/transactions";
+import { SWAP_BALANCE_REFRESH_MS } from "../scripts/swap/refreshBalance";
 import { RootState } from "@/store";
 import { StoredAsset } from "@/store/indexer";
 
@@ -213,6 +214,7 @@ const {
   slippageProtectionEnabled,
   aggregatorData,
   loadingAssets,
+  settlingSwap,
   dexAggregators,
   customNetworkKind,
 
@@ -239,6 +241,7 @@ const {
 
   // Methods
   reloadAccount,
+  refreshBalance,
   makeAssets,
   clickGetQuote,
   checkNetwork,
@@ -421,8 +424,40 @@ watch(payamount, () => {
   });
 });
 
+// Keeps the balance (and the "Balance:" labels of the asset selector) current
+// while the page stays open. Skipped while anything is in flight - a quote, a
+// trade, an opt-in or the post-swap refresh - and while the tab is hidden.
+let balanceTimer: ReturnType<typeof setInterval> | undefined;
+let balanceRefreshRunning = false;
+const autoRefreshBalance = async () => {
+  if (balanceRefreshRunning || document.hidden) return;
+  if (
+    loadingAssets.value ||
+    settlingSwap.value ||
+    processingQuote.value ||
+    processingOptin.value ||
+    Object.values(dexAggregators).some(
+      (agg) => aggregatorData[agg.processingKey].value
+    )
+  ) {
+    return;
+  }
+  balanceRefreshRunning = true;
+  try {
+    await refreshBalance();
+  } finally {
+    balanceRefreshRunning = false;
+  }
+};
+
+onBeforeUnmount(() => {
+  if (balanceTimer !== undefined) clearInterval(balanceTimer);
+  balanceTimer = undefined;
+});
+
 // Lifecycle
 onMounted(async () => {
+  balanceTimer = setInterval(autoRefreshBalance, SWAP_BALANCE_REFRESH_MS);
   await store.dispatch("wallet/prolong");
   await reloadAccount();
   await makeAssets();

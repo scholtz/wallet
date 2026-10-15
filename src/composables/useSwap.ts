@@ -22,6 +22,10 @@ import {
 import type { Account, SwapStore } from "../types/swap";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
+import {
+  balanceSnapshot,
+  refreshUntilChanged,
+} from "../scripts/swap/refreshBalance";
 import { RootState } from "@/store";
 import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
 import { AccountAssetHolding, WalletAccount } from "@/store/wallet";
@@ -67,6 +71,9 @@ export function useSwap() {
   const slippageProtectionEnabled: Ref<boolean> = ref(true);
   const fee: Ref<number> = ref(0);
   const loadingAssets: Ref<boolean> = ref(true);
+  // True from the moment a swap is submitted until the balance has been
+  // re-read, so the spent quote cannot be executed a second time.
+  const settlingSwap: Ref<boolean> = ref(false);
   // A "custom" network (Settings > Network > Custom, user-supplied algod/indexer
   // URLs) has no fixed identity - it could be pointing at a mainnet fork, a
   // testnet fork, or a private network. checkNetwork() can't infer which chain
@@ -345,21 +352,25 @@ export function useSwap() {
 
   // Computed properties dependent on context
   const allowExecuteDeflex = computed<boolean>(() => {
+    if (settlingSwap.value) return false;
     const agg = dexAggregators.find((a) => a.name === "deflex");
     return agg ? agg.allowExecute(context) : false;
   });
 
   const allowExecuteFolks = computed<boolean>(() => {
+    if (settlingSwap.value) return false;
     const agg = dexAggregators.find((a) => a.name === "folks");
     return agg ? agg.allowExecute(context) : false;
   });
 
   const allowExecuteBiatec = computed<boolean>(() => {
+    if (settlingSwap.value) return false;
     const agg = dexAggregators.find((a) => a.name === "biatec");
     return agg ? agg.allowExecute(context) : false;
   });
 
   const allowExecuteBiatecStage = computed<boolean>(() => {
+    if (settlingSwap.value) return false;
     const agg = dexAggregators.find((a) => a.name === "biatecStage");
     return agg ? agg.allowExecute(context) : false;
   });
@@ -385,16 +396,18 @@ export function useSwap() {
   });
 
   // Methods dependent on context or other methods
-  const makeAssets = async (): Promise<void> => {
-    loadingAssets.value = true;
-    assets.value = [];
+  // `silent` rebuilds the list in the background (balance refresh): no
+  // spinner, and the selector keeps its old list until the new one is ready.
+  const makeAssets = async (silent = false): Promise<void> => {
+    if (!silent) loadingAssets.value = true;
+    const next: ExtendedStoredAsset[] = [];
     if (accountData.value) {
       const balance = formatCurrency(
         accountData.value.amount,
         store.state.config.tokenSymbol,
         6
       );
-      assets.value.push({
+      next.push({
         assetId: 0n,
         amount: BigInt(accountData.value.amount ?? 0n),
         name: store.state.config.tokenSymbol,
@@ -405,7 +418,7 @@ export function useSwap() {
       });
     } else {
       const balance = formatCurrency(0, store.state.config.tokenSymbol, 6);
-      assets.value.push({
+      next.push({
         assetId: 0n,
         amount: 0n,
         name: store.state.config.tokenSymbol,
@@ -443,7 +456,7 @@ export function useSwap() {
             assetInfo.decimals ?? 6
           );
 
-          assets.value.push({
+          next.push({
             assetId: BigInt(accountData.value.assets[index].assetId),
             amount: BigInt(accountData.value.assets[index]["amount"]),
             name: assetInfo.name ?? "",
@@ -461,7 +474,8 @@ export function useSwap() {
       }
     }
     // Older assets (lower ASA id) first; ALGO (id 0n) always sorts to the top.
-    assets.value.sort((a, b) => (a.assetId < b.assetId ? -1 : a.assetId > b.assetId ? 1 : 0));
+    next.sort((a, b) => (a.assetId < b.assetId ? -1 : a.assetId > b.assetId ? 1 : 0));
+    assets.value = next;
     loadingAssets.value = false;
   };
 
@@ -546,37 +560,59 @@ export function useSwap() {
     processingQuote.value = false;
   };
 
-  const clickExecuteFolks = async (): Promise<void> => {
-    const agg = dexAggregators.find((a) => a.name === "folks");
-    if (agg) {
-      await agg.execute(context);
+  const clearQuotes = (): void => {
+    dexAggregators.forEach((agg) => {
+      aggregatorData[agg.quotesKey].value = {};
+      aggregatorData[agg.txnsKey].value =
+        agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
+    });
+  };
+
+  // Re-reads the account and rebuilds the asset list without any spinner.
+  // Used by the periodic refresh and after a swap; never throws.
+  const refreshBalance = async (): Promise<void> => {
+    try {
       await reloadAccount();
+      await makeAssets(true);
+    } catch (e) {
+      console.error("Unable to refresh the balance", e);
     }
   };
 
-  const clickExecuteBiatec = async (): Promise<void> => {
-    const agg = dexAggregators.find((a) => a.name === "biatec");
-    if (agg) {
+  const executeAndRefresh = async (name: string): Promise<void> => {
+    const agg = dexAggregators.find((a) => a.name === name);
+    if (!agg) return;
+    settlingSwap.value = true;
+    try {
+      // Taken before executing: the aggregator reloads the account itself, and
+      // that (possibly stale) read must not hide the change we wait for.
+      const before = balanceSnapshot(accountData.value);
       await agg.execute(context);
-      await reloadAccount();
+      // Aggregators report success through the note ("Processed in txs: ...").
+      if (note.value === "" || error.value !== "") return;
+      // The quote has been spent: it must not be executable again.
+      clearQuotes();
+      // The indexer trails algod by a few seconds - keep reading until it
+      // shows the swap, otherwise the old balance stays on screen.
+      await refreshUntilChanged(
+        reloadAccount,
+        () => balanceSnapshot(accountData.value),
+        before
+      );
+      await makeAssets(true);
+      if (payamount.value > maxAmount.value) {
+        payamount.value = Math.max(maxAmount.value, 0);
+      }
+    } finally {
+      settlingSwap.value = false;
     }
   };
 
-  const clickExecuteBiatecStage = async (): Promise<void> => {
-    const agg = dexAggregators.find((a) => a.name === "biatecStage");
-    if (agg) {
-      await agg.execute(context);
-      await reloadAccount();
-    }
-  };
-
-  const clickExecuteDeflex = async (): Promise<void> => {
-    const agg = dexAggregators.find((a) => a.name === "deflex");
-    if (agg) {
-      await agg.execute(context);
-      await reloadAccount();
-    }
-  };
+  const clickExecuteFolks = (): Promise<void> => executeAndRefresh("folks");
+  const clickExecuteBiatec = (): Promise<void> => executeAndRefresh("biatec");
+  const clickExecuteBiatecStage = (): Promise<void> =>
+    executeAndRefresh("biatecStage");
+  const clickExecuteDeflex = (): Promise<void> => executeAndRefresh("deflex");
 
   const swapTokens = (): void => {
     const tmp = toAsset.value;
@@ -655,6 +691,7 @@ export function useSwap() {
     fee,
     aggregatorData,
     loadingAssets,
+    settlingSwap,
     dexAggregators,
     customNetworkKind,
 
@@ -682,6 +719,7 @@ export function useSwap() {
 
     // Methods
     reloadAccount,
+    refreshBalance,
     makeAssets,
     clickGetQuote,
     checkNetwork,
