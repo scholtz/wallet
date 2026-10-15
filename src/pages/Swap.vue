@@ -241,6 +241,7 @@ const {
 
   // Methods
   reloadAccount,
+  clearQuotes,
   refreshBalance,
   makeAssets,
   clickGetQuote,
@@ -349,12 +350,7 @@ const onFAssetOptedIn = async (assetId: bigint) => {
 
 // Watchers
 watch(asset, async (newAsset) => {
-  // Reset all aggregator data
-  dexAggregators.forEach((agg) => {
-    aggregatorData[agg.quotesKey].value = {};
-    aggregatorData[agg.txnsKey].value =
-      agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
-  });
+  clearQuotes();
 
   if (newAsset !== null && newAsset > 0n) {
     const asset = (await store.dispatch("indexer/getAsset", {
@@ -378,12 +374,7 @@ watch(asset, async (newAsset) => {
 });
 
 watch(toAsset, async (newToAsset) => {
-  // Reset all aggregator data
-  dexAggregators.forEach((agg) => {
-    aggregatorData[agg.quotesKey].value = {};
-    aggregatorData[agg.txnsKey].value =
-      agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
-  });
+  clearQuotes();
 
   if (newToAsset !== null && newToAsset > 0n) {
     const asset = (await store.dispatch("indexer/getAsset", {
@@ -406,22 +397,12 @@ watch(toAsset, async (newToAsset) => {
 });
 
 watch(account, () => {
-  // Reset all aggregator data
-  dexAggregators.forEach((agg) => {
-    aggregatorData[agg.quotesKey].value = {};
-    aggregatorData[agg.txnsKey].value =
-      agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
-  });
+  clearQuotes();
   makeAssets();
 });
 
 watch(payamount, () => {
-  // Reset all aggregator data
-  dexAggregators.forEach((agg) => {
-    aggregatorData[agg.quotesKey].value = {};
-    aggregatorData[agg.txnsKey].value =
-      agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
-  });
+  clearQuotes();
 });
 
 // Keeps the balance (and the "Balance:" labels of the asset selector) current
@@ -450,9 +431,16 @@ const autoRefreshBalance = async () => {
   }
 };
 
+// Coming back to the tab: the ticks were skipped while it was hidden.
+const onVisibilityChange = () => {
+  if (!document.hidden) autoRefreshBalance();
+};
+document.addEventListener("visibilitychange", onVisibilityChange);
+
 onBeforeUnmount(() => {
   if (balanceTimer !== undefined) clearInterval(balanceTimer);
   balanceTimer = undefined;
+  document.removeEventListener("visibilitychange", onVisibilityChange);
 });
 
 // Lifecycle

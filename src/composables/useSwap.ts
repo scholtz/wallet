@@ -74,6 +74,7 @@ export function useSwap() {
   // True from the moment a swap is submitted until the balance has been
   // re-read, so the spent quote cannot be executed a second time.
   const settlingSwap: Ref<boolean> = ref(false);
+  let makeAssetsRun = 0;
   // A "custom" network (Settings > Network > Custom, user-supplied algod/indexer
   // URLs) has no fixed identity - it could be pointing at a mainnet fork, a
   // testnet fork, or a private network. checkNetwork() can't infer which chain
@@ -399,6 +400,9 @@ export function useSwap() {
   // `silent` rebuilds the list in the background (balance refresh): no
   // spinner, and the selector keeps its old list until the new one is ready.
   const makeAssets = async (silent = false): Promise<void> => {
+    // Only the newest rebuild may publish its result: a slower, older one
+    // (e.g. a background refresh) must not overwrite it.
+    const run = ++makeAssetsRun;
     if (!silent) loadingAssets.value = true;
     const next: ExtendedStoredAsset[] = [];
     if (accountData.value) {
@@ -474,6 +478,7 @@ export function useSwap() {
       }
     }
     // Older assets (lower ASA id) first; ALGO (id 0n) always sorts to the top.
+    if (run !== makeAssetsRun) return;
     next.sort((a, b) => (a.assetId < b.assetId ? -1 : a.assetId > b.assetId ? 1 : 0));
     assets.value = next;
     loadingAssets.value = false;
@@ -532,6 +537,14 @@ export function useSwap() {
     }
   };
 
+  const clearQuotes = (): void => {
+    dexAggregators.forEach((agg) => {
+      aggregatorData[agg.quotesKey].value = {};
+      aggregatorData[agg.txnsKey].value =
+        agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
+    });
+  };
+
   const clickGetQuote = async (): Promise<void> => {
     await store.dispatch("wallet/prolong");
     note.value = "";
@@ -539,12 +552,7 @@ export function useSwap() {
     processingQuote.value = true;
     txsDetails.value = "";
 
-    // Reset all aggregator data
-    dexAggregators.forEach((agg) => {
-      aggregatorData[agg.quotesKey].value = {};
-      aggregatorData[agg.txnsKey].value =
-        agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
-    });
+    clearQuotes();
 
     const enabledAggregators = dexAggregators.filter(
       (agg) => aggregatorData[agg.enabledKey].value
@@ -558,14 +566,6 @@ export function useSwap() {
       enabledAggregators.map((agg) => simulateAggregatorQuote(agg))
     );
     processingQuote.value = false;
-  };
-
-  const clearQuotes = (): void => {
-    dexAggregators.forEach((agg) => {
-      aggregatorData[agg.quotesKey].value = {};
-      aggregatorData[agg.txnsKey].value =
-        agg.txnsKey === "deflexTxs" ? { groupMetadata: [] } : [];
-    });
   };
 
   // Re-reads the account and rebuilds the asset list without any spinner.
@@ -583,22 +583,30 @@ export function useSwap() {
     const agg = dexAggregators.find((a) => a.name === name);
     if (!agg) return;
     settlingSwap.value = true;
+    // The account the swap belongs to: the user may navigate away while we
+    // wait for the indexer, and the route then points somewhere else.
+    const swapAccount = route.params.account;
+    const watched = [asset.value, toAsset.value];
     try {
       // Taken before executing: the aggregator reloads the account itself, and
       // that (possibly stale) read must not hide the change we wait for.
-      const before = balanceSnapshot(accountData.value);
+      const before = balanceSnapshot(accountData.value, watched);
       await agg.execute(context);
-      // Aggregators report success through the note ("Processed in txs: ...").
-      if (note.value === "" || error.value !== "") return;
-      // The quote has been spent: it must not be executable again.
+      // A rejected/invalid swap sets an error and may be retried as is.
+      if (error.value !== "") return;
+      // Otherwise the quote must be considered spent - also when the swap was
+      // sent but not confirmed in time, it may still land on chain.
       clearQuotes();
       // The indexer trails algod by a few seconds - keep reading until it
       // shows the swap, otherwise the old balance stays on screen.
       await refreshUntilChanged(
-        reloadAccount,
-        () => balanceSnapshot(accountData.value),
+        async () => {
+          if (route.params.account === swapAccount) await reloadAccount();
+        },
+        () => balanceSnapshot(accountData.value, watched),
         before
       );
+      if (route.params.account !== swapAccount) return;
       await makeAssets(true);
       if (payamount.value > maxAmount.value) {
         payamount.value = Math.max(maxAmount.value, 0);
@@ -719,6 +727,7 @@ export function useSwap() {
 
     // Methods
     reloadAccount,
+    clearQuotes,
     refreshBalance,
     makeAssets,
     clickGetQuote,

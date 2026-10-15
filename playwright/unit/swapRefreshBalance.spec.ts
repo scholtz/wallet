@@ -21,6 +21,15 @@ test.describe("balanceSnapshot", () => {
     const b = balanceSnapshot({ amount: 5n, assets: [{ assetId: 1, amount: 3n }] });
     expect(a).not.toBe(b);
   });
+  test("restricted to the watched assets, unrelated changes are ignored", () => {
+    const before = { amount: 5n, assets: [{ assetId: 1, amount: 10n }, { assetId: 2, amount: 1n }] };
+    const unrelated = { amount: 9n, assets: [{ assetId: 1, amount: 10n }, { assetId: 2, amount: 7n }] };
+    const swapped = { amount: 5n, assets: [{ assetId: 1, amount: 3n }, { assetId: 2, amount: 1n }] };
+    expect(balanceSnapshot(unrelated, [1n, null])).toBe(balanceSnapshot(before, [1n, null]));
+    expect(balanceSnapshot(swapped, [1n, null])).not.toBe(balanceSnapshot(before, [1n, null]));
+    // asset 0 is ALGO
+    expect(balanceSnapshot(unrelated, [0n])).not.toBe(balanceSnapshot(before, [0n]));
+  });
   test("ignores asset order", () => {
     const a = balanceSnapshot({
       amount: 1,

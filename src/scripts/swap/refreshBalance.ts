@@ -20,18 +20,24 @@ interface AccountDataLike {
 }
 
 /**
- * Compact fingerprint of every balance of an account (ALGO + all assets), used
- * to tell whether a re-read of the account returned newer data.
+ * Compact fingerprint of the balances of an account (ALGO + all assets, or only
+ * the given asset ids where 0 is ALGO), used to tell whether a re-read of the
+ * account returned newer data.
  */
 export const balanceSnapshot = (
-  data: AccountDataLike | false | null | undefined
+  data: AccountDataLike | false | null | undefined,
+  assetIds?: Array<number | bigint | null>
 ): string => {
   if (!data) return "";
+  const wanted = assetIds?.filter((id) => id !== null).map((id) => String(id));
   const holdings = (data.assets ?? [])
+    .filter((a) => !wanted || wanted.includes(String(a.assetId)))
     .map((a) => `${String(a.assetId)}:${String(a.amount)}`)
     .sort()
     .join(",");
-  return `${String(data.amount)}|${holdings}`;
+  // ALGO (asset 0) is not in `assets`; without a filter it is always part.
+  const algo = !wanted || wanted.includes("0") ? String(data.amount) : "";
+  return `${algo}|${holdings}`;
 };
 
 const defaultSleep = (ms: number): Promise<void> =>
