@@ -1943,9 +1943,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     if (this.state.wallet.isOpen) {
       await dispatch("logout");
     }
-    markWalletUsed(name);
     await commit("setIsOpen", { name, pass });
     await dispatch("saveWallet");
+    markWalletUsed(name);
     return true;
   },
   async getWallets() {
@@ -1970,12 +1970,17 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       console.error("reading wallets failed, retrying", firstError);
       if (!db.isOpen()) {
         // A blocked open (an old tab holding an upgrade lock) never settles: fail instead of hanging.
-        await Promise.race([
-          db.open(),
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(firstError), 5000)
-          ),
-        ]);
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+          await Promise.race([
+            db.open(),
+            new Promise<never>((_, reject) => {
+              timer = setTimeout(() => reject(firstError), 5000);
+            }),
+          ]);
+        } finally {
+          clearTimeout(timer);
+        }
       }
       return (await db.wallets.toArray()).map((wallet) => wallet.name);
     }
