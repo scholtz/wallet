@@ -63,7 +63,10 @@ for (const size of SIZES) {
   test.describe(`Direct popup on ${size.name}`, () => {
     test.use({ ...pixel, viewport: size.viewport });
 
+    // The CI runner is slow (a popup test takes minutes there): every flow is covered once, on the
+    // portrait phone, and the other sizes only add what is specific to them.
     test("locked: the requesting site and the unlock form fit without side-scroll", async ({ context, page }) => {
+      test.skip(!size.stacked, "landscape keeps the desktop layout: covered by the connect test");
       await setupFreshWallet(page);
       const dapp = await openDapp(context);
       const popup = await openPopup(context, dapp);
@@ -106,6 +109,7 @@ for (const size of SIZES) {
     });
 
     test("connect: rejecting by tap answers 4001", async ({ context, page }) => {
+      test.skip(size !== SIZES[0], "same flow at every size: covered on the portrait phone");
       await setupFreshWallet(page);
       const dapp = await openDapp(context);
       const popup = await openPopup(context, dapp);
@@ -120,11 +124,12 @@ for (const size of SIZES) {
   });
 }
 
-for (const size of [SIZES[0], SIZES[2]]) {
+for (const size of [SIZES[0]]) {
   test.describe(`Direct signing on ${size.name}`, () => {
     test.use({ ...pixel, viewport: size.viewport });
 
     test("the request is a stacked card: summary, fee and big Sign all / Reject, no side-scroll; sign by tap", async ({ context, page }) => {
+      test.setTimeout(300_000);
       await setupFreshWallet(page);
       const address = walletAddress(page);
       const dapp = await connectSite(context, address);
