@@ -33,7 +33,7 @@
       </section>
       <Login />
     </div>
-    <Footer v-if="$store.state.wallet.isOpen" />
+    <Footer v-if="$store.state.wallet.isOpen" :minimal="minimal" />
   </div>
 </template>
 
