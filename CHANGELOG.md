@@ -4,6 +4,7 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 
 ## 2026-10
 
+- The "Direct" window is now comfortable on a phone: Connect and Reject stay pinned to the bottom of the screen with thumb-sized buttons, each signature request is a readable card (summary, fee, then large Sign all / Reject buttons) instead of a cramped table, every button is at least 44 px tall, the long footer text is hidden so the page is not pushed down, and nothing scrolls sideways, in portrait or landscape.
 - The Swap page now shows your new balance right after a swap (it waits for the network to catch up instead of showing the old amount), clears the used quote so the same swap can't be sent twice, and refreshes your balances automatically every 30 seconds.
 - When a website asks the "Direct" window to update a smart contract, the window now compares the new program with the one currently deployed (as reported by your node) and says whether it is the same, different, or could not be checked.
 - The "Direct" window now signs the whole smart contract lifecycle: a website can deploy (create), update and delete an application (for example Algo Safe's first deployment step, which was refused before). These requests open by themselves with a clear card: what the transaction does, the programs with their size and SHA-256 hash (raw bytes on demand), the state schema, and a prominent warning.

@@ -241,3 +241,10 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* Thumb-sized primary action on phones (44px minimum touch target). */
+#new_wallet_button_open {
+  min-height: 2.75rem;
+}
+</style>

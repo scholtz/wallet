@@ -524,4 +524,105 @@ const closeWindow = () => {
 .direct-headline:focus {
   outline: none;
 }
+
+/* Tap targets: at least 44x44 CSS px (Apple HIG) / 48dp (Material) for every control in the
+   popup, on any screen size - a popup can be a full-screen phone tab or a desktop window. */
+.direct-popup :deep(.p-button) {
+  min-height: 2.75rem;
+}
+.direct-popup :deep(.p-datatable-row-toggle-button) {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+.direct-account {
+  min-height: 3rem;
+  align-items: center;
+}
+.direct-account-label {
+  flex: 1 1 auto;
+  padding: 0.25rem 0;
+}
+
+/* Phones and narrow windows. */
+@media (max-width: 640px) {
+  .direct-headline {
+    font-size: 1.2rem;
+    overflow-wrap: anywhere;
+  }
+  .direct-header-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  .direct-origin {
+    font-size: 1.05rem;
+  }
+  /* Approve / Reject stay in the thumb zone: pinned to the bottom edge while the list above
+     scrolls (the primary action first, full-width, with room between it and the destructive one). */
+  .direct-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin: 1rem -0.25rem 0;
+    padding: 0.75rem 0.25rem 0.5rem;
+    background: var(--p-content-background);
+    border-top: 1px solid var(--p-content-border-color);
+  }
+  .direct-actions > * {
+    flex: 0 0 auto;
+    min-height: 3rem;
+  }
+
+  /* Signing view: each request becomes a stacked card instead of a wide table row, so the
+     summary, fee and the Sign / Reject buttons are readable and reachable without side-scroll. */
+  .direct-popup :deep(.connect-requests-compact .p-datatable-table),
+  .direct-popup :deep(.connect-requests-compact .p-datatable-tbody) {
+    display: block;
+    width: 100%;
+  }
+  .direct-popup
+    :deep(
+      .connect-requests-compact .p-datatable-tbody > tr:not(.p-datatable-row-expansion)
+    ) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 0.25rem;
+  }
+  .direct-popup :deep(.connect-requests-compact td:empty) {
+    display: none;
+  }
+  .direct-popup :deep(.connect-requests-compact td.direct-summary-column) {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .direct-popup :deep(.connect-requests-compact td.direct-fee-column) {
+    flex: 1 1 100%;
+    padding-top: 0;
+  }
+  .direct-popup :deep(.connect-requests-compact td.direct-request-actions) {
+    display: flex;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .direct-popup :deep(.connect-requests-compact td.direct-request-actions .p-button) {
+    flex: 1 1 8rem;
+    min-height: 3rem;
+    margin: 0;
+  }
+  .direct-popup :deep(.connect-requests-compact td.direct-tx-sign .p-button) {
+    min-height: 2.75rem;
+    min-width: 5.5rem;
+  }
+  .direct-popup :deep(.connect-requests-compact .p-datatable-row-expansion > td) {
+    display: block;
+    width: 100%;
+  }
+  .direct-popup :deep(.connect-requests-compact .detail-scroll) {
+    overflow-x: auto;
+  }
+}
 </style>

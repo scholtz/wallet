@@ -108,14 +108,14 @@
           </div>
         </template>
       </Column>
-      <Column :header="$t('connect.total_fee')">
+      <Column class="direct-fee-column" :header="$t('connect.total_fee')">
         <template #body="slotProps">
           <span v-if="compact" class="text-color-secondary"
             >{{ $t("connect.total_fee") }}: </span
           >{{ formatNative(slotProps.data.fee) }}
         </template>
       </Column>
-      <Column>
+      <Column class="direct-request-actions">
         <template #body="slotProps">
           <Button
             class="m-1"
@@ -153,6 +153,8 @@
           <Button
             class="m-1"
             :disabled="!store.state.wallet.isOpen"
+            :severity="compact ? 'secondary' : undefined"
+            :variant="compact ? 'outlined' : undefined"
             @click="clickReject(slotProps.data)"
           >
             {{ $t("connect.reject") }}
@@ -192,7 +194,7 @@
             selection-mode="single"
           >
             <Column expander style="width: 5rem" />
-            <Column>
+            <Column class="direct-tx-sign">
               <template #body="slotProps">
                 <Button
                   v-if="toBeSigned(slotProps.data)"
