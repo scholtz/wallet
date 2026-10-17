@@ -29,6 +29,7 @@ Playwright is the **only** test framework (Cypress was removed). E2E specs live 
 - One-time browser install: `pnpm run playwright:install`
 - Run all E2E: `pnpm run playwright:test` (single spec: `pnpm exec playwright test <file>.spec.ts`)
 - Everything (unit + E2E): `pnpm run test`
+- **CI speed (keep it that way):** in CI (`CI` set, or `E2E_PROD=1` locally; `E2E_PROD=0` forces the dev server) the suite runs against the production bundle (`vite build` + `vite preview` on :8080) with 4 workers, video off (`E2E_VIDEO` overrides) and the PWA service worker blocked. The unbundled dev server made every fresh popup/tab transform thousands of modules, and recording 1920x1080 videos stalled `browserContext.close` for minutes on small runners (the suite took 44+ min and hit the 45 min job limit; now ~10 min locally). `liquid-initialization.spec.ts` imports source modules and mocks `socket.io-client` by dev-server URL, so it runs in its own `chromium-dev-server` project against a Vite dev server on :8081. `direct-*` specs run their tests in parallel within the file (independent contexts). Don't add specs that rely on dev-only URLs without putting them in that project.
 - A full page reload locks the wallet (session state is in Vuex only), so inside a spec navigate via in-app links/menus, not `page.goto`, once a wallet is unlocked.
 
 ### Unit tests (Playwright, Node-only)

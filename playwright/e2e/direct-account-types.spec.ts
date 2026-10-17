@@ -132,7 +132,7 @@ const stxnsOf = (message: { data: Record<string, unknown> }) =>
   (message.data.result as { stxns: (string | null)[] }).stxns;
 
 test.describe("Biatec Direct signs for every account type", () => {
-  test.describe.configure({ timeout: 240000 });
+  test.describe.configure({ timeout: 240000, mode: "parallel" }); // tests are independent: own context + wallet each
 
   test("the connect screen offers every account type, not only the HD one", async ({
     context,
