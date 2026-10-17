@@ -1,5 +1,9 @@
 <template>
-  <footer v-if="$store.state.wallet.isOpen" class="app-footer-bar my-2">
+  <footer
+    v-if="$store.state.wallet.isOpen"
+    class="app-footer-bar my-2"
+    :class="{ 'app-footer-minimal': minimal }"
+  >
     <div class="flex align-items-center gap-2 px-3 py-2">
       <p
         v-tooltip.top="versionTooltip"
@@ -55,6 +59,10 @@ const BIATEC_GROUP_URL = "https://www.biatec.io";
 const DISCORD_URL = "https://discord.gg/gBsts5bPAd";
 
 export default {
+  props: {
+    /** Popup layouts (Biatec Direct): on phones keep only the session timer, not the brand blurb. */
+    minimal: { type: Boolean, default: false },
+  },
   data() {
     return {
       t: "",
@@ -218,5 +226,16 @@ export default {
   padding: 0.15rem 0.5rem;
   font-size: 0.7rem;
   min-width: 0;
+}
+
+/* Direct popup on a phone: the brand blurb costs four lines of a small screen; keep the session
+   timer (it is also a tap-to-prolong control) and drop the text. */
+@media (max-width: 640px) {
+  .app-footer-minimal .footer-text {
+    display: none;
+  }
+  .app-footer-minimal > div {
+    justify-content: flex-end;
+  }
 }
 </style>
