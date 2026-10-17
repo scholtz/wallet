@@ -30,7 +30,10 @@
     "new_wallet_button_open": "Abrir billetera",
     "basic_usage": "Uso básico",
     "tether_usage": "Cómo utilizar Tether? (USDt)",
-    "source_code": "código fuente de AWallet"
+    "source_code": "código fuente de AWallet",
+    "storage_error": "No se pudo leer la billetera del almacenamiento de este navegador. Recargue la página; si el problema continúa, restaure su billetera desde una copia de seguridad.",
+    "storage_lost": "Este navegador ya no tiene ninguna billetera guardada, aunque antes se usó una aquí. Probablemente el navegador eliminó los datos del sitio. Cree una billetera nueva o importe su copia de seguridad.",
+    "storage_not_persistent": "Su navegador puede eliminar por sí solo los datos de la billetera (por ejemplo, con poco espacio en disco). Haga copias de seguridad de su billetera con regularidad (Ajustes) y guárdelas en un lugar seguro."
   },
   "global": {
     "go_back": "Retroceder",
@@ -673,7 +676,7 @@
     "q1": "¿Qué información privada recopilan sobre mí?",
     "a1": "Ninguno. Aparte de la dirección IP y el navegador, que se almacenan en los registros de todos los servicios de Internet, no recopilamos ningún tipo de información privada como su nombre, correo electrónico o dirección.",
     "q2": "¿Qué se almacena en las cookies?",
-    "a2": "Nada. No utilizamos cookies. Utilizamos almacenamiento local persistente llamado IndexedDB para el almacenamiento de su billetera.",
+    "a2": "Casi nada. Su billetera y sus claves nunca se guardan en cookies: viven en el almacenamiento local persistente llamado IndexedDB. La única cookie es una pequeña marca (awallet_had_wallet=1, sin datos personales, válida un año) que nos permite avisarle si su navegador elimina la billetera guardada.",
     "q3": "¿Cómo se recopila la información de analítica?",
     "a3": "No lo hacemos. No utilizamos ningún tipo de servicio de análisis, por ejemplo google analytics, para que usted se sienta más seguro. El sitio web es puramente HTML con javascript. Sólo conocemos su dirección IP cuando realiza peticiones al servidor. Dependiendo de su configuración y de su servidor algod o indexador, el servidor seleccionado también puede conocer su dirección IP.",
     "q4": "¿El uso de este servicio afecta los anuncios que veo?",

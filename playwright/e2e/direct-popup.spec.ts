@@ -35,7 +35,7 @@ import {
 
 test.describe("Biatec Direct popup transport", () => {
   // Every popup is a separate wallet unlock (PBKDF2); flows with several popups are slow.
-  test.describe.configure({ timeout: 240000 });
+  test.describe.configure({ timeout: 240000, mode: "parallel" }); // tests are independent: own context + wallet each
 
   test("language: the popup opens in the language the dApp passes in ?lang=", async ({ context, page }) => {
     // The wallet's own preference is English; the dApp (Slovak) wins for this popup only.

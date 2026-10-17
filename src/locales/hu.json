@@ -30,7 +30,10 @@
     "new_wallet_button_open": "Pénztárca megnyitása",
     "basic_usage": "Alapműveletek",
     "tether_usage": "Tether (USDt) használata",
-    "source_code": "AWallet forráskód"
+    "source_code": "AWallet forráskód",
+    "storage_error": "A tárcát nem sikerült beolvasni a böngésző tárhelyéről. Töltse újra az oldalt; ha a hiba marad, állítsa vissza a tárcát biztonsági mentésből.",
+    "storage_lost": "Ebben a böngészőben már nincs tárolt tárca, pedig korábban használtak itt egyet. A böngésző valószínűleg törölte az oldal adatait. Hozzon létre új tárcát, vagy importálja a biztonsági mentését.",
+    "storage_not_persistent": "A böngésző önmagától törölheti a tárca adatait (például kevés lemezterületnél). Rendszeresen mentse a tárcáját (Beállítások), és tartsa biztonságban a mentést."
   },
   "global": {
     "go_back": "Vissza",
@@ -673,7 +676,7 @@
     "q1": "Milyen személyes adatokat gyűjtötök rólam?",
     "a1": "Az IP címeden és böngésző típusodon kívül, amit minden internet szolgáltató naplóz, nem gyűjtünk semmilyen más személyes adatot, így pl. neveket, e-mail címeket vagy Algorand címeket.",
     "q2": "Mi tároltok a sütikben?",
-    "a2": "Semmit. Nem használunk sütiket. Az indexdb nevű perzisztens lokális tárat használjuk a pénztárca adatok tárolására.",
+    "a2": "Szinte semmit. A tárcád és a kulcsaid soha nem kerülnek sütibe - az IndexedDB nevű perzisztens lokális tárban vannak. Az egyetlen süti egy apró jelző (awallet_had_wallet=1, személyes adat nélkül, egy évig érvényes), amellyel figyelmeztethetünk, ha a böngésző törli a tárolt tárcát.",
     "q3": "Hogyan történik az analitikai adatok gyűjtése?",
     "a3": "Nem gyűjtünk ilyen adatokat. Semmilyen analitikai szolgáltatást sem használunk, pl. a Google analitikát sem, épp azért, hogy a felhasználók nagyobb biztonságban érezhessék magukat. Az alkalmazás tisztán html és javascript alapú, és csak akkor szerzünk tudomást az IP címedről, ha egy kérést küldesz a szervernek. A beállításaidtól és az algod szerveredtől ill. indexelő szolgáltatásodtól függően a kiválasztott szerver szintén tudomást szerezhet az IP címedről.",
     "q4": "A szolgáltatás használata befolyásolja-e, hogy milyen reklámokat látok?",

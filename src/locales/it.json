@@ -30,7 +30,10 @@
     "new_wallet_button_open": "Apri il wallet",
     "basic_usage": "Basic usage",
     "tether_usage": "How to use Tether  (USDt)",
-    "source_code": "AWallet source code"
+    "source_code": "AWallet source code",
+    "storage_error": "Impossibile leggere il portafoglio dalla memoria di questo browser. Ricarica la pagina; se il problema persiste, ripristina il portafoglio da un backup.",
+    "storage_lost": "In questo browser non è più memorizzato alcun portafoglio, anche se qui ne era stato usato uno. Probabilmente il browser ha eliminato i dati del sito. Crea un nuovo portafoglio o importa il tuo backup.",
+    "storage_not_persistent": "Il browser potrebbe eliminare da solo i dati del portafoglio (ad esempio con poco spazio su disco). Esegui regolarmente il backup del portafoglio (Impostazioni) e conserva il backup in un luogo sicuro."
   },
   "global": {
     "go_back": "Indietro",
@@ -673,7 +676,7 @@
     "q1": "Quali informazioni private raccogliete su di me ?",
     "a1": "Nessuna. A parte l'indirizzo IP e il browser che viene memorizzato nei log di ogni servizio internet. Non raccogliamo alcun tipo di informazione privata come il tuo nome, email o indirizzo.",
     "q2": "Cosa memorizzate nei cookie?",
-    "a2": "Nulla. Non usiamo cookie. Usiamo un'archiviazione locale persistente chiamata indexdb per salvare il tuo wallet.",
+    "a2": "Quasi nulla. Il tuo wallet e le tue chiavi non sono mai salvati nei cookie: risiedono nell'archiviazione locale persistente chiamata IndexedDB. L'unico cookie è un piccolo flag (awallet_had_wallet=1, senza dati personali, valido un anno) che ci permette di avvisarti se il browser elimina il wallet salvato.",
     "q3": "Come raccogliete le informazioni analitiche?",
     "a3": "Non lo facciamo. Non usiamo nessun tipo di servizio di analisi, ad esempio Google Analytics, in modo che possiate sentirvi più sicuri. Il web è puramente html con javascript, e conosciamo il tuo indirizzo IP solo quando fai richieste al server. A seconda delle tue impostazioni e del tuo algod server o indexer, il server selezionato potrebbe anche conoscere il tuo indirizzo IP.",
     "q4": "L'uso di questo servizio influisce sulle pubblicità che vedo?",

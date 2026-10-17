@@ -6,6 +6,11 @@ import algosdk, {
 import CryptoJS from "crypto-js";
 import cryptoRandomString from "crypto-random-string";
 import db from "../shared/db";
+import {
+  clearHadWalletMarker,
+  requestPersistentStorage,
+  setHadWalletMarker,
+} from "@/scripts/storagePersistence";
 import wc from "../shared/wc";
 import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
 import { mergeSharedWcItems } from "@/scripts/walletSharedItems";
@@ -37,6 +42,16 @@ import {
 type WalletAccountData = Record<string, IAccountData>;
 
 type AmountLike = number | bigint;
+
+/**
+ * Remember the wallet this browser uses (so a later, vanished wallet can be reported as such) and
+ * ask the browser not to evict the wallet database.
+ */
+function markWalletUsed(name: string) {
+  localStorage.setItem("lastUsedWallet", name);
+  setHadWalletMarker();
+  void requestPersistentStorage();
+}
 
 export interface AccountAssetHolding {
   assetId: bigint;
@@ -1850,7 +1865,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       await commit("setWC", json.wc);
       await commit("setIsOpen", { name, pass });
 
-      localStorage.setItem("lastUsedWallet", name);
+      markWalletUsed(name);
 
       if (isLegacyEncryptedData(encryptedData)) {
         // Transparently upgrade wallets encrypted with the legacy
@@ -1930,6 +1945,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     }
     await commit("setIsOpen", { name, pass });
     await dispatch("saveWallet");
+    markWalletUsed(name);
     return true;
   },
   async getWallets() {
@@ -1945,12 +1961,28 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       );
     //db.wallets.clear();
     //db.wallets.drop();
+    // An IndexedDB failure (blocked/closed connection, quota, corrupted profile) is NOT "no wallet
+    // exists": returning [] sent the user to "create new wallet" as if the wallet had been wiped.
+    // Retry once on a fresh connection, then let the caller show the error.
     try {
-      const w = await db.wallets.toArray();
-      return w.map((wallet) => wallet.name);
-    } catch {
-      console.error("no wallet exists yet");
-      return [];
+      return (await db.wallets.toArray()).map((wallet) => wallet.name);
+    } catch (firstError) {
+      console.error("reading wallets failed, retrying", firstError);
+      if (!db.isOpen()) {
+        // A blocked open (an old tab holding an upgrade lock) never settles: fail instead of hanging.
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+          await Promise.race([
+            db.open(),
+            new Promise<never>((_, reject) => {
+              timer = setTimeout(() => reject(firstError), 5000);
+            }),
+          ]);
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+      return (await db.wallets.toArray()).map((wallet) => wallet.name);
     }
   },
   async backupWallet({ dispatch }) {
@@ -1995,6 +2027,17 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       const walletRecord = await db.wallets.get({ name });
       if (walletRecord?.id !== undefined) {
         await db.wallets.delete(walletRecord.id);
+      }
+      // A deliberately destroyed wallet must not later be reported as "deleted by the browser".
+      if (localStorage.getItem("lastUsedWallet") === name) {
+        localStorage.removeItem("lastUsedWallet");
+      }
+      try {
+        if ((await db.wallets.count()) === 0) clearHadWalletMarker();
+      } catch (err) {
+        // Unknown whether other wallets remain; a missed notice beats a false "wallet deleted" alarm.
+        console.error("Could not read the remaining wallets", err);
+        clearHadWalletMarker();
       }
       clearDerivedKeys();
       commit("signer/ledgerPendingReset", null, { root: true });
@@ -2043,7 +2086,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return;
     }
     await db.wallets.add({ name, data });
-    localStorage.setItem("lastUsedWallet", name);
+    markWalletUsed(name);
     return true;
   },
   encrypt: async (store: WalletActionContext, { data }: { data: string }) => {

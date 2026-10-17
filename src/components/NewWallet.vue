@@ -12,7 +12,10 @@
       <template #header>
         {{ $t("login.new_wallet") }}
       </template>
-      <form autocomplete="off" @submit="createWalletClick">
+      <p v-if="notice" class="my-2 auth-help" role="alert" id="storage-notice">
+        {{ notice }}
+      </p>
+      <form v-if="!dbError" autocomplete="off" @submit="createWalletClick">
         <div class="field grid">
           <label for="newwallet-name" class="col-12 mb-1">
             {{ $t("login.new_wallet_name") }}
@@ -98,6 +101,7 @@
 </template>
 <script>
 import { mapActions } from "vuex";
+import { hasHadWalletMarker } from "../scripts/storagePersistence";
 import heroImage from "../assets/img/hero-new-wallet.jpg";
 
 export default {
@@ -109,16 +113,29 @@ export default {
       pass: "",
       wallet: "",
       wallets: [{ label: "a", code: "a" }],
+      notice: "",
+      dbError: false,
     };
   },
   async mounted() {
-    this.wallets = (await this.getWallets())?.map((w) => ({
-      name: w,
-      code: w,
-    }));
+    try {
+      this.wallets = (await this.getWallets()).map((w) => ({
+        name: w,
+        code: w,
+      }));
+    } catch (error) {
+      console.error("Cannot read the wallet database", error);
+      this.wallets = [];
+      this.dbError = true;
+      this.notice = this.$t("login.storage_error");
+    }
     this.wallet = localStorage.getItem("lastUsedWallet");
 
-    this.newWalletForm = this.wallets.length == 0;
+    // A failed read is not "no wallet": do not offer to create one next to an unreadable one.
+    this.newWalletForm = !this.dbError && this.wallets.length == 0;
+    if (this.newWalletForm && hasHadWalletMarker()) {
+      this.notice = this.$t("login.storage_lost");
+    }
   },
   methods: {
     ...mapActions({

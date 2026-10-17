@@ -30,7 +30,10 @@
     "new_wallet_button_open": "Cüzdan aç",
     "basic_usage": "Temel kullanım",
     "tether_usage": "Tether nasıl kullanılır?  (USDt)",
-    "source_code": "AWallet kaynak kodu"
+    "source_code": "AWallet kaynak kodu",
+    "storage_error": "Cüzdan bu tarayıcının depolamasından okunamadı. Sayfayı yenileyin; sorun sürerse cüzdanınızı bir yedekten geri yükleyin.",
+    "storage_lost": "Bu tarayıcıda artık kayıtlı bir cüzdan yok, oysa burada daha önce bir cüzdan kullanılmıştı. Tarayıcı büyük olasılıkla site verilerini sildi. Yeni bir cüzdan oluşturun veya yedeğinizi içe aktarın.",
+    "storage_not_persistent": "Tarayıcınız cüzdan verilerini kendiliğinden silebilir (örneğin disk alanı azaldığında). Cüzdanınızı düzenli olarak yedekleyin (Ayarlar) ve yedeği güvenli bir yerde saklayın."
   },
   "global": {
     "go_back": "Geri dön",
@@ -673,7 +676,7 @@
     "q1": "Hakkımda hangi özel bilgileri topluyorsunuz?",
     "a1": "Yok. Her internet hizmeti için günlüklerde saklanan IP adresi ve tarayıcının yanı sıra adınız, e-posta adresiniz veya adresiniz gibi hiçbir türde özel bilgi toplamıyoruz.",
     "q2": "Çerezlerde ne saklıyorsunuz?",
-    "a2": "Hiçbir şey. Çerez kullanmıyoruz. Cüzdanınızın saklanması için IndexedDB adı verilen kalıcı yerel depolamayı kullanıyoruz.",
+    "a2": "Neredeyse hiçbir şey. Cüzdanınız ve anahtarlarınız asla çerezlerde saklanmaz - IndexedDB adlı kalıcı yerel depolamada durur. Tek çerez, tarayıcınız kayıtlı cüzdanı silerse sizi uyarabilmemizi sağlayan küçük bir bayraktır (awallet_had_wallet=1, kişisel veri içermez, bir yıl saklanır).",
     "q3": "Analitik bilgilerini nasıl topluyorsunuz?",
     "a3": "Kullanmıyoruz. Kendinizi daha güvende hissetmeniz için Google Analytics gibi herhangi bir analiz hizmeti kullanmıyoruz. Web sitesi tamamen Javascript içeren HTML'den oluşuyor. IP adresinizi yalnızca siz talepte bulunduğunuzda biliyoruz. Ayarlarınıza ve algod sunucunuza veya indeksleyicinize bağlı olarak seçilen sunucu IP adresinizi de bilebilir.",
     "q4": "Bu hizmetin kullanımı gördüğüm reklamları etkiler mi?",

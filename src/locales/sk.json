@@ -30,7 +30,10 @@
     "new_wallet_button_open": "Otvoriť peňaženku",
     "basic_usage": "Základné použitie",
     "tether_usage": "Ako používať Tether (USDt)",
-    "source_code": "Zdrojový kód AWallet"
+    "source_code": "Zdrojový kód AWallet",
+    "storage_error": "Peňaženku sa nepodarilo načítať z úložiska prehliadača. Obnovte stránku; ak problém pretrváva, obnovte peňaženku zo zálohy.",
+    "storage_lost": "V tomto prehliadači už nie je uložená žiadna peňaženka, hoci tu predtým nejaká bola. Prehliadač pravdepodobne zmazal dáta stránky. Vytvorte novú peňaženku alebo importujte zálohu.",
+    "storage_not_persistent": "Váš prehliadač môže dáta peňaženky sám zmazať (napríklad pri nedostatku miesta na disku). Peňaženku pravidelne zálohujte (Nastavenia) a zálohu bezpečne uložte."
   },
   "global": {
     "go_back": "Naspäť",
@@ -673,7 +676,7 @@
     "q1": "Aké osobné informácie o mne zhromažďujete?",
     "a1": "Žiadne. Okrem IP adresy a prehliadača, ktorý je uložený v protokoloch pre každú internetovú službu. Nezhromažďujeme žiadnu formu súkromných informácií, ako je vaše meno, e-mail alebo adresa.",
     "q2": "Čo ukladáte do cookies? ",
-    "a2": "Nič. Nepoužívame cookies. Na ukladanie vašej peňaženky používame trvalé miestne úložisko s názvom indexdb.",
+    "a2": "Takmer nič. Vaša peňaženka a kľúče sa nikdy neukladajú do cookies - sú v trvalom miestnom úložisku IndexedDB. Jediné cookie je malý príznak (awallet_had_wallet=1, bez osobných údajov, platný rok), vďaka ktorému vás môžeme upozorniť, ak prehliadač uloženú peňaženku zmaže.",
     "q3": "Ako zhromažďujete analytické informácie?",
     "a3": "Nezhromažďujeme. Nepoužívame žiadnu formu analytických služieb, napr. Google Analytics, aby ste sa cítili bezpečnejšie. Web je čisto html s javascriptom a vašu IP adresu poznáme iba z requestov na server. V závislosti od Vašich nastavení a Vášho servera algod alebo indexer môže aj vybraný server spoznať vašu adresu IP.",
     "q4": "Ovplyvňuje použitie tejto služby reklamy ktoré vidím?",

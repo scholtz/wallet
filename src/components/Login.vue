@@ -12,6 +12,9 @@
       <template #header>
         {{ $t("login.new_wallet") }}
       </template>
+      <p v-if="notice" class="my-2 auth-help" role="alert" id="storage-notice">
+        {{ notice }}
+      </p>
       <form autocomplete="off" @submit="createWalletClick">
         <div class="field grid">
           <label for="newwallet-name" class="col-12 mb-1">
@@ -77,10 +80,21 @@
         </div>
       </form>
     </Panel>
-    <Panel v-if="!newWalletForm" class="auth-panel">
+    <Panel v-if="dbError" class="auth-panel">
       <template #header>
         {{ $t("login.open_wallet") }}
       </template>
+      <p class="my-2 auth-help" role="alert" id="storage-notice">
+        {{ notice }}
+      </p>
+    </Panel>
+    <Panel v-if="!newWalletForm && !dbError" class="auth-panel">
+      <template #header>
+        {{ $t("login.open_wallet") }}
+      </template>
+      <p v-if="notice" class="my-2 auth-help" role="alert" id="storage-notice">
+        {{ notice }}
+      </p>
       <form @submit="auth">
         <div class="field grid">
           <label for="wallet-select" class="col-12 mb-1">{{
@@ -164,6 +178,11 @@
 </template>
 <script>
 import { mapActions } from "vuex";
+import {
+  checkPersistentStorage,
+  hasHadWalletMarker,
+  isStorageAtRisk,
+} from "../scripts/storagePersistence";
 import heroImage from "../assets/img/hero-login.jpg";
 
 export default {
@@ -175,10 +194,25 @@ export default {
       pass: "",
       wallet: "",
       wallets: [{ label: "a", code: "a" }],
+      notice: "",
+      dbError: false,
     };
   },
   async mounted() {
-    this.wallets = (await this.getWallets())?.map((w) => ({
+    let names;
+    try {
+      names = await this.getWallets();
+    } catch (error) {
+      // The browser database could not be read. That is not "no wallet": do not offer to create
+      // a new one (and do not redirect), tell the user to reload instead.
+      console.error("Cannot read the wallet database", error);
+      this.wallets = [];
+      this.newWalletForm = false;
+      this.dbError = true;
+      this.notice = this.$t("login.storage_error");
+      return;
+    }
+    this.wallets = names.map((w) => ({
       name: w,
       code: w,
     }));
@@ -187,7 +221,22 @@ export default {
     this.newWalletForm = this.wallets.length == 0;
 
     if (this.wallets.length === 0) {
-      this.$router.push("/new-wallet");
+      if (hasHadWalletMarker()) {
+        // The flag cookie says a wallet was opened here before, yet none is stored any more: the
+        // browser deleted the site data (the cookie outlives an origin-wide eviction, unlike
+        // localStorage). Say so instead of silently presenting a blank "new wallet" screen.
+        this.notice = this.$t("login.storage_lost");
+      } else {
+        this.$router.push("/new-wallet");
+      }
+    } else if (hasHadWalletMarker()) {
+      // Only after a wallet was opened here (which asks the browser for persistence) does "not
+      // persistent" mean the browser refused, rather than that it was never asked.
+      checkPersistentStorage().then((status) => {
+        if (isStorageAtRisk(status) && !this.notice) {
+          this.notice = this.$t("login.storage_not_persistent");
+        }
+      });
     }
     if (this.wallets.length === 1) {
       this.wallet = this.wallets[0].code;

@@ -59,7 +59,7 @@ const stxn = (message: { data: Record<string, unknown> }) =>
   (message.data.result as { stxns: string[] }).stxns[0];
 
 test.describe("Biatec Direct: application lifecycle", () => {
-  test.describe.configure({ timeout: 240000 });
+  test.describe.configure({ timeout: 240000, mode: "parallel" }); // tests are independent: own context + wallet each
 
   test("creating an application is signed; the popup shows kind, programs and schema first", async ({
     context,
