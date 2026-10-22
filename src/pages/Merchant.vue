@@ -163,6 +163,7 @@ export default {
 
       transactions: [],
       formSent: false,
+      polling: false,
       countDown: null,
     };
   },
@@ -309,16 +310,23 @@ export default {
       } else {
         if (!this.formSent) {
           this.formSent = true;
+          window.clearInterval(this.countDownTimer);
           this.$refs.sendToMerchant.submit();
         }
       }
     },
     async getNotifications() {
-      if (this.isPaid) return;
-      const found = await this.searchForTransactions({
-        addr: this.b64decode.payTo,
-        note: this.b64decode.paynote,
-      });
+      if (this.isPaid || this.polling) return;
+      this.polling = true;
+      let found;
+      try {
+        found = await this.searchForTransactions({
+          addr: this.b64decode.payTo,
+          note: this.b64decode.paynote,
+        });
+      } finally {
+        this.polling = false;
+      }
       // A failed poll must not erase a payment that was already seen.
       if (found) this.transactions = found;
       if (this.isPaid) {
