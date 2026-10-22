@@ -113,6 +113,7 @@ const WALLET_IV_BYTES = 12;
 const AES_GCM_TAG_BYTES = 16;
 // "Salted__" + 8 byte salt + at least one 16 byte AES block, base64 encoded.
 const MIN_LEGACY_BLOB_LENGTH = 44;
+const MIN_WALLET_PBKDF2_ITERATIONS = 100_000;
 const MAX_WALLET_PBKDF2_ITERATIONS = 2_000_000;
 
 const base64ByteLength = (value: string): number =>
@@ -139,6 +140,7 @@ export function validateWalletBlob(
     const valid =
       parts.length === 5 &&
       /^[1-9][0-9]{0,8}$/.test(iterations) &&
+      Number(iterations) >= MIN_WALLET_PBKDF2_ITERATIONS &&
       Number(iterations) <= MAX_WALLET_PBKDF2_ITERATIONS &&
       [salt, iv, ciphertext].every((p) => BASE64_PATTERN.test(p)) &&
       base64ByteLength(salt) === WALLET_SALT_BYTES &&

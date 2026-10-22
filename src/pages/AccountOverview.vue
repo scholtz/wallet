@@ -612,9 +612,9 @@ const reloadAccount = async (silent = false) => {
 
 const deleteAccountClick = async () => {
   const currentAccount = account.value;
-  if (!currentAccount?.name) return;
+  if (!currentAccount) return;
   const deleted = await deleteAccountAction({
-    name: currentAccount.name,
+    name: currentAccount.name ?? "",
     addr: currentAccount.addr,
   });
   if (!deleted) return;

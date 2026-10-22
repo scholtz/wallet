@@ -17,7 +17,7 @@
 
     <Card>
       <template #content>
-        <div v-if="b64decode && !b64decode.error" class="my-3">
+        <div v-if="ready && !b64decode.error" class="my-3">
           {{ $t("merchant.pay") }} {{ b64decode.payamount }}
           <span v-if="asset">{{ asset.unitName }}</span>
           {{ $t("merchant.to_address") }}
@@ -221,7 +221,12 @@ export default {
       this.openError(message);
       return;
     }
-    this.b64decode = aprotocol.parseAlgorandProtocolParameters(this.origcode);
+    try {
+      this.b64decode = aprotocol.parseAlgorandProtocolParameters(this.origcode);
+    } catch {
+      // e.g. a malformed percent-escape in the note
+      this.b64decode = {};
+    }
     // Without a real payee the indexer would be asked for all transactions, and a network this
     // page cannot query would be answered by whatever chain the user happens to have selected.
     const rejection = !algosdk.isValidAddress(this.b64decode.payTo ?? "")
