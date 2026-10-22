@@ -613,10 +613,11 @@ const reloadAccount = async (silent = false) => {
 const deleteAccountClick = async () => {
   const currentAccount = account.value;
   if (!currentAccount?.name) return;
-  await deleteAccountAction({
+  const deleted = await deleteAccountAction({
     name: currentAccount.name,
     addr: currentAccount.addr,
   });
+  if (!deleted) return;
   await router.push("/accounts");
 };
 

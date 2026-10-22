@@ -61,11 +61,20 @@ const refreshFalconSigners = async () => {
   const run = ++falconRun;
   const flags = await Promise.all(
     state.transactions.map(
-      async (entry) =>
-        (await store.dispatch("signer/getSignerType", {
-          from: entry.from,
-          tx: entry.txn,
-        })) === "falcon1024",
+      async (entry) => {
+        try {
+          return (
+            (await store.dispatch("signer/getSignerType", {
+              from: entry.from,
+              tx: entry.txn,
+            })) === "falcon1024"
+          );
+        } catch (err) {
+          // The warning is advisory: an unresolvable signer must not break the page.
+          console.error("Could not resolve the signer type", err);
+          return false;
+        }
+      },
     ),
   );
   // A newer run (network switched meanwhile) owns the result.

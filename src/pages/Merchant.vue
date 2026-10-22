@@ -52,7 +52,7 @@
         <div v-else>
           <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
         </div>
-        <div v-if="!isPaid && origcode">
+        <div v-if="!isPaid && payable">
           <a :href="origcode" :title="origcode" role="button">
             <Button severity="primary" size="large" class="mb-3">
               {{ $t("merchant.pay_qr") }}
@@ -96,7 +96,7 @@
           <Badge severity="info" class="m-2" :value="'(' + countDown + ')'" />
         </form>
 
-        <Message severity="info" v-if="!isPaid && origcode" class="mb-3">
+        <Message severity="info" v-if="!isPaid && payable" class="mb-3">
           <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
 
           {{ $t("merchant.waiting_for_payment") }}
@@ -104,7 +104,7 @@
         <div class="grid">
           <div class="col-12 lg:col-6">
             <QRCodeVue3
-              v-if="!isPaid && origcode"
+              v-if="!isPaid && payable"
               :title="origcode"
               imgclass="qr-code"
               :width="400"
@@ -164,6 +164,8 @@ export default {
       transactions: [],
       formSent: false,
       polling: false,
+      ready: false,
+      unmounted: false,
       countDown: null,
     };
   },
@@ -176,6 +178,10 @@ export default {
         return "/img/algorand-algo-logo-96.png";
       }
       return "";
+    },
+    // Links and QR are offered only after the payee, network and asset were all validated.
+    payable() {
+      return this.ready && !!this.origcode;
     },
     isPaid() {
       return (
@@ -230,7 +236,8 @@ export default {
       return;
     }
     await this.makeAsset();
-    if (this.b64decode.error) return;
+    if (this.b64decode.error || this.unmounted) return;
+    this.ready = true;
     if (!this.b64decode.paynote) {
       this.b64decode.paynote = "a-wallet/" + uuidv4();
       this.origcode +=
@@ -244,6 +251,7 @@ export default {
     this.setWebProtocol();
   },
   beforeUnmount() {
+    this.unmounted = true;
     window.clearInterval(this.pollTimer);
     window.clearInterval(this.countDownTimer);
   },
