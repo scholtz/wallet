@@ -113,7 +113,7 @@ const WALLET_IV_BYTES = 12;
 const AES_GCM_TAG_BYTES = 16;
 // "Salted__" + 8 byte salt + at least one 16 byte AES block, base64 encoded.
 const MIN_LEGACY_BLOB_LENGTH = 44;
-const MAX_WALLET_PBKDF2_ITERATIONS = 10_000_000;
+const MAX_WALLET_PBKDF2_ITERATIONS = 2_000_000;
 
 const base64ByteLength = (value: string): number =>
   Math.floor((value.length * 3) / 4) - (value.match(/=+$/)?.[0].length ?? 0);

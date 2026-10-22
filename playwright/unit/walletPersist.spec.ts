@@ -229,7 +229,7 @@ test.describe("validateWalletBlob (AW-2026-078)", () => {
       "AWEv1.600000.c2FsdA==.MDEyMzQ1Njc4OWFi.Y2lwaGVy",
       "AWEv1.600000.MDEyMzQ1Njc4OWFiY2RlZg==.aXY=.Y2lwaGVy",
       "AWEv1.4000000000.MDEyMzQ1Njc4OWFiY2RlZg==.MDEyMzQ1Njc4OWFi.Y2lwaGVy",
-      "AWEv1.99999999.MDEyMzQ1Njc4OWFiY2RlZg==.MDEyMzQ1Njc4OWFi.Y2lwaGVy",
+      "AWEv1.2000001.MDEyMzQ1Njc4OWFiY2RlZg==.MDEyMzQ1Njc4OWFi.Y2lwaGVy",
       "U2FsdGVkX1/P98d6",
       "AWEv1.600000.MDEyMzQ1Njc4OWFiY2RlZg==.MDEyMzQ1Njc4OWFi.AA==",
       "U2FsdGVkX1 with spaces",

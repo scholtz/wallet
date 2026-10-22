@@ -185,7 +185,7 @@ export default {
       );
     },
   },
-  mounted() {
+  async mounted() {
     // Everything decoded from the URL is attacker-controlled (AW-2026-076): only an algorand
     // payment URI may reach the pay links/QR, and only validated https URLs the redirects.
     let rawSettings = {};
@@ -229,7 +229,8 @@ export default {
       this.openError(rejection);
       return;
     }
-    this.makeAsset();
+    await this.makeAsset();
+    if (this.b64decode.error) return;
     if (!this.b64decode.paynote) {
       this.b64decode.paynote = "a-wallet/" + uuidv4();
       this.origcode +=
@@ -356,7 +357,6 @@ export default {
           this.b64decode.error = errorMsg;
           // The amount could not be validated against the asset, so nothing may be payable.
           this.origcode = "";
-          window.clearInterval(this.pollTimer);
           return;
         }
       } else {
