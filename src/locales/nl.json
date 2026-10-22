@@ -162,7 +162,8 @@
     "go_back_to_merchant": "Go back to merchant",
     "waiting_for_payment": "Waiting for the payment",
     "error_asset": "Error fetching asset: ",
-    "invalid_payment_uri": "Ongeldige betaallink: deze bevat geen Algorand-betaaladres."
+    "invalid_payment_uri": "Ongeldige betaallink: deze bevat geen Algorand-betaaladres.",
+    "unsupported_network": "Deze betaallink noemt een netwerk dat de betaalgateway niet ondersteunt."
   },
   "gateway": {
     "title": "Free opensource payment gateway without middleman",

@@ -162,7 +162,8 @@
     "go_back_to_merchant": "Go back to merchant",
     "waiting_for_payment": "Waiting for the payment",
     "error_asset": "Error fetching asset: ",
-    "invalid_payment_uri": "Link di pagamento non valido: non contiene un indirizzo di pagamento Algorand."
+    "invalid_payment_uri": "Link di pagamento non valido: non contiene un indirizzo di pagamento Algorand.",
+    "unsupported_network": "Questo link di pagamento indica una rete che il gateway di pagamento non supporta."
   },
   "gateway": {
     "title": "Free opensource payment gateway without middleman",

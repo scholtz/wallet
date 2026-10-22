@@ -162,7 +162,8 @@
     "go_back_to_merchant": "Regresar al comercio",
     "waiting_for_payment": "Esperando el pago",
     "error_asset": "Error en la búsqueda del activo:",
-    "invalid_payment_uri": "Enlace de pago no válido: no contiene una dirección de pago de Algorand."
+    "invalid_payment_uri": "Enlace de pago no válido: no contiene una dirección de pago de Algorand.",
+    "unsupported_network": "Este enlace de pago indica una red que la pasarela de pago no admite."
   },
   "gateway": {
     "title": "Pasarela de pago gratuita de código abierto sin intermediarios",

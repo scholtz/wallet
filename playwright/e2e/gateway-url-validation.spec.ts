@@ -84,4 +84,17 @@ test.describe("Payment gateway URL validation (AW-2026-076)", () => {
       indexer: "https://my-own-indexer.example",
     });
   });
+
+  test("a payment link without a valid payee address is refused", async ({ page }) => {
+    await page.goto(gatewayUrl("algorand://?amount=1000000"));
+    await expect(page.getByText(/not contain an algorand payment address/i).first()).toBeVisible();
+    await expect(page.getByText("Pay using QR code")).toHaveCount(0);
+    await expect(page.getByText("Waiting for the payment")).toHaveCount(0);
+  });
+
+  test("a payment link for an unsupported network is refused", async ({ page }) => {
+    await page.goto(gatewayUrl(`algorand://${PAY_TO}?amount=1000000&network=betanet`));
+    await expect(page.getByText(/network that the payment gateway does not support/i).first()).toBeVisible();
+    await expect(page.getByText("Pay using QR code")).toHaveCount(0);
+  });
 });

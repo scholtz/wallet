@@ -215,6 +215,19 @@ export default {
       return;
     }
     this.b64decode = aprotocol.parseAlgorandProtocolParameters(this.origcode);
+    // Without a real payee the indexer would be asked for all transactions, and a network this
+    // page cannot query would be answered by whatever chain the user happens to have selected.
+    const rejection = !algosdk.isValidAddress(this.b64decode.payTo ?? "")
+      ? this.$t("merchant.invalid_payment_uri")
+      : this.b64decode.network && !gatewayIndexerEndpoint(this.b64decode.network)
+      ? this.$t("merchant.unsupported_network")
+      : "";
+    if (rejection) {
+      this.origcode = "";
+      this.b64decode = { error: rejection };
+      this.openError(rejection);
+      return;
+    }
     this.makeAsset();
     if (!this.b64decode.paynote) {
       this.b64decode.paynote = "a-wallet/" + uuidv4();
@@ -301,11 +314,15 @@ export default {
       }
     },
     async getNotifications() {
-      this.transactions = await this.searchForTransactions({
+      if (this.isPaid) return;
+      const found = await this.searchForTransactions({
         addr: this.b64decode.payTo,
         note: this.b64decode.paynote,
       });
+      // A failed poll must not erase a payment that was already seen.
+      if (found) this.transactions = found;
       if (this.isPaid) {
+        window.clearInterval(this.pollTimer);
         if (this.settings.success) {
           if (this.countDown === null) {
             this.countDown = 10;

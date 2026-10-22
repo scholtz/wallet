@@ -162,7 +162,8 @@
     "go_back_to_merchant": "Gaan terug na handelaar",
     "waiting_for_payment": "Wag vir die betaling",
     "error_asset": "Fout met die ophaling van bate: ",
-    "invalid_payment_uri": "Invalid payment link: it does not contain an algorand payment address."
+    "invalid_payment_uri": "Invalid payment link: it does not contain an algorand payment address.",
+    "unsupported_network": "This payment link names a network that the payment gateway does not support."
   },
   "gateway": {
     "title": "Gratis oopbron betaalpoort sonder 'n middelman",

@@ -162,7 +162,8 @@
     "go_back_to_merchant": "Vissza a kereskedőhöz",
     "waiting_for_payment": "Fizetésre vár…",
     "error_asset": "Hiba történt az eszköz betöltésekor: ",
-    "invalid_payment_uri": "Érvénytelen fizetési hivatkozás: nem tartalmaz Algorand fizetési címet."
+    "invalid_payment_uri": "Érvénytelen fizetési hivatkozás: nem tartalmaz Algorand fizetési címet.",
+    "unsupported_network": "Ez a fizetési hivatkozás olyan hálózatot nevez meg, amelyet a fizetési átjáró nem támogat."
   },
   "gateway": {
     "title": "Szabadon használható, nyílt forráskódú, közvetítők nélküli fizetési átjáró",

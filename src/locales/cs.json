@@ -162,7 +162,8 @@
     "go_back_to_merchant": "Jít zpět na webstránku obchodníka",
     "waiting_for_payment": "Čeká se na platbu. Zaplaťte prosím.",
     "error_asset": "Chyba při načítání aktiva: ",
-    "invalid_payment_uri": "Neplatný platební odkaz: neobsahuje platební adresu Algorand."
+    "invalid_payment_uri": "Neplatný platební odkaz: neobsahuje platební adresu Algorand.",
+    "unsupported_network": "Tento platební odkaz uvádí síť, kterou platební brána nepodporuje."
   },
   "gateway": {
     "title": "Bezplatná opensource platební brána bez prostředníka",

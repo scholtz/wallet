@@ -162,7 +162,8 @@
     "go_back_to_merchant": "Ísť späť na webstránku obchodníka",
     "waiting_for_payment": "Čaká sa na platbu. Zaplaťte prosím.",
     "error_asset": "Error fetching asset: ",
-    "invalid_payment_uri": "Neplatný platobný odkaz: neobsahuje platobnú adresu Algorand."
+    "invalid_payment_uri": "Neplatný platobný odkaz: neobsahuje platobnú adresu Algorand.",
+    "unsupported_network": "Tento platobný odkaz uvádza sieť, ktorú platobná brána nepodporuje."
   },
   "gateway": {
     "title": "Free opensource payment gateway without middleman",

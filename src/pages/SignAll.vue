@@ -56,16 +56,23 @@ const toErrorMessage = (err: unknown): string =>
 
 // The signer type depends on the network (per-network rekey), so it is resolved again whenever
 // the network changes, keeping the Falcon fee warning in step with the genesis check.
+let falconRun = 0;
 const refreshFalconSigners = async () => {
-  await Promise.all(
-    state.transactions.map(async (entry) => {
-      entry.falcon1024 =
+  const run = ++falconRun;
+  const flags = await Promise.all(
+    state.transactions.map(
+      async (entry) =>
         (await store.dispatch("signer/getSignerType", {
           from: entry.from,
           tx: entry.txn,
-        })) === "falcon1024";
-    }),
+        })) === "falcon1024",
+    ),
   );
+  // A newer run (network switched meanwhile) owns the result.
+  if (run !== falconRun) return;
+  state.transactions.forEach((entry, i) => {
+    entry.falcon1024 = flags[i];
+  });
 };
 
 watch(() => store.state.config.env, refreshFalconSigners);

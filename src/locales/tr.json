@@ -162,7 +162,8 @@
     "go_back_to_merchant": "Satıcıya geri dön",
     "waiting_for_payment": "Ödeme bekleniyor",
     "error_asset": "Varlık getirilirken hata oluştu: ",
-    "invalid_payment_uri": "Geçersiz ödeme bağlantısı: bir Algorand ödeme adresi içermiyor."
+    "invalid_payment_uri": "Geçersiz ödeme bağlantısı: bir Algorand ödeme adresi içermiyor.",
+    "unsupported_network": "Bu ödeme bağlantısı, ödeme geçidinin desteklemediği bir ağı belirtiyor."
   },
   "gateway": {
     "title": "Aracı olmadan ücretsiz açık kaynaklı ödeme ağ geçidi",
