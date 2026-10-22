@@ -304,7 +304,7 @@ export default {
         if (!params) return undefined;
         return {
           name: params.name,
-          decimals: params.decimals,
+          decimals: Number(params.decimals),
           unitName: params.unitName,
         };
       } catch (error) {

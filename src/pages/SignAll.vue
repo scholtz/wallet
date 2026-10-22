@@ -62,6 +62,10 @@ const refreshFalconSigners = async () => {
   const flags = await Promise.all(
     state.transactions.map(
       async (entry) => {
+        // Foreign senders are not signable here; asking would only raise an error toast.
+        if (!store.state.wallet.privateAccounts.some((a) => a.addr === entry.from)) {
+          return false;
+        }
         try {
           return (
             (await store.dispatch("signer/getSignerType", {

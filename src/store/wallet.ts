@@ -1190,6 +1190,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
           root: true,
         }
       );
+      return false;
     }
   },
   async addEmailPasswordAccount(
