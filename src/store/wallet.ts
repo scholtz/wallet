@@ -2102,12 +2102,17 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return;
     }
     await db.wallets.add({ name, data: checked.data });
+    markWalletUsed(name);
     // The imported wallet becomes the last used one, so an already-unlocked wallet must not stay
     // open behind it: the user is sent to unlock the wallet they just imported (AW-2026-078).
+    // The record is stored by now, so a failing logout must not make the import look failed.
     if (this.state.wallet.isOpen) {
-      await dispatch("logout");
+      try {
+        await dispatch("logout");
+      } catch (err) {
+        console.error("Failed to log out after wallet import", err);
+      }
     }
-    markWalletUsed(name);
     return true;
   },
   encrypt: async (store: WalletActionContext, { data }: { data: string }) => {

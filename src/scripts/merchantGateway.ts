@@ -27,6 +27,7 @@ export function isAlgorandPaymentUri(uri: string): boolean {
  * Normalised URL when `value` is safe to navigate to: `https:` anywhere, `http:` only on loopback,
  * and never with embedded credentials (which are used to spoof the visible host).
  */
+// `unknown`: the value comes from JSON.parse of a URL segment, so its type is not known until checked.
 export function sanitizeRedirectUrl(value: unknown): string | undefined {
   if (typeof value !== "string" || value.trim() === "") return undefined;
   let url: URL;
@@ -44,6 +45,7 @@ export function sanitizeRedirectUrl(value: unknown): string | undefined {
 }
 
 /** Reduces the decoded `:settings` JSON to the two validated URLs; anything else is dropped. */
+// `unknown`: untrusted JSON.parse output, narrowed below before any field is read.
 export function sanitizeGatewaySettings(raw: unknown): GatewaySettings {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return {};
   const input = raw as Record<string, unknown>;

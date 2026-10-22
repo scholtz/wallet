@@ -200,7 +200,7 @@ test.describe("removeAccountByAddr (AW-2026-079)", () => {
 
 test.describe("validateWalletBlob (AW-2026-078)", () => {
   const envelope =
-    "AWEv1.600000.c2FsdHNhbHRzYWx0c2FsdA==.aXZpdml2aXZpdg==.Y2lwaGVydGV4dA==";
+    `AWEv1.600000.MDEyMzQ1Njc4OWFiY2RlZg==.MDEyMzQ1Njc4OWFi.Y2lwaGVydGV4dA==`;
   const legacy = "U2FsdGVkX1/P98d6R7QllvTWEyp77oEiZ1kkr6NOcNQ=";
 
   test("accepts an AWEv1 envelope and a legacy CryptoJS string", () => {
@@ -226,6 +226,10 @@ test.describe("validateWalletBlob (AW-2026-078)", () => {
       "AWEv1.600000.c2FsdA==.aXY=",
       "AWEv1.600000.c2FsdA==.aXY=.Y2lwaGVy.extra",
       "AWEv1.600000.not base64!.aXY=.Y2lwaGVy",
+      "AWEv1.600000.c2FsdA==.MDEyMzQ1Njc4OWFi.Y2lwaGVy",
+      "AWEv1.600000.MDEyMzQ1Njc4OWFiY2RlZg==.aXY=.Y2lwaGVy",
+      "AWEv1.4000000000.MDEyMzQ1Njc4OWFiY2RlZg==.MDEyMzQ1Njc4OWFi.Y2lwaGVy",
+      "AWEv1.99999999.MDEyMzQ1Njc4OWFiY2RlZg==.MDEyMzQ1Njc4OWFi.Y2lwaGVy",
       "U2FsdGVkX1 with spaces",
     ]) {
       expect(validateWalletBlob(bad)).toEqual({ ok: false, reason: "invalid" });

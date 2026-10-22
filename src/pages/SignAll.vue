@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { computed, onMounted, reactive } from "vue";
+import { computed, onMounted, reactive, watch } from "vue";
 import MainLayout from "../layouts/Main.vue";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
 import Arc56CallDetails from "../components/Arc56CallDetails.vue";
@@ -54,6 +54,22 @@ const state = reactive<SignAllState>({
 const toErrorMessage = (err: unknown): string =>
   err instanceof Error ? err.message : String(err);
 
+// The signer type depends on the network (per-network rekey), so it is resolved again whenever
+// the network changes, keeping the Falcon fee warning in step with the genesis check.
+const refreshFalconSigners = async () => {
+  await Promise.all(
+    state.transactions.map(async (entry) => {
+      entry.falcon1024 =
+        (await store.dispatch("signer/getSignerType", {
+          from: entry.from,
+          tx: entry.txn,
+        })) === "falcon1024";
+    }),
+  );
+};
+
+watch(() => store.state.config.env, refreshFalconSigners);
+
 onMounted(async () => {
   await store.dispatch("wallet/prolong");
 
@@ -73,15 +89,12 @@ onMounted(async () => {
       type: txn.type,
       from: fromAddress,
       toBeSigned: await toBeSigned(txn),
-      falcon1024:
-        (await store.dispatch("signer/getSignerType", {
-          from: fromAddress,
-          tx: txn,
-        })) === "falcon1024",
+      falcon1024: false,
     });
     index++;
   }
   state.transactions = data;
+  await refreshFalconSigners();
   await checkAtLeastOneSigned();
   await checkAllTxsAreSigned();
 

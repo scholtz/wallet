@@ -96,7 +96,7 @@
           <Badge severity="info" class="m-2" :value="'(' + countDown + ')'" />
         </form>
 
-        <Message severity="info" v-if="!isPaid" class="mb-3">
+        <Message severity="info" v-if="!isPaid && origcode" class="mb-3">
           <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
 
           {{ $t("merchant.waiting_for_payment") }}
@@ -282,7 +282,9 @@ export default {
       }
     },
     setWebProtocol() {
-      if (this.origcode.startsWith("algorand:")) {
+      if (this.origcode.startsWith("web+algorand:")) {
+        this.codeP2 = this.origcode;
+      } else if (this.origcode.startsWith("algorand:")) {
         this.codeP2 = "web+" + this.origcode;
       } else {
         this.codeP2 = "web+algorand://" + this.origcode;

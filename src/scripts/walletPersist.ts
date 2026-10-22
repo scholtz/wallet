@@ -106,6 +106,14 @@ export function removeAccountByAddr<A extends { addr: string }>(
 export const MAX_WALLET_IMPORT_BYTES = 10 * 1024 * 1024;
 
 const BASE64_PATTERN = /^[A-Za-z0-9+/]+={0,2}$/;
+// Sizes `encryptWalletData` writes (walletCrypto.ts) and the most PBKDF2 iterations an import may
+// ask for: an absurd count would freeze the tab on unlock.
+const WALLET_SALT_BYTES = 16;
+const WALLET_IV_BYTES = 12;
+const MAX_WALLET_PBKDF2_ITERATIONS = 10_000_000;
+
+const base64ByteLength = (value: string): number =>
+  Math.floor((value.length * 3) / 4) - (value.match(/=+$/)?.[0].length ?? 0);
 // Every CryptoJS passphrase-encrypted string is base64 of "Salted__" + salt + data.
 const LEGACY_PREFIX = "U2FsdGVkX1";
 
@@ -118,7 +126,6 @@ const LEGACY_PREFIX = "U2FsdGVkX1";
 export function validateWalletBlob(
   data: string,
 ): { ok: true; data: string } | { ok: false; reason: "too_large" | "invalid" } {
-  if (typeof data !== "string") return { ok: false, reason: "invalid" };
   if (data.length > MAX_WALLET_IMPORT_BYTES) {
     return { ok: false, reason: "too_large" };
   }
@@ -128,8 +135,11 @@ export function validateWalletBlob(
     const [, iterations, salt, iv, ciphertext] = parts;
     const valid =
       parts.length === 5 &&
-      /^[1-9][0-9]*$/.test(iterations) &&
-      [salt, iv, ciphertext].every((p) => BASE64_PATTERN.test(p));
+      /^[1-9][0-9]{0,8}$/.test(iterations) &&
+      Number(iterations) <= MAX_WALLET_PBKDF2_ITERATIONS &&
+      [salt, iv, ciphertext].every((p) => BASE64_PATTERN.test(p)) &&
+      base64ByteLength(salt) === WALLET_SALT_BYTES &&
+      base64ByteLength(iv) === WALLET_IV_BYTES;
     return valid ? { ok: true, data: blob } : { ok: false, reason: "invalid" };
   }
   if (blob.startsWith(LEGACY_PREFIX) && BASE64_PATTERN.test(blob)) {
