@@ -161,7 +161,9 @@
     "payment_received": "Betaling ontvang",
     "go_back_to_merchant": "Gaan terug na handelaar",
     "waiting_for_payment": "Wag vir die betaling",
-    "error_asset": "Fout met die ophaling van bate: "
+    "error_asset": "Fout met die ophaling van bate: ",
+    "invalid_payment_uri": "Invalid payment link: it does not contain an algorand payment address.",
+    "unsupported_network": "This payment link names a network that the payment gateway does not support."
   },
   "gateway": {
     "title": "Gratis oopbron betaalpoort sonder 'n middelman",
@@ -1377,7 +1379,8 @@
   },
   "sign_all": {
     "title": "Teken meervoudige transaksies",
-    "transaction_confirmed": "Transaksie bevestig in ronde"
+    "transaction_confirmed": "Transaksie bevestig in ronde",
+    "falcon_fee_warning": "This account uses a Falcon-1024 (post-quantum) key. Its signature is large, so the network needs a higher fee (about three times the minimum fee per transaction) than the transactions declare ({fee}). The transactions may be rejected unless other transactions in the group cover the difference."
   },
   "arc14": {
     "service_realm_title": "Diens domein",

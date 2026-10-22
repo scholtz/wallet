@@ -161,7 +161,9 @@
     "payment_received": "Platba byla přijata.",
     "go_back_to_merchant": "Jít zpět na webstránku obchodníka",
     "waiting_for_payment": "Čeká se na platbu. Zaplaťte prosím.",
-    "error_asset": "Chyba při načítání aktiva: "
+    "error_asset": "Chyba při načítání aktiva: ",
+    "invalid_payment_uri": "Neplatný platební odkaz: neobsahuje platební adresu Algorand.",
+    "unsupported_network": "Tento platební odkaz uvádí síť, kterou platební brána nepodporuje."
   },
   "gateway": {
     "title": "Bezplatná opensource platební brána bez prostředníka",
@@ -1377,7 +1379,8 @@
   },
   "sign_all": {
     "title": "Podepsat více transakcí",
-    "transaction_confirmed": "Transakce byla potvrzena v bloku"
+    "transaction_confirmed": "Transakce byla potvrzena v bloku",
+    "falcon_fee_warning": "Tento účet používá klíč Falcon-1024 (postkvantový). Jeho podpis je velký, proto síť vyžaduje vyšší poplatek (přibližně trojnásobek minimálního poplatku za transakci), než transakce uvádějí ({fee}). Transakce mohou být zamítnuty, pokud rozdíl nepokryjí jiné transakce ve skupině."
   },
   "arc14": {
     "service_realm_title": "Servisní doména",

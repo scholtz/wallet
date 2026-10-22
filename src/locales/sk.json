@@ -161,7 +161,9 @@
     "payment_received": "Platba bola prijatá.",
     "go_back_to_merchant": "Ísť späť na webstránku obchodníka",
     "waiting_for_payment": "Čaká sa na platbu. Zaplaťte prosím.",
-    "error_asset": "Error fetching asset: "
+    "error_asset": "Error fetching asset: ",
+    "invalid_payment_uri": "Neplatný platobný odkaz: neobsahuje platobnú adresu Algorand.",
+    "unsupported_network": "Tento platobný odkaz uvádza sieť, ktorú platobná brána nepodporuje."
   },
   "gateway": {
     "title": "Free opensource payment gateway without middleman",
@@ -1377,7 +1379,8 @@
   },
   "sign_all": {
     "title": "Podpísať viacero transakcií",
-    "transaction_confirmed": "Transakcia bola potvrdená v bloku"
+    "transaction_confirmed": "Transakcia bola potvrdená v bloku",
+    "falcon_fee_warning": "Tento účet používa kľúč Falcon-1024 (postkvantový). Jeho podpis je veľký, preto sieť vyžaduje vyšší poplatok (približne trojnásobok minimálneho poplatku za transakciu), než transakcie uvádzajú ({fee}). Transakcie môžu byť zamietnuté, ak rozdiel nepokryjú iné transakcie v skupine."
   },
   "arc14": {
     "service_realm_title": "Servisná doména",

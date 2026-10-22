@@ -17,8 +17,10 @@ import { mergeSharedWcItems } from "@/scripts/walletSharedItems";
 import {
   MIN_PASSWORD_LENGTH,
   mergePrivateAccounts,
+  removeAccountByAddr,
   serializePersistedWallet,
   validateNewPassword,
+  validateWalletBlob,
 } from "@/scripts/walletPersist";
 import type { RootState } from "./index";
 import {
@@ -540,11 +542,8 @@ const mutations: MutationTree<WalletState> = {
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
-  deleteAccount(state, { name, addr }: DeleteAccountPayload) {
-    const index = state.privateAccounts.findIndex(
-      (acc) => acc.name == name && acc.addr == addr
-    );
-    state.privateAccounts.splice(index, 1);
+  deleteAccount(state, { addr }: DeleteAccountPayload) {
+    removeAccountByAddr(state.privateAccounts, addr);
   },
   setPrivateAccount(state, { info, network }: SetPrivateAccountPayload) {
     const normalizedAddress = info.address ?? info.addr;
@@ -1162,14 +1161,14 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     { dispatch, commit },
     { name, addr }: DeleteAccountPayload
   ) {
-    if (!name) {
-      dispatch("toast/openError", "Plase define account name", {
+    if (!addr) {
+      dispatch("toast/openError", "Plase define account addr", {
         root: true,
       });
       return false;
     }
-    if (!addr) {
-      dispatch("toast/openError", "Plase define account addr", {
+    if (!this.state.wallet.privateAccounts.some((a) => a.addr === addr)) {
+      dispatch("toast/openError", "Account not found in the wallet", {
         root: true,
       });
       return false;
@@ -1191,6 +1190,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
           root: true,
         }
       );
+      return false;
     }
   },
   async addEmailPasswordAccount(
@@ -2078,6 +2078,17 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       });
       return;
     }
+    const checked = validateWalletBlob(data);
+    if (!checked.ok) {
+      dispatch(
+        "toast/openError",
+        checked.reason === "too_large"
+          ? "Wallet file is too large"
+          : "File is not an AWallet backup",
+        { root: true }
+      );
+      return;
+    }
     const walletRecord = await db.wallets.get({ name });
     if (walletRecord) {
       dispatch("toast/openError", "Wallet with the same name already exists", {
@@ -2085,8 +2096,18 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       });
       return;
     }
-    await db.wallets.add({ name, data });
+    await db.wallets.add({ name, data: checked.data });
     markWalletUsed(name);
+    // The imported wallet becomes the last used one, so an already-unlocked wallet must not stay
+    // open behind it: the user is sent to unlock the wallet they just imported (AW-2026-078).
+    // The record is stored by now, so a failing logout must not make the import look failed.
+    if (this.state.wallet.isOpen) {
+      try {
+        await dispatch("logout");
+      } catch (err) {
+        console.error("Failed to log out after wallet import", err);
+      }
+    }
     return true;
   },
   encrypt: async (store: WalletActionContext, { data }: { data: string }) => {

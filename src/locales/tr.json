@@ -161,7 +161,9 @@
     "payment_received": "Ödeme alındı",
     "go_back_to_merchant": "Satıcıya geri dön",
     "waiting_for_payment": "Ödeme bekleniyor",
-    "error_asset": "Varlık getirilirken hata oluştu: "
+    "error_asset": "Varlık getirilirken hata oluştu: ",
+    "invalid_payment_uri": "Geçersiz ödeme bağlantısı: bir Algorand ödeme adresi içermiyor.",
+    "unsupported_network": "Bu ödeme bağlantısı, ödeme geçidinin desteklemediği bir ağı belirtiyor."
   },
   "gateway": {
     "title": "Aracı olmadan ücretsiz açık kaynaklı ödeme ağ geçidi",
@@ -1377,7 +1379,8 @@
   },
   "sign_all": {
     "title": "Sign multiple transactions",
-    "transaction_confirmed": "Transaction confirmed in round"
+    "transaction_confirmed": "Transaction confirmed in round",
+    "falcon_fee_warning": "Bu hesap Falcon-1024 (kuantum sonrası) anahtarı kullanıyor. İmzası büyük olduğundan ağ, işlemlerde belirtilenden ({fee}) daha yüksek bir ücret (işlem başına asgari ücretin yaklaşık üç katı) gerektirir. Gruptaki diğer işlemler farkı karşılamazsa işlemler reddedilebilir."
   },
   "arc14": {
     "service_realm_title": "Service realm",

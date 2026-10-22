@@ -4,6 +4,10 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 
 ## 2026-10
 
+- Hardened the public payment gateway page: only real Algorand payment links are accepted, cancel and return links must be https, and opening a gateway link no longer changes your configured node settings.
+- The multi-transaction signing page now refuses to sign transactions meant for a different network and warns when a post-quantum (Falcon-1024) account is short on fees.
+- Importing a wallet file now rejects files that are not AWallet backups, and an already unlocked wallet is locked so you unlock the one you just imported.
+- Deleting an account can no longer remove a different account by mistake.
 - Fixed wallets sometimes disappearing from the browser: the wallet now asks Chrome and other browsers to keep its data permanently (so it is no longer deleted automatically when disk space runs low), a database read error no longer looks like an empty wallet list, and the login screen now tells you clearly when the browser has removed the stored wallet or may do so, so you can restore from your backup.
 - The "Direct" window is now comfortable on a phone: Connect and Reject stay pinned to the bottom of the screen with thumb-sized buttons, each signature request is a readable card (summary, fee, then large Sign all / Reject buttons) instead of a cramped table, every button is at least 44 px tall, the long footer text is hidden so the page is not pushed down, and nothing scrolls sideways, in portrait or landscape.
 - The Swap page now shows your new balance right after a swap (it waits for the network to catch up instead of showing the old amount), clears the used quote so the same swap can't be sent twice, and refreshes your balances automatically every 30 seconds.

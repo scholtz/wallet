@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { computed, onMounted, reactive } from "vue";
+import { computed, onMounted, reactive, watch } from "vue";
 import MainLayout from "../layouts/Main.vue";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
 import Arc56CallDetails from "../components/Arc56CallDetails.vue";
@@ -11,6 +11,8 @@ import TransactionGroupSimulation from "../components/TransactionGroupSimulation
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import { isAssetOptIn } from "../scripts/transactionTypes";
+import { findGenesisMismatch } from "../scripts/dappRequestChecks";
+import { lowFalconGroupFee } from "../scripts/fees";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 
@@ -24,6 +26,7 @@ interface TransactionTableEntry {
   type: string;
   from: string;
   toBeSigned: boolean;
+  falcon1024: boolean;
 }
 
 interface SignAllState {
@@ -51,6 +54,42 @@ const state = reactive<SignAllState>({
 const toErrorMessage = (err: unknown): string =>
   err instanceof Error ? err.message : String(err);
 
+// The signer type depends on the network (per-network rekey), so it is resolved again whenever
+// the network changes, keeping the Falcon fee warning in step with the genesis check.
+let falconRun = 0;
+const refreshFalconSigners = async () => {
+  const run = ++falconRun;
+  const flags = await Promise.all(
+    state.transactions.map(
+      async (entry) => {
+        // Foreign senders are not signable here; asking would only raise an error toast.
+        if (!store.state.wallet.privateAccounts.some((a) => a.addr === entry.from)) {
+          return false;
+        }
+        try {
+          return (
+            (await store.dispatch("signer/getSignerType", {
+              from: entry.from,
+              tx: entry.txn,
+            })) === "falcon1024"
+          );
+        } catch (err) {
+          // The warning is advisory: an unresolvable signer must not break the page.
+          console.error("Could not resolve the signer type", err);
+          return false;
+        }
+      },
+    ),
+  );
+  // A newer run (network switched meanwhile) owns the result.
+  if (run !== falconRun) return;
+  state.transactions.forEach((entry, i) => {
+    entry.falcon1024 = flags[i];
+  });
+};
+
+watch(() => store.state.config.env, refreshFalconSigners);
+
 onMounted(async () => {
   await store.dispatch("wallet/prolong");
 
@@ -70,10 +109,12 @@ onMounted(async () => {
       type: txn.type,
       from: fromAddress,
       toBeSigned: await toBeSigned(txn),
+      falcon1024: false,
     });
     index++;
   }
   state.transactions = data;
+  await refreshFalconSigners();
   await checkAtLeastOneSigned();
   await checkAllTxsAreSigned();
 
@@ -160,7 +201,32 @@ const formatAppAccount = (acc: algosdk.Address | string) => {
   }
 };
 
+// A transaction for another network than the selected one must never be signed here
+// (AW-2026-063 / AW-2026-077). Reactive, so switching network re-evaluates it.
+const genesisMismatchIndex = computed(() =>
+  findGenesisMismatch(
+    state.transactions.map((entry) => entry.txn),
+    store.state.config.env,
+  ),
+);
+
+// Fees and the group id are fixed by whoever built the transactions, so a Falcon-1024 signer
+// that is short on fee can only be warned about, not fixed (AW-2026-077).
+const falconFee = computed(() =>
+  lowFalconGroupFee(
+    state.transactions.map((entry) => ({
+      fee: BigInt(entry.txn.fee ?? 0),
+      falcon1024: entry.falcon1024,
+      group: entry.txn.group,
+    })),
+  ),
+);
+
+const formatAlgo = (microAlgos: number) =>
+  `${microAlgos / 1_000_000} ${store.state.config.tokenSymbol}`;
+
 const clickSign = async (data: TransactionTableEntry) => {
+  if (genesisMismatchIndex.value !== undefined) return;
   const txId = data.txn.txID();
   const isSigned = txId in store.state.signer.signed;
   if (isSigned) {
@@ -271,6 +337,9 @@ const checkAllTxsAreSigned = () => {
 
 const submitSignedClick = async () => {
   try {
+    if (genesisMismatchIndex.value !== undefined) {
+      throw Error(t("connect.genesis_mismatch"));
+    }
     state.processing = true;
     await store.dispatch("wallet/prolong");
     const signed: Array<Uint8Array | string> = [];
@@ -369,6 +438,23 @@ const arc56SummaryTransactions = computed(() =>
     <Card>
       <template #content>
         <Message severity="error" v-if="state.error">{{ state.error }}</Message>
+        <Message
+          severity="error"
+          v-if="genesisMismatchIndex !== undefined"
+          data-testid="sign-all-genesis-mismatch"
+        >
+          {{ t("connect.genesis_mismatch") }} ({{ t("connect.index") }}
+          {{ genesisMismatchIndex }})
+        </Message>
+        <Message
+          severity="warn"
+          v-if="falconFee !== undefined"
+          data-testid="sign-all-falcon-fee"
+        >
+          {{
+            t("sign_all.falcon_fee_warning", { fee: formatAlgo(falconFee) })
+          }}
+        </Message>
         <Message severity="success" v-if="state.confirmedRound">
           {{ `${t("sign_all.transaction_confirmed")} ${state.confirmedRound}` }}
         </Message>
@@ -376,9 +462,15 @@ const arc56SummaryTransactions = computed(() =>
         <div>
           <Button
             class="mr-1"
-            :disabled="state.allTxsAreSigned || !!state.confirmedRound"
+            :disabled="
+              state.allTxsAreSigned ||
+              !!state.confirmedRound ||
+              genesisMismatchIndex !== undefined
+            "
             :severity="
-              state.allTxsAreSigned || !!state.confirmedRound
+              state.allTxsAreSigned ||
+              !!state.confirmedRound ||
+              genesisMismatchIndex !== undefined
                 ? 'secondary'
                 : 'primary'
             "
@@ -391,12 +483,14 @@ const arc56SummaryTransactions = computed(() =>
             :disabled="
               !state.allTxsAreSigned ||
               state.processing ||
-              !!state.confirmedRound
+              !!state.confirmedRound ||
+              genesisMismatchIndex !== undefined
             "
             :severity="
               !state.allTxsAreSigned ||
               state.processing ||
-              !!state.confirmedRound
+              !!state.confirmedRound ||
+              genesisMismatchIndex !== undefined
                 ? 'secondary'
                 : 'primary'
             "
@@ -433,6 +527,7 @@ const arc56SummaryTransactions = computed(() =>
               <Button
                 v-if="slotProps.data.toBeSigned"
                 class="m-1"
+                :disabled="genesisMismatchIndex !== undefined"
                 @click="clickSign(slotProps.data)"
               >
                 {{ t("connect.sign") }}

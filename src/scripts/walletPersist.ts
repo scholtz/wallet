@@ -86,3 +86,74 @@ export function validateNewPassword(
   if (pass.length < MIN_PASSWORD_LENGTH) return "too_short";
   return undefined;
 }
+
+/**
+ * Removes the account with this address in place and reports whether one was found. Matching is
+ * by address only: the name is a mutable label, and `splice(-1, 1)` on a miss would silently delete
+ * the wallet's last account together with its key (AW-2026-079).
+ */
+export function removeAccountByAddr<A extends { addr: string }>(
+  accounts: A[],
+  addr: string,
+): boolean {
+  const index = accounts.findIndex((acc) => acc.addr === addr);
+  if (index === -1) return false;
+  accounts.splice(index, 1);
+  return true;
+}
+
+/** Largest wallet backup file accepted on import. Real blobs are a few kB to a few hundred kB. */
+export const MAX_WALLET_IMPORT_BYTES = 10 * 1024 * 1024;
+
+const BASE64_PATTERN = /^[A-Za-z0-9+/]+={0,2}$/;
+// Sizes `encryptWalletData` writes (walletCrypto.ts) and the most PBKDF2 iterations an import may
+// ask for: an absurd count would freeze the tab on unlock.
+const WALLET_SALT_BYTES = 16;
+const WALLET_IV_BYTES = 12;
+const AES_GCM_TAG_BYTES = 16;
+// "Salted__" + 8 byte salt + at least one 16 byte AES block, base64 encoded.
+const MIN_LEGACY_BLOB_LENGTH = 44;
+const MIN_WALLET_PBKDF2_ITERATIONS = 100_000;
+const MAX_WALLET_PBKDF2_ITERATIONS = 2_000_000;
+
+const base64ByteLength = (value: string): number =>
+  Math.floor((value.length * 3) / 4) - (value.match(/=+$/)?.[0].length ?? 0);
+// Every CryptoJS passphrase-encrypted string is base64 of "Salted__" + salt + data.
+const LEGACY_PREFIX = "U2FsdGVkX1";
+
+/**
+ * Checks that an uploaded wallet backup looks like something `wallet/openWallet` can decrypt: the
+ * AWEv1 envelope `AWEv1.<iterations>.<salt>.<iv>.<ciphertext>` or a legacy CryptoJS base64
+ * string, within the size cap. Returns the trimmed blob to store, or the reason it was refused
+ * (AW-2026-078). It cannot prove the password fits; it only rejects non-wallet files early.
+ */
+export function validateWalletBlob(
+  data: string,
+): { ok: true; data: string } | { ok: false; reason: "too_large" | "invalid" } {
+  if (data.length > MAX_WALLET_IMPORT_BYTES) {
+    return { ok: false, reason: "too_large" };
+  }
+  const blob = data.trim();
+  const parts = blob.split(".");
+  if (parts[0] === "AWEv1") {
+    const [, iterations, salt, iv, ciphertext] = parts;
+    const valid =
+      parts.length === 5 &&
+      /^[1-9][0-9]{0,8}$/.test(iterations) &&
+      Number(iterations) >= MIN_WALLET_PBKDF2_ITERATIONS &&
+      Number(iterations) <= MAX_WALLET_PBKDF2_ITERATIONS &&
+      [salt, iv, ciphertext].every((p) => BASE64_PATTERN.test(p)) &&
+      base64ByteLength(salt) === WALLET_SALT_BYTES &&
+      base64ByteLength(iv) === WALLET_IV_BYTES &&
+      base64ByteLength(ciphertext) >= AES_GCM_TAG_BYTES;
+    return valid ? { ok: true, data: blob } : { ok: false, reason: "invalid" };
+  }
+  if (
+    blob.startsWith(LEGACY_PREFIX) &&
+    blob.length >= MIN_LEGACY_BLOB_LENGTH &&
+    BASE64_PATTERN.test(blob)
+  ) {
+    return { ok: true, data: blob };
+  }
+  return { ok: false, reason: "invalid" };
+}

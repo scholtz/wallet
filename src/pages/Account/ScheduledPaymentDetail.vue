@@ -514,7 +514,7 @@ const withdrawFromEscrow = async () => {
     }
     const grouped = atc.buildGroup().map((tx) => tx.txn);
     await store.dispatch("signer/returnTo", "ScheduledPayments");
-    await store.dispatch("signer/toSign", { txx: grouped[0] });
+    await store.dispatch("signer/toSign", { tx: grouped[0] });
     const encoded = base642base64url(
       Buffer.from(algosdk.encodeUnsignedTransaction(grouped[0])).toString(
         "base64"

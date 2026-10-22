@@ -17,9 +17,9 @@
 
     <Card>
       <template #content>
-        <div v-if="b64decode && !b64decode.error" class="my-3">
+        <div v-if="ready && !b64decode.error" class="my-3">
           {{ $t("merchant.pay") }} {{ b64decode.payamount }}
-          <span v-if="asset">{{ asset["unit-name"] }}</span>
+          <span v-if="asset">{{ asset.unitName }}</span>
           {{ $t("merchant.to_address") }}
           <AlgorandAddress :address="b64decode.payTo" />
           {{ $t("merchant.please") }}
@@ -52,7 +52,7 @@
         <div v-else>
           <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
         </div>
-        <div v-if="!isPaid">
+        <div v-if="!isPaid && payable">
           <a :href="origcode" :title="origcode" role="button">
             <Button severity="primary" size="large" class="mb-3">
               {{ $t("merchant.pay_qr") }}
@@ -96,7 +96,7 @@
           <Badge severity="info" class="m-2" :value="'(' + countDown + ')'" />
         </form>
 
-        <Message severity="info" v-if="!isPaid" class="mb-3">
+        <Message severity="info" v-if="!isPaid && payable" class="mb-3">
           <ProgressSpinner style="width: 1em; height: 1em" strokeWidth="5" />
 
           {{ $t("merchant.waiting_for_payment") }}
@@ -104,7 +104,7 @@
         <div class="grid">
           <div class="col-12 lg:col-6">
             <QRCodeVue3
-              v-if="!isPaid"
+              v-if="!isPaid && payable"
               :title="origcode"
               imgclass="qr-code"
               :width="400"
@@ -137,7 +137,13 @@ import PublicLayout from "../layouts/Public.vue";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
 import QRCodeVue3 from "qrcode-vue3";
 import { mapActions } from "vuex";
+import algosdk from "algosdk";
 import aprotocol from "../shared/algorand-protocol-parse";
+import {
+  gatewayIndexerEndpoint,
+  isAlgorandPaymentUri,
+  sanitizeGatewaySettings,
+} from "../scripts/merchantGateway";
 import { v4 as uuidv4 } from "uuid";
 import base64url from "base64url";
 
@@ -157,6 +163,9 @@ export default {
 
       transactions: [],
       formSent: false,
+      polling: false,
+      ready: false,
+      unmounted: false,
       countDown: null,
     };
   },
@@ -170,6 +179,10 @@ export default {
       }
       return "";
     },
+    // Links and QR are offered only after the payee, network and asset were all validated.
+    payable() {
+      return this.ready && !!this.origcode;
+    },
     isPaid() {
       return (
         this.transactions &&
@@ -178,7 +191,10 @@ export default {
       );
     },
   },
-  mounted() {
+  async mounted() {
+    // Everything decoded from the URL is attacker-controlled (AW-2026-076): only an algorand
+    // payment URI may reach the pay links/QR, and only validated https URLs the redirects.
+    let rawSettings = {};
     try {
       try {
         this.origcode = atob(this.$route.params.b64);
@@ -192,36 +208,115 @@ export default {
         } catch {
           settings = base64url.decode(this.$route.params.settings);
         }
-        this.settings = JSON.parse(settings);
+        rawSettings = JSON.parse(settings);
       }
     } catch (e) {
       this.openError(e.message);
     }
-    this.b64decode = aprotocol.parseAlgorandProtocolParameters(this.origcode);
-    this.setNetwork();
-    this.makeAsset();
+    this.settings = sanitizeGatewaySettings(rawSettings);
+    if (!isAlgorandPaymentUri(this.origcode)) {
+      const message = this.$t("merchant.invalid_payment_uri");
+      this.origcode = "";
+      this.b64decode = { error: message };
+      this.openError(message);
+      return;
+    }
+    try {
+      this.b64decode = aprotocol.parseAlgorandProtocolParameters(this.origcode);
+    } catch {
+      // e.g. a malformed percent-escape in the note
+      this.b64decode = {};
+    }
+    // Without a real payee the indexer would be asked for all transactions, and a network this
+    // page cannot query would be answered by whatever chain the user happens to have selected.
+    const rejection = !algosdk.isValidAddress(this.b64decode.payTo ?? "")
+      ? this.$t("merchant.invalid_payment_uri")
+      : this.b64decode.network && !gatewayIndexerEndpoint(this.b64decode.network)
+      ? this.$t("merchant.unsupported_network")
+      : "";
+    if (rejection) {
+      this.origcode = "";
+      this.b64decode = { error: rejection };
+      this.openError(rejection);
+      return;
+    }
+    await this.makeAsset();
+    if (this.b64decode.error || this.unmounted) return;
+    this.ready = true;
     if (!this.b64decode.paynote) {
       this.b64decode.paynote = "a-wallet/" + uuidv4();
-      this.origcode = this.origcode + "&xnote=" + this.b64decode.paynote;
+      this.origcode +=
+        (this.origcode.includes("?") ? "&" : "?") +
+        "xnote=" +
+        this.b64decode.paynote;
     }
-    window.setInterval(() => {
+    this.pollTimer = window.setInterval(() => {
       this.getNotifications();
     }, 5000);
     this.setWebProtocol();
   },
+  beforeUnmount() {
+    this.unmounted = true;
+    window.clearInterval(this.pollTimer);
+    window.clearInterval(this.countDownTimer);
+  },
   methods: {
     ...mapActions({
-      searchForTransactions: "indexer/searchForTransactions",
-      getAsset: "indexer/getAsset",
       openError: "toast/openError",
-      setHosts: "config/setHosts",
     }),
-    setWebProtocol() {
-      if (this.origcode.startsWith("algorand:")) {
-        this.codeP2 = "web+" + this.origcode;
-      } else {
-        this.codeP2 = "web+algorand://" + this.origcode;
+    // The payment poll uses the network named in the URI through its own client; it must not
+    // rewrite the user's persisted node settings (AW-2026-076).
+    gatewayIndexer() {
+      const endpoint = gatewayIndexerEndpoint(this.b64decode.network);
+      if (endpoint) {
+        return new algosdk.Indexer(
+          endpoint.token,
+          endpoint.server,
+          new URL(endpoint.server).port
+        );
       }
+      const config = this.$store.state.config;
+      return new algosdk.Indexer(
+        config.indexerToken,
+        config.indexer,
+        new URL(config.indexer).port
+      );
+    },
+    async searchForTransactions({ addr, note }) {
+      try {
+        const search = this.gatewayIndexer().searchForTransactions().address(addr);
+        if (note) {
+          search.notePrefix(new TextEncoder().encode(note));
+        }
+        return await search.do();
+      } catch (error) {
+        console.error("searchForTransactions", error);
+        return undefined;
+      }
+    },
+    async getAsset({ assetIndex }) {
+      try {
+        const res = await this.gatewayIndexer()
+          .searchForAssets()
+          .index(assetIndex)
+          .do();
+        const params = res?.assets?.[0]?.params;
+        if (!params) return undefined;
+        return {
+          name: params.name,
+          decimals: Number(params.decimals),
+          unitName: params.unitName,
+        };
+      } catch (error) {
+        console.error("getAsset", error);
+        return undefined;
+      }
+    },
+    setWebProtocol() {
+      // origcode is always algorand:// or web+algorand:// by now (isAlgorandPaymentUri).
+      this.codeP2 = this.origcode.startsWith("web+")
+        ? this.origcode
+        : "web+" + this.origcode;
     },
     async lowerCountDown() {
       if (this.countDown > 0) {
@@ -229,20 +324,31 @@ export default {
       } else {
         if (!this.formSent) {
           this.formSent = true;
+          window.clearInterval(this.countDownTimer);
           this.$refs.sendToMerchant.submit();
         }
       }
     },
     async getNotifications() {
-      this.transactions = await this.searchForTransactions({
-        addr: this.b64decode.payTo,
-        note: this.b64decode.paynote,
-      });
+      if (this.isPaid || this.polling) return;
+      this.polling = true;
+      let found;
+      try {
+        found = await this.searchForTransactions({
+          addr: this.b64decode.payTo,
+          note: this.b64decode.paynote,
+        });
+      } finally {
+        this.polling = false;
+      }
+      // A failed poll must not erase a payment that was already seen.
+      if (found) this.transactions = found;
       if (this.isPaid) {
+        window.clearInterval(this.pollTimer);
         if (this.settings.success) {
           if (this.countDown === null) {
             this.countDown = 10;
-            window.setInterval(() => {
+            this.countDownTimer = window.setInterval(() => {
               this.lowerCountDown();
             }, 1000);
           }
@@ -262,6 +368,8 @@ export default {
             this.$t("merchant.error_asset") + this.b64decode.asset;
           this.openError(errorMsg);
           this.b64decode.error = errorMsg;
+          // The amount could not be validated against the asset, so nothing may be payable.
+          this.origcode = "";
           return;
         }
       } else {
@@ -286,48 +394,6 @@ export default {
           this.b64decode.feeLong = this.b64decode.fee;
           this.b64decode.fee = this.b64decode.fee / 1000000;
         }
-      }
-    },
-    setNetwork() {
-      if (
-        this.b64decode.network == "mainnet" ||
-        this.b64decode.network == "mainnet-v1.0"
-      ) {
-        this.setHosts({
-          algod: "https://mainnet-api.algonode.cloud",
-          kmd: "https://kmd.h2.a-wallet.net",
-          indexer: "https://mainnet-idx.algonode.cloud",
-        });
-      }
-      if (this.b64decode.network == "aramidmain") {
-        this.setHosts({
-          algod: "https://algod.aramidmain.a-wallet.net",
-          kmd: "?",
-          indexer: "https://indexer.aramidmain.a-wallet.net",
-        });
-      }
-      if (
-        this.b64decode.network == "testnet" ||
-        this.b64decode.network == "testnet-v1.0"
-      ) {
-        this.setHosts({
-          algod: "https://testnet-api.algonode.cloud",
-          kmd: "?",
-          indexer: "https://testnet-idx.algonode.cloud",
-        });
-      }
-      if (this.b64decode.network == "sandbox") {
-        this.setHosts({
-          algod: "http://localhost:4001",
-          kmd: "http://localhost:4002",
-          indexer: "http://localhost:8980",
-          algodToken:
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          kmdToken:
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          indexerToken:
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        });
       }
     },
     setLanguage(lang) {

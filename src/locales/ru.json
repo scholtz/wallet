@@ -161,7 +161,9 @@
     "payment_received": "Платеж получен",
     "go_back_to_merchant": "Вернуться к торговцу",
     "waiting_for_payment": "Ожидание платежа",
-    "error_asset": "Ошибка при получении актива: "
+    "error_asset": "Ошибка при получении актива: ",
+    "invalid_payment_uri": "Недействительная платёжная ссылка: в ней нет платёжного адреса Algorand.",
+    "unsupported_network": "В этой платёжной ссылке указана сеть, которую платёжный шлюз не поддерживает."
   },
   "gateway": {
     "title": "Бесплатный платежный шлюз с открытым исходным кодом без посредников",
@@ -1377,7 +1379,8 @@
   },
   "sign_all": {
     "title": "Sign multiple transactions",
-    "transaction_confirmed": "Transaction confirmed in round"
+    "transaction_confirmed": "Transaction confirmed in round",
+    "falcon_fee_warning": "Этот аккаунт использует ключ Falcon-1024 (постквантовый). Его подпись велика, поэтому сети нужна более высокая комиссия (примерно втрое больше минимальной за транзакцию), чем указано в транзакциях ({fee}). Транзакции могут быть отклонены, если разницу не покроют другие транзакции группы."
   },
   "arc14": {
     "service_realm_title": "Service realm",

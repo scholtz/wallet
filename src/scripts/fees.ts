@@ -99,3 +99,35 @@ export interface FeeEstimate {
   /** Failure message reported by simulate, if the dry-run failed. */
   failureMessage?: string;
 }
+
+/**
+ * For a list of transactions to be signed as given (their fees and group ids are fixed, so they
+ * cannot be raised): the total fee declared by the first atomic group (or lone transaction) that
+ * holds a Falcon-1024 signer and does not pool enough fee to cover its signers, else undefined.
+ * Fees pool only inside an atomic group; an ungrouped transaction stands alone.
+ */
+export const lowFalconGroupFee = (
+  transactions: {
+    fee: bigint;
+    falcon1024: boolean;
+    group?: Uint8Array | number[];
+  }[],
+  minFee: bigint = 1000n,
+): number | undefined => {
+  const groups = new Map<string, { fee: bigint; falcon1024: boolean }[]>();
+  transactions.forEach((tx, index) => {
+    const key = tx.group?.length
+      ? Array.from(tx.group).join(",")
+      : `solo-${index}`;
+    const members = groups.get(key) ?? [];
+    members.push({ fee: tx.fee, falcon1024: tx.falcon1024 });
+    groups.set(key, members);
+  });
+  for (const members of groups.values()) {
+    if (!members.some((m) => m.falcon1024)) continue;
+    if (groupFeeShortfall(members, minFee) > 0n) {
+      return Number(members.reduce((sum, m) => sum + m.fee, 0n));
+    }
+  }
+  return undefined;
+};

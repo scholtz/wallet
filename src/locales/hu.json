@@ -161,7 +161,9 @@
     "payment_received": "A küldött összeg megérkezett",
     "go_back_to_merchant": "Vissza a kereskedőhöz",
     "waiting_for_payment": "Fizetésre vár…",
-    "error_asset": "Hiba történt az eszköz betöltésekor: "
+    "error_asset": "Hiba történt az eszköz betöltésekor: ",
+    "invalid_payment_uri": "Érvénytelen fizetési hivatkozás: nem tartalmaz Algorand fizetési címet.",
+    "unsupported_network": "Ez a fizetési hivatkozás olyan hálózatot nevez meg, amelyet a fizetési átjáró nem támogat."
   },
   "gateway": {
     "title": "Szabadon használható, nyílt forráskódú, közvetítők nélküli fizetési átjáró",
@@ -1377,7 +1379,8 @@
   },
   "sign_all": {
     "title": "Több tranzakció aláírása",
-    "transaction_confirmed": "A tranzakció megerősítve. Forduló:"
+    "transaction_confirmed": "A tranzakció megerősítve. Forduló:",
+    "falcon_fee_warning": "Ez a fiók Falcon-1024 (poszt-kvantum) kulcsot használ. Az aláírása nagy, ezért a hálózat magasabb díjat igényel (tranzakciónként nagyjából a minimális díj háromszorosát), mint amennyit a tranzakciók megadnak ({fee}). A tranzakciókat elutasíthatják, hacsak a csoport többi tranzakciója nem fedezi a különbözetet."
   },
   "arc14": {
     "service_realm_title": "Szolgáltatási tartomány",
