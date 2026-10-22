@@ -231,7 +231,10 @@ export default {
     this.makeAsset();
     if (!this.b64decode.paynote) {
       this.b64decode.paynote = "a-wallet/" + uuidv4();
-      this.origcode = this.origcode + "&xnote=" + this.b64decode.paynote;
+      this.origcode +=
+        (this.origcode.includes("?") ? "&" : "?") +
+        "xnote=" +
+        this.b64decode.paynote;
     }
     this.pollTimer = window.setInterval(() => {
       this.getNotifications();
@@ -295,13 +298,10 @@ export default {
       }
     },
     setWebProtocol() {
-      if (this.origcode.startsWith("web+algorand:")) {
-        this.codeP2 = this.origcode;
-      } else if (this.origcode.startsWith("algorand:")) {
-        this.codeP2 = "web+" + this.origcode;
-      } else {
-        this.codeP2 = "web+algorand://" + this.origcode;
-      }
+      // origcode is always algorand:// or web+algorand:// by now (isAlgorandPaymentUri).
+      this.codeP2 = this.origcode.startsWith("web+")
+        ? this.origcode
+        : "web+" + this.origcode;
     },
     async lowerCountDown() {
       if (this.countDown > 0) {
@@ -346,6 +346,9 @@ export default {
             this.$t("merchant.error_asset") + this.b64decode.asset;
           this.openError(errorMsg);
           this.b64decode.error = errorMsg;
+          // The amount could not be validated against the asset, so nothing may be payable.
+          this.origcode = "";
+          window.clearInterval(this.pollTimer);
           return;
         }
       } else {

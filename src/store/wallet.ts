@@ -1161,12 +1161,6 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     { dispatch, commit },
     { name, addr }: DeleteAccountPayload
   ) {
-    if (!name) {
-      dispatch("toast/openError", "Plase define account name", {
-        root: true,
-      });
-      return false;
-    }
     if (!addr) {
       dispatch("toast/openError", "Plase define account addr", {
         root: true,

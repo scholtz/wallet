@@ -110,6 +110,9 @@ const BASE64_PATTERN = /^[A-Za-z0-9+/]+={0,2}$/;
 // ask for: an absurd count would freeze the tab on unlock.
 const WALLET_SALT_BYTES = 16;
 const WALLET_IV_BYTES = 12;
+const AES_GCM_TAG_BYTES = 16;
+// "Salted__" + 8 byte salt + at least one 16 byte AES block, base64 encoded.
+const MIN_LEGACY_BLOB_LENGTH = 44;
 const MAX_WALLET_PBKDF2_ITERATIONS = 10_000_000;
 
 const base64ByteLength = (value: string): number =>
@@ -139,10 +142,15 @@ export function validateWalletBlob(
       Number(iterations) <= MAX_WALLET_PBKDF2_ITERATIONS &&
       [salt, iv, ciphertext].every((p) => BASE64_PATTERN.test(p)) &&
       base64ByteLength(salt) === WALLET_SALT_BYTES &&
-      base64ByteLength(iv) === WALLET_IV_BYTES;
+      base64ByteLength(iv) === WALLET_IV_BYTES &&
+      base64ByteLength(ciphertext) >= AES_GCM_TAG_BYTES;
     return valid ? { ok: true, data: blob } : { ok: false, reason: "invalid" };
   }
-  if (blob.startsWith(LEGACY_PREFIX) && BASE64_PATTERN.test(blob)) {
+  if (
+    blob.startsWith(LEGACY_PREFIX) &&
+    blob.length >= MIN_LEGACY_BLOB_LENGTH &&
+    BASE64_PATTERN.test(blob)
+  ) {
     return { ok: true, data: blob };
   }
   return { ok: false, reason: "invalid" };
