@@ -161,7 +161,8 @@
     "payment_received": "Pago realizado",
     "go_back_to_merchant": "Regresar al comercio",
     "waiting_for_payment": "Esperando el pago",
-    "error_asset": "Error en la búsqueda del activo:"
+    "error_asset": "Error en la búsqueda del activo:",
+    "invalid_payment_uri": "Enlace de pago no válido: no contiene una dirección de pago de Algorand."
   },
   "gateway": {
     "title": "Pasarela de pago gratuita de código abierto sin intermediarios",
@@ -1377,7 +1378,8 @@
   },
   "sign_all": {
     "title": "Firmar múltiples transacciones",
-    "transaction_confirmed": "Transacción confirmada en ronda"
+    "transaction_confirmed": "Transacción confirmada en ronda",
+    "falcon_fee_warning": "Esta cuenta usa una clave Falcon-1024 (poscuántica). Su firma es grande, por lo que la red exige una comisión mayor (aproximadamente tres veces la comisión mínima por transacción) que la declarada en las transacciones ({fee}). Las transacciones pueden ser rechazadas salvo que otras transacciones del grupo cubran la diferencia."
   },
   "arc14": {
     "service_realm_title": "Dominio de servicio",

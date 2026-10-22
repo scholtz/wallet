@@ -3,6 +3,9 @@
 import { test, expect } from "@playwright/test";
 import {
   mergePrivateAccounts,
+  removeAccountByAddr,
+  validateWalletBlob,
+  MAX_WALLET_IMPORT_BYTES,
   serializePersistedWallet,
   validateNewPassword,
   MIN_PASSWORD_LENGTH,
@@ -168,5 +171,69 @@ test.describe("mergePrivateAccounts documented behaviour (AW-2026-073)", () => {
   test("an empty persisted list is not trusted for dropping: a stale tab keeps (re-adds) its accounts, the key-safe direction", () => {
     const memory = [acct("A"), acct("B")];
     expect(mergePrivateAccounts(memory, [], new Set(["A", "B"]))).toEqual(memory);
+  });
+});
+
+test.describe("removeAccountByAddr (AW-2026-079)", () => {
+  test("removes the account with that address only", () => {
+    const accounts = [acct("A"), acct("B"), acct("C")];
+    expect(removeAccountByAddr(accounts, "B")).toBe(true);
+    expect(accounts.map((a) => a.addr)).toEqual(["A", "C"]);
+  });
+
+  test("an unknown address removes nothing - in particular not the last account", () => {
+    const accounts = [acct("A"), acct("B")];
+    expect(removeAccountByAddr(accounts, "ZZZ")).toBe(false);
+    expect(accounts.map((a) => a.addr)).toEqual(["A", "B"]);
+  });
+
+  test("a stale or renamed label does not matter, the address decides", () => {
+    const accounts = [acct("A", { name: "renamed" }), acct("B")];
+    expect(removeAccountByAddr(accounts, "A")).toBe(true);
+    expect(accounts.map((a) => a.addr)).toEqual(["B"]);
+  });
+
+  test("an empty list is fine", () => {
+    expect(removeAccountByAddr([], "A")).toBe(false);
+  });
+});
+
+test.describe("validateWalletBlob (AW-2026-078)", () => {
+  const envelope =
+    "AWEv1.600000.c2FsdHNhbHRzYWx0c2FsdA==.aXZpdml2aXZpdg==.Y2lwaGVydGV4dA==";
+  const legacy = "U2FsdGVkX1/P98d6R7QllvTWEyp77oEiZ1kkr6NOcNQ=";
+
+  test("accepts an AWEv1 envelope and a legacy CryptoJS string", () => {
+    expect(validateWalletBlob(envelope)).toEqual({ ok: true, data: envelope });
+    expect(validateWalletBlob(legacy)).toEqual({ ok: true, data: legacy });
+  });
+
+  test("trims the whitespace a text editor or download may add", () => {
+    expect(validateWalletBlob(`\n${envelope}\r\n`)).toEqual({
+      ok: true,
+      data: envelope,
+    });
+  });
+
+  test("refuses text that is not a wallet backup", () => {
+    for (const bad of [
+      "hello",
+      '{"privateAccounts":[]}',
+      "",
+      "<html></html>",
+      "AWEv1.abc.c2FsdA==.aXY=.Y2lwaGVy",
+      "AWEv1.0.c2FsdA==.aXY=.Y2lwaGVy",
+      "AWEv1.600000.c2FsdA==.aXY=",
+      "AWEv1.600000.c2FsdA==.aXY=.Y2lwaGVy.extra",
+      "AWEv1.600000.not base64!.aXY=.Y2lwaGVy",
+      "U2FsdGVkX1 with spaces",
+    ]) {
+      expect(validateWalletBlob(bad)).toEqual({ ok: false, reason: "invalid" });
+    }
+  });
+
+  test("refuses files above the size cap", () => {
+    const big = "U2FsdGVkX1" + "A".repeat(MAX_WALLET_IMPORT_BYTES);
+    expect(validateWalletBlob(big)).toEqual({ ok: false, reason: "too_large" });
   });
 });

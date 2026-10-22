@@ -161,7 +161,8 @@
     "payment_received": "Payment received",
     "go_back_to_merchant": "Go back to merchant",
     "waiting_for_payment": "Waiting for the payment",
-    "error_asset": "Error fetching asset: "
+    "error_asset": "Error fetching asset: ",
+    "invalid_payment_uri": "Invalid payment link: it does not contain an algorand payment address."
   },
   "gateway": {
     "title": "Free open source payment gateway without a middleman",
@@ -1377,7 +1378,8 @@
   },
   "sign_all": {
     "title": "Sign multiple transactions",
-    "transaction_confirmed": "Transaction confirmed in round"
+    "transaction_confirmed": "Transaction confirmed in round",
+    "falcon_fee_warning": "This account uses a Falcon-1024 (post-quantum) key. Its signature is large, so the network needs a higher fee (about three times the minimum fee per transaction) than the transactions declare ({fee}). The transactions may be rejected unless other transactions in the group cover the difference."
   },
   "arc14": {
     "service_realm_title": "Service realm",

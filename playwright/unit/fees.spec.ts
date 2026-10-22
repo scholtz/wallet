@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import {
   groupFeeShortfall,
+  lowFalconGroupFee,
   FALCON1024_EXTRA_USAGE,
   MAX_AUTO_FEE_MICROALGOS,
   USAGE_PER_MIN_FEE,
@@ -116,5 +117,52 @@ test.describe("groupFeeShortfall (Falcon fee warning in the Direct popup)", () =
 
   test("a different network minimum fee scales the requirement", () => {
     expect(groupFeeShortfall([{ fee: 3000n, falcon1024: true }], 2000n)).toBe(3000n);
+  });
+});
+
+test.describe("lowFalconGroupFee (SignAll / Direct Falcon fee warning)", () => {
+  const group = new Uint8Array([1, 2, 3]);
+
+  test("a lone Falcon transaction paying one min fee is flagged with its fee", () => {
+    expect(lowFalconGroupFee([{ fee: 1000n, falcon1024: true }])).toBe(1000);
+  });
+
+  test("a Falcon transaction paying three min fees is fine", () => {
+    expect(lowFalconGroupFee([{ fee: 3000n, falcon1024: true }])).toBeUndefined();
+  });
+
+  test("ordinary signers are never flagged", () => {
+    expect(lowFalconGroupFee([{ fee: 0n, falcon1024: false }])).toBeUndefined();
+  });
+
+  test("fees pool inside an atomic group", () => {
+    expect(
+      lowFalconGroupFee([
+        { fee: 0n, falcon1024: true, group },
+        { fee: 4000n, falcon1024: false, group },
+      ]),
+    ).toBeUndefined();
+  });
+
+  test("ungrouped transactions do not pool", () => {
+    expect(
+      lowFalconGroupFee([
+        { fee: 0n, falcon1024: true },
+        { fee: 4000n, falcon1024: false },
+      ]),
+    ).toBe(0);
+  });
+
+  test("a short group reports the group's total declared fee", () => {
+    expect(
+      lowFalconGroupFee([
+        { fee: 1000n, falcon1024: true, group },
+        { fee: 1000n, falcon1024: false, group },
+      ]),
+    ).toBe(2000);
+  });
+
+  test("no transactions, no warning", () => {
+    expect(lowFalconGroupFee([])).toBeUndefined();
   });
 });

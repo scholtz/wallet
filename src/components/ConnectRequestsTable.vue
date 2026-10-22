@@ -707,7 +707,7 @@ import { getArc14Realm, isArc14AuthTransaction } from "../scripts/encoding/arc14
 import { isAssetOptIn } from "../scripts/transactionTypes";
 import { signingEnvOf, type DirectNetworkView } from "../scripts/direct/networks";
 import { pickSigningEnv } from "../scripts/signingEnv";
-import { groupFeeShortfall } from "../scripts/fees";
+import { lowFalconGroupFee } from "../scripts/fees";
 import { describeApplicationCall, isLifecycle } from "../scripts/direct/appCall";
 import DirectAppCard from "./DirectAppCard.vue";
 import {
@@ -1048,28 +1048,19 @@ const getSignerTypeLocal = (from: string, genesisId?: string): SignerType => {
  * site fixed the fee (and the group id), the wallet cannot raise it: when the group's pooled fees
  * do not cover what its signers need, this returns the total fee the site set (else undefined).
  */
-const lowFalconFee = (request: RequestItem): number | undefined => {
-  // Fees pool only inside an atomic group; an ungrouped transaction stands alone.
-  const groups = new Map<string, { fee: bigint; falcon1024: boolean }[]>();
-  (request.transactions ?? []).forEach((tx, index) => {
-    const sender = tx.txn?.sender ? encodeAddress(tx.txn.sender) : "";
-    const falcon1024 =
-      sender !== "" && getSignerTypeLocal(sender, tx.txn.genesisID) === "falcon1024";
-    const group = tx.txn?.group?.length
-      ? Buffer.from(tx.txn.group).toString("base64")
-      : `solo-${index}`;
-    const members = groups.get(group) ?? [];
-    members.push({ fee: BigInt(tx.txn?.fee ?? 0), falcon1024 });
-    groups.set(group, members);
-  });
-  for (const members of groups.values()) {
-    if (!members.some((m) => m.falcon1024)) continue;
-    if (groupFeeShortfall(members) > 0n) {
-      return Number(members.reduce((sum, m) => sum + m.fee, 0n));
-    }
-  }
-  return undefined;
-};
+const lowFalconFee = (request: RequestItem): number | undefined =>
+  lowFalconGroupFee(
+    (request.transactions ?? []).map((tx) => {
+      const sender = tx.txn?.sender ? encodeAddress(tx.txn.sender) : "";
+      return {
+        fee: BigInt(tx.txn?.fee ?? 0),
+        falcon1024:
+          sender !== "" &&
+          getSignerTypeLocal(sender, tx.txn.genesisID) === "falcon1024",
+        group: tx.txn?.group,
+      };
+    }),
+  );
 
 const _arrayBufferToBase64 = (buffer: Uint8Array) => {
   let binary = "";

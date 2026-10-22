@@ -161,7 +161,8 @@
     "payment_received": "Payment received",
     "go_back_to_merchant": "Go back to merchant",
     "waiting_for_payment": "Waiting for the payment",
-    "error_asset": "Error fetching asset: "
+    "error_asset": "Error fetching asset: ",
+    "invalid_payment_uri": "Ongeldige betaallink: deze bevat geen Algorand-betaaladres."
   },
   "gateway": {
     "title": "Free opensource payment gateway without middleman",
@@ -1377,7 +1378,8 @@
   },
   "sign_all": {
     "title": "Sign multiple transactions",
-    "transaction_confirmed": "Transaction confirmed in round"
+    "transaction_confirmed": "Transaction confirmed in round",
+    "falcon_fee_warning": "Dit account gebruikt een Falcon-1024-sleutel (post-kwantum). De handtekening is groot, daarom vraagt het netwerk een hogere vergoeding (ongeveer drie keer de minimale vergoeding per transactie) dan de transacties opgeven ({fee}). De transacties kunnen worden geweigerd tenzij andere transacties in de groep het verschil dekken."
   },
   "arc14": {
     "service_realm_title": "Service realm",
