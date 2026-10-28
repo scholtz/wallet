@@ -76,7 +76,7 @@
     "path-browserify": "^1.0.1",
     "primeflex": "^4.0.0",
     "primeicons": "^8.0.2",
-    "primevue": "^4.5.5",
+    "primevue": "^5.0.3",
     "qrcode-reader-vue3": "^4.1.0",
     "qrcode-vue3": "^1.7.1",
     "register-service-worker": "^1.7.2",

@@ -342,8 +342,8 @@ importers:
         specifier: ^8.0.2
         version: 8.0.2
       primevue:
-        specifier: ^4.5.5
-        version: 4.5.5(vue@3.5.44(typescript@6.0.3))
+        specifier: ^5.0.3
+        version: 5.0.3(vue@3.5.44(typescript@6.0.3))
       qrcode-reader-vue3:
         specifier: ^4.1.0
         version: 4.1.0(@types/emscripten@1.41.5)(typescript@6.0.3)
@@ -1842,8 +1842,20 @@ packages:
   '@popperjs/core@2.11.8':
     resolution: {integrity: sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==}
 
+  '@primeicons/core@8.0.2':
+    resolution: {integrity: sha512-VySryvfIQH2xzNVXISIQg357gAt4oFYX2vKy27tWMB7UvEHu/gjRpeilBty3LBln7oVuAdFLPYOWr/FtTH8eJw==}
+
+  '@primeicons/vue@8.0.2':
+    resolution: {integrity: sha512-HRb3kgnj0XbqZvYCkgnF5LSAKNoRAgU8hwXcVqeCSKQKO3uJoI4oYDtEwULM8Rxy2avhiJuozlVHugskDF4HdQ==}
+    peerDependencies:
+      vue: ^3
+
   '@primeui/license-manager@1.1.0':
     resolution: {integrity: sha512-irjhOGs6Xjwh1JhMyXtdUsYCsve6kBySZzDUhS/mWxsjwQm/wSN7oulyP/f5huJKdhZSzaN6rVApwpp4nDWE1g==}
+
+  '@primeuix/motion@1.0.0':
+    resolution: {integrity: sha512-rqpFRKmUVp9BI3YQKdok0rLUwzYShXzuuxy72Kq74xYRV14eR+4+XrIXOdyVs7j7CYV0ajYowiRpJCrVgdrq6A==}
+    engines: {node: '>=12.11.0'}
 
   '@primeuix/styled@0.7.4':
     resolution: {integrity: sha512-QSO/NpOQg8e9BONWRBx9y8VGMCMYz0J/uKfNJEya/RGEu7ARx0oYW0ugI1N3/KB1AAvyGxzKBzGImbwg0KUiOQ==}
@@ -1853,8 +1865,12 @@ packages:
     resolution: {integrity: sha512-6SXoeQWwKswSqTv1ygaXNfY7otHo6Rb9mxbKJK5WF8adWlZ6CtwmlNfIP+p8cH/zGccsei/5Bu7IetXlMoZGjQ==}
     engines: {node: '>=12.11.0'}
 
-  '@primeuix/styles@2.0.3':
-    resolution: {integrity: sha512-2ykAB6BaHzR/6TwF8ShpJTsZrid6cVIEBVlookSdvOdmlWuevGu5vWOScgIwqWwlZcvkFYAGR/SUV3OHCTBMdw==}
+  '@primeuix/styled@1.1.0':
+    resolution: {integrity: sha512-Bkd8hRgui1quRPmi/FBRfTDS6/mwaUUiOFPSWZpUpqMqs3mz4ESrDG/oylh7knJsTxuLWa4YbwqPWy6c/Ray3w==}
+    engines: {node: '>=12.11.0'}
+
+  '@primeuix/styles@3.0.2':
+    resolution: {integrity: sha512-Xt02aEFPIINCcd2M0vVz95u3fsJnZFP31jxjx7qFDVKhHrCI2g9pOkNQszdNoF1dmkvazxGjy0Ch2n8dSOHKbg==}
 
   '@primeuix/themes@3.0.1':
     resolution: {integrity: sha512-UmHzvA16DKb3dcE+2J8NbgK6eI5zFJQbCaNBW1YyY+ADZEVId4H275TPTcwlZ/8ywt0AFpunEPiyLQE1oub9pA==}
@@ -1867,15 +1883,23 @@ packages:
     resolution: {integrity: sha512-4Cz5HY1XHqJwhq1ieml6l5IDkWt41Amdw/t2rAQxNXv7WwAhgb8QrnjJM6scW9h1D0PjQgm9Z3RgNlWCU+WZng==}
     engines: {node: '>=12.11.0'}
 
+  '@primeuix/utils@0.8.3':
+    resolution: {integrity: sha512-UyFtnzxHfG7UqbOqUsjMXpe96h36eDre9Iw+zkZuJHsplHdoXNWgovDkoGZNxw4V5ZUHP1Y3pIu0kJw0OhmT0g==}
+    engines: {node: '>=12.11.0'}
+
   '@primevue/core@4.5.5':
     resolution: {integrity: sha512-JpkXhq1ddc70JdsC3CC4dM+UbeeWuCW/8DpS9dNBfrOk824TLSlRlMEGFyVKqRMn5WPQvYLiy3xXfLQeNdSqhQ==}
     engines: {node: '>=12.11.0'}
     peerDependencies:
       vue: ^3.5.0
 
-  '@primevue/icons@4.5.5':
-    resolution: {integrity: sha512-eteOhTdAOXEYE9qW1AOrBBgDxQ2szHJxSkEK1XVdV2TKxGM5FQf03Ovms0VDyZTc16XBIgvwYjXJQS0BPbhPaA==}
-    engines: {node: '>=12.11.0'}
+  '@primevue/core@5.0.3':
+    resolution: {integrity: sha512-ixXNAm+ZucyIJLXIdysiVgiuSbdC/X033g8IbYDXKPM3A8P+xJmwUBf7LUmALQSxNyJshrOOQrUg6Q8x9YbTEg==}
+    peerDependencies:
+      vue: ^3.5.0
+
+  '@primevue/icons@5.0.3':
+    resolution: {integrity: sha512-oCLPneUC4tDGNAgknDp/bePbmdOwT7lv/r0ti2vllrGSYmx4H8Ur3wli0IQv3LoAZSTwnbBGYNI0LWZgnOpIvQ==}
 
   '@reown/walletkit@1.6.0':
     resolution: {integrity: sha512-vJh5gaGYIYzSw4Ty2sCDNG1CTh7IhD3o9TXjlUyrWqwXKBEVX919456WuvwrIEluo4UqieIMMkwlumXG50S+8g==}
@@ -5074,9 +5098,8 @@ packages:
   primeicons@8.0.2:
     resolution: {integrity: sha512-o3UQey3nXMEQRAudVYZZWswz6mmnWpPnksYb7wIu4rEEVfdS3pLnxnmSJx5gKBRMer1MxnhJZG5QRDxVVJFNkA==}
 
-  primevue@4.5.5:
-    resolution: {integrity: sha512-Kv5REIewCdP806QaoU+4nBXfmpzOGFKkZ9qH4KsL6MjiAQVc4PUzypt8erl4r3Vzh3nr3aWZIxkxYRRsLGiX2A==}
-    engines: {node: '>=12.11.0'}
+  primevue@5.0.3:
+    resolution: {integrity: sha512-E8urvyWFlKBP0MD5FVNtOkspCDl+pZgf5sZ1Zvw0t+a41EtTaUW3pC+TeolwklHVLCNKF+SN4vZ5tCxTJCO4Yw==}
 
   process-nextick-args@2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
@@ -7792,7 +7815,21 @@ snapshots:
 
   '@popperjs/core@2.11.8': {}
 
+  '@primeicons/core@8.0.2':
+    dependencies:
+      '@primeuix/utils': 0.8.3
+
+  '@primeicons/vue@8.0.2(vue@3.5.44(typescript@6.0.3))':
+    dependencies:
+      '@primeicons/core': 8.0.2
+      '@primeuix/utils': 0.8.3
+      vue: 3.5.44(typescript@6.0.3)
+
   '@primeui/license-manager@1.1.0': {}
+
+  '@primeuix/motion@1.0.0':
+    dependencies:
+      '@primeuix/utils': 0.8.3
 
   '@primeuix/styled@0.7.4':
     dependencies:
@@ -7803,9 +7840,13 @@ snapshots:
       '@primeui/license-manager': 1.1.0
       '@primeuix/utils': 0.8.2
 
-  '@primeuix/styles@2.0.3':
+  '@primeuix/styled@1.1.0':
     dependencies:
-      '@primeuix/styled': 0.7.4
+      '@primeuix/utils': 0.8.3
+
+  '@primeuix/styles@3.0.2':
+    dependencies:
+      '@primeuix/styled': 1.1.0
 
   '@primeuix/themes@3.0.1':
     dependencies:
@@ -7815,16 +7856,25 @@ snapshots:
 
   '@primeuix/utils@0.8.2': {}
 
+  '@primeuix/utils@0.8.3': {}
+
   '@primevue/core@4.5.5(vue@3.5.44(typescript@6.0.3))':
     dependencies:
       '@primeuix/styled': 0.7.4
       '@primeuix/utils': 0.6.4
       vue: 3.5.44(typescript@6.0.3)
 
-  '@primevue/icons@4.5.5(vue@3.5.44(typescript@6.0.3))':
+  '@primevue/core@5.0.3(vue@3.5.44(typescript@6.0.3))':
     dependencies:
-      '@primeuix/utils': 0.6.4
-      '@primevue/core': 4.5.5(vue@3.5.44(typescript@6.0.3))
+      '@primeui/license-manager': 1.1.0
+      '@primeuix/styled': 1.1.0
+      '@primeuix/utils': 0.8.3
+      vue: 3.5.44(typescript@6.0.3)
+
+  '@primevue/icons@5.0.3(vue@3.5.44(typescript@6.0.3))':
+    dependencies:
+      '@primeuix/utils': 0.8.3
+      '@primevue/core': 5.0.3(vue@3.5.44(typescript@6.0.3))
     transitivePeerDependencies:
       - vue
 
@@ -12025,13 +12075,16 @@ snapshots:
 
   primeicons@8.0.2: {}
 
-  primevue@4.5.5(vue@3.5.44(typescript@6.0.3)):
+  primevue@5.0.3(vue@3.5.44(typescript@6.0.3)):
     dependencies:
-      '@primeuix/styled': 0.7.4
-      '@primeuix/styles': 2.0.3
-      '@primeuix/utils': 0.6.4
-      '@primevue/core': 4.5.5(vue@3.5.44(typescript@6.0.3))
-      '@primevue/icons': 4.5.5(vue@3.5.44(typescript@6.0.3))
+      '@primeicons/vue': 8.0.2(vue@3.5.44(typescript@6.0.3))
+      '@primeui/license-manager': 1.1.0
+      '@primeuix/motion': 1.0.0
+      '@primeuix/styled': 1.1.0
+      '@primeuix/styles': 3.0.2
+      '@primeuix/utils': 0.8.3
+      '@primevue/core': 5.0.3(vue@3.5.44(typescript@6.0.3))
+      '@primevue/icons': 5.0.3(vue@3.5.44(typescript@6.0.3))
     transitivePeerDependencies:
       - vue
 
