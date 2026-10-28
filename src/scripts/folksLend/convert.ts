@@ -74,7 +74,8 @@ export const toBaseUnitsExact = (value: number, decimals: number): bigint | unde
   const text = /e/i.test(String(value)) ? value.toFixed(20).replace(/0+$/, "") : String(value);
   const [whole, frac = ""] = text.split(".");
   if (frac.length > decimals) return undefined;
-  return BigInt(whole + frac.padEnd(decimals, "0"));
+  const result = BigInt(whole + frac.padEnd(decimals, "0"));
+  return result > 0n ? result : undefined;
 };
 
 /**

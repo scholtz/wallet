@@ -95,6 +95,7 @@ test.describe("toBaseUnitsExact", () => {
     expect(toBaseUnitsExact(-1, 6)).toBeUndefined();
     expect(toBaseUnitsExact(NaN, 6)).toBeUndefined();
     expect(toBaseUnitsExact(1e-7, 6)).toBeUndefined();
+    expect(toBaseUnitsExact(1e-21, 6)).toBeUndefined();
     expect(toBaseUnitsExact(1e-7, 8)).toBe(10n);
   });
 });
