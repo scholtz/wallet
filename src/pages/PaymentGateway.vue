@@ -423,7 +423,10 @@ export default {
     dataOk() {
       return (
         algosdk.isValidAddress(this.payTo) &&
-        !!this.amount &&
+        Number.isFinite(this.amount) &&
+        this.amount > 0 &&
+        // Far below the 1e21 where toFixed switches to exponent notation.
+        this.amount < 1e15 &&
         this.assetDecimals !== undefined
       );
     },

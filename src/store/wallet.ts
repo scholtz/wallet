@@ -479,16 +479,33 @@ const getRequiredLocalStorage = (key: string): string => {
   }
   return value;
 };
+/** A watch-only entry: an address with no key, type or multisig parameters of its own. */
+const isWatchOnly = (account: WalletAccount): boolean =>
+  !account.type &&
+  !account.sk &&
+  !account.params &&
+  !account.hdMnemonic &&
+  !account.falconMnemonic &&
+  !account.falconPrivateKey;
+
 /**
  * Adds an account unless one with the same address is already in the wallet. A second copy
  * would survive "delete account" and shadow the first one (AW-2026-089), so every way of adding
- * an account (ed25519, HD, multisig, Ledger, watch, ...) goes through here.
+ * an account (ed25519, HD, multisig, Ledger, watch, ...) goes through here, and it runs before
+ * the mutation changes anything else. The one exception is a watch-only entry, which an account
+ * that can sign for the same address replaces in place.
  */
 const pushNewAccount = (state: WalletState, account: WalletAccount): void => {
-  if (state.privateAccounts.some((a) => a.addr === account.addr)) {
-    throw new Error("This account is already present in the wallet");
+  const index = state.privateAccounts.findIndex((a) => a.addr === account.addr);
+  if (index === -1) {
+    state.privateAccounts.push(account);
+    return;
   }
-  state.privateAccounts.push(account);
+  if (isWatchOnly(state.privateAccounts[index]) && !isWatchOnly(account)) {
+    state.privateAccounts.splice(index, 1, account);
+    return;
+  }
+  throw new Error("This account is already present in the wallet");
 };
 
 const mutations: MutationTree<WalletState> = {
@@ -513,9 +530,9 @@ const mutations: MutationTree<WalletState> = {
       address: addr,
       name,
     };
+    pushNewAccount(state, account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
-    pushNewAccount(state, account);
   },
   addArc200Asset(state, { addr, arc200Info, network }: AddArc200AssetPayload) {
     const acc = state.privateAccounts.find((x) => x.addr == addr);
@@ -1123,10 +1140,6 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     }
     try {
       const secret = algosdk.mnemonicToSecretKey(mn);
-      // A second copy would survive "delete account" and shadow the first one (AW-2026-089).
-      if (this.state.wallet.privateAccounts.some((a) => a.addr === String(secret.addr))) {
-        throw Error("This account is already present in the wallet");
-      }
       await commit("addPrivateAccount", {
         name,
         secret,
@@ -1294,9 +1307,6 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       }
       const hdAccountIndex = accountIndex ?? 0;
       const addr = await hdDeriveAddress(finalMnemonic, hdAccountIndex, 0);
-      if (this.state.wallet.privateAccounts.some((a) => a.addr === addr)) {
-        throw Error("This account is already present in the wallet");
-      }
       await commit("addHdWalletAccount", {
         name,
         addr,

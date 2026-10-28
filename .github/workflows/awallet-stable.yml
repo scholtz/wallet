@@ -41,6 +41,11 @@ jobs:
           else
             echo "Using supplied tag: $from_tag"
           fi
+          # The tag later becomes part of an image reference: nothing but a plain tag may pass.
+          if ! printf '%s' "$from_tag" | grep -Eq '^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$'; then
+            echo "::error::from_tag is not a valid image tag"
+            exit 1
+          fi
           echo "from_tag=$from_tag" >> "$GITHUB_OUTPUT"
 
       - name: Compute version
@@ -68,10 +73,11 @@ jobs:
         env:
           HARBOR_REGISTRY: ${{ secrets.HARBOR_REGISTRY }}
           HARBOR_PROJECT: ${{ secrets.HARBOR_PROJECT }}
+          FROM_TAG: ${{ steps.source.outputs.from_tag }}
         run: |
           set -euo pipefail
           version="${{ steps.version.outputs.version }}"
-          from="scholtz2/a-wallet:${{ steps.source.outputs.from_tag }}"
+          from="scholtz2/a-wallet:$FROM_TAG"
           harbor_repo="$HARBOR_REGISTRY/$HARBOR_PROJECT/a-wallet"
 
           docker pull "$from"

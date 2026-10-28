@@ -104,14 +104,16 @@ const parseAlgorandProtocolParameters = (
       const numericAmount = Number(amount);
       if (!Number.isNaN(numericAmount)) {
         payload.payamount = numericAmount / Math.pow(10, decimals);
-        payload.payamountbase = numericAmount;
+        // The text as written: a Number would lose precision above 2^53 and print in
+        // exponent form, and base-unit amounts feed the gateway's paid-check (AW-2026-084).
+        payload.payamountbase = amount;
       }
     }
     if (fee) {
       const numericFee = Number(fee);
       if (!Number.isNaN(numericFee)) {
         payload.fee = numericFee / Math.pow(10, decimals);
-        payload.feebase = numericFee;
+        payload.feebase = fee;
       }
     }
   } else {

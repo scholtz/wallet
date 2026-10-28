@@ -506,7 +506,7 @@
                     <tr
                       v-if="
                         txProps.data.type == 'appl' &&
-                        !showAppCard(txProps.data) &&
+                        !hideAppRows(txProps.data) &&
                         onCompleteLabel(txProps.data.txn)
                       "
                     >
@@ -614,7 +614,7 @@
                     <tr
                       v-if="
                         txProps.data.type == 'appl' &&
-                        !showAppCard(txProps.data)
+                        !hideAppRows(txProps.data)
                       "
                     >
                       <td>{{ $t("connect.app") }}:</td>
@@ -627,7 +627,7 @@
                       v-if="
                         txProps.data.type == 'appl' &&
                         !foreignNetwork &&
-                        !showAppCard(txProps.data)
+                        !hideAppRows(txProps.data)
                       "
                     >
                       <td colspan="2">
@@ -971,6 +971,12 @@ const requestPeer = (topic: string) =>
  * (AW-2026-082).
  */
 const showAppCard = (tx: TransactionWrapper) => isLifecycle(appSummary(tx));
+
+/**
+ * The compact Direct popup replaces the plain app rows by the card; elsewhere the card is added
+ * to them, so the method decoding and on-complete rows stay visible on WalletConnect / Liquid.
+ */
+const hideAppRows = (tx: TransactionWrapper) => compact.value && showAppCard(tx);
 
 // acfg / afrz / keyreg: describe what the transaction does (AW-2026-081).
 const specialSummary = (tx: TransactionWrapper) =>
