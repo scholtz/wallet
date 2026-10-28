@@ -502,7 +502,9 @@ const pushNewAccount = (state: WalletState, account: WalletAccount): void => {
     return;
   }
   if (isWatchOnly(state.privateAccounts[index]) && !isWatchOnly(account)) {
-    state.privateAccounts.splice(index, 1, account);
+    // Keep what was loaded for the watched address so it need not be fetched again.
+    const watched = state.privateAccounts[index];
+    state.privateAccounts.splice(index, 1, { ...account, data: account.data ?? watched.data });
     return;
   }
   throw new Error("This account is already present in the wallet");

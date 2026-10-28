@@ -624,7 +624,8 @@ const decimalsPower = computed(() => Math.pow(10, decimals.value ?? 6));
 const amountLong = computed(() =>
   Math.round(state.payamount * decimalsPower.value),
 );
-const feeLong = computed(() => state.fee * Math.pow(10, 6));
+// Rounded: 0.001001 * 1e6 is 1000.9999999999999 and the node client needs a whole number.
+const feeLong = computed(() => Math.round(state.fee * Math.pow(10, 6)));
 const payFrom = computed(() => {
   const accountParam = toSingleParam(
     route.params.account as string | string[] | undefined,

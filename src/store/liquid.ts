@@ -361,7 +361,14 @@ const actions: ActionTree<LiquidState, RootState> = {
         { root: true },
       );
     } else {
-      assertBoundToAddress(auth);
+      try {
+        assertBoundToAddress(auth);
+      } catch (error) {
+        // A stored credential the service now binds to another wallet is of no use: forget it
+        // so the next connect registers a fresh passkey instead of failing the same way.
+        await dispatch("wallet/wcRemoveItem", { key }, { root: true });
+        throw error;
+      }
     }
 
     const existing = rootState.liquid.sessions.find(
@@ -387,6 +394,8 @@ const actions: ActionTree<LiquidState, RootState> = {
         void dispatch("handleMessage", { requestId: id, payload });
       },
       onStatus: (id, status) => {
+        // A (re)established channel starts a new conversation: its peer may introduce itself again.
+        if (status === "connected") helloSeen.delete(id);
         commit("setSessionStatus", { requestId: id, status });
       },
     });

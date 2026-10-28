@@ -427,7 +427,9 @@ export default {
         this.amount > 0 &&
         // Far below the 1e21 where toFixed switches to exponent notation.
         this.amount < 1e15 &&
-        this.assetDecimals !== undefined
+        this.assetDecimals !== undefined &&
+        // An amount below the asset's smallest unit would become 0 and accept any dust payment.
+        toBaseUnits(this.amount, this.assetDecimals) > 0n
       );
     },
     settingsOk() {

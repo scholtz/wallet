@@ -180,6 +180,14 @@ test.describe("uriFeeToAlgo", () => {
     expect(uriFeeToAlgo(String(Math.round(0.001 * 1_000_000)))).toBe(0.001);
   });
 
+  test("every accepted fee survives the round trip to a whole number of microalgos", () => {
+    const broken: number[] = [];
+    for (let micro = 1000; micro <= 100_000; micro++) {
+      if (Math.round((uriFeeToAlgo(String(micro)) ?? 0) * 1_000_000) !== micro) broken.push(micro);
+    }
+    expect(broken).toEqual([]);
+  });
+
   test("drops fees below the network minimum", () => {
     expect(uriFeeToAlgo("0")).toBeUndefined();
     expect(uriFeeToAlgo("999")).toBeUndefined();

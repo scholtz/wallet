@@ -101,12 +101,13 @@ const parseAlgorandProtocolParameters = (
   if (decimals !== undefined) {
     payload.decimals = decimals;
     if (amount) {
+      // The text as written, also when it is not a number: a Number would lose precision above
+      // 2^53 and print in exponent form, and a malformed amount must reach the gateway's
+      // validation instead of vanishing as "no amount" (AW-2026-084).
+      payload.payamountbase = amount;
       const numericAmount = Number(amount);
       if (!Number.isNaN(numericAmount)) {
         payload.payamount = numericAmount / Math.pow(10, decimals);
-        // The text as written: a Number would lose precision above 2^53 and print in
-        // exponent form, and base-unit amounts feed the gateway's paid-check (AW-2026-084).
-        payload.payamountbase = amount;
       }
     }
     if (fee) {

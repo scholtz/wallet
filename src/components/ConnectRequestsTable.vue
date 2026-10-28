@@ -980,29 +980,23 @@ const showAppCard = (tx: TransactionWrapper) => isLifecycle(appSummary(tx));
 const hideAppRows = (tx: TransactionWrapper) => compact.value && showAppCard(tx);
 
 // acfg / afrz / keyreg: describe what the transaction does (AW-2026-081).
-// Cached per transaction like appSummary: the row templates read these several times per render.
-const specialSummaryCache = new WeakMap<object, ReturnType<typeof summarizeSpecialTransaction>>();
-const assetConfigCache = new WeakMap<object, ReturnType<typeof describeAssetConfig>>();
-const specialSummary = (tx: TransactionWrapper) => {
-  if (!tx?.txn) return undefined;
-  if (!specialSummaryCache.has(tx.txn)) {
-    specialSummaryCache.set(tx.txn, summarizeSpecialTransaction(tx.txn));
-  }
-  return specialSummaryCache.get(tx.txn);
+// The row templates read these several times per render: describe each transaction once.
+const memoByTxn = <T,>(describe: (txn: TransactionWrapper["txn"]) => T) => {
+  const cache = new WeakMap<object, T>();
+  return (tx: TransactionWrapper): T | undefined => {
+    if (!tx?.txn) return undefined;
+    if (!cache.has(tx.txn)) cache.set(tx.txn, describe(tx.txn));
+    return cache.get(tx.txn);
+  };
 };
+const specialSummary = memoByTxn(summarizeSpecialTransaction);
 const specialText = (tx: TransactionWrapper): string => {
   const summary = specialSummary(tx);
   return summary ? t("connect." + summary.key, summary.params) : "";
 };
-const assetConfigOf = (tx: TransactionWrapper) => {
-  if (!tx?.txn) return undefined;
-  if (!assetConfigCache.has(tx.txn)) {
-    assetConfigCache.set(tx.txn, describeAssetConfig(tx.txn));
-  }
-  return assetConfigCache.get(tx.txn);
-};
-const keyRegOf = (tx: TransactionWrapper) => (tx?.txn ? describeKeyReg(tx.txn) : undefined);
-const leaseOf = (tx: TransactionWrapper) => (tx?.txn ? describeLease(tx.txn) : undefined);
+const assetConfigOf = memoByTxn(describeAssetConfig);
+const keyRegOf = memoByTxn(describeKeyReg);
+const leaseOf = memoByTxn(describeLease);
 const assetRoles = (tx: TransactionWrapper) => {
   const cfg = assetConfigOf(tx);
   if (!cfg) return [];

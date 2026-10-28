@@ -4,8 +4,10 @@ import { expect, type BrowserContext, type Page } from "@playwright/test";
 import algosdk from "algosdk";
 import { createHash, createPublicKey, verify } from "node:crypto";
 import { DEFAULT_WALLET_PASSWORD } from "./wallet";
-export const WALLET_ORIGIN = "http://localhost:8080";
-export const DAPP_ORIGIN = "http://127.0.0.1:8080";
+// E2E_PORT lets the suite run when port 8080 is taken by another process.
+export const E2E_PORT = process.env.E2E_PORT ?? "8080";
+export const WALLET_ORIGIN = `http://localhost:${E2E_PORT}`;
+export const DAPP_ORIGIN = `http://127.0.0.1:${E2E_PORT}`;
 export const DAPP_URL = `${DAPP_ORIGIN}/__direct-dapp.html`;
 export const MAINNET_HASH = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=";
 export const TESTNET_HASH = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";

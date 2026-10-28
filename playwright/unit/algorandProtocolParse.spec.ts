@@ -20,8 +20,10 @@ test.describe("parseAlgorandProtocolParameters base units", () => {
     expect(link.payamount).toBeCloseTo(123.456789012345678901);
   });
 
-  test("a non-numeric amount is dropped when decimals are given", () => {
-    expect(parse("amount=abc&decimals=6").payamountbase).toBeUndefined();
+  test("a non-numeric amount is kept as text so the gateway can refuse the link", () => {
+    const link = parse("amount=abc&decimals=6");
+    expect(link.payamountbase).toBe("abc");
+    expect(link.payamount).toBeUndefined();
   });
 
   test("a payee without parameters has no amount or fee", () => {

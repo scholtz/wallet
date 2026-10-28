@@ -963,7 +963,8 @@ const decimalsPower = computed(() => {
 const amountLong = computed(() =>
   Math.round(payamount.value * decimalsPower.value)
 );
-const feeLong = computed(() => fee.value * 1_000_000);
+// Rounded: 0.001001 * 1e6 is 1000.9999999999999 and the node client needs a whole number.
+const feeLong = computed(() => Math.round(fee.value * 1_000_000));
 // closeRemainderTo / assetCloseTo drains the entire remaining balance or
 // asset holding to the given address (audit finding AW-2026-001) — always
 // surfaced with a prominent warning before signing.
