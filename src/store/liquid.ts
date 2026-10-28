@@ -360,8 +360,9 @@ const actions: ActionTree<LiquidState, RootState> = {
         { key, value: auth.credId },
         { root: true },
       );
+    } else {
+      assertBoundToAddress(auth);
     }
-    assertBoundToAddress(auth);
 
     const existing = rootState.liquid.sessions.find(
       (s) => s.requestId === requestId,
@@ -449,7 +450,6 @@ const actions: ActionTree<LiquidState, RootState> = {
         // name and URL under a request the user is already reviewing (AW-2026-097). Kept in
         // memory only, so a reconnect after a reload may refresh the stored metadata.
         if (params?.metadata && !helloSeen.has(requestId)) {
-          helloSeen.add(requestId);
           commit("setSessionPeer", {
             requestId,
             peer: sanitizePeerMetadata(params.metadata),
@@ -458,6 +458,7 @@ const actions: ActionTree<LiquidState, RootState> = {
                 ? params.providerId.slice(0, 128)
                 : undefined,
           });
+          helloSeen.add(requestId);
           await persistLiquidSessions(dispatch, state.sessions);
         }
         const result: HelloResult = {

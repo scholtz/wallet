@@ -592,7 +592,7 @@
     "process_payment": "Zpracovat platbu",
     "tx_type": "Typ transakce",
     "asset_optin": "Přihlášení k assetu (opt-in)",
-    "uri_fee_ignored": "Poplatek z platebního odkazu byl ignorován, protože je neplatný nebo vyšší než 0,1 ALGO."
+    "uri_fee_ignored": "Poplatek z platebního odkazu byl ignorován, protože je neplatný, nižší než 0,001 ALGO nebo vyšší než 0,1 ALGO."
   },
   "settings": {
     "title": "Nastavení",

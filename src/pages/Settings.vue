@@ -492,11 +492,12 @@ export default {
         passw2: this.passw2,
         passw3: this.passw3,
       });
-      // Neither the old nor the new password stays in the component afterwards (AW-2026-099).
-      this.passw1 = "";
-      this.passw2 = "";
-      this.passw3 = "";
       if (result) {
+        // Neither the old nor the new password stays in the component afterwards (AW-2026-099).
+        // A failed change keeps what the user typed so a typo can be corrected.
+        this.passw1 = "";
+        this.passw2 = "";
+        this.passw3 = "";
         this.openSuccess(this.$t("settings.updated_password"));
       }
     },

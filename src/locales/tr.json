@@ -592,7 +592,7 @@
     "process_payment": "Ödemeyi işle",
     "tx_type": "İşlem türü",
     "asset_optin": "Varlık kaydı (opt-in)",
-    "uri_fee_ignored": "Ödeme bağlantısındaki ücret geçersiz olduğu veya 0,1 ALGO'dan yüksek olduğu için yok sayıldı."
+    "uri_fee_ignored": "Ödeme bağlantısındaki ücret geçersiz, 0,001 ALGO’nun altında veya 0,1 ALGO’nun üzerinde olduğu için yok sayıldı."
   },
   "settings": {
     "title": "Ayarlar",

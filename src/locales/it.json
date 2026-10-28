@@ -592,7 +592,7 @@
     "process_payment": "Process payment",
     "tx_type": "Transaction type",
     "asset_optin": "Opt-in all'asset",
-    "uri_fee_ignored": "La commissione del link di pagamento è stata ignorata perché non valida o superiore a 0,1 ALGO."
+    "uri_fee_ignored": "La commissione del link di pagamento è stata ignorata perché non valida, inferiore a 0,001 ALGO o superiore a 0,1 ALGO."
   },
   "settings": {
     "title": "Impostazioni",

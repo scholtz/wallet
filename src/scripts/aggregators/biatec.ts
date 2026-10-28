@@ -10,6 +10,7 @@ import type {
 // (biatecRouter.QuoteRoute etc.), not as top-level named exports of the
 // package.
 import { biatecRouter } from "biatec-router";
+import { BIATEC_ROUTER_REALM } from "../encoding/arc14";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
 import { combineRouteResponse } from "./combineBiatecRoute";
@@ -77,7 +78,7 @@ export function createBiatecAggregator(
 
         const authHeader = await context.signAuthTx({
           account: context.account.value?.addr || "",
-          realm: "BiatecRouter#ARC14",
+          realm: BIATEC_ROUTER_REALM,
         });
         biatecRouter.OpenAPI.HEADERS = { Authorization: authHeader };
         biatecRouter.OpenAPI.BASE = effectiveBaseUrl;
@@ -157,7 +158,7 @@ export function createBiatecAggregator(
         }
         const authHeader = await context.signAuthTx({
           account: context.account.value?.addr || "",
-          realm: "BiatecRouter#ARC14",
+          realm: BIATEC_ROUTER_REALM,
         });
         biatecRouter.OpenAPI.HEADERS = { Authorization: authHeader };
         biatecRouter.OpenAPI.BASE = effectiveBaseUrl;

@@ -592,7 +592,7 @@
     "process_payment": "Process payment",
     "tx_type": "Transaction type",
     "asset_optin": "Asset opt-in",
-    "uri_fee_ignored": "De vergoeding in de betaallink is genegeerd omdat deze ongeldig of hoger dan 0,1 ALGO is."
+    "uri_fee_ignored": "De vergoeding in de betaallink is genegeerd omdat deze ongeldig, lager dan 0,001 ALGO of hoger dan 0,1 ALGO is."
   },
   "settings": {
     "title": "Instellingen",

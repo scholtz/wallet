@@ -135,10 +135,13 @@ export const lowFalconGroupFee = (
 /**
  * Flat fee, in whole ALGO, requested by the `fee` parameter of a payment link or QR code
  * (AW-2026-083). The parameter is in microalgos, as the wallet's own gateway writes it and the
- * merchant page reads it. A fee that is not a whole non-negative number, or that is above
- * `MAX_AUTO_FEE_MICROALGOS`, is dropped (undefined): the declared fee is burned in full, so a
- * link must not be able to pre-fill an arbitrary one.
+ * merchant page reads it. A fee that is not a whole number, is below the network minimum
+ * (1000 microalgos, which the network would reject) or is above `MAX_AUTO_FEE_MICROALGOS` is
+ * dropped (undefined): the declared fee is burned in full, so a link must not be able to
+ * pre-fill an arbitrary one.
  */
+export const MIN_URI_FEE_MICROALGOS = 1_000n;
+
 export const uriFeeToAlgo = (
   microAlgos: string | number | undefined,
 ): number | undefined => {
@@ -146,6 +149,6 @@ export const uriFeeToAlgo = (
   const text = String(microAlgos).trim();
   if (!/^\d{1,15}$/.test(text)) return undefined;
   const value = BigInt(text);
-  if (value > MAX_AUTO_FEE_MICROALGOS) return undefined;
+  if (value < MIN_URI_FEE_MICROALGOS || value > MAX_AUTO_FEE_MICROALGOS) return undefined;
   return Number(value) / 1_000_000;
 };

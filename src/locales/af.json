@@ -592,7 +592,7 @@
     "process_payment": "Verwerk betaling",
     "tx_type": "Transaksie tipe",
     "asset_optin": "Asset opt-in",
-    "uri_fee_ignored": "Die fooi van die betaalskakel is geïgnoreer omdat dit ongeldig is of hoër as 0,1 ALGO."
+    "uri_fee_ignored": "Die fooi van die betaalskakel is geïgnoreer omdat dit ongeldig is, laer as 0,001 ALGO of hoër as 0,1 ALGO."
   },
   "settings": {
     "title": "Settings",

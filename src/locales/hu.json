@@ -592,7 +592,7 @@
     "process_payment": "Fizetési művelet feldolgozása",
     "tx_type": "Tranzakció típus",
     "asset_optin": "Eszköz opt-in",
-    "uri_fee_ignored": "A fizetési hivatkozás díját figyelmen kívül hagytuk, mert érvénytelen vagy meghaladja a 0,1 ALGO-t."
+    "uri_fee_ignored": "A fizetési hivatkozás díját figyelmen kívül hagytuk, mert érvénytelen, 0,001 ALGO alatti vagy 0,1 ALGO feletti."
   },
   "settings": {
     "title": "Beállítások",

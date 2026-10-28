@@ -3,6 +3,10 @@ import { Buffer } from "buffer";
 
 export const ARC14_NOTE_SUFFIX = "#ARC14";
 
+/** Realms of the services the wallet itself authenticates to (single source of truth). */
+export const BIATEC_ROUTER_REALM = `BiatecRouter${ARC14_NOTE_SUFFIX}`;
+export const BIATEC_SCAN_REALM = `BiatecScan${ARC14_NOTE_SUFFIX}`;
+
 type Arc14Transaction = Pick<
   algosdk.Transaction,
   "type" | "group" | "rekeyTo" | "sender" | "payment" | "note"
@@ -70,12 +74,12 @@ export const isArc14AuthTransaction = (
  * of them and so collect a token that is valid at another service (AW-2026-087).
  */
 export const RESERVED_ARC14_REALMS: readonly string[] = [
-  "BiatecRouter#ARC14",
-  "BiatecScan#ARC14",
+  BIATEC_ROUTER_REALM,
+  BIATEC_SCAN_REALM,
 ];
 
 /** True when `realm` (with or without the `#ARC14` marker) names a service with a reserved realm. */
-export const isReservedArc14Realm = (realm: unknown): boolean => {
+export const isReservedArc14Realm = (realm: string | null | undefined): boolean => {
   if (typeof realm !== "string") return false;
   const normalized = realm.trim().toLowerCase();
   const withMarker = normalized.endsWith(ARC14_NOTE_SUFFIX.toLowerCase())
@@ -85,7 +89,7 @@ export const isReservedArc14Realm = (realm: unknown): boolean => {
 };
 
 /** Returns a realm received from a remote host, or throws when it impersonates another service. */
-export const assertRemoteArc14Realm = <T>(realm: T): T => {
+export const assertRemoteArc14Realm = (realm: string): string => {
   if (isReservedArc14Realm(realm)) {
     throw new Error("The service answered with a realm that belongs to another service.");
   }

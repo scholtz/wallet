@@ -592,7 +592,7 @@
     "process_payment": "Process payment",
     "tx_type": "Transaction type",
     "asset_optin": "Asset opt-in",
-    "uri_fee_ignored": "The fee of the payment link was ignored because it is not valid or is higher than 0.1 ALGO."
+    "uri_fee_ignored": "The fee of the payment link was ignored because it is not valid, below 0.001 ALGO or above 0.1 ALGO."
   },
   "settings": {
     "title": "Settings",

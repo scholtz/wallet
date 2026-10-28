@@ -592,7 +592,7 @@
     "process_payment": "Procesar pago",
     "tx_type": "Tipo de transacción",
     "asset_optin": "Alta en el activo (opt-in)",
-    "uri_fee_ignored": "Se ignoró la comisión del enlace de pago porque no es válida o supera 0,1 ALGO."
+    "uri_fee_ignored": "Se ignoró la comisión del enlace de pago porque no es válida, es inferior a 0,001 ALGO o supera 0,1 ALGO."
   },
   "settings": {
     "title": "Configuraciones",

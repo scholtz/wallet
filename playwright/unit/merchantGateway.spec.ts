@@ -145,6 +145,11 @@ test.describe("isExpectedPayment", () => {
     expect(isExpectedPayment(asa(1_000_000n, 312769n), expectAlgo)).toBe(false);
   });
 
+  test("the payee paying itself is not a payment", () => {
+    expect(isExpectedPayment({ ...algo(1_000_000n), sender: PAYEE }, expectAlgo)).toBe(false);
+    expect(isExpectedPayment({ ...algo(1_000_000n), sender: "CUSTOMER" }, expectAlgo)).toBe(true);
+  });
+
   test("a transaction that only mentions the payee (no payment fields) is not a payment", () => {
     expect(isExpectedPayment({ id: "T3" }, expectAlgo)).toBe(false);
   });

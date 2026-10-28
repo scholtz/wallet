@@ -99,6 +99,7 @@ export interface GatewayExpectedPayment {
 // Structural subset of the indexer transaction model (algosdk v3 camelCase, bigint amounts).
 export interface IndexerPaymentTxLike {
   id?: string;
+  sender?: string;
   paymentTransaction?: { receiver: string; amount: bigint | number };
   assetTransferTransaction?: {
     receiver: string;
@@ -107,7 +108,7 @@ export interface IndexerPaymentTxLike {
   };
 }
 
-const toBigIntOrZero = (value: unknown): bigint => {
+const toBigIntOrZero = (value: string | number | bigint | null | undefined): bigint => {
   try {
     if (typeof value === "bigint") return value >= 0n ? value : 0n;
     if (typeof value === "string" && !/^\d{1,30}$/.test(value.trim())) return 0n;
@@ -124,7 +125,7 @@ const toBigIntOrZero = (value: unknown): bigint => {
  * A malformed value must make the link invalid rather than silently mean "no minimum" or "ALGO"
  * (AW-2026-084).
  */
-export function isWholeNumberParam(value: unknown): boolean {
+export function isWholeNumberParam(value: string | number | bigint | null | undefined): boolean {
   if (value === undefined || value === null || value === "") return true;
   return /^\d{1,30}$/.test(String(value).trim());
 }
@@ -151,6 +152,8 @@ export function isExpectedPayment(
   tx: IndexerPaymentTxLike,
   expected: GatewayExpectedPayment,
 ): boolean {
+  // The payee paying itself (a consolidation, a refund looping back) is not a customer payment.
+  if (tx.sender === expected.payTo) return false;
   if (expected.assetId === 0n) {
     const pay = tx.paymentTransaction;
     return (

@@ -1,6 +1,7 @@
 import { BiatecScanClient } from "@/scripts/generated/biatecScan";
 import { getExplorerApiBaseUrl } from "@/scripts/explorer";
 import store from "@/store";
+import { BIATEC_SCAN_REALM } from "@/scripts/encoding/arc14";
 
 // Native chain asset (ALGO on Algorand, VOI on Voi, ...) is reported by the
 // Biatec Scan API under asset index 0.
@@ -9,7 +10,7 @@ export const NATIVE_ASSET_ID = 0n;
 // The realm identifies this API to the ARC-14 signer/token cache, matching
 // the "<Service>#ARC14" convention already used for the Biatec Router
 // (see src/scripts/aggregators/biatec.ts).
-const ARC14_REALM = "BiatecScan#ARC14";
+const ARC14_REALM = BIATEC_SCAN_REALM;
 
 // The Biatec Scan API accepts (but does not require) ARC-0014 auth - see the
 // "oauth2" apiKey security scheme in its swagger doc. Authenticated requests

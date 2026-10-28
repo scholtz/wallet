@@ -173,11 +173,16 @@ test.describe("uriFeeToAlgo", () => {
   test("reads the parameter as microalgos", () => {
     expect(uriFeeToAlgo("1000")).toBe(0.001);
     expect(uriFeeToAlgo(2000)).toBe(0.002);
-    expect(uriFeeToAlgo("0")).toBe(0);
+    expect(uriFeeToAlgo("1000")).toBe(0.001);
   });
 
   test("a gateway link round-trips: 0.001 ALGO is written as 1000 and read back as 0.001", () => {
     expect(uriFeeToAlgo(String(Math.round(0.001 * 1_000_000)))).toBe(0.001);
+  });
+
+  test("drops fees below the network minimum", () => {
+    expect(uriFeeToAlgo("0")).toBeUndefined();
+    expect(uriFeeToAlgo("999")).toBeUndefined();
   });
 
   test("drops fees above the automatic ceiling instead of pre-filling them", () => {

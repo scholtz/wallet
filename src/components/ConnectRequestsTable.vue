@@ -28,12 +28,7 @@
       <!-- Which dApp asked: with several sessions the user must be able to tell (AW-2026-096). -->
       <Column v-if="!compact" :header="$t('connect.arc60.connected_app')">
         <template #body="slotProps">
-          <span data-testid="request-peer">
-            {{ requestPeer(slotProps.data.topic)?.name || requestPeer(slotProps.data.topic)?.url }}
-            <span v-if="requestPeer(slotProps.data.topic)?.name && requestPeer(slotProps.data.topic)?.url">
-              ({{ requestPeer(slotProps.data.topic)?.url }})
-            </span>
-          </span>
+          <span data-testid="request-peer">{{ requestPeerLabel(slotProps.data.topic) }}</span>
         </template>
       </Column>
       <Column v-if="compact" class="direct-summary-column">
@@ -964,6 +959,12 @@ const requestPeer = (topic: string) =>
   ns.value === "liquid"
     ? store.state.liquid.sessions.find((s) => s.requestId === topic)?.peer
     : store.state.wc.activeSessions.find((s) => s.topic === topic)?.peer;
+/** "Name (url)" of the requesting dApp, built once per cell. */
+const requestPeerLabel = (topic: string): string => {
+  const peer = requestPeer(topic);
+  if (!peer) return "";
+  return peer.name && peer.url ? `${peer.name} (${peer.url})` : peer.name || peer.url || "";
+};
 
 /**
  * Create / update / delete of a contract is shown as an application card on every transport, so
@@ -979,14 +980,27 @@ const showAppCard = (tx: TransactionWrapper) => isLifecycle(appSummary(tx));
 const hideAppRows = (tx: TransactionWrapper) => compact.value && showAppCard(tx);
 
 // acfg / afrz / keyreg: describe what the transaction does (AW-2026-081).
-const specialSummary = (tx: TransactionWrapper) =>
-  tx?.txn ? summarizeSpecialTransaction(tx.txn) : undefined;
+// Cached per transaction like appSummary: the row templates read these several times per render.
+const specialSummaryCache = new WeakMap<object, ReturnType<typeof summarizeSpecialTransaction>>();
+const assetConfigCache = new WeakMap<object, ReturnType<typeof describeAssetConfig>>();
+const specialSummary = (tx: TransactionWrapper) => {
+  if (!tx?.txn) return undefined;
+  if (!specialSummaryCache.has(tx.txn)) {
+    specialSummaryCache.set(tx.txn, summarizeSpecialTransaction(tx.txn));
+  }
+  return specialSummaryCache.get(tx.txn);
+};
 const specialText = (tx: TransactionWrapper): string => {
   const summary = specialSummary(tx);
   return summary ? t("connect." + summary.key, summary.params) : "";
 };
-const assetConfigOf = (tx: TransactionWrapper) =>
-  tx?.txn ? describeAssetConfig(tx.txn) : undefined;
+const assetConfigOf = (tx: TransactionWrapper) => {
+  if (!tx?.txn) return undefined;
+  if (!assetConfigCache.has(tx.txn)) {
+    assetConfigCache.set(tx.txn, describeAssetConfig(tx.txn));
+  }
+  return assetConfigCache.get(tx.txn);
+};
 const keyRegOf = (tx: TransactionWrapper) => (tx?.txn ? describeKeyReg(tx.txn) : undefined);
 const leaseOf = (tx: TransactionWrapper) => (tx?.txn ? describeLease(tx.txn) : undefined);
 const assetRoles = (tx: TransactionWrapper) => {
