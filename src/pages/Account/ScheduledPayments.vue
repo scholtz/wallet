@@ -25,6 +25,7 @@ import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 import { StoredAsset } from "@/store/indexer";
 import { getErrorMessage } from "@/scripts/errors";
+import { assertScheduledTransactionsSafe } from "@/scripts/scheduledPaymentTxns";
 
 type FilterMode = (typeof FilterMatchMode)[keyof typeof FilterMatchMode];
 
@@ -318,7 +319,7 @@ const deployApp = async () => {
     state.client = postRet.data.client;
 
     const txsRequest = await axios.get(
-      `https://api-scheduler.biatec.io/v1/tx-create/${state.hash}/${store.state.config.env}/${route.params.account}/${state.client}`
+      `https://api-scheduler.biatec.io/v1/tx-create/${encodeURIComponent(state.hash)}/${encodeURIComponent(store.state.config.env)}/${encodeURIComponent(String(route.params.account))}/${encodeURIComponent(state.client)}`
     );
 
     const txs = txsRequest.data.map((t: string) => {
@@ -327,6 +328,10 @@ const deployApp = async () => {
       ) as algosdk.Transaction;
     });
 
+    assertScheduledTransactionsSafe(
+      txs,
+      store.state.wallet.privateAccounts.map((a) => a.addr)
+    );
     await store.dispatch("signer/returnTo", "ScheduledPayments");
     await store.dispatch("signer/toSign", { tx: txs[0] });
     const encoded = base642base64url(
@@ -341,6 +346,8 @@ const deployApp = async () => {
   } catch (e) {
     state.deploying = false;
     console.error(e);
+    // The user must learn that a refused response (AW-2026-085) is the reason nothing happened.
+    await store.dispatch("toast/openError", getErrorMessage(e));
   }
 };
 
@@ -351,7 +358,7 @@ const continueTxDeploy = async () => {
     state.appId = String(info?.applicationIndex ?? "");
 
     const txsRequest = await axios.post(
-      `https://api-scheduler.biatec.io/v1/tx/${state.hash}/${store.state.config.env}/${route.params.account}/${state.appId}/bootstrap/${state.client}`,
+      `https://api-scheduler.biatec.io/v1/tx/${encodeURIComponent(state.hash)}/${encodeURIComponent(store.state.config.env)}/${encodeURIComponent(String(route.params.account))}/${encodeURIComponent(state.appId)}/bootstrap/${encodeURIComponent(state.client)}`,
       {
         period: Number(state.period),
         start: Number(state.start),
@@ -368,12 +375,17 @@ const continueTxDeploy = async () => {
       ) as algosdk.Transaction;
     });
 
+    assertScheduledTransactionsSafe(
+      txs,
+      store.state.wallet.privateAccounts.map((a) => a.addr)
+    );
     await store.dispatch("signer/returnToSignAll", "ScheduledPayments");
     await store.dispatch("signer/toSignArray", { txs: txs });
 
     await router.push("/signAll");
   } catch (e) {
     console.error(e);
+    await store.dispatch("toast/openError", getErrorMessage(e));
   }
 };
 

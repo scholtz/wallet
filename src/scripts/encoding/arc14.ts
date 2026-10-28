@@ -63,3 +63,31 @@ export const isArc14AuthTransaction = (
   const receiver = addressToString(payment.receiver);
   return !!sender && sender === receiver;
 };
+
+/**
+ * Realms of the services the wallet itself authenticates to with hardcoded realm strings. A
+ * participation or two-factor host chosen from a remote list must not be able to answer with one
+ * of them and so collect a token that is valid at another service (AW-2026-087).
+ */
+export const RESERVED_ARC14_REALMS: readonly string[] = [
+  "BiatecRouter#ARC14",
+  "BiatecScan#ARC14",
+];
+
+/** True when `realm` (with or without the `#ARC14` marker) names a service with a reserved realm. */
+export const isReservedArc14Realm = (realm: unknown): boolean => {
+  if (typeof realm !== "string") return false;
+  const normalized = realm.trim().toLowerCase();
+  const withMarker = normalized.endsWith(ARC14_NOTE_SUFFIX.toLowerCase())
+    ? normalized
+    : normalized + ARC14_NOTE_SUFFIX.toLowerCase();
+  return RESERVED_ARC14_REALMS.some((reserved) => reserved.toLowerCase() === withMarker);
+};
+
+/** Returns a realm received from a remote host, or throws when it impersonates another service. */
+export const assertRemoteArc14Realm = <T>(realm: T): T => {
+  if (isReservedArc14Realm(realm)) {
+    throw new Error("The service answered with a realm that belongs to another service.");
+  }
+  return realm;
+};

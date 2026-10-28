@@ -113,7 +113,9 @@ async function createAccount() {
     state.lastError = "";
     const addr = await store.dispatch("wallet/addHdWalletAccount", {
       name: state.name,
-      mnemonic: state.mode === "import" ? state.mnemonic : undefined,
+      // Always the phrase on screen: in create mode it is the one the user was just shown and
+      // asked to back up, so the store must not generate a different one (AW-2026-080).
+      mnemonic: state.mnemonic,
       accountIndex: state.accountIndex,
       backedUp: state.mode === "import" ? true : state.confirmedBackup,
     });
@@ -181,7 +183,7 @@ onMounted(async () => {
                   :key="groupIndex"
                 >
                   <Button
-                    class="w-full h-10rem m-2 text-left"
+                    class="hd-mnemonic-card w-full h-10rem m-2 text-left"
                     :severity="
                       !state.cardFlipedBefore[groupIndex]
                         ? 'primary'

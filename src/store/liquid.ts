@@ -346,9 +346,10 @@ const actions: ActionTree<LiquidState, RootState> = {
       );
     }
     if (auth.user?.wallet && auth.user.wallet !== address) {
-      console.warn(
-        "Liquid Auth service bound the session to another wallet",
-        auth.user.wallet,
+      // The service authenticated a different wallet than the one the user is pairing: the
+      // session would be recorded under an address it does not belong to (AW-2026-097).
+      throw new Error(
+        "The Liquid Auth service bound the session to a different wallet address.",
       );
     }
 
@@ -407,6 +408,12 @@ const actions: ActionTree<LiquidState, RootState> = {
       return;
     }
     const request = message as LiquidRequestMessage;
+    // The id keys the pending queue and the answer: only a short string is a usable id
+    // (AW-2026-097); anything else (an object, a huge value) cannot be answered and is dropped.
+    if (typeof request.id !== "string" || request.id === "" || request.id.length > 128) {
+      console.error("Liquid Auth message with an invalid id dropped");
+      return;
+    }
     // Answer a refused request with the admission's code (REQUEST_ERROR codes equal the
     // Liquid error codes), unless answering would reuse the id of a still-pending request.
     const refuse = async (
@@ -428,11 +435,16 @@ const actions: ActionTree<LiquidState, RootState> = {
     switch (request.reference) {
       case LiquidReference.helloRequest: {
         const params = request.params as Partial<HelloParams> | undefined;
-        if (params?.metadata) {
+        // The peer introduces itself once: a later hello must not rewrite its name and URL
+        // under a request the user is already reviewing (AW-2026-097).
+        if (params?.metadata && !session.peer) {
           commit("setSessionPeer", {
             requestId,
             peer: sanitizePeerMetadata(params.metadata),
-            dappProviderId: params.providerId,
+            dappProviderId:
+              typeof params.providerId === "string"
+                ? params.providerId.slice(0, 128)
+                : undefined,
           });
           await persistLiquidSessions(dispatch, state.sessions);
         }
@@ -507,6 +519,7 @@ const actions: ActionTree<LiquidState, RootState> = {
           transactions: transactions.map((tx, i) => ({
             sender: tx.txn?.sender?.toString(),
             preSigned: tx.preSigned,
+            type: tx.type,
             signers: rawTransactions[i]?.signers,
           })),
           approved: [session.address],

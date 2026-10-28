@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import type { Arc56Owner } from "@/scripts/arc56/types";
+import { ownerHref } from "@/scripts/arc56/ownerLink";
 
 // `null` = not looked up (e.g. no approvalHash to look up in the first
 // place) - renders nothing. `[]` = looked up, no known publisher - renders
@@ -54,14 +55,19 @@ const ownerBadge = (owner: Arc56Owner): { label: string; severity: BadgeSeverity
 };
 
 const rows = computed(() =>
-  (props.owners ?? []).map((owner) => ({ owner, badge: ownerBadge(owner) })),
+  (props.owners ?? []).map((owner) => ({
+    owner,
+    badge: ownerBadge(owner),
+    // The registry's url is remote data: only a github.com link may become an href (AW-2026-095).
+    href: ownerHref(owner),
+  })),
 );
 </script>
 
 <template>
   <span v-if="owners && owners.length > 0">
-    <span v-for="({ owner, badge }, i) in rows" :key="owner.url">
-      <a :href="owner.url" target="_blank" rel="noopener noreferrer">{{ owner.owner }}/{{ owner.repo }}</a>
+    <span v-for="({ owner, badge, href }, i) in rows" :key="owner.url">
+      <a :href="href" target="_blank" rel="noopener noreferrer">{{ owner.owner }}/{{ owner.repo }}</a>
       <Badge :severity="badge.severity" :value="badge.label" class="ml-1" />
       <span v-if="i < rows.length - 1">, </span>
     </span>

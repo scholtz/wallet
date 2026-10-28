@@ -3,6 +3,7 @@
 import { test, expect } from "@playwright/test";
 import algosdk from "algosdk";
 import {
+  checkNodeGenesisHash,
   checkTransactionGroup,
   checkTxGenesis,
   findGenesisMismatch,
@@ -151,4 +152,29 @@ test("a built-in network's transaction is blocked while a non built-in env is se
 
 test("a custom node stays unrestricted", () => {
   expect(checkTxGenesis(payment(MAINNET_HASH, "mainnet-v1.0"), "custom")).toBe("ok");
+});
+// AW-2026-086: the node's suggested genesis hash is checked against the built-in table.
+test.describe("checkNodeGenesisHash", () => {
+  test("accepts the right hash for a built-in network", () => {
+    expect(checkNodeGenesisHash("mainnet-v1.0", new Uint8Array(MAINNET_HASH))).toBe("ok");
+    expect(checkNodeGenesisHash("testnet-v1.0", new Uint8Array(TESTNET_HASH))).toBe("ok");
+  });
+
+  test("a node answering with another network's hash is a mismatch", () => {
+    expect(checkNodeGenesisHash("mainnet-v1.0", new Uint8Array(TESTNET_HASH))).toBe("mismatch");
+    expect(checkNodeGenesisHash("testnet-v1.0", new Uint8Array(MAINNET_HASH))).toBe("mismatch");
+  });
+
+  test("a missing or truncated hash fails closed for a built-in network", () => {
+    expect(checkNodeGenesisHash("mainnet-v1.0", undefined)).toBe("mismatch");
+    expect(checkNodeGenesisHash("mainnet-v1.0", new Uint8Array(MAINNET_HASH).slice(0, 16))).toBe(
+      "mismatch",
+    );
+  });
+
+  test("environments without a built-in hash are not judged", () => {
+    expect(checkNodeGenesisHash("custom", new Uint8Array(32))).toBe("unknown");
+    expect(checkNodeGenesisHash("", undefined)).toBe("unknown");
+    expect(checkNodeGenesisHash("some-private-net-v1", new Uint8Array(32))).toBe("unknown");
+  });
 });

@@ -403,6 +403,7 @@ import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
 import { getArc200Client } from "arc200-client";
 import { useStore } from "@/store";
+import { uriFeeToAlgo } from "@/scripts/fees";
 import { Buffer } from "buffer";
 import type { WalletAccount, IAccountData } from "@/store/wallet";
 import { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
@@ -1002,9 +1003,8 @@ const parseToAccount = async (encodedValue?: string) => {
   if (parsed.paynote) {
     state.paynote = parsed.paynote;
   }
-  if (parsed.fee) {
-    state.fee = Number(parsed.fee);
-  }
+  // The link's fee is microalgos and capped; anything else keeps the default fee (AW-2026-083).
+  if (parsed.feebase !== undefined) applyUriFee(parsed.feebase);
   // Must resolve before the asset is selected/preselected below: the asset
   // list, balances, and the asset lookup itself are all keyed by the active
   // network (accountData.value / getAsset both read store.state.config.env
@@ -1322,6 +1322,19 @@ const toggleCamera = (e: Event | undefined) => {
 
 const isEncoded = (uri = "") => uri !== decodeURIComponent(uri);
 
+/** Applies the `fee` of a payment link (microalgos, capped); an invalid or too high one is ignored. */
+const applyUriFee = (raw: string | number | undefined) => {
+  const uriFee = uriFeeToAlgo(raw);
+  if (uriFee !== undefined) {
+    state.fee = uriFee;
+  } else {
+    store.dispatch(
+      "toast/openError",
+      "Ignored the fee of the payment link: it is not valid or is too high."
+    );
+  }
+};
+
 const onDecodeQR = (result: string) => {
   if (state.scan && result) {
     if (
@@ -1391,12 +1404,7 @@ const onDecodeQR = (result: string) => {
               state.payamount = parsedAmount / Math.pow(10, decimalsValue);
             }
           }
-          if (feeValue) {
-            const parsedFee = Number(feeValue);
-            if (!Number.isNaN(parsedFee)) {
-              state.fee = parsedFee / Math.pow(10, decimalsValue);
-            }
-          }
+          if (feeValue) applyUriFee(feeValue);
         } else {
           if (amountValue) {
             const parsedAmount = Number(amountValue);
@@ -1404,12 +1412,7 @@ const onDecodeQR = (result: string) => {
               state.payamount = parsedAmount;
             }
           }
-          if (feeValue) {
-            const parsedFee = Number(feeValue);
-            if (!Number.isNaN(parsedFee)) {
-              state.fee = parsedFee;
-            }
-          }
+          if (feeValue) applyUriFee(feeValue);
         }
         if (assetValue) {
           const parsedAsset = Number(assetValue);

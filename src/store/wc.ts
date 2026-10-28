@@ -461,6 +461,7 @@ const actions: ActionTree<WcState, RootState> = {
         transactions: transactions.map((tx, i) => ({
           sender: tx.txn?.sender?.toString(),
           preSigned: tx.preSigned,
+          type: tx.type,
           signers: rawTransactions[i]?.signers,
         })),
         approved: getSessionAccounts(web3wallet, topic),

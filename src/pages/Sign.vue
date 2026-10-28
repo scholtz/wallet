@@ -735,7 +735,8 @@ import type {
 import type { PreparePaymentPayload } from "@/store/algod";
 import { getArc14Realm, isArc14AuthTransaction } from "@/scripts/encoding/arc14";
 import { isAssetOptIn } from "@/scripts/transactionTypes";
-import { MAX_AUTO_FEE_MICROALGOS, type FeeEstimate } from "@/scripts/fees";
+import { MAX_AUTO_FEE_MICROALGOS, uriFeeToAlgo, type FeeEstimate } from "@/scripts/fees";
+import { checkTxGenesis } from "@/scripts/dappRequestChecks";
 
 const store = useStore();
 const route = useRoute();
@@ -860,6 +861,15 @@ const fatal = computed(() => {
     txn.value.genesisID !== envName.value
   ) {
     return `Genesis id of the tx ${txn.value.genesisID} does not match current network ${envName.value}`;
+  }
+  // The genesis id is only a label chosen by whoever built the transaction: for a built-in
+  // network the genesis hash must match too, also when the id is missing (AW-2026-063).
+  if (
+    envName.value !== "custom" &&
+    txn.value &&
+    checkTxGenesis(txn.value, envName.value) === "hash_mismatch"
+  ) {
+    return `Genesis hash of the tx does not match current network ${envName.value}`;
   }
   return "";
 });
@@ -1291,8 +1301,14 @@ const parseToAccount = () => {
   if (b64decode.value.paynote) {
     paynote.value = b64decode.value.paynote;
   }
-  if (b64decode.value.fee) {
-    fee.value = Number(b64decode.value.fee);
+  if (b64decode.value.feebase !== undefined) {
+    // The link's fee is microalgos and capped; anything else keeps the default fee (AW-2026-083).
+    const uriFee = uriFeeToAlgo(b64decode.value.feebase);
+    if (uriFee !== undefined) {
+      fee.value = uriFee;
+    } else {
+      openErrorAction("Ignored the fee of the payment link: it is not valid or is too high.");
+    }
   }
   if (b64decode.value.network && b64decode.value.network !== envName.value) {
     setEnvAction({ env: b64decode.value.network });

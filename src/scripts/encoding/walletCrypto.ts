@@ -150,8 +150,13 @@ export const encryptWalletData = async (
   if (reuseSaltFrom && !isLegacyEncryptedData(reuseSaltFrom)) {
     try {
       const parsed = parseNewFormat(reuseSaltFrom);
-      salt = parsed.salt;
-      iterations = parsed.iterations;
+      // A blob imported with fewer iterations than today's default (down to the 100k accepted on
+      // import) is re-derived at the default with a fresh salt on its next save, so no wallet
+      // keeps a weaker KDF than it needs to (AW-2026-099).
+      if (parsed.iterations >= PBKDF2_ITERATIONS) {
+        salt = parsed.salt;
+        iterations = parsed.iterations;
+      }
     } catch {
       salt = undefined;
       iterations = PBKDF2_ITERATIONS;

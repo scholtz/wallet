@@ -968,8 +968,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
   async getAccount(_context, { addr }: { addr: string }) {
     return this.state.wallet.privateAccounts.find((a) => a.addr == addr);
   },
-  async getSK(_context, { addr }: { addr: string }) {
-    const network = String(this.state.config.env);
+  async getSK(_context, { addr, env }: { addr: string; env?: string }) {
+    // `env`: the network the transaction is for; defaults to the selected one (AW-2026-088).
+    const network = String(env ?? this.state.config.env);
     // Follow the rekey chain iteratively with cycle detection, so a
     // multi-hop rekey loop (A→B→A) recorded in local state cannot cause
     // unbounded recursion (audit finding AW-2026-019).
@@ -1110,6 +1111,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     }
     try {
       const secret = algosdk.mnemonicToSecretKey(mn);
+      // A second copy would survive "delete account" and shadow the first one (AW-2026-089).
+      if (this.state.wallet.privateAccounts.some((a) => a.addr === String(secret.addr))) {
+        throw Error("This account is already present in the wallet");
+      }
       await commit("addPrivateAccount", {
         name,
         secret,
@@ -1277,6 +1282,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       }
       const hdAccountIndex = accountIndex ?? 0;
       const addr = await hdDeriveAddress(finalMnemonic, hdAccountIndex, 0);
+      if (this.state.wallet.privateAccounts.some((a) => a.addr === addr)) {
+        throw Error("This account is already present in the wallet");
+      }
       await commit("addHdWalletAccount", {
         name,
         addr,

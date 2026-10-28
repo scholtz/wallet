@@ -13,22 +13,31 @@ const ARC14_REALM = "BiatecScan#ARC14";
 
 // The Biatec Scan API accepts (but does not require) ARC-0014 auth - see the
 // "oauth2" apiKey security scheme in its swagger doc. Authenticated requests
-// get better rate limits / less throttling, so we attach an ARC-14 header
-// automatically whenever the wallet has an account able to sign one locally
-// (no hardware/multisig/remote-session interaction required), and silently
-// fall back to an anonymous request otherwise.
-const getFirstPrivateKeyAccountAddr = (): string | undefined =>
-  store.state.wallet.privateAccounts.find(
-    (account) => account.sk && account.sk.length > 0
-  )?.addr;
+// get better rate limits / less throttling, so an ARC-14 header is attached when the
+// account being viewed can sign one locally (no hardware/multisig/remote-session interaction
+// required), and the request silently falls back to an anonymous one otherwise.
+//
+// The signer is always the account whose assets are being priced, never another account of the
+// wallet: the token carries the signer's address, so using a different one would tell the API
+// which addresses belong together (AW-2026-098). Wallet-wide views pass no account and stay
+// anonymous.
+const getSigningAccountAddr = (account: string | undefined): string | undefined =>
+  account
+    ? store.state.wallet.privateAccounts.find(
+        (a) => a.addr === account && a.sk && a.sk.length > 0
+      )?.addr
+    : undefined;
 
 // arc14/signAuthTx always signs against the wallet's *currently selected*
 // network (it builds the auth transaction from store.state.config's algod
 // client), so an ARC-14 header can only be produced for that same network -
 // requests for any other env are simply left unauthenticated.
-const getArc14AuthHeader = async (env: string): Promise<string | undefined> => {
+const getArc14AuthHeader = async (
+  env: string,
+  viewedAccount: string | undefined
+): Promise<string | undefined> => {
   if (env !== store.state.config.env) return undefined;
-  const account = getFirstPrivateKeyAccountAddr();
+  const account = getSigningAccountAddr(viewedAccount);
   if (!account) return undefined;
   try {
     // Vuex's dispatch() is untyped (returns Promise<any>) - arc14/signAuthTx
@@ -51,12 +60,14 @@ const getArc14AuthHeader = async (env: string): Promise<string | undefined> => {
  */
 export const getAssetUsdPrices = async (
   env: string,
-  assetIds: bigint[]
+  assetIds: bigint[],
+  /** The account whose assets these are; omit for wallet-wide (anonymous) lookups. */
+  viewedAccount?: string
 ): Promise<Map<bigint, number>> => {
   const prices = new Map<bigint, number>();
   if (assetIds.length === 0) return prices;
 
-  const authHeader = await getArc14AuthHeader(env);
+  const authHeader = await getArc14AuthHeader(env, viewedAccount);
   const client = new BiatecScanClient({
     BASE: getExplorerApiBaseUrl(env),
     HEADERS: authHeader ? { Authorization: authHeader } : undefined,

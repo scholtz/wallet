@@ -96,10 +96,16 @@ export function removeAccountByAddr<A extends { addr: string }>(
   accounts: A[],
   addr: string,
 ): boolean {
-  const index = accounts.findIndex((acc) => acc.addr === addr);
-  if (index === -1) return false;
-  accounts.splice(index, 1);
-  return true;
+  // Every copy: a wallet that already holds duplicates (imported twice before AW-2026-089) must
+  // not keep a key behind after the user deleted the account.
+  let removed = false;
+  for (let index = accounts.length - 1; index >= 0; index--) {
+    if (accounts[index].addr === addr) {
+      accounts.splice(index, 1);
+      removed = true;
+    }
+  }
+  return removed;
 }
 
 /** Largest wallet backup file accepted on import. Real blobs are a few kB to a few hundred kB. */

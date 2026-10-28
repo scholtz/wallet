@@ -1,5 +1,6 @@
 import type { ActionTree } from "vuex";
 import algosdk from "algosdk";
+import { checkNodeGenesisHash } from "@/scripts/dappRequestChecks";
 import type { RootState } from "./index";
 import {
   MAX_AUTO_FEE_MICROALGOS,
@@ -160,6 +161,13 @@ const assertParamsMatchNetwork = (
   if (genesisId && genesisId !== env) {
     throw new Error(
       `The configured node returned genesis id "${genesisId}" which does not match the selected network "${env}". Refusing to build the transaction.`,
+    );
+  }
+  // The built-in hash table needs no network request, so this holds even before the remote
+  // genesis list below has been fetched (AW-2026-086).
+  if (checkNodeGenesisHash(env, params.genesisHash) === "mismatch") {
+    throw new Error(
+      `The configured node returned a genesis hash that does not match the selected network "${env}". Refusing to build the transaction.`,
     );
   }
   const knownNetwork = rootState.publicData?.genesisList?.find(

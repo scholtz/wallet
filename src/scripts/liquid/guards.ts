@@ -166,8 +166,24 @@ export function sanitizePeerMetadata<T extends PeerMetadataLike>(peer: T): T {
   };
 }
 
+/**
+ * Transaction types a dApp may ask the wallet to sign. Each has type-specific rows in the
+ * request table; state proofs and heartbeats have none and no dApp legitimately sends them
+ * (AW-2026-081).
+ */
+export const SIGNABLE_DAPP_TX_TYPES: readonly string[] = [
+  "pay",
+  "axfer",
+  "appl",
+  "acfg",
+  "afrz",
+  "keyreg",
+];
+
 export interface SignRequestEntry {
   sender?: string;
+  /** Transaction type (`pay`, `axfer`, `appl`, `acfg`, `afrz`, `keyreg`, ...). */
+  type?: string;
   /** The transaction already carries a signature (co-signer's); the wallet does not sign it. */
   preSigned?: boolean;
   /** ARC-1 `signers`: an empty array means the wallet must not sign this transaction. */
@@ -267,6 +283,21 @@ export function admitTransactions(input: {
   approved: string[];
   own: string[];
 }): Admission {
+  // A pre-signed or `signers: []` entry is not signed by this wallet, so its type is irrelevant.
+  const unsupported = input.transactions.some(
+    (entry) =>
+      entry.type !== undefined &&
+      !SIGNABLE_DAPP_TX_TYPES.includes(entry.type) &&
+      !entry.preSigned &&
+      !(Array.isArray(entry.signers) && entry.signers.length === 0),
+  );
+  if (unsupported) {
+    return {
+      ok: false,
+      code: REQUEST_ERROR.invalid,
+      reason: "Transaction type is not supported.",
+    };
+  }
   if (findUnauthorizedSenders(input.transactions, input.approved, input.own).length > 0) {
     return {
       ok: false,

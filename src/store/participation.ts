@@ -1,5 +1,6 @@
 import algosdk from "algosdk";
 import type { ActionContext, ActionTree } from "vuex";
+import { assertRemoteArc14Realm } from "@/scripts/encoding/arc14";
 import type { ConfigState } from "./config";
 import type { RootState } from "./index";
 
@@ -123,7 +124,7 @@ const actions: ActionTree<ParticipationState, RootState> = {
       },
       { root: true }
     );
-    return data;
+    return assertRemoteArc14Realm(data);
   },
   async getParticipationData(
     { dispatch, rootState },

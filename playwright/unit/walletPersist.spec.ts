@@ -196,6 +196,13 @@ test.describe("removeAccountByAddr (AW-2026-079)", () => {
   test("an empty list is fine", () => {
     expect(removeAccountByAddr([], "A")).toBe(false);
   });
+
+  // AW-2026-089: a wallet that imported the same key twice must not keep a copy after deleting.
+  test("removes every copy of a duplicated address", () => {
+    const accounts = [acct("A"), acct("B"), acct("A", { name: "again" })];
+    expect(removeAccountByAddr(accounts, "A")).toBe(true);
+    expect(accounts.map((a) => a.addr)).toEqual(["B"]);
+  });
 });
 
 test.describe("validateWalletBlob (AW-2026-078)", () => {

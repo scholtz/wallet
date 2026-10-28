@@ -8,6 +8,7 @@ import {
   minimumUsageForSigner,
   requiredFeeFromUsage,
   resolveRequiredFee,
+  uriFeeToAlgo,
 } from "../../src/scripts/fees";
 
 const MIN_FEE = 1000n;
@@ -164,5 +165,31 @@ test.describe("lowFalconGroupFee (SignAll / Direct Falcon fee warning)", () => {
 
   test("no transactions, no warning", () => {
     expect(lowFalconGroupFee([])).toBeUndefined();
+  });
+});
+
+// AW-2026-083: the fee of a payment link is microalgos and capped.
+test.describe("uriFeeToAlgo", () => {
+  test("reads the parameter as microalgos", () => {
+    expect(uriFeeToAlgo("1000")).toBe(0.001);
+    expect(uriFeeToAlgo(2000)).toBe(0.002);
+    expect(uriFeeToAlgo("0")).toBe(0);
+  });
+
+  test("a gateway link round-trips: 0.001 ALGO is written as 1000 and read back as 0.001", () => {
+    expect(uriFeeToAlgo(String(Math.round(0.001 * 1_000_000)))).toBe(0.001);
+  });
+
+  test("drops fees above the automatic ceiling instead of pre-filling them", () => {
+    expect(uriFeeToAlgo("100000")).toBe(0.1);
+    expect(uriFeeToAlgo("100001")).toBeUndefined();
+    expect(uriFeeToAlgo("2000000000")).toBeUndefined();
+  });
+
+  test("drops values that are not whole non-negative numbers", () => {
+    for (const bad of ["", "-1", "1.5", "1e3", "abc", "0x10", " ", "99999999999999999999"]) {
+      expect(uriFeeToAlgo(bad)).toBeUndefined();
+    }
+    expect(uriFeeToAlgo(undefined)).toBeUndefined();
   });
 });

@@ -140,8 +140,10 @@ import { mapActions } from "vuex";
 import algosdk from "algosdk";
 import aprotocol from "../shared/algorand-protocol-parse";
 import {
+  gatewayExpectedPayment,
   gatewayIndexerEndpoint,
   isAlgorandPaymentUri,
+  isExpectedPayment,
   sanitizeGatewaySettings,
 } from "../scripts/merchantGateway";
 import { v4 as uuidv4 } from "uuid";
@@ -282,13 +284,32 @@ export default {
         new URL(config.indexer).port
       );
     },
-    async searchForTransactions({ addr, note }) {
+    // Only a transaction that pays the link's receiver, in the link's asset, at least the
+    // requested amount counts as the payment (AW-2026-084): the indexer is asked for exactly
+    // that, and the answer is checked again here.
+    async searchForTransactions({ addr, note, expected }) {
       try {
-        const search = this.gatewayIndexer().searchForTransactions().address(addr);
+        const search = this.gatewayIndexer()
+          .searchForTransactions()
+          .address(addr)
+          .addressRole("receiver");
+        if (expected.assetId === 0n) {
+          search.txType("pay");
+        } else {
+          search.txType("axfer").assetID(expected.assetId);
+        }
+        search.currencyGreaterThan(
+          expected.minAmount > 1n ? expected.minAmount - 1n : 0n
+        );
         if (note) {
           search.notePrefix(new TextEncoder().encode(note));
         }
-        return await search.do();
+        const res = await search.do();
+        return {
+          transactions: (res.transactions ?? []).filter((tx) =>
+            isExpectedPayment(tx, expected)
+          ),
+        };
       } catch (error) {
         console.error("searchForTransactions", error);
         return undefined;
@@ -337,6 +358,11 @@ export default {
         found = await this.searchForTransactions({
           addr: this.b64decode.payTo,
           note: this.b64decode.paynote,
+          expected: gatewayExpectedPayment({
+            payTo: this.b64decode.payTo,
+            asset: this.b64decode.asset,
+            amountBase: this.b64decode.payamountLong,
+          }),
         });
       } finally {
         this.polling = false;
@@ -382,17 +408,23 @@ export default {
         };
       }
       // transfer to asset decimals
-      this.b64decode.payamountLong = this.b64decode.payamount;
-      this.b64decode.payamount =
-        this.b64decode.payamount / Math.pow(10, this.asset.decimals);
+      // The link's amount in base units: the parser already divided it when the link carried a
+      // `decimals` parameter, so use the untouched value (it must not be scaled twice).
+      this.b64decode.payamountLong =
+        this.b64decode.payamountbase ?? this.b64decode.payamount;
+      if (this.b64decode.payamountLong !== undefined) {
+        this.b64decode.payamount =
+          Number(this.b64decode.payamountLong) /
+          Math.pow(10, this.asset.decimals);
+      }
 
       if (!this.b64decode.feeLong) {
         if (!this.b64decode.fee) {
           this.b64decode.fee = 0.001;
           this.b64decode.feeLong = 1000;
         } else {
-          this.b64decode.feeLong = this.b64decode.fee;
-          this.b64decode.fee = this.b64decode.fee / 1000000;
+          this.b64decode.feeLong = this.b64decode.feebase ?? this.b64decode.fee;
+          this.b64decode.fee = Number(this.b64decode.feeLong) / 1000000;
         }
       }
     },

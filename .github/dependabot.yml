@@ -1,0 +1,17 @@
+# Weekly update PRs for the npm tree (pnpm lockfile) and the GitHub Actions the workflows use,
+# so security fixes in dependencies reach the wallet without a manual audit (AW-2026-092).
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    # Mirrors the 7-day minimumReleaseAge in pnpm-workspace.yaml.
+    cooldown:
+      default-days: 7
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5

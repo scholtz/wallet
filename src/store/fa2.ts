@@ -1,4 +1,5 @@
 import type { ActionTree, MutationTree } from "vuex";
+import { assertRemoteArc14Realm } from "@/scripts/encoding/arc14";
 import type { RootState } from "./index";
 
 export interface Fa2State {
@@ -89,6 +90,7 @@ const actions: ActionTree<Fa2State, RootState> = {
     if (!realm) {
       throw new Error("Unable to fetch realm from the provider");
     }
+    assertRemoteArc14Realm(realm);
     commit("storeRealm", { provider: twoFactorAuthProvider, realm });
     return realm;
   },

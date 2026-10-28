@@ -231,6 +231,36 @@ test.describe("admitTransactions", () => {
       }).ok,
     ).toBe(true);
   });
+
+  // AW-2026-081: only types the request table can display are signable.
+  test("admits every displayable transaction type", () => {
+    for (const type of ["pay", "axfer", "appl", "acfg", "afrz", "keyreg"]) {
+      expect(
+        admitTransactions({ transactions: [{ sender: "A", type }], approved: ["A"], own: ["A"] }).ok,
+      ).toBe(true);
+    }
+  });
+
+  test("rejects state proof and heartbeat transactions as invalid", () => {
+    for (const type of ["stpf", "hb", "unknown"]) {
+      expect(
+        admitTransactions({ transactions: [{ sender: "A", type }], approved: ["A"], own: ["A"] }),
+      ).toMatchObject({ ok: false, code: REQUEST_ERROR.invalid });
+    }
+  });
+
+  test("ignores the type of transactions the wallet will not sign", () => {
+    expect(
+      admitTransactions({
+        transactions: [
+          { sender: "X", type: "stpf", signers: [] },
+          { sender: "Y", type: "hb", preSigned: true },
+        ],
+        approved: ["A"],
+        own: ["A"],
+      }).ok,
+    ).toBe(true);
+  });
 });
 
 test.describe("admitSignData", () => {

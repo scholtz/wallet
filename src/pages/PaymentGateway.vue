@@ -369,6 +369,7 @@
 import PublicLayout from "../layouts/Public.vue";
 import base64url from "base64url";
 import { Buffer } from "buffer";
+import algosdk from "algosdk";
 import { getWalletBrandName } from "@/scripts/branding";
 window.Buffer = Buffer;
 
@@ -381,6 +382,8 @@ export default {
       build: false,
       payTo: "",
       asset: "0",
+      // Decimals of the selected asset, from the indexer; undefined while unknown or unavailable.
+      assetDecimals: 6,
       amount: 0,
       xnote: "",
       fee: 0.001,
@@ -410,11 +413,15 @@ export default {
       return getWalletBrandName();
     },
     dataOk() {
-      return !!this.payTo && !!this.amount;
+      return (
+        algosdk.isValidAddress(this.payTo) &&
+        !!this.amount &&
+        this.assetDecimals !== undefined
+      );
     },
     settingsOk() {
       if (this.success && !this.success.startsWith("https://")) return false;
-      if (this.cancel && !this.success.startsWith("https://")) return false;
+      if (this.cancel && !this.cancel.startsWith("https://")) return false;
       return true;
     },
     url() {
@@ -440,9 +447,12 @@ export default {
     paymentinfo() {
       let ret = "algorand://";
       ret += this.payTo;
-      ret += "?amount=" + Math.round(this.amount * 1000000);
+      // Base units of the selected asset: the gateway page divides by that asset's decimals.
+      ret +=
+        "?amount=" +
+        Math.round(this.amount * Math.pow(10, this.assetDecimals ?? 6));
       if (this.xnote) {
-        ret += "&xnote=" + this.xnote;
+        ret += "&xnote=" + encodeURIComponent(this.xnote);
       }
       if (this.asset > 0) {
         ret += "&asset=" + this.asset;
@@ -466,6 +476,29 @@ export default {
     callbackConfigB64() {
       if (!this.callbackConfig) return "";
       return base64url(this.callbackConfig);
+    },
+  },
+  watch: {
+    async asset(code) {
+      if (!code || code === "0") {
+        this.assetDecimals = 6;
+        return;
+      }
+      this.assetDecimals = undefined;
+      let decimals;
+      try {
+        const info = await this.$store.dispatch("indexer/getAsset", {
+          assetIndex: BigInt(code),
+        });
+        const value = Number(info?.decimals);
+        if (Number.isInteger(value) && value >= 0 && value <= 19) {
+          decimals = value;
+        }
+      } catch (error) {
+        console.error("gateway asset decimals", error);
+      }
+      // Ignore the answer when another asset was selected meanwhile.
+      if (this.asset === code) this.assetDecimals = decimals;
     },
   },
   mounted() {

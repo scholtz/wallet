@@ -367,7 +367,8 @@ const loadPrices = async () => {
   try {
     const prices = await getAssetUsdPrices(
       env,
-      assets.value.map((a) => a.assetId)
+      assets.value.map((a) => a.assetId),
+      accountAddressParam.value
     );
     for (const asset of assets.value) {
       const price = prices.get(asset.assetId);

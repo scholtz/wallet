@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - master
+# Least privilege: the job only pushes the gh-pages branch (AW-2026-091).
+permissions:
+  contents: write
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -30,7 +33,8 @@ jobs:
           pnpm run test:unit
 
       - name: Deploy 🚀 # Deploy to gh-pages branch
-        uses: JamesIves/github-pages-deploy-action@4.1.5
+        # Third-party action: pinned to the commit of v4.9.0, not to a movable tag (AW-2026-091).
+        uses: JamesIves/github-pages-deploy-action@fa24774553152dd7873cd16ebd8d959b010c5445
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: dist # The folder the action should deploy.

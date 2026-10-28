@@ -73,9 +73,11 @@ jobs:
           sed -i "s~$search.*~$search:${{ steps.version.outputs.version }}~g" k8s/deployment-main.yaml
 
       - name: Configure kubeconfig
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         run: |
           mkdir -p "$RUNNER_TEMP/.kube"
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > "$RUNNER_TEMP/.kube/config"
+          echo "$KUBE_CONFIG" | base64 -d > "$RUNNER_TEMP/.kube/config"
           chmod 600 "$RUNNER_TEMP/.kube/config"
           echo "KUBECONFIG=$RUNNER_TEMP/.kube/config" >> "$GITHUB_ENV"
 
@@ -101,9 +103,11 @@ jobs:
         run: kubectl apply -f k8s/deployment-main.yaml -n awallet
 
       - name: Update app config
+        env:
+          CONFIG_JSON: ${{ secrets.AWALLET_MAIN_CONFIG_JSON }}
         run: |
           mkdir -p k8s/conf
-          printf '%s' "${{ secrets.AWALLET_MAIN_CONFIG_JSON }}" > k8s/conf/config.json
+          printf '%s' "$CONFIG_JSON" > k8s/conf/config.json
           kubectl delete configmap awallet-main-conf -n awallet --ignore-not-found=true
           kubectl create configmap awallet-main-conf --from-file=k8s/conf -n awallet
 
