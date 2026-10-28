@@ -159,7 +159,7 @@
                     :min="0"
                     :max="1999999999"
                     :step="0.000001"
-                    :maxFractionDigits="6"
+                    :maxFractionDigits="assetDecimals ?? 6"
                   />
                   <InputGroupAddon>{{ assetName }}</InputGroupAddon>
                 </InputGroup>
@@ -258,7 +258,7 @@
             </div>
           </div>
         </div>
-        <div v-if="build && asset !== '0' && assetDecimals === undefined" class="grid">
+        <div v-if="build && asset !== '0' && assetDecimals === undefined && !assetLoading" class="grid">
           <div class="md:col-12">
             <Message severity="error" class="my-2">
               {{ $t("merchant.error_asset") }}{{ asset }}
@@ -392,6 +392,7 @@ export default {
       asset: "0",
       // Decimals of the selected asset, from the indexer; undefined while unknown or unavailable.
       assetDecimals: 6,
+      assetLoading: false,
       amount: 0,
       xnote: "",
       fee: 0.001,
@@ -496,9 +497,11 @@ export default {
     async asset(code) {
       if (!code || code === "0") {
         this.assetDecimals = 6;
+        this.assetLoading = false;
         return;
       }
       this.assetDecimals = undefined;
+      this.assetLoading = true;
       let decimals;
       try {
         const info = await this.$store.dispatch("indexer/getAsset", {
@@ -512,7 +515,10 @@ export default {
         console.error("gateway asset decimals", error);
       }
       // Ignore the answer when another asset was selected meanwhile.
-      if (this.asset === code) this.assetDecimals = decimals;
+      if (this.asset === code) {
+        this.assetDecimals = decimals;
+        this.assetLoading = false;
+      }
     },
   },
   mounted() {

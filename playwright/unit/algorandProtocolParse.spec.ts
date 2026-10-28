@@ -26,6 +26,12 @@ test.describe("parseAlgorandProtocolParameters base units", () => {
     expect(link.payamount).toBeUndefined();
   });
 
+  test("a non-numeric fee is kept as text with decimals too, so the pages can say it was ignored", () => {
+    const link = parse("amount=100&decimals=6&fee=abc");
+    expect(link.feebase).toBe("abc");
+    expect(link.fee).toBeUndefined();
+  });
+
   test("a payee without parameters has no amount or fee", () => {
     const link = aprotocol.parseAlgorandProtocolParameters("algorand://ADDR");
     expect(link).toMatchObject({ payTo: "ADDR" });

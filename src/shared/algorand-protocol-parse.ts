@@ -111,10 +111,11 @@ const parseAlgorandProtocolParameters = (
       }
     }
     if (fee) {
+      // Raw text, so a malformed fee reaches the pages' "fee ignored" handling like without decimals.
+      payload.feebase = fee;
       const numericFee = Number(fee);
       if (!Number.isNaN(numericFee)) {
         payload.fee = numericFee / Math.pow(10, decimals);
-        payload.feebase = fee;
       }
     }
   } else {
