@@ -104,7 +104,7 @@
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^26.6.5",
     "@typescript-eslint/eslint-plugin": "^8.71.2",
-    "@typescript-eslint/parser": "^8.71.2",
+    "@typescript-eslint/parser": "^8.72.0",
     "@vitejs/plugin-vue": "^6.0.10",
     "@vue/compiler-sfc": "^3.5.44",
     "@vue/eslint-config-typescript": "^14.9.0",
