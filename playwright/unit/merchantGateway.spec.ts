@@ -1,7 +1,10 @@
 // Node-only unit tests for the public /gateway page helpers (AW-2026-076).
 import { test, expect } from "@playwright/test";
 import {
+  gatewayExpectedPayment,
   gatewayIndexerEndpoint,
+  isExpectedPayment,
+  isWholeNumberParam,
   isAlgorandPaymentUri,
   sanitizeGatewaySettings,
   sanitizeRedirectUrl,
@@ -96,5 +99,73 @@ test.describe("gatewayIndexerEndpoint", () => {
   test("unknown or missing network falls back to the configured indexer", () => {
     expect(gatewayIndexerEndpoint(undefined)).toBeUndefined();
     expect(gatewayIndexerEndpoint("https://evil.example")).toBeUndefined();
+  });
+});
+
+// AW-2026-084: "paid" means the right receiver, asset and amount, not just a note match.
+test.describe("isExpectedPayment", () => {
+  const PAYEE = "PAYEEADDRESS";
+  const algo = (amount: bigint, receiver = PAYEE) => ({
+    id: "T1",
+    paymentTransaction: { receiver, amount },
+  });
+  const asa = (amount: bigint, assetId: bigint, receiver = PAYEE) => ({
+    id: "T2",
+    assetTransferTransaction: { receiver, amount, assetId },
+  });
+  const expectAlgo = gatewayExpectedPayment({ payTo: PAYEE, amountBase: "1000000" });
+  const expectAsa = gatewayExpectedPayment({ payTo: PAYEE, asset: "312769", amountBase: "5000" });
+
+  test("accepts the requested ALGO amount or more", () => {
+    expect(isExpectedPayment(algo(1_000_000n), expectAlgo)).toBe(true);
+    expect(isExpectedPayment(algo(2_000_000n), expectAlgo)).toBe(true);
+  });
+
+  test("refuses an underpayment, a zero payment and a payment to someone else", () => {
+    expect(isExpectedPayment(algo(999_999n), expectAlgo)).toBe(false);
+    expect(isExpectedPayment(algo(0n), expectAlgo)).toBe(false);
+    expect(isExpectedPayment(algo(1_000_000n, "OTHER"), expectAlgo)).toBe(false);
+  });
+
+  test("a link without an amount still needs a non-zero payment", () => {
+    const noAmount = gatewayExpectedPayment({ payTo: PAYEE });
+    expect(isExpectedPayment(algo(1n), noAmount)).toBe(true);
+    expect(isExpectedPayment(algo(0n), noAmount)).toBe(false);
+  });
+
+  test("an asset link needs that asset, not ALGO and not another asset", () => {
+    expect(isExpectedPayment(asa(5000n, 312769n), expectAsa)).toBe(true);
+    expect(isExpectedPayment(asa(4999n, 312769n), expectAsa)).toBe(false);
+    expect(isExpectedPayment(asa(5000n, 1n), expectAsa)).toBe(false);
+    expect(isExpectedPayment(algo(5_000_000n), expectAsa)).toBe(false);
+    expect(isExpectedPayment(asa(5000n, 312769n, "OTHER"), expectAsa)).toBe(false);
+  });
+
+  test("an ALGO link refuses an asset transfer of the same number", () => {
+    expect(isExpectedPayment(asa(1_000_000n, 312769n), expectAlgo)).toBe(false);
+  });
+
+  test("the payee paying itself is not a payment", () => {
+    expect(isExpectedPayment({ ...algo(1_000_000n), sender: PAYEE }, expectAlgo)).toBe(false);
+    expect(isExpectedPayment({ ...algo(1_000_000n), sender: "CUSTOMER" }, expectAlgo)).toBe(true);
+  });
+
+  test("a transaction that only mentions the payee (no payment fields) is not a payment", () => {
+    expect(isExpectedPayment({ id: "T3" }, expectAlgo)).toBe(false);
+  });
+
+  test("a link whose amount or asset is not a whole number is invalid, not 'no minimum'", () => {
+    for (const bad of ["abc", "1000.5", "1e6", "-5", "0x10", " 1 2 "]) {
+      expect(isWholeNumberParam(bad)).toBe(false);
+    }
+    for (const good of [undefined, null, "", "0", "1000000", 5000, "312769"]) {
+      expect(isWholeNumberParam(good)).toBe(true);
+    }
+  });
+
+  test("garbage amounts in the link fall back to no minimum", () => {
+    expect(gatewayExpectedPayment({ payTo: PAYEE, amountBase: "abc" }).minAmount).toBe(0n);
+    expect(gatewayExpectedPayment({ payTo: PAYEE, amountBase: -5 }).minAmount).toBe(0n);
+    expect(gatewayExpectedPayment({ payTo: PAYEE, asset: "x" }).assetId).toBe(0n);
   });
 });

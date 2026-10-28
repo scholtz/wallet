@@ -101,17 +101,21 @@ const parseAlgorandProtocolParameters = (
   if (decimals !== undefined) {
     payload.decimals = decimals;
     if (amount) {
+      // The text as written, also when it is not a number: a Number would lose precision above
+      // 2^53 and print in exponent form, and a malformed amount must reach the gateway's
+      // validation instead of vanishing as "no amount" (AW-2026-084).
+      payload.payamountbase = amount;
       const numericAmount = Number(amount);
       if (!Number.isNaN(numericAmount)) {
         payload.payamount = numericAmount / Math.pow(10, decimals);
-        payload.payamountbase = numericAmount;
       }
     }
     if (fee) {
+      // Raw text, so a malformed fee reaches the pages' "fee ignored" handling like without decimals.
+      payload.feebase = fee;
       const numericFee = Number(fee);
       if (!Number.isNaN(numericFee)) {
         payload.fee = numericFee / Math.pow(10, decimals);
-        payload.feebase = numericFee;
       }
     }
   } else {

@@ -2,7 +2,6 @@ import { createApp } from "vue"; //h, markRaw
 import App from "./App.vue";
 import PrimeVue from "primevue/config";
 
-//import page from "page";
 //import routes from "./routes";
 import store from "./store";
 import router from "./router"; // <---

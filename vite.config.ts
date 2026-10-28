@@ -58,7 +58,17 @@ export default defineConfig({
       manifest: false, // Use existing manifest.json in public
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,json,vue,txt,woff2}"],
-        globIgnores: ["**/*.xcf", "**/node_modules/**/*"],
+        // config.json is a runtime ConfigMap (node hosts, tokens): precaching it would pin every
+        // client to the copy from build time (AW-2026-094).
+        globIgnores: ["**/*.xcf", "**/node_modules/**/*", "**/config.json"],
+        // Fresh when online, last copy when offline, so the installed app still starts.
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }: { url: URL }) => url.pathname.endsWith("/config.json"),
+            handler: "NetworkFirst",
+            options: { cacheName: "runtime-config", networkTimeoutSeconds: 5 },
+          },
+        ],
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB
       },

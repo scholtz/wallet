@@ -63,6 +63,22 @@ export const toBaseUnits = (value: number, decimals: number): bigint => {
 };
 
 /**
+ * Exact base units of a typed amount, or undefined when the amount cannot be represented: not a
+ * positive finite number, or more fraction digits than the asset has. Works on the shortest text
+ * of the number ("0.1"), because `toFixed` pads it with binary noise for assets with many
+ * decimals ("0.100000000000000006" at 18) and `toBaseUnits` rounds, which is wrong for a
+ * payment request that must not charge more or less than shown.
+ */
+export const toBaseUnitsExact = (value: number, decimals: number): bigint | undefined => {
+  if (!Number.isFinite(value) || value <= 0) return undefined;
+  const text = /e/i.test(String(value)) ? value.toFixed(20).replace(/0+$/, "") : String(value);
+  const [whole, frac = ""] = text.split(".");
+  if (frac.length > decimals) return undefined;
+  const result = BigInt(whole + frac.padEnd(decimals, "0"));
+  return result > 0n ? result : undefined;
+};
+
+/**
  * Base units floored to whole cents (two decimals), for display. Done in
  * bigint math: flooring a float is inexact (0.29 * 100 = 28.999999999999996
  * would show as 0.28).

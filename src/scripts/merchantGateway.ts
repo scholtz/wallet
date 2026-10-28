@@ -86,3 +86,89 @@ export function gatewayIndexerEndpoint(
       return undefined;
   }
 }
+
+/** What a payment must contain before the gateway calls an order paid (AW-2026-084). */
+export interface GatewayExpectedPayment {
+  payTo: string;
+  /** 0n for ALGO. */
+  assetId: bigint;
+  /** Smallest acceptable amount in base units; 0n when the link names no amount. */
+  minAmount: bigint;
+}
+
+// Structural subset of the indexer transaction model (algosdk v3 camelCase, bigint amounts).
+export interface IndexerPaymentTxLike {
+  id?: string;
+  sender?: string;
+  paymentTransaction?: { receiver: string; amount: bigint | number };
+  assetTransferTransaction?: {
+    receiver: string;
+    amount: bigint | number;
+    assetId: bigint | number;
+  };
+}
+
+const toBigIntOrZero = (value: string | number | bigint | null | undefined): bigint => {
+  try {
+    if (typeof value === "bigint") return value >= 0n ? value : 0n;
+    if (typeof value === "string" && !/^\d{1,30}$/.test(value.trim())) return 0n;
+    if (typeof value === "number" && !Number.isFinite(value)) return 0n;
+    const parsed = BigInt(typeof value === "number" ? Math.round(value) : String(value ?? "0"));
+    return parsed >= 0n ? parsed : 0n;
+  } catch {
+    return 0n;
+  }
+};
+
+/**
+ * Whether the amount / asset of a payment link is usable: absent, or a whole non-negative number.
+ * A malformed value must make the link invalid rather than silently mean "no minimum" or "ALGO"
+ * (AW-2026-084).
+ */
+export function isWholeNumberParam(value: string | number | bigint | null | undefined): boolean {
+  if (value === undefined || value === null || value === "") return true;
+  return /^\d{1,30}$/.test(String(value).trim());
+}
+
+/** Reads the expected asset and minimum base-unit amount from the parsed payment link. */
+export function gatewayExpectedPayment(link: {
+  payTo?: string;
+  asset?: string | number;
+  amountBase?: string | number;
+}): GatewayExpectedPayment {
+  return {
+    payTo: link.payTo ?? "",
+    assetId: toBigIntOrZero(link.asset),
+    minAmount: toBigIntOrZero(link.amountBase),
+  };
+}
+
+/**
+ * True when the transaction pays the link's receiver in the link's asset, at least the requested
+ * amount. A transaction that merely touches the payee (0 amount, another asset, sent *by* the
+ * payee, an unrelated note match) is not a payment.
+ */
+export function isExpectedPayment(
+  tx: IndexerPaymentTxLike,
+  expected: GatewayExpectedPayment,
+): boolean {
+  // The payee paying itself (a consolidation, a refund looping back) is not a customer payment.
+  if (tx.sender === expected.payTo) return false;
+  if (expected.assetId === 0n) {
+    const pay = tx.paymentTransaction;
+    return (
+      !!pay &&
+      pay.receiver === expected.payTo &&
+      BigInt(pay.amount) >= expected.minAmount &&
+      BigInt(pay.amount) > 0n
+    );
+  }
+  const axfer = tx.assetTransferTransaction;
+  return (
+    !!axfer &&
+    axfer.receiver === expected.payTo &&
+    BigInt(axfer.assetId) === expected.assetId &&
+    BigInt(axfer.amount) >= expected.minAmount &&
+    BigInt(axfer.amount) > 0n
+  );
+}

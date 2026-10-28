@@ -7,6 +7,7 @@ import { DEFAULT_WALLET_PASSWORD, setupFreshWallet } from "../support/wallet";
 import {
   WALLET_ORIGIN,
   DAPP_ORIGIN,
+  E2E_PORT,
   DAPP_URL,
   MAINNET_HASH,
   TESTNET_HASH,
@@ -73,7 +74,7 @@ test.describe("Biatec Direct popup transport", () => {
     await unlock(popup);
     // The window title stays neutral until the origin is verified.
     await expect(popup).toHaveTitle(/^AWallet$|^Biatec/);
-    await expect(popup.getByTestId("direct-origin")).toHaveText(`http://127.0.0.1:8080`);
+    await expect(popup.getByTestId("direct-origin")).toHaveText(DAPP_ORIGIN);
     // Until a message from that origin was accepted the address is only claimed, not verified.
     await expect(popup.getByText("claimed, not confirmed yet")).toBeVisible();
     // The ready announcement reached the dApp, from the popup, from the wallet origin.
@@ -91,7 +92,7 @@ test.describe("Biatec Direct popup transport", () => {
     await expect(popup.getByTestId("direct-approve")).toBeVisible();
     await expect(popup.getByText("verified by your browser")).toBeVisible();
     // ...and then names the verified site in the window title.
-    await expect(popup).toHaveTitle(/127\.0\.0\.1:8080/);
+    await expect(popup).toHaveTitle(new RegExp(`127[.]0[.]0[.]1:${E2E_PORT}`));
     await expect(popup.getByText("claimed, not confirmed yet")).toHaveCount(0);
     await expect(popup.getByTestId(`direct-account-${address}`)).toBeVisible();
     // The approval shows the network by its friendly name, not the raw genesis id.
@@ -821,7 +822,7 @@ test.describe("Biatec Direct popup transport", () => {
     await post(dapp, {
       id: "p1",
       reference: "arc0060:sign_data:request",
-      params: { providerId: "d", genesisHash: MAINNET_HASH, items: [arc60Item(address, "127.0.0.1:8080")] },
+      params: { providerId: "d", genesisHash: MAINNET_HASH, items: [arc60Item(address, `127.0.0.1:${E2E_PORT}`)] },
     });
     await popup.getByRole("button", { name: "Sign data" }).click();
     const response = await waitForMessage(dapp, reply("p1"));

@@ -4,6 +4,10 @@ allowBuilds:
   cbor-extract: false
   core-js: false
   esbuild: true
+# A release must be at least 7 days old (minutes) before pnpm resolves it, so a hijacked or
+# malicious fresh publish cannot enter the lockfile before the registry has taken it down
+# (AW-2026-092). Lockfile-pinned versions are unaffected.
+minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
   - '@vue/language-core@3.3.7'
   - vue-tsc@3.3.7

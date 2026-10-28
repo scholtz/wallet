@@ -25,9 +25,11 @@ jobs:
         # If no from_tag input was supplied, look up the most recently pushed
         # 1.YYYY.MM.DD-main tag on Docker Hub (public API, no auth needed) and
         # promote that one.
+        env:
+          INPUT_FROM_TAG: ${{ inputs.from_tag }}
         run: |
           set -euo pipefail
-          from_tag="${{ inputs.from_tag }}"
+          from_tag="$INPUT_FROM_TAG"
           if [ -z "$from_tag" ]; then
             from_tag="$(curl -fsSL 'https://hub.docker.com/v2/repositories/scholtz2/a-wallet/tags?page_size=100&ordering=last_updated' \
               | jq -r '[.results[] | select(.name | test("^1[.][0-9]{4}[.][0-9]{2}[.][0-9]{2}-main$"))] | sort_by(.last_updated) | last | .name // empty')"
@@ -38,6 +40,11 @@ jobs:
             echo "Resolved latest main tag from Docker Hub: $from_tag"
           else
             echo "Using supplied tag: $from_tag"
+          fi
+          # The tag later becomes part of an image reference: nothing but a plain tag may pass.
+          if ! printf '%s' "$from_tag" | grep -Eq '^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$'; then
+            echo "::error::from_tag is not a valid image tag"
+            exit 1
           fi
           echo "from_tag=$from_tag" >> "$GITHUB_OUTPUT"
 
@@ -63,11 +70,15 @@ jobs:
       # Same tag naming as the old deploy-stable.sh: retag the chosen already-published
       # main image as this run's stable version, plus `latest`, on both registries.
       - name: Retag and push stable image
+        env:
+          HARBOR_REGISTRY: ${{ secrets.HARBOR_REGISTRY }}
+          HARBOR_PROJECT: ${{ secrets.HARBOR_PROJECT }}
+          FROM_TAG: ${{ steps.source.outputs.from_tag }}
         run: |
           set -euo pipefail
           version="${{ steps.version.outputs.version }}"
-          from="scholtz2/a-wallet:${{ steps.source.outputs.from_tag }}"
-          harbor_repo="${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/a-wallet"
+          from="scholtz2/a-wallet:$FROM_TAG"
+          harbor_repo="$HARBOR_REGISTRY/$HARBOR_PROJECT/a-wallet"
 
           docker pull "$from"
 
@@ -102,9 +113,11 @@ jobs:
           sed -i "s~$search.*~$search:$version~g" k8s/deployment-stable-biatec.yaml
 
       - name: Configure kubeconfig
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         run: |
           mkdir -p "$RUNNER_TEMP/.kube"
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > "$RUNNER_TEMP/.kube/config"
+          echo "$KUBE_CONFIG" | base64 -d > "$RUNNER_TEMP/.kube/config"
           chmod 600 "$RUNNER_TEMP/.kube/config"
           echo "KUBECONFIG=$RUNNER_TEMP/.kube/config" >> "$GITHUB_ENV"
 
@@ -132,9 +145,11 @@ jobs:
         # k8s/stable/ is gitignored (unlike k8s/stable-biatec/, which is committed),
         # so its content only ever lived on the old deploy server -- sourced from a
         # secret instead.
+        env:
+          CONFIG_JSON: ${{ secrets.AWALLET_STABLE_CONFIG_JSON }}
         run: |
           mkdir -p k8s/stable
-          printf '%s' "${{ secrets.AWALLET_STABLE_CONFIG_JSON }}" > k8s/stable/config.json
+          printf '%s' "$CONFIG_JSON" > k8s/stable/config.json
           kubectl delete configmap awallet-stable-conf -n awallet --ignore-not-found=true
           kubectl create configmap awallet-stable-conf --from-file=k8s/stable -n awallet
 
@@ -143,9 +158,11 @@ jobs:
         # committed back) when BIATEC_STABLE_CONFIG_JSON is set, so config changes can
         # be rolled out via secret without a repo commit. Falls back to the committed
         # file as-is if the secret is empty.
+        env:
+          CONFIG_JSON: ${{ secrets.BIATEC_STABLE_CONFIG_JSON }}
         run: |
-          if [ -n "${{ secrets.BIATEC_STABLE_CONFIG_JSON }}" ]; then
-            printf '%s' "${{ secrets.BIATEC_STABLE_CONFIG_JSON }}" > k8s/stable-biatec/config.json
+          if [ -n "$CONFIG_JSON" ]; then
+            printf '%s' "$CONFIG_JSON" > k8s/stable-biatec/config.json
           fi
           kubectl delete configmap biatec-wallet-stable-conf -n awallet --ignore-not-found=true
           kubectl create configmap biatec-wallet-stable-conf --from-file=k8s/stable-biatec -n awallet

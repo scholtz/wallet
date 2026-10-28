@@ -116,3 +116,19 @@ export function checkTransactionGroup(txns: algosdk.Transaction[]): TxGroupCheck
     return "incomplete";
   }
 }
+
+/**
+ * Compares the genesis hash a node suggested for a wallet-built transaction with the built-in
+ * table (AW-2026-086). Does not depend on the remote genesis list, so it also holds right after
+ * start-up, when that list has not been fetched. `unknown` for environments without a built-in
+ * hash (custom nodes, devnet, ...), which can only be cross-checked by other means.
+ */
+export function checkNodeGenesisHash(
+  env: string,
+  genesisHash: Uint8Array | undefined,
+): "ok" | "mismatch" | "unknown" {
+  if (!env || !isKnownEnvId(env)) return "unknown";
+  const expected = EXPECTED_HASH[env];
+  if (!expected) return "unknown";
+  return txnGenesisMatches(genesisHash, expected) ? "ok" : "mismatch";
+}

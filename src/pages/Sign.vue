@@ -735,7 +735,8 @@ import type {
 import type { PreparePaymentPayload } from "@/store/algod";
 import { getArc14Realm, isArc14AuthTransaction } from "@/scripts/encoding/arc14";
 import { isAssetOptIn } from "@/scripts/transactionTypes";
-import { MAX_AUTO_FEE_MICROALGOS, type FeeEstimate } from "@/scripts/fees";
+import { MAX_AUTO_FEE_MICROALGOS, uriFeeToAlgo, type FeeEstimate } from "@/scripts/fees";
+import { checkTxGenesis } from "@/scripts/dappRequestChecks";
 
 const store = useStore();
 const route = useRoute();
@@ -861,6 +862,15 @@ const fatal = computed(() => {
   ) {
     return `Genesis id of the tx ${txn.value.genesisID} does not match current network ${envName.value}`;
   }
+  // The genesis id is only a label chosen by whoever built the transaction: for a built-in
+  // network the genesis hash must match too, also when the id is missing (AW-2026-063).
+  if (
+    envName.value !== "custom" &&
+    txn.value &&
+    checkTxGenesis(txn.value, envName.value) === "hash_mismatch"
+  ) {
+    return `Genesis hash of the tx does not match current network ${envName.value}`;
+  }
   return "";
 });
 
@@ -953,7 +963,8 @@ const decimalsPower = computed(() => {
 const amountLong = computed(() =>
   Math.round(payamount.value * decimalsPower.value)
 );
-const feeLong = computed(() => fee.value * 1_000_000);
+// Rounded: 0.001001 * 1e6 is 1000.9999999999999 and the node client needs a whole number.
+const feeLong = computed(() => Math.round(fee.value * 1_000_000));
 // closeRemainderTo / assetCloseTo drains the entire remaining balance or
 // asset holding to the given address (audit finding AW-2026-001) — always
 // surfaced with a prominent warning before signing.
@@ -1280,7 +1291,7 @@ const parseToAccount = () => {
   if (b64decode.value.payTo) {
     payTo.value = b64decode.value.payTo.replace(/[^\w\s]/gi, "");
   }
-  if (b64decode.value.payamountbase !== undefined) {
+  if (b64decode.value.payamountbase !== undefined && /^[0-9]+$/.test(String(b64decode.value.payamountbase))) {
     payamount.value =
       Number(b64decode.value.payamountbase) / decimalsPower.value;
   }
@@ -1291,8 +1302,14 @@ const parseToAccount = () => {
   if (b64decode.value.paynote) {
     paynote.value = b64decode.value.paynote;
   }
-  if (b64decode.value.fee) {
-    fee.value = Number(b64decode.value.fee);
+  if (b64decode.value.feebase !== undefined) {
+    // The link's fee is microalgos and capped; anything else keeps the default fee (AW-2026-083).
+    const uriFee = uriFeeToAlgo(b64decode.value.feebase);
+    if (uriFee !== undefined) {
+      fee.value = uriFee;
+    } else {
+      openErrorAction(t("pay.uri_fee_ignored"));
+    }
   }
   if (b64decode.value.network && b64decode.value.network !== envName.value) {
     setEnvAction({ env: b64decode.value.network });
@@ -1678,8 +1695,8 @@ const test = (e: Event) => {
     "015LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U",
     "algorand://025LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?&note=123",
     "algorand://035LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?&note=234&&",
-    "algorand://045LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?xnote=345&fee=3&amount=1000&asset=456",
-    "algorand://046LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?note=SGVsbG8=&noteB64=1&fee=0.001&amount=1",
+    "algorand://045LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?xnote=345&fee=1000&amount=1000&asset=456",
+    "algorand://046LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?note=SGVsbG8=&noteB64=1&fee=1000&amount=1",
   ];
   tests.forEach((value) => onDecodeQR(value));
 };

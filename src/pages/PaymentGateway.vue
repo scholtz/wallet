@@ -159,7 +159,7 @@
                     :min="0"
                     :max="1999999999"
                     :step="0.000001"
-                    :maxFractionDigits="6"
+                    :maxFractionDigits="assetDecimals ?? 6"
                   />
                   <InputGroupAddon>{{ assetName }}</InputGroupAddon>
                 </InputGroup>
@@ -256,6 +256,13 @@
                 </span>
               </div>
             </div>
+          </div>
+        </div>
+        <div v-if="build && asset !== '0' && assetDecimals === undefined && !assetLoading" class="grid">
+          <div class="md:col-12">
+            <Message severity="error" class="my-2">
+              {{ $t("merchant.error_asset") }}{{ asset }}
+            </Message>
           </div>
         </div>
         <div v-if="build && !dataOk" class="grid">
@@ -369,6 +376,9 @@
 import PublicLayout from "../layouts/Public.vue";
 import base64url from "base64url";
 import { Buffer } from "buffer";
+import algosdk from "algosdk";
+import { toBaseUnitsExact } from "@/scripts/folksLend/convert";
+import { MAX_AUTO_FEE_MICROALGOS } from "@/scripts/fees";
 import { getWalletBrandName } from "@/scripts/branding";
 window.Buffer = Buffer;
 
@@ -381,6 +391,9 @@ export default {
       build: false,
       payTo: "",
       asset: "0",
+      // Decimals of the selected asset, from the indexer; undefined while unknown or unavailable.
+      assetDecimals: 6,
+      assetLoading: false,
       amount: 0,
       xnote: "",
       fee: 0.001,
@@ -410,11 +423,21 @@ export default {
       return getWalletBrandName();
     },
     dataOk() {
-      return !!this.payTo && !!this.amount;
+      return (
+        algosdk.isValidAddress(this.payTo) &&
+        Number.isFinite(this.amount) &&
+        this.amount > 0 &&
+        // Far below the 1e21 where toFixed switches to exponent notation.
+        this.amount < 1e15 &&
+        this.assetDecimals !== undefined &&
+        // An amount with more digits than the asset has is refused instead of being rounded, so
+        // the link never asks for more or less than the form shows.
+        toBaseUnitsExact(this.amount, this.assetDecimals) !== undefined
+      );
     },
     settingsOk() {
       if (this.success && !this.success.startsWith("https://")) return false;
-      if (this.cancel && !this.success.startsWith("https://")) return false;
+      if (this.cancel && !this.cancel.startsWith("https://")) return false;
       return true;
     },
     url() {
@@ -440,15 +463,20 @@ export default {
     paymentinfo() {
       let ret = "algorand://";
       ret += this.payTo;
-      ret += "?amount=" + Math.round(this.amount * 1000000);
+      // Base units of the selected asset: the gateway page divides by that asset's decimals.
+      // Exact string arithmetic: float multiplication rounds some amounts to the wrong base unit
+      // and loses precision for assets with many decimals.
+      ret +=
+        "?amount=" +
+        (toBaseUnitsExact(this.amount, this.assetDecimals ?? 6) ?? 0n).toString();
       if (this.xnote) {
-        ret += "&xnote=" + this.xnote;
+        ret += "&xnote=" + encodeURIComponent(this.xnote);
       }
       if (this.asset > 0) {
         ret += "&asset=" + this.asset;
       }
       if (this.fee && this.fee > 0.001) {
-        ret += "&fee=" + Math.round(this.fee * 1000000);
+        ret += "&fee=" + Math.round(Math.min(this.fee, Number(MAX_AUTO_FEE_MICROALGOS) / 1000000) * 1000000);
       }
       return ret;
     },
@@ -466,6 +494,34 @@ export default {
     callbackConfigB64() {
       if (!this.callbackConfig) return "";
       return base64url(this.callbackConfig);
+    },
+  },
+  watch: {
+    async asset(code) {
+      if (!code || code === "0") {
+        this.assetDecimals = 6;
+        this.assetLoading = false;
+        return;
+      }
+      this.assetDecimals = undefined;
+      this.assetLoading = true;
+      let decimals;
+      try {
+        const info = await this.$store.dispatch("indexer/getAsset", {
+          assetIndex: BigInt(code),
+        });
+        const value = Number(info?.decimals);
+        if (Number.isInteger(value) && value >= 0 && value <= 19) {
+          decimals = value;
+        }
+      } catch (error) {
+        console.error("gateway asset decimals", error);
+      }
+      // Ignore the answer when another asset was selected meanwhile.
+      if (this.asset === code) {
+        this.assetDecimals = decimals;
+        this.assetLoading = false;
+      }
     },
   },
   mounted() {

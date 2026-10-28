@@ -479,6 +479,37 @@ const getRequiredLocalStorage = (key: string): string => {
   }
   return value;
 };
+/** A watch-only entry: an address with no key, type or multisig parameters of its own. */
+const isWatchOnly = (account: WalletAccount): boolean =>
+  !account.type &&
+  !account.sk &&
+  !account.params &&
+  !account.hdMnemonic &&
+  !account.falconMnemonic &&
+  !account.falconPrivateKey;
+
+/**
+ * Adds an account unless one with the same address is already in the wallet. A second copy
+ * would survive "delete account" and shadow the first one (AW-2026-089), so every way of adding
+ * an account (ed25519, HD, multisig, Ledger, watch, ...) goes through here, and it runs before
+ * the mutation changes anything else. The one exception is a watch-only entry, which an account
+ * that can sign for the same address replaces in place.
+ */
+const pushNewAccount = (state: WalletState, account: WalletAccount): void => {
+  const index = state.privateAccounts.findIndex((a) => a.addr === account.addr);
+  if (index === -1) {
+    state.privateAccounts.push(account);
+    return;
+  }
+  if (isWatchOnly(state.privateAccounts[index]) && !isWatchOnly(account)) {
+    // Keep what was loaded for the watched address so it need not be fetched again.
+    const watched = state.privateAccounts[index];
+    state.privateAccounts.splice(index, 1, { ...account, data: account.data ?? watched.data });
+    return;
+  }
+  throw new Error("This account is already present in the wallet");
+};
+
 const mutations: MutationTree<WalletState> = {
   setTransaction(state, transaction: algosdk.indexerModels.Transaction) {
     state.transaction = transaction;
@@ -501,9 +532,9 @@ const mutations: MutationTree<WalletState> = {
       address: addr,
       name,
     };
+    pushNewAccount(state, account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
-    state.privateAccounts.push(account);
   },
   addArc200Asset(state, { addr, arc200Info, network }: AddArc200AssetPayload) {
     const acc = state.privateAccounts.find((x) => x.addr == addr);
@@ -538,7 +569,7 @@ const mutations: MutationTree<WalletState> = {
   },
   addPublicAccount(state, { name, addr }: PublicAccountPayload) {
     const acc: WalletAccount = { name, addr, address: addr };
-    state.privateAccounts.push(acc);
+    pushNewAccount(state, acc);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
@@ -628,7 +659,7 @@ const mutations: MutationTree<WalletState> = {
     if (savePassword) {
       account.sk = genAccount.sk;
     }
-    state.privateAccounts.push(account);
+    pushNewAccount(state, account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
@@ -644,7 +675,7 @@ const mutations: MutationTree<WalletState> = {
       network,
       type: "msig",
     };
-    state.privateAccounts.push(multsigaddr);
+    pushNewAccount(state, multsigaddr);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
@@ -671,7 +702,7 @@ const mutations: MutationTree<WalletState> = {
       twoFactorAccount,
       network,
     };
-    state.privateAccounts.push(multsigaddr);
+    pushNewAccount(state, multsigaddr);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
@@ -699,7 +730,7 @@ const mutations: MutationTree<WalletState> = {
       isHidden: true,
       twoFactorAuthProvider,
     };
-    state.privateAccounts.push(multsigaddr);
+    pushNewAccount(state, multsigaddr);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
@@ -716,7 +747,7 @@ const mutations: MutationTree<WalletState> = {
       network,
       type: "ledger",
     };
-    state.privateAccounts.push(account);
+    pushNewAccount(state, account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
@@ -733,7 +764,7 @@ const mutations: MutationTree<WalletState> = {
       ver: "1",
       type: "wc",
     };
-    state.privateAccounts.push(account);
+    pushNewAccount(state, account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
@@ -750,7 +781,7 @@ const mutations: MutationTree<WalletState> = {
       ver: "2",
       type: "wc",
     };
-    state.privateAccounts.push(account);
+    pushNewAccount(state, account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
@@ -776,7 +807,7 @@ const mutations: MutationTree<WalletState> = {
       hdAccountIndex,
       backedUp,
     };
-    state.privateAccounts.push(account);
+    pushNewAccount(state, account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
@@ -803,7 +834,7 @@ const mutations: MutationTree<WalletState> = {
       falconPrivateKey: privateKey,
       backedUp,
     };
-    state.privateAccounts.push(account);
+    pushNewAccount(state, account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
@@ -834,7 +865,7 @@ const mutations: MutationTree<WalletState> = {
       hdRootAddr,
       hdAccountIndex,
     };
-    state.privateAccounts.push(account);
+    pushNewAccount(state, account);
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
@@ -968,8 +999,9 @@ const actionHandlers: Record<string, WalletActionHandler> = {
   async getAccount(_context, { addr }: { addr: string }) {
     return this.state.wallet.privateAccounts.find((a) => a.addr == addr);
   },
-  async getSK(_context, { addr }: { addr: string }) {
-    const network = String(this.state.config.env);
+  async getSK(_context, { addr, env }: { addr: string; env?: string }) {
+    // `env`: the network the transaction is for; defaults to the selected one (AW-2026-088).
+    const network = String(env ?? this.state.config.env);
     // Follow the rekey chain iteratively with cycle detection, so a
     // multi-hop rekey loop (A→B→A) recorded in local state cannot cause
     // unbounded recursion (audit finding AW-2026-019).

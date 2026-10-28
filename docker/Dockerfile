@@ -25,7 +25,9 @@ RUN cd /src/dist && ls
 FROM nginxinc/nginx-unprivileged:latest
 USER root
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt update && apt dist-upgrade -y && apt install -y bc mc wget telnet git curl iotop atop vim && apt-get clean autoclean && apt-get autoremove --yes && rm -rf /var/lib/{apt,dpkg,cache,log}/
+# Security updates only: no shells' worth of debugging tools (curl, wget, git, telnet, ...) in the
+# image that serves the wallet (AW-2026-093).
+RUN apt update && apt dist-upgrade -y && apt-get clean autoclean && apt-get autoremove --yes && rm -rf /var/lib/{apt,dpkg,cache,log}/
 RUN mkdir /app
 COPY docker/default.conf /etc/nginx/conf.d/default.conf
 RUN chown nginx:nginx /etc/nginx/conf.d -R

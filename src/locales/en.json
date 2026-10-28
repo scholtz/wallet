@@ -591,7 +591,8 @@
     "toggle_combine_with_others_form": "Toggle Combine with others form",
     "process_payment": "Process payment",
     "tx_type": "Transaction type",
-    "asset_optin": "Asset opt-in"
+    "asset_optin": "Asset opt-in",
+    "uri_fee_ignored": "The fee of the payment link was ignored because it is not valid, below 0.001 ALGO or above 0.1 ALGO."
   },
   "settings": {
     "title": "Settings",
@@ -983,6 +984,25 @@
     "on_complete": "On complete",
     "clawback_from": "Clawback from",
     "clawback_warning": "The asset is taken from this account, not from the sender.",
+    "tx_acfg_create": "Creates a new asset",
+    "tx_acfg_reconfigure": "Changes the control addresses of asset {asset}",
+    "tx_acfg_destroy": "Permanently destroys asset {asset}",
+    "tx_afrz_freeze": "Freezes the holding of {account} in asset {asset}",
+    "tx_afrz_unfreeze": "Unfreezes the holding of {account} in asset {asset}",
+    "tx_keyreg_online": "Registers participation keys and takes the account online",
+    "tx_keyreg_offline": "Takes the account offline",
+    "tx_keyreg_nonparticipation": "Marks the account as permanently non-participating. This cannot be undone.",
+    "asset_manager": "Manager",
+    "asset_reserve": "Reserve",
+    "asset_freeze_role": "Freeze address",
+    "asset_clawback_role": "Clawback address",
+    "asset_role_removed": "removed (no address)",
+    "asset_clawback_warning": "The clawback address can take this asset from any holder.",
+    "asset_properties": "{name} ({unit}), total supply {total}, {decimals} decimals",
+    "asset_default_frozen": "New holdings are frozen by default",
+    "keyreg_rounds": "Participation key valid rounds",
+    "lease": "Lease",
+    "app_foreign_apps": "Foreign apps",
     "boxes": "Boxes",
     "name": "Name",
     "genesis": "Genesis ID",
@@ -1266,7 +1286,8 @@
     "index": "Shamir Index",
     "shamir_help": "Please secure mnemonic at very secure place. Make sure you write down all parts of shamir backup and do not store the recovery threshold at one place.",
     "algo_help": "Please secure mnemonic at very secure place.",
-    "dev_info": "Developer info"
+    "dev_info": "Developer info",
+    "shamir_invalid_threshold": "The recovery threshold must be at least 2 and cannot be higher than the number of mnemonics."
   },
   "arc200": {
     "optin_header": "Add ARC 200 asset to account",

@@ -126,6 +126,14 @@ const shamirBackup = async () => {
       throw new Error("Private key is not stored for this account");
     }
 
+    // One share would be the secret itself, and a threshold above the number of shares could
+    // never be met: either way the "backup" would be worthless or unsafe (AW-2026-099).
+    if (
+      !Number.isInteger(state.shamirMin) ||
+      !Number.isInteger(state.shamirCount) ||
+      state.shamirMin < 2 || state.shamirMin > state.shamirCount || state.shamirCount > 255) {
+      throw new Error(t("account_export.shamir_invalid_threshold"));
+    }
     const secret = toUint8Array(state.json.sk);
     const shares = Shamir.split(
       secret.subarray(0, 32), // in first 32 bytes is the secret

@@ -257,6 +257,7 @@ const handleCallRequest = async (
     transactions: transactions.map((tx, i) => ({
       sender: tx.txn?.sender?.toString(),
       preSigned: tx.preSigned,
+      type: tx.type,
       signers: rawTransactions[i]?.signers,
     })),
     approved: [address],

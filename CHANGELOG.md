@@ -4,6 +4,12 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 
 ## 2026-10
 
+- Fixed creating a new HD (ARC-52) account: the 24 words shown for you to back up are now the ones the account is created with. Before, a different phrase was stored, so the backup written down could not restore the account. If you created an HD account this way and marked it as backed up, open Export for that account and back up the phrase shown there.
+- Requests from apps over WalletConnect and Liquid Auth now show what an asset configuration, asset freeze or key registration really does (new manager, reserve, freeze and clawback addresses, asset destruction, freezing an account, going online or offline, permanent non-participation) with a clear warning, and show the program fingerprint of contracts being created, updated or deleted. Each request also names the app it came from.
+- Payment links: the `fee` in a link is now read in microalgos everywhere and is ignored with a message when it is invalid or higher than 0.1 ALGO. The payment gateway now only reports a payment as received when the right receiver, asset and amount were paid, and its link builder uses the real decimals of the chosen asset.
+- Transactions returned by the scheduled-payments service are checked before you are asked to sign (no rekey or account-closing of your accounts, no excessive fee). A built-in network's genesis hash is now always checked against the node, and the single-transaction signing page refuses transactions with another network's genesis hash.
+- Importing the same account twice is refused, deleting an account removes every copy of it, the Shamir backup requires a threshold of at least 2 that does not exceed the number of shares, and wallets imported with a weaker key-derivation setting are upgraded the next time they are saved.
+
 - Hardened the public payment gateway page: only real Algorand payment links are accepted, cancel and return links must be https, and opening a gateway link no longer changes your configured node settings.
 - The multi-transaction signing page now refuses to sign transactions meant for a different network and warns when a post-quantum (Falcon-1024) account is short on fees.
 - Importing a wallet file now rejects files that are not AWallet backups, and an already unlocked wallet is locked so you unlock the one you just imported.

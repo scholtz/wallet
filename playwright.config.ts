@@ -27,6 +27,9 @@ const serveProduction =
 
 const DEV_SERVER_SPECS = /liquid-initialization\.spec\.ts$/;
 
+// Port of the app under test; E2E_PORT lets the suite run when 8080 is taken by another process.
+const PORT = process.env.E2E_PORT ?? "8080";
+
 export default defineConfig({
   testDir: "./playwright/e2e",
   fullyParallel: false,
@@ -40,7 +43,7 @@ export default defineConfig({
   timeout: 120000,
   expect: { timeout: 15000 },
   use: {
-    baseURL: "http://localhost:8080",
+    baseURL: `http://localhost:${PORT}`,
     // Full video of every test locally. Not in CI: even "retain-on-failure" records every test, and
     // finalising 1920x1080 videos on a small runner stalls browserContext.close for minutes (the
     // test body is long done) - traces below are the CI debugging artifact. E2E_VIDEO overrides.
@@ -61,8 +64,8 @@ export default defineConfig({
     ? [
         {
           command:
-            "pnpm exec vite build && pnpm exec vite preview --port 8080 --strictPort",
-          url: "http://localhost:8080",
+            `pnpm exec vite build && pnpm exec vite preview --port ${PORT} --strictPort`,
+          url: `http://localhost:${PORT}`,
           reuseExistingServer: !process.env.CI,
           timeout: 180000,
         },
@@ -76,8 +79,8 @@ export default defineConfig({
         },
       ]
     : {
-        command: "pnpm run serve --port 8080",
-        url: "http://localhost:8080",
+        command: `pnpm run serve --port ${PORT}`,
+        url: `http://localhost:${PORT}`,
         reuseExistingServer: !process.env.CI,
         timeout: 60000,
       },

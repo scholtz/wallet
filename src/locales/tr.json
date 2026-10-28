@@ -591,7 +591,8 @@
     "toggle_combine_with_others_form": "Diğerleriyle birleştirme formunu aç/kapat",
     "process_payment": "Ödemeyi işle",
     "tx_type": "İşlem türü",
-    "asset_optin": "Varlık kaydı (opt-in)"
+    "asset_optin": "Varlık kaydı (opt-in)",
+    "uri_fee_ignored": "Ödeme bağlantısındaki ücret geçersiz, 0,001 ALGO’nun altında veya 0,1 ALGO’nun üzerinde olduğu için yok sayıldı."
   },
   "settings": {
     "title": "Ayarlar",
@@ -983,6 +984,25 @@
     "on_complete": "Tamamlandığında",
     "clawback_from": "Geri alınan hesap",
     "clawback_warning": "Varlık gönderenden değil, bu hesaptan alınır.",
+    "tx_acfg_create": "Yeni bir varlık oluşturur",
+    "tx_acfg_reconfigure": "{asset} varlığının kontrol adreslerini değiştirir",
+    "tx_acfg_destroy": "{asset} varlığını kalıcı olarak yok eder",
+    "tx_afrz_freeze": "{account} hesabının {asset} varlığındaki bakiyesini dondurur",
+    "tx_afrz_unfreeze": "{account} hesabının {asset} varlığındaki bakiyesinin dondurulmasını kaldırır",
+    "tx_keyreg_online": "Katılım anahtarlarını kaydeder ve hesabı çevrimiçi yapar",
+    "tx_keyreg_offline": "Hesabı çevrimdışı yapar",
+    "tx_keyreg_nonparticipation": "Hesabı kalıcı olarak katılmayan olarak işaretler. Bu geri alınamaz.",
+    "asset_manager": "Yönetici",
+    "asset_reserve": "Rezerv",
+    "asset_freeze_role": "Dondurma adresi",
+    "asset_clawback_role": "Clawback adresi",
+    "asset_role_removed": "kaldırıldı (adres yok)",
+    "asset_clawback_warning": "Clawback adresi bu varlığı herhangi bir sahibinden alabilir.",
+    "asset_properties": "{name} ({unit}), toplam arz {total}, {decimals} ondalık",
+    "asset_default_frozen": "Yeni bakiyeler varsayılan olarak dondurulur",
+    "keyreg_rounds": "Katılım anahtarının geçerlilik turları",
+    "lease": "Lease",
+    "app_foreign_apps": "Harici uygulamalar",
     "boxes": "Kutular",
     "name": "Ad",
     "genesis": "Genesis Kimliği",
@@ -1266,7 +1286,8 @@
     "index": "Shamir dizini",
     "shamir_help": "Lütfen anımsatıcıyı çok güvenli bir yerde saklayın. Hepsini yazdığınızdan emin olun. Shamir yedeklemesinin bazı bölümlerini kontrol edin ve kurtarma eşiğini tek bir yerde saklamayın.",
     "algo_help": "Lütfen anımsatıcıyı çok güvenli bir yerde güvenceye alın.",
-    "dev_info": "Geliştirici bilgisi"
+    "dev_info": "Geliştirici bilgisi",
+    "shamir_invalid_threshold": "Kurtarma eşiği en az 2 olmalı ve anımsatıcı sayısından büyük olamaz."
   },
   "arc200": {
     "optin_header": "Hesaba ARC 200 varlığını ekle",

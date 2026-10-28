@@ -591,7 +591,8 @@
     "toggle_combine_with_others_form": "Přepnout formulář Kombinovat s ostatními",
     "process_payment": "Zpracovat platbu",
     "tx_type": "Typ transakce",
-    "asset_optin": "Přihlášení k assetu (opt-in)"
+    "asset_optin": "Přihlášení k assetu (opt-in)",
+    "uri_fee_ignored": "Poplatek z platebního odkazu byl ignorován, protože je neplatný, nižší než 0,001 ALGO nebo vyšší než 0,1 ALGO."
   },
   "settings": {
     "title": "Nastavení",
@@ -983,6 +984,25 @@
     "on_complete": "Po dokončení",
     "clawback_from": "Odebráno z účtu",
     "clawback_warning": "Aktivum je odebráno z tohoto účtu, ne od odesílatele.",
+    "tx_acfg_create": "Vytvoří nové aktivum",
+    "tx_acfg_reconfigure": "Změní řídicí adresy aktiva {asset}",
+    "tx_acfg_destroy": "Trvale zničí aktivum {asset}",
+    "tx_afrz_freeze": "Zmrazí držbu účtu {account} v aktivu {asset}",
+    "tx_afrz_unfreeze": "Odmrazí držbu účtu {account} v aktivu {asset}",
+    "tx_keyreg_online": "Zaregistruje participační klíče a přepne účet do režimu online",
+    "tx_keyreg_offline": "Přepne účet do režimu offline",
+    "tx_keyreg_nonparticipation": "Označí účet jako trvale nezúčastněný. Toto nelze vzít zpět.",
+    "asset_manager": "Správce",
+    "asset_reserve": "Rezerva",
+    "asset_freeze_role": "Adresa pro zmrazení",
+    "asset_clawback_role": "Adresa clawback",
+    "asset_role_removed": "odstraněna (bez adresy)",
+    "asset_clawback_warning": "Adresa clawback může toto aktivum odebrat kterémukoli držiteli.",
+    "asset_properties": "{name} ({unit}), celková nabídka {total}, desetinná místa: {decimals}",
+    "asset_default_frozen": "Nové držby jsou ve výchozím stavu zmrazené",
+    "keyreg_rounds": "Platnost participačního klíče (kola)",
+    "lease": "Lease",
+    "app_foreign_apps": "Cizí aplikace",
     "boxes": "Boxes",
     "name": "Name",
     "genesis": "Genesis ID",
@@ -1266,7 +1286,8 @@
     "index": "Shamir Index",
     "shamir_help": "Please secure mnemonic at very secure place. Make sure you write down all parts of shamir backup and do not store the recovery threshold at one place.",
     "algo_help": "Please secure mnemonic at very secure place.",
-    "dev_info": "Developer info"
+    "dev_info": "Developer info",
+    "shamir_invalid_threshold": "Práh obnovení musí být alespoň 2 a nesmí být vyšší než počet mnemonických frází."
   },
   "arc200": {
     "optin_header": "Add ARC 200 asset to account",

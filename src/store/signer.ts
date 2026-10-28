@@ -60,6 +60,8 @@ interface SetSignedPayload {
 interface SignByPayload {
   from: string;
   tx: Transaction;
+  /** Network the rekey chain is resolved on; defaults to the selected one (AW-2026-088). */
+  env?: string;
 }
 
 interface MultisigPayload {
@@ -346,6 +348,9 @@ const actions: ActionTree<SignerState, RootState> = {
         return await dispatch("signBySk", {
           from: payload.from,
           tx: payload.tx,
+          // The key must be the one resolved for the transaction's network above, not the one
+          // the rekey chain of the selected network leads to (AW-2026-088).
+          env,
         });
       }
     } catch (error: unknown) {
@@ -596,7 +601,7 @@ const actions: ActionTree<SignerState, RootState> = {
   ): Promise<Uint8Array<ArrayBufferLike>> {
     const sk: Uint8Array | null = await dispatch(
       "wallet/getSK",
-      { addr: payload.from },
+      { addr: payload.from, env: payload.env },
       { root: true },
     );
     if (!sk) {

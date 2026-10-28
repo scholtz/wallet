@@ -11,6 +11,7 @@ import {
   fromBaseUnits,
   getFolksLendDirection,
   toBaseUnits,
+  toBaseUnitsExact,
 } from "../../src/scripts/folksLend/convert";
 import {
   FOLKS_USDC_POOL,
@@ -69,6 +70,8 @@ test.describe("base unit conversion", () => {
     expect(toBaseUnits(0.1 + 0.2, 6)).toBe(300000n);
     expect(toBaseUnits(1.234567, 6)).toBe(1234567n);
     expect(toBaseUnits(12, 6)).toBe(12000000n);
+    expect(toBaseUnits(1.5, 0)).toBe(2n);
+    expect(toBaseUnits(0.1234567, 6)).toBe(123457n);
   });
   test("invalid or non-positive input is zero", () => {
     expect(toBaseUnits(0, 6)).toBe(0n);
@@ -78,6 +81,22 @@ test.describe("base unit conversion", () => {
   });
   test("fromBaseUnits", () => {
     expect(fromBaseUnits(1500000n, 6)).toBe(1.5);
+  });
+});
+
+test.describe("toBaseUnitsExact", () => {
+  test("is exact for assets with many decimals and refuses what does not fit", () => {
+    expect(toBaseUnitsExact(0.1, 18)).toBe(100000000000000000n);
+    expect(toBaseUnitsExact(1.239, 6)).toBe(1239000n);
+    expect(toBaseUnitsExact(12, 6)).toBe(12000000n);
+    expect(toBaseUnitsExact(1.239, 2)).toBeUndefined();
+    expect(toBaseUnitsExact(0.6, 0)).toBeUndefined();
+    expect(toBaseUnitsExact(0, 6)).toBeUndefined();
+    expect(toBaseUnitsExact(-1, 6)).toBeUndefined();
+    expect(toBaseUnitsExact(NaN, 6)).toBeUndefined();
+    expect(toBaseUnitsExact(1e-7, 6)).toBeUndefined();
+    expect(toBaseUnitsExact(1e-21, 6)).toBeUndefined();
+    expect(toBaseUnitsExact(1e-7, 8)).toBe(10n);
   });
 });
 

@@ -264,6 +264,9 @@ async function respond(
   liquidPeers.send(requestId, payload);
 }
 
+/** Sessions whose peer already introduced itself on this connection (in memory only). */
+const helloSeen = new Set<string>();
+
 const actions: ActionTree<LiquidState, RootState> = {
   async init({ commit, dispatch, state }) {
     if (state.enabled) return;
@@ -327,6 +330,14 @@ const actions: ActionTree<LiquidState, RootState> = {
         }
       }
     }
+    // The service must have bound the passkey to the wallet being paired (AW-2026-097).
+    const assertBoundToAddress = (result: { user?: { wallet?: string } }) => {
+      if (result.user?.wallet && result.user.wallet !== address) {
+        throw new Error(
+          "The Liquid Auth service bound the session to a different wallet address.",
+        );
+      }
+    };
     if (!auth) {
       auth = await liquidAttestation(origin, {
         address,
@@ -339,17 +350,23 @@ const actions: ActionTree<LiquidState, RootState> = {
             { root: true },
           ),
       });
+      // Checked before the credential id is remembered: a mismatching binding must not be
+      // stored and reused on every later connect.
+      assertBoundToAddress(auth);
       await dispatch(
         "wallet/wcSetItem",
         { key, value: auth.credId },
         { root: true },
       );
-    }
-    if (auth.user?.wallet && auth.user.wallet !== address) {
-      console.warn(
-        "Liquid Auth service bound the session to another wallet",
-        auth.user.wallet,
-      );
+    } else {
+      try {
+        assertBoundToAddress(auth);
+      } catch (error) {
+        // A stored credential the service now binds to another wallet is of no use: forget it
+        // so the next connect registers a fresh passkey instead of failing the same way.
+        await dispatch("wallet/wcRemoveItem", { key }, { root: true });
+        throw error;
+      }
     }
 
     const existing = rootState.liquid.sessions.find(
@@ -375,6 +392,8 @@ const actions: ActionTree<LiquidState, RootState> = {
         void dispatch("handleMessage", { requestId: id, payload });
       },
       onStatus: (id, status) => {
+        // A (re)established channel starts a new conversation: its peer may introduce itself again.
+        if (status === "connected") helloSeen.delete(id);
         commit("setSessionStatus", { requestId: id, status });
       },
     });
@@ -407,6 +426,12 @@ const actions: ActionTree<LiquidState, RootState> = {
       return;
     }
     const request = message as LiquidRequestMessage;
+    // The id keys the pending queue and the answer: only a short string is a usable id
+    // (AW-2026-097); anything else (an object, a huge value) cannot be answered and is dropped.
+    if (typeof request.id !== "string" || request.id === "" || request.id.length > 128) {
+      console.error("Liquid Auth message with an invalid id dropped");
+      return;
+    }
     // Answer a refused request with the admission's code (REQUEST_ERROR codes equal the
     // Liquid error codes), unless answering would reuse the id of a still-pending request.
     const refuse = async (
@@ -428,12 +453,19 @@ const actions: ActionTree<LiquidState, RootState> = {
     switch (request.reference) {
       case LiquidReference.helloRequest: {
         const params = request.params as Partial<HelloParams> | undefined;
-        if (params?.metadata) {
+        // The peer introduces itself once per connection: a later hello must not rewrite its
+        // name and URL under a request the user is already reviewing (AW-2026-097). Kept in
+        // memory only, so a reconnect after a reload may refresh the stored metadata.
+        if (params?.metadata && !helloSeen.has(requestId)) {
           commit("setSessionPeer", {
             requestId,
             peer: sanitizePeerMetadata(params.metadata),
-            dappProviderId: params.providerId,
+            dappProviderId:
+              typeof params.providerId === "string"
+                ? params.providerId.slice(0, 128)
+                : undefined,
           });
+          helloSeen.add(requestId);
           await persistLiquidSessions(dispatch, state.sessions);
         }
         const result: HelloResult = {
@@ -507,6 +539,7 @@ const actions: ActionTree<LiquidState, RootState> = {
           transactions: transactions.map((tx, i) => ({
             sender: tx.txn?.sender?.toString(),
             preSigned: tx.preSigned,
+            type: tx.type,
             signers: rawTransactions[i]?.signers,
           })),
           approved: [session.address],
@@ -747,6 +780,7 @@ const actions: ActionTree<LiquidState, RootState> = {
     { requestId }: { requestId: string },
   ) {
     liquidPeers.close(requestId);
+    helloSeen.delete(requestId);
     commit("removeSession", requestId);
     await persistLiquidSessions(dispatch, rootState.liquid.sessions);
   },
@@ -815,6 +849,7 @@ const actions: ActionTree<LiquidState, RootState> = {
 
   /** Close every peer connection and wipe in-memory state (logout / wallet switch). */
   async reset({ commit }) {
+    helloSeen.clear();
     commit("reset");
     try {
       liquidPeers.closeAll();

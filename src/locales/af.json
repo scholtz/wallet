@@ -591,7 +591,8 @@
     "toggle_combine_with_others_form": "Wissel kombineer met ander vorm",
     "process_payment": "Verwerk betaling",
     "tx_type": "Transaksie tipe",
-    "asset_optin": "Asset opt-in"
+    "asset_optin": "Asset opt-in",
+    "uri_fee_ignored": "Die fooi van die betaalskakel is geïgnoreer omdat dit ongeldig is, laer as 0,001 ALGO of hoër as 0,1 ALGO."
   },
   "settings": {
     "title": "Settings",
@@ -983,6 +984,25 @@
     "on_complete": "By voltooiing",
     "clawback_from": "Teruggeneem van",
     "clawback_warning": "Die bate word van hierdie rekening geneem, nie van die sender af nie.",
+    "tx_acfg_create": "Skep 'n nuwe bate",
+    "tx_acfg_reconfigure": "Verander die beheeradresse van bate {asset}",
+    "tx_acfg_destroy": "Vernietig bate {asset} permanent",
+    "tx_afrz_freeze": "Vries die besit van {account} in bate {asset} vas",
+    "tx_afrz_unfreeze": "Ontvries die besit van {account} in bate {asset}",
+    "tx_keyreg_online": "Registreer deelnamesleutels en bring die rekening aanlyn",
+    "tx_keyreg_offline": "Bring die rekening vanlyn",
+    "tx_keyreg_nonparticipation": "Merk die rekening permanent as nie-deelnemend. Dit kan nie ongedaan gemaak word nie.",
+    "asset_manager": "Bestuurder",
+    "asset_reserve": "Reserwe",
+    "asset_freeze_role": "Vriesadres",
+    "asset_clawback_role": "Clawback-adres",
+    "asset_role_removed": "verwyder (geen adres)",
+    "asset_clawback_warning": "Die clawback-adres kan hierdie bate van enige houer af neem.",
+    "asset_properties": "{name} ({unit}), totale voorraad {total}, {decimals} desimale",
+    "asset_default_frozen": "Nuwe besit is by verstek gevries",
+    "keyreg_rounds": "Geldige rondtes van die deelnamesleutel",
+    "lease": "Lease",
+    "app_foreign_apps": "Eksterne programme",
     "boxes": "Boxes",
     "name": "Name",
     "genesis": "Genesis ID",
@@ -1266,7 +1286,8 @@
     "index": "Shamir Index",
     "shamir_help": "Please secure mnemonic at very secure place. Make sure you write down all parts of shamir backup and do not store the recovery threshold at one place.",
     "algo_help": "Please secure mnemonic at very secure place.",
-    "dev_info": "Developer info"
+    "dev_info": "Developer info",
+    "shamir_invalid_threshold": "Die herstel-drempel moet minstens 2 wees en mag nie hoër wees as die aantal mnemoniese frases nie."
   },
   "arc200": {
     "optin_header": "Add ARC 200 asset to account",

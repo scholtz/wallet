@@ -591,7 +591,8 @@
     "toggle_combine_with_others_form": "Toggle Combine with others form",
     "process_payment": "Process payment",
     "tx_type": "Transaction type",
-    "asset_optin": "Opt-in all'asset"
+    "asset_optin": "Opt-in all'asset",
+    "uri_fee_ignored": "La commissione del link di pagamento è stata ignorata perché non valida, inferiore a 0,001 ALGO o superiore a 0,1 ALGO."
   },
   "settings": {
     "title": "Impostazioni",
@@ -983,6 +984,25 @@
     "on_complete": "Al completamento",
     "clawback_from": "Recupero da",
     "clawback_warning": "L'asset viene prelevato da questo account, non dal mittente.",
+    "tx_acfg_create": "Crea un nuovo asset",
+    "tx_acfg_reconfigure": "Modifica gli indirizzi di controllo dell'asset {asset}",
+    "tx_acfg_destroy": "Distrugge definitivamente l'asset {asset}",
+    "tx_afrz_freeze": "Congela la posizione di {account} nell'asset {asset}",
+    "tx_afrz_unfreeze": "Scongela la posizione di {account} nell'asset {asset}",
+    "tx_keyreg_online": "Registra le chiavi di partecipazione e porta l'account online",
+    "tx_keyreg_offline": "Porta l'account offline",
+    "tx_keyreg_nonparticipation": "Segna l'account come non partecipante in modo permanente. Non può essere annullato.",
+    "asset_manager": "Manager",
+    "asset_reserve": "Riserva",
+    "asset_freeze_role": "Indirizzo di congelamento",
+    "asset_clawback_role": "Indirizzo clawback",
+    "asset_role_removed": "rimosso (nessun indirizzo)",
+    "asset_clawback_warning": "L'indirizzo clawback può prelevare questo asset da qualsiasi detentore.",
+    "asset_properties": "{name} ({unit}), offerta totale {total}, {decimals} decimali",
+    "asset_default_frozen": "Le nuove posizioni sono congelate per impostazione predefinita",
+    "keyreg_rounds": "Round di validità della chiave di partecipazione",
+    "lease": "Lease",
+    "app_foreign_apps": "App esterne",
     "boxes": "Boxes",
     "name": "Name",
     "genesis": "Genesis ID",
@@ -1266,7 +1286,8 @@
     "index": "Shamir Index",
     "shamir_help": "Please secure mnemonic at very secure place. Make sure you write down all parts of shamir backup and do not store the recovery threshold at one place.",
     "algo_help": "Please secure mnemonic at very secure place.",
-    "dev_info": "Developer info"
+    "dev_info": "Developer info",
+    "shamir_invalid_threshold": "La soglia di recupero deve essere almeno 2 e non può superare il numero di mnemoniche."
   },
   "arc200": {
     "optin_header": "Add ARC 200 asset to account",

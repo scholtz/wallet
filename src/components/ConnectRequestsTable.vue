@@ -25,6 +25,15 @@
         :header="$t('connect.method')"
         :sortable="true"
       />
+      <!-- Which dApp asked: with several sessions the user must be able to tell (AW-2026-096). -->
+      <Column
+        v-if="!compact && (ns === 'wc' || ns === 'liquid')"
+        :header="$t('connect.arc60.connected_app')"
+      >
+        <template #body="slotProps">
+          <span data-testid="request-peer">{{ requestPeerLabel(slotProps.data.topic) }}</span>
+        </template>
+      </Column>
       <Column v-if="compact" class="direct-summary-column">
         <template #body="slotProps">
           <div class="direct-tx-summary" data-testid="direct-tx-summary">
@@ -238,6 +247,16 @@
                   severity="info"
                   :value="$t('connect.arc14_auth_badge')"
                 />
+                <Message
+                  v-if="specialSummary(slotProps.data)"
+                  :severity="
+                    specialSummary(slotProps.data)!.danger ? 'error' : 'warn'
+                  "
+                  class="m-0 mt-1"
+                  data-testid="tx-special-summary-row"
+                >
+                  {{ specialText(slotProps.data) }}
+                </Message>
               </template>
             </Column>
             <Column
@@ -485,7 +504,7 @@
                     <tr
                       v-if="
                         txProps.data.type == 'appl' &&
-                        !showAppCard(txProps.data) &&
+                        !hideAppRows(txProps.data) &&
                         onCompleteLabel(txProps.data.txn)
                       "
                     >
@@ -498,6 +517,85 @@
                           >{{ onCompleteLabel(txProps.data.txn) }}</Message
                         >
                         <span v-else>{{ onCompleteLabel(txProps.data.txn) }}</span>
+                      </td>
+                    </tr>
+                    <!-- Asset configuration / freeze / key registration (AW-2026-081): what the
+                         transaction does to the asset or account, never just its type. -->
+                    <tr v-if="specialSummary(txProps.data)">
+                      <td>{{ $t("connect.type") }}:</td>
+                      <td>
+                        <Message
+                          :severity="
+                            specialSummary(txProps.data)!.danger ? 'error' : 'warn'
+                          "
+                          class="m-0"
+                          data-testid="tx-special-summary"
+                        >
+                          {{ specialText(txProps.data) }}
+                        </Message>
+                      </td>
+                    </tr>
+                    <template v-if="assetConfigOf(txProps.data)">
+                      <tr
+                        v-for="role in assetRoles(txProps.data)"
+                        :key="role.key"
+                        :data-testid="'tx-asset-role-' + role.key"
+                      >
+                        <td>{{ role.label }}:</td>
+                        <td>
+                          <AlgorandAddress v-if="role.address" :address="role.address" />
+                          <span v-else>{{ $t("connect.asset_role_removed") }}</span>
+                        </td>
+                      </tr>
+                      <tr v-if="assetConfigOf(txProps.data)!.clawback">
+                        <td></td>
+                        <td>
+                          <Message severity="error" class="m-0">
+                            {{ $t("connect.asset_clawback_warning") }}
+                          </Message>
+                        </td>
+                      </tr>
+                      <tr v-if="assetConfigOf(txProps.data)!.kind === 'create'">
+                        <td>{{ $t("connect.asset") }}:</td>
+                        <td data-testid="tx-asset-properties">
+                          {{
+                            $t("connect.asset_properties", {
+                              name: assetConfigOf(txProps.data)!.assetName,
+                              unit: assetConfigOf(txProps.data)!.unitName,
+                              total: assetConfigOf(txProps.data)!.total,
+                              decimals: assetConfigOf(txProps.data)!.decimals,
+                            })
+                          }}
+                          <div v-if="assetConfigOf(txProps.data)!.defaultFrozen">
+                            {{ $t("connect.asset_default_frozen") }}
+                          </div>
+                        </td>
+                      </tr>
+                    </template>
+                    <tr v-if="keyRegOf(txProps.data)?.voteFirst !== undefined">
+                      <td>{{ $t("connect.keyreg_rounds") }}:</td>
+                      <td>
+                        {{ keyRegOf(txProps.data)!.voteFirst }} -
+                        {{ keyRegOf(txProps.data)!.voteLast }}
+                      </td>
+                    </tr>
+                    <tr v-if="leaseOf(txProps.data)">
+                      <td>{{ $t("connect.lease") }}:</td>
+                      <td data-testid="tx-lease">
+                        <code class="break-all">{{ leaseOf(txProps.data) }}</code>
+                      </td>
+                    </tr>
+                    <tr
+                      v-if="
+                        txProps.data.type == 'appl' &&
+                        txProps.data.txn.applicationCall?.foreignApps?.length
+                      "
+                    >
+                      <td>{{ $t("connect.app_foreign_apps") }}:</td>
+                      <td data-testid="tx-foreign-apps">
+                        {{
+                          txProps.data.txn.applicationCall.foreignApps.join(", ")
+                        }}
                       </td>
                     </tr>
                     <tr v-if="clawbackFrom(txProps.data.txn)">
@@ -514,7 +612,7 @@
                     <tr
                       v-if="
                         txProps.data.type == 'appl' &&
-                        !showAppCard(txProps.data)
+                        !hideAppRows(txProps.data)
                       "
                     >
                       <td>{{ $t("connect.app") }}:</td>
@@ -527,7 +625,7 @@
                       v-if="
                         txProps.data.type == 'appl' &&
                         !foreignNetwork &&
-                        !showAppCard(txProps.data)
+                        !hideAppRows(txProps.data)
                       "
                     >
                       <td colspan="2">
@@ -708,6 +806,12 @@ import { isAssetOptIn } from "../scripts/transactionTypes";
 import { signingEnvOf, type DirectNetworkView } from "../scripts/direct/networks";
 import { pickSigningEnv } from "../scripts/signingEnv";
 import { lowFalconGroupFee } from "../scripts/fees";
+import {
+  describeAssetConfig,
+  describeKeyReg,
+  describeLease,
+  summarizeSpecialTransaction,
+} from "../scripts/txDetails";
 import { describeApplicationCall, isLifecycle } from "../scripts/direct/appCall";
 import DirectAppCard from "./DirectAppCard.vue";
 import {
@@ -791,12 +895,15 @@ const foreignNetwork = computed(
  * true on the wallet's network, false on another one or a hand-configured node, undefined until
  * the network is known.
  */
-const compareDeployedPrograms = computed(() =>
-  props.network === undefined
-    ? undefined
-    : // A hand-configured node can serve any chain, whatever the env label says (AW-2026-010).
-      !foreignNetwork.value && store.state.config.env !== "custom",
-);
+const compareDeployedPrograms = computed(() => {
+  if (props.network === undefined) {
+    // WalletConnect / Liquid requests are for the selected network (genesis-checked), Direct
+    // waits until its network is known.
+    return ns.value === "direct" ? undefined : store.state.config.env !== "custom";
+  }
+  // A hand-configured node can serve any chain, whatever the env label says (AW-2026-010).
+  return !foreignNetwork.value && store.state.config.env !== "custom";
+});
 
 const store = useStore();
 const { t } = useI18n();
@@ -850,8 +957,60 @@ const appSummary = (tx: TransactionWrapper) => {
   return appSummaryCache.get(tx.txn);
 };
 
-/** Biatec Direct shows create / update / delete of a contract as an application card (WalletConnect keeps its rows). */
-const showAppCard = (tx: TransactionWrapper) => compact.value && isLifecycle(appSummary(tx));
+/** The dApp (session peer) a request came from: WalletConnect topic or Liquid request id. */
+const requestPeer = (topic: string) =>
+  ns.value === "liquid"
+    ? store.state.liquid.sessions.find((s) => s.requestId === topic)?.peer
+    : store.state.wc.activeSessions.find((s) => s.topic === topic)?.peer;
+/** "Name (url)" of the requesting dApp, built once per cell. */
+const requestPeerLabel = (topic: string): string => {
+  if (ns.value !== "wc" && ns.value !== "liquid") return "";
+  const peer = requestPeer(topic);
+  if (!peer) return t(ns.value === "liquid" ? "connect.liquid.connected_app_unknown" : "connect.arc60.connected_app_unknown");
+  return peer.name && peer.url ? `${peer.name} (${peer.url})` : peer.name || peer.url || "";
+};
+
+/**
+ * Create / update / delete of a contract is shown as an application card on every transport, so
+ * the user always sees the program fingerprint and schema of what is being deployed
+ * (AW-2026-082).
+ */
+const showAppCard = (tx: TransactionWrapper) => isLifecycle(appSummary(tx));
+
+/**
+ * The compact Direct popup replaces the plain app rows by the card; elsewhere the card is added
+ * to them, so the method decoding and on-complete rows stay visible on WalletConnect / Liquid.
+ */
+const hideAppRows = (tx: TransactionWrapper) => compact.value && showAppCard(tx);
+
+// acfg / afrz / keyreg: describe what the transaction does (AW-2026-081).
+// The row templates read these several times per render: describe each transaction once.
+const memoByTxn = <T,>(describe: (txn: TransactionWrapper["txn"]) => T) => {
+  const cache = new WeakMap<object, T>();
+  return (tx: TransactionWrapper): T | undefined => {
+    if (!tx?.txn) return undefined;
+    if (!cache.has(tx.txn)) cache.set(tx.txn, describe(tx.txn));
+    return cache.get(tx.txn);
+  };
+};
+const specialSummary = memoByTxn(summarizeSpecialTransaction);
+const specialText = (tx: TransactionWrapper): string => {
+  const summary = specialSummary(tx);
+  return summary ? t("connect." + summary.key, summary.params) : "";
+};
+const assetConfigOf = memoByTxn(describeAssetConfig);
+const keyRegOf = memoByTxn(describeKeyReg);
+const leaseOf = memoByTxn(describeLease);
+const assetRoles = (tx: TransactionWrapper) => {
+  const cfg = assetConfigOf(tx);
+  if (!cfg) return [];
+  return [
+    { key: "manager", label: t("connect.asset_manager"), address: cfg.manager },
+    { key: "reserve", label: t("connect.asset_reserve"), address: cfg.reserve },
+    { key: "freeze", label: t("connect.asset_freeze_role"), address: cfg.freeze },
+    { key: "clawback", label: t("connect.asset_clawback_role"), address: cfg.clawback },
+  ];
+};
 
 /** Create / update / delete of a contract get their own name in the collapsed summary. */
 const appKindLabel = (tx: TransactionWrapper): string => {

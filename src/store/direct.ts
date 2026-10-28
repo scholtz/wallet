@@ -458,6 +458,7 @@ const actions: ActionTree<DirectState, RootState> = {
           transactions: transactions.map((tx, i) => ({
             sender: tx.txn?.sender?.toString(),
             preSigned: tx.preSigned,
+            type: tx.type,
             signers: rawTransactions[i]?.signers,
           })),
           approved: session.addresses,

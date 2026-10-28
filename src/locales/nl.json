@@ -591,7 +591,8 @@
     "toggle_combine_with_others_form": "Toggle Combine with others form",
     "process_payment": "Process payment",
     "tx_type": "Transaction type",
-    "asset_optin": "Asset opt-in"
+    "asset_optin": "Asset opt-in",
+    "uri_fee_ignored": "De vergoeding in de betaallink is genegeerd omdat deze ongeldig, lager dan 0,001 ALGO of hoger dan 0,1 ALGO is."
   },
   "settings": {
     "title": "Instellingen",
@@ -983,6 +984,25 @@
     "on_complete": "Bij voltooiing",
     "clawback_from": "Teruggenomen van",
     "clawback_warning": "Het activum wordt van dit account genomen, niet van de afzender.",
+    "tx_acfg_create": "Maakt een nieuw activum aan",
+    "tx_acfg_reconfigure": "Wijzigt de beheeradressen van activum {asset}",
+    "tx_acfg_destroy": "Vernietigt activum {asset} definitief",
+    "tx_afrz_freeze": "Bevriest het saldo van {account} in activum {asset}",
+    "tx_afrz_unfreeze": "Maakt het saldo van {account} in activum {asset} weer vrij",
+    "tx_keyreg_online": "Registreert deelnamesleutels en zet het account online",
+    "tx_keyreg_offline": "Zet het account offline",
+    "tx_keyreg_nonparticipation": "Markeert het account permanent als niet-deelnemend. Dit kan niet ongedaan worden gemaakt.",
+    "asset_manager": "Beheerder",
+    "asset_reserve": "Reserve",
+    "asset_freeze_role": "Bevriezingsadres",
+    "asset_clawback_role": "Clawback-adres",
+    "asset_role_removed": "verwijderd (geen adres)",
+    "asset_clawback_warning": "Het clawback-adres kan dit activum bij elke houder opeisen.",
+    "asset_properties": "{name} ({unit}), totaal aanbod {total}, {decimals} decimalen",
+    "asset_default_frozen": "Nieuwe saldi zijn standaard bevroren",
+    "keyreg_rounds": "Geldige rondes van de deelnamesleutel",
+    "lease": "Lease",
+    "app_foreign_apps": "Externe apps",
     "boxes": "Boxes",
     "name": "Name",
     "genesis": "Genesis ID",
@@ -1266,7 +1286,8 @@
     "index": "Shamir Index",
     "shamir_help": "Please secure mnemonic at very secure place. Make sure you write down all parts of shamir backup and do not store the recovery threshold at one place.",
     "algo_help": "Please secure mnemonic at very secure place.",
-    "dev_info": "Developer info"
+    "dev_info": "Developer info",
+    "shamir_invalid_threshold": "De hersteldrempel moet minstens 2 zijn en mag niet hoger zijn dan het aantal mnemonics."
   },
   "arc200": {
     "optin_header": "Add ARC 200 asset to account",

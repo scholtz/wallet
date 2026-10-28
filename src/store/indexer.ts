@@ -340,8 +340,11 @@ const actions: ActionTree<IndexerState, RootState> = {
       const envPrefix =
         env === "mainnet" || env === "mainnet-v1.0" ? "" : `${env}-`;
       const cacheKey = `Asset-${envPrefix}${assetIndex}`;
+      // A hand-configured node can serve any chain, so one "custom" key would hand the decimals
+      // of an asset on one chain to the same id on another (AW-2026-090): no persistent cache.
+      const persistentCache = env !== "custom";
       try {
-        const cache = localStorage.getItem(cacheKey);
+        const cache = persistentCache ? localStorage.getItem(cacheKey) : null;
         if (cache) {
           const cacheObj = JSON.parse(cache) as StoredAsset;
           if (
@@ -386,7 +389,7 @@ const actions: ActionTree<IndexerState, RootState> = {
         const data = JSON.stringify(assetInfoData, (key, value) =>
           typeof value === "bigint" ? value.toString() : value
         );
-        localStorage.setItem(cacheKey, data);
+        if (persistentCache) localStorage.setItem(cacheKey, data);
         return assetInfoData;
       }
     } catch (error) {
