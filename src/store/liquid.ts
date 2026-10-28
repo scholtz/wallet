@@ -285,8 +285,6 @@ const actions: ActionTree<LiquidState, RootState> = {
       throw new Error("Initialize Liquid Auth before connecting.");
     }
     const { origin, requestId } = parseLiquidDeepLink(uri);
-    // A new pairing on this id is a new connection: its peer may introduce itself again.
-    helloSeen.delete(requestId);
     // AW-2026-049: the service receives a passkey and an account-key signature, so a pasted
     // link must not be able to point the wallet at an arbitrary host.
     assertLiquidServiceOrigin(

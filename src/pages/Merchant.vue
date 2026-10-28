@@ -139,6 +139,7 @@ import QRCodeVue3 from "qrcode-vue3";
 import { mapActions } from "vuex";
 import algosdk from "algosdk";
 import aprotocol from "../shared/algorand-protocol-parse";
+import { uriFeeToAlgo } from "../scripts/fees";
 import {
   gatewayExpectedPayment,
   gatewayIndexerEndpoint,
@@ -426,8 +427,10 @@ export default {
           this.b64decode.fee = 0.001;
           this.b64decode.feeLong = 1000;
         } else {
-          this.b64decode.feeLong = this.b64decode.feebase ?? this.b64decode.fee;
-          this.b64decode.fee = Number(this.b64decode.feeLong) / 1000000;
+          // The same rules as the Pay and Sign pages: whole microalgos within the allowed range.
+          const linkFee = uriFeeToAlgo(this.b64decode.feebase ?? this.b64decode.fee);
+          this.b64decode.fee = linkFee ?? 0.001;
+          this.b64decode.feeLong = Math.round(this.b64decode.fee * 1000000);
         }
       }
     },

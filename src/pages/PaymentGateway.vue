@@ -378,6 +378,7 @@ import base64url from "base64url";
 import { Buffer } from "buffer";
 import algosdk from "algosdk";
 import { toBaseUnits } from "@/scripts/folksLend/convert";
+import { MAX_AUTO_FEE_MICROALGOS } from "@/scripts/fees";
 import { getWalletBrandName } from "@/scripts/branding";
 window.Buffer = Buffer;
 
@@ -473,7 +474,7 @@ export default {
         ret += "&asset=" + this.asset;
       }
       if (this.fee && this.fee > 0.001) {
-        ret += "&fee=" + Math.round(Math.min(this.fee, 0.1) * 1000000);
+        ret += "&fee=" + Math.round(Math.min(this.fee, Number(MAX_AUTO_FEE_MICROALGOS) / 1000000) * 1000000);
       }
       return ret;
     },
