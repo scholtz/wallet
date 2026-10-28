@@ -591,7 +591,8 @@
     "toggle_combine_with_others_form": "Diğerleriyle birleştirme formunu aç/kapat",
     "process_payment": "Ödemeyi işle",
     "tx_type": "İşlem türü",
-    "asset_optin": "Varlık kaydı (opt-in)"
+    "asset_optin": "Varlık kaydı (opt-in)",
+    "uri_fee_ignored": "Ödeme bağlantısındaki ücret geçersiz olduğu veya 0,1 ALGO'dan yüksek olduğu için yok sayıldı."
   },
   "settings": {
     "title": "Ayarlar",

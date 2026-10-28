@@ -1307,7 +1307,7 @@ const parseToAccount = () => {
     if (uriFee !== undefined) {
       fee.value = uriFee;
     } else {
-      openErrorAction("Ignored the fee of the payment link: it is not valid or is too high.");
+      openErrorAction(t("pay.uri_fee_ignored"));
     }
   }
   if (b64decode.value.network && b64decode.value.network !== envName.value) {

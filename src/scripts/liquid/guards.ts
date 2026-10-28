@@ -182,8 +182,6 @@ export const SIGNABLE_DAPP_TX_TYPES: readonly string[] = [
 
 export interface SignRequestEntry {
   sender?: string;
-  /** Transaction type (`pay`, `axfer`, `appl`, `acfg`, `afrz`, `keyreg`, ...). */
-  type?: string;
   /** The transaction already carries a signature (co-signer's); the wallet does not sign it. */
   preSigned?: boolean;
   /** ARC-1 `signers`: an empty array means the wallet must not sign this transaction. */
@@ -277,16 +275,21 @@ export function admitEnvelope(input: EnvelopeInput): Admission {
   return ADMITTED;
 }
 
+/** An entry of {@link admitTransactions}: the transaction type is mandatory (AW-2026-081). */
+export interface AdmissionTxEntry extends SignRequestEntry {
+  /** Transaction type (`pay`, `axfer`, `appl`, `acfg`, `afrz`, `keyreg`, ...). */
+  type: string;
+}
+
 /** Decoded transactions: every one the wallet would sign must belong to an approved account. */
 export function admitTransactions(input: {
-  transactions: SignRequestEntry[];
+  transactions: AdmissionTxEntry[];
   approved: string[];
   own: string[];
 }): Admission {
   // A pre-signed or `signers: []` entry is not signed by this wallet, so its type is irrelevant.
   const unsupported = input.transactions.some(
     (entry) =>
-      entry.type !== undefined &&
       !SIGNABLE_DAPP_TX_TYPES.includes(entry.type) &&
       !entry.preSigned &&
       !(Array.isArray(entry.signers) && entry.signers.length === 0),

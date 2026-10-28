@@ -1328,10 +1328,7 @@ const applyUriFee = (raw: string | number | undefined) => {
   if (uriFee !== undefined) {
     state.fee = uriFee;
   } else {
-    store.dispatch(
-      "toast/openError",
-      "Ignored the fee of the payment link: it is not valid or is too high."
-    );
+    store.dispatch("toast/openError", t("pay.uri_fee_ignored"));
   }
 };
 

@@ -591,7 +591,8 @@
     "toggle_combine_with_others_form": "Toggle Combine with others form",
     "process_payment": "Process payment",
     "tx_type": "Transaction type",
-    "asset_optin": "Opt-in all'asset"
+    "asset_optin": "Opt-in all'asset",
+    "uri_fee_ignored": "La commissione del link di pagamento è stata ignorata perché non valida o superiore a 0,1 ALGO."
   },
   "settings": {
     "title": "Impostazioni",

@@ -591,7 +591,8 @@
     "toggle_combine_with_others_form": "Wissel kombineer met ander vorm",
     "process_payment": "Verwerk betaling",
     "tx_type": "Transaksie tipe",
-    "asset_optin": "Asset opt-in"
+    "asset_optin": "Asset opt-in",
+    "uri_fee_ignored": "Die fooi van die betaalskakel is geïgnoreer omdat dit ongeldig is of hoër as 0,1 ALGO."
   },
   "settings": {
     "title": "Settings",

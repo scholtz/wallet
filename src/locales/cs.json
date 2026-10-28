@@ -591,7 +591,8 @@
     "toggle_combine_with_others_form": "Přepnout formulář Kombinovat s ostatními",
     "process_payment": "Zpracovat platbu",
     "tx_type": "Typ transakce",
-    "asset_optin": "Přihlášení k assetu (opt-in)"
+    "asset_optin": "Přihlášení k assetu (opt-in)",
+    "uri_fee_ignored": "Poplatek z platebního odkazu byl ignorován, protože je neplatný nebo vyšší než 0,1 ALGO."
   },
   "settings": {
     "title": "Nastavení",

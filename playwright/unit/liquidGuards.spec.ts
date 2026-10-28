@@ -218,14 +218,18 @@ test.describe("admitEnvelope", () => {
 test.describe("admitTransactions", () => {
   test("rejects an unapproved sender with the unauthorized code", () => {
     expect(
-      admitTransactions({ transactions: [{ sender: "B" }], approved: ["A"], own: ["A", "B"] }),
+      admitTransactions({ transactions: [{ sender: "B", type: "pay" }], approved: ["A"], own: ["A", "B"] }),
     ).toMatchObject({ ok: false, code: REQUEST_ERROR.unauthorized });
   });
 
   test("admits approved senders and foreign co-signer transactions", () => {
     expect(
       admitTransactions({
-        transactions: [{ sender: "A" }, { sender: "X", signers: [] }, { sender: "Y", preSigned: true }],
+        transactions: [
+          { sender: "A", type: "pay" },
+          { sender: "X", type: "pay", signers: [] },
+          { sender: "Y", type: "pay", preSigned: true },
+        ],
         approved: ["A"],
         own: ["A", "B"],
       }).ok,

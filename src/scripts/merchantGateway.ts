@@ -119,6 +119,16 @@ const toBigIntOrZero = (value: unknown): bigint => {
   }
 };
 
+/**
+ * Whether the amount / asset of a payment link is usable: absent, or a whole non-negative number.
+ * A malformed value must make the link invalid rather than silently mean "no minimum" or "ALGO"
+ * (AW-2026-084).
+ */
+export function isWholeNumberParam(value: unknown): boolean {
+  if (value === undefined || value === null || value === "") return true;
+  return /^\d{1,30}$/.test(String(value).trim());
+}
+
 /** Reads the expected asset and minimum base-unit amount from the parsed payment link. */
 export function gatewayExpectedPayment(link: {
   payTo?: string;

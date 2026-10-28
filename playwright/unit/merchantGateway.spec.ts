@@ -4,6 +4,7 @@ import {
   gatewayExpectedPayment,
   gatewayIndexerEndpoint,
   isExpectedPayment,
+  isWholeNumberParam,
   isAlgorandPaymentUri,
   sanitizeGatewaySettings,
   sanitizeRedirectUrl,
@@ -146,6 +147,15 @@ test.describe("isExpectedPayment", () => {
 
   test("a transaction that only mentions the payee (no payment fields) is not a payment", () => {
     expect(isExpectedPayment({ id: "T3" }, expectAlgo)).toBe(false);
+  });
+
+  test("a link whose amount or asset is not a whole number is invalid, not 'no minimum'", () => {
+    for (const bad of ["abc", "1000.5", "1e6", "-5", "0x10", " 1 2 "]) {
+      expect(isWholeNumberParam(bad)).toBe(false);
+    }
+    for (const good of [undefined, null, "", "0", "1000000", 5000, "312769"]) {
+      expect(isWholeNumberParam(good)).toBe(true);
+    }
   });
 
   test("garbage amounts in the link fall back to no minimum", () => {

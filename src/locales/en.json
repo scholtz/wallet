@@ -591,7 +591,8 @@
     "toggle_combine_with_others_form": "Toggle Combine with others form",
     "process_payment": "Process payment",
     "tx_type": "Transaction type",
-    "asset_optin": "Asset opt-in"
+    "asset_optin": "Asset opt-in",
+    "uri_fee_ignored": "The fee of the payment link was ignored because it is not valid or is higher than 0.1 ALGO."
   },
   "settings": {
     "title": "Settings",

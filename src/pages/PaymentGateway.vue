@@ -258,6 +258,13 @@
             </div>
           </div>
         </div>
+        <div v-if="build && asset !== '0' && assetDecimals === undefined" class="grid">
+          <div class="md:col-12">
+            <Message severity="error" class="my-2">
+              {{ $t("merchant.error_asset") }}{{ asset }}
+            </Message>
+          </div>
+        </div>
         <div v-if="build && !dataOk" class="grid">
           <div class="md:col-12">
             <Message severity="error" class="my-2">
@@ -370,6 +377,7 @@ import PublicLayout from "../layouts/Public.vue";
 import base64url from "base64url";
 import { Buffer } from "buffer";
 import algosdk from "algosdk";
+import { toBaseUnits } from "@/scripts/folksLend/convert";
 import { getWalletBrandName } from "@/scripts/branding";
 window.Buffer = Buffer;
 
@@ -448,9 +456,10 @@ export default {
       let ret = "algorand://";
       ret += this.payTo;
       // Base units of the selected asset: the gateway page divides by that asset's decimals.
+      // Exact string arithmetic: float multiplication rounds some amounts to the wrong base unit
+      // and loses precision for assets with many decimals.
       ret +=
-        "?amount=" +
-        Math.round(this.amount * Math.pow(10, this.assetDecimals ?? 6));
+        "?amount=" + toBaseUnits(this.amount, this.assetDecimals ?? 6).toString();
       if (this.xnote) {
         ret += "&xnote=" + encodeURIComponent(this.xnote);
       }

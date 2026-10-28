@@ -264,6 +264,9 @@ async function respond(
   liquidPeers.send(requestId, payload);
 }
 
+/** Sessions whose peer already introduced itself on this connection (in memory only). */
+const helloSeen = new Set<string>();
+
 const actions: ActionTree<LiquidState, RootState> = {
   async init({ commit, dispatch, state }) {
     if (state.enabled) return;
@@ -327,6 +330,14 @@ const actions: ActionTree<LiquidState, RootState> = {
         }
       }
     }
+    // The service must have bound the passkey to the wallet being paired (AW-2026-097).
+    const assertBoundToAddress = (result: { user?: { wallet?: string } }) => {
+      if (result.user?.wallet && result.user.wallet !== address) {
+        throw new Error(
+          "The Liquid Auth service bound the session to a different wallet address.",
+        );
+      }
+    };
     if (!auth) {
       auth = await liquidAttestation(origin, {
         address,
@@ -339,19 +350,16 @@ const actions: ActionTree<LiquidState, RootState> = {
             { root: true },
           ),
       });
+      // Checked before the credential id is remembered: a mismatching binding must not be
+      // stored and reused on every later connect.
+      assertBoundToAddress(auth);
       await dispatch(
         "wallet/wcSetItem",
         { key, value: auth.credId },
         { root: true },
       );
     }
-    if (auth.user?.wallet && auth.user.wallet !== address) {
-      // The service authenticated a different wallet than the one the user is pairing: the
-      // session would be recorded under an address it does not belong to (AW-2026-097).
-      throw new Error(
-        "The Liquid Auth service bound the session to a different wallet address.",
-      );
-    }
+    assertBoundToAddress(auth);
 
     const existing = rootState.liquid.sessions.find(
       (s) => s.requestId === requestId,
@@ -435,9 +443,11 @@ const actions: ActionTree<LiquidState, RootState> = {
     switch (request.reference) {
       case LiquidReference.helloRequest: {
         const params = request.params as Partial<HelloParams> | undefined;
-        // The peer introduces itself once: a later hello must not rewrite its name and URL
-        // under a request the user is already reviewing (AW-2026-097).
-        if (params?.metadata && !session.peer) {
+        // The peer introduces itself once per connection: a later hello must not rewrite its
+        // name and URL under a request the user is already reviewing (AW-2026-097). Kept in
+        // memory only, so a reconnect after a reload may refresh the stored metadata.
+        if (params?.metadata && !helloSeen.has(requestId)) {
+          helloSeen.add(requestId);
           commit("setSessionPeer", {
             requestId,
             peer: sanitizePeerMetadata(params.metadata),
@@ -828,6 +838,7 @@ const actions: ActionTree<LiquidState, RootState> = {
 
   /** Close every peer connection and wipe in-memory state (logout / wallet switch). */
   async reset({ commit }) {
+    helloSeen.clear();
     commit("reset");
     try {
       liquidPeers.closeAll();

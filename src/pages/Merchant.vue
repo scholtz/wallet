@@ -144,6 +144,7 @@ import {
   gatewayIndexerEndpoint,
   isAlgorandPaymentUri,
   isExpectedPayment,
+  isWholeNumberParam,
   sanitizeGatewaySettings,
 } from "../scripts/merchantGateway";
 import { v4 as uuidv4 } from "uuid";
@@ -231,7 +232,9 @@ export default {
     }
     // Without a real payee the indexer would be asked for all transactions, and a network this
     // page cannot query would be answered by whatever chain the user happens to have selected.
-    const rejection = !algosdk.isValidAddress(this.b64decode.payTo ?? "")
+    const rejection = !algosdk.isValidAddress(this.b64decode.payTo ?? "") ||
+      !isWholeNumberParam(this.b64decode.payamountbase ?? this.b64decode.payamount) ||
+      !isWholeNumberParam(this.b64decode.asset)
       ? this.$t("merchant.invalid_payment_uri")
       : this.b64decode.network && !gatewayIndexerEndpoint(this.b64decode.network)
       ? this.$t("merchant.unsupported_network")
