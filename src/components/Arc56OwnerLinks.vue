@@ -66,7 +66,7 @@ const rows = computed(() =>
 
 <template>
   <span v-if="owners && owners.length > 0">
-    <span v-for="({ owner, badge, href }, i) in rows" :key="owner.url">
+    <span v-for="({ owner, badge, href }, i) in rows" :key="href">
       <a :href="href" target="_blank" rel="noopener noreferrer">{{ owner.owner }}/{{ owner.repo }}</a>
       <Badge :severity="badge.severity" :value="badge.label" class="ml-1" />
       <span v-if="i < rows.length - 1">, </span>

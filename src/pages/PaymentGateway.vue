@@ -377,7 +377,7 @@ import PublicLayout from "../layouts/Public.vue";
 import base64url from "base64url";
 import { Buffer } from "buffer";
 import algosdk from "algosdk";
-import { toBaseUnits } from "@/scripts/folksLend/convert";
+import { toBaseUnitsExact } from "@/scripts/folksLend/convert";
 import { MAX_AUTO_FEE_MICROALGOS } from "@/scripts/fees";
 import { getWalletBrandName } from "@/scripts/branding";
 window.Buffer = Buffer;
@@ -430,8 +430,9 @@ export default {
         // Far below the 1e21 where toFixed switches to exponent notation.
         this.amount < 1e15 &&
         this.assetDecimals !== undefined &&
-        // An amount below the asset's smallest unit would become 0 and accept any dust payment.
-        toBaseUnits(this.amount, this.assetDecimals) > 0n
+        // An amount with more digits than the asset has is refused instead of being rounded, so
+        // the link never asks for more or less than the form shows.
+        toBaseUnitsExact(this.amount, this.assetDecimals) !== undefined
       );
     },
     settingsOk() {
@@ -466,7 +467,8 @@ export default {
       // Exact string arithmetic: float multiplication rounds some amounts to the wrong base unit
       // and loses precision for assets with many decimals.
       ret +=
-        "?amount=" + toBaseUnits(this.amount, this.assetDecimals ?? 6).toString();
+        "?amount=" +
+        (toBaseUnitsExact(this.amount, this.assetDecimals ?? 6) ?? 0n).toString();
       if (this.xnote) {
         ret += "&xnote=" + encodeURIComponent(this.xnote);
       }

@@ -26,7 +26,10 @@
         :sortable="true"
       />
       <!-- Which dApp asked: with several sessions the user must be able to tell (AW-2026-096). -->
-      <Column v-if="!compact" :header="$t('connect.arc60.connected_app')">
+      <Column
+        v-if="!compact && (ns === 'wc' || ns === 'liquid')"
+        :header="$t('connect.arc60.connected_app')"
+      >
         <template #body="slotProps">
           <span data-testid="request-peer">{{ requestPeerLabel(slotProps.data.topic) }}</span>
         </template>

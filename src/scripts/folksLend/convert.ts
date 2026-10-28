@@ -57,13 +57,24 @@ export const exchangeRate = (depositIndex: bigint): number =>
  */
 export const toBaseUnits = (value: number, decimals: number): bigint => {
   if (!Number.isFinite(value) || value <= 0) return 0n;
-  // The shortest text that reads back as the same number ("0.1"), which toFixed would pad with
-  // binary noise ("0.100000000000000006") for assets with many decimals. Exponent forms, which
-  // only occur for very large or tiny values, use toFixed.
-  const text = String(value);
-  const fixed = /e/i.test(text) ? value.toFixed(decimals) : text;
+  const fixed = value.toFixed(decimals);
   const [whole, frac = ""] = fixed.split(".");
   return BigInt(whole + frac.padEnd(decimals, "0").slice(0, decimals));
+};
+
+/**
+ * Exact base units of a typed amount, or undefined when the amount cannot be represented: not a
+ * positive finite number, or more fraction digits than the asset has. Works on the shortest text
+ * of the number ("0.1"), because `toFixed` pads it with binary noise for assets with many
+ * decimals ("0.100000000000000006" at 18) and `toBaseUnits` rounds, which is wrong for a
+ * payment request that must not charge more or less than shown.
+ */
+export const toBaseUnitsExact = (value: number, decimals: number): bigint | undefined => {
+  if (!Number.isFinite(value) || value <= 0) return undefined;
+  const text = /e/i.test(String(value)) ? value.toFixed(20).replace(/0+$/, "") : String(value);
+  const [whole, frac = ""] = text.split(".");
+  if (frac.length > decimals) return undefined;
+  return BigInt(whole + frac.padEnd(decimals, "0"));
 };
 
 /**

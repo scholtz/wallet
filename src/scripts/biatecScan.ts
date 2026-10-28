@@ -7,11 +7,6 @@ import { BIATEC_SCAN_REALM } from "@/scripts/encoding/arc14";
 // Biatec Scan API under asset index 0.
 export const NATIVE_ASSET_ID = 0n;
 
-// The realm identifies this API to the ARC-14 signer/token cache, matching
-// the "<Service>#ARC14" convention already used for the Biatec Router
-// (see src/scripts/aggregators/biatec.ts).
-const ARC14_REALM = BIATEC_SCAN_REALM;
-
 // The Biatec Scan API accepts (but does not require) ARC-0014 auth - see the
 // "oauth2" apiKey security scheme in its swagger doc. Authenticated requests
 // get better rate limits / less throttling, so an ARC-14 header is attached when the
@@ -45,7 +40,7 @@ const getArc14AuthHeader = async (
     // itself resolves to `string | undefined` (see src/store/arc14.ts).
     return (await store.dispatch("arc14/signAuthTx", {
       account,
-      realm: ARC14_REALM,
+      realm: BIATEC_SCAN_REALM,
     })) as string | undefined;
   } catch (e: unknown) {
     console.error("Failed to create Biatec Scan ARC-14 auth header", e);
