@@ -69,7 +69,7 @@
     "crypto-random-string": "^6.0.0",
     "dexie": "^4.4.6",
     "falcon-1024": "^0.2.0",
-    "flag-icons": "^7.5.0",
+    "flag-icons": "^7.6.0",
     "js-sha512": "^0.9.0",
     "libsodium-wrappers-sumo": "^0.8.4",
     "moment": "^2.31.0",
