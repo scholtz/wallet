@@ -998,7 +998,7 @@ const parseToAccount = async (encodedValue?: string) => {
   const parsed = aprotocol.parseAlgorandProtocolParameters(encoded);
   if (!parsed) return;
   state.payTo = (parsed.payTo || "").replace(/[^\w\s]/gi, "");
-  if (parsed.payamountbase !== undefined) {
+  if (parsed.payamountbase !== undefined && /^[0-9]+$/.test(String(parsed.payamountbase))) {
     state.payamount = Number(parsed.payamountbase) / decimalsPower.value;
   }
   if (parsed.paynote) {

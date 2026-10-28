@@ -472,7 +472,7 @@ export default {
         ret += "&asset=" + this.asset;
       }
       if (this.fee && this.fee > 0.001) {
-        ret += "&fee=" + Math.round(this.fee * 1000000);
+        ret += "&fee=" + Math.round(Math.min(this.fee, 0.1) * 1000000);
       }
       return ret;
     },

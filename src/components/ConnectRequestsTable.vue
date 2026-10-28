@@ -962,7 +962,7 @@ const requestPeer = (topic: string) =>
 /** "Name (url)" of the requesting dApp, built once per cell. */
 const requestPeerLabel = (topic: string): string => {
   const peer = requestPeer(topic);
-  if (!peer) return "";
+  if (!peer) return t(ns.value === "liquid" ? "connect.liquid.connected_app_unknown" : "connect.arc60.connected_app_unknown");
   return peer.name && peer.url ? `${peer.name} (${peer.url})` : peer.name || peer.url || "";
 };
 

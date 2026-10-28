@@ -1291,7 +1291,7 @@ const parseToAccount = () => {
   if (b64decode.value.payTo) {
     payTo.value = b64decode.value.payTo.replace(/[^\w\s]/gi, "");
   }
-  if (b64decode.value.payamountbase !== undefined) {
+  if (b64decode.value.payamountbase !== undefined && /^[0-9]+$/.test(String(b64decode.value.payamountbase))) {
     payamount.value =
       Number(b64decode.value.payamountbase) / decimalsPower.value;
   }
@@ -1695,8 +1695,8 @@ const test = (e: Event) => {
     "015LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U",
     "algorand://025LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?&note=123",
     "algorand://035LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?&note=234&&",
-    "algorand://045LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?xnote=345&fee=3&amount=1000&asset=456",
-    "algorand://046LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?note=SGVsbG8=&noteB64=1&fee=0.001&amount=1",
+    "algorand://045LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?xnote=345&fee=1000&amount=1000&asset=456",
+    "algorand://046LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?note=SGVsbG8=&noteB64=1&fee=1000&amount=1",
   ];
   tests.forEach((value) => onDecodeQR(value));
 };

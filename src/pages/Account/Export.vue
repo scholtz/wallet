@@ -128,7 +128,7 @@ const shamirBackup = async () => {
 
     // One share would be the secret itself, and a threshold above the number of shares could
     // never be met: either way the "backup" would be worthless or unsafe (AW-2026-099).
-    if (state.shamirMin < 2 || state.shamirMin > state.shamirCount) {
+    if (state.shamirMin < 2 || state.shamirMin > state.shamirCount || state.shamirCount > 255) {
       throw new Error(t("account_export.shamir_invalid_threshold"));
     }
     const secret = toUint8Array(state.json.sk);
