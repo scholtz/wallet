@@ -15,7 +15,17 @@ const GITHUB_HOSTS = new Set(["github.com", "www.github.com"]);
 export function ownerHref(input: OwnerLinkInput): string {
   try {
     const url = new URL(input.url ?? "");
-    if (url.protocol === "https:" && GITHUB_HOSTS.has(url.hostname) && !url.username && !url.password) {
+    // The label next to the link is owner/repo: the target must be that repository (or below it),
+    // not another one on the same host.
+    const base = `/${input.owner}/${input.repo}`.toLowerCase();
+    const path = url.pathname.toLowerCase();
+    if (
+      url.protocol === "https:" &&
+      GITHUB_HOSTS.has(url.hostname) &&
+      !url.username &&
+      !url.password &&
+      (path === base || path.startsWith(`${base}/`))
+    ) {
       return url.href;
     }
   } catch {

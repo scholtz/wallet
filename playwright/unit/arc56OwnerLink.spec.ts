@@ -28,6 +28,18 @@ test.describe("ownerHref", () => {
     expect(ownerHref(base)).toBe("https://github.com/algo-dev/my-app");
   });
 
+  test("a github.com URL of another repository than the label is rebuilt from the names", () => {
+    expect(ownerHref({ ...base, url: "https://github.com/attacker/phish" })).toBe(
+      "https://github.com/algo-dev/my-app",
+    );
+    expect(ownerHref({ ...base, url: "https://github.com/algo-dev/my-app-evil" })).toBe(
+      "https://github.com/algo-dev/my-app",
+    );
+    expect(ownerHref({ ...base, url: "https://github.com/Algo-Dev/My-App/tree/main" })).toBe(
+      "https://github.com/Algo-Dev/My-App/tree/main",
+    );
+  });
+
   test("encodes the names it rebuilds the link from", () => {
     expect(ownerHref({ owner: "a/b", repo: "c d?", url: "javascript:1" })).toBe(
       "https://github.com/a%2Fb/c%20d%3F",

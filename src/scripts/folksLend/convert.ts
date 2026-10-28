@@ -57,7 +57,11 @@ export const exchangeRate = (depositIndex: bigint): number =>
  */
 export const toBaseUnits = (value: number, decimals: number): bigint => {
   if (!Number.isFinite(value) || value <= 0) return 0n;
-  const fixed = value.toFixed(decimals);
+  // The shortest text that reads back as the same number ("0.1"), which toFixed would pad with
+  // binary noise ("0.100000000000000006") for assets with many decimals. Exponent forms, which
+  // only occur for very large or tiny values, use toFixed.
+  const text = String(value);
+  const fixed = /e/i.test(text) ? value.toFixed(decimals) : text;
   const [whole, frac = ""] = fixed.split(".");
   return BigInt(whole + frac.padEnd(decimals, "0").slice(0, decimals));
 };

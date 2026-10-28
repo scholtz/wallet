@@ -69,6 +69,9 @@ test.describe("base unit conversion", () => {
     expect(toBaseUnits(0.1 + 0.2, 6)).toBe(300000n);
     expect(toBaseUnits(1.234567, 6)).toBe(1234567n);
     expect(toBaseUnits(12, 6)).toBe(12000000n);
+    // many decimals: no binary noise from toFixed, no rounding up of what is below one unit
+    expect(toBaseUnits(0.1, 18)).toBe(100000000000000000n);
+    expect(toBaseUnits(0.6, 0)).toBe(0n);
   });
   test("invalid or non-positive input is zero", () => {
     expect(toBaseUnits(0, 6)).toBe(0n);

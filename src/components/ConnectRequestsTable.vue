@@ -961,6 +961,7 @@ const requestPeer = (topic: string) =>
     : store.state.wc.activeSessions.find((s) => s.topic === topic)?.peer;
 /** "Name (url)" of the requesting dApp, built once per cell. */
 const requestPeerLabel = (topic: string): string => {
+  if (ns.value !== "wc" && ns.value !== "liquid") return "";
   const peer = requestPeer(topic);
   if (!peer) return t(ns.value === "liquid" ? "connect.liquid.connected_app_unknown" : "connect.arc60.connected_app_unknown");
   return peer.name && peer.url ? `${peer.name} (${peer.url})` : peer.name || peer.url || "";
