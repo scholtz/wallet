@@ -138,7 +138,8 @@ export const folksAggregator: DexAggregator = {
     try {
       assertSwapTransactionsSafe(
         unsignedTxns,
-        context.account.value?.addr || ""
+        context.account.value?.addr || "",
+        context.$store.state.config.env
       );
     } catch (e) {
       context.error.value = (e as Error).message;

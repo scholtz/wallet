@@ -95,7 +95,7 @@ export default {
   data() {
     return {
       slot: 0,
-      loadedSlot: 0,
+      loadedSlot: null,
       address0: "",
       lastError: "",
       address: "",
@@ -125,6 +125,8 @@ export default {
         await withLedger(async (algo) => {
           const address = await algo.getAddress(ledgerPath(slot));
           this.address = address.address;
+          // Only a slot whose address was really read is the one that gets saved.
+          this.loadedSlot = slot;
           if (slot == 0) {
             this.address0 = address.address;
           } else if (!this.address0) {
@@ -145,7 +147,6 @@ export default {
     async clickAddress() {
       try {
         this.lastError = "";
-        this.loadedSlot = this.slot;
         await this.loadAddress(this.slot);
       } catch (Error) {
         console.error(Error);
@@ -159,7 +160,8 @@ export default {
           name: this.name,
           addr: this.address,
           addr0: this.address0,
-          slot: this.slot,
+          // The slot the address was read from, not whatever the input holds now (AW-2026-124).
+          slot: this.loadedSlot ?? this.slot,
         });
         this.$router.push({ name: "Accounts" });
       } catch (Error) {

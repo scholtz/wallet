@@ -626,6 +626,20 @@
                         }}
                       </td>
                     </tr>
+                    <tr v-if="accessListOf(txProps.data.txn).length">
+                      <td>{{ $t("connect.app_access") }}:</td>
+                      <td data-testid="tx-app-access">
+                        <div v-for="(line, index) in accessListOf(txProps.data.txn)" :key="index">
+                          {{ line }}
+                        </div>
+                      </td>
+                    </tr>
+                    <tr v-if="describeRejectVersion(txProps.data.txn) !== undefined">
+                      <td>{{ $t("connect.app_reject_version") }}:</td>
+                      <td data-testid="tx-app-reject-version">
+                        {{ describeRejectVersion(txProps.data.txn) }}
+                      </td>
+                    </tr>
                     <tr v-if="clawbackFrom(txProps.data.txn)">
                       <td>{{ $t("connect.clawback_from") }}:</td>
                       <td>
@@ -830,6 +844,7 @@ import Arc56RiskIcon from "./Arc56RiskIcon.vue";
 import TransactionGroupSimulation from "./TransactionGroupSimulation.vue";
 import { useStore } from "../store";
 import { getArc14Realm, isArc14AuthTransaction } from "../scripts/encoding/arc14";
+import { describeAccessList, describeRejectVersion } from "../scripts/txReview";
 import { isAssetOptIn } from "../scripts/transactionTypes";
 import { signingEnvOf, type DirectNetworkView } from "../scripts/direct/networks";
 import { pickSigningEnv } from "../scripts/signingEnv";
@@ -1022,6 +1037,8 @@ const memoByTxn = <T,>(describe: (txn: TransactionWrapper["txn"]) => T) => {
   };
 };
 const specialSummary = memoByTxn(summarizeSpecialTransaction);
+// Resource references of an application call (access list, AW-2026-122).
+const accessListOf = (txn: algosdk.Transaction): string[] => describeAccessList(txn);
 const specialText = (tx: TransactionWrapper): string => {
   const summary = specialSummary(tx);
   return summary ? t("connect." + summary.key, summary.params) : "";
@@ -1703,9 +1720,6 @@ const getAssetSync = (id: bigint | number | string) => {
 
 const getAssetName = (id: bigint | number | string) => getAssetSync(id)?.name;
 
-const getAssetDecimals = (id: bigint | number | string) =>
-  getAssetSync(id)?.decimals ?? 0;
-
 /**
  * Native amount / fee. On another network the currency is that network's own token; a network
  * without a known token shows the raw base units (not a guessed decimal scaling).
@@ -1724,10 +1738,16 @@ const formatAssetAmount = (
   if (foreignNetwork.value) {
     return $filters.formatCurrency(amount, `asset ${assetIndex ?? ""}`, 0);
   }
+  // Without the asset's metadata the amount is shown in raw base units under the asset id of the
+  // transaction - never as the native token, whose symbol is formatCurrency's default (AW-2026-117).
+  const meta = getAssetSync(assetIndex ?? 0);
+  if (!meta || meta.decimals === undefined) {
+    return `${(amount ?? 0).toString()} (asset ${assetIndex ?? ""}, ${t("connect.asset_metadata_unknown")})`;
+  }
   return $filters.formatCurrency(
     amount,
-    getAssetName(assetIndex ?? 0),
-    getAssetDecimals(assetIndex ?? 0),
+    meta.name || meta.unitName || `asset ${assetIndex ?? ""}`,
+    meta.decimals,
   );
 };
 

@@ -8,6 +8,7 @@ import ToggleSwitch from "primevue/toggleswitch";
 import { QrcodeStream } from "qrcode-reader-vue3";
 import QRCodeVue3 from "qrcode-vue3";
 import copy from "copy-to-clipboard";
+import { scheduleClipboardClear } from "@/scripts/clipboard";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { RootState } from "@/store";
@@ -99,7 +100,9 @@ function setMode(mode: FalconMode) {
 
 async function copyToClipboard() {
   if (await copy(state.mnemonic)) {
-    await store.dispatch("toast/openSuccess", "Mnemonic copied to clipboard");
+    // The mnemonic must not stay in the system clipboard (AW-2026-109/-124).
+    scheduleClipboardClear(state.mnemonic);
+    await store.dispatch("toast/openSuccess", t("falconaccount.mnemonic_copied"));
   }
 }
 

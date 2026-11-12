@@ -189,6 +189,26 @@ const assertParamsMatchNetwork = (
   }
 };
 
+// The client handed to code that lets a library build transactions (generated ARC-200 / scheduler
+// clients, algokit): such code fetches the suggested params itself, so the same node-parameter
+// checks as every self-built transaction are applied to whatever `getTransactionParams().do()`
+// returns (AW-2026-123). The fetched object is the one the library then uses.
+const createCheckedAlgodClient = (rootState: RootState): algosdk.Algodv2 => {
+  const client = createAlgodClient(rootState);
+  const original = client.getTransactionParams.bind(client);
+  client.getTransactionParams = () => {
+    const request = original();
+    const run = request.do.bind(request);
+    request.do = async (...args: Parameters<typeof run>) => {
+      const params = await run(...args);
+      assertParamsMatchNetwork(rootState, params);
+      return params;
+    };
+    return request;
+  };
+  return client;
+};
+
 const resolveSenderAddress = (account: PaymentAccount): string => {
   return typeof account === "string" ? account : account.addr;
 };
@@ -259,7 +279,7 @@ const buildAssetCreateTransaction = (
 
 const actions: ActionTree<AlgodState, RootState> = {
   async getAlgod({ rootState }) {
-    return createAlgodClient(rootState);
+    return createCheckedAlgodClient(rootState);
   },
   /**
    * Suggested params from the node, refused (by throwing) when the node reports another

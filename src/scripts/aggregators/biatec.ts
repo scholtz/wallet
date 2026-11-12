@@ -238,6 +238,7 @@ export function createBiatecAggregator(
         assertSwapTransactionsSafe(
           transactions,
           context.account.value?.addr || "",
+          context.$store.state.config.env,
         );
         // Clear group and compute new group ID
         transactions.forEach((tx) => {

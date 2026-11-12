@@ -251,7 +251,7 @@ const submit = async () => {
       optInAssetId: optInAssetId.value,
       suggestedParams,
     });
-    assertFolksLendTxnsSafe(txns, from);
+    assertFolksLendTxnsSafe(txns, from, store.state.config.env);
     const result = await signSendConfirm(from, txns);
     if (!result) return; // the signer already surfaced the error toast
     if (result.confirmed) {

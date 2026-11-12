@@ -6,6 +6,7 @@ import algosdk from "algosdk";
 import { checkTransactionGroup, findGenesisMismatch } from "../scripts/dappRequestChecks";
 import type { ActionTree, MutationTree } from "vuex";
 import wc from "../shared/wc";
+import { requestTxIds } from "../scripts/requestSignatures";
 import WCKeyValueStore from "../shared/WCKeyValueStore";
 import type { RootState } from "./index";
 import type { GenesisNetwork } from "./publicData";
@@ -301,7 +302,14 @@ const actions: ActionTree<WcState, RootState> = {
       commit("addSessionProposal", sessionProposal);
     });
 
-    web3wallet.on("session_delete", async () => {
+    web3wallet.on("session_delete", async (event) => {
+      // The session is gone, so its pending requests can no longer be answered: drop them and
+      // the signatures cached for them (AW-2026-116).
+      const gone = (rootState.wc.requests ?? []).filter(
+        (r) => String(r.ver) === "2" && r.topic === event?.topic,
+      );
+      commit("signer/forgetSigned", requestTxIds(gone), { root: true });
+      gone.forEach((r) => commit("removeRequest", r.id));
       await dispatch("refreshActiveSessions");
     });
 
@@ -686,6 +694,7 @@ const actions: ActionTree<WcState, RootState> = {
       response,
     });
 
+    commit("signer/forgetSigned", requestTxIds([data]), { root: true });
     commit("removeRequest", data.id);
   },
   async cancelRequest({ commit, state }, { data }: RequestPayload) {
@@ -715,6 +724,8 @@ const actions: ActionTree<WcState, RootState> = {
         response,
       });
     } finally {
+      // The request is gone whether or not the dApp could be told: so are its signatures.
+      commit("signer/forgetSigned", requestTxIds([data]), { root: true });
       commit("removeRequest", data.id);
     }
   },

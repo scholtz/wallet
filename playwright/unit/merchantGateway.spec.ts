@@ -3,6 +3,10 @@ import { test, expect } from "@playwright/test";
 import {
   gatewayExpectedPayment,
   gatewayIndexerEndpoint,
+  gatewayPaymentNotBefore,
+  resolveGatewayAnchor,
+  GATEWAY_PAYMENT_LOOKBACK_MS,
+  successRedirectHost,
   isExpectedPayment,
   isWholeNumberParam,
   isAlgorandPaymentUri,
@@ -167,5 +171,64 @@ test.describe("isExpectedPayment", () => {
     expect(gatewayExpectedPayment({ payTo: PAYEE, amountBase: "abc" }).minAmount).toBe(0n);
     expect(gatewayExpectedPayment({ payTo: PAYEE, amountBase: -5 }).minAmount).toBe(0n);
     expect(gatewayExpectedPayment({ payTo: PAYEE, asset: "x" }).assetId).toBe(0n);
+  });
+});
+
+// AW-2026-121: an old payment that merely matches the payee and note prefix is not "paid".
+test.describe("gatewayPaymentNotBefore", () => {
+  test("allows a short look-back before the page load, not older payments", () => {
+    const loaded = Date.UTC(2026, 10, 12, 12, 0, 0);
+    const floor = gatewayPaymentNotBefore(loaded);
+    expect(floor.getTime()).toBe(loaded - GATEWAY_PAYMENT_LOOKBACK_MS);
+    expect(floor.getTime()).toBeLessThan(loaded);
+    expect(loaded - floor.getTime()).toBeLessThanOrEqual(5 * 60 * 1000);
+  });
+});
+
+test.describe("successRedirectHost", () => {
+  test("shows the host the browser will be sent to", () => {
+    expect(successRedirectHost("https://shop.example:8443/thanks?o=1")).toBe("shop.example:8443");
+  });
+
+  test("is empty for no or an unparsable url", () => {
+    expect(successRedirectHost(undefined)).toBe("");
+    expect(successRedirectHost("not a url")).toBe("");
+  });
+});
+
+test.describe("resolveGatewayAnchor", () => {
+  const store = (initial: Record<string, string> = {}) => {
+    const map = { ...initial };
+    return {
+      map,
+      getItem: (k: string) => map[k] ?? null,
+      setItem: (k: string, v: string) => {
+        map[k] = v;
+      },
+    };
+  };
+
+  test("a first visit remembers the current time", () => {
+    const s = store();
+    expect(resolveGatewayAnchor(s, "k", 10_000)).toBe(10_000);
+    expect(s.map.k).toBe("10000");
+  });
+
+  test("a reload shortly after keeps the first visit time, so the payment is still found", () => {
+    const s = store({ k: "10000" });
+    expect(resolveGatewayAnchor(s, "k", 10_000 + 5 * 60_000)).toBe(10_000);
+  });
+
+  test("an old remembered time is replaced, so an old payment does not count", () => {
+    const s = store({ k: "10000" });
+    const now = 10_000 + 2 * 60 * 60_000;
+    expect(resolveGatewayAnchor(s, "k", now)).toBe(now);
+    expect(s.map.k).toBe(String(now));
+  });
+
+  test("a future or garbage value is ignored and missing storage falls back to now", () => {
+    expect(resolveGatewayAnchor(store({ k: "999999999" }), "k", 1_000)).toBe(1_000);
+    expect(resolveGatewayAnchor(store({ k: "abc" }), "k", 1_000)).toBe(1_000);
+    expect(resolveGatewayAnchor(undefined, "k", 1_000)).toBe(1_000);
   });
 });

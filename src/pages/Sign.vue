@@ -59,28 +59,6 @@
                       <template v-else>{{ txn.type }}</template>
                     </div>
                   </div>
-                  <template v-if="txn && txn.type === 'appl' && txn.applicationCall">
-                    <div class="field grid">
-                      <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                        {{ $t("pay.application_id") }}
-                      </label>
-                      <div class="col-12 md:col-10" data-testid="sign-app-id">
-                        {{
-                          txn.applicationCall.appIndex
-                            ? txn.applicationCall.appIndex.toString()
-                            : `0 (${$t("pay.application_create")})`
-                        }}
-                      </div>
-                    </div>
-                    <div class="field grid">
-                      <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                        {{ $t("connect.on_complete") }}
-                      </label>
-                      <div class="col-12 md:col-10" data-testid="sign-app-on-complete">
-                        {{ algosdk.OnApplicationComplete[txn.applicationCall.onComplete] }}
-                      </div>
-                    </div>
-                  </template>
                   <div class="field grid" v-if="payTo">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.pay_to") }}
@@ -89,47 +67,19 @@
                       <AlgorandAddress :address="payTo" />
                     </div>
                   </div>
-                  <div
-                    class="field grid"
-                    v-if="txn?.type == 'keyreg' && !txn.voteFirst"
-                  >
-                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                    </label>
-                    <div class="col-12 md:col-10">
-                      Tx to unregister from the participation
-                    </div>
-                  </div>
-                  <div
-                    class="field grid"
-                    v-if="txn?.type == 'keyreg' && txn?.voteFirst"
-                  >
-                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                      First participation round
-                    </label>
-                    <div class="col-12 md:col-10">
-                      {{ txn.voteFirst }}
-                    </div>
-                  </div>
-                  <div
-                    class="field grid"
-                    v-if="txn?.type == 'keyreg' && txn?.voteLast"
-                  >
-                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                      Last participation round
-                    </label>
-                    <div class="col-12 md:col-10">
-                      {{ txn.voteLast }}
-                    </div>
-                  </div>
+                  <TxReviewDetails :txn="txn" />
                   <div class="field grid" v-if="paynote">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.note") }}
                     </label>
-                    <div class="col-12 md:col-10" v-if="paynote.length < 50">
+                    <!-- Plain text always: a JSON viewer would turn a note that looks like a URL into a
+                         clickable link inside the signing review (AW-2026-124). -->
+                    <div
+                      class="col-12 md:col-10"
+                      style="white-space: pre-wrap; overflow-wrap: anywhere"
+                      data-testid="sign-note"
+                    >
                       {{ paynote }}
-                    </div>
-                    <div class="col-12 md:col-10" v-else>
-                      <JsonViewer :value="paynote" copyable boxed sort />
                     </div>
                   </div>
                   <div class="field grid">
@@ -152,7 +102,10 @@
                       {{ $t("optin.assetId") }}
                     </label>
                     <div class="col-12 md:col-10">
-                      {{ assetObj.assetId ? assetObj.assetId : "Algo" }}
+                      {{
+                        txnTransfer?.assetId ??
+                        (assetObj.assetId ? assetObj.assetId : "Algo")
+                      }}
                     </div>
                   </div>
                   <div
@@ -167,7 +120,17 @@
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.amount") }}
                     </label>
-                    <div class="col-12 md:col-10" v-if="assetObj">
+                    <div
+                      class="col-12 md:col-10"
+                      v-if="txnTransfer?.assetId && !assetMetaKnown"
+                      data-testid="sign-asset-amount-unknown"
+                    >
+                      {{ unknownAssetAmount }}
+                      <Message severity="warn" class="mt-2 mb-0">
+                        {{ $t("connect.asset_metadata_unknown") }}
+                      </Message>
+                    </div>
+                    <div class="col-12 md:col-10" v-else-if="assetObj">
                       {{
                         $filters.formatCurrency(
                           amountLong,
@@ -280,33 +243,43 @@
                       <template v-else>{{ multisigTxn?.type }}</template>
                     </div>
                   </div>
-                  <div class="field grid">
+                  <div class="field grid" v-if="multisigTransfer?.assetId">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                      {{ $t("pay.name") }}
+                      {{ $t("optin.assetId") }}
                     </label>
-                    <div class="col-12 md:col-10">
-                      {{ multisigTxn?.name }}
+                    <div class="col-12 md:col-10" data-testid="sign-msig-asset">
+                      {{ multisigTransfer.assetId }}
                     </div>
                   </div>
-                  <div class="field grid" v-if="multisigTxn?.amount">
+                  <div class="field grid" v-if="multisigTransfer">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.amount") }}
                     </label>
-                    <div class="col-12 md:col-10" v-if="assetObj">
+                    <div
+                      class="col-12 md:col-10"
+                      v-if="multisigTransfer.assetId && !multisigAssetMetaKnown"
+                      data-testid="sign-msig-amount"
+                    >
+                      {{ multisigUnknownAssetAmount }}
+                      <Message severity="warn" class="mt-2 mb-0">
+                        {{ $t("connect.asset_metadata_unknown") }}
+                      </Message>
+                    </div>
+                    <div
+                      class="col-12 md:col-10"
+                      v-else-if="multisigTransfer.assetId"
+                      data-testid="sign-msig-amount"
+                    >
                       {{
                         $filters.formatCurrency(
-                          normalizeNumeric(multisigTxn?.amount),
+                          Number(multisigTransfer.amount),
                           assetObj.name,
                           assetObj.decimals
                         )
                       }}
                     </div>
-                    <div class="col-12 md:col-10" v-else>
-                      {{
-                        $filters.formatCurrency(
-                          normalizeNumeric(multisigTxn?.amount)
-                        )
-                      }}
+                    <div class="col-12 md:col-10" v-else data-testid="sign-msig-amount">
+                      {{ $filters.formatCurrency(Number(multisigTransfer.amount)) }}
                     </div>
                   </div>
                   <div class="field grid">
@@ -327,7 +300,7 @@
                     </label>
                     <div class="col-12 md:col-10">
                       {{
-                        multisigTxn?.firstRound ?? multisigTxn?.firstValid ?? ""
+                        multisigTxn?.firstValid ?? ""
                       }}
                     </div>
                   </div>
@@ -337,7 +310,7 @@
                     </label>
                     <div class="col-12 md:col-10">
                       {{
-                        multisigTxn?.lastRound ?? multisigTxn?.lastValid ?? ""
+                        multisigTxn?.lastValid ?? ""
                       }}
                     </div>
                   </div>
@@ -355,14 +328,6 @@
                     </label>
                     <div class="col-12 md:col-10" v-if="multisigTxn?.note">
                       {{ msigNote }}
-                    </div>
-                  </div>
-                  <div class="field grid">
-                    <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
-                      {{ $t("pay.tag") }}
-                    </label>
-                    <div class="col-12 md:col-10">
-                      {{ multisigTxn?.tag }}
                     </div>
                   </div>
                   <div class="field grid" v-if="multisigTxn?.sender">
@@ -390,16 +355,15 @@
                       </Message>
                     </div>
                   </div>
-                  <div class="field grid" v-if="multisigTxn?.payment?.receiver">
+                  <div class="field grid" v-if="multisigTransfer?.receiver">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.to_account") }}
                     </label>
-                    <div class="col-12 md:col-10">
-                      <AlgorandAddress
-                        :address="multisigTxn.payment.receiver.toString()"
-                      />
+                    <div class="col-12 md:col-10" data-testid="sign-msig-receiver">
+                      <AlgorandAddress :address="multisigTransfer.receiver" />
                     </div>
                   </div>
+                  <TxReviewDetails :txn="multisigTxn" />
                   <div class="field grid" v-if="multisigCloseTo">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.close_to") }}
@@ -750,6 +714,8 @@ import InputMask from "primevue/inputmask";
 import { JsonViewer } from "vue3-json-viewer";
 import SelectAccount from "../components/SelectAccount.vue";
 import AlgorandAddress from "../components/AlgorandAddress.vue";
+import TxReviewDetails from "../components/TxReviewDetails.vue";
+import { assetAmountLabel, describeTransfer } from "@/scripts/txReview";
 import MultiSelect from "primevue/multiselect";
 import algosdk from "algosdk";
 import type { ExtendedStoredAsset, StoredAsset } from "@/store/indexer";
@@ -795,15 +761,10 @@ type GlobalFilters = {
   ) => string;
 };
 
-type LooseTransaction = algosdk.Transaction & {
-  amount?: number | string | bigint;
-  name?: string;
-  tag?: string;
-  firstRound?: number | string | bigint;
-  lastRound?: number | string | bigint;
-  voteFirst?: number | string | bigint;
-  voteLast?: number | string | bigint;
-};
+// algosdk v3 keeps every type-specific field (amount, receiver, asset id, key registration data)
+// under a nested object; no flat v2 names are declared here on purpose, so the type-checker
+// rejects a binding such as `txn.amount` that would silently render nothing (AW-2026-112).
+type LooseTransaction = algosdk.Transaction;
 
 type DecodedSignedTransaction = ReturnType<
   typeof algosdk.decodeSignedTransaction
@@ -844,7 +805,6 @@ const assetObj = ref<ExtendedStoredAsset>({
   amount: 0n,
   label: store.state.config.tokenSymbol,
 });
-const scan = ref(false);
 const forceAsset = ref(false);
 const txtCode = ref("");
 const accountFor2FARealm = ref("");
@@ -991,6 +951,26 @@ const decimalsPower = computed(() => {
   const decimals = assetObj.value?.decimals ?? 6;
   return Math.pow(10, decimals);
 });
+// What the transaction itself moves (asset id and base units), independent of the form state and
+// of whatever the indexer reported about the asset (AW-2026-112/-117).
+const txnTransfer = computed(() => describeTransfer(txn.value));
+const multisigTransfer = computed(() => describeTransfer(multisigTxn.value));
+const assetMetaKnownFor = (assetId?: string) =>
+  assetId === undefined || assetObj.value.assetId.toString() === assetId;
+const assetMetaKnown = computed(() => assetMetaKnownFor(txnTransfer.value?.assetId));
+const multisigAssetMetaKnown = computed(() =>
+  assetMetaKnownFor(multisigTransfer.value?.assetId)
+);
+const unknownAssetAmount = computed(() =>
+  txnTransfer.value?.assetId
+    ? assetAmountLabel(txnTransfer.value.assetId, txnTransfer.value.amount).text
+    : ""
+);
+const multisigUnknownAssetAmount = computed(() =>
+  multisigTransfer.value?.assetId
+    ? assetAmountLabel(multisigTransfer.value.assetId, multisigTransfer.value.amount).text
+    : ""
+);
 const amountLong = computed(() =>
   Math.round(payamount.value * decimalsPower.value)
 );
@@ -1739,115 +1719,6 @@ const sendMultisig = async (e?: Event) => {
   }
 };
 
-const toggleCamera = (e: Event) => {
-  e.preventDefault();
-  scan.value = !scan.value;
-  if (scan.value) {
-    payTo.value = "";
-  }
-};
-
-const test = (e: Event) => {
-  e.preventDefault();
-  const tests = [
-    "015LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U",
-    "algorand://025LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?&note=123",
-    "algorand://035LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?&note=234&&",
-    "algorand://045LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?xnote=345&fee=1000&amount=1000&asset=456",
-    "algorand://046LXHA5MEDMOJ2ZAITLZWYSU6W25BF2FCXJ5KQRDUB2NT2T7DPAAFYT3U?note=SGVsbG8=&noteB64=1&fee=1000&amount=1",
-  ];
-  tests.forEach((value) => onDecodeQR(value));
-};
-
-const isEncoded = (uri: string) => {
-  const value = uri || "";
-  return value !== decodeURIComponent(value);
-};
-
-const onDecodeQR = (result: string) => {
-  if (scan.value && result) {
-    if (
-      result.startsWith("algorand://") ||
-      result.startsWith("web+algorand://")
-    ) {
-      let parsed = result.replace("web+algorand://", "");
-      parsed = parsed.replace("algorand://", "");
-      const qIndex = parsed.indexOf("?");
-      if (qIndex < 0) {
-        payTo.value = parsed.replace(/[^\w\s]/gi, "");
-      } else {
-        payTo.value = parsed.substring(0, qIndex).replace(/[^\w\s]/gi, "");
-        const params = parsed.substring(qIndex + 1).split("&");
-        let noteValue: string | undefined;
-        let noteB64Flag: string | undefined;
-        let amount: string | undefined;
-        let assetValue: string | undefined;
-        let feeValue: string | undefined;
-        let decimals: string | undefined;
-        for (const param of params) {
-          const eqIndex = param.indexOf("=");
-          if (eqIndex > 0) {
-            const name = param.substring(0, eqIndex);
-            const value = param.substring(eqIndex + 1);
-            switch (name) {
-              case "note":
-              case "xnote":
-              case "label":
-                noteValue = value;
-                break;
-              case "noteB64":
-                noteB64Flag = value;
-                break;
-              case "amount":
-                amount = value;
-                break;
-              case "asset":
-                assetValue = value;
-                break;
-              case "fee":
-                feeValue = value;
-                break;
-              case "decimals":
-                decimals = value;
-                break;
-            }
-          }
-        }
-        if (noteValue) {
-          paynote.value = noteValue;
-          if (isEncoded(paynote.value)) {
-            paynote.value = decodeURIComponent(paynote.value);
-          }
-        }
-        paynoteB64.value = !!noteB64Flag;
-        if (decimals !== undefined) {
-          if (amount) {
-            payamount.value = Number(amount) / Math.pow(10, Number(decimals));
-          }
-          if (feeValue) {
-            fee.value = Number(feeValue) / Math.pow(10, Number(decimals));
-          }
-        } else {
-          if (amount) {
-            payamount.value = Number(amount);
-          }
-          if (feeValue) {
-            fee.value = Number(feeValue);
-          }
-        }
-        if (assetValue) {
-          asset.value = BigInt(assetValue);
-        }
-      }
-    } else {
-      payTo.value = result.replace(/[^\w\s]/gi, "");
-    }
-  }
-  if (payTo.value) {
-    scan.value = false;
-  }
-};
-
 const setMaxAmount = (e: Event) => {
   e.preventDefault();
   payamount.value = maxAmount.value;
@@ -2142,9 +2013,6 @@ defineExpose({
   signMultisig,
   loadMultisig,
   sendMultisig,
-  toggleCamera,
-  test,
-  onDecodeQR,
   setMaxAmount,
   combineSignatures,
   retToWalletConnect,

@@ -35,6 +35,7 @@
     :header="t('acc_overview.delete_header')"
     :modal="true"
     class="m-5"
+    @hide="password = ''"
   >
     <p>{{ t("acc_overview.delete_confirm") }}</p>
     <p v-if="account">
@@ -43,12 +44,41 @@
     <p v-if="account">
       <AlgorandAddress :address="account.addr" />
     </p>
+    <!-- Deleting an account that holds its own key is irreversible: not backed up, and the
+         wallet password is required again (AW-2026-119). -->
+    <Message
+      v-if="holdsSecret && account?.backedUp === false"
+      severity="error"
+      class="my-2"
+      data-testid="delete-not-backed-up"
+    >
+      {{ t("acc_overview.delete_not_backed_up") }}
+    </Message>
+    <div v-if="holdsSecret" class="field">
+      <label for="delete_account_password" class="font-bold">
+        {{ t("acc_overview.delete_password") }}
+      </label>
+      <Password
+        v-model="password"
+        input-id="delete_account_password"
+        :feedback="false"
+        toggle-mask
+        class="w-full"
+        input-class="w-full"
+        @keyup.enter="handleDelete"
+      />
+    </div>
 
     <template #footer>
-      <Button size="small" @click="displayDeleteDialog = false">
+      <Button size="small" @click="cancelDelete">
         {{ t("global.cancel") }}
       </Button>
-      <Button size="small" severity="danger" @click="handleDelete">
+      <Button
+        size="small"
+        severity="danger"
+        :disabled="holdsSecret && !password"
+        @click="handleDelete"
+      >
         {{ t("acc_overview.delete_confirm_button") }}
       </Button>
     </template>
@@ -56,7 +86,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, toRefs } from "vue";
+import { computed, ref, toRefs } from "vue";
+import Password from "primevue/password";
+import Message from "primevue/message";
+import { accountHoldsSecret } from "@/scripts/walletPersist";
 import { useI18n } from "vue-i18n";
 import AlgorandAddress from "@/components/AlgorandAddress.vue";
 import type { PrivateAccount } from "@/types/account";
@@ -67,7 +100,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: "delete"): void;
+  (e: "delete", password: string): void;
   (e: "toggle-visibility"): void;
 }>();
 
@@ -75,8 +108,21 @@ const displayDeleteDialog = ref(false);
 const { t } = useI18n();
 const { account, accountName } = toRefs(props);
 
-const handleDelete = () => {
-  emit("delete");
+const password = ref("");
+const holdsSecret = computed(() => !!account.value && accountHoldsSecret(account.value));
+
+const cancelDelete = () => {
+  password.value = "";
   displayDeleteDialog.value = false;
+};
+
+const handleDelete = () => {
+  // The password never stays in the component, whatever the outcome.
+  const pass = password.value;
+  if (holdsSecret.value && !pass) return;
+  password.value = "";
+  // The dialog stays open: a failed delete (wrong password) is retried without reopening it, and a
+  // successful one navigates away.
+  emit("delete", pass);
 };
 </script>

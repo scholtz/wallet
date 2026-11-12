@@ -497,7 +497,7 @@ const accountInformationAction = (payload: { addr: string }) =>
   store.dispatch("indexer/accountInformation", payload);
 const updateAccountAction = (payload: { info: Record<string, unknown> }) =>
   store.dispatch("wallet/updateAccount", payload);
-const deleteAccountAction = (payload: { name: string; addr: string }) =>
+const deleteAccountAction = (payload: { name: string; addr: string; pass?: string }) =>
   store.dispatch("wallet/deleteAccount", payload);
 const searchForTransactionsAction = (payload: {
   addr: string;
@@ -610,13 +610,22 @@ const reloadAccount = async (silent = false) => {
   }
 };
 
-const deleteAccountClick = async () => {
+let deletingAccount = false;
+const deleteAccountClick = async (pass?: string) => {
   const currentAccount = account.value;
-  if (!currentAccount) return;
-  const deleted = await deleteAccountAction({
-    name: currentAccount.name ?? "",
-    addr: currentAccount.addr,
-  });
+  // A double click must not dispatch a second delete for the same account.
+  if (!currentAccount || deletingAccount) return;
+  deletingAccount = true;
+  let deleted: boolean;
+  try {
+    deleted = await deleteAccountAction({
+      name: currentAccount.name ?? "",
+      addr: currentAccount.addr,
+      pass,
+    });
+  } finally {
+    deletingAccount = false;
+  }
   if (!deleted) return;
   await router.push("/accounts");
 };

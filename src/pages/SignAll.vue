@@ -555,7 +555,19 @@ const arc56SummaryTransactions = computed(() =>
               <AlgorandAddress :address="slotProps.data.from" />
             </template>
           </Column>
-          <Column field="asset" :header="t('connect.asset')" :sortable="true" />
+          <!-- The asset id comes from the transaction itself, never from an indexer answer or a
+               row field that does not exist (AW-2026-117). -->
+          <Column :header="t('connect.asset')">
+            <template #body="slotProps">
+              <span v-if="slotProps.data.txn?.type == 'axfer'" data-testid="signall-asset-id">
+                {{ slotProps.data.txn.assetTransfer?.assetIndex?.toString() }}
+              </span>
+              <span v-else-if="slotProps.data.txn?.type == 'pay'">{{
+                store.state.config.tokenSymbol
+              }}</span>
+              <span v-else>-</span>
+            </template>
+          </Column>
           <Column field="amount" :header="t('connect.amount')" :sortable="true">
             <template #body="slotProps">
               <div v-if="slotProps.data.txn">

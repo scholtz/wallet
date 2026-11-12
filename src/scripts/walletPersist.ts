@@ -163,3 +163,37 @@ export function validateWalletBlob(
   }
   return { ok: false, reason: "invalid" };
 }
+
+/** The fields of an account that decide whether deleting it destroys a secret (AW-2026-119). */
+export interface DeletableAccountLike {
+  addr: string;
+  sk?: Uint8Array;
+  hdMnemonic?: string;
+  hdRootAddr?: string;
+  falconMnemonic?: string;
+  falconPrivateKey?: Uint8Array;
+}
+
+/** Whether the account stores its own key material (deleting it loses the only local copy). */
+export function accountHoldsSecret(account: DeletableAccountLike): boolean {
+  return !!(
+    (account.sk && account.sk.length > 0) ||
+    account.hdMnemonic ||
+    account.falconMnemonic ||
+    (account.falconPrivateKey && account.falconPrivateKey.length > 0)
+  );
+}
+
+/**
+ * Why an account may not be deleted right now, or `undefined`. An HD root holds the only copy of
+ * the mnemonic its derived accounts are re-derived from at signing time: deleting it first would
+ * leave them listed but unable to sign or export.
+ */
+export function accountDeletionBlocker(
+  accounts: DeletableAccountLike[],
+  addr: string,
+): "hd_children" | undefined {
+  const account = accounts.find((a) => a.addr === addr);
+  if (!account?.hdMnemonic) return undefined;
+  return accounts.some((a) => a.addr !== addr && a.hdRootAddr === addr) ? "hd_children" : undefined;
+}

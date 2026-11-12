@@ -116,9 +116,20 @@ test("create basic ed25519 account, verify mnemonic export, back up via 2-of-3 S
   await page
     .getByRole("button", { name: "Delete account", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Delete this account", exact: true })
-    .click();
+  // AW-2026-119: deleting an account that holds its own key needs the wallet password again.
+  // The dialog warns that this account was never backed up and the button stays disabled
+  // until a password is typed; a wrong password deletes nothing.
+  const confirmDelete = page.getByRole("button", { name: "Delete this account", exact: true });
+  await expect(confirmDelete).toBeDisabled();
+  await page.locator("#delete_account_password").fill("not-the-password");
+  await confirmDelete.click();
+  await expect(page.locator(".p-toast-message")).toContainText("Wrong password", {
+      timeout: 30000,
+    });
+  await expect(page).toHaveURL(`/account/${accountAddress}`);
+  // The dialog stays open after the failure.
+  await page.locator("#delete_account_password").fill(WALLET_PASSWORD);
+  await confirmDelete.click();
   await expect(page).toHaveURL(/\/accounts/);
   await expect(page.getByRole("cell", { name: accountAddress })).toHaveCount(
     0
