@@ -19,11 +19,17 @@ export function useLinkNetwork(reportError: (message: string) => unknown) {
     let decision = pending.get(network);
     if (!decision) {
       decision = (async () => {
-        const switched = (await store.dispatch("config/switchEnvFromLink", {
-          env: network,
-          confirm: (canonicalEnv: string) =>
-            window.confirm(t("pay.link_network_switch", { network: canonicalEnv })),
-        })) as boolean;
+        let switched = false;
+        try {
+          switched = (await store.dispatch("config/switchEnvFromLink", {
+            env: network,
+            confirm: (canonicalEnv: string) =>
+              window.confirm(t("pay.link_network_switch", { network: canonicalEnv })),
+          })) as boolean;
+        } catch (err) {
+          // e.g. the public node lists could not be loaded: stay on the current network.
+          console.error("Switching to the network of a payment link failed", err);
+        }
         if (!switched) {
           refused.add(network);
           await reportError(t("pay.link_network_refused", { network }));

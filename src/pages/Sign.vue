@@ -2099,7 +2099,9 @@ onMounted(async () => {
   if (isRekey.value && account.value?.addr) {
     payTo.value = account.value.addr;
   }
-  if (payTo.value && !payFromDirect.value) {
+  // Only a rekey is "from the payee's own account"; a plain payment must never default the
+  // sender to the recipient.
+  if (isRekey.value && payTo.value && !payFromDirect.value) {
     payFromDirect.value = payTo.value;
   }
   if (accountFor2FAProvider.value) {

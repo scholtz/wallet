@@ -128,7 +128,6 @@ async function confirmCreate() {
       return;
     }
 
-    router.push({ name: "Accounts" });
   } catch (err: unknown) {
     const error = err instanceof Error ? err.message : String(err);
     console.error("failed to create account", error, err);

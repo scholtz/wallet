@@ -8,7 +8,7 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 - The payment page now remembers the address you last paid and fills it in the next time you open it (a link's own recipient still wins).
 - The signing page now always shows the "Rekey to" address and warning when a transaction hands control of your account to another address, including transactions that come from a link or another page.
 - A payment link that names a different network now asks for your confirmation before switching, and links naming an unknown network are refused.
-- Apps can no longer send a transaction with an unusually high fee (above 0.5 ALGO), and the "just a login" shortcut is only offered for zero-fee login transactions. Key registrations now show the participation keys being registered.
+- Apps can no longer send a transaction with an unusually high fee (above 0.5 ALGO), and the "just a login" shortcut is only offered for login transactions that pay no more than the minimum fee. Key registrations now show the participation keys being registered.
 - Deleting a wallet now requires its password, and copied recovery phrases are cleared from the clipboard after 60 seconds.
 
 ## 2026-10
