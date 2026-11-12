@@ -592,7 +592,10 @@
     "process_payment": "Zpracovat platbu",
     "tx_type": "Typ transakce",
     "asset_optin": "Přihlášení k assetu (opt-in)",
-    "uri_fee_ignored": "Poplatek z platebního odkazu byl ignorován, protože je neplatný, nižší než 0,001 ALGO nebo vyšší než 0,1 ALGO."
+    "uri_fee_ignored": "Poplatek z platebního odkazu byl ignorován, protože je neplatný, nižší než 0,001 ALGO nebo vyšší než 0,1 ALGO.",
+    "link_network_switch": "Platební odkaz chce přepnout peněženku na síť {network}. Přepnout síť?",
+    "link_network_refused": "Platební odkaz požaduje síť {network}, kterou tato peněženka nezná nebo jste ji nepotvrdili, proto nebyl odkaz použit.",
+    "application_id": "ID aplikace"
   },
   "settings": {
     "title": "Nastavení",
@@ -614,6 +617,10 @@
     "create_backup": "Vytvořit zálohu",
     "download": "Stáhnout",
     "delete": "Smazat peněženku",
+    "delete_wallet_header": "Smazat peněženku",
+    "delete_wallet_warning": "Tím se z tohoto prohlížeče trvale smaže peněženka {name} a všechny soukromé klíče v ní. Ujistěte se, že máte zálohu. Pro potvrzení zadejte heslo peněženky.",
+    "delete_wallet_password": "Heslo peněženky",
+    "delete_wallet_wrong_password": "Nesprávné heslo, peněženka nebyla smazána.",
     "strength": "Síla hesla",
     "updated_password": "Heslo bylo upraveno",
     "custom": "Vlastní nastavení serverů",
@@ -1001,6 +1008,10 @@
     "asset_properties": "{name} ({unit}), celková nabídka {total}, desetinná místa: {decimals}",
     "asset_default_frozen": "Nové držby jsou ve výchozím stavu zmrazené",
     "keyreg_rounds": "Platnost participačního klíče (kola)",
+    "keyreg_vote_key": "Hlasovací klíč",
+    "keyreg_selection_key": "Výběrový klíč",
+    "keyreg_state_proof_key": "Klíč state proof",
+    "keyreg_dilution": "Zředění klíče",
     "lease": "Lease",
     "app_foreign_apps": "Cizí aplikace",
     "boxes": "Boxes",

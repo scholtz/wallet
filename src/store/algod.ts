@@ -329,7 +329,8 @@ const actions: ActionTree<AlgodState, RootState> = {
         txn,
         payFrom: payload.payFrom,
       })) as string | undefined;
-      if (txid) {
+      // A rekey is not a payment: its "receiver" is the sender itself.
+      if (txid && !payload.reKeyTo) {
         await dispatch(
           "wallet/lastPayTo",
           { addr: payload.payTo },
@@ -622,6 +623,9 @@ const actions: ActionTree<AlgodState, RootState> = {
     try {
       const algodClient = createAlgodClient(rootState);
       const params = await algodClient.getTransactionParams().do();
+      // Same node-parameter checks as every other fetch: a node must not steer the fee or
+      // answer for another network (AW-2026-107).
+      assertParamsMatchNetwork(rootState, params);
       const falcon1024Signer = isFalcon1024Signer(rootState, senderAddr);
       let groupUsage: bigint | undefined;
       let failureMessage: string | undefined;

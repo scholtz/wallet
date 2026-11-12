@@ -9,7 +9,7 @@ export const BIATEC_SCAN_REALM = `BiatecScan${ARC14_NOTE_SUFFIX}`;
 
 type Arc14Transaction = Pick<
   algosdk.Transaction,
-  "type" | "group" | "rekeyTo" | "sender" | "payment" | "note"
+  "type" | "group" | "rekeyTo" | "sender" | "payment" | "note" | "fee"
 >;
 
 const addressToString = (value?: algosdk.Address | string): string | undefined => {
@@ -43,11 +43,15 @@ export const getArc14Realm = (note?: Uint8Array): string | undefined => {
   return text?.slice(0, -ARC14_NOTE_SUFFIX.length);
 };
 
+/** Highest fee (microalgos) an ARC-14 login transaction may declare: the minimum fee (AW-2026-101). */
+export const ARC14_MAX_FEE_MICROALGOS = 1000n;
+
 /**
  * ARC14 authenticates by signing (not broadcasting) a zero-amount, ungrouped
  * self-payment whose note ends in "#ARC14" (see src/store/arc14.ts's
  * getAuthTx / src/scripts/aggregators/biatec.ts's "BiatecRouter#ARC14" realm).
- * Detection here is intentionally strict — self-pay, no group, no rekey/close-to
+ * Detection here is intentionally strict — self-pay, no group, no rekey/close-to, no fee above
+ * the minimum fee (the fee is burned in full if a dApp broadcasts the "login")
  * — so the "this is just a login, not a transfer" notice can never be shown
  * for a transaction that could actually move funds, join an atomic group with
  * other transactions, or rekey/close the account.
@@ -58,6 +62,7 @@ export const isArc14AuthTransaction = (
   if (!txn || txn.type !== "pay") return false;
   if (txn.group && txn.group.length > 0) return false;
   if (txn.rekeyTo) return false;
+  if (BigInt(txn.fee ?? 0) > ARC14_MAX_FEE_MICROALGOS) return false;
   const payment = txn.payment;
   if (!payment) return false;
   if (payment.closeRemainderTo) return false;

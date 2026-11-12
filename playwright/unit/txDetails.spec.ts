@@ -78,7 +78,16 @@ test.describe("describeKeyReg", () => {
         voteLast: 20n,
       },
     };
-    expect(describeKeyReg(online)).toEqual({ kind: "online", voteFirst: "10", voteLast: "20" });
+    // AW-2026-105: the keys being registered are part of the description.
+    expect(describeKeyReg(online)).toEqual({
+      kind: "online",
+      voteFirst: "10",
+      voteLast: "20",
+      voteKey: Buffer.from(new Uint8Array(32).fill(1)).toString("base64"),
+      selectionKey: Buffer.from(new Uint8Array(32).fill(2)).toString("base64"),
+      stateProofKey: undefined,
+      voteKeyDilution: undefined,
+    });
     expect(describeKeyReg({ type: "keyreg", keyreg: { nonParticipation: false } })?.kind).toBe("offline");
   });
 });

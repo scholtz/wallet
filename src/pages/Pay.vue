@@ -10,7 +10,11 @@
 
       <Card>
         <template #content>
-          <SelectAccount v-model="payFromDirect" class="w-full"></SelectAccount>
+          <SelectAccount
+            v-model="payFromDirect"
+            class="w-full"
+            @update:model-value="onPayFromSelected"
+          ></SelectAccount>
         </template>
       </Card>
     </div>
@@ -565,8 +569,6 @@ const getAsset = (payload: {
   assetIndex: bigint;
 }): Promise<StoredAsset | undefined> =>
   store.dispatch("indexer/getAsset", payload);
-const setEnv = (payload: { env: string }) =>
-  store.dispatch("config/setEnv", payload);
 const openError = (payload: string) =>
   store.dispatch("toast/openError", payload);
 const signerCreateMultisigTransaction = (payload: Record<string, unknown>) =>
@@ -734,11 +736,15 @@ const isNotValid = computed(() => {
   return false;
 });
 
-watch(payFromDirect, (value) => {
+// The active (last used) account changes ONLY when the user picks a sender
+// in the selector. Programmatic prefills of `payFromDirect` (from a payment
+// link, a decoded transaction or a default) must never switch the wallet's
+// active account.
+const onPayFromSelected = (value?: string) => {
   if (value) {
-    lastActiveAccount({ addr: value });
+    void lastActiveAccount({ addr: value });
   }
-});
+};
 
 watch(account, () => {
   void makeAssets();
@@ -800,11 +806,14 @@ onMounted(async () => {
     try {
       state.txn = store.state.signer.toSign as DecodedTxn;
 
-      if (state.txn?.to) {
-        state.payTo = algosdk.encodeAddress(state.txn.to.publicKey);
+      // algosdk v3 field names: the receiver lives under payment / assetTransfer.
+      const receiver =
+        state.txn?.payment?.receiver ?? state.txn?.assetTransfer?.receiver;
+      if (receiver) {
+        state.payTo = receiver.toString();
       }
-      if (state.txn?.from) {
-        state.payFromDirect = algosdk.encodeAddress(state.txn.from.publicKey);
+      if (state.txn?.sender) {
+        state.payFromDirect = state.txn.sender.toString();
       }
 
       const senderAddr = requirePayFrom();
@@ -820,8 +829,8 @@ onMounted(async () => {
         base64ToArrayBuffer(state.rawSignedTxnInput),
       );
       state.note = state.txn?.note ?? null;
-      if (state.txn?.assetIndex !== undefined) {
-        state.asset = state.txn.assetIndex;
+      if (state.txn?.assetTransfer?.assetIndex !== undefined) {
+        state.asset = Number(state.txn.assetTransfer.assetIndex);
       }
       state.page = "review";
 
@@ -841,24 +850,20 @@ onMounted(async () => {
       const uint8buffer = base64ToArrayBuffer(b64);
 
       state.txn = algosdk.decodeUnsignedTransaction(uint8buffer);
-      if (state.txn?.to) {
-        state.payTo = algosdk.encodeAddress(state.txn.to.publicKey);
+      const decodedReceiver =
+        state.txn?.payment?.receiver ?? state.txn?.assetTransfer?.receiver;
+      if (decodedReceiver) {
+        state.payTo = decodedReceiver.toString();
       }
       state.note = state.txn?.note ?? null;
-      if (state.txn?.assetIndex !== undefined) {
-        state.asset = state.txn.assetIndex;
+      if (state.txn?.assetTransfer?.assetIndex !== undefined) {
+        state.asset = Number(state.txn.assetTransfer.assetIndex);
       }
       state.page = "review";
       router.push(`/sign/${senderAddr}/` + base642base64url(rawSignedTxnParam));
     } catch (err) {
       console.error("Input is not valid base64-url format ", err);
     }
-  }
-  const accountParam = toSingleParam(
-    route.params.account as string | string[] | undefined,
-  );
-  if (accountParam) {
-    await lastActiveAccount({ addr: accountParam });
   }
   await makeAssets();
 
@@ -876,7 +881,7 @@ onMounted(async () => {
   if (state.payTo && !state.payFromDirect) {
     if (store.state.wallet.lastActiveAccount) {
       state.payFromDirect = store.state.wallet.lastActiveAccount;
-    } else {
+    } else if (isRekey.value) {
       state.payFromDirect = state.payTo;
     }
   }
@@ -1013,8 +1018,16 @@ const parseToAccount = async (encodedValue?: string) => {
   // this order, not fired-and-forgotten in parallel - otherwise the asset id
   // from the URL gets looked up against the network we're leaving, not the
   // one the link actually points at.
-  if (parsed.network && parsed.network != envName.value) {
-    await setEnv({ env: parsed.network });
+  if (parsed.network) {
+    const switched = (await store.dispatch("config/switchEnvFromLink", {
+      env: parsed.network,
+      confirm: (canonicalEnv: string) =>
+        window.confirm(t("pay.link_network_switch", { network: canonicalEnv })),
+    })) as boolean;
+    if (!switched) {
+      await openError(t("pay.link_network_refused", { network: parsed.network }));
+      return;
+    }
   }
   if (parsed.asset) {
     state.asset = parsed.asset;

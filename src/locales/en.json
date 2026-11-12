@@ -592,7 +592,10 @@
     "process_payment": "Process payment",
     "tx_type": "Transaction type",
     "asset_optin": "Asset opt-in",
-    "uri_fee_ignored": "The fee of the payment link was ignored because it is not valid, below 0.001 ALGO or above 0.1 ALGO."
+    "uri_fee_ignored": "The fee of the payment link was ignored because it is not valid, below 0.001 ALGO or above 0.1 ALGO.",
+    "link_network_switch": "The payment link wants to switch the wallet to the network {network}. Switch the network?",
+    "link_network_refused": "The payment link asks for the network {network}, which this wallet does not know or you did not confirm, so the link was not applied.",
+    "application_id": "Application ID"
   },
   "settings": {
     "title": "Settings",
@@ -614,6 +617,10 @@
     "create_backup": "Create backup",
     "download": "Download",
     "delete": "Delete wallet",
+    "delete_wallet_header": "Delete wallet",
+    "delete_wallet_warning": "This permanently deletes the wallet {name} and every private key in it from this browser. Make sure you have a backup. Enter the wallet password to confirm.",
+    "delete_wallet_password": "Wallet password",
+    "delete_wallet_wrong_password": "Wrong password, the wallet was not deleted.",
     "strength": "Strength",
     "updated_password": "Password has been updated",
     "custom": "Custom server settings",
@@ -1001,6 +1008,10 @@
     "asset_properties": "{name} ({unit}), total supply {total}, {decimals} decimals",
     "asset_default_frozen": "New holdings are frozen by default",
     "keyreg_rounds": "Participation key valid rounds",
+    "keyreg_vote_key": "Vote key",
+    "keyreg_selection_key": "Selection key",
+    "keyreg_state_proof_key": "State proof key",
+    "keyreg_dilution": "Key dilution",
     "lease": "Lease",
     "app_foreign_apps": "Foreign apps",
     "boxes": "Boxes",

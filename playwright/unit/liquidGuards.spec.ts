@@ -9,6 +9,7 @@ import {
   admitEnvelope,
   admitSignData,
   admitTransactions,
+  MAX_DAPP_FEE_MICROALGOS,
   assertLiquidChallenge,
   assertLiquidServiceOrigin,
   countPending,
@@ -309,5 +310,31 @@ test.describe("countPending / REQUEST_ERROR", () => {
     expect(REQUEST_ERROR.unauthorized).toBe(LiquidErrorCode.unauthorizedSigner);
     expect(REQUEST_ERROR.invalid).toBe(LiquidErrorCode.invalidInput);
     expect(REQUEST_ERROR.methodNotSupported).toBe(LiquidErrorCode.methodNotSupported);
+  });
+});
+
+// AW-2026-101: a dApp cannot burn an account's balance as the fee of a transaction.
+test.describe("admitTransactions fee ceiling", () => {
+  const admit = (fee: bigint, extra: { preSigned?: boolean; signers?: string[] } = {}) =>
+    admitTransactions({
+      transactions: [{ sender: "A", type: "pay", fee, ...extra }],
+      approved: ["A"],
+      own: ["A"],
+    });
+
+  test("accepts a fee up to the ceiling", () => {
+    expect(admit(1000n).ok).toBe(true);
+    expect(admit(MAX_DAPP_FEE_MICROALGOS).ok).toBe(true);
+  });
+
+  test("refuses a fee above the ceiling", () => {
+    const result = admit(MAX_DAPP_FEE_MICROALGOS + 1n);
+    expect(result.ok).toBe(false);
+    expect(admit(900_000_000n).ok).toBe(false);
+  });
+
+  test("ignores the fee of transactions the wallet does not sign", () => {
+    expect(admit(900_000_000n, { preSigned: true }).ok).toBe(true);
+    expect(admit(900_000_000n, { signers: [] }).ok).toBe(true);
   });
 });

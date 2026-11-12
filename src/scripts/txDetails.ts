@@ -128,7 +128,15 @@ export interface KeyRegDetails {
   kind: KeyRegKind;
   voteFirst?: string;
   voteLast?: string;
+  /** Participation keys (base64) so the user can compare them with their own (AW-2026-105). */
+  voteKey?: string;
+  selectionKey?: string;
+  stateProofKey?: string;
+  voteKeyDilution?: string;
 }
+
+const toBase64 = (bytes?: Uint8Array): string | undefined =>
+  bytes && bytes.length > 0 ? btoa(String.fromCharCode(...bytes)) : undefined;
 
 /**
  * Describes a key registration transaction; undefined for other types. `nonparticipation` is
@@ -144,6 +152,11 @@ export function describeKeyReg(txn: DetailTxnLike): KeyRegDetails | undefined {
     kind: "online",
     voteFirst: reg.voteFirst === undefined ? undefined : BigInt(reg.voteFirst).toString(),
     voteLast: reg.voteLast === undefined ? undefined : BigInt(reg.voteLast).toString(),
+    voteKey: toBase64(reg.voteKey),
+    selectionKey: toBase64(reg.selectionKey),
+    stateProofKey: toBase64(reg.stateProofKey),
+    voteKeyDilution:
+      reg.voteKeyDilution === undefined ? undefined : BigInt(reg.voteKeyDilution).toString(),
   };
 }
 

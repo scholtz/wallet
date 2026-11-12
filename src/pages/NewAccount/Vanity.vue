@@ -120,9 +120,12 @@ async function confirmCreate() {
         })
       ) {
         router.push({ name: "Accounts" });
+        return;
       }
     } else {
+      // No account was created: stay on the page so the user can retry (AW-2026-111).
       await store.dispatch("toast/openError", "Invalid word");
+      return;
     }
 
     router.push({ name: "Accounts" });

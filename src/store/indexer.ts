@@ -142,6 +142,10 @@ const mutations: MutationTree<IndexerState> = {
   setAsset(currentState, assetInfo: StoredAsset) {
     currentState.assets.push(assetInfo);
   },
+  // Called whenever the network or its hosts change (see config/setHosts, AW-2026-106).
+  clearAssets(currentState) {
+    currentState.assets = [];
+  },
   setBalance(
     currentState,
     { account, round, assetId, balance }: BalancePayload

@@ -288,13 +288,51 @@
             v-if="b64wallet"
             severity="danger"
             class="mx-2"
-            @click="destroyWalletClick"
+            @click="showDestroyDialog = true"
           >
             {{ $t("settings.delete") }}
           </Button>
         </p>
       </template>
     </Card>
+    <!-- Deleting the wallet is irreversible: the password is required again (AW-2026-108). -->
+    <Dialog
+      v-model:visible="showDestroyDialog"
+      :header="$t('settings.delete_wallet_header')"
+      :modal="true"
+      class="m-5"
+      @hide="destroyPassword = ''"
+    >
+      <p>{{ $t("settings.delete_wallet_warning", { name: $store.state.wallet.name }) }}</p>
+      <div class="field">
+        <label for="destroy_password" class="font-bold">
+          {{ $t("settings.delete_wallet_password") }}
+        </label>
+        <Password
+          inputId="destroy_password"
+          v-model="destroyPassword"
+          :feedback="false"
+          toggleMask
+          class="w-full"
+          inputClass="w-full"
+          @keyup.enter="destroyWalletClick"
+        />
+      </div>
+      <template #footer>
+        <Button size="small" severity="secondary" @click="cancelDestroy">
+          {{ $t("global.cancel") }}
+        </Button>
+        <Button
+          size="small"
+          severity="danger"
+          id="destroy_wallet_confirm"
+          :disabled="!destroyPassword"
+          @click="destroyWalletClick"
+        >
+          {{ $t("settings.delete") }}
+        </Button>
+      </template>
+    </Dialog>
   </main-layout>
 </template>
 
@@ -311,6 +349,8 @@ export default {
     return {
       env: "mainnet-v1.0",
       isInitializing: true,
+      showDestroyDialog: false,
+      destroyPassword: "",
       passw1: "",
       passw2: "",
       passw3: "",
@@ -505,7 +545,19 @@ export default {
       this.b64wallet = await this.backupWallet();
     },
     async destroyWalletClick() {
-      await this.destroyWallet();
+      const pass = this.destroyPassword;
+      // The password never stays in the component, whatever the outcome.
+      this.destroyPassword = "";
+      const destroyed = await this.destroyWallet({ pass });
+      if (destroyed) {
+        this.showDestroyDialog = false;
+      } else {
+        this.openError(this.$t("settings.delete_wallet_wrong_password"));
+      }
+    },
+    cancelDestroy() {
+      this.destroyPassword = "";
+      this.showDestroyDialog = false;
     },
     languageUpdated() {
       this.setLanguage(this.$i18n.locale);

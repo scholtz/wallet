@@ -2041,21 +2041,24 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       console.error("error", error);
     }
   },
-  async destroyWallet({ commit, dispatch }) {
+  // Irreversible: the wallet password must be entered again (AW-2026-108); an unlocked session
+  // alone (e.g. an unattended device) is not enough to delete every key.
+  async destroyWallet(
+    { commit, dispatch },
+    { pass }: { pass: string },
+  ): Promise<boolean> {
     const name = this.state.wallet.name;
     if (!name) {
       dispatch("toast/openError", "Wallet name not found", {
         root: true,
       });
-      return;
+      return false;
     }
-    if (
-      confirm(
-        "Are you sure you want to destroy the wallet with name " +
-          name +
-          " and all private keys within it?"
-      )
-    ) {
+    // The caller reports a wrong password (localized); nothing is touched in that case.
+    if (!pass || !(await dispatch("checkPassword", { pass }))) {
+      return false;
+    }
+    {
       const walletRecord = await db.wallets.get({ name });
       if (walletRecord?.id !== undefined) {
         await db.wallets.delete(walletRecord.id);
@@ -2093,6 +2096,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       }
       commit("logout");
     }
+    return true;
   },
   async importWallet(
     { dispatch },

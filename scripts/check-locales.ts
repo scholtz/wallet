@@ -37,7 +37,7 @@ function collectKeys(obj: JsonObject, prefix = ""): string[] {
 // v-html. Matches an opening or closing tag shape (`<name ...>` / `</name>`);
 // deliberately does not flag a bare `<`/`>` on its own, since strings like
 // "Distribute algo 1->N" use `>` as an arrow, not markup.
-const HTML_TAG_PATTERN = /<\/?[a-zA-Z][^>]*>/;
+const HTML_TAG_PATTERN = /<\/?[a-zA-Z]|\{\s*['"`]\s*[<>&]/;
 
 function collectHtmlLikeValues(obj: JsonObject, prefix = ""): string[] {
   const out: string[] = [];

@@ -33,3 +33,45 @@ test.describe("assertRemoteArc14Realm", () => {
     expect(() => assertRemoteArc14Realm("BiatecRouter#ARC14")).toThrow(/another service/);
   });
 });
+
+// AW-2026-101: the "just a login" shortcut must never apply to a transaction that burns a fee.
+import algosdk from "algosdk";
+import {
+  ARC14_MAX_FEE_MICROALGOS,
+  isArc14AuthTransaction,
+} from "../../src/scripts/encoding/arc14";
+
+const makeSelfPay = (fee: number, note = "Service#ARC14") => {
+  const acc = algosdk.generateAccount();
+  return algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    sender: acc.addr,
+    receiver: acc.addr,
+    amount: 0,
+    note: new TextEncoder().encode(note),
+    suggestedParams: {
+      fee,
+      flatFee: true,
+      firstValid: 1000,
+      lastValid: 2000,
+      genesisHash: new Uint8Array(32),
+      genesisID: "testnet-v1.0",
+      minFee: 1000,
+    },
+  });
+};
+
+test.describe("isArc14AuthTransaction fee check", () => {
+  test("accepts a zero-fee and a minimum-fee login", () => {
+    expect(isArc14AuthTransaction(makeSelfPay(0))).toBe(true);
+    expect(isArc14AuthTransaction(makeSelfPay(Number(ARC14_MAX_FEE_MICROALGOS)))).toBe(true);
+  });
+
+  test("refuses a self-payment whose fee exceeds the minimum fee", () => {
+    expect(isArc14AuthTransaction(makeSelfPay(Number(ARC14_MAX_FEE_MICROALGOS) + 1))).toBe(false);
+    expect(isArc14AuthTransaction(makeSelfPay(5_000_000))).toBe(false);
+  });
+
+  test("still refuses a note without the ARC14 marker", () => {
+    expect(isArc14AuthTransaction(makeSelfPay(0, "hello"))).toBe(false);
+  });
+});

@@ -592,7 +592,10 @@
     "process_payment": "Process payment",
     "tx_type": "Transaction type",
     "asset_optin": "Opt-in all'asset",
-    "uri_fee_ignored": "La commissione del link di pagamento è stata ignorata perché non valida, inferiore a 0,001 ALGO o superiore a 0,1 ALGO."
+    "uri_fee_ignored": "La commissione del link di pagamento è stata ignorata perché non valida, inferiore a 0,001 ALGO o superiore a 0,1 ALGO.",
+    "link_network_switch": "Il link di pagamento vuole passare il portafoglio alla rete {network}. Cambiare rete?",
+    "link_network_refused": "Il link di pagamento richiede la rete {network}, che questo portafoglio non conosce o che non hai confermato, quindi il link non è stato applicato.",
+    "application_id": "ID applicazione"
   },
   "settings": {
     "title": "Impostazioni",
@@ -614,6 +617,10 @@
     "create_backup": "Crea backup",
     "download": "Download",
     "delete": "Cancella il wallet",
+    "delete_wallet_header": "Elimina portafoglio",
+    "delete_wallet_warning": "Questo elimina definitivamente dal browser il portafoglio {name} e tutte le chiavi private al suo interno. Assicurati di avere un backup. Inserisci la password del portafoglio per confermare.",
+    "delete_wallet_password": "Password del portafoglio",
+    "delete_wallet_wrong_password": "Password errata, il portafoglio non è stato eliminato.",
     "strength": "Robustezza",
     "updated_password": "La password è stata aggiornata",
     "custom": "Custom server settings",
@@ -1001,6 +1008,10 @@
     "asset_properties": "{name} ({unit}), offerta totale {total}, {decimals} decimali",
     "asset_default_frozen": "Le nuove posizioni sono congelate per impostazione predefinita",
     "keyreg_rounds": "Round di validità della chiave di partecipazione",
+    "keyreg_vote_key": "Chiave di voto",
+    "keyreg_selection_key": "Chiave di selezione",
+    "keyreg_state_proof_key": "Chiave state proof",
+    "keyreg_dilution": "Diluizione della chiave",
     "lease": "Lease",
     "app_foreign_apps": "App esterne",
     "boxes": "Boxes",

@@ -459,6 +459,9 @@ const actions: ActionTree<ConfigState, RootState> = {
       tokenSymbol = "Algo";
     }
 
+    // The in-memory asset metadata (decimals, name, unit) is looked up by asset id only, so it
+    // must not outlive the network / indexer it was fetched from (AW-2026-106).
+    commit("indexer/clearAssets", undefined, { root: true });
     commit("setHosts", {
       ...payload,
       tokenSymbol,
@@ -560,6 +563,31 @@ const actions: ActionTree<ConfigState, RootState> = {
     if (canonicalEnv !== previousEnv) {
       commit("signer/clearSignedCache", undefined, { root: true });
     }
+  },
+  /**
+   * Applies the `network` of a payment link (AW-2026-102). Only a network the wallet knows (a
+   * built-in preset or an entry of the genesis list) is accepted - any other value would keep the
+   * previous network's hosts while relabelling the environment, which silently disables every
+   * genesis cross-check - and a switch needs the user's explicit confirmation. Resolves to true
+   * when the wallet is on the requested network afterwards.
+   */
+  async switchEnvFromLink(
+    { dispatch, state },
+    { env, confirm }: { env: string; confirm: (canonicalEnv: string) => boolean },
+  ): Promise<boolean> {
+    const preset = findPreset(env);
+    let canonicalEnv = preset?.env;
+    if (!canonicalEnv) {
+      const genesisList = (await dispatch("publicData/getGenesisList", undefined, {
+        root: true,
+      })) as GenesisNetwork[];
+      canonicalEnv = genesisList.find((n) => n.network === env)?.network;
+    }
+    if (!canonicalEnv) return false;
+    if (canonicalEnv === state.env) return true;
+    if (!confirm(canonicalEnv)) return false;
+    await dispatch("setEnv", { env: canonicalEnv });
+    return true;
   },
   async setNoRedirect({ commit }) {
     commit("setNoRedirect");

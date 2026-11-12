@@ -5,7 +5,11 @@
 
       <Card>
         <template #content>
-          <SelectAccount v-model="payFromDirect" class="w-full"></SelectAccount>
+          <SelectAccount
+            v-model="payFromDirect"
+            class="w-full"
+            @update:model-value="onPayFromSelected"
+          ></SelectAccount>
         </template>
       </Card>
     </div>
@@ -55,6 +59,28 @@
                       <template v-else>{{ txn.type }}</template>
                     </div>
                   </div>
+                  <template v-if="txn && txn.type === 'appl' && txn.applicationCall">
+                    <div class="field grid">
+                      <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                        {{ $t("pay.application_id") }}
+                      </label>
+                      <div class="col-12 md:col-10" data-testid="sign-app-id">
+                        {{
+                          txn.applicationCall.appIndex
+                            ? txn.applicationCall.appIndex.toString()
+                            : "0 (create)"
+                        }}
+                      </div>
+                    </div>
+                    <div class="field grid">
+                      <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
+                        {{ $t("connect.on_complete") }}
+                      </label>
+                      <div class="col-12 md:col-10" data-testid="sign-app-on-complete">
+                        {{ algosdk.OnApplicationComplete[txn.applicationCall.onComplete] }}
+                      </div>
+                    </div>
+                  </template>
                   <div class="field grid" v-if="payTo">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.pay_to") }}
@@ -212,13 +238,13 @@
                       {{ $filters.formatCurrency(amountLong + feeLong) }}
                     </div>
                   </div>
-                  <div class="field grid" v-if="rekeyTo">
+                  <div class="field grid" v-if="effectiveRekeyTo">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.rekey_to") }}
                     </label>
                     <div class="col-12 md:col-10">
                       <Message severity="error">
-                        <AlgorandAddress :address="rekeyTo" />
+                        <AlgorandAddress :address="effectiveRekeyTo" />
                       </Message>
                     </div>
                   </div>
@@ -339,19 +365,19 @@
                       {{ multisigTxn?.tag }}
                     </div>
                   </div>
-                  <div class="field grid" v-if="multisigTxn?.from?.publicKey">
+                  <div class="field grid" v-if="multisigTxn?.sender">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.from_account") }}
                     </label>
                     <div class="col-12 md:col-10">
                       <AlgorandAddress
-                        :address="encodeAddress(multisigTxn?.from?.publicKey)"
+                        :address="multisigTxn.sender.toString()"
                       />
                     </div>
                   </div>
                   <div
                     class="field grid"
-                    v-if="multisigTxn?.reKeyTo?.publicKey"
+                    v-if="multisigTxn?.rekeyTo"
                   >
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.rekey_to") }}
@@ -359,20 +385,18 @@
                     <div class="col-12 md:col-10">
                       <Message severity="error">
                         <AlgorandAddress
-                          :address="
-                            encodeAddress(multisigTxn?.reKeyTo?.publicKey)
-                          "
+                          :address="multisigTxn.rekeyTo.toString()"
                         />
                       </Message>
                     </div>
                   </div>
-                  <div class="field grid" v-if="multisigTxn?.to?.publicKey">
+                  <div class="field grid" v-if="multisigTxn?.payment?.receiver">
                     <label class="col-12 mb-2 md:col-2 md:mb-0 font-bold">
                       {{ $t("pay.to_account") }}
                     </label>
                     <div class="col-12 md:col-10">
                       <AlgorandAddress
-                        :address="encodeAddress(multisigTxn?.to?.publicKey)"
+                        :address="multisigTxn.payment.receiver.toString()"
                       />
                     </div>
                   </div>
@@ -735,6 +759,7 @@ import type {
 import type { PreparePaymentPayload } from "@/store/algod";
 import { getArc14Realm, isArc14AuthTransaction } from "@/scripts/encoding/arc14";
 import { isAssetOptIn } from "@/scripts/transactionTypes";
+import { recipientToRemember } from "@/scripts/lastPayTo";
 import { MAX_AUTO_FEE_MICROALGOS, uriFeeToAlgo, type FeeEstimate } from "@/scripts/fees";
 import { checkTxGenesis } from "@/scripts/dappRequestChecks";
 
@@ -751,10 +776,6 @@ if (!instance) {
 }
 const $filters = instance.appContext.config.globalProperties
   .$filters as GlobalFilters;
-
-type TransactionPublicKey = {
-  publicKey?: Uint8Array;
-};
 
 type TwoFactorWalletAccount = WalletAccount & {
   primaryAccount?: string;
@@ -780,9 +801,6 @@ type LooseTransaction = algosdk.Transaction & {
   lastRound?: number | string | bigint;
   voteFirst?: number | string | bigint;
   voteLast?: number | string | bigint;
-  from?: TransactionPublicKey;
-  to?: TransactionPublicKey;
-  reKeyTo?: TransactionPublicKey;
 };
 
 type DecodedSignedTransaction = ReturnType<
@@ -919,6 +937,17 @@ const multisigSubsig = computed(
   () => multisigDecoded.value?.msig?.subsig ?? []
 );
 const isMultisig = computed(() => !!multisigParams.value);
+// The rekey target is read from the transaction that will actually be signed
+// (plain path) and from the decoded multisig transaction, never only from this
+// page's own form state, so a rekeyTo delivered inside transaction bytes (own
+// rekey flow, deep link, /payWC return) is always shown with the warning.
+const txnRekeyTo = computed(
+  () =>
+    txn.value?.rekeyTo?.toString() ??
+    multisigDecoded.value?.txn?.rekeyTo?.toString() ??
+    ""
+);
+const effectiveRekeyTo = computed(() => txnRekeyTo.value || rekeyTo.value);
 const accountsFromMultisig = computed(() => {
   const params = multisigParams.value;
   if (!params?.addrs) return [];
@@ -1100,8 +1129,6 @@ const getAssetAction = (payload: {
   assetIndex: bigint;
 }): Promise<StoredAsset | undefined> =>
   store.dispatch("indexer/getAsset", payload);
-const setEnvAction = (payload: { env: string }) =>
-  store.dispatch("config/setEnv", payload);
 const openSuccessAction = (message: string) =>
   store.dispatch("toast/openSuccess", message);
 const openErrorAction = (message: string) =>
@@ -1267,7 +1294,7 @@ const makeAssets = async () => {
     }
   }
   if (route.params.toAccount) {
-    parseToAccount();
+    await parseToAccount();
   }
 };
 
@@ -1281,7 +1308,7 @@ const reset = () => {
   rawSignedTxnInput.value = null;
 };
 
-const parseToAccount = () => {
+const parseToAccount = async () => {
   const encoded = toSingleParam(
     route.params.toAccount as string | string[] | undefined
   );
@@ -1311,8 +1338,17 @@ const parseToAccount = () => {
       openErrorAction(t("pay.uri_fee_ignored"));
     }
   }
-  if (b64decode.value.network && b64decode.value.network !== envName.value) {
-    setEnvAction({ env: b64decode.value.network });
+  if (b64decode.value.network) {
+    const linkNetwork = b64decode.value.network;
+    const switched = (await store.dispatch("config/switchEnvFromLink", {
+      env: linkNetwork,
+      confirm: (canonicalEnv: string) =>
+        window.confirm(t("pay.link_network_switch", { network: canonicalEnv })),
+    })) as boolean;
+    if (!switched) {
+      await openErrorAction(t("pay.link_network_refused", { network: linkNetwork }));
+      return;
+    }
   }
 };
 
@@ -1483,15 +1519,21 @@ const submitSignedClick = async () => {
     if (confirmation.confirmedRound) {
       confirmedRound.value = confirmation.confirmedRound;
       processing.value = false;
-      if (rekeyTo.value) {
+      // Remember the recipient of a confirmed plain payment so the Pay page pre-fills it next
+      // time (never for a rekey or an account closure).
+      const rememberTo = recipientToRemember(txn.value);
+      if (rememberTo) {
+        void store.dispatch("wallet/lastPayTo", { addr: rememberTo });
+      }
+      if (effectiveRekeyTo.value) {
         const info = {
           addr: payFrom.value,
           address: payFrom.value,
-          rekeyedTo: rekeyTo.value,
+          rekeyedTo: effectiveRekeyTo.value,
         } as WalletAccount;
         await updateAccountAction({ info });
         await openSuccessAction(
-          `Information about rekeying to address ${rekeyTo.value} has been stored`
+          `Information about rekeying to address ${effectiveRekeyTo.value} has been stored`
         );
       }
     }
@@ -1582,15 +1624,15 @@ const payPaymentClick = async (e?: Event) => {
     if (confirmation.confirmedRound) {
       confirmedRound.value = confirmation.confirmedRound;
       processing.value = false;
-      if (rekeyTo.value) {
+      if (effectiveRekeyTo.value) {
         const update = {
           addr: payFrom.value,
           address: payFrom.value,
-          rekeyedTo: rekeyTo.value,
+          rekeyedTo: effectiveRekeyTo.value,
         } as WalletAccount;
         await updateAccountAction({ info: update });
         await openSuccessAction(
-          `Information about rekeying to address ${rekeyTo.value} has been stored`
+          `Information about rekeying to address ${effectiveRekeyTo.value} has been stored`
         );
       }
     }
@@ -1923,11 +1965,13 @@ const toggleShowFormCombine = (e?: Event) => {
   showFormCombine.value = !showFormCombine.value;
 };
 
-watch(payFromDirect, (value) => {
+// The active account changes ONLY when the user picks a sender in the
+// selector - never as a side effect of prefilling or signing a payment.
+const onPayFromSelected = (value?: string) => {
   if (value) {
     void lastActiveAccountAction({ addr: value });
   }
-});
+};
 
 watch(account, () => {
   void makeAssets();
@@ -1950,7 +1994,7 @@ watch(asset, async (assetValue) => {
     payamount.value = 0;
   }
   if (route.params.toAccount) {
-    parseToAccount();
+    void parseToAccount();
   }
 });
 
@@ -1982,13 +2026,12 @@ onMounted(async () => {
     await setNoRedirectAction();
   }
   await resetErrorAction();
-  payTo.value = store.state.wallet.lastPayTo || "";
   if (!route.params.rawSignedTxnInput) {
     await openErrorAction("Payload not found");
     return;
   }
   if (route.params.toAccount) {
-    parseToAccount();
+    await parseToAccount();
   }
   const rawSignedParam = toSingleParam(
     route.params.rawSignedTxnInput as string | string[] | undefined
@@ -2046,12 +2089,6 @@ onMounted(async () => {
     } catch (err) {
       console.error("Input is not valid base64-url format ", err);
     }
-  }
-  const accountParam = toSingleParam(
-    route.params.account as string | string[] | undefined
-  );
-  if (accountParam) {
-    await lastActiveAccountAction({ addr: accountParam });
   }
   if (
     store.state.wallet.privateAccounts &&
