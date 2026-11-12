@@ -1528,7 +1528,10 @@ const submitSignedClick = async () => {
       processing.value = false;
       // Remember the recipient of a confirmed plain payment so the Pay page pre-fills it next
       // time (never for a rekey or an account closure).
-      const rememberTo = recipientToRemember(txn.value);
+      // Only a payment the user typed on the Pay page (or opened as a link) is remembered - not
+      // a receiver chosen by a dApp (/payWC) or a multisig return.
+      const rememberTo =
+        route.name === "Sign" && !isMultisig.value ? recipientToRemember(txn.value) : undefined;
       if (rememberTo) {
         void store.dispatch("wallet/lastPayTo", { addr: rememberTo });
       }

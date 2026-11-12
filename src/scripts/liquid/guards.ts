@@ -312,20 +312,24 @@ export function admitTransactions(input: {
       reason: "Transaction type is not supported.",
     };
   }
-  const overpriced = input.transactions.some(
-    (entry) =>
-      !entry.preSigned &&
-      !(Array.isArray(entry.signers) && entry.signers.length === 0) &&
-      BigInt(entry.fee ?? 0) > MAX_DAPP_FEE_MICROALGOS,
-  );
-  const signedFeeTotal = input.transactions.reduce(
-    (sum, entry) =>
-      entry.preSigned || (Array.isArray(entry.signers) && entry.signers.length === 0)
-        ? sum
-        : sum + BigInt(entry.fee ?? 0),
-    0n,
-  );
-  if (overpriced || signedFeeTotal > MAX_DAPP_REQUEST_FEE_MICROALGOS) {
+  // Only the fees of transactions of the wallet's own accounts can cost the user anything.
+  const own = new Set(input.own);
+  let feeTotal = 0n;
+  let overpriced = false;
+  for (const entry of input.transactions) {
+    if (entry.preSigned || (Array.isArray(entry.signers) && entry.signers.length === 0)) continue;
+    if (!entry.sender || !own.has(entry.sender)) continue;
+    let fee: bigint;
+    try {
+      fee = BigInt(entry.fee ?? 0);
+    } catch {
+      overpriced = true; // not an integer: never a fee the wallet would sign
+      continue;
+    }
+    if (fee > MAX_DAPP_FEE_MICROALGOS) overpriced = true;
+    feeTotal += fee;
+  }
+  if (overpriced || feeTotal > MAX_DAPP_REQUEST_FEE_MICROALGOS) {
     return {
       ok: false,
       code: REQUEST_ERROR.invalid,
