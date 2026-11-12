@@ -67,6 +67,13 @@ export function describeTransfer(txn?: ReviewTxnLike | null): TransferDetails | 
   return undefined;
 }
 
+const ZERO_ADDRESS = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
+/** The zero address in an access-list entry stands for the transaction's sender. */
+const accessAddress = (address?: AddressLike): string => {
+  const text = address?.toString();
+  return !text || text === ZERO_ADDRESS ? "sender" : text;
+};
+
 /**
  * One line per entry of an application call's access list (ARC-4 resource references), so the
  * accounts, assets, holdings, local states and boxes it makes available are all visible
@@ -76,10 +83,10 @@ export function describeAccessList(txn?: ReviewTxnLike | null): string[] {
   const access = txn?.applicationCall?.access ?? [];
   return access.map((ref) => {
     if (ref.holding) {
-      return `holding: asset ${BigInt(ref.holding.assetIndex)} of ${ref.holding.address?.toString() ?? "sender"}`;
+      return `holding: asset ${BigInt(ref.holding.assetIndex)} of ${accessAddress(ref.holding.address)}`;
     }
     if (ref.locals) {
-      return `local state: app ${BigInt(ref.locals.appIndex)} of ${ref.locals.address?.toString() ?? "sender"}`;
+      return `local state: app ${BigInt(ref.locals.appIndex)} of ${accessAddress(ref.locals.address)}`;
     }
     if (ref.box) {
       const name = Array.from(ref.box.name, (b) => b.toString(16).padStart(2, "0")).join("");

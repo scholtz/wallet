@@ -1229,7 +1229,16 @@ const actionHandlers: Record<string, WalletActionHandler> = {
         return false;
       }
     }
-    const before = [...accounts];
+    const removedIndex = accounts.findIndex((a) => a.addr === addr);
+    const removed = accounts[removedIndex];
+    // Puts back only the account that was removed: other state may have changed while the save ran.
+    const restoreRemoved = () => {
+      const current = this.state.wallet.privateAccounts;
+      if (current.some((a) => a.addr === addr)) return;
+      const next = [...current];
+      next.splice(Math.min(removedIndex, next.length), 0, removed);
+      commit("setPrivateAccounts", next);
+    };
     try {
       await commit("deleteAccount", {
         name,
@@ -1242,7 +1251,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       if (saved === false) {
         // Not persisted: keep the account in this session instead of reporting a delete that the
         // next unlock would undo.
-        commit("setPrivateAccounts", before);
+        restoreRemoved();
         dispatch(
           "toast/openError",
           "The account could not be deleted because the wallet could not be saved.",
@@ -1253,7 +1262,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return true;
     } catch (error) {
       // A throwing save must not leave the account removed in memory only.
-      commit("setPrivateAccounts", before);
+      restoreRemoved();
       console.error("error", error);
       dispatch(
         "toast/openError",

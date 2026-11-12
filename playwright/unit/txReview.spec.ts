@@ -139,6 +139,19 @@ test.describe("application call resource references", () => {
     expect(describeRejectVersion(txn)).toBe(3);
   });
 
+  test("a holding of the implicit sender is not shown as the zero address", () => {
+    const txn = algosdk.makeApplicationCallTxnFromObject({
+      sender,
+      appIndex: 99n,
+      onComplete: algosdk.OnApplicationComplete.NoOpOC,
+      access: [{ holding: { assetIndex: 8n, address: new algosdk.Address(new Uint8Array(32)) } }],
+      suggestedParams,
+    });
+    const joined = describeAccessList(txn).join(", ");
+    expect(joined).toContain("holding: asset 8 of sender");
+    expect(joined).not.toContain("AAAAAAAA");
+  });
+
   test("a call without references shows nothing", () => {
     const txn = algosdk.makeApplicationCallTxnFromObject({
       sender,

@@ -124,9 +124,7 @@ test("create basic ed25519 account, verify mnemonic export, back up via 2-of-3 S
   await page.locator("#delete_account_password").fill("not-the-password");
   await confirmDelete.click();
   await expect(page).toHaveURL(`/account/${accountAddress}`);
-  await page
-    .getByRole("button", { name: "Delete account", exact: true })
-    .click();
+  // The dialog stays open after the failure.
   await page.locator("#delete_account_password").fill(WALLET_PASSWORD);
   await confirmDelete.click();
   await expect(page).toHaveURL(/\/accounts/);

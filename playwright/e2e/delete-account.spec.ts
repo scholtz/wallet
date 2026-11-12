@@ -23,8 +23,7 @@ test.describe("Delete account", () => {
     await expect(page.locator(".p-toast-message")).toContainText("Wrong password");
     await expect(page).toHaveURL(`/account/${account}`);
 
-    // Right password: the (last) account is deleted.
-    await page.getByRole("button", { name: "Delete account", exact: true }).click();
+    // The dialog stays open after a failure; the right password deletes the (last) account.
     await page.locator("#delete_account_password").fill(DEFAULT_WALLET_PASSWORD);
     await confirm.click();
     await expect(page).toHaveURL(/\/accounts/);

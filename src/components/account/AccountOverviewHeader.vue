@@ -121,7 +121,8 @@ const handleDelete = () => {
   const pass = password.value;
   if (holdsSecret.value && !pass) return;
   password.value = "";
+  // The dialog stays open: a failed delete (wrong password) is retried without reopening it, and a
+  // successful one navigates away.
   emit("delete", pass);
-  displayDeleteDialog.value = false;
 };
 </script>
