@@ -9,6 +9,7 @@ interface AddressLike {
 
 export interface RememberableTxn {
   type?: string;
+  sender?: AddressLike;
   rekeyTo?: AddressLike;
   payment?: { receiver?: AddressLike; closeRemainderTo?: AddressLike };
   assetTransfer?: { receiver?: AddressLike; closeRemainderTo?: AddressLike };
@@ -25,5 +26,7 @@ export function recipientToRemember(txn?: RememberableTxn | null): string | unde
     txn.type === "pay" ? txn.payment : txn.type === "axfer" ? txn.assetTransfer : undefined;
   if (!body?.receiver || body.closeRemainderTo) return undefined;
   const receiver = body.receiver.toString();
-  return receiver || undefined;
+  // A transfer to oneself (an asset opt-in, a self-payment) is not a payee.
+  if (!receiver || receiver === txn.sender?.toString()) return undefined;
+  return receiver;
 }

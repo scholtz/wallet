@@ -33,6 +33,16 @@ test.describe("recipientToRemember", () => {
     ).toBeUndefined();
   });
 
+  test("never remembers a transfer to oneself (asset opt-in)", () => {
+    expect(
+      recipientToRemember({
+        type: "axfer",
+        sender: addr("ME"),
+        assetTransfer: { receiver: addr("ME") },
+      }),
+    ).toBeUndefined();
+  });
+
   test("ignores other transaction types and missing data", () => {
     expect(recipientToRemember({ type: "appl" })).toBeUndefined();
     expect(recipientToRemember({ type: "pay" })).toBeUndefined();

@@ -1438,10 +1438,17 @@ const signMultisig = async (e?: Event) => {
 // refused rather than silently spending more.
 const checkAndAdjustFee = async (): Promise<boolean> => {
   if (!txn.value || isMultisig.value) return true;
-  const estimate = await estimateRequiredFeeAction({
-    txn: txn.value as algosdk.Transaction,
-    senderAddr: payFrom.value,
-  });
+  let estimate;
+  try {
+    estimate = await estimateRequiredFeeAction({
+      txn: txn.value as algosdk.Transaction,
+      senderAddr: payFrom.value,
+    });
+  } catch (err) {
+    // The node answered with parameters for another network or an abnormal fee (AW-2026-107).
+    await openErrorAction(toErrorMessage(err));
+    return false;
+  }
   if (!estimate) return true;
   simulatedFee.value = estimate.requiredFee;
   const declaredFee = BigInt(txn.value.fee ?? 0n);
