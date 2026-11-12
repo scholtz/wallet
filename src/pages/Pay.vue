@@ -393,6 +393,7 @@ import {
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useLinkNetwork } from "@/composables/useLinkNetwork";
+import { setPendingPayTo } from "@/scripts/pendingPayTo";
 import { QrcodeStream } from "qrcode-reader-vue3";
 import aprotocol from "../shared/algorand-protocol-parse";
 import MainLayout from "../layouts/Main.vue";
@@ -1082,6 +1083,8 @@ const redirectToASAPayment = async () => {
       // via toast/openError - nothing left to encode.
       return;
     }
+    // The recipient the user entered here is what the Sign page may remember afterwards.
+    setPendingPayTo(state.payTo);
     const encodedTx = algosdk.encodeUnsignedTransaction(txData);
     const b64 = Buffer.from(encodedTx).toString("base64");
     const b64Url = base642base64url(b64);
@@ -1111,6 +1114,8 @@ const redirectToNativePayment = async () => {
       // via toast/openError - nothing left to encode.
       return;
     }
+    // The recipient the user entered here is what the Sign page may remember afterwards.
+    setPendingPayTo(state.payTo);
     const encodedTx = algosdk.encodeUnsignedTransaction(txData);
     const b64 = Buffer.from(encodedTx).toString("base64");
     const b64Url = base642base64url(b64);

@@ -741,6 +741,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
 import { useLinkNetwork } from "@/composables/useLinkNetwork";
+import { takePendingPayTo } from "@/scripts/pendingPayTo";
 import aprotocol, {
   AlgorandProtocolParameters,
 } from "../shared/algorand-protocol-parse";
@@ -1528,10 +1529,11 @@ const submitSignedClick = async () => {
       processing.value = false;
       // Remember the recipient of a confirmed plain payment so the Pay page pre-fills it next
       // time (never for a rekey or an account closure).
-      // Only a payment the user typed on the Pay page (or opened as a link) is remembered - not
-      // a receiver chosen by a dApp (/payWC) or a multisig return.
-      const rememberTo =
-        route.name === "Sign" && !isMultisig.value ? recipientToRemember(txn.value) : undefined;
+      // Only the recipient the user submitted on the Pay page is remembered - not a receiver
+      // chosen by a link, a dApp (/payWC) or a multisig return.
+      const enteredOnPay = takePendingPayTo();
+      const candidate = isMultisig.value ? undefined : recipientToRemember(txn.value);
+      const rememberTo = candidate && candidate === enteredOnPay ? candidate : undefined;
       if (rememberTo) {
         void store.dispatch("wallet/lastPayTo", { addr: rememberTo });
       }

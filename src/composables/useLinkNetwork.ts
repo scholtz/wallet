@@ -23,6 +23,7 @@ export function useLinkNetwork(reportError: (message: string) => unknown) {
     if (!decision) {
       decision = (async () => {
         let switched = false;
+        let failed = false;
         try {
           switched = (await store.dispatch("config/switchEnvFromLink", {
             env: network,
@@ -32,9 +33,11 @@ export function useLinkNetwork(reportError: (message: string) => unknown) {
         } catch (err) {
           // e.g. the public node lists could not be loaded: stay on the current network.
           console.error("Switching to the network of a payment link failed", err);
+          failed = true;
         }
         if (!switched) {
-          refused.add(key);
+          // A failure (public data unavailable) is not a refusal: the same link may be retried.
+          if (!failed) refused.add(key);
           await reportError(t("pay.link_network_refused", { network }));
         }
         return switched;

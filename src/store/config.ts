@@ -588,7 +588,7 @@ const actions: ActionTree<ConfigState, RootState> = {
       } catch (err) {
         // Offline / public data unavailable: an unverifiable network is refused.
         console.error("switchEnvFromLink: genesis list unavailable", err);
-        return false;
+        throw err;
       }
     }
     if (!canonicalEnv) return false;
