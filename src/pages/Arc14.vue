@@ -52,6 +52,7 @@ import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import MainLayout from "../layouts/Main.vue";
 import { useStore } from "../store";
+import { scheduleClipboardClear } from "@/scripts/clipboard";
 import { useToast } from "primevue/usetoast";
 import { useI18n } from "vue-i18n";
 
@@ -83,6 +84,7 @@ const clickSign = async () => {
 const copyToClipboard = async () => {
   try {
     await navigator.clipboard.writeText(output.value);
+    scheduleClipboardClear(output.value);
     toast.add({
       severity: "info",
       summary: t("global.copied"),

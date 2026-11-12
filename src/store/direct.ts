@@ -459,6 +459,7 @@ const actions: ActionTree<DirectState, RootState> = {
             sender: tx.txn?.sender?.toString(),
             preSigned: tx.preSigned,
             type: tx.type,
+            fee: tx.txn?.fee,
             signers: rawTransactions[i]?.signers,
           })),
           approved: session.addresses,

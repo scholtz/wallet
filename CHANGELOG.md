@@ -2,6 +2,15 @@
 
 This document tracks the evolution of AWallet, an open-source Algorand wallet, since its first commit in May 2021. It is a running history of the features that have shipped over time, written for people who use the wallet rather than people who build it.
 
+## 2026-11
+
+- Paying no longer changes your selected account: the account you work with only changes when you pick a different one yourself, not as a side effect of opening a payment link or paying from another account.
+- The payment page now remembers the address you last paid and fills it in the next time you open it (a link's own recipient still wins).
+- The signing page now always shows the "Rekey to" address and warning when a transaction hands control of your account to another address, including transactions that come from a link or another page.
+- A payment link that names a different network now asks for your confirmation before switching, and links naming an unknown network are refused.
+- Apps can no longer send a transaction with an unusually high fee (above 0.5 ALGO), and the "just a login" shortcut is only offered for login transactions that pay no more than the minimum fee. Key registrations now show the participation keys being registered.
+- Deleting a wallet now requires its password, and copied recovery phrases are cleared from the clipboard after 60 seconds.
+
 ## 2026-10
 
 - Fixed creating a new HD (ARC-52) account: the 24 words shown for you to back up are now the ones the account is created with. Before, a different phrase was stored, so the backup written down could not restore the account. If you created an HD account this way and marked it as backed up, open Export for that account and back up the phrase shown there.

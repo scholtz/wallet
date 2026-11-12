@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { setupFreshWallet } from "../support/wallet";
+import { DEFAULT_WALLET_PASSWORD, setupFreshWallet } from "../support/wallet";
 
 test.describe("Wallet storage wiped by the browser", () => {
   test("a wallet that vanished is reported instead of silently showing a blank new wallet", async ({
@@ -77,8 +77,10 @@ test.describe("Wallet storage wiped by the browser", () => {
       .click();
     await expect(page).toHaveURL(/\/settings/);
     await page.getByRole("button", { name: "Create backup" }).click();
-    page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Delete wallet" }).click();
+    // AW-2026-108: deleting needs the wallet password again.
+    await page.locator("#destroy_password").fill(DEFAULT_WALLET_PASSWORD);
+    await page.locator("#destroy_wallet_confirm").click();
     await expect(page.locator("#new_wallet_button_open, #new_wallet_button_create").first()).toBeVisible();
 
     const cookies = await page.context().cookies();
@@ -86,6 +88,28 @@ test.describe("Wallet storage wiped by the browser", () => {
     await page.goto("/");
     await expect(page).toHaveURL(/new-wallet/);
     await expect(page.locator("#storage-notice")).toHaveCount(0);
+  });
+
+  test("deleting the wallet with a wrong password keeps the wallet (AW-2026-108)", async ({
+    page,
+  }) => {
+    await setupFreshWallet(page, "Kept Wallet");
+    await page.getByRole("menuitem", { name: /Algorand Mainnet/ }).click();
+    await page
+      .locator(".p-menubar-item-label:visible", { hasText: /^Settings$/ })
+      .first()
+      .click();
+    await expect(page).toHaveURL(/\/settings/);
+    await page.getByRole("button", { name: "Create backup" }).click();
+    await page.getByRole("button", { name: "Delete wallet" }).click();
+    await page.locator("#destroy_password").fill("definitely-not-the-password");
+    await page.locator("#destroy_wallet_confirm").click();
+    await expect(page.getByText("Wrong password, the wallet was not deleted.").first()).toBeVisible();
+    // Still unlocked and still on the settings page: nothing was deleted.
+    await expect(page).toHaveURL(/\/settings/);
+    await expect(
+      page.locator("#new_wallet_button_open, #new_wallet_button_create").first(),
+    ).toHaveCount(0);
   });
 
   test("a first-time visitor is still sent to create a wallet, without a warning", async ({

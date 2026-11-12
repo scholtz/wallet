@@ -579,6 +579,34 @@
                         {{ keyRegOf(txProps.data)!.voteLast }}
                       </td>
                     </tr>
+                    <tr v-if="keyRegOf(txProps.data)?.voteKey">
+                      <td>{{ $t("connect.keyreg_vote_key") }}:</td>
+                      <td data-testid="tx-keyreg-vote-key">
+                        <code class="break-all">{{ keyRegOf(txProps.data)!.voteKey }}</code>
+                      </td>
+                    </tr>
+                    <tr v-if="keyRegOf(txProps.data)?.selectionKey">
+                      <td>{{ $t("connect.keyreg_selection_key") }}:</td>
+                      <td data-testid="tx-keyreg-selection-key">
+                        <code class="break-all">{{
+                          keyRegOf(txProps.data)!.selectionKey
+                        }}</code>
+                      </td>
+                    </tr>
+                    <tr v-if="keyRegOf(txProps.data)?.stateProofKey">
+                      <td>{{ $t("connect.keyreg_state_proof_key") }}:</td>
+                      <td data-testid="tx-keyreg-state-proof-key">
+                        <code class="break-all">{{
+                          keyRegOf(txProps.data)!.stateProofKey
+                        }}</code>
+                      </td>
+                    </tr>
+                    <tr v-if="keyRegOf(txProps.data)?.voteKeyDilution">
+                      <td>{{ $t("connect.keyreg_dilution") }}:</td>
+                      <td data-testid="tx-keyreg-dilution">
+                        {{ keyRegOf(txProps.data)!.voteKeyDilution }}
+                      </td>
+                    </tr>
                     <tr v-if="leaseOf(txProps.data)">
                       <td>{{ $t("connect.lease") }}:</td>
                       <td data-testid="tx-lease">
@@ -1366,6 +1394,18 @@ const clickSign = async (data: TransactionWrapper, parentRequest: RequestItem) =
 // response to the dApp depending on transport and which call wins the race.
 const respondingRequestIds = new Set<RequestItem["id"]>();
 
+// The request is answered: drop the cached signatures of its transactions (AW-2026-104).
+const forgetRequestSignatures = async (data: RequestItem) => {
+  // Best effort: the request itself was already answered, so a failure here must not be
+  // reported as a failed request.
+  try {
+    const txIds = (data.transactions ?? []).map((tx: TransactionWrapper) => tx.txn.txID());
+    await store.dispatch("signer/forgetSigned", { txIds });
+  } catch (err) {
+    console.error("Could not clear cached signatures", err);
+  }
+};
+
 const clickAccept = async (data: RequestItem) => {
   if (respondingRequestIds.has(data.id)) {
     return;
@@ -1374,6 +1414,7 @@ const clickAccept = async (data: RequestItem) => {
   await prolong();
   try {
     await store.dispatch(`${ns.value}/sendResult`, { data });
+    await forgetRequestSignatures(data);
     await store.dispatch("toast/openSuccess", {
       severity: "info",
       summary: "Request accepted",
@@ -1399,6 +1440,7 @@ const clickReject = async (data: RequestItem) => {
   try {
     await prolong();
     await store.dispatch(`${ns.value}/cancelRequest`, { data });
+    await forgetRequestSignatures(data);
     await store.dispatch("toast/openSuccess", {
       severity: "info",
       summary: "Request rejected",

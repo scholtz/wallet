@@ -5,11 +5,33 @@
     :class="{ 'app-footer-minimal': minimal }"
   >
     <div class="flex align-items-center gap-2 px-3 py-2">
+      <!-- The translated sentence is rendered through named slots (real elements,
+           hardcoded URLs) - never as an HTML string (AW-2026-103). -->
       <p
         v-tooltip.top="versionTooltip"
         class="flex-grow-1 text-center m-0 text-sm footer-text"
-        v-html="brandLineHtml"
-      />
+      >
+        <i18n-t keypath="footer.text" scope="global" tag="span">
+          <template #name>{{ brandName }}</template>
+          <template #envStatus>{{ envStatus }}</template>
+          <template #auditsLink>
+            <a :href="AUDITS_URL" target="_blank" rel="noopener noreferrer">{{
+              $t("footer.audits_link")
+            }}</a>
+          </template>
+          <template #groupLink>
+            <a :href="BIATEC_GROUP_URL" target="_blank" rel="noopener noreferrer">{{
+              $t("footer.group_link")
+            }}</a>
+          </template>
+          <template #discordLink>
+            <a :href="DISCORD_URL" target="_blank" rel="noopener noreferrer">{{
+              $t("footer.discord_link")
+            }}</a>
+          </template>
+        </i18n-t>
+        {{ " " + versionLabel }}
+      </p>
       <Button
         v-if="t"
         size="small"
@@ -68,6 +90,9 @@ export default {
       t: "",
       b: "white",
       envStatus: "",
+      AUDITS_URL,
+      BIATEC_GROUP_URL,
+      DISCORD_URL,
       displayTimeoutDialog: false,
       timeoutSecondsRemaining: 0,
     };
@@ -88,28 +113,8 @@ export default {
     versionTooltip() {
       return new Date(import.meta.env.VITE_BUILD_DATE).toLocaleString();
     },
-    brandLineHtml() {
-      // Every value interpolated into this v-html sink must be escaped or
-      // built entirely from hardcoded constants — name/envStatus are
-      // app-controlled today, but escaping here means a future change that
-      // threads a less-trusted value (e.g. a configurable brand name) through
-      // this helper doesn't silently reopen a stored-XSS sink (audit finding
-      // AW-2026-036).
-      const escapeHtml = (text) =>
-        String(text)
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;");
-      const link = (url, label) =>
-        `<a href="${url}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
-      const text = this.$t("footer.text", {
-        name: escapeHtml(getWalletBrandName()),
-        envStatus: escapeHtml(this.envStatus),
-        auditsLink: link(AUDITS_URL, this.$t("footer.audits_link")),
-        groupLink: link(BIATEC_GROUP_URL, this.$t("footer.group_link")),
-        discordLink: link(DISCORD_URL, this.$t("footer.discord_link")),
-      });
-      return `${text} ${this.versionLabel}`;
+    brandName() {
+      return getWalletBrandName();
     },
   },
   mounted() {

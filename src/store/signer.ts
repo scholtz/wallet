@@ -257,6 +257,13 @@ const mutations: MutationTree<SignerState> = {
     const txId = tx.txn.txID();
     currentState.signed[txId] = bytes;
   },
+  // A dApp request that was rejected or answered must not leave its signatures behind, or an
+  // identical request later shows up pre-approved ("Signed", Sign button gone) (AW-2026-104).
+  forgetSigned(currentState, txIds: string[]) {
+    for (const txId of txIds) {
+      delete currentState.signed[txId];
+    }
+  },
   toSign(currentState, tx: Record<string, unknown>) {
     currentState.toSign = tx;
   },
@@ -285,6 +292,9 @@ const mutations: MutationTree<SignerState> = {
 };
 
 const actions: ActionTree<SignerState, RootState> = {
+  async forgetSigned({ commit }, { txIds }: { txIds: string[] }) {
+    commit("forgetSigned", txIds);
+  },
   async clearToSign({ commit }) {
     commit("clearToSign");
   },

@@ -1,6 +1,11 @@
 import type algosdk from "algosdk";
 import { MAX_SWAP_TXN_FEE_MICROALGOS } from "./aggregators/validate";
 
+/** Transaction types the scheduler may ask the wallet to sign for one of its own accounts. */
+const SCHEDULER_OWN_SENDER_TYPES: readonly string[] = ["pay", "axfer", "appl"];
+/** OnApplicationComplete values allowed: NoOp (0) and OptIn (1). */
+const SCHEDULER_ALLOWED_ON_COMPLETE: readonly number[] = [0, 1];
+
 /**
  * Checks the transactions the scheduler API (`api-scheduler.biatec.io`) returns before they are
  * handed to the signing pages (AW-2026-085). They are built by a third-party service and signed
@@ -25,6 +30,22 @@ export function assertScheduledTransactionsSafe(
       );
     }
     if (!own.has(tx.sender.toString())) continue;
+    // Allow-list for the wallet's own accounts (AW-2026-110): the scheduler only ever needs plain
+    // payments, asset transfers and calls to its own contract; acfg/afrz/keyreg and the
+    // Update/Delete/ClearState/CloseOut application calls would change or give up control.
+    if (!SCHEDULER_OWN_SENDER_TYPES.includes(tx.type)) {
+      throw new Error(
+        `Refusing to sign a scheduler transaction: type "${tx.type}" is not expected for a scheduled payment.`,
+      );
+    }
+    if (tx.type === "appl") {
+      const onComplete = Number(tx.applicationCall?.onComplete ?? 0);
+      if (!SCHEDULER_ALLOWED_ON_COMPLETE.includes(onComplete)) {
+        throw new Error(
+          "Refusing to sign a scheduler transaction: the application call updates, deletes or leaves the application.",
+        );
+      }
+    }
     if (tx.rekeyTo) {
       throw new Error(
         "Refusing to sign a scheduler transaction: it attempts to rekey your account.",

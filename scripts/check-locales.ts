@@ -34,10 +34,12 @@ function collectKeys(obj: JsonObject, prefix = ""): string[] {
 // that translated content is never parsed as markup. Any locale string
 // matching an HTML tag shape is a regression of that fix, whether it lands
 // via a careless translation PR or a future feature that goes back to
-// v-html. Matches an opening or closing tag shape (`<name ...>` / `</name>`);
-// deliberately does not flag a bare `<`/`>` on its own, since strings like
-// "Distribute algo 1->N" use `>` as an arrow, not markup.
-const HTML_TAG_PATTERN = /<\/?[a-zA-Z][^>]*>/;
+// v-html. Matches the START of an opening or closing tag (`<name` / `</name`), with no
+// closing `>` required: `<img src=x onerror=... {link}` is completed by a later interpolated
+// `>` (AW-2026-103). A bare `<` or `>` not followed by a letter is fine ("1->N" arrows,
+// "< 5"). vue-i18n literal interpolation such as `{'<'}` is rejected too, because it builds
+// the `<` at render time. Write comparisons as "less than" (or with a space after `<`).
+const HTML_TAG_PATTERN = /<\/?[a-zA-Z]|\{\s*['"`]\s*[<>&]/;
 
 function collectHtmlLikeValues(obj: JsonObject, prefix = ""): string[] {
   const out: string[] = [];

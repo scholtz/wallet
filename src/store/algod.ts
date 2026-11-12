@@ -329,13 +329,6 @@ const actions: ActionTree<AlgodState, RootState> = {
         txn,
         payFrom: payload.payFrom,
       })) as string | undefined;
-      if (txid) {
-        await dispatch(
-          "wallet/lastPayTo",
-          { addr: payload.payTo },
-          { root: true },
-        );
-      }
       return txid;
     } catch (error) {
       console.error("Failed to sign and send transaction", error);
@@ -394,6 +387,11 @@ const actions: ActionTree<AlgodState, RootState> = {
       }
     } catch (error) {
       console.error("Failed to make payment", error);
+      // The node answered with parameters of another network or an abnormal fee (AW-2026-107):
+      // say so. Other failures (a cancelled signature, ...) are reported by the callers.
+      if (error instanceof Error && error.message.includes("Refusing to build")) {
+        dispatch("toast/openError", error.message, { root: true });
+      }
       return undefined;
     }
   },
@@ -619,9 +617,19 @@ const actions: ActionTree<AlgodState, RootState> = {
     { rootState },
     { txn, senderAddr }: { txn: algosdk.Transaction; senderAddr: string },
   ): Promise<FeeEstimate | undefined> {
+    let nodeRefused = false;
     try {
       const algodClient = createAlgodClient(rootState);
       const params = await algodClient.getTransactionParams().do();
+      // Same node-parameter checks as every other fetch: a node must not steer the fee or
+      // answer for another network (AW-2026-107).
+      try {
+        assertParamsMatchNetwork(rootState, params);
+      } catch (guardError) {
+        // Not "node unreachable": callers must stop, so this is rethrown below.
+        nodeRefused = true;
+        throw guardError;
+      }
       const falcon1024Signer = isFalcon1024Signer(rootState, senderAddr);
       let groupUsage: bigint | undefined;
       let failureMessage: string | undefined;
@@ -655,6 +663,7 @@ const actions: ActionTree<AlgodState, RootState> = {
       });
       return { requiredFee, groupUsage, failureMessage };
     } catch (error) {
+      if (nodeRefused) throw error;
       console.error("Failed to estimate required fee", error);
       return undefined;
     }

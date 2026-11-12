@@ -71,3 +71,50 @@ test.describe("assertScheduledTransactionsSafe", () => {
     expect(() => assertScheduledTransactionsSafe([pay(owner, {}, 500_000)], [owner])).not.toThrow();
   });
 });
+
+// AW-2026-110: allow-list of transaction types for the wallet's own accounts.
+test.describe("assertScheduledTransactionsSafe type allow-list", () => {
+  const keyreg = (sender: string) =>
+    algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
+      sender,
+      nonParticipation: true,
+      suggestedParams: suggestedParams(),
+    });
+  const noop = (sender: string) =>
+    algosdk.makeApplicationNoOpTxnFromObject({
+      sender,
+      appIndex: 7,
+      suggestedParams: suggestedParams(),
+    });
+  const update = (sender: string) =>
+    algosdk.makeApplicationUpdateTxnFromObject({
+      sender,
+      appIndex: 7,
+      approvalProgram: new Uint8Array([6, 129, 1]),
+      clearProgram: new Uint8Array([6, 129, 1]),
+      suggestedParams: suggestedParams(),
+    });
+  const del = (sender: string) =>
+    algosdk.makeApplicationDeleteTxnFromObject({
+      sender,
+      appIndex: 7,
+      suggestedParams: suggestedParams(),
+    });
+
+  test("accepts a NoOp application call of the user", () => {
+    expect(() => assertScheduledTransactionsSafe([noop(owner)], [owner])).not.toThrow();
+  });
+
+  test("refuses types the scheduler never needs for the user's account", () => {
+    expect(() => assertScheduledTransactionsSafe([keyreg(owner)], [owner])).toThrow(/not expected/);
+  });
+
+  test("refuses updating or deleting an application of the user", () => {
+    expect(() => assertScheduledTransactionsSafe([update(owner)], [owner])).toThrow(/updates, deletes/);
+    expect(() => assertScheduledTransactionsSafe([del(owner)], [owner])).toThrow(/updates, deletes/);
+  });
+
+  test("does not restrict the types of a sender that is not one of the wallet's accounts", () => {
+    expect(() => assertScheduledTransactionsSafe([keyreg(escrow), update(escrow)], [owner])).not.toThrow();
+  });
+});

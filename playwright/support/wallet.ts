@@ -61,3 +61,46 @@ export async function createTestWallet(
     timeout: 15000,
   });
 }
+
+interface AppStore {
+  state: { wallet: { lastActiveAccount: string; lastPayTo: string } };
+  dispatch: (type: string, payload?: object) => Promise<unknown>;
+}
+interface AppRouter {
+  push: (path: string) => Promise<unknown>;
+}
+interface AppHost extends Element {
+  __vue_app__?: {
+    config: { globalProperties: { $store: AppStore; $router: AppRouter } };
+  };
+}
+
+/**
+ * In-app navigation (vue-router push). A `page.goto` reload would lock the wallet, so a spec that
+ * needs a route without a menu path uses this instead.
+ */
+export async function spaNavigate(page: Page, path: string) {
+  await page.evaluate(async (target) => {
+    const host = document.querySelector("#app") as AppHost | null;
+    await host?.__vue_app__?.config.globalProperties.$router.push(target);
+  }, path);
+}
+
+/** The wallet's currently active (last used) account address. */
+export async function activeAccount(page: Page): Promise<string> {
+  return page.evaluate(() => {
+    const host = document.querySelector("#app") as AppHost | null;
+    return host?.__vue_app__?.config.globalProperties.$store.state.wallet.lastActiveAccount ?? "";
+  });
+}
+
+/** Dispatches a Vuex action the way the app itself would (e.g. the user's earlier choice). */
+export async function dispatchStore(page: Page, type: string, payload?: object) {
+  await page.evaluate(
+    async ([t, p]) => {
+      const host = document.querySelector("#app") as AppHost | null;
+      await host?.__vue_app__?.config.globalProperties.$store.dispatch(t as string, p as object);
+    },
+    [type, payload] as [string, object | undefined],
+  );
+}

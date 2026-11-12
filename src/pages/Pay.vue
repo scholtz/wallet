@@ -10,7 +10,11 @@
 
       <Card>
         <template #content>
-          <SelectAccount v-model="payFromDirect" class="w-full"></SelectAccount>
+          <SelectAccount
+            v-model="payFromDirect"
+            class="w-full"
+            @update:model-value="onPayFromSelected"
+          ></SelectAccount>
         </template>
       </Card>
     </div>
@@ -388,6 +392,8 @@ import {
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
+import { useLinkNetwork } from "@/composables/useLinkNetwork";
+import { setPendingPayTo } from "@/scripts/pendingPayTo";
 import { QrcodeStream } from "qrcode-reader-vue3";
 import aprotocol from "../shared/algorand-protocol-parse";
 import MainLayout from "../layouts/Main.vue";
@@ -565,8 +571,6 @@ const getAsset = (payload: {
   assetIndex: bigint;
 }): Promise<StoredAsset | undefined> =>
   store.dispatch("indexer/getAsset", payload);
-const setEnv = (payload: { env: string }) =>
-  store.dispatch("config/setEnv", payload);
 const openError = (payload: string) =>
   store.dispatch("toast/openError", payload);
 const signerCreateMultisigTransaction = (payload: Record<string, unknown>) =>
@@ -734,11 +738,15 @@ const isNotValid = computed(() => {
   return false;
 });
 
-watch(payFromDirect, (value) => {
+// The active (last used) account changes ONLY when the user picks a sender
+// in the selector. Programmatic prefills of `payFromDirect` (from a payment
+// link, a decoded transaction or a default) must never switch the wallet's
+// active account.
+const onPayFromSelected = (value?: string) => {
   if (value) {
-    lastActiveAccount({ addr: value });
+    void lastActiveAccount({ addr: value });
   }
-});
+};
 
 watch(account, () => {
   void makeAssets();
@@ -800,11 +808,14 @@ onMounted(async () => {
     try {
       state.txn = store.state.signer.toSign as DecodedTxn;
 
-      if (state.txn?.to) {
-        state.payTo = algosdk.encodeAddress(state.txn.to.publicKey);
+      // algosdk v3 field names: the receiver lives under payment / assetTransfer.
+      const receiver =
+        state.txn?.payment?.receiver ?? state.txn?.assetTransfer?.receiver;
+      if (receiver) {
+        state.payTo = receiver.toString();
       }
-      if (state.txn?.from) {
-        state.payFromDirect = algosdk.encodeAddress(state.txn.from.publicKey);
+      if (state.txn?.sender) {
+        state.payFromDirect = state.txn.sender.toString();
       }
 
       const senderAddr = requirePayFrom();
@@ -820,8 +831,8 @@ onMounted(async () => {
         base64ToArrayBuffer(state.rawSignedTxnInput),
       );
       state.note = state.txn?.note ?? null;
-      if (state.txn?.assetIndex !== undefined) {
-        state.asset = state.txn.assetIndex;
+      if (state.txn?.assetTransfer?.assetIndex !== undefined) {
+        state.asset = Number(state.txn.assetTransfer.assetIndex);
       }
       state.page = "review";
 
@@ -841,24 +852,20 @@ onMounted(async () => {
       const uint8buffer = base64ToArrayBuffer(b64);
 
       state.txn = algosdk.decodeUnsignedTransaction(uint8buffer);
-      if (state.txn?.to) {
-        state.payTo = algosdk.encodeAddress(state.txn.to.publicKey);
+      const decodedReceiver =
+        state.txn?.payment?.receiver ?? state.txn?.assetTransfer?.receiver;
+      if (decodedReceiver) {
+        state.payTo = decodedReceiver.toString();
       }
       state.note = state.txn?.note ?? null;
-      if (state.txn?.assetIndex !== undefined) {
-        state.asset = state.txn.assetIndex;
+      if (state.txn?.assetTransfer?.assetIndex !== undefined) {
+        state.asset = Number(state.txn.assetTransfer.assetIndex);
       }
       state.page = "review";
       router.push(`/sign/${senderAddr}/` + base642base64url(rawSignedTxnParam));
     } catch (err) {
       console.error("Input is not valid base64-url format ", err);
     }
-  }
-  const accountParam = toSingleParam(
-    route.params.account as string | string[] | undefined,
-  );
-  if (accountParam) {
-    await lastActiveAccount({ addr: accountParam });
   }
   await makeAssets();
 
@@ -876,7 +883,7 @@ onMounted(async () => {
   if (state.payTo && !state.payFromDirect) {
     if (store.state.wallet.lastActiveAccount) {
       state.payFromDirect = store.state.wallet.lastActiveAccount;
-    } else {
+    } else if (isRekey.value) {
       state.payFromDirect = state.payTo;
     }
   }
@@ -990,6 +997,8 @@ const makeAssets = async () => {
   }
 };
 
+const applyLinkNetwork = useLinkNetwork(openError);
+
 const parseToAccount = async (encodedValue?: string) => {
   const encoded =
     encodedValue ??
@@ -997,6 +1006,7 @@ const parseToAccount = async (encodedValue?: string) => {
   if (!encoded) return;
   const parsed = aprotocol.parseAlgorandProtocolParameters(encoded);
   if (!parsed) return;
+  if (parsed.network && !(await applyLinkNetwork(parsed.network, encoded))) return;
   state.payTo = (parsed.payTo || "").replace(/[^\w\s]/gi, "");
   if (parsed.payamountbase !== undefined && /^[0-9]+$/.test(String(parsed.payamountbase))) {
     state.payamount = Number(parsed.payamountbase) / decimalsPower.value;
@@ -1006,16 +1016,13 @@ const parseToAccount = async (encodedValue?: string) => {
   }
   // The link's fee is microalgos and capped; anything else keeps the default fee (AW-2026-083).
   if (parsed.feebase !== undefined) applyUriFee(parsed.feebase);
-  // Must resolve before the asset is selected/preselected below: the asset
+  // The link's network was applied (awaited) at the top of this function, before anything else
+  // is read from the link: the asset
   // list, balances, and the asset lookup itself are all keyed by the active
   // network (accountData.value / getAsset both read store.state.config.env
-  // /indexer), so switching network and picking the asset need to happen in
-  // this order, not fired-and-forgotten in parallel - otherwise the asset id
-  // from the URL gets looked up against the network we're leaving, not the
-  // one the link actually points at.
-  if (parsed.network && parsed.network != envName.value) {
-    await setEnv({ env: parsed.network });
-  }
+  // /indexer), so the network switch must stay ahead of picking the asset -
+  // otherwise the asset id from the URL gets looked up against the network we're
+  // leaving, not the one the link actually points at.
   if (parsed.asset) {
     state.asset = parsed.asset;
     state.forceAsset = true;
@@ -1076,6 +1083,8 @@ const redirectToASAPayment = async () => {
       // via toast/openError - nothing left to encode.
       return;
     }
+    // The recipient the user entered here is what the Sign page may remember afterwards.
+    setPendingPayTo(state.payTo);
     const encodedTx = algosdk.encodeUnsignedTransaction(txData);
     const b64 = Buffer.from(encodedTx).toString("base64");
     const b64Url = base642base64url(b64);
@@ -1105,6 +1114,8 @@ const redirectToNativePayment = async () => {
       // via toast/openError - nothing left to encode.
       return;
     }
+    // The recipient the user entered here is what the Sign page may remember afterwards.
+    setPendingPayTo(state.payTo);
     const encodedTx = algosdk.encodeUnsignedTransaction(txData);
     const b64 = Buffer.from(encodedTx).toString("base64");
     const b64Url = base642base64url(b64);

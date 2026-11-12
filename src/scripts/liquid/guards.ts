@@ -279,7 +279,18 @@ export function admitEnvelope(input: EnvelopeInput): Admission {
 export interface AdmissionTxEntry extends SignRequestEntry {
   /** Transaction type (`pay`, `axfer`, `appl`, `acfg`, `afrz`, `keyreg`, ...). */
   type: string;
+  /** Declared fee in microalgos; it is always spent in full (AW-2026-101). */
+  fee?: bigint | number;
 }
+
+/**
+ * Highest fee (microalgos, 0.5 ALGO - the same ceiling swaps use) a dApp may declare on a single
+ * transaction the wallet signs. A fee is burned in full, so without a ceiling a dApp could drain
+ * an account's spendable balance as "fee" with one self-payment (AW-2026-101).
+ */
+export const MAX_DAPP_FEE_MICROALGOS = 500_000n;
+/** Ceiling for the fees of all transactions the wallet signs in one request (1 ALGO). */
+export const MAX_DAPP_REQUEST_FEE_MICROALGOS = 1_000_000n;
 
 /** Decoded transactions: every one the wallet would sign must belong to an approved account. */
 export function admitTransactions(input: {
@@ -299,6 +310,30 @@ export function admitTransactions(input: {
       ok: false,
       code: REQUEST_ERROR.invalid,
       reason: "Transaction type is not supported.",
+    };
+  }
+  // Only the fees of transactions of the wallet's own accounts can cost the user anything.
+  const own = new Set(input.own);
+  let feeTotal = 0n;
+  let overpriced = false;
+  for (const entry of input.transactions) {
+    if (entry.preSigned || (Array.isArray(entry.signers) && entry.signers.length === 0)) continue;
+    if (!entry.sender || !own.has(entry.sender)) continue;
+    let fee: bigint;
+    try {
+      fee = BigInt(entry.fee ?? 0);
+    } catch {
+      overpriced = true; // not an integer: never a fee the wallet would sign
+      continue;
+    }
+    if (fee > MAX_DAPP_FEE_MICROALGOS) overpriced = true;
+    feeTotal += fee;
+  }
+  if (overpriced || feeTotal > MAX_DAPP_REQUEST_FEE_MICROALGOS) {
+    return {
+      ok: false,
+      code: REQUEST_ERROR.invalid,
+      reason: "Transaction fee is higher than the wallet allows for a dApp request.",
     };
   }
   if (findUnauthorizedSenders(input.transactions, input.approved, input.own).length > 0) {

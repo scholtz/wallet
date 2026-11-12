@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { scheduleClipboardClear } from "@/scripts/clipboard";
 import Button from "primevue/button";
 import MainLayout from "../../layouts/Main.vue";
 import { useRoute } from "vue-router";
@@ -293,7 +294,12 @@ const checkPwd = async () => {
 
 async function copyToClipboard(text: string) {
   if (await copy(text)) {
-    await store.dispatch("toast/openSuccess", "Mnemonics copied to clipboard");
+    // The mnemonic must not stay in the system clipboard (AW-2026-109).
+    scheduleClipboardClear(text);
+    await store.dispatch(
+      "toast/openSuccess",
+      "Mnemonics copied to clipboard. The wallet tries to clear the clipboard after 60 seconds.",
+    );
   }
 }
 
