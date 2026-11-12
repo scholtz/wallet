@@ -577,6 +577,8 @@ const actions: ActionTree<ConfigState, RootState> = {
   ): Promise<boolean> {
     const preset = findPreset(env);
     let canonicalEnv = preset?.env;
+    // Already on the link's network: nothing to switch, nothing to look up.
+    if (env === state.env || canonicalEnv === state.env) return true;
     if (!canonicalEnv) {
       try {
         const genesisList = (await dispatch("publicData/getGenesisList", undefined, {

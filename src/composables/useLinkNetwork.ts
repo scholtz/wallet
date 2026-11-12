@@ -14,9 +14,12 @@ export function useLinkNetwork(reportError: (message: string) => unknown) {
   const pending = new Map<string, Promise<boolean>>();
   const refused = new Set<string>();
 
-  return async (network: string): Promise<boolean> => {
-    if (refused.has(network)) return false;
-    let decision = pending.get(network);
+  // `link` is the raw link text: a refusal only covers that link, not a later one for the same
+  // network opened in the same page instance.
+  return async (network: string, link: string): Promise<boolean> => {
+    const key = `${network}|${link}`;
+    if (refused.has(key)) return false;
+    let decision = pending.get(key);
     if (!decision) {
       decision = (async () => {
         let switched = false;
@@ -31,12 +34,12 @@ export function useLinkNetwork(reportError: (message: string) => unknown) {
           console.error("Switching to the network of a payment link failed", err);
         }
         if (!switched) {
-          refused.add(network);
+          refused.add(key);
           await reportError(t("pay.link_network_refused", { network }));
         }
         return switched;
-      })().finally(() => pending.delete(network));
-      pending.set(network, decision);
+      })().finally(() => pending.delete(key));
+      pending.set(key, decision);
     }
     return decision;
   };

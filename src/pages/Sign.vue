@@ -1322,7 +1322,7 @@ const parseToAccount = async () => {
     return;
   }
   // Nothing of the link is shown or applied before its network is accepted.
-  if (parsedLink.network && !(await applyLinkNetwork(parsedLink.network))) {
+  if (parsedLink.network && !(await applyLinkNetwork(parsedLink.network, encoded))) {
     b64decode.value = null;
     return;
   }

@@ -1005,7 +1005,7 @@ const parseToAccount = async (encodedValue?: string) => {
   if (!encoded) return;
   const parsed = aprotocol.parseAlgorandProtocolParameters(encoded);
   if (!parsed) return;
-  if (parsed.network && !(await applyLinkNetwork(parsed.network))) return;
+  if (parsed.network && !(await applyLinkNetwork(parsed.network, encoded))) return;
   state.payTo = (parsed.payTo || "").replace(/[^\w\s]/gi, "");
   if (parsed.payamountbase !== undefined && /^[0-9]+$/.test(String(parsed.payamountbase))) {
     state.payamount = Number(parsed.payamountbase) / decimalsPower.value;
