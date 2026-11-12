@@ -805,7 +805,7 @@ onMounted(async () => {
   );
   if (toAccountDirect) {
     state.payTo = toAccountDirect;
-    payToFromOutside = true;
+    markPayToOutside();
   }
   if (route.name === "PayFromWalletConnect" && store.state.signer?.toSign) {
     try {
@@ -816,7 +816,7 @@ onMounted(async () => {
         state.txn?.payment?.receiver ?? state.txn?.assetTransfer?.receiver;
       if (receiver) {
         state.payTo = receiver.toString();
-        payToFromOutside = true;
+        markPayToOutside();
       }
       if (state.txn?.sender) {
         state.payFromDirect = state.txn.sender.toString();
@@ -860,7 +860,7 @@ onMounted(async () => {
         state.txn?.payment?.receiver ?? state.txn?.assetTransfer?.receiver;
       if (decodedReceiver) {
         state.payTo = decodedReceiver.toString();
-        payToFromOutside = true;
+        markPayToOutside();
       }
       state.note = state.txn?.note ?? null;
       if (state.txn?.assetTransfer?.assetIndex !== undefined) {
@@ -1007,8 +1007,15 @@ const applyLinkNetwork = useLinkNetwork(openError);
 // A recipient that came from a payment link, a scanned QR, the route or a decoded transaction is
 // not one the user chose on this form, so it is never remembered as the default recipient: an
 // address poisoned that way would otherwise be pre-filled on every later payment (AW-2026-124).
+// A programmatic re-emit of the same value (a select normalising its model) is not an edit.
 let payToFromOutside = false;
-const payToEdited = () => {
+let payToOutsideValue = "";
+const markPayToOutside = () => {
+  payToFromOutside = true;
+  payToOutsideValue = state.payTo;
+};
+const payToEdited = (value?: string) => {
+  if (value === payToOutsideValue) return;
   payToFromOutside = false;
 };
 
@@ -1021,7 +1028,7 @@ const parseToAccount = async (encodedValue?: string) => {
   if (!parsed) return;
   if (parsed.network && !(await applyLinkNetwork(parsed.network, encoded))) return;
   state.payTo = (parsed.payTo || "").replace(/[^\w\s]/gi, "");
-  payToFromOutside = true;
+  markPayToOutside();
   if (parsed.payamountbase !== undefined && /^[0-9]+$/.test(String(parsed.payamountbase))) {
     state.payamount = Number(parsed.payamountbase) / decimalsPower.value;
   }
@@ -1369,7 +1376,7 @@ const onDecodeQR = async (result: string) => {
     } else {
       state.payTo = result.replace(/[^\w\s]/gi, "");
     }
-    payToFromOutside = true;
+    markPayToOutside();
   }
   if (state.payTo) {
     state.scan = false;

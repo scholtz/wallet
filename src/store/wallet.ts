@@ -1252,6 +1252,8 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       }
       return true;
     } catch (error) {
+      // A throwing save must not leave the account removed in memory only.
+      commit("setPrivateAccounts", before);
       console.error("error", error);
       dispatch(
         "toast/openError",

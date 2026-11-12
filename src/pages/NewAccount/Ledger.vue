@@ -95,7 +95,7 @@ export default {
   data() {
     return {
       slot: 0,
-      loadedSlot: 0,
+      loadedSlot: null,
       address0: "",
       lastError: "",
       address: "",

@@ -563,7 +563,7 @@ const arc56SummaryTransactions = computed(() =>
                 {{ slotProps.data.txn.assetTransfer?.assetIndex?.toString() }}
               </span>
               <span v-else-if="slotProps.data.txn?.type == 'pay'">Algo</span>
-              <span v-else>{{ slotProps.data.type }}</span>
+              <span v-else>-</span>
             </template>
           </Column>
           <Column field="amount" :header="t('connect.amount')" :sortable="true">

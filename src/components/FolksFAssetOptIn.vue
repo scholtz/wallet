@@ -108,7 +108,7 @@ const optIn = async () => {
       "algod/getCheckedTransactionParams",
     );
     const tx = buildOptInTxn(from, FOLKS_USDC_POOL.fAssetId, suggestedParams);
-    assertFolksLendTxnsSafe([tx], from);
+    assertFolksLendTxnsSafe([tx], from, store.state.config.env);
     const result = await signSendConfirm(from, [tx]);
     if (!result) return; // the signer already surfaced the error toast
     if (!result.confirmed) {
