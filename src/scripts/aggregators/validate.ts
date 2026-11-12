@@ -1,4 +1,5 @@
 import algosdk from "algosdk";
+import { checkTxGenesis } from "../dappRequestChecks";
 
 /**
  * Upper bound for the fee of any single transaction signed from an aggregator/lend response
@@ -14,11 +15,20 @@ export const MAX_SWAP_TXN_FEE_MICROALGOS = 500_000n;
  * (drains the account or hands over signing authority) or a transaction whose
  * sender isn't the connected account. None of these have any legitimate role
  * in a swap route, so reject the whole batch rather than trying to sanitize it.
+ *
+ * When `walletEnv` (the selected network) is given, a transaction built for another network is
+ * refused too: a compromised API must not obtain a signature that is valid elsewhere (AW-2026-123).
  */
 export function assertSwapTransactionSafe(
   tx: algosdk.Transaction,
   expectedSenderAddr: string,
+  walletEnv?: string,
 ): void {
+  if (walletEnv !== undefined && checkTxGenesis(tx, walletEnv) !== "ok") {
+    throw new Error(
+      "Refusing to sign swap transaction: it is built for a different network than the selected one.",
+    );
+  }
   if (BigInt(tx.fee) > MAX_SWAP_TXN_FEE_MICROALGOS) {
     throw new Error(
       "Refusing to sign swap transaction: its fee exceeds the maximum allowed.",
@@ -50,8 +60,9 @@ export function assertSwapTransactionSafe(
 export function assertSwapTransactionsSafe(
   txs: algosdk.Transaction[],
   expectedSenderAddr: string,
+  walletEnv?: string,
 ): void {
   for (const tx of txs) {
-    assertSwapTransactionSafe(tx, expectedSenderAddr);
+    assertSwapTransactionSafe(tx, expectedSenderAddr, walletEnv);
   }
 }

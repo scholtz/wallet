@@ -143,6 +143,29 @@ export function gatewayExpectedPayment(link: {
   };
 }
 
+/** How long before the page was opened a payment may still have been made and count (clock skew,
+ * block time, a customer who paid from another device just before the page loaded). */
+export const GATEWAY_PAYMENT_LOOKBACK_MS = 2 * 60 * 1000;
+
+/**
+ * Only a payment made around or after the moment the gateway page was opened counts: a link that
+ * names a payee and a note prefix must not show "payment received" - and forward the browser to the
+ * merchant's URL - because of an old payment that merely matches (AW-2026-121).
+ */
+export function gatewayPaymentNotBefore(pageLoadedAtMs: number): Date {
+  return new Date(pageLoadedAtMs - GATEWAY_PAYMENT_LOOKBACK_MS);
+}
+
+/** The host a successful payment sends the browser to, for display next to the button. */
+export function successRedirectHost(url: string | undefined): string {
+  if (!url) return "";
+  try {
+    return new URL(url).host;
+  } catch {
+    return "";
+  }
+}
+
 /**
  * True when the transaction pays the link's receiver in the link's asset, at least the requested
  * amount. A transaction that merely touches the payee (0 amount, another asset, sent *by* the

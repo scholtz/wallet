@@ -16,6 +16,7 @@ import {
   countPending,
 } from "../scripts/liquid/guards";
 import { checkTransactionGroup, findGenesisMismatch } from "../scripts/dappRequestChecks";
+import { requestTxIds } from "../scripts/requestSignatures";
 
 interface WalletConnectRecord {
   id: string;
@@ -123,6 +124,11 @@ const decodeTransactions = (
   preSigned.forEach((signed) => algosdk.decodeSignedTransaction(signed));
   return { transactions, preSigned };
 };
+// Drops the signatures cached for a pending request that leaves the wallet (AW-2026-116).
+const forgetRequestSignatures = (store: Store<RootState>, requestKey: string): void => {
+  const request = store.state.wc.requests.find((r) => String(r.id) === String(requestKey));
+  store.commit("signer/forgetSigned", requestTxIds([request]), { root: true });
+};
 const removeConnector = async (id: string): Promise<void> => {
   const entry = state.connectorById[id];
   if (!entry) {
@@ -141,6 +147,7 @@ const removeConnector = async (id: string): Promise<void> => {
   delete state.connectorById[id];
 
   for (const requestId of requests) {
+    forgetRequestSignatures(store, requestId);
     store.commit("wc/removeRequest", requestId);
     delete state.requestById[requestId];
   }
@@ -485,6 +492,7 @@ export default (() => ({
 
     delete state.requestById[requestKey];
 
+    forgetRequestSignatures(store, requestKey);
     store.commit("wc/removeRequest", requestKey);
   },
   rejectRequest: (id: string | number) => {
@@ -502,6 +510,7 @@ export default (() => ({
       delete state.requestById[requestKey];
     }
 
+    forgetRequestSignatures(store, requestKey);
     store.commit("wc/removeRequest", requestKey);
   },
 }))();

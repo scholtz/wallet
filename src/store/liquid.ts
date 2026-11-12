@@ -19,6 +19,7 @@ import type { ActionTree, MutationTree } from "vuex";
 import type { RootState } from "./index";
 import type { StoredRequest, StoredSignDataRequest } from "./wc";
 import liquidPeers, { type LiquidRuntimeStatus } from "../shared/liquid";
+import { requestTxIds } from "../scripts/requestSignatures";
 import {
   decodeArc60Items,
   decodeBase64Flexible,
@@ -670,6 +671,7 @@ const actions: ActionTree<LiquidState, RootState> = {
         result,
       ),
     );
+    commit("signer/forgetSigned", requestTxIds([data]), { root: true });
     commit("removeRequest", data.id);
   },
 
@@ -688,6 +690,8 @@ const actions: ActionTree<LiquidState, RootState> = {
         ),
       );
     } finally {
+      // Gone whether or not the dApp could be told: so are its signatures (AW-2026-116).
+      commit("signer/forgetSigned", requestTxIds([data]), { root: true });
       commit("removeRequest", data.id);
     }
   },
@@ -782,6 +786,12 @@ const actions: ActionTree<LiquidState, RootState> = {
   ) {
     liquidPeers.close(requestId);
     helloSeen.delete(requestId);
+    // removeSession also drops this session's pending requests: forget their signatures first.
+    commit(
+      "signer/forgetSigned",
+      requestTxIds(rootState.liquid.requests.filter((r) => r.topic === requestId)),
+      { root: true },
+    );
     commit("removeSession", requestId);
     await persistLiquidSessions(dispatch, rootState.liquid.sessions);
   },

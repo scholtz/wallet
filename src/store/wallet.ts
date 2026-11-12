@@ -16,6 +16,8 @@ import { safeJsonParse, safeJsonStringify } from "@walletconnect/safe-json";
 import { mergeSharedWcItems } from "@/scripts/walletSharedItems";
 import {
   MIN_PASSWORD_LENGTH,
+  accountDeletionBlocker,
+  accountHoldsSecret,
   mergePrivateAccounts,
   removeAccountByAddr,
   serializePersistedWallet,
@@ -206,7 +208,10 @@ type PublicAccountPayload = {
   addr: string;
 };
 
-type DeleteAccountPayload = PublicAccountPayload;
+type DeleteAccountPayload = PublicAccountPayload & {
+  /** The wallet password: required to delete an account that holds its own key material. */
+  pass?: string;
+};
 
 type AccountInfoUpdate = Partial<WalletAccount> & Partial<IAccountData>;
 
@@ -573,7 +578,7 @@ const mutations: MutationTree<WalletState> = {
     state.lastActiveAccount = addr;
     state.lastActiveAccountName = name;
   },
-  deleteAccount(state, { addr }: DeleteAccountPayload) {
+  deleteAccount(state, { addr }: PublicAccountPayload) {
     removeAccountByAddr(state.privateAccounts, addr);
   },
   setPrivateAccount(state, { info, network }: SetPrivateAccountPayload) {
@@ -1191,7 +1196,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
   },
   async deleteAccount(
     { dispatch, commit },
-    { name, addr }: DeleteAccountPayload
+    { name, addr, pass }: DeleteAccountPayload
   ) {
     if (!addr) {
       dispatch("toast/openError", "Plase define account addr", {
@@ -1205,13 +1210,46 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       });
       return false;
     }
+    const accounts = this.state.wallet.privateAccounts;
+    // An HD root holds the only copy of the mnemonic its derived accounts sign with (AW-2026-119).
+    if (accountDeletionBlocker(accounts, addr) === "hd_children") {
+      dispatch(
+        "toast/openError",
+        "This HD root account still has derived accounts. Delete the derived accounts first.",
+        { root: true }
+      );
+      return false;
+    }
+    // Deleting an account that holds its own key is as irreversible as destroying the wallet: the
+    // password is required again, so an unattended unlocked session cannot do it (AW-2026-119).
+    const target = accounts.find((a) => a.addr === addr);
+    if (target && accountHoldsSecret(target)) {
+      if (!pass || !(await dispatch("checkPassword", { pass }))) {
+        dispatch("toast/openError", "Wrong password", { root: true });
+        return false;
+      }
+    }
+    const before = [...accounts];
     try {
       await commit("deleteAccount", {
         name,
         addr,
         network: this.state.config.env,
       });
-      await dispatch("saveWallet");
+      // An explicit delete may leave the wallet without accounts: the empty-list guard of
+      // saveWallet only protects a wallet that is not loaded yet (AW-2026-118).
+      const saved = await dispatch("saveWallet", { allowEmpty: true });
+      if (saved === false) {
+        // Not persisted: keep the account in this session instead of reporting a delete that the
+        // next unlock would undo.
+        commit("setPrivateAccounts", before);
+        dispatch(
+          "toast/openError",
+          "The account could not be deleted because the wallet could not be saved.",
+          { root: true }
+        );
+        return false;
+      }
       return true;
     } catch (error) {
       console.error("error", error);
@@ -1797,7 +1835,10 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     if (!saved) return;
     return true;
   },
-  async saveWallet({ dispatch, commit }) {
+  async saveWallet(
+    { dispatch, commit },
+    payload?: { allowEmpty?: boolean }
+  ) {
     const readSessionPassword = async () => {
       const rs1 = getRequiredLocalStorage("rs1");
       const decryptedData = await CryptoJS.AES.decrypt(this.state.wallet.pass, rs1);
@@ -1818,7 +1859,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
 
     if (
       !this.state.wallet.privateAccounts ||
-      this.state.wallet.privateAccounts.length == 0
+      (this.state.wallet.privateAccounts.length == 0 && !payload?.allowEmpty)
     ) {
       return false; // check not to empty the wallet
     }
@@ -1829,7 +1870,18 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       const walletRecord = await db.wallets.get({
         name: this.state.wallet.name,
       });
-      if (!walletRecord) return;
+      if (!walletRecord) {
+        // The record is gone (the wallet was destroyed in another window): nothing is stored any
+        // more, so say so instead of letting an "account created" go unnoticed (AW-2026-119).
+        if (this.state.wallet.isOpen) {
+          dispatch(
+            "toast/openError",
+            "This wallet no longer exists in this browser, so changes cannot be saved. Back up any new account and sign in again.",
+            { root: true }
+          );
+        }
+        return false;
+      }
       if (!walletRecord || !walletRecord.id) {
         dispatch("toast/openError", "Error in wallet record update", {
           root: true,

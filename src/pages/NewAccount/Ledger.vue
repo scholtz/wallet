@@ -159,7 +159,8 @@ export default {
           name: this.name,
           addr: this.address,
           addr0: this.address0,
-          slot: this.slot,
+          // The slot the address was read from, not whatever the input holds now (AW-2026-124).
+          slot: this.loadedSlot ?? this.slot,
         });
         this.$router.push({ name: "Accounts" });
       } catch (Error) {

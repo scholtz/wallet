@@ -298,12 +298,17 @@ export function admitTransactions(input: {
   approved: string[];
   own: string[];
 }): Admission {
-  // A pre-signed or `signers: []` entry is not signed by this wallet, so its type is irrelevant.
+  const own = new Set(input.own);
+  // A pre-signed entry is never signed by this wallet. `signers: []` is NOT enforced by the
+  // signing path, so it only exempts transactions of accounts the wallet cannot sign for anyway;
+  // one of the wallet's own accounts is always checked (AW-2026-115).
+  const notSignedByWallet = (entry: AdmissionTxEntry): boolean =>
+    !!entry.preSigned ||
+    (Array.isArray(entry.signers) &&
+      entry.signers.length === 0 &&
+      !(entry.sender && own.has(entry.sender)));
   const unsupported = input.transactions.some(
-    (entry) =>
-      !SIGNABLE_DAPP_TX_TYPES.includes(entry.type) &&
-      !entry.preSigned &&
-      !(Array.isArray(entry.signers) && entry.signers.length === 0),
+    (entry) => !SIGNABLE_DAPP_TX_TYPES.includes(entry.type) && !notSignedByWallet(entry),
   );
   if (unsupported) {
     return {
@@ -313,11 +318,10 @@ export function admitTransactions(input: {
     };
   }
   // Only the fees of transactions of the wallet's own accounts can cost the user anything.
-  const own = new Set(input.own);
   let feeTotal = 0n;
   let overpriced = false;
   for (const entry of input.transactions) {
-    if (entry.preSigned || (Array.isArray(entry.signers) && entry.signers.length === 0)) continue;
+    if (notSignedByWallet(entry)) continue;
     if (!entry.sender || !own.has(entry.sender)) continue;
     let fee: bigint;
     try {

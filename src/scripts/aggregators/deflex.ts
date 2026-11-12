@@ -160,6 +160,7 @@ export const deflexAggregator: DexAggregator = {
             assertSwapTransactionSafe(
               decoded,
               context.account.value?.addr || "",
+              context.$store.state.config.env,
             );
             return algosdk.signTransaction(decoded, senderSK).blob;
           }

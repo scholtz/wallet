@@ -3,6 +3,9 @@ import { test, expect } from "@playwright/test";
 import {
   gatewayExpectedPayment,
   gatewayIndexerEndpoint,
+  gatewayPaymentNotBefore,
+  GATEWAY_PAYMENT_LOOKBACK_MS,
+  successRedirectHost,
   isExpectedPayment,
   isWholeNumberParam,
   isAlgorandPaymentUri,
@@ -167,5 +170,27 @@ test.describe("isExpectedPayment", () => {
     expect(gatewayExpectedPayment({ payTo: PAYEE, amountBase: "abc" }).minAmount).toBe(0n);
     expect(gatewayExpectedPayment({ payTo: PAYEE, amountBase: -5 }).minAmount).toBe(0n);
     expect(gatewayExpectedPayment({ payTo: PAYEE, asset: "x" }).assetId).toBe(0n);
+  });
+});
+
+// AW-2026-121: an old payment that merely matches the payee and note prefix is not "paid".
+test.describe("gatewayPaymentNotBefore", () => {
+  test("allows a short look-back before the page load, not older payments", () => {
+    const loaded = Date.UTC(2026, 10, 12, 12, 0, 0);
+    const floor = gatewayPaymentNotBefore(loaded);
+    expect(floor.getTime()).toBe(loaded - GATEWAY_PAYMENT_LOOKBACK_MS);
+    expect(floor.getTime()).toBeLessThan(loaded);
+    expect(loaded - floor.getTime()).toBeLessThanOrEqual(5 * 60 * 1000);
+  });
+});
+
+test.describe("successRedirectHost", () => {
+  test("shows the host the browser will be sent to", () => {
+    expect(successRedirectHost("https://shop.example:8443/thanks?o=1")).toBe("shop.example:8443");
+  });
+
+  test("is empty for no or an unparsable url", () => {
+    expect(successRedirectHost(undefined)).toBe("");
+    expect(successRedirectHost("not a url")).toBe("");
   });
 });

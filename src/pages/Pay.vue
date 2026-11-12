@@ -123,6 +123,7 @@
                           <SelectAccount
                             v-model="payTo"
                             class="w-full"
+                            @update:model-value="payToEdited"
                           ></SelectAccount>
                         </TabPanel>
                         <TabPanel value="1" :header="t('pay.pay_to_other')">
@@ -130,6 +131,7 @@
                             id="payTo"
                             v-model="payTo"
                             class="w-full"
+                            @update:model-value="payToEdited"
                           />
                           <div>
                             <Button
@@ -803,6 +805,7 @@ onMounted(async () => {
   );
   if (toAccountDirect) {
     state.payTo = toAccountDirect;
+    payToFromOutside = true;
   }
   if (route.name === "PayFromWalletConnect" && store.state.signer?.toSign) {
     try {
@@ -813,6 +816,7 @@ onMounted(async () => {
         state.txn?.payment?.receiver ?? state.txn?.assetTransfer?.receiver;
       if (receiver) {
         state.payTo = receiver.toString();
+        payToFromOutside = true;
       }
       if (state.txn?.sender) {
         state.payFromDirect = state.txn.sender.toString();
@@ -856,6 +860,7 @@ onMounted(async () => {
         state.txn?.payment?.receiver ?? state.txn?.assetTransfer?.receiver;
       if (decodedReceiver) {
         state.payTo = decodedReceiver.toString();
+        payToFromOutside = true;
       }
       state.note = state.txn?.note ?? null;
       if (state.txn?.assetTransfer?.assetIndex !== undefined) {
@@ -999,6 +1004,14 @@ const makeAssets = async () => {
 
 const applyLinkNetwork = useLinkNetwork(openError);
 
+// A recipient that came from a payment link, a scanned QR, the route or a decoded transaction is
+// not one the user chose on this form, so it is never remembered as the default recipient: an
+// address poisoned that way would otherwise be pre-filled on every later payment (AW-2026-124).
+let payToFromOutside = false;
+const payToEdited = () => {
+  payToFromOutside = false;
+};
+
 const parseToAccount = async (encodedValue?: string) => {
   const encoded =
     encodedValue ??
@@ -1008,6 +1021,7 @@ const parseToAccount = async (encodedValue?: string) => {
   if (!parsed) return;
   if (parsed.network && !(await applyLinkNetwork(parsed.network, encoded))) return;
   state.payTo = (parsed.payTo || "").replace(/[^\w\s]/gi, "");
+  payToFromOutside = true;
   if (parsed.payamountbase !== undefined && /^[0-9]+$/.test(String(parsed.payamountbase))) {
     state.payamount = Number(parsed.payamountbase) / decimalsPower.value;
   }
@@ -1084,7 +1098,7 @@ const redirectToASAPayment = async () => {
       return;
     }
     // The recipient the user entered here is what the Sign page may remember afterwards.
-    setPendingPayTo(state.payTo);
+    setPendingPayTo(payToFromOutside ? undefined : state.payTo);
     const encodedTx = algosdk.encodeUnsignedTransaction(txData);
     const b64 = Buffer.from(encodedTx).toString("base64");
     const b64Url = base642base64url(b64);
@@ -1115,7 +1129,7 @@ const redirectToNativePayment = async () => {
       return;
     }
     // The recipient the user entered here is what the Sign page may remember afterwards.
-    setPendingPayTo(state.payTo);
+    setPendingPayTo(payToFromOutside ? undefined : state.payTo);
     const encodedTx = algosdk.encodeUnsignedTransaction(txData);
     const b64 = Buffer.from(encodedTx).toString("base64");
     const b64Url = base642base64url(b64);
@@ -1332,8 +1346,6 @@ const toggleCamera = (e: Event | undefined) => {
   }
 };
 
-const isEncoded = (uri = "") => uri !== decodeURIComponent(uri);
-
 /** Applies the `fee` of a payment link (microalgos, capped); an invalid or too high one is ignored. */
 const applyUriFee = (raw: string | number | undefined) => {
   const uriFee = uriFeeToAlgo(raw);
@@ -1344,93 +1356,20 @@ const applyUriFee = (raw: string | number | undefined) => {
   }
 };
 
-const onDecodeQR = (result: string) => {
+// A scanned payment QR goes through the same parser and the same network confirmation as a
+// payment link: it used to have a parser of its own that ignored `network=` (AW-2026-120) and read
+// the amount in whole units where links read base units (AW-2026-111).
+const onDecodeQR = async (result: string) => {
   if (state.scan && result) {
     if (
       result.startsWith("algorand://") ||
       result.startsWith("web+algorand://")
     ) {
-      let parsed = result.replace("web+algorand://", "");
-      parsed = parsed.replace("algorand://", "");
-      const qIndex = parsed.indexOf("?");
-      if (qIndex < 0) {
-        state.payTo = parsed.replace(/[^\w\s]/gi, "");
-      } else {
-        state.payTo = parsed.substring(0, qIndex).replace(/[^\w\s]/gi, "");
-        const params = parsed.substring(qIndex + 1).split("&");
-
-        let noteValue: string | undefined;
-        let noteB64: string | undefined;
-        let amountValue: string | undefined;
-        let decimalsValue: number | undefined;
-        let assetValue: string | undefined;
-        let feeValue: string | undefined;
-
-        for (const param of params) {
-          const eqIndex = param.indexOf("=");
-          if (eqIndex > 0) {
-            const paramName = param.substring(0, eqIndex);
-            const paramValue = param.substring(eqIndex + 1);
-            switch (paramName) {
-              case "note":
-              case "xnote":
-              case "label":
-                noteValue = paramValue;
-                break;
-              case "noteB64":
-                noteB64 = paramValue;
-                break;
-              case "amount":
-                amountValue = paramValue;
-                break;
-              case "asset":
-                assetValue = paramValue;
-                break;
-              case "fee":
-                feeValue = paramValue;
-                break;
-              case "decimals":
-                decimalsValue = Number(paramValue);
-                break;
-            }
-          }
-        }
-
-        state.paynote = noteValue ?? "";
-        if (state.paynote && isEncoded(state.paynote)) {
-          state.paynote = decodeURIComponent(state.paynote);
-        }
-
-        state.paynoteB64 = !!noteB64;
-        if (
-          decimalsValue !== undefined &&
-          Number.isFinite(decimalsValue) &&
-          decimalsValue >= 0
-        ) {
-          if (amountValue) {
-            const parsedAmount = Number(amountValue);
-            if (!Number.isNaN(parsedAmount)) {
-              state.payamount = parsedAmount / Math.pow(10, decimalsValue);
-            }
-          }
-          if (feeValue) applyUriFee(feeValue);
-        } else {
-          if (amountValue) {
-            const parsedAmount = Number(amountValue);
-            if (!Number.isNaN(parsedAmount)) {
-              state.payamount = parsedAmount;
-            }
-          }
-          if (feeValue) applyUriFee(feeValue);
-        }
-        if (assetValue) {
-          const parsedAsset = Number(assetValue);
-          state.asset = Number.isNaN(parsedAsset) ? assetValue : parsedAsset;
-        }
-      }
+      await parseToAccount(result);
     } else {
       state.payTo = result.replace(/[^\w\s]/gi, "");
     }
+    payToFromOutside = true;
   }
   if (state.payTo) {
     state.scan = false;

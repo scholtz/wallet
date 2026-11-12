@@ -17,6 +17,19 @@ const acct = (addr: string, extra: Record<string, unknown> = {}) => ({
   ...extra,
 });
 
+// AW-2026-118: deleting the last account must persist an empty list, not bring the account back.
+test.describe("mergePrivateAccounts after deleting the last account", () => {
+  test("an account this tab knew and deleted stays deleted", () => {
+    const merged = mergePrivateAccounts([], [{ addr: "A" }], new Set(["A"]));
+    expect(merged).toEqual([]);
+  });
+
+  test("an account another tab added meanwhile is still adopted", () => {
+    const merged = mergePrivateAccounts([], [{ addr: "A" }, { addr: "B" }], new Set(["A"]));
+    expect(merged).toEqual([{ addr: "B" }]);
+  });
+});
+
 test.describe("mergePrivateAccounts (AW-2026-059)", () => {
   test("keeps an account another tab added since this tab loaded the wallet", () => {
     const memory = [acct("A")];

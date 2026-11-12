@@ -94,6 +94,9 @@
             {{ $t("merchant.go_back_to_merchant") }}
           </Button>
           <Badge severity="info" class="m-2" :value="'(' + countDown + ')'" />
+          <span v-if="successHost" class="m-2" data-testid="gateway-success-host">
+            {{ successHost }}
+          </span>
         </form>
 
         <Message severity="info" v-if="!isPaid && payable" class="mb-3">
@@ -143,10 +146,12 @@ import { uriFeeToAlgo } from "../scripts/fees";
 import {
   gatewayExpectedPayment,
   gatewayIndexerEndpoint,
+  gatewayPaymentNotBefore,
   isAlgorandPaymentUri,
   isExpectedPayment,
   isWholeNumberParam,
   sanitizeGatewaySettings,
+  successRedirectHost,
 } from "../scripts/merchantGateway";
 import { v4 as uuidv4 } from "uuid";
 import base64url from "base64url";
@@ -167,6 +172,7 @@ export default {
 
       transactions: [],
       formSent: false,
+      loadedAt: Date.now(),
       polling: false,
       ready: false,
       unmounted: false,
@@ -186,6 +192,9 @@ export default {
     // Links and QR are offered only after the payee, network and asset were all validated.
     payable() {
       return this.ready && !!this.origcode;
+    },
+    successHost() {
+      return successRedirectHost(this.settings.success);
     },
     isPaid() {
       return (
@@ -302,6 +311,8 @@ export default {
         } else {
           search.txType("axfer").assetID(expected.assetId);
         }
+        // Only a payment made after this page was opened (AW-2026-121).
+        search.afterTime(gatewayPaymentNotBefore(this.loadedAt));
         search.currencyGreaterThan(
           expected.minAmount > 1n ? expected.minAmount - 1n : 0n
         );

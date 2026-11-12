@@ -396,7 +396,7 @@ const NETWORK_PRESETS: NetworkPreset[] = [
     aliases: ["testnet", "testnet-v1.0"],
     env: "testnet-v1.0",
     envName: "Testnet",
-    algod: "https://testnet-idx.4160.nodely.dev",
+    algod: "https://testnet-api.4160.nodely.dev",
     participation: "",
     indexer: "https://testnet-idx.4160.nodely.dev",
   },

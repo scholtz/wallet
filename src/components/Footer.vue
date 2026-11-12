@@ -95,6 +95,7 @@ export default {
       DISCORD_URL,
       displayTimeoutDialog: false,
       timeoutSecondsRemaining: 0,
+      timeTimer: null,
     };
   },
   computed: {
@@ -119,13 +120,17 @@ export default {
   },
   mounted() {
     this.setTime();
-    setInterval(
+    this.timeTimer = setInterval(
       function () {
         this.setTime();
       }.bind(this),
       1000
     );
     this.setEnvStatus();
+  },
+  beforeUnmount() {
+    // One timer per footer instance: it must not outlive the component (AW-2026-124).
+    clearInterval(this.timeTimer);
   },
   methods: {
     ...mapActions({

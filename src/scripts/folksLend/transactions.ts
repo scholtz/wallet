@@ -144,8 +144,9 @@ export const buildFolksLendTxns = (args: {
 export const assertFolksLendTxnsSafe = (
   txns: algosdk.Transaction[],
   sender: string,
+  walletEnv?: string,
 ): void => {
-  assertSwapTransactionsSafe(txns, sender);
+  assertSwapTransactionsSafe(txns, sender, walletEnv);
   const poolAddr = algosdk.getApplicationAddress(FOLKS_USDC_POOL.appId).toString();
   const allowedAssets = new Set<number>([
     FOLKS_USDC_POOL.assetId,

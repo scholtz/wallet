@@ -10,6 +10,9 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 - A payment link that names a different network now asks for your confirmation before switching, and links naming an unknown network are refused.
 - Apps can no longer send a transaction with an unusually high fee (above 0.5 ALGO), and the "just a login" shortcut is only offered for login transactions that pay no more than the minimum fee. Key registrations now show the participation keys being registered.
 - Deleting a wallet now requires its password, and copied recovery phrases are cleared from the clipboard after 60 seconds.
+- The signing page now shows what a transaction really does: the amount, asset and receiver of a multisig proposal you are asked to co-sign, the asset id of an asset transfer (in raw units, never as "Algo", when the asset's details cannot be loaded), the real kind of a key registration with its keys and rounds, asset configuration and freeze details, and the resources an application call uses. A long note is shown as plain text instead of a clickable link.
+- Deleting an account that holds a key now asks for your wallet password and warns when the account was never backed up; an HD root account cannot be deleted while accounts derived from it remain. Deleting your last account is now really saved instead of coming back at the next unlock.
+- Scanning a payment QR code now behaves like opening the same payment link (it asks before switching network), and the recipient of a link or QR code is no longer remembered as your default recipient. The payment gateway only reports payments made after the page was opened and shows where you will be sent back to.
 
 ## 2026-10
 

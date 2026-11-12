@@ -37,9 +37,11 @@ function collectKeys(obj: JsonObject, prefix = ""): string[] {
 // v-html. Matches the START of an opening or closing tag (`<name` / `</name`), with no
 // closing `>` required: `<img src=x onerror=... {link}` is completed by a later interpolated
 // `>` (AW-2026-103). A bare `<` or `>` not followed by a letter is fine ("1->N" arrows,
-// "< 5"). vue-i18n literal interpolation such as `{'<'}` is rejected too, because it builds
-// the `<` at render time. Write comparisons as "less than" (or with a space after `<`).
-const HTML_TAG_PATTERN = /<\/?[a-zA-Z]|\{\s*['"`]\s*[<>&]/;
+// "< 5"). vue-i18n literal interpolation (`{'...'}`, `{"..."}`) is rejected altogether: it can
+// build a `<` at render time in ways a pattern cannot enumerate (`{'-<'}`, `<{'img'}`, a
+// backslash-u escape), and no locale string needs it (AW-2026-124). Write comparisons as
+// "less than" (or with a space after `<`).
+const HTML_TAG_PATTERN = /<\/?[a-zA-Z]|\{\s*['"`]/;
 
 function collectHtmlLikeValues(obj: JsonObject, prefix = ""): string[] {
   const out: string[] = [];

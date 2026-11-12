@@ -343,8 +343,36 @@ test.describe("admitTransactions fee ceiling", () => {
     ).toBe(false);
   });
 
-  test("ignores the fee of transactions the wallet does not sign", () => {
+  test("ignores the fee of a pre-signed transaction (the wallet never signs it)", () => {
     expect(admit(900_000_000n, { preSigned: true }).ok).toBe(true);
-    expect(admit(900_000_000n, { signers: [] }).ok).toBe(true);
+  });
+
+  // AW-2026-115: `signers: []` is not enforced by the signing path, so it must not exempt a
+  // transaction of one of the wallet's own accounts from the ceiling.
+  test("applies the ceiling to an own account even when the dApp sends signers: []", () => {
+    expect(admit(900_000_000n, { signers: [] }).ok).toBe(false);
+    expect(admit(1000n, { signers: [] }).ok).toBe(true);
+  });
+
+  test("ignores the fee of a foreign account with signers: []", () => {
+    expect(
+      admitTransactions({
+        transactions: [{ sender: "X", type: "pay", fee: 900_000_000n, signers: [] }],
+        approved: ["A"],
+        own: ["A"],
+      }).ok,
+    ).toBe(true);
+  });
+
+  test("refuses an unsupported type of an own account even with signers: []", () => {
+    for (const type of ["stpf", "hb"]) {
+      expect(
+        admitTransactions({
+          transactions: [{ sender: "A", type, signers: [] }],
+          approved: ["A"],
+          own: ["A"],
+        }),
+      ).toMatchObject({ ok: false, code: REQUEST_ERROR.invalid });
+    }
   });
 });
