@@ -1373,6 +1373,9 @@ const onDecodeQR = async (result: string) => {
       result.startsWith("algorand://") ||
       result.startsWith("web+algorand://")
     ) {
+      // A scan starts from a clean note, as before: no note left over from an earlier entry.
+      state.paynote = "";
+      state.paynoteB64 = false;
       await parseToAccount(result);
     } else {
       state.payTo = result.replace(/[^\w\s]/gi, "");

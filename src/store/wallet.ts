@@ -1234,7 +1234,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     // Puts back only the account that was removed: other state may have changed while the save ran.
     const restoreRemoved = () => {
       const current = this.state.wallet.privateAccounts;
-      if (current.some((a) => a.addr === addr)) return;
+      if (!removed || current.some((a) => a.addr === addr)) return;
       const next = [...current];
       next.splice(Math.min(removedIndex, next.length), 0, removed);
       commit("setPrivateAccounts", next);
