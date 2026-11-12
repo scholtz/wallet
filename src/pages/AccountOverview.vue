@@ -610,14 +610,22 @@ const reloadAccount = async (silent = false) => {
   }
 };
 
+let deletingAccount = false;
 const deleteAccountClick = async (pass?: string) => {
   const currentAccount = account.value;
-  if (!currentAccount) return;
-  const deleted = await deleteAccountAction({
-    name: currentAccount.name ?? "",
-    addr: currentAccount.addr,
-    pass,
-  });
+  // A double click must not dispatch a second delete for the same account.
+  if (!currentAccount || deletingAccount) return;
+  deletingAccount = true;
+  let deleted: boolean;
+  try {
+    deleted = await deleteAccountAction({
+      name: currentAccount.name ?? "",
+      addr: currentAccount.addr,
+      pass,
+    });
+  } finally {
+    deletingAccount = false;
+  }
   if (!deleted) return;
   await router.push("/accounts");
 };

@@ -562,7 +562,9 @@ const arc56SummaryTransactions = computed(() =>
               <span v-if="slotProps.data.txn?.type == 'axfer'" data-testid="signall-asset-id">
                 {{ slotProps.data.txn.assetTransfer?.assetIndex?.toString() }}
               </span>
-              <span v-else-if="slotProps.data.txn?.type == 'pay'">Algo</span>
+              <span v-else-if="slotProps.data.txn?.type == 'pay'">{{
+                store.state.config.tokenSymbol
+              }}</span>
               <span v-else>-</span>
             </template>
           </Column>
