@@ -123,3 +123,12 @@ test.describe("summarizeSpecialTransaction", () => {
     expect(summarizeSpecialTransaction({ type: "pay" })).toBeUndefined();
   });
 });
+
+test("describeKeyReg encodes an oversized key without overflowing the call stack", () => {
+  const huge = new Uint8Array(500_000).fill(7);
+  const details = describeKeyReg({
+    type: "keyreg",
+    keyreg: { nonParticipation: false, voteKey: huge },
+  });
+  expect(details?.voteKey?.length).toBe(Buffer.from(huge).toString("base64").length);
+});

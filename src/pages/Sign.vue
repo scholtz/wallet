@@ -740,6 +740,7 @@ import { canSignMultisigPart } from "@/scripts/direct/eligibility";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
+import { useLinkNetwork } from "@/composables/useLinkNetwork";
 import aprotocol, {
   AlgorandProtocolParameters,
 } from "../shared/algorand-protocol-parse";
@@ -1308,35 +1309,24 @@ const reset = () => {
   rawSignedTxnInput.value = null;
 };
 
-// parseToAccount runs more than once per page load: ask about a link's network only once, and
-// never apply the rest of a link whose network was refused (AW-2026-102).
-const linkNetworkDecisions = new Map<string, boolean>();
-const applyLinkNetwork = async (network: string): Promise<boolean> => {
-  const known = linkNetworkDecisions.get(network);
-  if (known !== undefined) return known;
-  const switched = (await store.dispatch("config/switchEnvFromLink", {
-    env: network,
-    confirm: (canonicalEnv: string) =>
-      window.confirm(t("pay.link_network_switch", { network: canonicalEnv })),
-  })) as boolean;
-  linkNetworkDecisions.set(network, switched);
-  if (!switched) {
-    await openErrorAction(t("pay.link_network_refused", { network }));
-  }
-  return switched;
-};
+const applyLinkNetwork = useLinkNetwork(openErrorAction);
 
 const parseToAccount = async () => {
   const encoded = toSingleParam(
     route.params.toAccount as string | string[] | undefined
   );
   if (!encoded) return;
-  b64decode.value = aprotocol.parseAlgorandProtocolParameters(encoded);
-  if (!b64decode.value) return;
-  if (b64decode.value.network && !(await applyLinkNetwork(b64decode.value.network))) {
+  const parsedLink = aprotocol.parseAlgorandProtocolParameters(encoded);
+  if (!parsedLink) {
+    b64decode.value = parsedLink;
+    return;
+  }
+  // Nothing of the link is shown or applied before its network is accepted.
+  if (parsedLink.network && !(await applyLinkNetwork(parsedLink.network))) {
     b64decode.value = null;
     return;
   }
+  b64decode.value = parsedLink;
   if (b64decode.value.payTo) {
     payTo.value = b64decode.value.payTo.replace(/[^\w\s]/gi, "");
   }

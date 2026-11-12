@@ -392,6 +392,7 @@ import {
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
+import { useLinkNetwork } from "@/composables/useLinkNetwork";
 import { QrcodeStream } from "qrcode-reader-vue3";
 import aprotocol from "../shared/algorand-protocol-parse";
 import MainLayout from "../layouts/Main.vue";
@@ -995,23 +996,7 @@ const makeAssets = async () => {
   }
 };
 
-// parseToAccount runs more than once per page load: ask about a link's network only once, and
-// never apply the rest of a link whose network was refused (AW-2026-102).
-const linkNetworkDecisions = new Map<string, boolean>();
-const applyLinkNetwork = async (network: string): Promise<boolean> => {
-  const known = linkNetworkDecisions.get(network);
-  if (known !== undefined) return known;
-  const switched = (await store.dispatch("config/switchEnvFromLink", {
-    env: network,
-    confirm: (canonicalEnv: string) =>
-      window.confirm(t("pay.link_network_switch", { network: canonicalEnv })),
-  })) as boolean;
-  linkNetworkDecisions.set(network, switched);
-  if (!switched) {
-    await openError(t("pay.link_network_refused", { network }));
-  }
-  return switched;
-};
+const applyLinkNetwork = useLinkNetwork(openError);
 
 const parseToAccount = async (encodedValue?: string) => {
   const encoded =
@@ -1030,13 +1015,13 @@ const parseToAccount = async (encodedValue?: string) => {
   }
   // The link's fee is microalgos and capped; anything else keeps the default fee (AW-2026-083).
   if (parsed.feebase !== undefined) applyUriFee(parsed.feebase);
-  // Must resolve before the asset is selected/preselected below: the asset
+  // The link's network was applied (awaited) at the top of this function, before anything else
+  // is read from the link: the asset
   // list, balances, and the asset lookup itself are all keyed by the active
   // network (accountData.value / getAsset both read store.state.config.env
-  // /indexer), so switching network and picking the asset need to happen in
-  // this order, not fired-and-forgotten in parallel - otherwise the asset id
-  // from the URL gets looked up against the network we're leaving, not the
-  // one the link actually points at.
+  // /indexer), so the network switch must stay ahead of picking the asset -
+  // otherwise the asset id from the URL gets looked up against the network we're
+  // leaving, not the one the link actually points at.
   if (parsed.asset) {
     state.asset = parsed.asset;
     state.forceAsset = true;

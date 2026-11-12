@@ -11,6 +11,16 @@ import {
 // A valid Algorand address that is not part of the wallet.
 const RECIPIENT = "3HTMYRJO5URBLNGZDHEGCXUPAUGR6LRZZ5YZBLATWLFY7OEPJL53VQO5TE";
 
+interface EnvHost extends Element {
+  __vue_app__?: { config: { globalProperties: { $store: { state: { config: { env: string } } } } } };
+}
+const envOf = (page: Page) =>
+  page.evaluate(
+    () =>
+      (document.querySelector("#app") as EnvHost | null)?.__vue_app__?.config.globalProperties
+        .$store.state.config.env ?? "",
+  );
+
 const addressFromUrl = (page: Page) => page.url().split("/account/")[1];
 
 /** Creates a wallet (first account A) and a second ED25519 account B named "Second". */
@@ -111,5 +121,45 @@ test.describe("Pay: the last recipient", () => {
     await spaNavigate(page, `/accounts/payTo/${account}/${RECIPIENT}/0`);
     await page.getByText("Pay to other account", { exact: true }).click();
     await expect(page.locator("#payTo")).toHaveValue(RECIPIENT);
+  });
+});
+
+test.describe("Pay: payment link network (AW-2026-102)", () => {
+  test("a link naming an unknown network is refused once and applies nothing", async ({ page }) => {
+    await setupFreshWallet(page, "Network Wallet");
+    const envBefore = await envOf(page);
+    let dialogs = 0;
+    page.on("dialog", (dialog) => {
+      dialogs++;
+      void dialog.dismiss();
+    });
+
+    await spaNavigate(page, `/pay/${encodeURIComponent(`algorand://${RECIPIENT}?amount=1&network=custom`)}`);
+    await expect(page.getByText(/was not applied|did not confirm/).first()).toBeVisible();
+
+    // Unknown network: no confirmation is even offered, nothing of the link is applied and the
+    // wallet stays on its network.
+    expect(dialogs).toBe(0);
+    expect(await envOf(page)).toBe(envBefore);
+    // The sender selector is shown, the recipient from the link was never applied.
+    await expect(page.locator("#payTo")).toHaveCount(0);
+  });
+
+  test("a link naming a known other network asks for confirmation and declining keeps the network", async ({
+    page,
+  }) => {
+    await setupFreshWallet(page, "Confirm Wallet");
+    const envBefore = await envOf(page);
+    let dialogs = 0;
+    page.on("dialog", (dialog) => {
+      dialogs++;
+      void dialog.dismiss();
+    });
+
+    await spaNavigate(page, `/pay/${encodeURIComponent(`algorand://${RECIPIENT}?network=testnet-v1.0`)}`);
+    await expect.poll(() => dialogs).toBe(1);
+    await page.waitForTimeout(1500);
+    expect(dialogs).toBe(1);
+    expect(await envOf(page)).toBe(envBefore);
   });
 });

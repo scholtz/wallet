@@ -75,3 +75,12 @@ test.describe("isArc14AuthTransaction fee check", () => {
     expect(isArc14AuthTransaction(makeSelfPay(0, "hello"))).toBe(false);
   });
 });
+
+test.describe("isArc14AuthTransaction robustness", () => {
+  test("a non-integer fee is never a login and never throws", () => {
+    const txn = makeSelfPay(0);
+    const fractional = Object.assign(Object.create(Object.getPrototypeOf(txn)), txn, { fee: 1.5 });
+    expect(() => isArc14AuthTransaction(fractional)).not.toThrow();
+    expect(isArc14AuthTransaction(fractional)).toBe(false);
+  });
+});
