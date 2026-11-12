@@ -31,6 +31,7 @@ function cancelPending(): void {
 }
 
 const MAX_CLEAR_ATTEMPTS = 3;
+let clearGeneration = 0;
 
 /**
  * Schedules the clipboard clear. A newer call replaces the pending one. The clipboard can only be
@@ -50,9 +51,12 @@ export function scheduleClipboardClear(
   if (!clipboard || !copied) return;
   cancelPending();
   let attempts = 0;
+  const generation = ++clearGeneration;
   const attempt = async (): Promise<void> => {
     attempts++;
     const result = await tryClear(copied, clipboard);
+    // A newer copy replaced this schedule while the read was pending.
+    if (generation !== clearGeneration) return;
     // A read that stays denied is not retried for the whole session.
     if (result !== "unverifiable" || !focusTarget || attempts >= MAX_CLEAR_ATTEMPTS) return;
     const retry = () => {

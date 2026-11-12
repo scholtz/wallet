@@ -1248,7 +1248,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       // An explicit delete may leave the wallet without accounts: the empty-list guard of
       // saveWallet only protects a wallet that is not loaded yet (AW-2026-118).
       const saved = await dispatch("saveWallet", { allowEmpty: true });
-      if (saved === false) {
+      if (!saved) {
         // Not persisted: keep the account in this session instead of reporting a delete that the
         // next unlock would undo.
         restoreRemoved();
@@ -1934,8 +1934,11 @@ const actionHandlers: Record<string, WalletActionHandler> = {
             commit("applyAccountMerge", merged);
           }
           rememberAddresses(merged.addresses);
+          return true;
         }
+        return false;
       }
+      return true;
     });
   },
   async openWallet(

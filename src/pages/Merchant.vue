@@ -147,6 +147,7 @@ import {
   gatewayExpectedPayment,
   gatewayIndexerEndpoint,
   gatewayPaymentNotBefore,
+  resolveGatewayAnchor,
   isAlgorandPaymentUri,
   isExpectedPayment,
   isWholeNumberParam,
@@ -172,7 +173,11 @@ export default {
 
       transactions: [],
       formSent: false,
-      loadedAt: Date.now(),
+      loadedAt: resolveGatewayAnchor(
+        typeof sessionStorage === "undefined" ? undefined : sessionStorage,
+        "gatewayOpenedAt:" + (typeof location === "undefined" ? "" : location.href),
+        Date.now(),
+      ),
       polling: false,
       ready: false,
       unmounted: false,

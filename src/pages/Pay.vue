@@ -1367,24 +1367,19 @@ const applyUriFee = (raw: string | number | undefined) => {
 // payment link: it used to have a parser of its own that ignored `network=` (AW-2026-120) and read
 // the amount in whole units where links read base units (AW-2026-111).
 const onDecodeQR = async (result: string) => {
-  if (state.scan && result) {
-    const before = state.payTo;
-    if (
-      result.startsWith("algorand://") ||
-      result.startsWith("web+algorand://")
-    ) {
-      // A scan starts from a clean note, as before: no note left over from an earlier entry.
-      state.paynote = "";
-      state.paynoteB64 = false;
-      await parseToAccount(result);
-    } else {
-      state.payTo = result.replace(/[^\w\s]/gi, "");
-    }
-    // A rejected or unparsable scan leaves the recipient as it was: that is not an outside one.
-    if (state.payTo !== before) markPayToOutside();
-  }
-  if (state.payTo) {
-    state.scan = false;
+  if (!state.scan || !result) return;
+  // The camera stops at the first code: the stream keeps emitting frames while a network
+  // confirmation is open, and each one would start another prompt.
+  state.scan = false;
+  if (result.startsWith("algorand://") || result.startsWith("web+algorand://")) {
+    // A scan starts from a clean note, as before: no note left over from an earlier entry.
+    state.paynote = "";
+    state.paynoteB64 = false;
+    // parseToAccount marks the recipient as an outside one only when it applies it.
+    await parseToAccount(result);
+  } else {
+    state.payTo = result.replace(/[^\w\s]/gi, "");
+    markPayToOutside();
   }
 };
 
