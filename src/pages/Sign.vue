@@ -1533,7 +1533,7 @@ const submitSignedClick = async () => {
       // chosen by a link, a dApp (/payWC) or a multisig return.
       const enteredOnPay = takePendingPayTo();
       const candidate = isMultisig.value ? undefined : recipientToRemember(txn.value);
-      const rememberTo = candidate && candidate === enteredOnPay ? candidate : undefined;
+      const rememberTo = candidate && candidate === enteredOnPay?.trim() ? candidate : undefined;
       if (rememberTo) {
         void store.dispatch("wallet/lastPayTo", { addr: rememberTo });
       }
@@ -1596,6 +1596,10 @@ const payPaymentClick = async (e?: Event) => {
     };
     const sentTx = (await makePaymentAction(payload)) as string | null;
     tx.value = sentTx;
+    // The recipient typed in this page's own payment form is remembered once it was sent.
+    if (sentTx && !rekeyTo.value && payTo.value && payTo.value !== payFrom.value) {
+      void store.dispatch("wallet/lastPayTo", { addr: payTo.value });
+    }
     if (!tx.value) {
       console.error("makePaymentAction failed");
       processing.value = false;

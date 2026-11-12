@@ -329,14 +329,6 @@ const actions: ActionTree<AlgodState, RootState> = {
         txn,
         payFrom: payload.payFrom,
       })) as string | undefined;
-      // A rekey is not a payment: its "receiver" is the sender itself.
-      if (txid && !payload.reKeyTo) {
-        await dispatch(
-          "wallet/lastPayTo",
-          { addr: payload.payTo },
-          { root: true },
-        );
-      }
       return txid;
     } catch (error) {
       console.error("Failed to sign and send transaction", error);
