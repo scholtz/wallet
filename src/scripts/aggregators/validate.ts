@@ -1,5 +1,5 @@
 import algosdk from "algosdk";
-import { checkTxGenesis } from "../dappRequestChecks";
+import { checkTxGenesis, isBlockingGenesisCheck } from "../dappRequestChecks";
 
 /**
  * Upper bound for the fee of any single transaction signed from an aggregator/lend response
@@ -24,7 +24,7 @@ export function assertSwapTransactionSafe(
   expectedSenderAddr: string,
   walletEnv?: string,
 ): void {
-  if (walletEnv !== undefined && checkTxGenesis(tx, walletEnv) !== "ok") {
+  if (walletEnv !== undefined && isBlockingGenesisCheck(checkTxGenesis(tx, walletEnv))) {
     throw new Error(
       "Refusing to sign swap transaction: it is built for a different network than the selected one.",
     );

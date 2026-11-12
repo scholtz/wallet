@@ -470,6 +470,7 @@
     "mode_import": "Import existing mnemonic",
     "master_mnemonic": "HD Master Mnemonic",
     "backup_warning": "This mnemonic backs up every account derived from this HD wallet, not just this one. Keep it safe and never share it.",
+    "mnemonic_copied": "Mnemónico copiado al portapapeles. La cartera intentará borrar el portapapeles tras 60 segundos.",
     "confirm_backup": "I have safely backed up my mnemonic",
     "write_mnemonic": "Write down your 24 word BIP-39 mnemonic phrase",
     "iteration": "Iteration (account index)",
@@ -493,6 +494,7 @@
     "mode_import": "Importar mnemónico existente",
     "mnemonic": "Mnemónico de la cuenta Falcon 1024",
     "backup_warning": "Este mnemónico es la única copia de seguridad de su cuenta poscuántica. Guárdelo en un lugar seguro y no lo comparta nunca.",
+    "mnemonic_copied": "Mnemónico copiado al portapapeles. La cartera intentará borrar el portapapeles tras 60 segundos.",
     "confirm_backup": "He guardado mi mnemónico de forma segura",
     "write_mnemonic": "Anote su frase mnemónica de Algorand de 25 palabras",
     "not_backed_up_body": "El mnemónico de recuperación de esta cuenta poscuántica aún no se ha respaldado. Si pierde el acceso a este dispositivo sin una copia de seguridad, corre el riesgo de perder sus fondos permanentemente."

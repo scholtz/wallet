@@ -125,6 +125,8 @@ export default {
         await withLedger(async (algo) => {
           const address = await algo.getAddress(ledgerPath(slot));
           this.address = address.address;
+          // Only a slot whose address was really read is the one that gets saved.
+          this.loadedSlot = slot;
           if (slot == 0) {
             this.address0 = address.address;
           } else if (!this.address0) {
@@ -145,7 +147,6 @@ export default {
     async clickAddress() {
       try {
         this.lastError = "";
-        this.loadedSlot = this.slot;
         await this.loadAddress(this.slot);
       } catch (Error) {
         console.error(Error);

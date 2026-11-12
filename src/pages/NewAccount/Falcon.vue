@@ -102,7 +102,7 @@ async function copyToClipboard() {
   if (await copy(state.mnemonic)) {
     // The mnemonic must not stay in the system clipboard (AW-2026-109/-124).
     scheduleClipboardClear(state.mnemonic);
-    await store.dispatch("toast/openSuccess", "Mnemonic copied to clipboard. The wallet tries to clear the clipboard after 60 seconds.");
+    await store.dispatch("toast/openSuccess", t("falconaccount.mnemonic_copied"));
   }
 }
 

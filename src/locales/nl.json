@@ -470,6 +470,7 @@
     "mode_import": "Import existing mnemonic",
     "master_mnemonic": "HD Master Mnemonic",
     "backup_warning": "This mnemonic backs up every account derived from this HD wallet, not just this one. Keep it safe and never share it.",
+    "mnemonic_copied": "Mnemonic naar het klembord gekopieerd. De wallet probeert het klembord na 60 seconden te wissen.",
     "confirm_backup": "I have safely backed up my mnemonic",
     "write_mnemonic": "Write down your 24 word BIP-39 mnemonic phrase",
     "iteration": "Iteration (account index)",
@@ -493,6 +494,7 @@
     "mode_import": "Bestaande mnemonic importeren",
     "mnemonic": "Mnemonic van Falcon 1024-account",
     "backup_warning": "Deze mnemonic is de enige back-up van uw post-kwantum account. Bewaar hem veilig en deel hem nooit.",
+    "mnemonic_copied": "Mnemonic naar het klembord gekopieerd. De wallet probeert het klembord na 60 seconden te wissen.",
     "confirm_backup": "Ik heb mijn mnemonic veilig geback-upt",
     "write_mnemonic": "Noteer uw Algorand-mnemonic van 25 woorden",
     "not_backed_up_body": "De herstel-mnemonic van dit post-kwantum account is nog niet geback-upt. Als u zonder back-up de toegang tot dit apparaat verliest, riskeert u uw tegoeden permanent te verliezen."

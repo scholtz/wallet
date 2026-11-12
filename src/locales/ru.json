@@ -470,6 +470,7 @@
     "mode_import": "Import existing mnemonic",
     "master_mnemonic": "HD Master Mnemonic",
     "backup_warning": "This mnemonic backs up every account derived from this HD wallet, not just this one. Keep it safe and never share it.",
+    "mnemonic_copied": "Мнемоническая фраза скопирована в буфер обмена. Кошелёк попытается очистить буфер через 60 секунд.",
     "confirm_backup": "I have safely backed up my mnemonic",
     "write_mnemonic": "Write down your 24 word BIP-39 mnemonic phrase",
     "iteration": "Iteration (account index)",
@@ -493,6 +494,7 @@
     "mode_import": "Импортировать существующую мнемоническую фразу",
     "mnemonic": "Мнемоническая фраза аккаунта Falcon 1024",
     "backup_warning": "Эта мнемоническая фраза — единственная резервная копия вашего постквантового аккаунта. Храните её в безопасности и никогда никому не сообщайте.",
+    "mnemonic_copied": "Мнемоническая фраза скопирована в буфер обмена. Кошелёк попытается очистить буфер через 60 секунд.",
     "confirm_backup": "Я надёжно сохранил свою мнемоническую фразу",
     "write_mnemonic": "Запишите свою мнемоническую фразу Algorand из 25 слов",
     "not_backed_up_body": "Мнемоническая фраза восстановления этого постквантового аккаунта ещё не сохранена. Если вы потеряете доступ к этому устройству без резервной копии, вы рискуете навсегда потерять свои средства."

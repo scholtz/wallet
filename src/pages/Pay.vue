@@ -1368,6 +1368,7 @@ const applyUriFee = (raw: string | number | undefined) => {
 // the amount in whole units where links read base units (AW-2026-111).
 const onDecodeQR = async (result: string) => {
   if (state.scan && result) {
+    const before = state.payTo;
     if (
       result.startsWith("algorand://") ||
       result.startsWith("web+algorand://")
@@ -1376,7 +1377,8 @@ const onDecodeQR = async (result: string) => {
     } else {
       state.payTo = result.replace(/[^\w\s]/gi, "");
     }
-    markPayToOutside();
+    // A rejected or unparsable scan leaves the recipient as it was: that is not an outside one.
+    if (state.payTo !== before) markPayToOutside();
   }
   if (state.payTo) {
     state.scan = false;

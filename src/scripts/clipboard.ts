@@ -30,6 +30,8 @@ function cancelPending(): void {
   cancelPendingRetry = undefined;
 }
 
+const MAX_CLEAR_ATTEMPTS = 3;
+
 /**
  * Schedules the clipboard clear. A newer call replaces the pending one. The clipboard can only be
  * read while the page has focus, and a minute after copying the user has usually switched to the
@@ -47,9 +49,12 @@ export function scheduleClipboardClear(
 ): void {
   if (!clipboard || !copied) return;
   cancelPending();
+  let attempts = 0;
   const attempt = async (): Promise<void> => {
+    attempts++;
     const result = await tryClear(copied, clipboard);
-    if (result !== "unverifiable" || !focusTarget) return;
+    // A read that stays denied is not retried for the whole session.
+    if (result !== "unverifiable" || !focusTarget || attempts >= MAX_CLEAR_ATTEMPTS) return;
     const retry = () => {
       focusTarget.removeEventListener("focus", retry);
       cancelPendingRetry = undefined;

@@ -115,4 +115,21 @@ test.describe("scheduleClipboardClear without focus", () => {
     await new Promise((resolve) => setTimeout(resolve, 30));
     expect(state.text).toBe("unrelated");
   });
+
+  test("a permanently denied read stops being retried after a few focus events", async () => {
+    const win = fakeWindow();
+    const clipboard: ClipboardLike = {
+      readText: async () => {
+        throw new Error("NotAllowedError");
+      },
+      writeText: async () => undefined,
+    };
+    scheduleClipboardClear("secret", clipboard, 5, win.target);
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    for (let i = 0; i < 6; i++) {
+      win.focus();
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+    expect(win.listeners.size).toBe(0);
+  });
 });

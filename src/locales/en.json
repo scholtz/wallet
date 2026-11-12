@@ -470,6 +470,7 @@
     "mode_import": "Import existing mnemonic",
     "master_mnemonic": "HD Master Mnemonic",
     "backup_warning": "This mnemonic backs up every account derived from this HD wallet, not just this one. Keep it safe and never share it.",
+    "mnemonic_copied": "Mnemonic copied to clipboard. The wallet tries to clear the clipboard after 60 seconds.",
     "confirm_backup": "I have safely backed up my mnemonic",
     "write_mnemonic": "Write down your 24 word BIP-39 mnemonic phrase",
     "iteration": "Iteration (account index)",
@@ -493,6 +494,7 @@
     "mode_import": "Import existing mnemonic",
     "mnemonic": "Falcon 1024 account mnemonic",
     "backup_warning": "This mnemonic is the only backup of your post-quantum account. Keep it safe and never share it.",
+    "mnemonic_copied": "Mnemonic copied to clipboard. The wallet tries to clear the clipboard after 60 seconds.",
     "confirm_backup": "I have safely backed up my mnemonic",
     "write_mnemonic": "Write down your 25 word Algorand mnemonic phrase",
     "not_backed_up_body": "This post-quantum account's recovery mnemonic has not been backed up yet. If you lose access to this device without a backup, you risk losing your funds permanently."

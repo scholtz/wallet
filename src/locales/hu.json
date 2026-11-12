@@ -470,6 +470,7 @@
     "mode_import": "Import existing mnemonic",
     "master_mnemonic": "HD Master Mnemonic",
     "backup_warning": "This mnemonic backs up every account derived from this HD wallet, not just this one. Keep it safe and never share it.",
+    "mnemonic_copied": "A mnemonik a vágólapra másolva. A tárca 60 másodperc múlva megpróbálja törölni a vágólapot.",
     "confirm_backup": "I have safely backed up my mnemonic",
     "write_mnemonic": "Write down your 24 word BIP-39 mnemonic phrase",
     "iteration": "Iteration (account index)",
@@ -493,6 +494,7 @@
     "mode_import": "Meglévő mnemonik importálása",
     "mnemonic": "Falcon 1024 fiók mnemonikja",
     "backup_warning": "Ez a mnemonik a posztkvantum fiókjának egyetlen biztonsági mentése. Őrizze biztonságban, és soha ne ossza meg senkivel.",
+    "mnemonic_copied": "A mnemonik a vágólapra másolva. A tárca 60 másodperc múlva megpróbálja törölni a vágólapot.",
     "confirm_backup": "Biztonságosan elmentettem a mnemonikomat",
     "write_mnemonic": "Írja le a 25 szavas Algorand mnemonik kifejezését",
     "not_backed_up_body": "Ennek a posztkvantum fióknak a helyreállítási mnemonikja még nincs elmentve. Ha mentés nélkül elveszíti a hozzáférést ehhez az eszközhöz, végleg elveszítheti a pénzeszközeit."
