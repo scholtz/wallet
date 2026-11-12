@@ -68,7 +68,7 @@
                         {{
                           txn.applicationCall.appIndex
                             ? txn.applicationCall.appIndex.toString()
-                            : "0 (create)"
+                            : `0 (${$t("pay.application_create")})`
                         }}
                       </div>
                     </div>

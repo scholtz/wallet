@@ -595,7 +595,8 @@
     "uri_fee_ignored": "De vergoeding in de betaallink is genegeerd omdat deze ongeldig, lager dan 0,001 ALGO of hoger dan 0,1 ALGO is.",
     "link_network_switch": "De betaallink wil de wallet naar het netwerk {network} schakelen. Netwerk wisselen?",
     "link_network_refused": "De betaallink vraagt om het netwerk {network}, dat deze wallet niet kent of dat je niet hebt bevestigd, dus de link is niet toegepast.",
-    "application_id": "Applicatie-ID"
+    "application_id": "Applicatie-ID",
+    "application_create": "aanmaken"
   },
   "settings": {
     "title": "Instellingen",

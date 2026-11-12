@@ -595,7 +595,8 @@
     "uri_fee_ignored": "The fee of the payment link was ignored because it is not valid, below 0.001 ALGO or above 0.1 ALGO.",
     "link_network_switch": "The payment link wants to switch the wallet to the network {network}. Switch the network?",
     "link_network_refused": "The payment link asks for the network {network}, which this wallet does not know or you did not confirm, so the link was not applied.",
-    "application_id": "Application ID"
+    "application_id": "Application ID",
+    "application_create": "create"
   },
   "settings": {
     "title": "Settings",

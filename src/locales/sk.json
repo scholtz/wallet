@@ -595,7 +595,8 @@
     "uri_fee_ignored": "Poplatok z platobného odkazu bol ignorovaný, pretože je neplatný, nižší ako 0,001 ALGO alebo vyšší ako 0,1 ALGO.",
     "link_network_switch": "Platobný odkaz chce prepnúť peňaženku na sieť {network}. Prepnúť sieť?",
     "link_network_refused": "Platobný odkaz požaduje sieť {network}, ktorú táto peňaženka nepozná alebo ste ju nepotvrdili, preto nebol odkaz použitý.",
-    "application_id": "ID aplikácie"
+    "application_id": "ID aplikácie",
+    "application_create": "vytvorenie"
   },
   "settings": {
     "title": "Nastavenia",

@@ -595,7 +595,8 @@
     "uri_fee_ignored": "La commissione del link di pagamento è stata ignorata perché non valida, inferiore a 0,001 ALGO o superiore a 0,1 ALGO.",
     "link_network_switch": "Il link di pagamento vuole passare il portafoglio alla rete {network}. Cambiare rete?",
     "link_network_refused": "Il link di pagamento richiede la rete {network}, che questo portafoglio non conosce o che non hai confermato, quindi il link non è stato applicato.",
-    "application_id": "ID applicazione"
+    "application_id": "ID applicazione",
+    "application_create": "creazione"
   },
   "settings": {
     "title": "Impostazioni",

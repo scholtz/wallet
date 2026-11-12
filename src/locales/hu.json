@@ -595,7 +595,8 @@
     "uri_fee_ignored": "A fizetési hivatkozás díját figyelmen kívül hagytuk, mert érvénytelen, 0,001 ALGO alatti vagy 0,1 ALGO feletti.",
     "link_network_switch": "A fizetési hivatkozás a tárcát a(z) {network} hálózatra szeretné átváltani. Átváltja a hálózatot?",
     "link_network_refused": "A fizetési hivatkozás a(z) {network} hálózatot kéri, amelyet a tárca nem ismer vagy nem erősítette meg, ezért a hivatkozást nem alkalmaztuk.",
-    "application_id": "Alkalmazásazonosító"
+    "application_id": "Alkalmazásazonosító",
+    "application_create": "létrehozás"
   },
   "settings": {
     "title": "Beállítások",

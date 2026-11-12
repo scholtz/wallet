@@ -595,7 +595,8 @@
     "uri_fee_ignored": "Se ignoró la comisión del enlace de pago porque no es válida, es inferior a 0,001 ALGO o supera 0,1 ALGO.",
     "link_network_switch": "El enlace de pago quiere cambiar la cartera a la red {network}. ¿Cambiar de red?",
     "link_network_refused": "El enlace de pago solicita la red {network}, que esta cartera no conoce o que no confirmaste, por lo que el enlace no se aplicó.",
-    "application_id": "ID de la aplicación"
+    "application_id": "ID de la aplicación",
+    "application_create": "crear"
   },
   "settings": {
     "title": "Configuraciones",

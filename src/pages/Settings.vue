@@ -351,6 +351,7 @@ export default {
       isInitializing: true,
       showDestroyDialog: false,
       destroyPassword: "",
+      destroying: false,
       passw1: "",
       passw2: "",
       passw3: "",
@@ -546,9 +547,17 @@ export default {
     },
     async destroyWalletClick() {
       const pass = this.destroyPassword;
+      // Enter on an empty field, or a second Enter while the password is being verified.
+      if (!pass || this.destroying) return;
+      this.destroying = true;
       // The password never stays in the component, whatever the outcome.
       this.destroyPassword = "";
-      const destroyed = await this.destroyWallet({ pass });
+      let destroyed;
+      try {
+        destroyed = await this.destroyWallet({ pass });
+      } finally {
+        this.destroying = false;
+      }
       if (destroyed) {
         this.showDestroyDialog = false;
       } else {

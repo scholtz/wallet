@@ -595,7 +595,8 @@
     "uri_fee_ignored": "Ödeme bağlantısındaki ücret geçersiz, 0,001 ALGO’nun altında veya 0,1 ALGO’nun üzerinde olduğu için yok sayıldı.",
     "link_network_switch": "Ödeme bağlantısı cüzdanı {network} ağına geçirmek istiyor. Ağ değiştirilsin mi?",
     "link_network_refused": "Ödeme bağlantısı, bu cüzdanın tanımadığı veya onaylamadığınız {network} ağını istiyor; bu yüzden bağlantı uygulanmadı.",
-    "application_id": "Uygulama kimliği"
+    "application_id": "Uygulama kimliği",
+    "application_create": "oluştur"
   },
   "settings": {
     "title": "Ayarlar",

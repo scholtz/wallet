@@ -617,7 +617,7 @@ const actions: ActionTree<AlgodState, RootState> = {
   // use this to declare exactly the required fee before signing. Returns
   // undefined only when even suggested params can't be fetched.
   async estimateRequiredFee(
-    { rootState },
+    { rootState, dispatch },
     { txn, senderAddr }: { txn: algosdk.Transaction; senderAddr: string },
   ): Promise<FeeEstimate | undefined> {
     try {
@@ -625,7 +625,17 @@ const actions: ActionTree<AlgodState, RootState> = {
       const params = await algodClient.getTransactionParams().do();
       // Same node-parameter checks as every other fetch: a node must not steer the fee or
       // answer for another network (AW-2026-107).
-      assertParamsMatchNetwork(rootState, params);
+      try {
+        assertParamsMatchNetwork(rootState, params);
+      } catch (guardError) {
+        // Say why there is no estimate instead of looking like an unreachable node.
+        await dispatch(
+          "toast/openError",
+          guardError instanceof Error ? guardError.message : String(guardError),
+          { root: true },
+        );
+        return undefined;
+      }
       const falcon1024Signer = isFalcon1024Signer(rootState, senderAddr);
       let groupUsage: bigint | undefined;
       let failureMessage: string | undefined;
