@@ -136,7 +136,9 @@ export interface KeyRegDetails {
 }
 
 const toBase64 = (bytes?: Uint8Array): string | undefined =>
-  bytes && bytes.length > 0 ? btoa(String.fromCharCode(...bytes)) : undefined;
+  bytes && bytes.length > 0
+    ? btoa(Array.from(bytes, (b) => String.fromCharCode(b)).join(""))
+    : undefined;
 
 /**
  * Describes a key registration transaction; undefined for other types. `nonparticipation` is

@@ -1396,8 +1396,14 @@ const respondingRequestIds = new Set<RequestItem["id"]>();
 
 // The request is answered: drop the cached signatures of its transactions (AW-2026-104).
 const forgetRequestSignatures = async (data: RequestItem) => {
-  const txIds = (data.transactions ?? []).map((tx: TransactionWrapper) => tx.txn.txID());
-  await store.dispatch("signer/forgetSigned", { txIds });
+  // Best effort: the request itself was already answered, so a failure here must not be
+  // reported as a failed request.
+  try {
+    const txIds = (data.transactions ?? []).map((tx: TransactionWrapper) => tx.txn.txID());
+    await store.dispatch("signer/forgetSigned", { txIds });
+  } catch (err) {
+    console.error("Could not clear cached signatures", err);
+  }
 };
 
 const clickAccept = async (data: RequestItem) => {

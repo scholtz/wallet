@@ -995,6 +995,24 @@ const makeAssets = async () => {
   }
 };
 
+// parseToAccount runs more than once per page load: ask about a link's network only once, and
+// never apply the rest of a link whose network was refused (AW-2026-102).
+const linkNetworkDecisions = new Map<string, boolean>();
+const applyLinkNetwork = async (network: string): Promise<boolean> => {
+  const known = linkNetworkDecisions.get(network);
+  if (known !== undefined) return known;
+  const switched = (await store.dispatch("config/switchEnvFromLink", {
+    env: network,
+    confirm: (canonicalEnv: string) =>
+      window.confirm(t("pay.link_network_switch", { network: canonicalEnv })),
+  })) as boolean;
+  linkNetworkDecisions.set(network, switched);
+  if (!switched) {
+    await openError(t("pay.link_network_refused", { network }));
+  }
+  return switched;
+};
+
 const parseToAccount = async (encodedValue?: string) => {
   const encoded =
     encodedValue ??
@@ -1002,6 +1020,7 @@ const parseToAccount = async (encodedValue?: string) => {
   if (!encoded) return;
   const parsed = aprotocol.parseAlgorandProtocolParameters(encoded);
   if (!parsed) return;
+  if (parsed.network && !(await applyLinkNetwork(parsed.network))) return;
   state.payTo = (parsed.payTo || "").replace(/[^\w\s]/gi, "");
   if (parsed.payamountbase !== undefined && /^[0-9]+$/.test(String(parsed.payamountbase))) {
     state.payamount = Number(parsed.payamountbase) / decimalsPower.value;
@@ -1018,17 +1037,6 @@ const parseToAccount = async (encodedValue?: string) => {
   // this order, not fired-and-forgotten in parallel - otherwise the asset id
   // from the URL gets looked up against the network we're leaving, not the
   // one the link actually points at.
-  if (parsed.network) {
-    const switched = (await store.dispatch("config/switchEnvFromLink", {
-      env: parsed.network,
-      confirm: (canonicalEnv: string) =>
-        window.confirm(t("pay.link_network_switch", { network: canonicalEnv })),
-    })) as boolean;
-    if (!switched) {
-      await openError(t("pay.link_network_refused", { network: parsed.network }));
-      return;
-    }
-  }
   if (parsed.asset) {
     state.asset = parsed.asset;
     state.forceAsset = true;

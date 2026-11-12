@@ -62,7 +62,11 @@ export const isArc14AuthTransaction = (
   if (!txn || txn.type !== "pay") return false;
   if (txn.group && txn.group.length > 0) return false;
   if (txn.rekeyTo) return false;
-  if (BigInt(txn.fee ?? 0) > ARC14_MAX_FEE_MICROALGOS) return false;
+  try {
+    if (BigInt(txn.fee ?? 0) > ARC14_MAX_FEE_MICROALGOS) return false;
+  } catch {
+    return false; // not an integer fee: never a login
+  }
   const payment = txn.payment;
   if (!payment) return false;
   if (payment.closeRemainderTo) return false;

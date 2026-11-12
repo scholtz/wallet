@@ -578,10 +578,16 @@ const actions: ActionTree<ConfigState, RootState> = {
     const preset = findPreset(env);
     let canonicalEnv = preset?.env;
     if (!canonicalEnv) {
-      const genesisList = (await dispatch("publicData/getGenesisList", undefined, {
-        root: true,
-      })) as GenesisNetwork[];
-      canonicalEnv = genesisList.find((n) => n.network === env)?.network;
+      try {
+        const genesisList = (await dispatch("publicData/getGenesisList", undefined, {
+          root: true,
+        })) as GenesisNetwork[];
+        canonicalEnv = genesisList.find((n) => n.network === env)?.network;
+      } catch (err) {
+        // Offline / public data unavailable: an unverifiable network is refused.
+        console.error("switchEnvFromLink: genesis list unavailable", err);
+        return false;
+      }
     }
     if (!canonicalEnv) return false;
     if (canonicalEnv === state.env) return true;

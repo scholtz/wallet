@@ -1308,6 +1308,24 @@ const reset = () => {
   rawSignedTxnInput.value = null;
 };
 
+// parseToAccount runs more than once per page load: ask about a link's network only once, and
+// never apply the rest of a link whose network was refused (AW-2026-102).
+const linkNetworkDecisions = new Map<string, boolean>();
+const applyLinkNetwork = async (network: string): Promise<boolean> => {
+  const known = linkNetworkDecisions.get(network);
+  if (known !== undefined) return known;
+  const switched = (await store.dispatch("config/switchEnvFromLink", {
+    env: network,
+    confirm: (canonicalEnv: string) =>
+      window.confirm(t("pay.link_network_switch", { network: canonicalEnv })),
+  })) as boolean;
+  linkNetworkDecisions.set(network, switched);
+  if (!switched) {
+    await openErrorAction(t("pay.link_network_refused", { network }));
+  }
+  return switched;
+};
+
 const parseToAccount = async () => {
   const encoded = toSingleParam(
     route.params.toAccount as string | string[] | undefined
@@ -1315,6 +1333,10 @@ const parseToAccount = async () => {
   if (!encoded) return;
   b64decode.value = aprotocol.parseAlgorandProtocolParameters(encoded);
   if (!b64decode.value) return;
+  if (b64decode.value.network && !(await applyLinkNetwork(b64decode.value.network))) {
+    b64decode.value = null;
+    return;
+  }
   if (b64decode.value.payTo) {
     payTo.value = b64decode.value.payTo.replace(/[^\w\s]/gi, "");
   }
@@ -1336,18 +1358,6 @@ const parseToAccount = async () => {
       fee.value = uriFee;
     } else {
       openErrorAction(t("pay.uri_fee_ignored"));
-    }
-  }
-  if (b64decode.value.network) {
-    const linkNetwork = b64decode.value.network;
-    const switched = (await store.dispatch("config/switchEnvFromLink", {
-      env: linkNetwork,
-      confirm: (canonicalEnv: string) =>
-        window.confirm(t("pay.link_network_switch", { network: canonicalEnv })),
-    })) as boolean;
-    if (!switched) {
-      await openErrorAction(t("pay.link_network_refused", { network: linkNetwork }));
-      return;
     }
   }
 };

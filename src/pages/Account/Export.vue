@@ -298,7 +298,7 @@ async function copyToClipboard(text: string) {
     scheduleClipboardClear(text);
     await store.dispatch(
       "toast/openSuccess",
-      "Mnemonics copied to clipboard. The clipboard is cleared in 60 seconds.",
+      "Mnemonics copied to clipboard. The wallet tries to clear the clipboard after 60 seconds.",
     );
   }
 }
