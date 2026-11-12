@@ -1230,13 +1230,14 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       }
     }
     const removedIndex = accounts.findIndex((a) => a.addr === addr);
-    const removed = accounts[removedIndex];
-    // Puts back only the account that was removed: other state may have changed while the save ran.
+    // Every copy of the address is removed, so every copy is put back.
+    const removed = accounts.filter((a) => a.addr === addr);
+    // Puts back only the removed accounts: other state may have changed while the save ran.
     const restoreRemoved = () => {
       const current = this.state.wallet.privateAccounts;
-      if (!removed || current.some((a) => a.addr === addr)) return;
+      if (!removed.length || current.some((a) => a.addr === addr)) return;
       const next = [...current];
-      next.splice(Math.min(removedIndex, next.length), 0, removed);
+      next.splice(Math.min(removedIndex, next.length), 0, ...removed);
       commit("setPrivateAccounts", next);
     };
     try {

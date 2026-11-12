@@ -123,6 +123,9 @@ test("create basic ed25519 account, verify mnemonic export, back up via 2-of-3 S
   await expect(confirmDelete).toBeDisabled();
   await page.locator("#delete_account_password").fill("not-the-password");
   await confirmDelete.click();
+  await expect(page.locator(".p-toast-message")).toContainText("Wrong password", {
+      timeout: 30000,
+    });
   await expect(page).toHaveURL(`/account/${accountAddress}`);
   // The dialog stays open after the failure.
   await page.locator("#delete_account_password").fill(WALLET_PASSWORD);

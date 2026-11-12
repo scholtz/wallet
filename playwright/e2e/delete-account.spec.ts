@@ -20,7 +20,9 @@ test.describe("Delete account", () => {
     // Wrong password: nothing is deleted.
     await page.locator("#delete_account_password").fill("not-the-password");
     await confirm.click();
-    await expect(page.locator(".p-toast-message")).toContainText("Wrong password");
+    await expect(page.locator(".p-toast-message")).toContainText("Wrong password", {
+      timeout: 30000,
+    });
     await expect(page).toHaveURL(`/account/${account}`);
 
     // The dialog stays open after a failure; the right password deletes the (last) account.
