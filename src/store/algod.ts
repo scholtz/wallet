@@ -395,6 +395,12 @@ const actions: ActionTree<AlgodState, RootState> = {
       }
     } catch (error) {
       console.error("Failed to make payment", error);
+      // e.g. the node answered with parameters of another network (AW-2026-107): say so.
+      dispatch(
+        "toast/openError",
+        error instanceof Error ? error.message : String(error),
+        { root: true },
+      );
       return undefined;
     }
   },

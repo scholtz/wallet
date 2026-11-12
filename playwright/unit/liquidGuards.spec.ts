@@ -333,6 +333,16 @@ test.describe("admitTransactions fee ceiling", () => {
     expect(admit(900_000_000n).ok).toBe(false);
   });
 
+  test("refuses a group whose fees add up above the per-request ceiling", () => {
+    const tx = { sender: "A", type: "pay", fee: 400_000n };
+    expect(
+      admitTransactions({ transactions: [tx, tx], approved: ["A"], own: ["A"] }).ok,
+    ).toBe(true);
+    expect(
+      admitTransactions({ transactions: [tx, tx, tx], approved: ["A"], own: ["A"] }).ok,
+    ).toBe(false);
+  });
+
   test("ignores the fee of transactions the wallet does not sign", () => {
     expect(admit(900_000_000n, { preSigned: true }).ok).toBe(true);
     expect(admit(900_000_000n, { signers: [] }).ok).toBe(true);

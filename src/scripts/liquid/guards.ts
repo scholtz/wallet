@@ -289,6 +289,8 @@ export interface AdmissionTxEntry extends SignRequestEntry {
  * an account's spendable balance as "fee" with one self-payment (AW-2026-101).
  */
 export const MAX_DAPP_FEE_MICROALGOS = 500_000n;
+/** Ceiling for the fees of all transactions the wallet signs in one request (1 ALGO). */
+export const MAX_DAPP_REQUEST_FEE_MICROALGOS = 1_000_000n;
 
 /** Decoded transactions: every one the wallet would sign must belong to an approved account. */
 export function admitTransactions(input: {
@@ -316,7 +318,14 @@ export function admitTransactions(input: {
       !(Array.isArray(entry.signers) && entry.signers.length === 0) &&
       BigInt(entry.fee ?? 0) > MAX_DAPP_FEE_MICROALGOS,
   );
-  if (overpriced) {
+  const signedFeeTotal = input.transactions.reduce(
+    (sum, entry) =>
+      entry.preSigned || (Array.isArray(entry.signers) && entry.signers.length === 0)
+        ? sum
+        : sum + BigInt(entry.fee ?? 0),
+    0n,
+  );
+  if (overpriced || signedFeeTotal > MAX_DAPP_REQUEST_FEE_MICROALGOS) {
     return {
       ok: false,
       code: REQUEST_ERROR.invalid,
