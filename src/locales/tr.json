@@ -1430,7 +1430,8 @@
     "return_to_arc14": "ARC14 sayfasına dön",
     "return_to_previous": "Önceki sayfaya dön",
     "arc14_login_info": "Bu, {realm} için bir giriştir. Burada imzalayın; asla ağa gönderilmez. İmzalı giriş daha sonra yeniden kullanılmak üzere cüzdanda saklanır.",
-    "arc14_login_kept": "{realm} için giriş imzalandı ve cüzdanda saklandı. Asla ağa gönderilmez. Şimdi geri dönebilirsiniz."
+    "arc14_login_kept": "{realm} için giriş imzalandı ve cüzdanda saklandı. Asla ağa gönderilmez. Şimdi geri dönebilirsiniz.",
+    "arc14_login_not_kept": "Giriş imzalandı ancak seçili ağ için saklanamadı. Geri dönüp yeniden isteyin."
   },
   "arc14": {
     "service_realm_title": "Service realm",

@@ -1430,7 +1430,8 @@
     "return_to_arc14": "Terug naar de ARC14-pagina",
     "return_to_previous": "Terug naar de vorige pagina",
     "arc14_login_info": "Dit is een inlog voor {realm}. Onderteken hem hier; hij wordt nooit naar het netwerk verzonden. De ondertekende inlog wordt daarna in de wallet bewaard voor hergebruik.",
-    "arc14_login_kept": "De inlog voor {realm} is ondertekend en in de wallet bewaard. Hij wordt nooit naar het netwerk verzonden. U kunt nu terugkeren."
+    "arc14_login_kept": "De inlog voor {realm} is ondertekend en in de wallet bewaard. Hij wordt nooit naar het netwerk verzonden. U kunt nu terugkeren.",
+    "arc14_login_not_kept": "De inlog is ondertekend maar kon niet worden bewaard voor het gekozen netwerk. Ga terug en vraag hem opnieuw aan."
   },
   "arc14": {
     "service_realm_title": "Service realm",

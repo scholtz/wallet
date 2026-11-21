@@ -76,6 +76,7 @@ const account = () => String(route.params.account ?? "");
 const clickSign = async () => {
   try {
     processingSigning.value = true;
+    realm.value = realm.value.trim();
     const type = await handoff.getSignerType(account());
     // Multisig / 2FA and Ledger accounts sign the login on the Sign-all page (never sent to the
     // network); it is kept in the wallet, so an already stored valid one is shown at once.
@@ -89,12 +90,15 @@ const clickSign = async () => {
         output.value = stored;
         return;
       }
-      await handoff.requestArc14Auth(
+      const handedOver = await handoff.requestArc14Auth(
         account(),
         realm.value,
         "Arc14",
         `${route.path}?realm=${encodeURIComponent(realm.value)}`,
       );
+      if (!handedOver) {
+        await store.dispatch("toast/openError", t("arc14.realm_required"));
+      }
       return;
     }
     output.value = await store.dispatch("arc14/signAuthTx", {

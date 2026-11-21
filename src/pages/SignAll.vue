@@ -359,6 +359,11 @@ const keepArc14Login = async () => {
   state.arc14LoginKept = await store.dispatch("arc14/storeSignedAuth", {
     signed,
   });
+  if (!state.arc14LoginKept) {
+    // E.g. the network was switched after signing: say so instead of leaving a dead end.
+    state.error = t("sign_all.arc14_login_not_kept");
+    await store.dispatch("toast/openError", state.error);
+  }
 };
 
 const submitSignedClick = async () => {
@@ -560,7 +565,7 @@ const arc56SummaryTransactions = computed(() =>
             data-testid="sign-all-return"
             :severity="state.confirmedRound ? 'primary' : 'secondary'"
             :disabled="
-              arc14Login ? !state.arc14LoginKept : !state.atLeastOneSigned
+              arc14Login ? !state.allTxsAreSigned : !state.atLeastOneSigned
             "
             @click="returnToOrigin"
           >

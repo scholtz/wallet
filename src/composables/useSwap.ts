@@ -654,6 +654,8 @@ export function useSwap() {
     );
 
     await Promise.all(enabledAggregators.map((agg) => agg.getQuote(context)));
+    // A stored router login may have expired while the page was open: offer the button again.
+    await refreshSigningRoute();
     // Route-selection and the on-screen quote/price must reflect the
     // simulated outcome, so wait for it before releasing the "processing"
     // state that unblocks the execute buttons.
@@ -689,6 +691,7 @@ export function useSwap() {
       const before = balanceSnapshot(accountData.value, watched);
       txSentByExecute = false;
       await agg.execute(context);
+      await refreshSigningRoute();
       // The indexer trails algod by a few seconds - settleAfterSwap keeps
       // reading until it shows the swap, otherwise the old balance stays.
       await settleAfterSwap({

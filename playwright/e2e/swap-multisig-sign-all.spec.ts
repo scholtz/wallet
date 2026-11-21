@@ -554,3 +554,39 @@ test("a multisig account authorizes the Biatec Router once on the Sign-all page 
   await expect(page.getByTestId("sign-all-arc14-info")).toHaveCount(0);
   expect(chain.submitted).toBeNull();
 });
+
+test("the ARC-14 page signs a multisig login on the Sign-all page and shows the stored token", async ({
+  page,
+}) => {
+  test.setTimeout(240000);
+  await mockChain(page);
+  await setupFreshWallet(page);
+  const { msig } = await createMultisig(page);
+
+  await navigate(page, `/arc14/${msig}`);
+  const signButton = page.getByRole("button", {
+    name: "Sign authentication transaction",
+  });
+  await expect(signButton).toBeVisible({ timeout: 30000 });
+
+  // A realm without the #ARC14 marker would not be recognised as a login: refused with a message.
+  await page.locator("#realm").fill("Service");
+  await signButton.click();
+  await expect(page.locator(".p-toast-message-error")).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/arc14/${msig}`));
+
+  await page.locator("#realm").fill("Service#ARC14");
+  await signButton.click();
+  await expect(page).toHaveURL(/\/signAll/, { timeout: 15000 });
+  await expect(page.getByTestId("sign-all-arc14-info")).toBeVisible();
+  await expect(page.getByTestId("sign-all-return")).toBeDisabled();
+  await signWithBothMultisigSigners(page);
+  await expect(page.getByTestId("sign-all-return")).toBeEnabled();
+  await page.getByTestId("sign-all-return").click();
+
+  await expect(page).toHaveURL(/\/arc14\//);
+  await expect(page.locator("#realm")).toHaveValue("Service#ARC14");
+  await expect(page.locator("textarea")).toHaveValue(/^SigTx /, {
+    timeout: 15000,
+  });
+});

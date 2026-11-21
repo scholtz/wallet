@@ -1430,7 +1430,8 @@
     "return_to_arc14": "Return to the ARC14 page",
     "return_to_previous": "Return to the previous page",
     "arc14_login_info": "This is a login for {realm}. Sign it here; it is never sent to the network. The signed login is then kept in the wallet for reuse.",
-    "arc14_login_kept": "The login for {realm} is signed and kept in the wallet. It is never sent to the network. You can return now."
+    "arc14_login_kept": "The login for {realm} is signed and kept in the wallet. It is never sent to the network. You can return now.",
+    "arc14_login_not_kept": "The login was signed but could not be kept for the selected network. Return and request it again."
   },
   "arc14": {
     "service_realm_title": "Diens domein",

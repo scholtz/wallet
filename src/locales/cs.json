@@ -1430,7 +1430,8 @@
     "return_to_arc14": "Zpět na stránku ARC14",
     "return_to_previous": "Zpět na předchozí stránku",
     "arc14_login_info": "Toto je přihlášení k {realm}. Podepište jej zde; nikdy se neodešle do sítě. Podepsané přihlášení se poté uchová v peněžence k opětovnému použití.",
-    "arc14_login_kept": "Přihlášení k {realm} je podepsáno a uchováno v peněžence. Nikdy se neodešle do sítě. Nyní se můžete vrátit."
+    "arc14_login_kept": "Přihlášení k {realm} je podepsáno a uchováno v peněžence. Nikdy se neodešle do sítě. Nyní se můžete vrátit.",
+    "arc14_login_not_kept": "Přihlášení bylo podepsáno, ale nepodařilo se jej uchovat pro vybranou síť. Vraťte se a vyžádejte jej znovu."
   },
   "arc14": {
     "service_realm_title": "Servisní doména",

@@ -1430,7 +1430,8 @@
     "return_to_arc14": "Torna alla pagina ARC14",
     "return_to_previous": "Torna alla pagina precedente",
     "arc14_login_info": "Questo è un accesso a {realm}. Firmalo qui; non viene mai inviato alla rete. L'accesso firmato viene poi conservato nel portafoglio per essere riutilizzato.",
-    "arc14_login_kept": "L'accesso a {realm} è firmato e conservato nel portafoglio. Non viene mai inviato alla rete. Ora puoi tornare indietro."
+    "arc14_login_kept": "L'accesso a {realm} è firmato e conservato nel portafoglio. Non viene mai inviato alla rete. Ora puoi tornare indietro.",
+    "arc14_login_not_kept": "L'accesso è stato firmato ma non è stato possibile conservarlo per la rete selezionata. Torna indietro e richiedilo di nuovo."
   },
   "arc14": {
     "service_realm_title": "Service realm",

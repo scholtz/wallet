@@ -1430,7 +1430,8 @@
     "return_to_arc14": "Volver a la página ARC14",
     "return_to_previous": "Volver a la página anterior",
     "arc14_login_info": "Este es un inicio de sesión en {realm}. Fírmelo aquí; nunca se envía a la red. Después se conserva en la cartera para reutilizarlo.",
-    "arc14_login_kept": "El inicio de sesión en {realm} está firmado y guardado en la cartera. Nunca se envía a la red. Ya puede volver."
+    "arc14_login_kept": "El inicio de sesión en {realm} está firmado y guardado en la cartera. Nunca se envía a la red. Ya puede volver.",
+    "arc14_login_not_kept": "El inicio de sesión se firmó, pero no se pudo conservar para la red seleccionada. Vuelva y solicítelo de nuevo."
   },
   "arc14": {
     "service_realm_title": "Dominio de servicio",

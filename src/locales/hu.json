@@ -1430,7 +1430,8 @@
     "return_to_arc14": "Vissza az ARC14 oldalra",
     "return_to_previous": "Vissza az előző oldalra",
     "arc14_login_info": "Ez egy bejelentkezés ide: {realm}. Írja alá itt; soha nem kerül elküldésre a hálózatra. Az aláírt bejelentkezést a tárca ezután megőrzi az újrafelhasználáshoz.",
-    "arc14_login_kept": "A(z) {realm} bejelentkezés alá van írva és el van tárolva a tárcában. Soha nem kerül elküldésre a hálózatra. Most visszatérhet."
+    "arc14_login_kept": "A(z) {realm} bejelentkezés alá van írva és el van tárolva a tárcában. Soha nem kerül elküldésre a hálózatra. Most visszatérhet.",
+    "arc14_login_not_kept": "A bejelentkezés alá lett írva, de nem tárolható a kiválasztott hálózathoz. Térjen vissza, és kérje újra."
   },
   "arc14": {
     "service_realm_title": "Szolgáltatási tartomány",
