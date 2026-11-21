@@ -279,7 +279,7 @@ test("a multisig account executes a swap by collecting the signatures on the Sig
   await setupFreshWallet(page);
   await seedUsdc(page);
 
-  // A basic account next to the wallet's first account, combined into a 1-of-2 multisig.
+  // A basic account next to the wallet's first account, combined into a 2-of-2 multisig.
   await chooseNewAccountMenuItem(page, "Create basic account");
   await expect(page).toHaveURL(/\/new-account\/ed25519/);
   await page.locator("#name").fill("Basic Account");
@@ -297,7 +297,7 @@ test("a multisig account executes a swap by collecting the signatures on the Sig
     await options.nth(i).click();
   }
   await page.keyboard.press("Escape");
-  await page.locator("#threshold").fill("1");
+  await page.locator("#threshold").fill("2");
   await page.locator("#threshold").blur();
   await page.locator("#name").fill("Multisig swap");
   await page
@@ -350,10 +350,12 @@ test("a multisig account executes a swap by collecting the signatures on the Sig
       .getByRole("button", { name: "Create multisig proposal" })
       .click();
     await page.locator(".p-multiselect").first().click();
-    await page
-      .locator(".p-multiselect-overlay .p-multiselect-option")
-      .nth(0)
-      .click();
+    // Both signers of the 2-of-2 sign in this visit; the threshold is only met with both.
+    const signers = page.locator(
+      ".p-multiselect-overlay .p-multiselect-option",
+    );
+    await signers.nth(0).click();
+    await signers.nth(1).click();
     await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "Sign", exact: true }).click();
     const back = page.getByRole("button", {
@@ -378,7 +380,9 @@ test("a multisig account executes a swap by collecting the signatures on the Sig
   );
   expect(sent).toHaveLength(3);
   for (const stxn of sent.slice(0, 2)) {
-    expect(stxn.msig).toBeDefined();
+    // Threshold 2 of 2: both subsignatures are present.
+    expect(stxn.msig?.thr).toBe(2);
+    expect(stxn.msig?.subsig.filter((s) => !!s.s)).toHaveLength(2);
     expect(stxn.txn.sender.toString()).toBe(msig);
   }
   expect(sent[2].lsig).toBeDefined();
