@@ -209,7 +209,7 @@ AWallet is a Vue 3-based cryptocurrency wallet for Algorand blockchain, built wi
 
 ## Signing transactions built by a page
 
-When a page builds transactions (swap, asset opt-in/opt-out, scheduled payments, ...), sign in place with `signer/signTransaction` only for accounts with a key in the wallet (signer types `sk`, `hd`, `falcon1024`) - never with a raw `wallet/getSK` key. Use `useSignAllHandoff().signingRouteFor(addr)` (`direct` / `signAll` / `none`, logic in `src/scripts/signing/complexSigning.ts`); for `signAll` (multisig, 2FA, Ledger) validate and group the transactions, then `handOffToSignAll(txns, "<FlowKey>")`, which fills `/signAll` via `signer/toSignArray` and records the page to return to. Full rules and the E2E template (`playwright/e2e/swap-multisig-sign-all.spec.ts`) are in `CLAUDE.md` ("Signing transactions built by a page").
+When a page builds transactions (swap, asset opt-in/opt-out, scheduled payments, ...), sign in place with `signer/signTransaction` only for accounts with a key in the wallet (signer types `sk`, `hd`) - never with a raw `wallet/getSK` key. Use `useSignAllHandoff().signingRouteFor(addr)` (`direct` / `signAll` / `none`, logic in `src/scripts/signing/complexSigning.ts`); for `signAll` (multisig, 2FA, Ledger, Falcon-1024) validate and group the transactions, then `handOffToSignAll(txns, "<FlowKey>")`, which fills `/signAll` via `signer/toSignArray` and records the page to return to. Full rules and the E2E template (`playwright/e2e/swap-multisig-sign-all.spec.ts`) are in `CLAUDE.md` ("Signing transactions built by a page").
 
 ## Development Workflow
 

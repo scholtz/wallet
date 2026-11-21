@@ -1,5 +1,6 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 import algosdk from "algosdk";
 import { useStore } from "@/store";
 import { useSignAllHandoff } from "./useSignAllHandoff";
@@ -13,6 +14,7 @@ export function useFolksLendAccount() {
   const store = useStore();
   const route = useRoute();
   const signAllHandoff = useSignAllHandoff();
+  const { t } = useI18n();
 
   const sender = computed(() => String(route.params.account));
   const accountData = computed(
@@ -56,7 +58,7 @@ export function useFolksLendAccount() {
   ): Promise<{ txid: string; confirmed: boolean } | undefined> => {
     const signingRoute = await signAllHandoff.signingRouteFor(from);
     if (signingRoute === "none") {
-      throw new Error("This account cannot sign transactions in this wallet.");
+      throw new Error(t("swap.no_signer"));
     }
     if (signingRoute === "signAll") {
       await signAllHandoff.handOffToSignAll(txns, "Swap");

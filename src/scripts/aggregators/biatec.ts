@@ -16,7 +16,6 @@ import { Buffer } from "buffer";
 import { combineRouteResponse } from "./combineBiatecRoute";
 import { getEffectiveQuoteAmount } from "./simulate";
 import { assertSwapTransactionsSafe } from "./validate";
-import { NO_SIGNER_MESSAGE } from "./signing";
 
 export interface BiatecAggregatorOptions {
   name: string;
@@ -158,7 +157,7 @@ ${displayName.toUpperCase()}: not available for multisig and Ledger accounts`;
       try {
         const signingRoute = await context.getSigningRoute();
         if (signingRoute === "none") {
-          throw new Error(NO_SIGNER_MESSAGE);
+          throw new Error(context.noSignerMessage);
         }
         if (!(await canAuthenticate(context))) {
           throw new Error(notAvailableForAccountMessage);
@@ -266,7 +265,7 @@ ${displayName.toUpperCase()}: not available for multisig and Ledger accounts`;
         transactions.forEach((tx) => (tx.group = groupId));
 
         if (signingRoute === "signAll") {
-          // Multisig / Ledger: the signatures are collected on the Sign-all page.
+          // Falcon-1024: the signatures are collected on the Sign-all page.
           await context.handOffToSignAll(transactions);
           context.aggregatorData[processingKey].value = false;
           return;

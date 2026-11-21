@@ -63,8 +63,8 @@ export function useSwap() {
   const txsDetails: Ref<string> = ref(
     "Select assets, quantity and request quote"
   );
-  // How the account signs: in place ("direct": key, HD, Falcon) or through the Sign-all
-  // page (multisig / 2FA, Ledger). null until the account is loaded.
+  // How the account signs: in place ("direct": key, HD) or through the Sign-all
+  // page (multisig / 2FA, Ledger, Falcon). null until the account is loaded.
   const signingRoute: Ref<SigningRoute | null> = ref(null);
   const processingQuote: Ref<boolean> = ref(false);
   const processingOptin: Ref<boolean> = ref(false);
@@ -378,6 +378,7 @@ export function useSwap() {
     checkNetwork,
     signAuthTx: (config: { account: string; realm: string }) =>
       store.dispatch("arc14/signAuthTx", config),
+    noSignerMessage: t("swap.no_signer"),
     getSignerType: () =>
       signAllHandoff.getSignerType(String(route.params.account ?? "")),
     getSigningRoute,
@@ -672,14 +673,15 @@ export function useSwap() {
 
   const clickOptInToApps = async (): Promise<void> => {
     processingOptin.value = true;
-    const optInRoute = await getSigningRoute();
-    if (optInRoute === "none") {
-      processingOptin.value = false;
-      store.dispatch("toast/openError", t("swap.no_signer"));
-      return;
-    }
+    let optInRoute: SigningRoute;
     let params: algosdk.SuggestedParams;
     try {
+      optInRoute = await getSigningRoute();
+      if (optInRoute === "none") {
+        processingOptin.value = false;
+        store.dispatch("toast/openError", t("swap.no_signer"));
+        return;
+      }
       params = await store.dispatch("algod/getCheckedTransactionParams");
     } catch (error) {
       processingOptin.value = false;
@@ -691,7 +693,7 @@ export function useSwap() {
     }
 
     if (optInRoute === "signAll") {
-      // One group, signed on the Sign-all page (multisig, Ledger, ...).
+      // One group, signed on the Sign-all page (multisig, Ledger, Falcon).
       try {
         const optIns = appsToOptIn.value.map((app) =>
           algosdk.makeApplicationOptInTxnFromObject({
@@ -725,6 +727,11 @@ export function useSwap() {
         from: account.value!.addr,
         tx: appOptInTxn,
       });
+      if (!signedTxn) {
+        // The signer already showed why (cancelled, failed).
+        processingOptin.value = false;
+        return;
+      }
       const tx = (await store.dispatch("algod/sendRawTransaction", {
         signedTxn,
       })) as algosdk.modelsv2.PostTransactionsResponse;

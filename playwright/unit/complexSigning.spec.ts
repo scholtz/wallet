@@ -7,12 +7,12 @@ import {
 
 test.describe("resolveSigningRoute", () => {
   test("accounts with a key in the wallet sign in place", () => {
-    for (const type of ["sk", "hd", "falcon1024"] as const) {
+    for (const type of ["sk", "hd"] as const) {
       expect(resolveSigningRoute(type)).toBe("direct");
     }
   });
-  test("multisig / 2FA and Ledger go through the Sign-all page", () => {
-    for (const type of ["msig", "ledger"] as const) {
+  test("multisig / 2FA, Ledger and Falcon-1024 (fee warning) go through the Sign-all page", () => {
+    for (const type of ["msig", "ledger", "falcon1024"] as const) {
       expect(resolveSigningRoute(type)).toBe("signAll");
     }
   });

@@ -187,7 +187,7 @@ export interface SwapContext {
     config?: { headers: Record<string, string> };
   }) => Promise<DeflexTxsData>;
   /**
-   * Signs one transaction of the selected account in place (key, HD or Falcon account); undefined
+   * Signs one transaction of the selected account in place (key or HD account); undefined
    * when the signer failed or was cancelled (it already showed its own error).
    */
   signTransaction: (txn: algosdk.Transaction) => Promise<Uint8Array | undefined>;
@@ -203,6 +203,8 @@ export interface SwapContext {
   reloadAccount: () => Promise<void>;
   checkNetwork: () => string | false;
   signAuthTx: (config: { account: string; realm: string }) => Promise<string>;
+  /** Localized "this account cannot sign in this wallet" message. */
+  noSignerMessage: string;
   /** How the selected account signs (see complexSigning.ts): resolved fresh on every call. */
   getSignerType: () => Promise<SignerType>;
   getSigningRoute: () => Promise<SigningRoute>;

@@ -2,19 +2,20 @@
 // (swap, asset opt-in/out, ...). Pure on purpose: no runtime imports, so it is
 // unit-testable under Node (playwright/unit).
 //
-// Rule: an account whose key lives in the wallet (plain key, HD, Falcon) is
-// signed for in place with `signer/signTransaction` - no ceremony, so the page
-// that built the transactions can do it. Everything that needs a ceremony per
-// transaction - multisig / 2FA (several signers, `/sign`) and Ledger (confirm on
-// the device) - goes through the `/signAll` page, which already knows how to do
-// all of it. See "Signing transactions built by a page" in CLAUDE.md.
+// Rule: an account whose key lives in the wallet (plain key, HD) is signed for
+// in place with `signer/signTransaction` - no ceremony, so the page that built
+// the transactions can do it. Everything that needs a ceremony per transaction -
+// multisig / 2FA (several signers, `/sign`) and Ledger (confirm on the device) -
+// goes through the `/signAll` page, which already knows how to do all of it.
+// Falcon-1024 does too: its large signature needs a higher fee than a page's
+// transactions usually declare, and only `/signAll` warns about that. See "Signing transactions built by a page" in CLAUDE.md.
 
 /** What `signer/getSignerType` answers. */
 export type SignerType = "ledger" | "msig" | "sk" | "hd" | "falcon1024" | "?";
 
 /**
- * - `direct`: sign in place with `signer/signTransaction` (key, HD or Falcon account).
- * - `signAll`: hand the group over to `/signAll` (multisig / 2FA, Ledger).
+ * - `direct`: sign in place with `signer/signTransaction` (key or HD account).
+ * - `signAll`: hand the group over to `/signAll` (multisig / 2FA, Ledger, Falcon-1024).
  * - `none`: the wallet holds no way to sign for this account (watch-only, a
  *   rekey to an account that is not in the wallet).
  */
@@ -24,10 +25,10 @@ export const resolveSigningRoute = (signerType: SignerType): SigningRoute => {
   switch (signerType) {
     case "sk":
     case "hd":
-    case "falcon1024":
       return "direct";
     case "msig":
     case "ledger":
+    case "falcon1024":
       return "signAll";
     default:
       return "none";

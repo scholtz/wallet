@@ -10,7 +10,6 @@ import algosdk from "algosdk";
 import { Buffer } from "buffer";
 import { getEffectiveQuoteAmount } from "./simulate";
 import { assertSwapTransactionsSafe } from "./validate";
-import { NO_SIGNER_MESSAGE } from "./signing";
 
 // Folks Router only has a mainnet deployment - there is no testnet router to
 // call, so any other network (including testnet) must not be sent a request.
@@ -123,7 +122,7 @@ export const folksAggregator: DexAggregator = {
     const route = await context.getSigningRoute();
     if (route === "none") {
       context.aggregatorData.processingTradeFolks.value = false;
-      context.openError(NO_SIGNER_MESSAGE);
+      context.openError(context.noSignerMessage);
       return;
     }
 

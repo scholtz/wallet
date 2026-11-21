@@ -10,7 +10,6 @@ import algosdk from "algosdk";
 import { Buffer } from "buffer";
 import { getEffectiveQuoteAmount } from "./simulate";
 import { assertSwapTransactionSafe } from "./validate";
-import { NO_SIGNER_MESSAGE } from "./signing";
 
 // Public/shared fallback key for users who have not set their own Deflex key in
 // Settings. It is intentionally not secret (shipped in client source, visible on
@@ -177,7 +176,7 @@ export const deflexAggregator: DexAggregator = {
     const route = await context.getSigningRoute();
     if (route === "none") {
       context.aggregatorData.processingTradeDeflex.value = false;
-      context.openError(NO_SIGNER_MESSAGE);
+      context.openError(context.noSignerMessage);
       return;
     }
     // deflexTxs always holds this aggregator's own DeflexTxsData - written by

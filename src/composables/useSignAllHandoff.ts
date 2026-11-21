@@ -9,8 +9,8 @@ import {
 
 /**
  * Standard way for a page that builds transactions to get them signed:
- * `direct` accounts (key, HD, Falcon) are signed in place by the page, everything else is handed
- * to `/signAll` (multisig / 2FA, Ledger) and the page is offered
+ * `direct` accounts (key, HD) are signed in place by the page, everything else is handed
+ * to `/signAll` (multisig / 2FA, Ledger, Falcon-1024) and the page is offered
  * again afterwards. See "Signing transactions built by a page" in CLAUDE.md.
  */
 export function useSignAllHandoff() {
