@@ -158,6 +158,11 @@ const toBeSigned = async (txn: algosdk.Transaction): Promise<boolean> => {
   const txId = txn.txID();
   const signed = txId in store.state.signer.signed;
   if (!signed) return true; // if not signed return true to show sign button
+  // A pre-signed counterpart of a foreign sender (e.g. a Deflex logic-sig transaction handed over
+  // by the swap page) is done as it is; the signer type lookup would only raise an error toast.
+  if (!store.state.wallet.privateAccounts.some((a) => a.addr === encodeAddress(txn.sender))) {
+    return false;
+  }
   const from = txn.sender
     ? encodeAddress(txn.sender)
     : txn.sender
@@ -319,7 +324,11 @@ const clickSignAll = async () => {
 };
 const checkAtLeastOneSigned = () => {
   for (const tx of state.transactions) {
-    if (tx.txn.txID() in store.state.signer.signed) {
+    // Pre-signed foreign parts (logic-sig transactions) do not count: the user has signed nothing yet.
+    if (
+      tx.txn.txID() in store.state.signer.signed &&
+      store.state.wallet.privateAccounts.some((a) => a.addr === tx.from)
+    ) {
       state.atLeastOneSigned = true;
       return true;
     }

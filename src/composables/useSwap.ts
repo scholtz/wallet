@@ -2,6 +2,7 @@
 import { ref, computed, Ref } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { getActiveDexAggregators } from "../scripts/dexAggregators";
 import type {
   AggregatorDataMap,
@@ -42,6 +43,7 @@ const normalizeAmount = (value: number | bigint | undefined | null): number => {
 export function useSwap() {
   const store = useStore<RootState>();
   const route = useRoute();
+  const { t } = useI18n();
   const signAllHandoff = useSignAllHandoff();
 
   // Fixed for the lifetime of this composable instance (Swap.vue is
@@ -673,7 +675,7 @@ export function useSwap() {
     const optInRoute = await getSigningRoute();
     if (optInRoute === "none") {
       processingOptin.value = false;
-      store.dispatch("toast/openError", "This account cannot sign in this wallet");
+      store.dispatch("toast/openError", t("swap.no_signer"));
       return;
     }
     let params: algosdk.SuggestedParams;

@@ -48,7 +48,6 @@ export interface SwapComponentData {
   fromAssetObj: StoredAsset | undefined;
   toAssetObj: StoredAsset | undefined;
   txsDetails: string;
-  hasSK: boolean | null;
   processingQuote: boolean;
   processingOptin: boolean;
   note: string;
@@ -60,7 +59,6 @@ export interface SwapComponentData {
 export interface SwapMethods {
   openSuccess: (_message: string) => void;
   openError: (_message: string) => void;
-  getSK: (_config: { addr: string }) => Promise<Uint8Array>;
   getAsset: (_config: { assetIndex: number }) => Promise<StoredAsset>;
   sendRawTransaction: (_config: {
     signedTxn: Uint8Array | Uint8Array[];
