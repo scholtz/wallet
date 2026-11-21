@@ -84,6 +84,8 @@ export function createBiatecAggregator(
           context.error.value = `${displayName} is not available on this network`;
           return;
         }
+        // An account that cannot sign at all is reported by the swap page once, not per quote.
+        if ((await context.getSignerType()) === "?") return;
         if (!(await canAuthenticate(context))) {
           context.txsDetails.value += `
 ${displayName.toUpperCase()}: ${context.routerNeedsOwnSignatureMessage(displayName)}`;

@@ -294,15 +294,17 @@ export function useSwap() {
   };
 
   let signingRouteAddr = "";
+  let signingRouteRun = 0;
   const refreshSigningRoute = async (): Promise<void> => {
     const addr = String(route.params.account ?? "");
     // Never keep showing the previous account's way of signing while this one is resolved (but
     // do not blink the banner on a plain refresh of the same account).
     if (addr !== signingRouteAddr) signingRoute.value = null;
     signingRouteAddr = addr;
+    const run = ++signingRouteRun;
     const resolved = addr ? await signAllHandoff.signingRouteFor(addr) : null;
-    // The account may have changed while the signer type was resolved.
-    if (addr === String(route.params.account ?? "")) {
+    // Only the newest lookup may publish (the account or network may have changed meanwhile).
+    if (run === signingRouteRun) {
       signingRoute.value = resolved;
     }
   };

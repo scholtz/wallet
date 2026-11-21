@@ -241,7 +241,9 @@ const formatAlgo = (microAlgos: number) =>
 const clickSign = async (data: TransactionTableEntry) => {
   if (genesisMismatchIndex.value !== undefined) return;
   const txId = data.txn.txID();
-  const isSigned = txId in store.state.signer.signed;
+  // A multisig transaction below its threshold is in the signed cache but still needs signing.
+  const isSigned =
+    txId in store.state.signer.signed && !(await toBeSigned(data.txn));
   if (isSigned) {
     for (const index in state.transactions) {
       const entry = state.transactions[index];
