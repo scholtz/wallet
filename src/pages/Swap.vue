@@ -408,6 +408,14 @@ watch(toAsset, async (newToAsset) => {
   localStorage.setItem("last-swap-to-asset", newToAsset?.toString() || "0");
 });
 
+// A rekey can differ per network, so how the account signs is resolved again on a switch.
+watch(
+  () => store.state.config.env,
+  () => {
+    refreshSigningRoute();
+  }
+);
+
 watch(account, () => {
   clearQuotes();
   makeAssets();

@@ -280,13 +280,17 @@ export function useSwap() {
   };
 
   const reloadAccount = async (): Promise<void> => {
-    const info = await store.dispatch("indexer/accountInformation", {
-      addr: route.params.account,
-    });
-    if (info) {
-      await store.dispatch("wallet/updateAccount", { info });
+    try {
+      const info = await store.dispatch("indexer/accountInformation", {
+        addr: route.params.account,
+      });
+      if (info) {
+        await store.dispatch("wallet/updateAccount", { info });
+      }
+    } finally {
+      // How the account signs does not depend on the indexer being reachable.
+      await refreshSigningRoute();
     }
-    await refreshSigningRoute();
   };
 
   let signingRouteAddr = "";
@@ -401,25 +405,25 @@ export function useSwap() {
 
   // Computed properties dependent on context
   const allowExecuteDeflex = computed<boolean>(() => {
-    if (settlingSwap.value) return false;
+    if (settlingSwap.value || signingRoute.value === "none") return false;
     const agg = dexAggregators.find((a) => a.name === "deflex");
     return agg ? agg.allowExecute(context) : false;
   });
 
   const allowExecuteFolks = computed<boolean>(() => {
-    if (settlingSwap.value) return false;
+    if (settlingSwap.value || signingRoute.value === "none") return false;
     const agg = dexAggregators.find((a) => a.name === "folks");
     return agg ? agg.allowExecute(context) : false;
   });
 
   const allowExecuteBiatec = computed<boolean>(() => {
-    if (settlingSwap.value) return false;
+    if (settlingSwap.value || signingRoute.value === "none") return false;
     const agg = dexAggregators.find((a) => a.name === "biatec");
     return agg ? agg.allowExecute(context) : false;
   });
 
   const allowExecuteBiatecStage = computed<boolean>(() => {
-    if (settlingSwap.value) return false;
+    if (settlingSwap.value || signingRoute.value === "none") return false;
     const agg = dexAggregators.find((a) => a.name === "biatecStage");
     return agg ? agg.allowExecute(context) : false;
   });
