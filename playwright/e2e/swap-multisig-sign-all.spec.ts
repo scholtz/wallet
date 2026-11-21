@@ -503,13 +503,13 @@ test("a multisig account authorizes the Biatec Router once on the Sign-all page 
 
   await authorize.click();
   await expect(page).toHaveURL(/\/signAll/, { timeout: 15000 });
-  // A login, not a payment: one transaction, nothing to send, and no way back before it is signed.
+  // A login, not a payment: one transaction, nothing to send; the user may also go back unsigned.
   await expect(page.locator(".p-datatable-tbody > tr")).toHaveCount(1);
   await expect(page.getByTestId("sign-all-arc14-info")).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Send tx to the network/ }),
   ).toHaveCount(0);
-  await expect(page.getByTestId("sign-all-return")).toBeDisabled();
+  await expect(page.getByTestId("sign-all-return")).toBeEnabled();
 
   await signWithBothMultisigSigners(page);
   await expect(page.getByTestId("sign-all-arc14-info")).toContainText(
@@ -579,7 +579,6 @@ test("the ARC-14 page signs a multisig login on the Sign-all page and shows the 
   await signButton.click();
   await expect(page).toHaveURL(/\/signAll/, { timeout: 15000 });
   await expect(page.getByTestId("sign-all-arc14-info")).toBeVisible();
-  await expect(page.getByTestId("sign-all-return")).toBeDisabled();
   await signWithBothMultisigSigners(page);
   await expect(page.getByTestId("sign-all-return")).toBeEnabled();
   await page.getByTestId("sign-all-return").click();

@@ -53,7 +53,7 @@
         <!-- Multisig / Ledger: the Biatec Router's login is signed once on the Sign-all page. -->
         <Message
           severity="warn"
-          v-if="routerAuthNeeded && (useBiatec || useBiatecStage)"
+          v-if="routerAuthNeeded && checkNetwork() && (useBiatec || useBiatecStage)"
           data-testid="swap-router-authorize-info"
         >
           <div>{{ t("swap.router_needs_authorization", { router: "Biatec Router" }) }}</div>

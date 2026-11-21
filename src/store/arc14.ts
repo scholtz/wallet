@@ -68,6 +68,9 @@ const getConfig = (rootState: RootState): Arc14Config => {
 };
 
 const mutations: MutationTree<Arc14State> = {
+  reset(state) {
+    state.address2chain2realm2token = {};
+  },
   storeArc14Auth(state, { chain, addr, realm, token }: Arc14AuthPayload) {
     const chainMap = ensureChainEntry(state, chain);
     const addressMap = ensureAddressEntry(chainMap, addr);

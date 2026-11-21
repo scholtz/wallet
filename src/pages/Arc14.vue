@@ -90,15 +90,13 @@ const clickSign = async () => {
         output.value = stored;
         return;
       }
-      const handedOver = await handoff.requestArc14Auth(
+      // When it cannot be handed over, the store has already shown why.
+      await handoff.requestArc14Auth(
         account(),
         realm.value,
         "Arc14",
         `${route.path}?realm=${encodeURIComponent(realm.value)}`,
       );
-      if (!handedOver) {
-        await store.dispatch("toast/openError", t("arc14.realm_required"));
-      }
       return;
     }
     output.value = await store.dispatch("arc14/signAuthTx", {

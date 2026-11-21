@@ -1064,6 +1064,8 @@ const actionHandlers: Record<string, WalletActionHandler> = {
     } catch (err) {
       console.error("Failed to reset direct module state", err);
     }
+    // Logins signed for the router etc. must not outlive the open wallet.
+    commit("arc14/reset", null, { root: true });
     try {
       await dispatch("wc/reset", null, { root: true });
       await dispatch("liquid/reset", null, { root: true });
@@ -2151,6 +2153,8 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       } catch (err) {
         console.error("Failed to reset direct module state", err);
       }
+      // Logins signed for the router etc. must not outlive the open wallet.
+      commit("arc14/reset", null, { root: true });
       try {
         await dispatch("wc/reset", null, { root: true });
         await dispatch("liquid/reset", null, { root: true });
