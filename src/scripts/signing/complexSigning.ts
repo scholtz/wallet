@@ -35,6 +35,27 @@ export const resolveSigningRoute = (signerType: SignerType): SigningRoute => {
   }
 };
 
+/**
+ * How the ARC-14 login of a service (a signed, never broadcast self-payment) is made. Unlike a
+ * page's own transactions it is signed once and kept for reuse, so the accounts that need a
+ * ceremony (multisig / 2FA: several signers; Ledger: a device confirmation) go through
+ * `/signAll` instead of being asked on every request. Falcon-1024 signs in place: the login is
+ * never sent to the network, so the fee warning of `/signAll` does not apply to it.
+ */
+export const resolveArc14AuthRoute = (signerType: SignerType): SigningRoute => {
+  switch (signerType) {
+    case "msig":
+    case "ledger":
+      return "signAll";
+    case "sk":
+    case "hd":
+    case "falcon1024":
+      return "direct";
+    default:
+      return "none";
+  }
+};
+
 /** Where `/signAll` offers to return to once the user is done. */
 export interface SignAllReturn {
   /** Identifies the originating flow (drives the button label). */
@@ -50,6 +71,8 @@ export const signAllReturnLabelKey = (key: string): string => {
       return "return_to_swap";
     case "ScheduledPayments":
       return "return_to_scheduled_payments";
+    case "Arc14":
+      return "return_to_arc14";
     default:
       return "return_to_previous";
   }

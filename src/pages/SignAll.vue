@@ -13,6 +13,7 @@ import formatCurrency from "../scripts/numbers/formatCurrency";
 import { isAssetOptIn } from "../scripts/transactionTypes";
 import { findGenesisMismatch } from "../scripts/dappRequestChecks";
 import { lowFalconGroupFee } from "../scripts/fees";
+import { getArc14Realm, isArc14AuthTransaction } from "../scripts/encoding/arc14";
 import {
   signAllReturnLabelKey,
   signAllReturnPath,
@@ -42,6 +43,8 @@ interface SignAllState {
   processing: boolean;
   error: string;
   confirmedRound: bigint;
+  /** The ARC-14 login of this page was signed completely and is kept in the arc14 store. */
+  arc14LoginKept: boolean;
 }
 
 const state = reactive<SignAllState>({
@@ -53,6 +56,7 @@ const state = reactive<SignAllState>({
   processing: false,
   error: "",
   confirmedRound: 0n,
+  arc14LoginKept: false,
 });
 
 const toErrorMessage = (err: unknown): string =>
@@ -330,7 +334,31 @@ const checkAllTxsAreSigned = async () => {
     }
   }
   state.allTxsAreSigned = result;
+  if (result) await keepArc14Login();
   return result;
+};
+
+// An ARC-14 login (a signed self-payment that proves the account to a service, e.g. the Biatec
+// Router) is never sent to the network: once it is complete it is kept in the arc14 store, where
+// the page that asked for it picks it up after "Return to ...".
+const arc14Login = computed(
+  () =>
+    state.transactions.length === 1 &&
+    isArc14AuthTransaction(state.transactions[0].txn as algosdk.Transaction),
+);
+const arc14LoginRealm = computed(() =>
+  arc14Login.value
+    ? (getArc14Realm(state.transactions[0].txn.note) ?? "")
+    : "",
+);
+const keepArc14Login = async () => {
+  if (!arc14Login.value || state.arc14LoginKept) return;
+  const signed =
+    store.state.signer.signed[state.transactions[0].txn.txID()];
+  if (!signed) return;
+  state.arc14LoginKept = await store.dispatch("arc14/storeSignedAuth", {
+    signed,
+  });
 };
 
 const submitSignedClick = async () => {
@@ -338,6 +366,8 @@ const submitSignedClick = async () => {
     if (genesisMismatchIndex.value !== undefined) {
       throw Error(t("connect.genesis_mismatch"));
     }
+    // A login is proof for a service, not a payment: it must never reach the network.
+    if (arc14Login.value) return;
     state.processing = true;
     await store.dispatch("wallet/prolong");
     const signed: Array<Uint8Array | string> = [];
@@ -463,6 +493,17 @@ const arc56SummaryTransactions = computed(() =>
             t("sign_all.falcon_fee_warning", { fee: formatAlgo(falconFee) })
           }}
         </Message>
+        <Message
+          severity="info"
+          v-if="arc14Login"
+          data-testid="sign-all-arc14-info"
+        >
+          {{
+            state.arc14LoginKept
+              ? t("sign_all.arc14_login_kept", { realm: arc14LoginRealm })
+              : t("sign_all.arc14_login_info", { realm: arc14LoginRealm })
+          }}
+        </Message>
         <Message severity="success" v-if="state.confirmedRound">
           {{ `${t("sign_all.transaction_confirmed")} ${state.confirmedRound}` }}
         </Message>
@@ -488,6 +529,7 @@ const arc56SummaryTransactions = computed(() =>
           </Button>
           <Arc56RiskIcon :transactions="arc56SummaryTransactions" />
           <Button
+            v-if="!arc14Login"
             :disabled="
               !state.allTxsAreSigned ||
               state.processing ||
@@ -517,7 +559,9 @@ const arc56SummaryTransactions = computed(() =>
             class="ml-2"
             data-testid="sign-all-return"
             :severity="state.confirmedRound ? 'primary' : 'secondary'"
-            :disabled="!state.atLeastOneSigned"
+            :disabled="
+              arc14Login ? !state.arc14LoginKept : !state.atLeastOneSigned
+            "
             @click="returnToOrigin"
           >
             {{ returnLabel }}

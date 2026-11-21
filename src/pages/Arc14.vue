@@ -55,9 +55,13 @@ import { useStore } from "../store";
 import { scheduleClipboardClear } from "@/scripts/clipboard";
 import { useToast } from "primevue/usetoast";
 import { useI18n } from "vue-i18n";
+import { useSignAllHandoff } from "@/composables/useSignAllHandoff";
+import { ARC14_NOTE_SUFFIX } from "@/scripts/encoding/arc14";
+import { resolveArc14AuthRoute } from "@/scripts/signing/complexSigning";
 
 const store = useStore();
 const route = useRoute();
+const handoff = useSignAllHandoff();
 const toast = useToast();
 const { t } = useI18n();
 
@@ -67,9 +71,32 @@ const realm = ref("");
 
 const prolong = () => store.dispatch("wallet/prolong");
 
+const account = () => String(route.params.account ?? "");
+
 const clickSign = async () => {
   try {
     processingSigning.value = true;
+    const type = await handoff.getSignerType(account());
+    // Multisig / 2FA and Ledger accounts sign the login on the Sign-all page (never sent to the
+    // network); it is kept in the wallet, so an already stored valid one is shown at once.
+    if (resolveArc14AuthRoute(type) === "signAll") {
+      if (!realm.value.endsWith(ARC14_NOTE_SUFFIX)) {
+        await store.dispatch("toast/openError", t("arc14.realm_required"));
+        return;
+      }
+      const stored = await handoff.getArc14Auth(account(), realm.value);
+      if (stored) {
+        output.value = stored;
+        return;
+      }
+      await handoff.requestArc14Auth(
+        account(),
+        realm.value,
+        "Arc14",
+        `${route.path}?realm=${encodeURIComponent(realm.value)}`,
+      );
+      return;
+    }
     output.value = await store.dispatch("arc14/signAuthTx", {
       account: route.params.account,
       realm: realm.value,
@@ -96,7 +123,14 @@ const copyToClipboard = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   void prolong();
+  // Back from the Sign-all page: the login that was signed there is kept in the store.
+  const returned = route.query.realm;
+  if (typeof returned === "string" && returned) {
+    realm.value = returned;
+    const stored = await handoff.getArc14Auth(account(), returned);
+    if (stored) output.value = stored;
+  }
 });
 </script>

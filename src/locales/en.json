@@ -82,7 +82,8 @@
     "custom_network_kind_testnet": "Testnet",
     "no_signer": "This account cannot sign transactions in this wallet (for example a watch-only account, or an account rekeyed to a key this wallet does not hold).",
     "sign_all_info": "This account cannot be signed for on this page. After you execute the swap, the transactions open on the Sign all page, where you collect the signatures (multisig, 2FA, Ledger, ...) and send them. You can then return here.",
-    "router_needs_own_signature": "{router} needs the account to sign an authentication request itself, so it is not available for multisig and Ledger accounts.",
+    "router_needs_authorization": "{router} needs a login signed by this account. Authorize it once; the signed login is kept for a while and reused for every quote.",
+    "authorize_router": "Authorize {router}",
     "multi_group_not_signable": "This Haystack route needs several separate transaction groups, which cannot be signed together for this account. Use another router or a smaller amount.",
     "swap_asset_from": "Select asset from which you want to swap",
     "swap_asset_to": "Select asset to which you want to swap",
@@ -1426,13 +1427,17 @@
     "falcon_fee_warning": "This account uses a Falcon-1024 (post-quantum) key. Its signature is large, so the network needs a higher fee (about three times the minimum fee per transaction) than the transactions declare ({fee}). The transactions may be rejected unless other transactions in the group cover the difference.",
     "return_to_swap": "Return to swap",
     "return_to_scheduled_payments": "Return to scheduled payment management",
-    "return_to_previous": "Return to the previous page"
+    "return_to_arc14": "Return to the ARC14 page",
+    "return_to_previous": "Return to the previous page",
+    "arc14_login_info": "This is a login for {realm}. Sign it here; it is never sent to the network. The signed login is then kept in the wallet for reuse.",
+    "arc14_login_kept": "The login for {realm} is signed and kept in the wallet. It is never sent to the network. You can return now."
   },
   "arc14": {
     "service_realm_title": "Service realm",
     "network_note": "Note that ARC14 requires selection of the network. Make sure that you are using same network as destination service.",
     "copy_token_to_dashboard": "Copy token to dashboard",
-    "token_copied_to_clipboard": "Token copied to clipboard"
+    "token_copied_to_clipboard": "Token copied to clipboard",
+    "realm_required": "The service realm must end with #ARC14, for example 2FA#ARC14."
   },
   "tools": {
     "opt_in_governance_title": "Opt in for algorand governance from multiple accounts at once",

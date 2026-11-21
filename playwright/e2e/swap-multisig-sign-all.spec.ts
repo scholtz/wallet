@@ -19,6 +19,10 @@ interface ChainState {
   submitted: Buffer | null;
   /** Transactions the mocked Deflex route answers with (unsigned, or signed by a logic signature). */
   deflexTxns: { data: string; logicSigBlob: false | Record<number, number> }[];
+  /** Unsigned transactions (base64) the mocked Biatec Router answers with. */
+  biatecTxns: string[];
+  /** Authorization header of every request the Biatec Router received. */
+  biatecAuth: string[];
 }
 
 /** Splits the back-to-back msgpack objects of a submitted group (no length prefix exists). */
@@ -67,7 +71,40 @@ async function mockChain(
   page: Page,
   opts: { authAddr?: string } = {},
 ): Promise<ChainState> {
-  const state: ChainState = { submitted: null, deflexTxns: [] };
+  const state: ChainState = {
+    submitted: null,
+    deflexTxns: [],
+    biatecTxns: [],
+    biatecAuth: [],
+  };
+  // Biatec Router: authenticated with the ARC-14 login in the Authorization header.
+  await page.route(/router\.api\.biatec\.io\/api\/v1\/router\/routeTxs/, (route) => {
+    const cors = {
+      ...CORS,
+      "access-control-allow-headers": "authorization, content-type",
+      "access-control-allow-methods": "POST, OPTIONS",
+    };
+    if (route.request().method() === "OPTIONS") {
+      return route.fulfill({ status: 204, headers: cors });
+    }
+    state.biatecAuth.push(route.request().headers()["authorization"] ?? "");
+    return route.fulfill({
+      headers: cors,
+      json: {
+        routes: [
+          {
+            route: {
+              inputAmount: 1_000_000,
+              outputAmount: 4_000_000,
+              totalNetworkFeeMicroAlgos: 2000,
+              hops: [],
+            },
+            txsToSign: state.biatecTxns,
+          },
+        ],
+      },
+    });
+  });
   await page.route(/\/v2\/accounts\/[A-Z2-7]{58}/, (route) => {
     const addr = new URL(route.request().url()).pathname.split(
       "/v2/accounts/",
@@ -271,15 +308,10 @@ async function multisigAddress(page: Page): Promise<string> {
   });
 }
 
-test("a multisig account executes a swap by collecting the signatures on the Sign-all page", async ({
-  page,
-}) => {
-  test.setTimeout(240000);
-  const chain = await mockChain(page);
-  await setupFreshWallet(page);
-  await seedUsdc(page);
-
-  // A basic account next to the wallet's first account, combined into a 2-of-2 multisig.
+/** Creates a basic account next to the wallet's first one and combines both into a 2-of-2 multisig. */
+async function createMultisig(
+  page: Page,
+): Promise<{ msig: string; basicAddress: string }> {
   await chooseNewAccountMenuItem(page, "Create basic account");
   await expect(page).toHaveURL(/\/new-account\/ed25519/);
   await page.locator("#name").fill("Basic Account");
@@ -307,6 +339,36 @@ test("a multisig account executes a swap by collecting the signatures on the Sig
 
   const msig = await multisigAddress(page);
   expect(msig).toMatch(/^[A-Z2-7]{58}$/);
+  return { msig, basicAddress };
+}
+
+/** Signs the transaction shown on the Sign-all page through the multisig ceremony on /sign. */
+async function signWithBothMultisigSigners(page: Page) {
+  await page.getByRole("button", { name: "Sign", exact: true }).first().click();
+  await expect(page).toHaveURL(/\/sign\//);
+  await page.getByRole("button", { name: "Create multisig proposal" }).click();
+  await page.locator(".p-multiselect").first().click();
+  // Both signers of the 2-of-2 sign in this visit; the threshold is only met with both.
+  const signers = page.locator(".p-multiselect-overlay .p-multiselect-option");
+  await signers.nth(0).click();
+  await signers.nth(1).click();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Sign", exact: true }).click();
+  const back = page.getByRole("button", { name: "Return to multi tx signature" });
+  await expect(back).toBeEnabled({ timeout: 15000 });
+  await back.click();
+  await expect(page).toHaveURL(/\/signAll/);
+}
+
+test("a multisig account executes a swap by collecting the signatures on the Sign-all page", async ({
+  page,
+}) => {
+  test.setTimeout(240000);
+  const chain = await mockChain(page);
+  await setupFreshWallet(page);
+  await seedUsdc(page);
+
+  const { msig, basicAddress } = await createMultisig(page);
   chain.deflexTxns = routeTransactions(msig, basicAddress);
 
   // Swap page: the multisig account is accepted and the user is told how it signs.
@@ -408,4 +470,87 @@ test("an account the wallet cannot sign for gets a clear error instead of an exe
   await expect(page.getByTestId("swap-sign-all-info")).toHaveCount(0);
   // The inline message is the one report: looking up the signer raises no toast of its own.
   await expect(page.locator(".p-toast-message-error")).toHaveCount(0);
+});
+
+test("a multisig account authorizes the Biatec Router once on the Sign-all page and then gets quotes", async ({
+  page,
+}) => {
+  test.setTimeout(240000);
+  const chain = await mockChain(page);
+  await setupFreshWallet(page);
+  await seedUsdc(page);
+  const { msig, basicAddress } = await createMultisig(page);
+  const unsigned = routeTransactions(msig, basicAddress).slice(0, 2);
+  chain.biatecTxns = unsigned.map((entry) => entry.data);
+
+  await navigate(page, `/swap/${msig}/0/${USDC}`);
+  await expect(page.getByTestId("swap-sign-all-info")).toBeVisible({
+    timeout: 30000,
+  });
+  // Only the Biatec Router; Folks and Haystack would call real services.
+  await page.locator('label[for="folksCheckbox"]').click();
+  await page.locator('label[for="deflexCheckbox"]').click();
+
+  // The router's login cannot be signed in place for a multisig: the page offers the button
+  // instead of hiding the router, and a quote without a login asks for it without any error toast.
+  const authorize = page.getByTestId("swap-router-authorize");
+  await expect(authorize).toBeVisible();
+  await page.locator("#payamount").fill("1");
+  await page.locator("#payamount").press("Tab");
+  await page.getByRole("button", { name: "Get quote" }).click();
+  await expect(page.locator(".p-toast-message-error")).toHaveCount(0);
+  expect(chain.biatecAuth).toHaveLength(0);
+
+  await authorize.click();
+  await expect(page).toHaveURL(/\/signAll/, { timeout: 15000 });
+  // A login, not a payment: one transaction, nothing to send, and no way back before it is signed.
+  await expect(page.locator(".p-datatable-tbody > tr")).toHaveCount(1);
+  await expect(page.getByTestId("sign-all-arc14-info")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Send tx to the network/ }),
+  ).toHaveCount(0);
+  await expect(page.getByTestId("sign-all-return")).toBeDisabled();
+
+  await signWithBothMultisigSigners(page);
+  await expect(page.getByTestId("sign-all-arc14-info")).toContainText(
+    /signed and kept/i,
+  );
+  await expect(page.getByTestId("sign-all-return")).toBeEnabled();
+  expect(chain.submitted).toBeNull();
+  await page.getByTestId("sign-all-return").click();
+  await expect(page).toHaveURL(new RegExp(`/swap/${msig}/0/${USDC}$`));
+
+  // The stored login is in place: no button any more, and the router quote carries it.
+  await expect(page.getByTestId("swap-sign-all-info")).toBeVisible({
+    timeout: 30000,
+  });
+  await expect(page.getByTestId("swap-router-authorize")).toHaveCount(0);
+  await page.locator("#payamount").fill("1");
+  await page.locator("#payamount").press("Tab");
+  await page.locator('label[for="folksCheckbox"]').click();
+  await page.locator('label[for="deflexCheckbox"]').click();
+  await page.getByRole("button", { name: "Get quote" }).click();
+  const execute = page.getByRole("button", {
+    name: /Execute using Biatec router/,
+  });
+  await expect(execute).toBeEnabled({ timeout: 30000 });
+  expect(chain.biatecAuth.length).toBeGreaterThan(0);
+  for (const header of chain.biatecAuth) {
+    expect(header.startsWith("SigTx ")).toBe(true);
+    const login = algosdk.decodeSignedTransaction(
+      new Uint8Array(Buffer.from(header.slice("SigTx ".length), "base64")),
+    );
+    expect(login.txn.sender.toString()).toBe(msig);
+    expect(login.txn.note && Buffer.from(login.txn.note).toString()).toBe(
+      "BiatecRouter#ARC14",
+    );
+    expect(login.msig?.subsig.filter((s) => !!s.s)).toHaveLength(2);
+  }
+
+  // Executing hands the route's transactions to the Sign-all page like any other router.
+  await execute.click();
+  await expect(page).toHaveURL(/\/signAll/, { timeout: 15000 });
+  await expect(page.locator(".p-datatable-tbody > tr")).toHaveCount(2);
+  await expect(page.getByTestId("sign-all-arc14-info")).toHaveCount(0);
+  expect(chain.submitted).toBeNull();
 });

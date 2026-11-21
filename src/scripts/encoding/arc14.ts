@@ -77,6 +77,65 @@ export const isArc14AuthTransaction = (
   return !!sender && sender === receiver;
 };
 
+/** Prefix of the `Authorization` value a service receives: `SigTx <base64 signed transaction>`. */
+export const ARC14_TOKEN_PREFIX = "SigTx ";
+
+/** A stored login is only reused while it stays valid this many rounds (~5 minutes) longer. */
+export const ARC14_REUSE_MARGIN_ROUNDS = 100n;
+
+/** `SigTx <base64>` for a signed login transaction. */
+export const arc14TokenFromSigned = (signed: Uint8Array): string =>
+  ARC14_TOKEN_PREFIX + Buffer.from(signed).toString("base64");
+
+/** The signed transaction inside a `SigTx <base64>` token, or undefined when it is not one. */
+export const parseArc14Token = (
+  token: string | null | undefined,
+): algosdk.SignedTransaction | undefined => {
+  if (typeof token !== "string" || !token.startsWith(ARC14_TOKEN_PREFIX)) {
+    return undefined;
+  }
+  try {
+    return algosdk.decodeSignedTransaction(
+      new Uint8Array(Buffer.from(token.slice(ARC14_TOKEN_PREFIX.length), "base64")),
+    );
+  } catch {
+    return undefined;
+  }
+};
+
+/** True when the signed transaction carries everything a service needs (a multisig only at its threshold). */
+const isCompletelySigned = (signed: algosdk.SignedTransaction): boolean => {
+  if (signed.msig) {
+    return signed.msig.subsig.filter((s) => !!s.s).length >= signed.msig.thr;
+  }
+  return !!signed.sig || !!signed.lsig;
+};
+
+/**
+ * True when `token` is a complete ARC-14 login of `account` for `realm` that is still valid at
+ * `currentRound` (with a margin, so it does not expire between the check and the request).
+ * Used to decide whether an account that cannot sign in place (multisig, Ledger) has to be asked
+ * again: the login is signed once and reused, instead of once per request.
+ */
+export const isArc14TokenUsable = (
+  token: string | null | undefined,
+  account: string,
+  realm: string,
+  currentRound: bigint,
+): boolean => {
+  const signed = parseArc14Token(token);
+  if (!signed) return false;
+  const txn = signed.txn;
+  if (!isArc14AuthTransaction(txn)) return false;
+  if (addressToString(txn.sender) !== account) return false;
+  if (Buffer.from(txn.note ?? []).toString("utf-8") !== realm) return false;
+  if (!isCompletelySigned(signed)) return false;
+  return (
+    BigInt(txn.firstValid) <= currentRound + 1n &&
+    BigInt(txn.lastValid) >= currentRound + ARC14_REUSE_MARGIN_ROUNDS
+  );
+};
+
 /**
  * Realms of the services the wallet itself authenticates to with hardcoded realm strings. A
  * participation or two-factor host chosen from a remote list must not be able to answer with one

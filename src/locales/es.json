@@ -82,7 +82,8 @@
     "custom_network_kind_testnet": "Testnet",
     "no_signer": "Esta cuenta no puede firmar transacciones en esta cartera (por ejemplo, una cuenta de solo lectura o una cuenta reasignada a una clave que esta cartera no tiene).",
     "sign_all_info": "No se puede firmar por esta cuenta en esta página. Tras ejecutar el intercambio, las transacciones se abren en la página Firmar todo, donde reúnes las firmas (multifirma, 2FA, Ledger, ...) y las envías. Después puedes volver aquí.",
-    "router_needs_own_signature": "{router} necesita que la propia cuenta firme una solicitud de autenticación, por lo que no está disponible para cuentas multifirma ni Ledger.",
+    "router_needs_authorization": "{router} necesita un inicio de sesión firmado por esta cuenta. Autorícelo una vez; el inicio de sesión firmado se conserva un tiempo y se reutiliza en cada cotización.",
+    "authorize_router": "Autorizar {router}",
     "multi_group_not_signable": "Esta ruta de Haystack necesita varios grupos de transacciones separados, que no se pueden firmar juntos para esta cuenta. Usa otro enrutador o un importe menor.",
     "swap_asset_from": "Seleccione el activo que desea intercambiar",
     "swap_asset_to": "Seleccione el activo por el cual desea intercambiar",
@@ -1426,13 +1427,17 @@
     "falcon_fee_warning": "Esta cuenta usa una clave Falcon-1024 (poscuántica). Su firma es grande, por lo que la red exige una comisión mayor (aproximadamente tres veces la comisión mínima por transacción) que la declarada en las transacciones ({fee}). Las transacciones pueden ser rechazadas salvo que otras transacciones del grupo cubran la diferencia.",
     "return_to_swap": "Volver al intercambio",
     "return_to_scheduled_payments": "Volver a la gestión de pagos programados",
-    "return_to_previous": "Volver a la página anterior"
+    "return_to_arc14": "Volver a la página ARC14",
+    "return_to_previous": "Volver a la página anterior",
+    "arc14_login_info": "Este es un inicio de sesión en {realm}. Fírmelo aquí; nunca se envía a la red. Después se conserva en la cartera para reutilizarlo.",
+    "arc14_login_kept": "El inicio de sesión en {realm} está firmado y guardado en la cartera. Nunca se envía a la red. Ya puede volver."
   },
   "arc14": {
     "service_realm_title": "Dominio de servicio",
     "network_note": "Tenga en cuenta que ARC14 requiere selección de red. Asegúrese de usar la misma red que el servicio de destino.",
     "copy_token_to_dashboard": "Copy token to dashboard",
-    "token_copied_to_clipboard": "Token copied to clipboard"
+    "token_copied_to_clipboard": "Token copied to clipboard",
+    "realm_required": "El realm del servicio debe terminar en #ARC14, por ejemplo 2FA#ARC14."
   },
   "tools": {
     "opt_in_governance_title": "Optar por la gobernanza de algorand desde múltiples cuentas a la vez",
