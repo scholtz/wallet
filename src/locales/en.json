@@ -80,7 +80,8 @@
     "custom_network_kind_required": "Select whether your custom network behaves like Mainnet or Testnet to enable swaps",
     "custom_network_kind_mainnet": "Mainnet",
     "custom_network_kind_testnet": "Testnet",
-    "has_sk": "Only standard accounts with private keys are supported now",
+    "no_signer": "This account cannot sign transactions in this wallet (for example a watch-only account, or an account rekeyed to a key this wallet does not hold).",
+    "sign_all_info": "This account cannot be signed for on this page. After you execute the swap, the transactions open on the Sign all page, where you collect the signatures (multisig, 2FA, Ledger, ...) and send them. You can then return here.",
     "swap_asset_from": "Select asset from which you want to swap",
     "swap_asset_to": "Select asset to which you want to swap",
     "swap_amount": "Set the amount to swap",
@@ -1420,7 +1421,10 @@
   "sign_all": {
     "title": "Sign multiple transactions",
     "transaction_confirmed": "Transaction confirmed in round",
-    "falcon_fee_warning": "This account uses a Falcon-1024 (post-quantum) key. Its signature is large, so the network needs a higher fee (about three times the minimum fee per transaction) than the transactions declare ({fee}). The transactions may be rejected unless other transactions in the group cover the difference."
+    "falcon_fee_warning": "This account uses a Falcon-1024 (post-quantum) key. Its signature is large, so the network needs a higher fee (about three times the minimum fee per transaction) than the transactions declare ({fee}). The transactions may be rejected unless other transactions in the group cover the difference.",
+    "return_to_swap": "Return to swap",
+    "return_to_scheduled_payments": "Return to scheduled payment management",
+    "return_to_previous": "Return to the previous page"
   },
   "arc14": {
     "service_realm_title": "Service realm",

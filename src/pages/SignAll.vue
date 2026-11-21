@@ -13,6 +13,10 @@ import formatCurrency from "../scripts/numbers/formatCurrency";
 import { isAssetOptIn } from "../scripts/transactionTypes";
 import { findGenesisMismatch } from "../scripts/dappRequestChecks";
 import { lowFalconGroupFee } from "../scripts/fees";
+import {
+  signAllReturnLabelKey,
+  signAllReturnPath,
+} from "../scripts/signing/complexSigning";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 
@@ -395,11 +399,20 @@ const submitSignedClick = async () => {
     state.processing = false;
   }
 };
-const retToScheduledPayments = () => {
-  router.push({
-    name: "scheduled-payment",
-    params: { account: store.state.wallet.lastActiveAccount },
-  });
+// "Return to ..." for the flow that handed the group over (swap, scheduled payments, ...);
+// the page it came from is recorded by signer/toSignArray.
+const returnPath = computed(() =>
+  signAllReturnPath(
+    store.state.signer.returnToSignAll,
+    store.state.signer.returnToSignAllPath,
+    store.state.wallet.lastActiveAccount,
+  ),
+);
+const returnLabel = computed(() =>
+  t(`sign_all.${signAllReturnLabelKey(store.state.signer.returnToSignAll)}`),
+);
+const returnToOrigin = () => {
+  if (returnPath.value) router.push(returnPath.value);
 };
 
 const getAssetSync = (id: number) => {
@@ -505,13 +518,14 @@ const arc56SummaryTransactions = computed(() =>
             />
           </Button>
           <Button
-            v-if="store.state.signer.returnToSignAll == 'ScheduledPayments'"
+            v-if="returnPath"
             class="ml-2"
+            data-testid="sign-all-return"
             :severity="state.confirmedRound ? 'primary' : 'secondary'"
             :disabled="!state.atLeastOneSigned"
-            @click="retToScheduledPayments"
+            @click="returnToOrigin"
           >
-            Return to scheduled payment management
+            {{ returnLabel }}
           </Button>
         </div>
         <Arc56RequestSummary :transactions="arc56SummaryTransactions" />

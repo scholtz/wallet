@@ -10,12 +10,56 @@ import algosdk from "algosdk";
 import { Buffer } from "buffer";
 import { getEffectiveQuoteAmount } from "./simulate";
 import { assertSwapTransactionSafe } from "./validate";
+import { NO_SIGNER_MESSAGE } from "./signing";
 
 // Public/shared fallback key for users who have not set their own Deflex key in
 // Settings. It is intentionally not secret (shipped in client source, visible on
 // the wire) — treat it as an anonymous/shared identifier, not a credential.
 // Swap activity under this key is not distinguishable between different users.
 const DEFAULT_DEFLEX_API_KEY = "1b72df7e-1131-4449-8ce1-29b79dd3f51e";
+
+// Hands the route's single atomic group to the Sign-all page. Entries the router already signed
+// (logic signatures) travel as pre-signed blobs, the user's own transactions are validated
+// exactly like in the direct flow.
+const handOffGroupToSignAll = async (
+  context: SwapContext,
+  groups: DeflexTxnEntry[][],
+) => {
+  const processing = context.aggregatorData.processingTradeDeflex;
+  try {
+    // Each group is confirmed before the next one is sent; the Sign-all page sends one group.
+    if (groups.length !== 1) {
+      throw new Error(
+        "This Deflex route needs several separate transaction groups, which cannot be signed together for this account. Use another router or a smaller amount.",
+      );
+    }
+    const txns: algosdk.Transaction[] = [];
+    const presigned: Uint8Array[] = [];
+    for (const entry of groups[0]) {
+      if (entry.logicSigBlob !== false) {
+        const blob = Uint8Array.from(Object.values(entry.logicSigBlob));
+        txns.push(algosdk.decodeSignedTransaction(blob).txn);
+        presigned.push(blob);
+      } else {
+        const decoded = algosdk.decodeUnsignedTransaction(
+          new Uint8Array(Buffer.from(entry.data, "base64")),
+        );
+        assertSwapTransactionSafe(
+          decoded,
+          context.account.value?.addr || "",
+          context.$store.state.config.env,
+        );
+        txns.push(decoded);
+      }
+    }
+    await context.handOffToSignAll(txns, presigned);
+  } catch (e) {
+    context.error.value = (e as Error).message;
+    context.openError((e as Error).message);
+  } finally {
+    processing.value = false;
+  }
+};
 
 export const deflexAggregator: DexAggregator = {
   name: "deflex",
@@ -130,11 +174,10 @@ export const deflexAggregator: DexAggregator = {
     context.aggregatorData.processingTradeDeflex.value = true;
     context.note.value = "";
     context.error.value = "";
-    const senderSK = await context.getSK({
-      addr: context.account.value?.addr || "",
-    });
-    if (!senderSK) {
+    const route = await context.getSigningRoute();
+    if (route === "none") {
       context.aggregatorData.processingTradeDeflex.value = false;
+      context.openError(NO_SIGNER_MESSAGE);
       return;
     }
     // deflexTxs always holds this aggregator's own DeflexTxsData - written by
@@ -147,24 +190,43 @@ export const deflexAggregator: DexAggregator = {
     );
     const byGroupMap = [...byGroup.values()];
 
+    if (route === "signAll") {
+      await handOffGroupToSignAll(context, byGroupMap);
+      return;
+    }
+
     let ret = "Processed in txs: ";
     for (const group of byGroupMap) {
       let signedTxns: Uint8Array[] | undefined;
       try {
-        signedTxns = group.map((txn) => {
+        // Validate the whole group before the first signature is made.
+        const entries = group.map((txn) => {
           if (txn.logicSigBlob !== false) {
             return Uint8Array.from(Object.values(txn.logicSigBlob));
-          } else {
-            const bytes = new Uint8Array(Buffer.from(txn.data, "base64"));
-            const decoded = algosdk.decodeUnsignedTransaction(bytes);
-            assertSwapTransactionSafe(
-              decoded,
-              context.account.value?.addr || "",
-              context.$store.state.config.env,
-            );
-            return algosdk.signTransaction(decoded, senderSK).blob;
           }
+          const bytes = new Uint8Array(Buffer.from(txn.data, "base64"));
+          const decoded = algosdk.decodeUnsignedTransaction(bytes);
+          assertSwapTransactionSafe(
+            decoded,
+            context.account.value?.addr || "",
+            context.$store.state.config.env,
+          );
+          return decoded;
         });
+        signedTxns = [];
+        for (const entry of entries) {
+          if (entry instanceof Uint8Array) {
+            signedTxns.push(entry);
+            continue;
+          }
+          const signed = await context.signTransaction(entry);
+          if (!signed) {
+            // The signer already showed why (cancelled, failed).
+            context.aggregatorData.processingTradeDeflex.value = false;
+            return;
+          }
+          signedTxns.push(signed);
+        }
       } catch (e) {
         context.error.value = (e as Error).message;
         context.aggregatorData.processingTradeDeflex.value = false;

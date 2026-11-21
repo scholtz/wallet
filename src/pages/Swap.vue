@@ -36,8 +36,19 @@
               : t("swap.network_not_supported")
           }}
         </Message>
-        <Message severity="error" v-if="hasSK === false">
-          {{ t("swap.has_sk") }}
+        <Message
+          severity="error"
+          v-if="signingRoute === 'none'"
+          data-testid="swap-no-signer"
+        >
+          {{ t("swap.no_signer") }}
+        </Message>
+        <Message
+          severity="info"
+          v-else-if="signingRoute === 'signAll'"
+          data-testid="swap-sign-all-info"
+        >
+          {{ t("swap.sign_all_info") }}
         </Message>
         <div
           v-if="loadingAssets"
@@ -205,7 +216,7 @@ const {
   fromAssetObj,
   toAssetObj,
   txsDetails,
-  hasSK,
+  signingRoute,
   processingQuote,
   processingOptin,
   note,
@@ -241,6 +252,7 @@ const {
 
   // Methods
   reloadAccount,
+  refreshSigningRoute,
   clearQuotes,
   refreshBalance,
   makeAssets,
@@ -399,6 +411,7 @@ watch(toAsset, async (newToAsset) => {
 watch(account, () => {
   clearQuotes();
   makeAssets();
+  refreshSigningRoute();
 });
 
 watch(payamount, () => {

@@ -16,6 +16,7 @@ import { Buffer } from "buffer";
 import { combineRouteResponse } from "./combineBiatecRoute";
 import { getEffectiveQuoteAmount } from "./simulate";
 import { assertSwapTransactionsSafe } from "./validate";
+import { NO_SIGNER_MESSAGE } from "./signing";
 
 export interface BiatecAggregatorOptions {
   name: string;
@@ -58,6 +59,16 @@ export function createBiatecAggregator(
     return undefined;
   };
 
+  // The router authenticates the caller with an ARC-14 request signed by the account itself, in
+  // place and without further steps. A multisig account has no single signature to give and a
+  // Ledger would ask for a device confirmation on every quote, so the router is not offered for
+  // them (the other routers are, via the Sign-all page).
+  const canAuthenticate = async (context: SwapContext): Promise<boolean> => {
+    const type = await context.getSignerType();
+    return type !== "msig" && type !== "ledger";
+  };
+  const notAvailableForAccountMessage = `${displayName} needs the account to sign an authentication request itself and is not available for multisig and Ledger accounts.`;
+
   return {
     name,
     displayName,
@@ -73,6 +84,13 @@ export function createBiatecAggregator(
         const effectiveBaseUrl = resolveBaseUrl(context);
         if (!effectiveBaseUrl) {
           context.error.value = `${displayName} is not available on this network`;
+          return;
+        }
+        if (!(await canAuthenticate(context))) {
+          context.txsDetails.value +=
+            `
+${displayName.toUpperCase()}: not available for multisig and Ledger accounts`;
+          context.txsDetails.value = context.txsDetails.value.trim();
           return;
         }
 
@@ -138,12 +156,12 @@ export function createBiatecAggregator(
       context.error.value = "";
 
       try {
-        const senderSK = await context.getSK({
-          addr: context.account.value?.addr || "",
-        });
-        if (!senderSK) {
-          context.aggregatorData[processingKey].value = false;
-          return;
+        const signingRoute = await context.getSigningRoute();
+        if (signingRoute === "none") {
+          throw new Error(NO_SIGNER_MESSAGE);
+        }
+        if (!(await canAuthenticate(context))) {
+          throw new Error(notAvailableForAccountMessage);
         }
         // quotesKey always holds this aggregator's own BiatecQuoteData - see
         // getQuote()/execute() below, the only writers of this key.
@@ -247,10 +265,22 @@ export function createBiatecAggregator(
         const groupId = algosdk.computeGroupID(transactions);
         transactions.forEach((tx) => (tx.group = groupId));
 
+        if (signingRoute === "signAll") {
+          // Multisig / Ledger: the signatures are collected on the Sign-all page.
+          await context.handOffToSignAll(transactions);
+          context.aggregatorData[processingKey].value = false;
+          return;
+        }
+
         // Sign transactions
         const signedTxs: Uint8Array[] = [];
         for (const tx of transactions) {
-          const signedTx = tx.signTxn(senderSK);
+          const signedTx = await context.signTransaction(tx);
+          if (!signedTx) {
+            // The signer already showed why (cancelled, failed).
+            context.aggregatorData[processingKey].value = false;
+            return;
+          }
           signedTxs.push(signedTx);
         }
         const tx = await context

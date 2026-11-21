@@ -11,6 +11,7 @@ import {
 import type { biatecRouter } from "biatec-router";
 import { StoredAsset } from "@/store/indexer";
 import algosdk from "algosdk";
+import type { SignerType, SigningRoute } from "../signing/complexSigning";
 
 // ---------------------------------------------------------------------------
 // Deflex aggregator response shapes. Deflex (deflex.txnlab.dev) is a plain
@@ -155,7 +156,6 @@ export interface SwapContext {
   fromAssetObj: Ref<StoredAsset | undefined>;
   toAssetObj: Ref<StoredAsset | undefined>;
   txsDetails: Ref<string>;
-  hasSK: Ref<boolean | null>;
   processingQuote: Ref<boolean>;
   processingOptin: Ref<boolean>;
   note: Ref<string>;
@@ -186,7 +186,11 @@ export interface SwapContext {
     body?: string;
     config?: { headers: Record<string, string> };
   }) => Promise<DeflexTxsData>;
-  getSK: (config: { addr: string }) => Promise<Uint8Array>;
+  /**
+   * Signs one transaction of the selected account in place (key, HD or Falcon account); undefined
+   * when the signer failed or was cancelled (it already showed its own error).
+   */
+  signTransaction: (txn: algosdk.Transaction) => Promise<Uint8Array | undefined>;
   getAsset: (config: { assetIndex: number | bigint }) => Promise<StoredAsset>;
   sendRawTransaction: (config: {
     signedTxn: Uint8Array | Uint8Array[];
@@ -199,6 +203,18 @@ export interface SwapContext {
   reloadAccount: () => Promise<void>;
   checkNetwork: () => string | false;
   signAuthTx: (config: { account: string; realm: string }) => Promise<string>;
+  /** How the selected account signs (see complexSigning.ts): resolved fresh on every call. */
+  getSignerType: () => Promise<SignerType>;
+  getSigningRoute: () => Promise<SigningRoute>;
+  /**
+   * Hands the validated, grouped transactions to `/signAll` (multisig, Ledger, ...) and navigates
+   * there; the swap page is offered again afterwards. `presigned` are signed counterparts of
+   * entries in `txns` (logic-sig transactions) that must not be asked for again.
+   */
+  handOffToSignAll: (
+    txns: algosdk.Transaction[],
+    presigned?: Uint8Array[],
+  ) => Promise<void>;
 
   // Aggregator specific data
   aggregatorData: AggregatorDataMap;

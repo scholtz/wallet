@@ -80,7 +80,8 @@
     "custom_network_kind_required": "Selecciona si tu red personalizada se comporta como Mainnet o Testnet para habilitar los intercambios",
     "custom_network_kind_mainnet": "Mainnet",
     "custom_network_kind_testnet": "Testnet",
-    "has_sk": "Ahora sólo se admiten cuentas estándar con claves privadas",
+    "no_signer": "Esta cuenta no puede firmar transacciones en esta cartera (por ejemplo, una cuenta de solo lectura o una cuenta reasignada a una clave que esta cartera no tiene).",
+    "sign_all_info": "No se puede firmar por esta cuenta en esta página. Tras ejecutar el intercambio, las transacciones se abren en la página Firmar todo, donde reúnes las firmas (multifirma, 2FA, Ledger, ...) y las envías. Después puedes volver aquí.",
     "swap_asset_from": "Seleccione el activo que desea intercambiar",
     "swap_asset_to": "Seleccione el activo por el cual desea intercambiar",
     "swap_amount": "Establece la cantidad a intercambiar",
@@ -1420,7 +1421,10 @@
   "sign_all": {
     "title": "Firmar múltiples transacciones",
     "transaction_confirmed": "Transacción confirmada en ronda",
-    "falcon_fee_warning": "Esta cuenta usa una clave Falcon-1024 (poscuántica). Su firma es grande, por lo que la red exige una comisión mayor (aproximadamente tres veces la comisión mínima por transacción) que la declarada en las transacciones ({fee}). Las transacciones pueden ser rechazadas salvo que otras transacciones del grupo cubran la diferencia."
+    "falcon_fee_warning": "Esta cuenta usa una clave Falcon-1024 (poscuántica). Su firma es grande, por lo que la red exige una comisión mayor (aproximadamente tres veces la comisión mínima por transacción) que la declarada en las transacciones ({fee}). Las transacciones pueden ser rechazadas salvo que otras transacciones del grupo cubran la diferencia.",
+    "return_to_swap": "Volver al intercambio",
+    "return_to_scheduled_payments": "Volver a la gestión de pagos programados",
+    "return_to_previous": "Volver a la página anterior"
   },
   "arc14": {
     "service_realm_title": "Dominio de servicio",

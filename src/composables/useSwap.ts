@@ -21,6 +21,8 @@ import {
 } from "../scripts/aggregators/simulate";
 import type { Account, SwapStore } from "../types/swap";
 import algosdk from "algosdk";
+import { useSignAllHandoff } from "./useSignAllHandoff";
+import type { SigningRoute } from "../scripts/signing/complexSigning";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import {
   balanceSnapshot,
@@ -40,6 +42,7 @@ const normalizeAmount = (value: number | bigint | undefined | null): number => {
 export function useSwap() {
   const store = useStore<RootState>();
   const route = useRoute();
+  const signAllHandoff = useSignAllHandoff();
 
   // Fixed for the lifetime of this composable instance (Swap.vue is
   // remounted on route navigation, so a Settings toggle change is picked up
@@ -58,7 +61,9 @@ export function useSwap() {
   const txsDetails: Ref<string> = ref(
     "Select assets, quantity and request quote"
   );
-  const hasSK: Ref<boolean | null> = ref(null);
+  // How the account signs: in place ("direct": key, HD, Falcon) or through the Sign-all
+  // page (multisig / 2FA, Ledger). null until the account is loaded.
+  const signingRoute: Ref<SigningRoute | null> = ref(null);
   const processingQuote: Ref<boolean> = ref(false);
   const processingOptin: Ref<boolean> = ref(false);
   const note: Ref<string> = ref("");
@@ -279,11 +284,20 @@ export function useSwap() {
     if (info) {
       await store.dispatch("wallet/updateAccount", { info });
     }
-    const senderSK = await store.dispatch("wallet/getSK", {
-      addr: route.params.account,
-    });
-    hasSK.value = senderSK && senderSK.length > 0;
+    await refreshSigningRoute();
   };
+
+  const refreshSigningRoute = async (): Promise<void> => {
+    const addr = String(route.params.account ?? "");
+    const resolved = addr ? await signAllHandoff.signingRouteFor(addr) : null;
+    // The account may have changed while the signer type was resolved.
+    if (addr === String(route.params.account ?? "")) {
+      signingRoute.value = resolved;
+    }
+  };
+
+  const getSigningRoute = (): Promise<SigningRoute> =>
+    signAllHandoff.signingRouteFor(String(route.params.account ?? ""));
 
   // Context definition
   const context: SwapContext = {
@@ -303,7 +317,6 @@ export function useSwap() {
     fromAssetObj,
     toAssetObj,
     txsDetails,
-    hasSK,
     processingQuote,
     processingOptin,
     note,
@@ -337,7 +350,11 @@ export function useSwap() {
       body?: string;
       config?: { headers: Record<string, string> };
     }) => store.dispatch("axios/post", config),
-    getSK: (config: { addr: string }) => store.dispatch("wallet/getSK", config),
+    signTransaction: (txn) =>
+      store.dispatch("signer/signTransaction", {
+        from: String(route.params.account ?? ""),
+        tx: txn,
+      }),
     getAsset: (config: { assetIndex: number | bigint }) =>
       store.dispatch("indexer/getAsset", config),
     sendRawTransaction: async (config: {
@@ -359,6 +376,11 @@ export function useSwap() {
     checkNetwork,
     signAuthTx: (config: { account: string; realm: string }) =>
       store.dispatch("arc14/signAuthTx", config),
+    getSignerType: () =>
+      signAllHandoff.getSignerType(String(route.params.account ?? "")),
+    getSigningRoute,
+    handOffToSignAll: (txns, presigned) =>
+      signAllHandoff.handOffToSignAll(txns, "Swap", presigned),
   };
 
   // Computed properties dependent on context
@@ -648,6 +670,12 @@ export function useSwap() {
 
   const clickOptInToApps = async (): Promise<void> => {
     processingOptin.value = true;
+    const optInRoute = await getSigningRoute();
+    if (optInRoute === "none") {
+      processingOptin.value = false;
+      store.dispatch("toast/openError", "This account cannot sign in this wallet");
+      return;
+    }
     let params: algosdk.SuggestedParams;
     try {
       params = await store.dispatch("algod/getCheckedTransactionParams");
@@ -657,6 +685,29 @@ export function useSwap() {
         "toast/openError",
         error instanceof Error ? error.message : String(error),
       );
+      return;
+    }
+
+    if (optInRoute === "signAll") {
+      // One group, signed on the Sign-all page (multisig, Ledger, ...).
+      try {
+        const optIns = appsToOptIn.value.map((app) =>
+          algosdk.makeApplicationOptInTxnFromObject({
+            sender: account.value!.addr,
+            suggestedParams: params,
+            appIndex: app,
+          })
+        );
+        if (optIns.length > 1) algosdk.assignGroupID(optIns);
+        await context.handOffToSignAll(optIns);
+      } catch (e) {
+        store.dispatch(
+          "toast/openError",
+          e instanceof Error ? e.message : String(e)
+        );
+      } finally {
+        processingOptin.value = false;
+      }
       return;
     }
 
@@ -707,7 +758,7 @@ export function useSwap() {
     fromAssetObj,
     toAssetObj,
     txsDetails,
-    hasSK,
+    signingRoute,
     processingQuote,
     processingOptin,
     note,
@@ -745,6 +796,7 @@ export function useSwap() {
 
     // Methods
     reloadAccount,
+    refreshSigningRoute,
     clearQuotes,
     refreshBalance,
     makeAssets,

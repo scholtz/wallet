@@ -80,7 +80,8 @@
     "custom_network_kind_required": "Válassza ki, hogy az egyéni hálózata Mainnetként vagy Testnetként viselkedik-e a cserék engedélyezéséhez",
     "custom_network_kind_mainnet": "Mainnet",
     "custom_network_kind_testnet": "Testnet",
-    "has_sk": "Jelenleg csak a szabványos, titkos kulcsokkal rendelkező számlákat támogatjuk",
+    "no_signer": "Ez a számla nem tud tranzakciókat aláírni ebben a pénztárcában (például csak megfigyelt számla, vagy olyan kulcsra átállított számla, amely nincs ebben a pénztárcában).",
+    "sign_all_info": "Ezen az oldalon nem lehet aláírni ehhez a számlához. A csere végrehajtása után a tranzakciók az Összes aláírása oldalon nyílnak meg, ahol összegyűjtheted az aláírásokat (multisig, 2FA, Ledger, ...) és elküldheted őket. Ezután visszatérhetsz ide.",
     "swap_asset_from": "Válaszd ki a cserélni kívánt eszközt",
     "swap_asset_to": "Válaszd ki, melyik eszközre szeretnéd cserélni",
     "swap_amount": "Állítsd be a csere összegét",
@@ -1420,7 +1421,10 @@
   "sign_all": {
     "title": "Több tranzakció aláírása",
     "transaction_confirmed": "A tranzakció megerősítve. Forduló:",
-    "falcon_fee_warning": "Ez a fiók Falcon-1024 (poszt-kvantum) kulcsot használ. Az aláírása nagy, ezért a hálózat magasabb díjat igényel (tranzakciónként nagyjából a minimális díj háromszorosát), mint amennyit a tranzakciók megadnak ({fee}). A tranzakciókat elutasíthatják, hacsak a csoport többi tranzakciója nem fedezi a különbözetet."
+    "falcon_fee_warning": "Ez a fiók Falcon-1024 (poszt-kvantum) kulcsot használ. Az aláírása nagy, ezért a hálózat magasabb díjat igényel (tranzakciónként nagyjából a minimális díj háromszorosát), mint amennyit a tranzakciók megadnak ({fee}). A tranzakciókat elutasíthatják, hacsak a csoport többi tranzakciója nem fedezi a különbözetet.",
+    "return_to_swap": "Vissza a cseréhez",
+    "return_to_scheduled_payments": "Vissza az ütemezett fizetések kezeléséhez",
+    "return_to_previous": "Vissza az előző oldalra"
   },
   "arc14": {
     "service_realm_title": "Szolgáltatási tartomány",
