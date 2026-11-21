@@ -83,6 +83,7 @@
     "no_signer": "Questo conto non può firmare transazioni in questo portafoglio (ad esempio un conto di sola osservazione o un conto riassegnato a una chiave che questo portafoglio non possiede).",
     "sign_all_info": "Per questo conto non si può firmare in questa pagina. Dopo aver eseguito lo scambio, le transazioni si aprono nella pagina Firma tutto, dove raccogli le firme (multisig, 2FA, Ledger, ...) e le invii. Poi puoi tornare qui.",
     "router_needs_own_signature": "{router} richiede che sia il conto stesso a firmare una richiesta di autenticazione, quindi non è disponibile per conti multisig e Ledger.",
+    "multi_group_not_signable": "Questo percorso Haystack richiede più gruppi di transazioni separati, che non possono essere firmati insieme per questo conto. Usa un altro router o un importo minore.",
     "swap_asset_from": "Select asset from which you want to swap",
     "swap_asset_to": "Select asset to which you want to swap",
     "swap_amount": "Set the amount to swap",

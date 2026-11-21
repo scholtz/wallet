@@ -83,6 +83,7 @@
     "no_signer": "Bu hesap bu cüzdanda işlem imzalayamaz (örneğin yalnızca izleme hesabı veya bu cüzdanda bulunmayan bir anahtara rekey edilmiş hesap).",
     "sign_all_info": "Bu hesap için bu sayfada imzalanamaz. Takası yürüttükten sonra işlemler, imzaları (multisig, 2FA, Ledger, ...) toplayıp gönderebileceğiniz Tümünü imzala sayfasında açılır. Sonra buraya dönebilirsiniz.",
     "router_needs_own_signature": "{router}, kimlik doğrulama isteğini hesabın kendisinin imzalamasını gerektirir; bu nedenle multisig ve Ledger hesapları için kullanılamaz.",
+    "multi_group_not_signable": "Bu Haystack rotası, bu hesap için birlikte imzalanamayan birkaç ayrı işlem grubu gerektiriyor. Başka bir yönlendirici veya daha küçük bir tutar kullanın.",
     "swap_asset_from": "Takas yapmak istediğiniz varlığı seçin",
     "swap_asset_to": "Takas yapmak istediğiniz varlığı seçinp",
     "swap_amount": "Takas yapılacak tutarı ayarlayın",

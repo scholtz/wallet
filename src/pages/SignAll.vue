@@ -154,23 +154,27 @@ const encodeAddress = (
   return "-";
 };
 
+const isLogicSigSigned = (txId: string): boolean => {
+  const payload = store.state.signer.signed[txId];
+  return !!payload && !!algosdk.decodeSignedTransaction(payload).lsig;
+};
 const toBeSigned = async (txn: algosdk.Transaction): Promise<boolean> => {
   const txId = txn.txID();
   const signed = txId in store.state.signer.signed;
   if (!signed) return true; // if not signed return true to show sign button
-  // A pre-signed counterpart of a foreign sender (e.g. a Deflex logic-sig transaction handed over
-  // by the swap page) is done as it is; the signer type lookup would only raise an error toast.
-  if (!store.state.wallet.privateAccounts.some((a) => a.addr === encodeAddress(txn.sender))) {
-    return false;
-  }
+  // A logic-sig transaction (e.g. handed over pre-signed by the swap page's Deflex route) is
+  // done as it is; its sender is no wallet account, so there is no signer to ask.
+  if (isLogicSigSigned(txId)) return false;
   const from = txn.sender
     ? encodeAddress(txn.sender)
     : txn.sender
     ? encodeAddress(txn.sender)
     : "-";
+  // Silent: this re-check runs for every transaction after every signature.
   const type = await store.dispatch("signer/getSignerType", {
     from: from,
     tx: txn,
+    silent: true,
   });
   if (type == "msig") {
     // check sign threshold
@@ -324,11 +328,9 @@ const clickSignAll = async () => {
 };
 const checkAtLeastOneSigned = () => {
   for (const tx of state.transactions) {
-    // Pre-signed foreign parts (logic-sig transactions) do not count: the user has signed nothing yet.
-    if (
-      tx.txn.txID() in store.state.signer.signed &&
-      store.state.wallet.privateAccounts.some((a) => a.addr === tx.from)
-    ) {
+    // Pre-signed logic-sig transactions do not count: the user has signed nothing yet.
+    const txId = tx.txn.txID();
+    if (txId in store.state.signer.signed && !isLogicSigSigned(txId)) {
       state.atLeastOneSigned = true;
       return true;
     }

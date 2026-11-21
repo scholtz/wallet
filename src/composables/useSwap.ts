@@ -381,6 +381,7 @@ export function useSwap() {
     signAuthTx: (config: { account: string; realm: string }) =>
       store.dispatch("arc14/signAuthTx", config),
     noSignerMessage: t("swap.no_signer"),
+    multiGroupNotSignableMessage: t("swap.multi_group_not_signable"),
     routerNeedsOwnSignatureMessage: (router) =>
       t("swap.router_needs_own_signature", { router }),
     getSignerType: () =>

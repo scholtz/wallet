@@ -398,12 +398,14 @@ const actions: ActionTree<SignerState, RootState> = {
   // The one entry point for handing a group to `/signAll`: it also (re)sets where the page
   // returns to and records the pre-signed parts, so no state of an earlier flow leaks in.
   async toSignArray({ commit }, payload: ToSignArrayPayload) {
-    commit("returnToSignAll", payload.returnTo?.key ?? "");
-    commit("returnToSignAllPath", payload.returnTo?.path ?? "");
+    // Anything that can throw (an undecodable pre-signed blob) goes first, so a failed hand-off
+    // leaves the queue and its return target as they were.
     for (const signed of payload.presigned ?? []) {
       commit("setSigned", signed);
     }
     commit("toSignArray", payload.txs);
+    commit("returnToSignAll", payload.returnTo?.key ?? "");
+    commit("returnToSignAllPath", payload.returnTo?.path ?? "");
   },
   async returnTo({ commit }, returnTo: string) {
     commit("returnTo", returnTo);

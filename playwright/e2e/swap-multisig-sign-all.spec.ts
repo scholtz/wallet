@@ -17,8 +17,8 @@ const CORS = {
 interface ChainState {
   /** Raw body of the group the wallet submitted to algod. */
   submitted: Buffer | null;
-  /** Base64 unsigned transactions the mocked Deflex route answers with. */
-  deflexTxns: string[];
+  /** Transactions the mocked Deflex route answers with (unsigned, or signed by a logic signature). */
+  deflexTxns: { data: string; logicSigBlob: false | Record<number, number> }[];
 }
 
 /** Splits the back-to-back msgpack objects of a submitted group (no length prefix exists). */
@@ -168,11 +168,7 @@ async function mockChain(
         headers: CORS,
         json: {
           groupMetadata: [{ labelText: "Swap USDC for ALGO" }],
-          txns: state.deflexTxns.map((data) => ({
-            group: "g1",
-            data,
-            logicSigBlob: false,
-          })),
+          txns: state.deflexTxns.map((entry) => ({ group: "g1", ...entry })),
         },
       });
     },
@@ -180,8 +176,11 @@ async function mockChain(
   return state;
 }
 
-/** The USDC -> ALGO route of the mocked router: send USDC to a pool, pay the pool's fee. */
-function routeTransactions(sender: string, pool: string): string[] {
+/**
+ * The USDC -> ALGO route of the mocked router: send USDC to a pool, pay the pool's fee and, like
+ * the real router does for some pools, a transaction the router's own logic signature already signed.
+ */
+function routeTransactions(sender: string, pool: string): ChainState["deflexTxns"] {
   const sp = {
     fee: 1000n,
     minFee: 1000n,
@@ -205,10 +204,35 @@ function routeTransactions(sender: string, pool: string): string[] {
       suggestedParams: sp,
     }),
   ];
-  algosdk.assignGroupID(txns);
-  return txns.map((tx) =>
-    Buffer.from(algosdk.encodeUnsignedTransaction(tx)).toString("base64"),
+  // "#pragma version 2; int 1" - approves everything, its address is no wallet account.
+  const lsig = new algosdk.LogicSigAccount(
+    new Uint8Array([2, 0x20, 1, 1, 0x22]),
   );
+  txns.push(
+    algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: lsig.address(),
+      receiver: pool,
+      amount: 0,
+      suggestedParams: sp,
+    }),
+  );
+  algosdk.assignGroupID(txns);
+  const lsigBlob = algosdk.signLogicSigTransactionObject(
+    txns[2],
+    lsig,
+  ).blob;
+  return [
+    ...txns.slice(0, 2).map((tx) => ({
+      data: Buffer.from(algosdk.encodeUnsignedTransaction(tx)).toString(
+        "base64",
+      ),
+      logicSigBlob: false as const,
+    })),
+    {
+      data: "",
+      logicSigBlob: Object.fromEntries(Array.from(lsigBlob).map((b, i) => [i, b])),
+    },
+  ];
 }
 
 /** The store reads its localStorage asset cache first (no indexer lookup). */
@@ -308,7 +332,12 @@ test("a multisig account executes a swap by collecting the signatures on the Sig
   await expect(page).toHaveURL(/\/signAll/, { timeout: 15000 });
   expect(chain.submitted).toBeNull();
   const signButtons = page.getByRole("button", { name: "Sign", exact: true });
+  // Three transactions, but the logic-signed one needs nobody's signature: two Sign buttons,
+  // no error toast about it, and "Return to swap" stays disabled until the user signed something.
+  await expect(page.locator(".p-datatable-tbody > tr")).toHaveCount(3);
   await expect(signButtons).toHaveCount(2);
+  await expect(page.locator(".p-toast-message-error")).toHaveCount(0);
+  await expect(page.getByTestId("sign-all-return")).toBeDisabled();
   await expect(
     page.getByRole("button", { name: /Send tx to the network/ }),
   ).toBeDisabled();
@@ -347,12 +376,13 @@ test("a multisig account executes a swap by collecting the signatures on the Sig
   const sent = splitSigned(chain.submitted!).map((raw) =>
     algosdk.decodeSignedTransaction(new Uint8Array(raw)),
   );
-  expect(sent).toHaveLength(2);
-  for (const stxn of sent) {
+  expect(sent).toHaveLength(3);
+  for (const stxn of sent.slice(0, 2)) {
     expect(stxn.msig).toBeDefined();
     expect(stxn.txn.sender.toString()).toBe(msig);
-    expect(stxn.txn.group).toBeDefined();
   }
+  expect(sent[2].lsig).toBeDefined();
+  expect(new Set(sent.map((s) => Buffer.from(s.txn.group!).toString("hex"))).size).toBe(1);
 
   await page.getByTestId("sign-all-return").click();
   await expect(page).toHaveURL(new RegExp(`/swap/${msig}/0/${USDC}$`));

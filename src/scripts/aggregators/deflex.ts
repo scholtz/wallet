@@ -28,9 +28,7 @@ const handOffGroupToSignAll = async (
   try {
     // Each group is confirmed before the next one is sent; the Sign-all page sends one group.
     if (groups.length !== 1) {
-      throw new Error(
-        "This Deflex route needs several separate transaction groups, which cannot be signed together for this account. Use another router or a smaller amount.",
-      );
+      throw new Error(context.multiGroupNotSignableMessage);
     }
     const txns: algosdk.Transaction[] = [];
     const presigned: Uint8Array[] = [];
