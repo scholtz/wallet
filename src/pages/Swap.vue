@@ -50,6 +50,21 @@
         >
           {{ t("swap.sign_all_info") }}
         </Message>
+        <!-- Multisig / Ledger: the Biatec Router's login is signed once on the Sign-all page. -->
+        <Message
+          severity="warn"
+          v-if="routerAuthNeeded && checkNetwork() && (useBiatec || useBiatecStage)"
+          data-testid="swap-router-authorize-info"
+        >
+          <div>{{ t("swap.router_needs_authorization", { router: "Biatec Router" }) }}</div>
+          <Button
+            class="mt-2"
+            data-testid="swap-router-authorize"
+            @click="authorizeRouter"
+          >
+            {{ t("swap.authorize_router", { router: "Biatec Router" }) }}
+          </Button>
+        </Message>
         <div
           v-if="loadingAssets"
           class="flex justify-content-center align-items-center p-5"
@@ -217,6 +232,7 @@ const {
   toAssetObj,
   txsDetails,
   signingRoute,
+  routerAuthNeeded,
   processingQuote,
   processingOptin,
   note,
@@ -253,6 +269,7 @@ const {
   // Methods
   reloadAccount,
   refreshSigningRoute,
+  authorizeRouter,
   clearQuotes,
   refreshBalance,
   makeAssets,

@@ -2,6 +2,13 @@ import type { ActionTree, MutationTree } from "vuex";
 import { Buffer } from "buffer";
 import algosdk from "algosdk";
 import type { RootState } from "./index";
+import { findGenesisMismatch } from "@/scripts/dappRequestChecks";
+import {
+  arc14TokenFromSigned,
+  isArc14AuthTransaction,
+  isArc14TokenUsable,
+  parseArc14Token,
+} from "@/scripts/encoding/arc14";
 
 export interface Arc14State {
   address2chain2realm2token: Record<
@@ -61,6 +68,9 @@ const getConfig = (rootState: RootState): Arc14Config => {
 };
 
 const mutations: MutationTree<Arc14State> = {
+  reset(state) {
+    state.address2chain2realm2token = {};
+  },
   storeArc14Auth(state, { chain, addr, realm, token }: Arc14AuthPayload) {
     const chainMap = ensureChainEntry(state, chain);
     const addressMap = ensureAddressEntry(chainMap, addr);
@@ -71,6 +81,61 @@ const mutations: MutationTree<Arc14State> = {
 const actions: ActionTree<Arc14State, RootState> = {
   async storeArc14Auth({ commit }, payload: Arc14AuthPayload) {
     await commit("storeArc14Auth", payload);
+  },
+  /**
+   * The stored login of `account` for `realm` on the selected network when it is complete and
+   * still valid for a while, else undefined. This is how accounts that cannot sign in place
+   * (multisig, Ledger) are authenticated: the login is signed once on the Sign-all page and
+   * reused here until it nears its expiry.
+   */
+  async getUsableAuth(
+    { dispatch, state, rootState },
+    { account, realm }: AuthTxPayload,
+  ): Promise<string | undefined> {
+    const token =
+      state.address2chain2realm2token[rootState.config.env]?.[account]?.[realm];
+    if (!token) return undefined;
+    try {
+      const params: algosdk.SuggestedParams = await dispatch(
+        "algod/getCheckedTransactionParams",
+        undefined,
+        { root: true },
+      );
+      return isArc14TokenUsable(token, account, realm, BigInt(params.firstValid))
+        ? token
+        : undefined;
+    } catch (error) {
+      // Not knowing the round only means the login cannot be vouched for: ask for a new one.
+      console.error("Could not check the stored ARC-14 login", error);
+      return undefined;
+    }
+  },
+  /**
+   * Keeps a login signed elsewhere (the Sign-all page) for reuse. Only a complete login of the
+   * selected network is accepted; the account, realm and token all come from the transaction.
+   */
+  async storeSignedAuth(
+    { commit, rootState },
+    { signed }: { signed: Uint8Array },
+  ): Promise<boolean> {
+    const token = arc14TokenFromSigned(signed);
+    const decoded = parseArc14Token(token);
+    if (!decoded || !isArc14AuthTransaction(decoded.txn)) return false;
+    const addr = decoded.txn.sender.toString();
+    const realm = Buffer.from(decoded.txn.note ?? []).toString("utf-8");
+    // A login made for another network must never be kept under the selected one.
+    if (findGenesisMismatch([decoded.txn], rootState.config.env) !== undefined) {
+      return false;
+    }
+    const round = BigInt(decoded.txn.firstValid);
+    if (!isArc14TokenUsable(token, addr, realm, round)) return false;
+    commit("storeArc14Auth", {
+      chain: rootState.config.env,
+      addr,
+      realm,
+      token,
+    });
+    return true;
   },
   async getAuthTx({ dispatch, rootState }, { account, realm }: AuthTxPayload) {
     try {

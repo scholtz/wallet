@@ -5,6 +5,7 @@ This document tracks the evolution of AWallet, an open-source Algorand wallet, s
 ## 2026-11
 
 - Swapping now works for multisig, 2FA, Ledger and HD accounts too: when an account cannot sign on the swap page itself, the swap (and the Folks USDC/fUSDC deposit, withdrawal and opt-in) opens on the "Sign all" page, where you collect the signatures, send the transactions and return to the swap. A multisig account created in the current session can now also be used right away without reopening the wallet.
+- The Biatec Router is now available for multisig, 2FA and Ledger accounts too: the swap page offers an "Authorize" button that opens the router's login on the "Sign all" page, signs it once (it is never sent to the network) and reuses it for the following quotes. The ARC-14 developer page can sign logins for these accounts the same way.
 - Paying no longer changes your selected account: the account you work with only changes when you pick a different one yourself, not as a side effect of opening a payment link or paying from another account.
 - The payment page now remembers the address you last paid and fills it in the next time you open it (a link's own recipient still wins).
 - The signing page now always shows the "Rekey to" address and warning when a transaction hands control of your account to another address, including transactions that come from a link or another page.

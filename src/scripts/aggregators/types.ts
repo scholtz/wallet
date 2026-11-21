@@ -207,8 +207,13 @@ export interface SwapContext {
   noSignerMessage: string;
   /** Localized "this route needs several separate groups, which cannot be signed together" message. */
   multiGroupNotSignableMessage: string;
-  /** Localized "<router> needs the account to sign its own authentication request" message. */
-  routerNeedsOwnSignatureMessage: (router: string) => string;
+  /** Localized "authorize <router> for this account first" message (multisig / Ledger accounts). */
+  routerNeedsAuthorizationMessage: (router: string) => string;
+  /**
+   * The stored, still valid ARC-14 login of the selected account for `realm` (signed earlier on
+   * the Sign-all page), or undefined when it has to be requested again.
+   */
+  getStoredAuth: (realm: string) => Promise<string | undefined>;
   /** How the selected account signs (see complexSigning.ts): resolved fresh on every call. */
   getSignerType: () => Promise<SignerType>;
   getSigningRoute: () => Promise<SigningRoute>;

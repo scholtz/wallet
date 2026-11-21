@@ -82,7 +82,8 @@
     "custom_network_kind_testnet": "Testnet",
     "no_signer": "Tento účet v tejto peňaženke nemôže podpisovať transakcie (napríklad účet len na sledovanie alebo účet presmerovaný na kľúč, ktorý táto peňaženka nemá).",
     "sign_all_info": "Za tento účet sa na tejto stránke nedá podpísať. Po vykonaní výmeny sa transakcie otvoria na stránke Podpísať všetko, kde zhromaždíte podpisy (multisig, 2FA, Ledger, ...) a odošlete ich. Potom sa môžete vrátiť sem.",
-    "router_needs_own_signature": "{router} vyžaduje, aby si overovaciu požiadavku podpísal priamo účet, preto nie je dostupný pre multisig a Ledger účty.",
+    "router_needs_authorization": "{router} vyžaduje prihlásenie podpísané týmto účtom. Autorizujte ho raz; podpísané prihlásenie sa na čas uchová a použije sa pre každú ponuku.",
+    "authorize_router": "Autorizovať {router}",
     "multi_group_not_signable": "Táto trasa Haystack vyžaduje niekoľko samostatných skupín transakcií, ktoré sa pre tento účet nedajú podpísať spoločne. Použite iný smerovač alebo menšiu sumu.",
     "swap_asset_from": "Vyberte token ktorý chcete predať",
     "swap_asset_to": "Vyberte token ktorý chcete kúpiť",
@@ -1426,13 +1427,18 @@
     "falcon_fee_warning": "Tento účet používa kľúč Falcon-1024 (postkvantový). Jeho podpis je veľký, preto sieť vyžaduje vyšší poplatok (približne trojnásobok minimálneho poplatku za transakciu), než transakcie uvádzajú ({fee}). Transakcie môžu byť zamietnuté, ak rozdiel nepokryjú iné transakcie v skupine.",
     "return_to_swap": "Späť na výmenu",
     "return_to_scheduled_payments": "Späť na správu plánovaných platieb",
-    "return_to_previous": "Späť na predchádzajúcu stránku"
+    "return_to_arc14": "Späť na stránku ARC14",
+    "return_to_previous": "Späť na predchádzajúcu stránku",
+    "arc14_login_info": "Toto je prihlásenie k {realm}. Podpíšte ho tu; nikdy sa neodošle do siete. Podpísané prihlásenie sa potom uchová v peňaženke na opätovné použitie.",
+    "arc14_login_kept": "Prihlásenie k {realm} je podpísané a uchované v peňaženke. Nikdy sa neodošle do siete. Teraz sa môžete vrátiť.",
+    "arc14_login_not_kept": "Prihlásenie bolo podpísané, ale nepodarilo sa ho uchovať pre vybranú sieť. Vráťte sa a vyžiadajte ho znova."
   },
   "arc14": {
     "service_realm_title": "Servisná doména",
     "network_note": "Všimnite si, že ARC14 vyžaduje výber siete. Uistite sa, že používate rovnakú sieť ako cieľová služba.",
     "copy_token_to_dashboard": "Copy token to dashboard",
-    "token_copied_to_clipboard": "Token copied to clipboard"
+    "token_copied_to_clipboard": "Token copied to clipboard",
+    "realm_required": "Realm služby musí končiť na #ARC14, napríklad 2FA#ARC14."
   },
   "tools": {
     "opt_in_governance_title": "Prihlásenie sa k algorand governance z viacerých účtov naraz",

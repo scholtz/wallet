@@ -11,6 +11,7 @@ import type {
 // package.
 import { biatecRouter } from "biatec-router";
 import { BIATEC_ROUTER_REALM } from "../encoding/arc14";
+import { resolveArc14AuthRoute } from "../signing/complexSigning";
 import algosdk from "algosdk";
 import { Buffer } from "buffer";
 import { combineRouteResponse } from "./combineBiatecRoute";
@@ -58,13 +59,20 @@ export function createBiatecAggregator(
     return undefined;
   };
 
-  // The router authenticates the caller with an ARC-14 request signed by the account itself, in
-  // place and without further steps. A multisig account has no single signature to give and a
-  // Ledger would ask for a device confirmation on every quote, so the router is not offered for
-  // them (the other routers are, via the Sign-all page).
-  const canAuthenticate = async (context: SwapContext): Promise<boolean> => {
+  // The router authenticates the caller with an ARC-14 login signed by the account itself. A key
+  // account signs it in place on every request. A multisig account (several signers) or a Ledger
+  // (a device confirmation) signs it once on the Sign-all page - the swap page offers an
+  // "Authorize" button for that - and the stored login is reused until it nears its expiry.
+  // Returns undefined when such an account has no usable login yet.
+  const getAuthHeader = async (
+    context: SwapContext,
+  ): Promise<string | undefined> => {
+    const account = context.account.value?.addr || "";
     const type = await context.getSignerType();
-    return type !== "msig" && type !== "ledger";
+    if (resolveArc14AuthRoute(type) === "signAll") {
+      return context.getStoredAuth(BIATEC_ROUTER_REALM);
+    }
+    return context.signAuthTx({ account, realm: BIATEC_ROUTER_REALM });
   };
 
   return {
@@ -86,17 +94,16 @@ export function createBiatecAggregator(
         }
         // An account that cannot sign at all is reported by the swap page once, not per quote.
         if ((await context.getSignerType()) === "?") return;
-        if (!(await canAuthenticate(context))) {
-          context.txsDetails.value += `
-${displayName.toUpperCase()}: ${context.routerNeedsOwnSignatureMessage(displayName)}`;
-          context.txsDetails.value = context.txsDetails.value.trim();
+        const authHeader = await getAuthHeader(context);
+        if (!authHeader) {
+          // Not an error: the swap page offers the "Authorize" button for these accounts.
+          if (resolveArc14AuthRoute(await context.getSignerType()) === "signAll") {
+            context.txsDetails.value += `
+${displayName.toUpperCase()}: ${context.routerNeedsAuthorizationMessage(displayName)}`;
+            context.txsDetails.value = context.txsDetails.value.trim();
+          }
           return;
         }
-
-        const authHeader = await context.signAuthTx({
-          account: context.account.value?.addr || "",
-          realm: BIATEC_ROUTER_REALM,
-        });
         biatecRouter.OpenAPI.HEADERS = { Authorization: authHeader };
         biatecRouter.OpenAPI.BASE = effectiveBaseUrl;
 
@@ -159,9 +166,6 @@ ${displayName.toUpperCase()}: ${context.routerNeedsOwnSignatureMessage(displayNa
         if (signingRoute === "none") {
           throw new Error(context.noSignerMessage);
         }
-        if (!(await canAuthenticate(context))) {
-          throw new Error(context.routerNeedsOwnSignatureMessage(displayName));
-        }
         // quotesKey always holds this aggregator's own BiatecQuoteData - see
         // getQuote()/execute() below, the only writers of this key.
         const existingQuote = context.aggregatorData[quotesKey]
@@ -173,10 +177,15 @@ ${displayName.toUpperCase()}: ${context.routerNeedsOwnSignatureMessage(displayNa
         if (!effectiveBaseUrl) {
           throw new Error(`${displayName} is not available on this network`);
         }
-        const authHeader = await context.signAuthTx({
-          account: context.account.value?.addr || "",
-          realm: BIATEC_ROUTER_REALM,
-        });
+        const authHeader = await getAuthHeader(context);
+        if (!authHeader) {
+          // A multisig / Ledger login has expired; for a key account the signer already showed why.
+          if (resolveArc14AuthRoute(await context.getSignerType()) === "signAll") {
+            throw new Error(context.routerNeedsAuthorizationMessage(displayName));
+          }
+          context.aggregatorData[processingKey].value = false;
+          return;
+        }
         biatecRouter.OpenAPI.HEADERS = { Authorization: authHeader };
         biatecRouter.OpenAPI.BASE = effectiveBaseUrl;
 
@@ -265,7 +274,7 @@ ${displayName.toUpperCase()}: ${context.routerNeedsOwnSignatureMessage(displayNa
         transactions.forEach((tx) => (tx.group = groupId));
 
         if (signingRoute === "signAll") {
-          // Falcon-1024: the signatures are collected on the Sign-all page.
+          // Multisig / Ledger / Falcon-1024: the signatures are collected on the Sign-all page.
           await context.handOffToSignAll(transactions);
           context.aggregatorData[processingKey].value = false;
           return;

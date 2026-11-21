@@ -23,7 +23,11 @@ import {
 import type { Account, SwapStore } from "../types/swap";
 import algosdk from "algosdk";
 import { useSignAllHandoff } from "./useSignAllHandoff";
-import type { SigningRoute } from "../scripts/signing/complexSigning";
+import {
+  resolveArc14AuthRoute,
+  type SigningRoute,
+} from "../scripts/signing/complexSigning";
+import { BIATEC_ROUTER_REALM } from "../scripts/encoding/arc14";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import {
   balanceSnapshot,
@@ -66,6 +70,9 @@ export function useSwap() {
   // How the account signs: in place ("direct": key, HD) or through the Sign-all
   // page (multisig / 2FA, Ledger, Falcon). null until the account is loaded.
   const signingRoute: Ref<SigningRoute | null> = ref(null);
+  // The selected account (multisig, Ledger) has to sign the Biatec Router's ARC-14 login on the
+  // Sign-all page and no valid one is stored yet: the page offers an "Authorize" button.
+  const routerAuthNeeded: Ref<boolean> = ref(false);
   const processingQuote: Ref<boolean> = ref(false);
   const processingOptin: Ref<boolean> = ref(false);
   const note: Ref<string> = ref("");
@@ -299,13 +306,40 @@ export function useSwap() {
     const addr = String(route.params.account ?? "");
     // Never keep showing the previous account's way of signing while this one is resolved (but
     // do not blink the banner on a plain refresh of the same account).
-    if (addr !== signingRouteAddr) signingRoute.value = null;
+    if (addr !== signingRouteAddr) {
+      signingRoute.value = null;
+      routerAuthNeeded.value = false;
+    }
     signingRouteAddr = addr;
     const run = ++signingRouteRun;
     const resolved = addr ? await signAllHandoff.signingRouteFor(addr) : null;
     // Only the newest lookup may publish (the account or network may have changed meanwhile).
     if (run === signingRouteRun) {
       signingRoute.value = resolved;
+    }
+    let authNeeded = false;
+    if (addr && resolved === "signAll") {
+      const type = await signAllHandoff.getSignerType(addr);
+      authNeeded =
+        resolveArc14AuthRoute(type) === "signAll" &&
+        !(await signAllHandoff.getArc14Auth(addr, BIATEC_ROUTER_REALM));
+    }
+    if (run === signingRouteRun) {
+      routerAuthNeeded.value = authNeeded;
+    }
+  };
+
+  // The router's login of a multisig / Ledger account is signed on the Sign-all page and kept in
+  // the arc14 store; the swap page is offered again afterwards.
+  const authorizeRouter = async (): Promise<void> => {
+    try {
+      await signAllHandoff.requestArc14Auth(
+        String(route.params.account ?? ""),
+        BIATEC_ROUTER_REALM,
+        "Swap",
+      );
+    } catch (e) {
+      await store.dispatch("toast/openError", (e as Error).message);
     }
   };
 
@@ -396,8 +430,10 @@ export function useSwap() {
     get multiGroupNotSignableMessage() {
       return t("swap.multi_group_not_signable");
     },
-    routerNeedsOwnSignatureMessage: (router) =>
-      t("swap.router_needs_own_signature", { router }),
+    routerNeedsAuthorizationMessage: (router) =>
+      t("swap.router_needs_authorization", { router }),
+    getStoredAuth: (realm) =>
+      signAllHandoff.getArc14Auth(String(route.params.account ?? ""), realm),
     getSignerType: () =>
       signAllHandoff.getSignerType(String(route.params.account ?? "")),
     getSigningRoute,
@@ -618,6 +654,11 @@ export function useSwap() {
     );
 
     await Promise.all(enabledAggregators.map((agg) => agg.getQuote(context)));
+    // A stored router login may have expired while the page was open: offer the button again.
+    // Only a hint - it must never block the quote flow.
+    await refreshSigningRoute().catch((e: unknown) =>
+      console.error("Could not refresh how the account signs", e),
+    );
     // Route-selection and the on-screen quote/price must reflect the
     // simulated outcome, so wait for it before releasing the "processing"
     // state that unblocks the execute buttons.
@@ -653,6 +694,12 @@ export function useSwap() {
       const before = balanceSnapshot(accountData.value, watched);
       txSentByExecute = false;
       await agg.execute(context);
+      // After a hand-off to Sign-all the route no longer names the account: nothing to refresh.
+      if (route.params.account === swapAccount) {
+        await refreshSigningRoute().catch((e: unknown) =>
+          console.error("Could not refresh how the account signs", e),
+        );
+      }
       // The indexer trails algod by a few seconds - settleAfterSwap keeps
       // reading until it shows the swap, otherwise the old balance stays.
       await settleAfterSwap({
@@ -788,6 +835,7 @@ export function useSwap() {
     toAssetObj,
     txsDetails,
     signingRoute,
+    routerAuthNeeded,
     processingQuote,
     processingOptin,
     note,
@@ -826,6 +874,7 @@ export function useSwap() {
     // Methods
     reloadAccount,
     refreshSigningRoute,
+    authorizeRouter,
     clearQuotes,
     refreshBalance,
     makeAssets,

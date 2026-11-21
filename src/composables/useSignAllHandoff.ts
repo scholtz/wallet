@@ -1,6 +1,7 @@
 import { useRoute, useRouter } from "vue-router";
 import type algosdk from "algosdk";
 import { useStore } from "@/store";
+import { isArc14AuthTransaction } from "@/scripts/encoding/arc14";
 import {
   resolveSigningRoute,
   type SignerType,
@@ -40,14 +41,53 @@ export function useSignAllHandoff() {
     txns: algosdk.Transaction[],
     returnKey: string,
     presigned?: Uint8Array[],
+    returnPath?: string,
   ): Promise<void> => {
     await store.dispatch("signer/toSignArray", {
       txs: txns,
-      returnTo: { key: returnKey, path: route.fullPath },
+      returnTo: { key: returnKey, path: returnPath ?? route.fullPath },
       presigned,
     });
     await router.push("/signAll");
   };
 
-  return { getSignerType, signingRouteFor, handOffToSignAll };
+  /**
+   * The stored ARC-14 login of `account` for `realm` when it is complete and still valid, else
+   * undefined. Accounts that cannot sign in place (multisig, Ledger) are authenticated with it.
+   */
+  const getArc14Auth = (
+    account: string,
+    realm: string,
+  ): Promise<string | undefined> =>
+    store.dispatch("arc14/getUsableAuth", { account, realm });
+
+  /**
+   * Asks for the ARC-14 login of `account` for `realm` on the Sign-all page: the login is signed
+   * there (never sent to the network) and kept in the `arc14` store, so the page that needs it
+   * reads it with `getArc14Auth` after "Return to ...". Returns false when the login could not be
+   * prepared (the store already showed why).
+   */
+  const requestArc14Auth = async (
+    account: string,
+    realm: string,
+    returnKey: string,
+    returnPath?: string,
+  ): Promise<boolean> => {
+    const authTxn = (await store.dispatch("arc14/getAuthTx", {
+      account,
+      realm,
+    })) as algosdk.Transaction | undefined;
+    // Sign-all recognises a login by its note; anything else would be offered for sending.
+    if (!authTxn || !isArc14AuthTransaction(authTxn)) return false;
+    await handOffToSignAll([authTxn], returnKey, undefined, returnPath);
+    return true;
+  };
+
+  return {
+    getSignerType,
+    signingRouteFor,
+    handOffToSignAll,
+    getArc14Auth,
+    requestArc14Auth,
+  };
 }

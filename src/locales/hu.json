@@ -82,7 +82,8 @@
     "custom_network_kind_testnet": "Testnet",
     "no_signer": "Ez a számla nem tud tranzakciókat aláírni ebben a pénztárcában (például csak megfigyelt számla, vagy olyan kulcsra átállított számla, amely nincs ebben a pénztárcában).",
     "sign_all_info": "Ezen az oldalon nem lehet aláírni ehhez a számlához. A csere végrehajtása után a tranzakciók az Összes aláírása oldalon nyílnak meg, ahol összegyűjtheted az aláírásokat (multisig, 2FA, Ledger, ...) és elküldheted őket. Ezután visszatérhetsz ide.",
-    "router_needs_own_signature": "A(z) {router} megköveteli, hogy a számla maga írjon alá egy hitelesítési kérelmet, ezért multisig és Ledger számlákhoz nem érhető el.",
+    "router_needs_authorization": "A(z) {router} ehhez a fiókhoz tartozó aláírt bejelentkezést igényel. Engedélyezze egyszer; az aláírt bejelentkezést a rendszer egy ideig megőrzi, és minden árajánlathoz újra felhasználja.",
+    "authorize_router": "{router} engedélyezése",
     "multi_group_not_signable": "Ez a Haystack útvonal több különálló tranzakciócsoportot igényel, amelyeket ehhez a számlához nem lehet együtt aláírni. Használj másik útválasztót vagy kisebb összeget.",
     "swap_asset_from": "Válaszd ki a cserélni kívánt eszközt",
     "swap_asset_to": "Válaszd ki, melyik eszközre szeretnéd cserélni",
@@ -1426,13 +1427,18 @@
     "falcon_fee_warning": "Ez a fiók Falcon-1024 (poszt-kvantum) kulcsot használ. Az aláírása nagy, ezért a hálózat magasabb díjat igényel (tranzakciónként nagyjából a minimális díj háromszorosát), mint amennyit a tranzakciók megadnak ({fee}). A tranzakciókat elutasíthatják, hacsak a csoport többi tranzakciója nem fedezi a különbözetet.",
     "return_to_swap": "Vissza a cseréhez",
     "return_to_scheduled_payments": "Vissza az ütemezett fizetések kezeléséhez",
-    "return_to_previous": "Vissza az előző oldalra"
+    "return_to_arc14": "Vissza az ARC14 oldalra",
+    "return_to_previous": "Vissza az előző oldalra",
+    "arc14_login_info": "Ez egy bejelentkezés ide: {realm}. Írja alá itt; soha nem kerül elküldésre a hálózatra. Az aláírt bejelentkezést a tárca ezután megőrzi az újrafelhasználáshoz.",
+    "arc14_login_kept": "A(z) {realm} bejelentkezés alá van írva és el van tárolva a tárcában. Soha nem kerül elküldésre a hálózatra. Most visszatérhet.",
+    "arc14_login_not_kept": "A bejelentkezés alá lett írva, de nem tárolható a kiválasztott hálózathoz. Térjen vissza, és kérje újra."
   },
   "arc14": {
     "service_realm_title": "Szolgáltatási tartomány",
     "network_note": "Fontos: az ARC14 használatához kötelező a hálózat kiválasztása. Ügyelj arra, hogy ugyanazt a hálózatot használd, mint amin cél szolgáltatás fut.",
     "copy_token_to_dashboard": "A token másolása az irányítópultra",
-    "token_copied_to_clipboard": "A token a vágólapra lett másolva"
+    "token_copied_to_clipboard": "A token a vágólapra lett másolva",
+    "realm_required": "A szolgáltatás realmjének #ARC14-re kell végződnie, például 2FA#ARC14."
   },
   "tools": {
     "opt_in_governance_title": "Több számla egyidejű regisztrálása az Algorand Governance-be",

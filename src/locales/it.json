@@ -82,7 +82,8 @@
     "custom_network_kind_testnet": "Testnet",
     "no_signer": "Questo conto non può firmare transazioni in questo portafoglio (ad esempio un conto di sola osservazione o un conto riassegnato a una chiave che questo portafoglio non possiede).",
     "sign_all_info": "Per questo conto non si può firmare in questa pagina. Dopo aver eseguito lo scambio, le transazioni si aprono nella pagina Firma tutto, dove raccogli le firme (multisig, 2FA, Ledger, ...) e le invii. Poi puoi tornare qui.",
-    "router_needs_own_signature": "{router} richiede che sia il conto stesso a firmare una richiesta di autenticazione, quindi non è disponibile per conti multisig e Ledger.",
+    "router_needs_authorization": "{router} richiede un accesso firmato da questo account. Autorizzalo una volta; l'accesso firmato viene conservato per un po' e riutilizzato per ogni preventivo.",
+    "authorize_router": "Autorizza {router}",
     "multi_group_not_signable": "Questo percorso Haystack richiede più gruppi di transazioni separati, che non possono essere firmati insieme per questo conto. Usa un altro router o un importo minore.",
     "swap_asset_from": "Select asset from which you want to swap",
     "swap_asset_to": "Select asset to which you want to swap",
@@ -1426,13 +1427,18 @@
     "falcon_fee_warning": "Questo account usa una chiave Falcon-1024 (post-quantistica). La sua firma è grande, quindi la rete richiede una commissione più alta (circa tre volte la commissione minima per transazione) di quella dichiarata dalle transazioni ({fee}). Le transazioni potrebbero essere rifiutate a meno che altre transazioni del gruppo coprano la differenza.",
     "return_to_swap": "Torna allo scambio",
     "return_to_scheduled_payments": "Torna alla gestione dei pagamenti programmati",
-    "return_to_previous": "Torna alla pagina precedente"
+    "return_to_arc14": "Torna alla pagina ARC14",
+    "return_to_previous": "Torna alla pagina precedente",
+    "arc14_login_info": "Questo è un accesso a {realm}. Firmalo qui; non viene mai inviato alla rete. L'accesso firmato viene poi conservato nel portafoglio per essere riutilizzato.",
+    "arc14_login_kept": "L'accesso a {realm} è firmato e conservato nel portafoglio. Non viene mai inviato alla rete. Ora puoi tornare indietro.",
+    "arc14_login_not_kept": "L'accesso è stato firmato ma non è stato possibile conservarlo per la rete selezionata. Torna indietro e richiedilo di nuovo."
   },
   "arc14": {
     "service_realm_title": "Service realm",
     "network_note": "Note that ARC14 requires selection of the network. Make sure that you are using same network as destination service.",
     "copy_token_to_dashboard": "Copy token to dashboard",
-    "token_copied_to_clipboard": "Token copied to clipboard"
+    "token_copied_to_clipboard": "Token copied to clipboard",
+    "realm_required": "Il realm del servizio deve terminare con #ARC14, ad esempio 2FA#ARC14."
   },
   "tools": {
     "opt_in_governance_title": "Opt in for algorand governance from multiple accounts at once",

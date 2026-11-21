@@ -82,7 +82,8 @@
     "custom_network_kind_testnet": "Testnet",
     "no_signer": "Bu hesap bu cüzdanda işlem imzalayamaz (örneğin yalnızca izleme hesabı veya bu cüzdanda bulunmayan bir anahtara rekey edilmiş hesap).",
     "sign_all_info": "Bu hesap için bu sayfada imzalanamaz. Takası yürüttükten sonra işlemler, imzaları (multisig, 2FA, Ledger, ...) toplayıp gönderebileceğiniz Tümünü imzala sayfasında açılır. Sonra buraya dönebilirsiniz.",
-    "router_needs_own_signature": "{router}, kimlik doğrulama isteğini hesabın kendisinin imzalamasını gerektirir; bu nedenle multisig ve Ledger hesapları için kullanılamaz.",
+    "router_needs_authorization": "{router}, bu hesap tarafından imzalanmış bir giriş gerektirir. Bir kez yetkilendirin; imzalı giriş bir süre saklanır ve her teklif için yeniden kullanılır.",
+    "authorize_router": "{router} yetkilendir",
     "multi_group_not_signable": "Bu Haystack rotası, bu hesap için birlikte imzalanamayan birkaç ayrı işlem grubu gerektiriyor. Başka bir yönlendirici veya daha küçük bir tutar kullanın.",
     "swap_asset_from": "Takas yapmak istediğiniz varlığı seçin",
     "swap_asset_to": "Takas yapmak istediğiniz varlığı seçinp",
@@ -1426,13 +1427,18 @@
     "falcon_fee_warning": "Bu hesap Falcon-1024 (kuantum sonrası) anahtarı kullanıyor. İmzası büyük olduğundan ağ, işlemlerde belirtilenden ({fee}) daha yüksek bir ücret (işlem başına asgari ücretin yaklaşık üç katı) gerektirir. Gruptaki diğer işlemler farkı karşılamazsa işlemler reddedilebilir.",
     "return_to_swap": "Takasa dön",
     "return_to_scheduled_payments": "Planlı ödeme yönetimine dön",
-    "return_to_previous": "Önceki sayfaya dön"
+    "return_to_arc14": "ARC14 sayfasına dön",
+    "return_to_previous": "Önceki sayfaya dön",
+    "arc14_login_info": "Bu, {realm} için bir giriştir. Burada imzalayın; asla ağa gönderilmez. İmzalı giriş daha sonra yeniden kullanılmak üzere cüzdanda saklanır.",
+    "arc14_login_kept": "{realm} için giriş imzalandı ve cüzdanda saklandı. Asla ağa gönderilmez. Şimdi geri dönebilirsiniz.",
+    "arc14_login_not_kept": "Giriş imzalandı ancak seçili ağ için saklanamadı. Geri dönüp yeniden isteyin."
   },
   "arc14": {
     "service_realm_title": "Service realm",
     "network_note": "Note that ARC14 requires selection of the network. Make sure that you are using same network as destination service.",
     "copy_token_to_dashboard": "Copy token to dashboard",
-    "token_copied_to_clipboard": "Token copied to clipboard"
+    "token_copied_to_clipboard": "Token copied to clipboard",
+    "realm_required": "Hizmet realm'i #ARC14 ile bitmelidir, örneğin 2FA#ARC14."
   },
   "tools": {
     "opt_in_governance_title": "Opt in for algorand governance from multiple accounts at once",
