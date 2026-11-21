@@ -378,6 +378,7 @@ const submitSignedClick = async () => {
       state.error = t("pay.state_error_not_sent");
       store.dispatch("toast/openError", state.error);
       state.processing = false;
+      return;
     }
 
     const confirmation = (await store.dispatch("algod/waitForConfirmation", {

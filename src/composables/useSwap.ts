@@ -289,10 +289,13 @@ export function useSwap() {
     await refreshSigningRoute();
   };
 
+  let signingRouteAddr = "";
   const refreshSigningRoute = async (): Promise<void> => {
     const addr = String(route.params.account ?? "");
-    // Never keep showing the previous account's way of signing while this one is resolved.
-    signingRoute.value = null;
+    // Never keep showing the previous account's way of signing while this one is resolved (but
+    // do not blink the banner on a plain refresh of the same account).
+    if (addr !== signingRouteAddr) signingRoute.value = null;
+    signingRouteAddr = addr;
     const resolved = addr ? await signAllHandoff.signingRouteFor(addr) : null;
     // The account may have changed while the signer type was resolved.
     if (addr === String(route.params.account ?? "")) {
@@ -380,8 +383,13 @@ export function useSwap() {
     checkNetwork,
     signAuthTx: (config: { account: string; realm: string }) =>
       store.dispatch("arc14/signAuthTx", config),
-    noSignerMessage: t("swap.no_signer"),
-    multiGroupNotSignableMessage: t("swap.multi_group_not_signable"),
+    // Looked up when the error is raised, so a language switch is picked up.
+    get noSignerMessage() {
+      return t("swap.no_signer");
+    },
+    get multiGroupNotSignableMessage() {
+      return t("swap.multi_group_not_signable");
+    },
     routerNeedsOwnSignatureMessage: (router) =>
       t("swap.router_needs_own_signature", { router }),
     getSignerType: () =>
@@ -700,7 +708,8 @@ export function useSwap() {
     if (optInRoute === "signAll") {
       // One group, signed on the Sign-all page (multisig, Ledger, Falcon).
       try {
-        const optIns = appsToOptIn.value.map((app) =>
+        // A group holds at most 16 transactions; the rest is offered again once these are done.
+        const optIns = appsToOptIn.value.slice(0, 16).map((app) =>
           algosdk.makeApplicationOptInTxnFromObject({
             sender: account.value!.addr,
             suggestedParams: params,
