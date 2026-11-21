@@ -66,7 +66,6 @@ export function createBiatecAggregator(
     const type = await context.getSignerType();
     return type !== "msig" && type !== "ledger";
   };
-  const notAvailableForAccountMessage = `${displayName} needs the account to sign an authentication request itself and is not available for multisig and Ledger accounts.`;
 
   return {
     name,
@@ -86,9 +85,8 @@ export function createBiatecAggregator(
           return;
         }
         if (!(await canAuthenticate(context))) {
-          context.txsDetails.value +=
-            `
-${displayName.toUpperCase()}: not available for multisig and Ledger accounts`;
+          context.txsDetails.value += `
+${displayName.toUpperCase()}: ${context.routerNeedsOwnSignatureMessage(displayName)}`;
           context.txsDetails.value = context.txsDetails.value.trim();
           return;
         }
@@ -160,7 +158,7 @@ ${displayName.toUpperCase()}: not available for multisig and Ledger accounts`;
           throw new Error(context.noSignerMessage);
         }
         if (!(await canAuthenticate(context))) {
-          throw new Error(notAvailableForAccountMessage);
+          throw new Error(context.routerNeedsOwnSignatureMessage(displayName));
         }
         // quotesKey always holds this aggregator's own BiatecQuoteData - see
         // getQuote()/execute() below, the only writers of this key.

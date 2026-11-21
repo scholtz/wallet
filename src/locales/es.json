@@ -82,6 +82,7 @@
     "custom_network_kind_testnet": "Testnet",
     "no_signer": "Esta cuenta no puede firmar transacciones en esta cartera (por ejemplo, una cuenta de solo lectura o una cuenta reasignada a una clave que esta cartera no tiene).",
     "sign_all_info": "No se puede firmar por esta cuenta en esta página. Tras ejecutar el intercambio, las transacciones se abren en la página Firmar todo, donde reúnes las firmas (multifirma, 2FA, Ledger, ...) y las envías. Después puedes volver aquí.",
+    "router_needs_own_signature": "{router} necesita que la propia cuenta firme una solicitud de autenticación, por lo que no está disponible para cuentas multifirma ni Ledger.",
     "swap_asset_from": "Seleccione el activo que desea intercambiar",
     "swap_asset_to": "Seleccione el activo por el cual desea intercambiar",
     "swap_amount": "Establece la cantidad a intercambiar",

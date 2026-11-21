@@ -82,6 +82,7 @@
     "custom_network_kind_testnet": "Testnet",
     "no_signer": "Dit account kan in deze wallet geen transacties ondertekenen (bijvoorbeeld een alleen-lezen account, of een account dat is herverbonden aan een sleutel die deze wallet niet heeft).",
     "sign_all_info": "Voor dit account kan op deze pagina niet worden ondertekend. Nadat je de swap hebt uitgevoerd, openen de transacties op de pagina Alles ondertekenen, waar je de handtekeningen verzamelt (multisig, 2FA, Ledger, ...) en verstuurt. Daarna kun je hier terugkeren.",
+    "router_needs_own_signature": "{router} vereist dat het account zelf een authenticatieverzoek ondertekent en is daarom niet beschikbaar voor multisig- en Ledger-accounts.",
     "swap_asset_from": "Select asset from which you want to swap",
     "swap_asset_to": "Select asset to which you want to swap",
     "swap_amount": "Set the amount to swap",

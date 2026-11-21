@@ -82,6 +82,7 @@
     "custom_network_kind_testnet": "Testnet",
     "no_signer": "This account cannot sign transactions in this wallet (for example a watch-only account, or an account rekeyed to a key this wallet does not hold).",
     "sign_all_info": "This account cannot be signed for on this page. After you execute the swap, the transactions open on the Sign all page, where you collect the signatures (multisig, 2FA, Ledger, ...) and send them. You can then return here.",
+    "router_needs_own_signature": "{router} needs the account to sign an authentication request itself, so it is not available for multisig and Ledger accounts.",
     "swap_asset_from": "Kies bate waarvan jy wil ruil",
     "swap_asset_to": "Kies bate waarna jy wil ruil",
     "swap_amount": "Stel die bedrag in om te ruil",

@@ -18,8 +18,13 @@ export function useSignAllHandoff() {
   const router = useRouter();
   const route = useRoute();
 
+  // Silent: asking how an account signs is a capability check, not a user action (see
+  // signer/getSignerType); the caller reports "cannot sign" once, in its own words.
   const getSignerType = async (from: string): Promise<SignerType> =>
-    (await store.dispatch("signer/getSignerType", { from })) as SignerType;
+    (await store.dispatch("signer/getSignerType", {
+      from,
+      silent: true,
+    })) as SignerType;
 
   const signingRouteFor = async (from: string): Promise<SigningRoute> =>
     resolveSigningRoute(await getSignerType(from));

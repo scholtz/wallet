@@ -416,7 +416,12 @@ const actions: ActionTree<SignerState, RootState> = {
   },
   getSignerType(
     { dispatch, rootState },
-    { from, tx, env: verifiedEnv }: { from: string; tx?: Transaction; env?: string },
+    {
+      from,
+      tx,
+      env: verifiedEnv,
+      silent,
+    }: { from: string; tx?: Transaction; env?: string; silent?: boolean },
   ): "ledger" | "msig" | "sk" | "hd" | "falcon1024" | "?" {
     try {
       const env = tx
@@ -447,10 +452,13 @@ const actions: ActionTree<SignerState, RootState> = {
       return "?";
     } catch (error: unknown) {
       console.error("error", error, dispatch);
-      const msg = describeSignerError(error);
-      dispatch("toast/openError", msg, {
-        root: true,
-      });
+      // `silent`: a capability lookup (does the account sign in place?) is not a user action, so
+      // an unresolvable signer must not raise a toast per lookup - the caller shows it once.
+      if (!silent) {
+        dispatch("toast/openError", describeSignerError(error), {
+          root: true,
+        });
+      }
       return "?";
     }
   },

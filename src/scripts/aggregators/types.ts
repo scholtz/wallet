@@ -205,6 +205,8 @@ export interface SwapContext {
   signAuthTx: (config: { account: string; realm: string }) => Promise<string>;
   /** Localized "this account cannot sign in this wallet" message. */
   noSignerMessage: string;
+  /** Localized "<router> needs the account to sign its own authentication request" message. */
+  routerNeedsOwnSignatureMessage: (router: string) => string;
   /** How the selected account signs (see complexSigning.ts): resolved fresh on every call. */
   getSignerType: () => Promise<SignerType>;
   getSigningRoute: () => Promise<SigningRoute>;

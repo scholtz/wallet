@@ -61,6 +61,7 @@ export function useFolksLendAccount() {
       throw new Error(t("swap.no_signer"));
     }
     if (signingRoute === "signAll") {
+      // The lend panel and the opt-in prompt live on the swap page, which is where Sign-all returns.
       await signAllHandoff.handOffToSignAll(txns, "Swap");
       return undefined;
     }

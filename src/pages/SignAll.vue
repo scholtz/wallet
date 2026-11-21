@@ -336,11 +336,13 @@ const checkAtLeastOneSigned = () => {
   state.atLeastOneSigned = false;
   return false;
 };
-const checkAllTxsAreSigned = () => {
+// A multisig transaction below its threshold is in the signed cache too, but is not done.
+const isFullySigned = async (txn: algosdk.Transaction) =>
+  txn.txID() in store.state.signer.signed && !(await toBeSigned(txn));
+const checkAllTxsAreSigned = async () => {
   let result = true;
   for (const tx of state.transactions) {
-    const id = tx.txn.txID();
-    if (!(id in store.state.signer.signed)) {
+    if (!(await isFullySigned(tx.txn as algosdk.Transaction))) {
       result = false;
     }
   }
@@ -358,7 +360,7 @@ const submitSignedClick = async () => {
     const signed: Array<Uint8Array | string> = [];
     for (const txTableObject of state.transactions) {
       const id = txTableObject.txn.txID();
-      if (!(id in store.state.signer.signed)) {
+      if (!(await isFullySigned(txTableObject.txn as algosdk.Transaction))) {
         throw Error(`Transaction ${id} not signed`);
       }
       signed.push(store.state.signer.signed[id]);

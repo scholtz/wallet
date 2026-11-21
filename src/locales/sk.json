@@ -82,6 +82,7 @@
     "custom_network_kind_testnet": "Testnet",
     "no_signer": "Tento účet v tejto peňaženke nemôže podpisovať transakcie (napríklad účet len na sledovanie alebo účet presmerovaný na kľúč, ktorý táto peňaženka nemá).",
     "sign_all_info": "Za tento účet sa na tejto stránke nedá podpísať. Po vykonaní výmeny sa transakcie otvoria na stránke Podpísať všetko, kde zhromaždíte podpisy (multisig, 2FA, Ledger, ...) a odošlete ich. Potom sa môžete vrátiť sem.",
+    "router_needs_own_signature": "{router} vyžaduje, aby si overovaciu požiadavku podpísal priamo účet, preto nie je dostupný pre multisig a Ledger účty.",
     "swap_asset_from": "Vyberte token ktorý chcete predať",
     "swap_asset_to": "Vyberte token ktorý chcete kúpiť",
     "swap_amount": "Vyberte čiastku tokenu na predaj",

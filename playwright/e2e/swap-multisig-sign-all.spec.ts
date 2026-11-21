@@ -372,4 +372,6 @@ test("an account the wallet cannot sign for gets a clear error instead of an exe
     timeout: 30000,
   });
   await expect(page.getByTestId("swap-sign-all-info")).toHaveCount(0);
+  // The inline message is the one report: looking up the signer raises no toast of its own.
+  await expect(page.locator(".p-toast-message-error")).toHaveCount(0);
 });

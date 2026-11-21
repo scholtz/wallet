@@ -291,6 +291,8 @@ export function useSwap() {
 
   const refreshSigningRoute = async (): Promise<void> => {
     const addr = String(route.params.account ?? "");
+    // Never keep showing the previous account's way of signing while this one is resolved.
+    signingRoute.value = null;
     const resolved = addr ? await signAllHandoff.signingRouteFor(addr) : null;
     // The account may have changed while the signer type was resolved.
     if (addr === String(route.params.account ?? "")) {
@@ -379,6 +381,8 @@ export function useSwap() {
     signAuthTx: (config: { account: string; realm: string }) =>
       store.dispatch("arc14/signAuthTx", config),
     noSignerMessage: t("swap.no_signer"),
+    routerNeedsOwnSignatureMessage: (router) =>
+      t("swap.router_needs_own_signature", { router }),
     getSignerType: () =>
       signAllHandoff.getSignerType(String(route.params.account ?? "")),
     getSigningRoute,
