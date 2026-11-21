@@ -13,6 +13,7 @@ type WcV1ConnectorOptions = ConstructorParameters<typeof WalletConnect>[0];
 type WcV1Session = NonNullable<WcV1ConnectorOptions["session"]>;
 import type { ActionTree, MutationTree } from "vuex";
 import type { RootState } from "./index";
+import type { SignAllReturn } from "../scripts/signing/complexSigning";
 import { hdSignTransactionBytes } from "../scripts/encoding/hdWallet";
 import { falconSignTransaction } from "../scripts/encoding/falcon";
 import { assertLiquidChallenge } from "../scripts/liquid/guards";
@@ -51,6 +52,16 @@ interface ToSignPayload {
 
 interface ToSignArrayPayload {
   txs: unknown[];
+  /**
+   * Where `/signAll` offers to return to afterwards (see signAllReturnLabelKey). Always applied
+   * - omitted means "nowhere" - so a previous flow's target can never show up for this one.
+   */
+  returnTo?: SignAllReturn;
+  /**
+   * Already signed counterparts (e.g. Deflex logic-sig transactions) of entries in `txs`; they
+   * are marked as signed up front so `/signAll` only asks for the user's own signatures.
+   */
+  presigned?: Uint8Array[];
 }
 
 interface SetSignedPayload {
@@ -92,6 +103,8 @@ export interface SignerState {
   toSignArray: unknown[];
   returnTo: string;
   returnToSignAll: string;
+  /** App path `/signAll` returns to for `returnToSignAll` ("" = use the flow's default). */
+  returnToSignAllPath: string;
   /** Ids of Ledger signature requests currently waiting for the user to confirm on the device. */
   ledgerPendingIds: number[];
   /** Bumped on logout so a request that outlives its session cannot raise the notice afterwards. */
@@ -231,6 +244,7 @@ const state = (): SignerState => ({
   toSignArray: [],
   returnTo: "",
   returnToSignAll: "",
+  returnToSignAllPath: "",
   ledgerPendingIds: [],
   ledgerEpoch: 0,
 });
@@ -277,6 +291,10 @@ const mutations: MutationTree<SignerState> = {
     currentState.returnToSignAll = returnToSignAll;
   },
 
+  returnToSignAllPath(currentState, path: string) {
+    currentState.returnToSignAllPath = path;
+  },
+
   clearToSign(currentState) {
     currentState.toSign = undefined;
   },
@@ -285,6 +303,8 @@ const mutations: MutationTree<SignerState> = {
   // signature produced while on one network can never linger and be mistaken
   // for "already signed" once the user has moved to another network.
   clearSignedCache(currentState) {
+    currentState.returnToSignAll = "";
+    currentState.returnToSignAllPath = "";
     currentState.signed = {};
     currentState.toSign = undefined;
     currentState.toSignArray = [];
@@ -375,8 +395,17 @@ const actions: ActionTree<SignerState, RootState> = {
   async toSign({ commit }, payload: ToSignPayload) {
     commit("toSign", payload.tx);
   },
+  // The one entry point for handing a group to `/signAll`: it also (re)sets where the page
+  // returns to and records the pre-signed parts, so no state of an earlier flow leaks in.
   async toSignArray({ commit }, payload: ToSignArrayPayload) {
+    // Anything that can throw (an undecodable pre-signed blob) goes first, so a failed hand-off
+    // leaves the queue and its return target as they were.
+    for (const signed of payload.presigned ?? []) {
+      commit("setSigned", signed);
+    }
     commit("toSignArray", payload.txs);
+    commit("returnToSignAll", payload.returnTo?.key ?? "");
+    commit("returnToSignAllPath", payload.returnTo?.path ?? "");
   },
   async returnTo({ commit }, returnTo: string) {
     commit("returnTo", returnTo);
@@ -389,7 +418,12 @@ const actions: ActionTree<SignerState, RootState> = {
   },
   getSignerType(
     { dispatch, rootState },
-    { from, tx, env: verifiedEnv }: { from: string; tx?: Transaction; env?: string },
+    {
+      from,
+      tx,
+      env: verifiedEnv,
+      silent,
+    }: { from: string; tx?: Transaction; env?: string; silent?: boolean },
   ): "ledger" | "msig" | "sk" | "hd" | "falcon1024" | "?" {
     try {
       const env = tx
@@ -420,10 +454,13 @@ const actions: ActionTree<SignerState, RootState> = {
       return "?";
     } catch (error: unknown) {
       console.error("error", error, dispatch);
-      const msg = describeSignerError(error);
-      dispatch("toast/openError", msg, {
-        root: true,
-      });
+      // `silent`: a capability lookup (does the account sign in place?) is not a user action, so
+      // an unresolvable signer must not raise a toast per lookup - the caller shows it once.
+      if (!silent) {
+        dispatch("toast/openError", describeSignerError(error), {
+          root: true,
+        });
+      }
       return "?";
     }
   },

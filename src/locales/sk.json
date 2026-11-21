@@ -80,7 +80,10 @@
     "custom_network_kind_required": "Vyberte, či sa vaša vlastná sieť správa ako Mainnet alebo Testnet, aby bolo možné povoliť swapy",
     "custom_network_kind_mainnet": "Mainnet",
     "custom_network_kind_testnet": "Testnet",
-    "has_sk": "Iba štandardné účty s privátnym kľúčom sú aktuálne podporované",
+    "no_signer": "Tento účet v tejto peňaženke nemôže podpisovať transakcie (napríklad účet len na sledovanie alebo účet presmerovaný na kľúč, ktorý táto peňaženka nemá).",
+    "sign_all_info": "Za tento účet sa na tejto stránke nedá podpísať. Po vykonaní výmeny sa transakcie otvoria na stránke Podpísať všetko, kde zhromaždíte podpisy (multisig, 2FA, Ledger, ...) a odošlete ich. Potom sa môžete vrátiť sem.",
+    "router_needs_own_signature": "{router} vyžaduje, aby si overovaciu požiadavku podpísal priamo účet, preto nie je dostupný pre multisig a Ledger účty.",
+    "multi_group_not_signable": "Táto trasa Haystack vyžaduje niekoľko samostatných skupín transakcií, ktoré sa pre tento účet nedajú podpísať spoločne. Použite iný smerovač alebo menšiu sumu.",
     "swap_asset_from": "Vyberte token ktorý chcete predať",
     "swap_asset_to": "Vyberte token ktorý chcete kúpiť",
     "swap_amount": "Vyberte čiastku tokenu na predaj",
@@ -1420,7 +1423,10 @@
   "sign_all": {
     "title": "Podpísať viacero transakcií",
     "transaction_confirmed": "Transakcia bola potvrdená v bloku",
-    "falcon_fee_warning": "Tento účet používa kľúč Falcon-1024 (postkvantový). Jeho podpis je veľký, preto sieť vyžaduje vyšší poplatok (približne trojnásobok minimálneho poplatku za transakciu), než transakcie uvádzajú ({fee}). Transakcie môžu byť zamietnuté, ak rozdiel nepokryjú iné transakcie v skupine."
+    "falcon_fee_warning": "Tento účet používa kľúč Falcon-1024 (postkvantový). Jeho podpis je veľký, preto sieť vyžaduje vyšší poplatok (približne trojnásobok minimálneho poplatku za transakciu), než transakcie uvádzajú ({fee}). Transakcie môžu byť zamietnuté, ak rozdiel nepokryjú iné transakcie v skupine.",
+    "return_to_swap": "Späť na výmenu",
+    "return_to_scheduled_payments": "Späť na správu plánovaných platieb",
+    "return_to_previous": "Späť na predchádzajúcu stránku"
   },
   "arc14": {
     "service_realm_title": "Servisná doména",

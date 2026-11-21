@@ -13,6 +13,10 @@ import formatCurrency from "../scripts/numbers/formatCurrency";
 import { isAssetOptIn } from "../scripts/transactionTypes";
 import { findGenesisMismatch } from "../scripts/dappRequestChecks";
 import { lowFalconGroupFee } from "../scripts/fees";
+import {
+  signAllReturnLabelKey,
+  signAllReturnPath,
+} from "../scripts/signing/complexSigning";
 import { RootState } from "@/store";
 import { useI18n } from "vue-i18n";
 
@@ -150,36 +154,24 @@ const encodeAddress = (
   return "-";
 };
 
+const isLogicSigSigned = (txId: string): boolean => {
+  const payload = store.state.signer.signed[txId];
+  return !!payload && !!algosdk.decodeSignedTransaction(payload).lsig;
+};
 const toBeSigned = async (txn: algosdk.Transaction): Promise<boolean> => {
   const txId = txn.txID();
   const signed = txId in store.state.signer.signed;
   if (!signed) return true; // if not signed return true to show sign button
-  const from = txn.sender
-    ? encodeAddress(txn.sender)
-    : txn.sender
-    ? encodeAddress(txn.sender)
-    : "-";
-  const type = await store.dispatch("signer/getSignerType", {
-    from: from,
-    tx: txn,
-  });
-  if (type == "msig") {
-    // check sign threshold
-    const signedPayload = store.state.signer.signed[txId];
-    if (!signedPayload) {
-      return true;
-    }
-    const signedTx = algosdk.decodeSignedTransaction(signedPayload);
-    if (!signedTx.msig) {
-      return false;
-    }
-
-    const ret =
-      signedTx.msig.subsig.filter((s) => !!s.s).length < signedTx.msig.thr;
-    return ret;
-  } else {
-    return !signed;
-  }
+  // A logic-sig transaction (e.g. handed over pre-signed by the swap page's Deflex route) is
+  // done as it is; its sender is no wallet account, so there is no signer to ask.
+  if (isLogicSigSigned(txId)) return false;
+  // The signed payload itself says whether a multisig threshold applies - no signer lookup (which
+  // can fail or toast) is needed to re-check every transaction after every signature.
+  const signedTx = algosdk.decodeSignedTransaction(
+    store.state.signer.signed[txId],
+  );
+  if (!signedTx.msig) return false;
+  return signedTx.msig.subsig.filter((s) => !!s.s).length < signedTx.msig.thr;
 };
 // closeRemainderTo (pay) / assetCloseTo (axfer) sends the account's entire
 // remaining balance / asset holding to this address (audit finding
@@ -228,7 +220,9 @@ const formatAlgo = (microAlgos: number) =>
 const clickSign = async (data: TransactionTableEntry) => {
   if (genesisMismatchIndex.value !== undefined) return;
   const txId = data.txn.txID();
-  const isSigned = txId in store.state.signer.signed;
+  // A multisig transaction below its threshold is in the signed cache but still needs signing.
+  const isSigned =
+    txId in store.state.signer.signed && !(await toBeSigned(data.txn));
   if (isSigned) {
     for (const index in state.transactions) {
       const entry = state.transactions[index];
@@ -315,7 +309,9 @@ const clickSignAll = async () => {
 };
 const checkAtLeastOneSigned = () => {
   for (const tx of state.transactions) {
-    if (tx.txn.txID() in store.state.signer.signed) {
+    // Pre-signed logic-sig transactions do not count: the user has signed nothing yet.
+    const txId = tx.txn.txID();
+    if (txId in store.state.signer.signed && !isLogicSigSigned(txId)) {
       state.atLeastOneSigned = true;
       return true;
     }
@@ -323,11 +319,13 @@ const checkAtLeastOneSigned = () => {
   state.atLeastOneSigned = false;
   return false;
 };
-const checkAllTxsAreSigned = () => {
+// A multisig transaction below its threshold is in the signed cache too, but is not done.
+const isFullySigned = async (txn: algosdk.Transaction) =>
+  txn.txID() in store.state.signer.signed && !(await toBeSigned(txn));
+const checkAllTxsAreSigned = async () => {
   let result = true;
   for (const tx of state.transactions) {
-    const id = tx.txn.txID();
-    if (!(id in store.state.signer.signed)) {
+    if (!(await isFullySigned(tx.txn as algosdk.Transaction))) {
       result = false;
     }
   }
@@ -345,7 +343,7 @@ const submitSignedClick = async () => {
     const signed: Array<Uint8Array | string> = [];
     for (const txTableObject of state.transactions) {
       const id = txTableObject.txn.txID();
-      if (!(id in store.state.signer.signed)) {
+      if (!(await isFullySigned(txTableObject.txn as algosdk.Transaction))) {
         throw Error(`Transaction ${id} not signed`);
       }
       signed.push(store.state.signer.signed[id]);
@@ -361,6 +359,7 @@ const submitSignedClick = async () => {
       state.error = t("pay.state_error_not_sent");
       store.dispatch("toast/openError", state.error);
       state.processing = false;
+      return;
     }
 
     const confirmation = (await store.dispatch("algod/waitForConfirmation", {
@@ -395,11 +394,20 @@ const submitSignedClick = async () => {
     state.processing = false;
   }
 };
-const retToScheduledPayments = () => {
-  router.push({
-    name: "scheduled-payment",
-    params: { account: store.state.wallet.lastActiveAccount },
-  });
+// "Return to ..." for the flow that handed the group over (swap, scheduled payments, ...);
+// the page it came from is recorded by signer/toSignArray.
+const returnPath = computed(() =>
+  signAllReturnPath(
+    store.state.signer.returnToSignAll,
+    store.state.signer.returnToSignAllPath,
+    store.state.wallet.lastActiveAccount,
+  ),
+);
+const returnLabel = computed(() =>
+  t(`sign_all.${signAllReturnLabelKey(store.state.signer.returnToSignAll)}`),
+);
+const returnToOrigin = () => {
+  if (returnPath.value) router.push(returnPath.value);
 };
 
 const getAssetSync = (id: number) => {
@@ -505,13 +513,14 @@ const arc56SummaryTransactions = computed(() =>
             />
           </Button>
           <Button
-            v-if="store.state.signer.returnToSignAll == 'ScheduledPayments'"
+            v-if="returnPath"
             class="ml-2"
+            data-testid="sign-all-return"
             :severity="state.confirmedRound ? 'primary' : 'secondary'"
             :disabled="!state.atLeastOneSigned"
-            @click="retToScheduledPayments"
+            @click="returnToOrigin"
           >
-            Return to scheduled payment management
+            {{ returnLabel }}
           </Button>
         </div>
         <Arc56RequestSummary :transactions="arc56SummaryTransactions" />

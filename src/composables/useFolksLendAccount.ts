@@ -1,7 +1,9 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 import algosdk from "algosdk";
 import { useStore } from "@/store";
+import { useSignAllHandoff } from "./useSignAllHandoff";
 
 /**
  * Account lookup, signing and submission shared by the Folks lending UI
@@ -11,6 +13,8 @@ import { useStore } from "@/store";
 export function useFolksLendAccount() {
   const store = useStore();
   const route = useRoute();
+  const signAllHandoff = useSignAllHandoff();
+  const { t } = useI18n();
 
   const sender = computed(() => String(route.params.account));
   const accountData = computed(
@@ -41,14 +45,26 @@ export function useFolksLendAccount() {
   /**
    * Signs every transaction of the (already grouped and validated) list with
    * the account's own signer, submits it and waits for confirmation.
+   * Accounts that cannot sign in place (multisig, Ledger, ...) get the group
+   * on the Sign-all page instead, which sends it and returns here; the caller
+   * then has nothing more to do, exactly as after a cancelled signature.
    * Returns undefined when signing was cancelled/failed (the signer already
-   * showed its error), otherwise the tx id and whether it got confirmed.
-   * Submission errors are thrown.
+   * showed its error) or handed over, otherwise the tx id and whether it got
+   * confirmed. Submission errors are thrown.
    */
   const signSendConfirm = async (
     from: string,
     txns: algosdk.Transaction[],
   ): Promise<{ txid: string; confirmed: boolean } | undefined> => {
+    const signingRoute = await signAllHandoff.signingRouteFor(from);
+    if (signingRoute === "none") {
+      throw new Error(t("swap.no_signer"));
+    }
+    if (signingRoute === "signAll") {
+      // The lend panel and the opt-in prompt live on the swap page, which is where Sign-all returns.
+      await signAllHandoff.handOffToSignAll(txns, "Swap");
+      return undefined;
+    }
     const signed: Uint8Array[] = [];
     for (const tx of txns) {
       const stx: Uint8Array | undefined = await store.dispatch(

@@ -119,11 +119,10 @@ export const folksAggregator: DexAggregator = {
     context.aggregatorData.processingTradeFolks.value = true;
     context.note.value = "";
     context.error.value = "";
-    const senderSK = await context.getSK({
-      addr: context.account.value?.addr || "",
-    });
-    if (!senderSK) {
+    const route = await context.getSigningRoute();
+    if (route === "none") {
       context.aggregatorData.processingTradeFolks.value = false;
+      context.openError(context.noSignerMessage);
       return;
     }
 
@@ -147,10 +146,26 @@ export const folksAggregator: DexAggregator = {
       context.openError((e as Error).message);
       return;
     }
-    const signedTxns = unsignedTxns.map((txn) => txn.signTxn(senderSK));
-    if (!signedTxns) {
+    if (route === "signAll") {
+      // Multisig / Ledger / ... : the signatures are collected on the Sign-all page.
+      try {
+        await context.handOffToSignAll(unsignedTxns);
+      } catch (e) {
+        context.error.value = (e as Error).message;
+        context.openError((e as Error).message);
+      }
       context.aggregatorData.processingTradeFolks.value = false;
       return;
+    }
+    const signedTxns: Uint8Array[] = [];
+    for (const txn of unsignedTxns) {
+      const signed = await context.signTransaction(txn);
+      if (!signed) {
+        // The signer already showed why (cancelled, failed).
+        context.aggregatorData.processingTradeFolks.value = false;
+        return;
+      }
+      signedTxns.push(signed);
     }
     const tx = await context
       .sendRawTransaction({

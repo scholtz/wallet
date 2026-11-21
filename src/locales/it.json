@@ -80,7 +80,10 @@
     "custom_network_kind_required": "Seleziona se la tua rete personalizzata si comporta come Mainnet o Testnet per abilitare gli scambi",
     "custom_network_kind_mainnet": "Mainnet",
     "custom_network_kind_testnet": "Testnet",
-    "has_sk": "Only standard accounts with private keys are supported now",
+    "no_signer": "Questo conto non può firmare transazioni in questo portafoglio (ad esempio un conto di sola osservazione o un conto riassegnato a una chiave che questo portafoglio non possiede).",
+    "sign_all_info": "Per questo conto non si può firmare in questa pagina. Dopo aver eseguito lo scambio, le transazioni si aprono nella pagina Firma tutto, dove raccogli le firme (multisig, 2FA, Ledger, ...) e le invii. Poi puoi tornare qui.",
+    "router_needs_own_signature": "{router} richiede che sia il conto stesso a firmare una richiesta di autenticazione, quindi non è disponibile per conti multisig e Ledger.",
+    "multi_group_not_signable": "Questo percorso Haystack richiede più gruppi di transazioni separati, che non possono essere firmati insieme per questo conto. Usa un altro router o un importo minore.",
     "swap_asset_from": "Select asset from which you want to swap",
     "swap_asset_to": "Select asset to which you want to swap",
     "swap_amount": "Set the amount to swap",
@@ -1420,7 +1423,10 @@
   "sign_all": {
     "title": "Sign multiple transactions",
     "transaction_confirmed": "Transaction confirmed in round",
-    "falcon_fee_warning": "Questo account usa una chiave Falcon-1024 (post-quantistica). La sua firma è grande, quindi la rete richiede una commissione più alta (circa tre volte la commissione minima per transazione) di quella dichiarata dalle transazioni ({fee}). Le transazioni potrebbero essere rifiutate a meno che altre transazioni del gruppo coprano la differenza."
+    "falcon_fee_warning": "Questo account usa una chiave Falcon-1024 (post-quantistica). La sua firma è grande, quindi la rete richiede una commissione più alta (circa tre volte la commissione minima per transazione) di quella dichiarata dalle transazioni ({fee}). Le transazioni potrebbero essere rifiutate a meno che altre transazioni del gruppo coprano la differenza.",
+    "return_to_swap": "Torna allo scambio",
+    "return_to_scheduled_payments": "Torna alla gestione dei pagamenti programmati",
+    "return_to_previous": "Torna alla pagina precedente"
   },
   "arc14": {
     "service_realm_title": "Service realm",

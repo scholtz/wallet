@@ -80,7 +80,10 @@
     "custom_network_kind_required": "Kies of jou pasgemaakte netwerk soos Mainnet of Testnet gedra om ruil moontlik te maak",
     "custom_network_kind_mainnet": "Mainnet",
     "custom_network_kind_testnet": "Testnet",
-    "has_sk": "Slegs standaardrekeninge met privaatsleutels word tans ondersteun",
+    "no_signer": "This account cannot sign transactions in this wallet (for example a watch-only account, or an account rekeyed to a key this wallet does not hold).",
+    "sign_all_info": "This account cannot be signed for on this page. After you execute the swap, the transactions open on the Sign all page, where you collect the signatures (multisig, 2FA, Ledger, ...) and send them. You can then return here.",
+    "router_needs_own_signature": "{router} needs the account to sign an authentication request itself, so it is not available for multisig and Ledger accounts.",
+    "multi_group_not_signable": "This Haystack route needs several separate transaction groups, which cannot be signed together for this account. Use another router or a smaller amount.",
     "swap_asset_from": "Kies bate waarvan jy wil ruil",
     "swap_asset_to": "Kies bate waarna jy wil ruil",
     "swap_amount": "Stel die bedrag in om te ruil",
@@ -1420,7 +1423,10 @@
   "sign_all": {
     "title": "Teken meervoudige transaksies",
     "transaction_confirmed": "Transaksie bevestig in ronde",
-    "falcon_fee_warning": "This account uses a Falcon-1024 (post-quantum) key. Its signature is large, so the network needs a higher fee (about three times the minimum fee per transaction) than the transactions declare ({fee}). The transactions may be rejected unless other transactions in the group cover the difference."
+    "falcon_fee_warning": "This account uses a Falcon-1024 (post-quantum) key. Its signature is large, so the network needs a higher fee (about three times the minimum fee per transaction) than the transactions declare ({fee}). The transactions may be rejected unless other transactions in the group cover the difference.",
+    "return_to_swap": "Return to swap",
+    "return_to_scheduled_payments": "Return to scheduled payment management",
+    "return_to_previous": "Return to the previous page"
   },
   "arc14": {
     "service_realm_title": "Diens domein",

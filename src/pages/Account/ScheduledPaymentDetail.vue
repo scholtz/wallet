@@ -389,8 +389,10 @@ const optinEscrowToAsset = async () => {
     const txs = atc.buildGroup().map((tx) => tx.txn);
     const txs2 = [payToEscrowMBR, txs[0]];
     const grouped = algosdk.assignGroupID(txs2);
-    await store.dispatch("signer/returnToSignAll", "ScheduledPayments");
-    await store.dispatch("signer/toSignArray", { txs: grouped });
+    await store.dispatch("signer/toSignArray", {
+      txs: grouped,
+      returnTo: { key: "ScheduledPayments" },
+    });
     await router.push("/signAll");
   } catch (e) {
     console.error(e);
@@ -447,8 +449,10 @@ const depositToFeePool = async () => {
       }
     );
     const grouped = atc.buildGroup().map((tx) => tx.txn);
-    await store.dispatch("signer/returnToSignAll", "ScheduledPayments");
-    await store.dispatch("signer/toSignArray", { txs: grouped });
+    await store.dispatch("signer/toSignArray", {
+      txs: grouped,
+      returnTo: { key: "ScheduledPayments" },
+    });
     await router.push("/signAll");
   } catch (e) {
     console.error(e);

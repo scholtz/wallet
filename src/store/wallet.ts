@@ -1502,7 +1502,8 @@ const actionHandlers: Record<string, WalletActionHandler> = {
       return false;
     }
     try {
-      const multsigaddr = algosdk.multisigAddress(params);
+      // algosdk v3 returns an Address object; the store (and every lookup by address) uses the string.
+      const multsigaddr = algosdk.multisigAddress(params).toString();
 
       await commit("addMultiAccount", {
         addr: multsigaddr,
@@ -1553,7 +1554,7 @@ const actionHandlers: Record<string, WalletActionHandler> = {
         threshold: 2,
         addrs,
       };
-      const multisigAccount = algosdk.multisigAddress(params);
+      const multisigAccount = algosdk.multisigAddress(params).toString();
 
       await commit("add2FAApiAccount", {
         addr: twoFactorAccount,

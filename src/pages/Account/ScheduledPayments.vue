@@ -379,8 +379,10 @@ const continueTxDeploy = async () => {
       txs,
       store.state.wallet.privateAccounts.map((a) => a.addr)
     );
-    await store.dispatch("signer/returnToSignAll", "ScheduledPayments");
-    await store.dispatch("signer/toSignArray", { txs: txs });
+    await store.dispatch("signer/toSignArray", {
+      txs: txs,
+      returnTo: { key: "ScheduledPayments" },
+    });
 
     await router.push("/signAll");
   } catch (e) {
