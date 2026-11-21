@@ -44,6 +44,10 @@ test.describe("signAllReturnPath", () => {
     expect(
       signAllReturnPath("Swap", "https://evil.example/x", "ADDR"),
     ).toBeUndefined();
+    expect(
+      signAllReturnPath("Swap", "/\\evil.example", "ADDR"),
+    ).toBeUndefined();
+    expect(signAllReturnPath("Swap", "/swap/A\nB", "ADDR")).toBeUndefined();
   });
 });
 

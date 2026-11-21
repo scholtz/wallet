@@ -63,7 +63,15 @@ export const signAllReturnPath = (
 ): string | undefined => {
   if (!key) return undefined;
   // Only app-internal absolute paths ("//host" would be protocol-relative).
-  if (path && path.startsWith("/") && !path.startsWith("//")) return path;
+  // Browsers read "/\host" like "//host", so backslashes and control characters are out too.
+  if (
+    path &&
+    path.startsWith("/") &&
+    !path.startsWith("//") &&
+    !/[\\\u0000-\u001f\u007f]/.test(path)
+  ) {
+    return path;
+  }
   if (key === "ScheduledPayments" && lastActiveAccount) {
     return `/accounts/scheduled-payment/${lastActiveAccount}`;
   }

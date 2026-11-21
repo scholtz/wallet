@@ -165,34 +165,13 @@ const toBeSigned = async (txn: algosdk.Transaction): Promise<boolean> => {
   // A logic-sig transaction (e.g. handed over pre-signed by the swap page's Deflex route) is
   // done as it is; its sender is no wallet account, so there is no signer to ask.
   if (isLogicSigSigned(txId)) return false;
-  const from = txn.sender
-    ? encodeAddress(txn.sender)
-    : txn.sender
-    ? encodeAddress(txn.sender)
-    : "-";
-  // Silent: this re-check runs for every transaction after every signature.
-  const type = await store.dispatch("signer/getSignerType", {
-    from: from,
-    tx: txn,
-    silent: true,
-  });
-  if (type == "msig") {
-    // check sign threshold
-    const signedPayload = store.state.signer.signed[txId];
-    if (!signedPayload) {
-      return true;
-    }
-    const signedTx = algosdk.decodeSignedTransaction(signedPayload);
-    if (!signedTx.msig) {
-      return false;
-    }
-
-    const ret =
-      signedTx.msig.subsig.filter((s) => !!s.s).length < signedTx.msig.thr;
-    return ret;
-  } else {
-    return !signed;
-  }
+  // The signed payload itself says whether a multisig threshold applies - no signer lookup (which
+  // can fail or toast) is needed to re-check every transaction after every signature.
+  const signedTx = algosdk.decodeSignedTransaction(
+    store.state.signer.signed[txId],
+  );
+  if (!signedTx.msig) return false;
+  return signedTx.msig.subsig.filter((s) => !!s.s).length < signedTx.msig.thr;
 };
 // closeRemainderTo (pay) / assetCloseTo (axfer) sends the account's entire
 // remaining balance / asset holding to this address (audit finding
