@@ -736,6 +736,17 @@ test("an unconfirmed send locks the actions until it was checked again", async (
   await expect(page.getByTestId("freeze-submit")).toBeDisabled();
   await expect(page.getByTestId("unfreeze-submit")).toBeDisabled();
 
+  // The lock is not lost by leaving the page: another page and back, it is still there.
+  await spaNavigate(page, `/asset/manage/${ASSET_ID}`);
+  await expect(page.getByTestId("asset-manage-id")).toBeVisible();
+  await spaNavigate(page, `/asset/freeze/${ASSET_ID}`);
+  await expect(page.getByTestId("asset-manage-unconfirmed")).toBeVisible({
+    timeout: 15000,
+  });
+  await page.getByTestId("freeze-target").fill(holder);
+  await expect(page.getByTestId("freeze-holder-state")).toBeVisible();
+  await expect(page.getByTestId("freeze-submit")).toBeDisabled();
+
   // It confirms meanwhile: checking again shows the new state and unlocks the page.
   chain.neverConfirm = false;
   await page.getByTestId("asset-manage-check-again").click();

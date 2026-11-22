@@ -129,10 +129,10 @@ const router = useRouter();
 const route = useRoute();
 const { signingRouteFor } = useSignAllHandoff();
 // The page the destroy action came from names the asset that is gone; the indexer may still list it.
-const destroyedId = (() => {
+const destroyedId = computed(() => {
   const raw = route.query.destroyed;
   return typeof raw === "string" ? parseAssetId(raw)?.toString() : undefined;
-})();
+});
 const { t } = useI18n();
 
 const assetIdInput = ref("");
@@ -217,7 +217,7 @@ const loadCreated = async () => {
           return;
         }
         for (const asset of result.value) {
-          if (asset.assetId.toString() !== destroyedId) {
+          if (asset.assetId.toString() !== destroyedId.value) {
             byId.set(asset.assetId.toString(), asset);
           }
         }
@@ -235,6 +235,7 @@ const loadCreated = async () => {
 };
 
 onMounted(loadCreated);
+watch(destroyedId, loadCreated);
 // The wallet may be opened (or accounts change) while this page is shown.
 watch(
   () => store.state.wallet.privateAccounts.map((a) => a.addr).join(","),

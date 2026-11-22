@@ -417,7 +417,11 @@ const actions: ActionTree<AlgodState, RootState> = {
         )?.response?.body?.message;
         if (responseMessage) {
           dispatch("toast/openError", responseMessage, { root: true });
-        } else if (reportSendErrors) {
+        } else if (
+          reportSendErrors &&
+          (error as { response?: { status?: number } })?.response?.status ===
+            undefined
+        ) {
           // Callers that report nothing themselves (single actions) opt in; bulk tools list per row.
           dispatch(
             "toast/openError",
@@ -429,6 +433,13 @@ const actions: ActionTree<AlgodState, RootState> = {
           // transaction, so the id is returned and the caller waits for it instead of assuming
           // that nothing was sent.
           return txn.txID();
+        } else if (reportSendErrors) {
+          // An HTTP answer without a message (gateway page, 401/403): the node did not take it.
+          dispatch(
+            "toast/openError",
+            error instanceof Error ? error.message : String(error),
+            { root: true },
+          );
         }
         console.error("Failed to submit transaction", error);
         return undefined;

@@ -539,6 +539,40 @@ let busyToken = 0;
  * until the user checked again (a second, distinct transaction could otherwise repeat it).
  */
 const unconfirmedTxId = ref("");
+
+// The lock outlives this page (another asset, a remount, a reload of the tab): it is kept per
+// network, asset and action until the transaction confirmed or expired.
+const PENDING_KEY = "assetManagementPending";
+interface PendingSend {
+  txId: string;
+  lastValid: string;
+}
+const pendingKey = () =>
+  `${store.state.config.env}:${assetId.value ?? ""}:${action.value ?? ""}`;
+const readPending = (): Record<string, PendingSend> => {
+  try {
+    const raw = sessionStorage.getItem(PENDING_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, PendingSend>) : {};
+  } catch {
+    return {};
+  }
+};
+const writePending = (entry: PendingSend | undefined) => {
+  try {
+    const all = readPending();
+    if (entry) all[pendingKey()] = entry;
+    else delete all[pendingKey()];
+    sessionStorage.setItem(PENDING_KEY, JSON.stringify(all));
+  } catch {
+    // session storage unavailable: the lock then only lives as long as this page
+  }
+};
+const restorePending = () => {
+  const saved = readPending()[pendingKey()];
+  unconfirmedTxId.value = saved?.txId ?? "";
+  unconfirmedLastValid.value = saved ? BigInt(saved.lastValid) : 0n;
+  stillPending.value = false;
+};
 /** Last round in which the unconfirmed transaction can still confirm. */
 const unconfirmedLastValid = ref(0n);
 /** "Check again" found it still pending. */
@@ -607,7 +641,6 @@ const loadAsset = async (refresh = false) => {
   if (!refresh) {
     busyToken++;
     busy.value = false;
-    unconfirmedTxId.value = "";
     lastConfirmed.value = false;
     lastTxId.value = "";
     asset.value = undefined;
@@ -872,14 +905,23 @@ const destroyProblem = computed(() =>
 
 watch(assetId, () => loadAsset(), { immediate: true });
 
+watch([assetId, action], restorePending, { immediate: true });
+
 // The address form follows the chain's addresses whenever the asset is (re)loaded, but keeps what
 // the user typed when only the action tab changes.
 watch(
   asset,
-  (current) => {
+  (current, previous) => {
     if (!current) return;
-    Object.assign(modifyRoles, current.roles);
-    modifyConfirmClear.value = false;
+    const same =
+      previous &&
+      previous.assetId === current.assetId &&
+      ASSET_ROLES.every((role) => previous.roles[role] === current.roles[role]);
+    // A refresh that found the same addresses keeps what the user typed and ticked.
+    if (!same) {
+      Object.assign(modifyRoles, current.roles);
+      modifyConfirmClear.value = false;
+    }
     if (!clawbackReceiver.value && current.roles.clawback) {
       clawbackReceiver.value = current.roles.clawback;
     }
@@ -1037,6 +1079,7 @@ const execute = async (
       unconfirmedTxId.value = txId;
       unconfirmedLastValid.value = txn.lastValid;
       stillPending.value = false;
+      writePending({ txId, lastValid: txn.lastValid.toString() });
       return;
     }
     if (act === "destroy") {
@@ -1092,6 +1135,7 @@ const checkAgain = async () => {
     }
     unconfirmedTxId.value = "";
     stillPending.value = false;
+    writePending(undefined);
     lastConfirmed.value = !!confirmation;
     await loadAsset(true);
     await refreshHoldings();
