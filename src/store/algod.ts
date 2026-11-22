@@ -23,15 +23,15 @@ import {
 export interface AlgodState {}
 
 /**
- * A failed broadcast whose outcome is unknown: no HTTP answer at all, or one a gateway can send
- * after the node accepted the transaction (408, 429, 5xx).
+ * A failed broadcast whose outcome is unknown: no HTTP answer at all (timeout, dropped
+ * connection) or a gateway error (5xx) that can come after the node queued the transaction.
+ * Every other answer (4xx, e.g. 429 rate limited) means the node did not take it.
  */
+// A catch clause only ever yields an untyped value, so it has to be narrowed here.
 const isUncertainSendError = (error: unknown): boolean => {
   const status = (error as { response?: { status?: number } })?.response
     ?.status;
-  return (
-    status === undefined || status === 408 || status === 429 || status >= 500
-  );
+  return status === undefined || status >= 500;
 };
 
 interface AlgodConfig {
@@ -427,15 +427,16 @@ const actions: ActionTree<AlgodState, RootState> = {
             response?: { body?: { message?: string } };
           }
         )?.response?.body?.message;
-        if (responseMessage) {
-          dispatch("toast/openError", responseMessage, { root: true });
-        } else if (reportSendErrors && isUncertainSendError(error)) {
-          // No answer from the node (timeout, dropped connection) or a gateway error (408, 429,
-          // 5xx) that can come after the node queued the transaction: the id is returned and the
-          // caller waits for it instead of assuming that nothing was sent. No error toast: the
-          // caller says "sent, not confirmed".
+        if (reportSendErrors && isUncertainSendError(error)) {
+          // No answer from the node, or a gateway error with or without a message: the node may
+          // have queued the transaction, so the id is returned and the caller waits for it
+          // instead of assuming that nothing was sent. No error toast: the caller says "sent,
+          // not confirmed".
           console.error("Failed to submit transaction", error);
           return txn.txID();
+        }
+        if (responseMessage) {
+          dispatch("toast/openError", responseMessage, { root: true });
         } else if (reportSendErrors) {
           // An HTTP answer without a message (401/403, other 4xx): the node did not take it.
           dispatch(

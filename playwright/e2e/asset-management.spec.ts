@@ -33,6 +33,8 @@ interface ChainState {
   neverConfirm: boolean;
   /** The pool rejected the transaction after it was accepted. */
   poolError: string;
+  /** The node's last round (a transaction is valid up to round 1100). */
+  lastRound: number;
   submitted: Buffer | null;
 }
 
@@ -71,6 +73,7 @@ async function mockChain(page: Page, asset: MockAsset): Promise<ChainState> {
     failingHoldings: new Set(),
     neverConfirm: false,
     poolError: "",
+    lastRound: 100,
     submitted: null,
   };
   const assetJson = () => ({
@@ -201,7 +204,7 @@ async function mockChain(page: Page, asset: MockAsset): Promise<ChainState> {
     route.fulfill({
       json: {
         "catchup-time": 0,
-        "last-round": 100,
+        "last-round": state.lastRound,
         "last-version": "future",
         "next-version": "future",
         "next-version-round": 101,
@@ -786,4 +789,35 @@ test("a transaction the pool rejected after submission does not lock the page", 
   );
   await expect(page.getByTestId("asset-manage-unconfirmed")).toHaveCount(0);
   await expect(page.getByTestId("freeze-submit")).toBeEnabled();
+});
+
+test("a transaction that expired without confirming is reported and unlocks the page", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  const { chain } = await walletOwningAsset(page);
+  const holder = other();
+  chain.holdings[holder] = { amount: 250, frozen: false };
+  chain.neverConfirm = true;
+
+  await spaNavigate(page, `/asset/freeze/${ASSET_ID}`);
+  await page.getByTestId("freeze-target").fill(holder);
+  await expect(page.getByTestId("freeze-holder-state")).toContainText(
+    "not frozen",
+  );
+  await page.getByTestId("freeze-submit").click();
+  await expect(page.getByTestId("asset-manage-unconfirmed")).toBeVisible({
+    timeout: 90000,
+  });
+
+  // The node is past the last round the transaction was valid in: it can never confirm now.
+  chain.lastRound = 5000;
+  await page.getByTestId("asset-manage-check-again").click();
+  await expect(page.locator(".p-toast-message-error")).toContainText(
+    "safe to try again",
+    { timeout: 60000 },
+  );
+  await expect(page.getByTestId("asset-manage-unconfirmed")).toHaveCount(0);
+  // Unlocked: the mocked ledger applied the freeze on submission, so unfreezing is what is offered.
+  await expect(page.getByTestId("unfreeze-submit")).toBeEnabled();
 });

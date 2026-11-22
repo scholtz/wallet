@@ -792,6 +792,7 @@
     "unconfirmed_hint": "De transactie is nog niet bevestigd. De acties blijven vergrendeld zodat ze niet twee keer wordt verzonden; controleer opnieuw voordat je verdergaat.",
     "check_again": "Opnieuw controleren",
     "still_pending": "Nog in behandeling: de transactie kan nog bevestigd worden, dus de acties blijven vergrendeld.",
+    "expired": "De transactie is niet bevestigd voordat ze verliep, dus je kunt het veilig opnieuw proberen.",
     "confirmed": "Transactie bevestigd: {txId}",
     "role_changed": "De adressen van het activum zijn gewijzigd sinds de pagina werd geladen. Controleer ze en probeer het opnieuw.",
     "problem_invalid_target": "Voer een geldig adres van de houder in.",

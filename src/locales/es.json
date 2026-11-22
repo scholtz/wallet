@@ -792,6 +792,7 @@
     "unconfirmed_hint": "La transacción aún no está confirmada. Las acciones permanecen bloqueadas para no enviarla dos veces; compruébelo de nuevo antes de continuar.",
     "check_again": "Comprobar de nuevo",
     "still_pending": "Sigue pendiente: aún puede confirmarse, por lo que las acciones permanecen bloqueadas.",
+    "expired": "La transacción no se confirmó antes de caducar, por lo que puede intentarlo de nuevo con seguridad.",
     "confirmed": "Transacción confirmada: {txId}",
     "role_changed": "Las direcciones del activo cambiaron desde que se cargó la página. Revíselas e inténtelo de nuevo.",
     "problem_invalid_target": "Introduzca una dirección de titular válida.",

@@ -792,6 +792,7 @@
     "unconfirmed_hint": "İşlem henüz onaylanmadı. İşlemin iki kez gönderilmemesi için eylemler kilitli kalır; devam etmeden önce yeniden kontrol edin.",
     "check_again": "Yeniden kontrol et",
     "still_pending": "Hâlâ beklemede: henüz onaylanabilir, bu yüzden eylemler kilitli kalır.",
+    "expired": "İşlem süresi dolmadan onaylanmadı, bu yüzden güvenle yeniden deneyebilirsiniz.",
     "confirmed": "İşlem onaylandı: {txId}",
     "role_changed": "Sayfa yüklendiğinden beri varlığın adresleri değişti. Kontrol edip tekrar deneyin.",
     "problem_invalid_target": "Geçerli bir sahip adresi girin.",

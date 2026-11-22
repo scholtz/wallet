@@ -1073,8 +1073,10 @@ const execute = async (
       });
     }
     if (!stillHere()) {
+      // A rejection was reported with the pool's reason; nothing is pending and nothing was done.
+      if (!confirmation && (await rejectedByPool(txId))) return;
       // The lock belongs to the asset and action that were sent, not to the page shown now.
-      if (!confirmation && !(await rejectedByPool(txId))) {
+      if (!confirmation) {
         writePending(
           { txId, lastValid: txn.lastValid.toString() },
           pendingKeyFor(id, act),
@@ -1159,6 +1161,7 @@ const checkAgain = async () => {
       txId,
       timeout: 4,
     });
+    let expired = false;
     if (!confirmation && !(await rejectedByPool(txId))) {
       // Unlocked only when it can no longer confirm (its validity window is over); a pending
       // transaction, or a node that cannot be asked, keeps the page locked.
@@ -1168,6 +1171,10 @@ const checkAgain = async () => {
         stillPending.value = true;
         return;
       }
+      expired = true;
+    }
+    if (expired) {
+      await store.dispatch("toast/openError", t("asset_manage.expired"));
     }
     // Unlocked without a confirmation: it was rejected or can no longer confirm.
     if (!confirmation) lastTxId.value = "";
