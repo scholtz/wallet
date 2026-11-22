@@ -547,8 +547,9 @@ interface PendingSend {
   txId: string;
   lastValid: string;
 }
-const pendingKey = () =>
-  `${store.state.config.env}:${assetId.value ?? ""}:${action.value ?? ""}`;
+const pendingKeyFor = (id: bigint | undefined, act: string | undefined) =>
+  `${store.state.config.env}:${id ?? ""}:${act ?? ""}`;
+const pendingKey = () => pendingKeyFor(assetId.value, action.value);
 const readPending = (): Record<string, PendingSend> => {
   try {
     const raw = sessionStorage.getItem(PENDING_KEY);
@@ -557,11 +558,14 @@ const readPending = (): Record<string, PendingSend> => {
     return {};
   }
 };
-const writePending = (entry: PendingSend | undefined) => {
+const writePending = (
+  entry: PendingSend | undefined,
+  key: string = pendingKey(),
+) => {
   try {
     const all = readPending();
-    if (entry) all[pendingKey()] = entry;
-    else delete all[pendingKey()];
+    if (entry) all[key] = entry;
+    else delete all[key];
     sessionStorage.setItem(PENDING_KEY, JSON.stringify(all));
   } catch {
     // session storage unavailable: the lock then only lives as long as this page
@@ -569,8 +573,15 @@ const writePending = (entry: PendingSend | undefined) => {
 };
 const restorePending = () => {
   const saved = readPending()[pendingKey()];
-  unconfirmedTxId.value = saved?.txId ?? "";
-  unconfirmedLastValid.value = saved ? BigInt(saved.lastValid) : 0n;
+  // The entry comes from storage: anything unexpected is dropped, never half applied.
+  const valid =
+    !!saved &&
+    typeof saved.txId === "string" &&
+    saved.txId.length > 0 &&
+    /^[0-9]+$/.test(String(saved.lastValid));
+  unconfirmedTxId.value = valid ? saved.txId : "";
+  unconfirmedLastValid.value = valid ? BigInt(saved.lastValid) : 0n;
+  if (saved && !valid) writePending(undefined);
   stillPending.value = false;
 };
 /** Last round in which the unconfirmed transaction can still confirm. */
@@ -1062,6 +1073,13 @@ const execute = async (
       });
     }
     if (!stillHere()) {
+      // The lock belongs to the asset and action that were sent, not to the page shown now.
+      if (!confirmation && !(await rejectedByPool(txId))) {
+        writePending(
+          { txId, lastValid: txn.lastValid.toString() },
+          pendingKeyFor(id, act),
+        );
+      }
       // Not this page's business any more: a toast is the only place the result can go.
       // An unconfirmed send may still confirm, so it is never reported as an error.
       await store.dispatch(
@@ -1075,6 +1093,11 @@ const execute = async (
     lastConfirmed.value = !!confirmation;
     // Not confirmed (timeout, or rejected after submission): nothing can have changed yet, so the
     // page neither re-reads the state nor leaves; the result says only that it was sent.
+    if (!confirmation && (await rejectedByPool(txId))) {
+      // It will never confirm: nothing is pending, the form stays usable.
+      lastTxId.value = "";
+      return;
+    }
     if (!confirmation) {
       unconfirmedTxId.value = txId;
       unconfirmedLastValid.value = txn.lastValid;
@@ -1112,6 +1135,20 @@ const execute = async (
  * shows the new state; otherwise the user is given the current state of the chain back, and the
  * strict re-reads before signing prevent a repeated action from using a stale balance.
  */
+/**
+ * True when the node says the pool rejected the transaction (it will never confirm); the node's
+ * reason is shown. waitForConfirmation cannot tell this from "not confirmed yet".
+ */
+const rejectedByPool = async (txId: string): Promise<boolean> => {
+  const poolError: string | undefined = await store.dispatch(
+    "algod/getPoolError",
+    { txId },
+  );
+  if (!poolError) return false;
+  await store.dispatch("toast/openError", poolError);
+  return true;
+};
+
 const checkAgain = async () => {
   const txId = unconfirmedTxId.value;
   if (!txId || busy.value) return;
@@ -1122,7 +1159,7 @@ const checkAgain = async () => {
       txId,
       timeout: 4,
     });
-    if (!confirmation) {
+    if (!confirmation && !(await rejectedByPool(txId))) {
       // Unlocked only when it can no longer confirm (its validity window is over); a pending
       // transaction, or a node that cannot be asked, keeps the page locked.
       const lastRound: bigint | undefined =
@@ -1131,8 +1168,9 @@ const checkAgain = async () => {
         stillPending.value = true;
         return;
       }
-      lastTxId.value = "";
     }
+    // Unlocked without a confirmation: it was rejected or can no longer confirm.
+    if (!confirmation) lastTxId.value = "";
     unconfirmedTxId.value = "";
     stillPending.value = false;
     writePending(undefined);

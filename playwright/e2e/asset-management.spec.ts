@@ -31,6 +31,8 @@ interface ChainState {
   failingHoldings: Set<string>;
   /** The node accepted the transaction but never confirms it. */
   neverConfirm: boolean;
+  /** The pool rejected the transaction after it was accepted. */
+  poolError: string;
   submitted: Buffer | null;
 }
 
@@ -68,6 +70,7 @@ async function mockChain(page: Page, asset: MockAsset): Promise<ChainState> {
     holdings: {},
     failingHoldings: new Set(),
     neverConfirm: false,
+    poolError: "",
     submitted: null,
   };
   const assetJson = () => ({
@@ -230,7 +233,7 @@ async function mockChain(page: Page, asset: MockAsset): Promise<ChainState> {
       body: Buffer.from(
         algosdk.msgpackRawEncode({
           ...(state.neverConfirm ? {} : { "confirmed-round": 101 }),
-          "pool-error": "",
+          "pool-error": state.poolError,
           txn: algosdk.msgpackRawDecode(
             splitSigned(state.submitted ?? Buffer.alloc(0))[0] ??
               Buffer.alloc(0),
@@ -757,4 +760,30 @@ test("an unconfirmed send locks the actions until it was checked again", async (
     "2.5 - frozen",
   );
   await expect(page.getByTestId("unfreeze-submit")).toBeEnabled();
+});
+
+test("a transaction the pool rejected after submission does not lock the page", async ({
+  page,
+}) => {
+  test.setTimeout(120000);
+  const { chain } = await walletOwningAsset(page);
+  const holder = other();
+  chain.holdings[holder] = { amount: 250, frozen: false };
+  chain.neverConfirm = true;
+  chain.poolError = "transaction rejected by the pool: overspend";
+
+  await spaNavigate(page, `/asset/freeze/${ASSET_ID}`);
+  await page.getByTestId("freeze-target").fill(holder);
+  await expect(page.getByTestId("freeze-holder-state")).toContainText(
+    "not frozen",
+  );
+  await page.getByTestId("freeze-submit").click();
+
+  // The node's reason is shown and nothing is pending: the form is usable again.
+  await expect(page.locator(".p-toast-message-error")).toContainText(
+    "overspend",
+    { timeout: 60000 },
+  );
+  await expect(page.getByTestId("asset-manage-unconfirmed")).toHaveCount(0);
+  await expect(page.getByTestId("freeze-submit")).toBeEnabled();
 });

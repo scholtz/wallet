@@ -22,6 +22,18 @@ import {
 
 export interface AlgodState {}
 
+/**
+ * A failed broadcast whose outcome is unknown: no HTTP answer at all, or one a gateway can send
+ * after the node accepted the transaction (408, 429, 5xx).
+ */
+const isUncertainSendError = (error: unknown): boolean => {
+  const status = (error as { response?: { status?: number } })?.response
+    ?.status;
+  return (
+    status === undefined || status === 408 || status === 429 || status >= 500
+  );
+};
+
 interface AlgodConfig {
   algod: string;
   algodToken: string;
@@ -417,24 +429,15 @@ const actions: ActionTree<AlgodState, RootState> = {
         )?.response?.body?.message;
         if (responseMessage) {
           dispatch("toast/openError", responseMessage, { root: true });
-        } else if (
-          reportSendErrors &&
-          (error as { response?: { status?: number } })?.response?.status ===
-            undefined
-        ) {
-          // Callers that report nothing themselves (single actions) opt in; bulk tools list per row.
-          dispatch(
-            "toast/openError",
-            error instanceof Error ? error.message : String(error),
-            { root: true },
-          );
+        } else if (reportSendErrors && isUncertainSendError(error)) {
+          // No answer from the node (timeout, dropped connection) or a gateway error (408, 429,
+          // 5xx) that can come after the node queued the transaction: the id is returned and the
+          // caller waits for it instead of assuming that nothing was sent. No error toast: the
+          // caller says "sent, not confirmed".
           console.error("Failed to submit transaction", error);
-          // No answer from the node (timeout, dropped connection): it may have queued the
-          // transaction, so the id is returned and the caller waits for it instead of assuming
-          // that nothing was sent.
           return txn.txID();
         } else if (reportSendErrors) {
-          // An HTTP answer without a message (gateway page, 401/403): the node did not take it.
+          // An HTTP answer without a message (401/403, other 4xx): the node did not take it.
           dispatch(
             "toast/openError",
             error instanceof Error ? error.message : String(error),
@@ -577,6 +580,24 @@ const actions: ActionTree<AlgodState, RootState> = {
         return { optedIn: false, amount: 0n, frozen: false };
       }
       throw error;
+    }
+  },
+  /**
+   * The pool's rejection reason of a transaction the node still reports, "" when it has none,
+   * undefined when the node cannot be asked. A non-empty answer means it will never confirm.
+   */
+  async getPoolError(
+    { rootState },
+    { txId }: { txId: string },
+  ): Promise<string | undefined> {
+    try {
+      const info = await createAlgodClient(rootState)
+        .pendingTransactionInformation(txId)
+        .do();
+      return info.poolError ?? "";
+    } catch (error) {
+      console.error("Failed to read the pending transaction", error);
+      return undefined;
     }
   },
   /** The node's last round, or undefined when it cannot be asked. */
