@@ -609,10 +609,14 @@ const loadAsset = async (refresh = false) => {
   }
 };
 
+let routeResolvedFor: string | undefined;
+
 const resolveSigningRoute = async () => {
   const from = sender.value;
-  // The route of the previous role address says nothing about this one.
-  signingRoute.value = undefined;
+  // The route of another role address says nothing about this one; a refresh for the same
+  // address keeps the form in place until the answer is known.
+  if (routeResolvedFor !== from) signingRoute.value = undefined;
+  routeResolvedFor = from;
   if (!from) {
     signingRoute.value = undefined;
     return;
@@ -942,10 +946,18 @@ const execute = async (
       lastTxId.value = txId;
       lastConfirmed.value = false;
     }
-    const confirmation = await store.dispatch("algod/waitForConfirmation", {
+    let confirmation = await store.dispatch("algod/waitForConfirmation", {
       txId,
       timeout: 4,
     });
+    // Not confirmed yet: wait a little longer before the form is offered again, so the same
+    // action is not sent twice while the first one may still confirm.
+    if (!confirmation && stillHere()) {
+      confirmation = await store.dispatch("algod/waitForConfirmation", {
+        txId,
+        timeout: 10,
+      });
+    }
     if (!stillHere()) {
       // Not this page's business any more: a toast is the only place the result can go.
       // An unconfirmed send may still confirm, so it is never reported as an error.
