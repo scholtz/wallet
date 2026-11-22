@@ -109,12 +109,6 @@ export const actionSender = (
   action: AssetAction,
 ): string | undefined => asset.roles[actionRole(action)] || undefined;
 
-/** Roles of the asset that `addr` holds (the creator is not a role). */
-export const rolesHeldBy = (
-  asset: Pick<ManagedAsset, "roles">,
-  addr: string,
-): AssetRole[] => ASSET_ROLES.filter((role) => asset.roles[role] === addr);
-
 /** App path of an action of the asset (the clawback page keeps its historic "revoke" path). */
 export const assetActionPath = (
   assetId: bigint | string,

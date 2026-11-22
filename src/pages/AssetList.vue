@@ -161,7 +161,7 @@ const rows = computed((): Row[] => {
   }));
 });
 
-const resolveSignable = async (assets: ManagedAsset[]) => {
+const resolveSignable = async (assets: ManagedAsset[], request: number) => {
   const accounts = new Set(
     store.state.wallet.privateAccounts.map((a) => a.addr),
   );
@@ -177,13 +177,17 @@ const resolveSignable = async (assets: ManagedAsset[]) => {
       if ((await signingRouteFor(addr)) !== "none") found.add(addr);
     }),
   );
-  signable.value = found;
+  if (request === loadCounter) signable.value = found;
 };
 
 /** Accounts asked at the same time: a public indexer rate-limits a burst of requests. */
 const CONCURRENCY = 4;
 
+let loadCounter = 0;
+
 const loadCreated = async () => {
+  // The wallet may open or change while a load runs: only the latest load may write the page.
+  const request = ++loadCounter;
   loading.value = true;
   try {
     const accounts = store.state.wallet.privateAccounts;
@@ -214,13 +218,14 @@ const loadCreated = async () => {
         }
       });
     }
+    if (request !== loadCounter) return;
     failedAccounts.value = failed;
     created.value = [...byId.values()].sort((a, b) =>
       a.assetId < b.assetId ? -1 : a.assetId > b.assetId ? 1 : 0,
     );
-    await resolveSignable(created.value);
+    await resolveSignable(created.value, request);
   } finally {
-    loading.value = false;
+    if (request === loadCounter) loading.value = false;
   }
 };
 

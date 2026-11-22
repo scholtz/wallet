@@ -611,6 +611,8 @@ const loadAsset = async (refresh = false) => {
 
 const resolveSigningRoute = async () => {
   const from = sender.value;
+  // The route of the previous role address says nothing about this one.
+  signingRoute.value = undefined;
   if (!from) {
     signingRoute.value = undefined;
     return;
@@ -946,8 +948,9 @@ const execute = async (
     });
     if (!stillHere()) {
       // Not this page's business any more: a toast is the only place the result can go.
+      // An unconfirmed send may still confirm, so it is never reported as an error.
       await store.dispatch(
-        confirmation ? "toast/openSuccess" : "toast/openError",
+        "toast/openSuccess",
         confirmation
           ? t("asset_manage.confirmed", { txId })
           : t("asset_manage.sent", { txId }),

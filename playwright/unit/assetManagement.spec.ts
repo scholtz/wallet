@@ -19,7 +19,6 @@ import {
   parseAssetAction,
   parseAssetAmount,
   parseAssetId,
-  rolesHeldBy,
   toManagedAsset,
   UnsafeTransactionError,
   type AssetRoles,
@@ -66,16 +65,6 @@ test.describe("roles and routes", () => {
     expect(
       actionSender({ roles: { ...roles, clawback: "" } }, "clawback"),
     ).toBeUndefined();
-  });
-  test("roles held by an address", () => {
-    const same = addr();
-    expect(
-      rolesHeldBy(
-        { roles: { manager: same, reserve: "", freeze: same, clawback } },
-        same,
-      ),
-    ).toEqual(["manager", "freeze"]);
-    expect(rolesHeldBy({ roles }, holder)).toEqual([]);
   });
   test("route parameters", () => {
     expect(parseAssetAction("freeze")).toBe("freeze");

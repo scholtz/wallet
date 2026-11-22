@@ -476,8 +476,9 @@ const actions: ActionTree<IndexerState, RootState> = {
     const indexerClient = getIndexerClient(rootState.config);
     const result: ManagedAsset[] = [];
     let next: string | undefined;
-    // A creator may have more assets than one page holds; stop at a sane bound.
-    for (let page = 0; page < 20; page++) {
+    // A creator may have more assets than one page holds; the bound only stops a node that
+    // never ends the paging (200 pages are 200,000 assets).
+    for (let page = 0; page < 200; page++) {
       let request = indexerClient.lookupAccountCreatedAssets(addr).limit(1000);
       if (next) request = request.nextToken(next);
       const response = await request.do();
