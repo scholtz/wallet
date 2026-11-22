@@ -933,7 +933,12 @@ watch(
       Object.assign(modifyRoles, current.roles);
       modifyConfirmClear.value = false;
     }
-    if (!clawbackReceiver.value && current.roles.clawback) {
+    // Prefilled only when this asset is shown first, never again behind the user's back.
+    if (
+      previous?.assetId !== current.assetId &&
+      !clawbackReceiver.value &&
+      current.roles.clawback
+    ) {
       clawbackReceiver.value = current.roles.clawback;
     }
   },
@@ -1177,7 +1182,8 @@ const checkAgain = async () => {
       await store.dispatch("toast/openError", t("asset_manage.expired"));
     }
     // Unlocked without a confirmation: it was rejected or can no longer confirm.
-    if (!confirmation) lastTxId.value = "";
+    // The result is shown also when the lock was restored after the page was left.
+    lastTxId.value = confirmation ? txId : "";
     unconfirmedTxId.value = "";
     stillPending.value = false;
     writePending(undefined);

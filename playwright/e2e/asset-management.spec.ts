@@ -604,6 +604,10 @@ test("a multisig freeze address signs on the Sign-all page and returns to asset 
 
   await page.getByRole("button", { name: "Sign", exact: true }).first().click();
   await expect(page).toHaveURL(/\/sign\//);
+  // The co-signer sees the freeze, not an error about a missing "pay to" address.
+  await expect(
+    page.getByText("Pay To address seems to be malformed."),
+  ).toHaveCount(0);
   await page.getByRole("button", { name: "Create multisig proposal" }).click();
   await page.locator(".p-multiselect").first().click();
   const signers = page.locator(".p-multiselect-overlay .p-multiselect-option");
