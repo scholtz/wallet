@@ -56,5 +56,8 @@ test("return label keys", () => {
   expect(signAllReturnLabelKey("ScheduledPayments")).toBe(
     "return_to_scheduled_payments",
   );
+  expect(signAllReturnLabelKey("AssetManagement")).toBe(
+    "return_to_asset_management",
+  );
   expect(signAllReturnLabelKey("AssetOptIn")).toBe("return_to_previous");
 });

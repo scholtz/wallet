@@ -14,6 +14,11 @@ import {
   confirmAssetCreator,
   resolveOptOutCloseTo,
 } from "../scripts/assets/optOut";
+import {
+  toManagedAsset,
+  type AssetHolding,
+  type ManagedAsset,
+} from "../scripts/assets/management";
 
 export interface AlgodState {}
 
@@ -492,6 +497,52 @@ const actions: ActionTree<AlgodState, RootState> = {
       const message = error instanceof Error ? error.message : String(error);
       dispatch("toast/openError", message, { root: true });
       return { status: "failed" };
+    }
+  },
+  /**
+   * The asset with its current addresses, read from the node (not a cache): management
+   * actions are signed by these addresses, so they must be current. Undefined when the asset
+   * does not exist (never created or destroyed); other failures are thrown.
+   */
+  async getAssetForManagement(
+    { rootState },
+    { assetId }: { assetId: bigint },
+  ): Promise<ManagedAsset | undefined> {
+    const algodClient = createAlgodClient(rootState);
+    let info: algosdk.modelsv2.Asset;
+    try {
+      info = await algodClient.getAssetByID(assetId).do();
+    } catch (error) {
+      if (isAssetNotFoundError(error)) return undefined;
+      throw error;
+    }
+    if (!info.params) return undefined;
+    return toManagedAsset(info.index, info.params);
+  },
+  /** The holding of `assetId` by `addr` from the node; `optedIn: false` when there is none. */
+  async getAssetHolding(
+    { rootState },
+    { addr, assetId }: { addr: string; assetId: bigint },
+  ): Promise<AssetHolding> {
+    const algodClient = createAlgodClient(rootState);
+    try {
+      const info = await algodClient
+        .accountAssetInformation(addr, assetId)
+        .do();
+      if (!info.assetHolding) {
+        return { optedIn: false, amount: 0n, frozen: false };
+      }
+      return {
+        optedIn: true,
+        amount: BigInt(info.assetHolding.amount),
+        frozen: !!info.assetHolding.isFrozen,
+      };
+    } catch (error) {
+      // algod answers 404 for an account that is not opted in to the asset
+      if (isAssetNotFoundError(error)) {
+        return { optedIn: false, amount: 0n, frozen: false };
+      }
+      throw error;
     }
   },
   async sendRawTransaction(

@@ -97,6 +97,17 @@ const isHdAccount = computed(() => {
           </div>
         </div>
         <div class="field grid">
+          <RouterLink to="/asset" class="col-12 mb-2 md:col-2 md:mb-0">
+            <Button class="w-full" data-testid="actions-asset-manage">
+              <i class="pi pi-sliders-h mr-2"></i>
+              {{ t("acc_overview.asset_manage") }}
+            </Button>
+          </RouterLink>
+          <div class="col-12 md:col-10 h-full vertical-align-middle">
+            {{ t("acc_overview.asset_manage_help") }}
+          </div>
+        </div>
+        <div class="field grid">
           <RouterLink
             :to="'/account/optinArc200/' + store.state.wallet.lastActiveAccount"
             class="col-12 mb-2 md:col-2 md:mb-0"

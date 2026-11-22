@@ -1,4 +1,8 @@
-import { createWebHistory, createRouter } from "vue-router";
+import {
+  createWebHistory,
+  createRouter,
+  type RouteLocationNormalized,
+} from "vue-router";
 import Privacy from "@/pages/Privacy.vue";
 import ImportWallet from "@/pages/Wallet/ImportWallet.vue";
 import NewWallet from "@/pages/Wallet/NewWallet.vue";
@@ -22,10 +26,7 @@ import Direct from "@/pages/Direct.vue";
 import Settings from "@/pages/Settings.vue";
 import Asset from "@/pages/AssetList.vue";
 import AssetCreate from "@/pages/Asset/Create.vue";
-import AssetDestroy from "@/pages/Asset/Destroy.vue";
-import AssetFreeze from "@/pages/Asset/Freeze.vue";
-import AssetModify from "@/pages/Asset/Modify.vue";
-import AssetRevoke from "@/pages/Asset/Revoke.vue";
+import AssetManage from "@/pages/Asset/Manage.vue";
 import OptIn from "@/pages/Asset/OptIn.vue";
 import OptInArc200 from "@/pages/Arc200/OptIn.vue";
 import PaymentGateway from "@/pages/PaymentGateway.vue";
@@ -49,6 +50,14 @@ import NewAccountHdWallet from "@/pages/NewAccount/HdWallet.vue";
 import NewAccountFalcon from "@/pages/NewAccount/Falcon.vue";
 import AccountExport from "@/pages/Account/Export.vue";
 import AccountHdNext from "@/pages/Account/HdNext.vue";
+
+/** Props of the asset management page: the asset of the route and the action of the path. */
+const assetManageProps =
+  (action?: string) =>
+  (route: RouteLocationNormalized): { assetId: string; action?: string } => ({
+    assetId: String(route.params.assetId),
+    action,
+  });
 
 const routes = [
   {
@@ -177,9 +186,16 @@ const routes = [
     component: PaymentGateway,
   },
   {
+    path: "/asset/manage/:assetId",
+    name: "AssetManage",
+    component: AssetManage,
+    props: assetManageProps(),
+  },
+  {
     path: "/asset/destroy/:assetId",
     name: "AssetDestroy",
-    component: AssetDestroy,
+    component: AssetManage,
+    props: assetManageProps("destroy"),
   },
   {
     path: "/gateway/:b64/:settings",
@@ -214,17 +230,20 @@ const routes = [
   {
     path: "/asset/freeze/:assetId",
     name: "AssetFreeze",
-    component: AssetFreeze,
+    component: AssetManage,
+    props: assetManageProps("freeze"),
   },
   {
     path: "/asset/modify/:assetId",
     name: "AssetModify",
-    component: AssetModify,
+    component: AssetManage,
+    props: assetManageProps("modify"),
   },
   {
     path: "/asset/revoke/:assetId",
     name: "AssetRevoke",
-    component: AssetRevoke,
+    component: AssetManage,
+    props: assetManageProps("clawback"),
   },
   {
     path: "/accounts",
