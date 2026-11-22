@@ -1147,13 +1147,20 @@ const execute = async (
  * reason is shown. waitForConfirmation cannot tell this from "not confirmed yet".
  */
 const rejectedByPool = async (txId: string): Promise<boolean> => {
-  const poolError: string | undefined = await store.dispatch(
+  const poolError: string | null | undefined = await store.dispatch(
     "algod/getPoolError",
     { txId },
   );
-  if (!poolError) return false;
-  await store.dispatch("toast/openError", poolError);
-  return true;
+  if (poolError) {
+    await store.dispatch("toast/openError", poolError);
+    return true;
+  }
+  if (poolError === null) {
+    // The node does not know it (never received, or dropped): nothing is pending any more.
+    await store.dispatch("toast/openError", t("asset_manage.expired"));
+    return true;
+  }
+  return false;
 };
 
 const checkAgain = async () => {

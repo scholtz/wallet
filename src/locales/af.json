@@ -792,7 +792,7 @@
     "unconfirmed_hint": "Die transaksie is nog nie bevestig nie. Die aksies bly gesluit sodat dit nie twee keer gestuur word nie; kyk weer voordat jy voortgaan.",
     "check_again": "Kyk weer",
     "still_pending": "Nog hangend: dit kan nog bevestig word, so die aksies bly gesluit.",
-    "expired": "Die transaksie is nie bevestig voordat dit verval het nie, so jy kan dit veilig weer probeer.",
+    "expired": "Die transaksie is nie meer hangend nie en is nie bevestig nie, so jy kan dit veilig weer probeer.",
     "confirmed": "Transaksie bevestig: {txId}",
     "role_changed": "Die bate se adresse het verander sedert die bladsy gelaai is. Gaan hulle na en probeer weer.",
     "problem_invalid_target": "Voer 'n geldige houeradres in.",

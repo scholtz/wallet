@@ -8,6 +8,7 @@ import Arc56CallDetails from "../components/Arc56CallDetails.vue";
 import Arc56RequestSummary from "../components/Arc56RequestSummary.vue";
 import Arc56RiskIcon from "../components/Arc56RiskIcon.vue";
 import TransactionGroupSimulation from "../components/TransactionGroupSimulation.vue";
+import TxReviewDetails from "../components/TxReviewDetails.vue";
 import algosdk from "algosdk";
 import formatCurrency from "../scripts/numbers/formatCurrency";
 import { isAssetOptIn } from "../scripts/transactionTypes";
@@ -122,6 +123,14 @@ onMounted(async () => {
     index++;
   }
   state.transactions = data;
+  // An asset configuration, freeze or clawback is irreversible and its target is only in the
+  // details: those rows start expanded, so they are not signed without being seen.
+  state.expandedTransactions = data.filter(
+    (entry) =>
+      entry.txn.type === "acfg" ||
+      entry.txn.type === "afrz" ||
+      (entry.txn.type === "axfer" && !!entry.txn.assetTransfer?.assetSender),
+  );
   await refreshFalconSigners();
   await checkAtLeastOneSigned();
   await checkAllTxsAreSigned();
@@ -908,6 +917,8 @@ const arc56SummaryTransactions = computed(() =>
                   </tr>
                 </tbody>
               </table>
+              <!-- What an asset configuration / freeze / clawback does (never just its type), as on /sign. -->
+              <TxReviewDetails :txn="txProps.data.txn" class="mt-3" />
             </div>
           </template>
         </DataTable>

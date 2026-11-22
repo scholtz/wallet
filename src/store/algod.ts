@@ -585,18 +585,21 @@ const actions: ActionTree<AlgodState, RootState> = {
   },
   /**
    * The pool's rejection reason of a transaction the node still reports, "" when it has none,
+   * null when the node does not know the transaction at all (never received, or dropped), and
    * undefined when the node cannot be asked. A non-empty answer means it will never confirm.
    */
   async getPoolError(
     { rootState },
     { txId }: { txId: string },
-  ): Promise<string | undefined> {
+  ): Promise<string | null | undefined> {
     try {
       const info = await createAlgodClient(rootState)
         .pendingTransactionInformation(txId)
         .do();
       return info.poolError ?? "";
     } catch (error) {
+      // algod answers 404 for a transaction it has never seen or no longer holds.
+      if (isAssetNotFoundError(error)) return null;
       console.error("Failed to read the pending transaction", error);
       return undefined;
     }

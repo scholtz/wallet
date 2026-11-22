@@ -792,7 +792,7 @@
     "unconfirmed_hint": "La transazione non è ancora confermata. Le azioni restano bloccate per non inviarla due volte; controlla di nuovo prima di continuare.",
     "check_again": "Controlla di nuovo",
     "still_pending": "È ancora in sospeso: può ancora essere confermata, quindi le azioni restano bloccate.",
-    "expired": "La transazione non è stata confermata prima di scadere, quindi puoi riprovare in sicurezza.",
+    "expired": "La transazione non è più in sospeso e non è stata confermata, quindi puoi riprovare in sicurezza.",
     "confirmed": "Transazione confermata: {txId}",
     "role_changed": "Gli indirizzi dell'asset sono cambiati da quando la pagina è stata caricata. Controllali e riprova.",
     "problem_invalid_target": "Inserisci un indirizzo del detentore valido.",

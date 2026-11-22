@@ -35,6 +35,8 @@ interface ChainState {
   poolError: string;
   /** The node's last round (a transaction is valid up to round 1100). */
   lastRound: number;
+  /** The node does not know the transaction (never received, or dropped). */
+  unknownTx: boolean;
   submitted: Buffer | null;
 }
 
@@ -74,6 +76,7 @@ async function mockChain(page: Page, asset: MockAsset): Promise<ChainState> {
     neverConfirm: false,
     poolError: "",
     lastRound: 100,
+    unknownTx: false,
     submitted: null,
   };
   const assetJson = () => ({
@@ -244,6 +247,15 @@ async function mockChain(page: Page, asset: MockAsset): Promise<ChainState> {
         }),
       ),
     }),
+  );
+  // Registered last, so it is asked first: an unknown transaction is a 404, anything else falls through.
+  await page.route(/\/v2\/transactions\/pending\//, (route) =>
+    state.unknownTx
+      ? route.fulfill({
+          status: 404,
+          json: { message: "transaction not found" },
+        })
+      : route.fallback(),
   );
   return state;
 }
@@ -600,7 +612,12 @@ test("a multisig freeze address signs on the Sign-all page and returns to asset 
 
   await expect(page).toHaveURL(/\/signAll/, { timeout: 15000 });
   expect(chain.submitted).toBeNull();
-  await expect(page.locator(".p-datatable-tbody > tr")).toHaveCount(1);
+  // One transaction; its row starts expanded (a second table row) and says what it does.
+  await expect(page.locator(".p-datatable-tbody > tr")).toHaveCount(2);
+  await expect(page.getByTestId("tx-review-details")).toBeVisible();
+  await expect(page.getByTestId("sign-special-summary")).toContainText(
+    holder.slice(0, 4),
+  );
 
   await page.getByRole("button", { name: "Sign", exact: true }).first().click();
   await expect(page).toHaveURL(/\/sign\//);
@@ -824,4 +841,30 @@ test("a transaction that expired without confirming is reported and unlocks the 
   await expect(page.getByTestId("asset-manage-unconfirmed")).toHaveCount(0);
   // Unlocked: the mocked ledger applied the freeze on submission, so unfreezing is what is offered.
   await expect(page.getByTestId("unfreeze-submit")).toBeEnabled();
+});
+
+test("a transaction the node never received does not lock the page", async ({
+  page,
+}) => {
+  test.setTimeout(120000);
+  const { chain } = await walletOwningAsset(page);
+  const holder = other();
+  chain.holdings[holder] = { amount: 250, frozen: false };
+  chain.neverConfirm = true;
+  chain.unknownTx = true;
+
+  await spaNavigate(page, `/asset/freeze/${ASSET_ID}`);
+  await page.getByTestId("freeze-target").fill(holder);
+  await expect(page.getByTestId("freeze-holder-state")).toContainText(
+    "not frozen",
+  );
+  await page.getByTestId("freeze-submit").click();
+
+  // Nothing is pending on the node: the user is told, and is not locked out for the whole
+  // validity window.
+  await expect(page.locator(".p-toast-message-error")).toContainText(
+    "no longer pending",
+    { timeout: 60000 },
+  );
+  await expect(page.getByTestId("asset-manage-unconfirmed")).toHaveCount(0);
 });

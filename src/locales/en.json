@@ -792,7 +792,7 @@
     "unconfirmed_hint": "The transaction is not confirmed yet. The actions stay locked so it is not sent twice; check again before you continue.",
     "check_again": "Check again",
     "still_pending": "Still pending: it can still confirm, so the actions stay locked.",
-    "expired": "The transaction did not confirm before it expired, so it is safe to try again.",
+    "expired": "The transaction is no longer pending and did not confirm, so it is safe to try again.",
     "confirmed": "Transaction confirmed: {txId}",
     "role_changed": "The asset's addresses changed since the page was loaded. Check them and try again.",
     "problem_invalid_target": "Enter a valid holder address.",

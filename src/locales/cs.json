@@ -792,7 +792,7 @@
     "unconfirmed_hint": "Transakce zatím není potvrzena. Akce zůstávají zamčené, aby se neodeslala dvakrát; před pokračováním ji znovu zkontrolujte.",
     "check_again": "Zkontrolovat znovu",
     "still_pending": "Stále čeká: ještě se může potvrdit, proto akce zůstávají zamčené.",
-    "expired": "Transakce nebyla potvrzena před vypršením platnosti, takže ji můžete bezpečně zkusit znovu.",
+    "expired": "Transakce už nečeká na zpracování a nebyla potvrzena, takže ji můžete bezpečně zkusit znovu.",
     "confirmed": "Transakce potvrzena: {txId}",
     "role_changed": "Adresy aktiva se od načtení stránky změnily. Zkontrolujte je a zkuste to znovu.",
     "problem_invalid_target": "Zadejte platnou adresu držitele.",
