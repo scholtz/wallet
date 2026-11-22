@@ -791,6 +791,7 @@
     "sent": "Transakcia odoslaná do siete: {txId}",
     "unconfirmed_hint": "Transakcia ešte nie je potvrdená. Akcie zostávajú zamknuté, aby sa neodoslala dvakrát; pred pokračovaním ju znova skontrolujte.",
     "check_again": "Skontrolovať znova",
+    "still_pending": "Stále čaká: ešte sa môže potvrdiť, preto akcie zostávajú zamknuté.",
     "confirmed": "Transakcia potvrdená: {txId}",
     "role_changed": "Adresy aktíva sa od načítania stránky zmenili. Skontrolujte ich a skúste to znova.",
     "problem_invalid_target": "Zadajte platnú adresu držiteľa.",

@@ -462,6 +462,9 @@
             data-testid="asset-manage-unconfirmed"
           >
             {{ t("asset_manage.unconfirmed_hint") }}
+            <template v-if="stillPending">
+              {{ t("asset_manage.still_pending") }}
+            </template>
             <Button
               class="ml-2"
               size="small"
@@ -529,11 +532,17 @@ const asset = ref<ManagedAsset>();
 const loading = ref(false);
 const loadError = ref("");
 const busy = ref(false);
+/** Identifies the latest send / check; an older one that finishes late must not unlock the page. */
+let busyToken = 0;
 /**
  * Set after a send that was not confirmed: it may still confirm, so the actions stay locked
  * until the user checked again (a second, distinct transaction could otherwise repeat it).
  */
 const unconfirmedTxId = ref("");
+/** Last round in which the unconfirmed transaction can still confirm. */
+const unconfirmedLastValid = ref(0n);
+/** "Check again" found it still pending. */
+const stillPending = ref(false);
 const locked = computed(() => busy.value || !!unconfirmedTxId.value);
 const lastTxId = ref("");
 const lastConfirmed = ref(false);
@@ -596,6 +605,7 @@ const loadAsset = async (refresh = false) => {
   const request = ++loadCounter;
   const id = assetId.value;
   if (!refresh) {
+    busyToken++;
     busy.value = false;
     unconfirmedTxId.value = "";
     lastConfirmed.value = false;
@@ -659,7 +669,13 @@ const resolveSigningRoute = async () => {
     signingRoute.value = "none";
     return;
   }
-  const route = await signingRouteFor(from);
+  let route: SigningRoute = "none";
+  try {
+    route = await signingRouteFor(from);
+  } catch (error) {
+    // A signer that cannot be determined is no signer: the page says so instead of staying blank.
+    console.error("Unable to resolve the signer of", from, error);
+  }
   // The page may have moved on while the signer was looked up.
   if (sender.value === from) signingRoute.value = route;
 };
@@ -934,6 +950,7 @@ const execute = async (
   const id = assetId.value;
   const act = action.value;
   if (!id || !act || locked.value) return;
+  const token = ++busyToken;
   busy.value = true;
   lastTxId.value = "";
   try {
@@ -957,11 +974,19 @@ const execute = async (
     const suggestedParams: algosdk.SuggestedParams = await store.dispatch(
       "algod/getCheckedTransactionParams",
     );
+    // The checked params of the configured network; a node that leaves them out is refused.
+    if (!suggestedParams.genesisHash || !suggestedParams.genesisID) {
+      throw new UnsafeTransactionError("details");
+    }
     const txn = await build(from, fresh, suggestedParams);
     assertAssetManagementTxnSafe(txn, {
       sender: from,
       assetId: id,
       action: act,
+      genesis: {
+        hash: suggestedParams.genesisHash,
+        id: suggestedParams.genesisID,
+      },
       ...expectDetails(),
     });
 
@@ -1010,6 +1035,8 @@ const execute = async (
     // page neither re-reads the state nor leaves; the result says only that it was sent.
     if (!confirmation) {
       unconfirmedTxId.value = txId;
+      unconfirmedLastValid.value = txn.lastValid;
+      stillPending.value = false;
       return;
     }
     if (act === "destroy") {
@@ -1033,7 +1060,7 @@ const execute = async (
     console.error("Asset management failed", error);
     await store.dispatch("toast/openError", errorMessage(error));
   } finally {
-    busy.value = false;
+    if (token === busyToken) busy.value = false;
   }
 };
 
@@ -1045,18 +1072,31 @@ const execute = async (
 const checkAgain = async () => {
   const txId = unconfirmedTxId.value;
   if (!txId || busy.value) return;
+  const token = ++busyToken;
   busy.value = true;
   try {
     const confirmation = await store.dispatch("algod/waitForConfirmation", {
       txId,
       timeout: 4,
     });
+    if (!confirmation) {
+      // Unlocked only when it can no longer confirm (its validity window is over); a pending
+      // transaction, or a node that cannot be asked, keeps the page locked.
+      const lastRound: bigint | undefined =
+        await store.dispatch("algod/getLastRound");
+      if (lastRound === undefined || lastRound <= unconfirmedLastValid.value) {
+        stillPending.value = true;
+        return;
+      }
+      lastTxId.value = "";
+    }
     unconfirmedTxId.value = "";
+    stillPending.value = false;
     lastConfirmed.value = !!confirmation;
     await loadAsset(true);
     await refreshHoldings();
   } finally {
-    busy.value = false;
+    if (token === busyToken) busy.value = false;
   }
 };
 

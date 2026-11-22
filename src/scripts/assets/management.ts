@@ -428,8 +428,22 @@ export const assertAssetManagementTxnSafe = (
     clawback?: { target: string; receiver: string; amount: bigint };
     /** Modify: the addresses the user chose. */
     roles?: AssetRoles;
+    /** The network the transaction has to belong to (from the checked suggested params). */
+    genesis?: { hash: Uint8Array; id: string };
   },
 ): void => {
+  // A management transaction is a single transaction: no group, no lease.
+  if (txn.group?.length || txn.lease?.length) {
+    throw new UnsafeTransactionError("details");
+  }
+  if (
+    expected.genesis &&
+    (txn.genesisID !== expected.genesis.id ||
+      !txn.genesisHash ||
+      Buffer.compare(txn.genesisHash, expected.genesis.hash) !== 0)
+  ) {
+    throw new UnsafeTransactionError("details");
+  }
   if (txn.sender.toString() !== expected.sender) {
     throw new UnsafeTransactionError("sender");
   }

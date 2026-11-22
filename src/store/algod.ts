@@ -424,6 +424,11 @@ const actions: ActionTree<AlgodState, RootState> = {
             error instanceof Error ? error.message : String(error),
             { root: true },
           );
+          console.error("Failed to submit transaction", error);
+          // No answer from the node (timeout, dropped connection): it may have queued the
+          // transaction, so the id is returned and the caller waits for it instead of assuming
+          // that nothing was sent.
+          return txn.txID();
         }
         console.error("Failed to submit transaction", error);
         return undefined;
@@ -561,6 +566,16 @@ const actions: ActionTree<AlgodState, RootState> = {
         return { optedIn: false, amount: 0n, frozen: false };
       }
       throw error;
+    }
+  },
+  /** The node's last round, or undefined when it cannot be asked. */
+  async getLastRound({ rootState }): Promise<bigint | undefined> {
+    try {
+      const status = await createAlgodClient(rootState).status().do();
+      return BigInt(status.lastRound);
+    } catch (error) {
+      console.error("Failed to read the last round", error);
+      return undefined;
     }
   },
   async sendRawTransaction(

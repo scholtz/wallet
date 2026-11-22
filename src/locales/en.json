@@ -791,6 +791,7 @@
     "sent": "Transaction sent to the network: {txId}",
     "unconfirmed_hint": "The transaction is not confirmed yet. The actions stay locked so it is not sent twice; check again before you continue.",
     "check_again": "Check again",
+    "still_pending": "Still pending: it can still confirm, so the actions stay locked.",
     "confirmed": "Transaction confirmed: {txId}",
     "role_changed": "The asset's addresses changed since the page was loaded. Check them and try again.",
     "problem_invalid_target": "Enter a valid holder address.",

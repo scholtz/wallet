@@ -791,6 +791,7 @@
     "sent": "Transaksie na die netwerk gestuur: {txId}",
     "unconfirmed_hint": "Die transaksie is nog nie bevestig nie. Die aksies bly gesluit sodat dit nie twee keer gestuur word nie; kyk weer voordat jy voortgaan.",
     "check_again": "Kyk weer",
+    "still_pending": "Nog hangend: dit kan nog bevestig word, so die aksies bly gesluit.",
     "confirmed": "Transaksie bevestig: {txId}",
     "role_changed": "Die bate se adresse het verander sedert die bladsy gelaai is. Gaan hulle na en probeer weer.",
     "problem_invalid_target": "Voer 'n geldige houeradres in.",

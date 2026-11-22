@@ -791,6 +791,7 @@
     "sent": "A tranzakció elküldve a hálózatra: {txId}",
     "unconfirmed_hint": "A tranzakció még nincs megerősítve. A műveletek zárolva maradnak, hogy ne kerüljön kétszer elküldésre; folytatás előtt ellenőrizze újra.",
     "check_again": "Újraellenőrzés",
+    "still_pending": "Még függőben van: még megerősítésre kerülhet, ezért a műveletek zárolva maradnak.",
     "confirmed": "A tranzakció megerősítve: {txId}",
     "role_changed": "Az eszköz címei megváltoztak az oldal betöltése óta. Ellenőrizze őket, és próbálja újra.",
     "problem_invalid_target": "Adjon meg egy érvényes tulajdonosi címet.",

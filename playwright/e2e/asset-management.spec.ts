@@ -727,6 +727,15 @@ test("an unconfirmed send locks the actions until it was checked again", async (
   await expect(page.getByTestId("freeze-submit")).toBeDisabled();
   await expect(page.getByTestId("unfreeze-submit")).toBeDisabled();
 
+  // Checking while it is still pending (its validity window is open) keeps the page locked.
+  await page.getByTestId("asset-manage-check-again").click();
+  await expect(page.getByTestId("asset-manage-unconfirmed")).toContainText(
+    "Still pending",
+    { timeout: 60000 },
+  );
+  await expect(page.getByTestId("freeze-submit")).toBeDisabled();
+  await expect(page.getByTestId("unfreeze-submit")).toBeDisabled();
+
   // It confirms meanwhile: checking again shows the new state and unlocks the page.
   chain.neverConfirm = false;
   await page.getByTestId("asset-manage-check-again").click();

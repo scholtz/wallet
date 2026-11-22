@@ -527,4 +527,53 @@ test.describe("transactions", () => {
       }),
     ).toThrow(UnsafeTransactionError);
   });
+
+  test("the transaction must belong to the network and stand alone", () => {
+    const base = { sender: freeze, assetId, action: "freeze" as const };
+    const make = (params: Partial<algosdk.SuggestedParams> = {}) =>
+      buildAssetFreezeTxn({
+        sender: freeze,
+        assetId,
+        target: holder,
+        frozen: true,
+        suggestedParams: { ...suggestedParams, ...params },
+      });
+    const genesis = {
+      hash: suggestedParams.genesisHash!,
+      id: suggestedParams.genesisID!,
+    };
+    expect(() =>
+      assertAssetManagementTxnSafe(make(), { ...base, genesis }),
+    ).not.toThrow();
+    // Another network's genesis hash or id.
+    expect(() =>
+      assertAssetManagementTxnSafe(make({ genesisID: "testnet-v1.0" }), {
+        ...base,
+        genesis,
+      }),
+    ).toThrow(UnsafeTransactionError);
+    expect(() =>
+      assertAssetManagementTxnSafe(make(), {
+        ...base,
+        genesis: { ...genesis, hash: new Uint8Array(32) },
+      }),
+    ).toThrow(UnsafeTransactionError);
+    // A lease or a group id does not belong to a single management transaction.
+    const leased = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject({
+      sender: freeze,
+      assetIndex: assetId,
+      freezeTarget: holder,
+      frozen: true,
+      lease: new Uint8Array(32).fill(1),
+      suggestedParams,
+    });
+    expect(() =>
+      assertAssetManagementTxnSafe(leased, { ...base, genesis }),
+    ).toThrow(UnsafeTransactionError);
+    const grouped = [make(), make()];
+    algosdk.assignGroupID(grouped);
+    expect(() =>
+      assertAssetManagementTxnSafe(grouped[0], { ...base, genesis }),
+    ).toThrow(UnsafeTransactionError);
+  });
 });
