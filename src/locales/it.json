@@ -732,6 +732,7 @@
     "hub_title": "Gestore asset",
     "hub_help": "Gestisci gli Algorand Standard Asset (ASA) creati dai tuoi account: congela e recupera (clawback), cambia gli indirizzi o distruggi l'asset. Per gestire un asset creato altrove per cui uno dei tuoi account ha un ruolo, aprilo tramite il suo ID.",
     "manage_by_id": "Gestisci un asset tramite il suo ID",
+    "create_asset": "Crea asset (ASA / NFT)",
     "open": "Apri",
     "created_assets": "Asset creati dai tuoi account",
     "created_assets_failed": "Non è stato possibile verificare gli asset creati da alcuni dei tuoi account. Puoi comunque aprire un asset tramite il suo ID.",

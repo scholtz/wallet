@@ -732,6 +732,7 @@
     "hub_title": "Správca aktív",
     "hub_help": "Spravujte Algorand Standard Assets (ASA), ktoré vytvorili vaše účty: zmrazenie a clawback, zmena adries alebo zničenie aktíva. Aktívum vytvorené inde, pre ktoré má niektorý z vašich účtov rolu, otvorte podľa jeho ID.",
     "manage_by_id": "Spravovať aktívum podľa ID",
+    "create_asset": "Vytvoriť aktívum (ASA / NFT)",
     "open": "Otvoriť",
     "created_assets": "Aktíva vytvorené vašimi účtami",
     "created_assets_failed": "Pri niektorých vašich účtoch nebolo možné skontrolovať vytvorené aktíva. Aktívum môžete stále otvoriť podľa jeho ID.",

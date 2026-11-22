@@ -600,12 +600,18 @@ const strictHolding = async (
   });
 };
 
+/** Lookups for the displayed state in flight: "not opted in" is not said before the node answered. */
+const holdingsLoading = ref(0);
+
 const holding = async (addr: string): Promise<LoadedHolding> => {
+  holdingsLoading.value++;
   try {
     return await strictHolding(addr);
   } catch (error) {
     console.error("Unable to load the holding", error);
     return null;
+  } finally {
+    holdingsLoading.value--;
   }
 };
 
@@ -629,13 +635,15 @@ const reloadFreezeHolding = async () => {
 watch(freezeTarget, reloadFreezeHolding);
 
 const freezeProblem = (frozen: boolean) =>
-  freezeHolding.value === null
-    ? "holding_failed"
-    : checkFreeze({
-        targetValid: isValidAddress(freezeTarget.value.trim()),
-        holding: freezeHolding.value,
-        frozen,
-      });
+  holdingsLoading.value > 0
+    ? "loading"
+    : freezeHolding.value === null
+      ? "holding_failed"
+      : checkFreeze({
+          targetValid: isValidAddress(freezeTarget.value.trim()),
+          holding: freezeHolding.value,
+          frozen,
+        });
 
 // --- clawback ----------------------------------------------------------------------------
 
@@ -662,19 +670,25 @@ watch(clawbackReceiver, () =>
 );
 
 const clawbackProblem = computed(() =>
-  clawbackTargetHolding.value === null || clawbackReceiverHolding.value === null
-    ? "holding_failed"
-    : asset.value
-      ? checkClawback({
-          target: clawbackTarget.value.trim(),
-          receiver: clawbackReceiver.value.trim(),
-          targetValid: isValidAddress(clawbackTarget.value.trim()),
-          receiverValid: isValidAddress(clawbackReceiver.value.trim()),
-          targetHolding: clawbackTargetHolding.value,
-          receiverHolding: clawbackReceiverHolding.value,
-          amount: parseAssetAmount(clawbackAmount.value, asset.value.decimals),
-        })
-      : undefined,
+  holdingsLoading.value > 0
+    ? "loading"
+    : clawbackTargetHolding.value === null ||
+        clawbackReceiverHolding.value === null
+      ? "holding_failed"
+      : asset.value
+        ? checkClawback({
+            target: clawbackTarget.value.trim(),
+            receiver: clawbackReceiver.value.trim(),
+            targetValid: isValidAddress(clawbackTarget.value.trim()),
+            receiverValid: isValidAddress(clawbackReceiver.value.trim()),
+            targetHolding: clawbackTargetHolding.value,
+            receiverHolding: clawbackReceiverHolding.value,
+            amount: parseAssetAmount(
+              clawbackAmount.value,
+              asset.value.decimals,
+            ),
+          })
+        : undefined,
 );
 
 const setClawbackMax = () => {
@@ -726,14 +740,16 @@ const modifyProblem = computed(() => {
 const creatorHolding = ref<LoadedHolding>();
 const destroyConfirm = ref(false);
 const destroyProblem = computed(() =>
-  creatorHolding.value === null
-    ? "holding_failed"
-    : asset.value
-      ? checkDestroy({
-          total: asset.value.total,
-          creatorHolding: creatorHolding.value,
-        })
-      : "creator_unknown",
+  holdingsLoading.value > 0
+    ? "loading"
+    : creatorHolding.value === null
+      ? "holding_failed"
+      : asset.value
+        ? checkDestroy({
+            total: asset.value.total,
+            creatorHolding: creatorHolding.value,
+          })
+        : "creator_unknown",
 );
 
 // --- per-action reset when the asset or the action changes -------------------------------
@@ -749,14 +765,21 @@ watch(
     if (!clawbackReceiver.value && current.roles.clawback) {
       clawbackReceiver.value = current.roles.clawback;
     }
+    creatorHolding.value = undefined;
     if (action.value === "destroy") {
-      creatorHolding.value = await holding(current.creator);
+      const found = await holding(current.creator);
+      // The user may have moved to another asset or action while the node answered.
+      if (asset.value === current && action.value === "destroy") {
+        creatorHolding.value = found;
+      }
     }
   },
   { immediate: true },
 );
 
 const currentProblem = computed((): string | undefined => {
+  // While the node is asked nothing is reported; the buttons stay disabled meanwhile.
+  if (holdingsLoading.value > 0) return undefined;
   switch (action.value) {
     case "freeze":
       // Both buttons share the problems except "no_change", which only disables one of them.
@@ -784,6 +807,12 @@ const currentProblem = computed((): string | undefined => {
  * it or hands it to the Sign-all page (multisig, Ledger, Falcon-1024).
  */
 const execute = async (
+  expectDetails: () => Partial<
+    Pick<
+      Parameters<typeof assertAssetManagementTxnSafe>[1],
+      "freeze" | "clawback" | "roles"
+    >
+  >,
   build: (
     from: string,
     fresh: ManagedAsset,
@@ -818,6 +847,7 @@ const execute = async (
       sender: from,
       assetId: id,
       action: act,
+      ...expectDetails(),
     });
 
     if (route === "signAll") {
@@ -862,100 +892,127 @@ const ensure = (problem: string | undefined) => {
   if (problem) throw new Error(t(`asset_manage.problem_${problem}`));
 };
 
-const submitFreeze = (frozen: boolean) =>
-  execute(async (from, fresh, suggestedParams) => {
-    const target = freezeTarget.value.trim();
-    const current = await strictHolding(target);
-    freezeHolding.value = current;
-    ensure(
-      checkFreeze({
-        targetValid: isValidAddress(target),
-        holding: current,
+const submitFreeze = (frozen: boolean) => {
+  const target = freezeTarget.value.trim();
+  return execute(
+    () => ({ freeze: { target, frozen } }),
+    async (from, fresh, suggestedParams) => {
+      const current = await strictHolding(target);
+      freezeHolding.value = current;
+      ensure(
+        checkFreeze({
+          targetValid: isValidAddress(target),
+          holding: current,
+          frozen,
+        }),
+      );
+      return buildAssetFreezeTxn({
+        sender: from,
+        assetId: fresh.assetId,
+        target,
         frozen,
-      }),
-    );
-    return buildAssetFreezeTxn({
-      sender: from,
-      assetId: fresh.assetId,
-      target,
-      frozen,
-      suggestedParams,
-    });
-  });
+        suggestedParams,
+      });
+    },
+  );
+};
 
-const submitClawback = () =>
-  execute(async (from, fresh, suggestedParams) => {
-    const target = clawbackTarget.value.trim();
-    const receiver = clawbackReceiver.value.trim();
-    const amount = parseAssetAmount(clawbackAmount.value, fresh.decimals);
-    const [targetHolding, receiverHolding] = await Promise.all([
-      strictHolding(target),
-      strictHolding(receiver),
-    ]);
-    clawbackTargetHolding.value = targetHolding;
-    clawbackReceiverHolding.value = receiverHolding;
-    ensure(
-      checkClawback({
+const submitClawback = () => {
+  const target = clawbackTarget.value.trim();
+  const receiver = clawbackReceiver.value.trim();
+  let requested = 0n;
+  return execute(
+    () => ({ clawback: { target, receiver, amount: requested } }),
+    async (from, fresh, suggestedParams) => {
+      const amount = parseAssetAmount(clawbackAmount.value, fresh.decimals);
+      const [targetHolding, receiverHolding] = await Promise.all([
+        strictHolding(target),
+        strictHolding(receiver),
+      ]);
+      clawbackTargetHolding.value = targetHolding;
+      clawbackReceiverHolding.value = receiverHolding;
+      ensure(
+        checkClawback({
+          target,
+          receiver,
+          targetValid: isValidAddress(target),
+          receiverValid: isValidAddress(receiver),
+          targetHolding,
+          receiverHolding,
+          amount,
+        }),
+      );
+      requested = amount as bigint;
+      return buildAssetClawbackTxn({
+        sender: from,
+        assetId: fresh.assetId,
         target,
         receiver,
-        targetValid: isValidAddress(target),
-        receiverValid: isValidAddress(receiver),
-        targetHolding,
-        receiverHolding,
-        amount,
-      }),
-    );
-    return buildAssetClawbackTxn({
-      sender: from,
-      assetId: fresh.assetId,
-      target,
-      receiver,
-      amount: amount as bigint,
-      suggestedParams,
-    });
-  });
+        amount: amount as bigint,
+        suggestedParams,
+      });
+    },
+  );
+};
 
-const submitModify = () =>
-  execute(async (from, fresh, suggestedParams) => {
-    const next: AssetRoles = {
-      manager: modifyRoles.manager.trim(),
-      reserve: modifyRoles.reserve.trim(),
-      freeze: modifyRoles.freeze.trim(),
-      clawback: modifyRoles.clawback.trim(),
-    };
-    // Compared with the node's current addresses, not the ones shown when the page loaded.
-    const check = checkConfigChange(fresh.roles, next, isValidAddress);
-    if (!isConfigChangeAllowed(check)) {
-      ensure(
-        check.invalid.length
-          ? "invalid_address"
-          : check.restored.length
-            ? "role_restore"
-            : check.allCleared
-              ? "all_cleared"
-              : "no_change",
-      );
-    }
-    if (check.cleared.length && !modifyConfirmClear.value)
-      ensure("confirm_clear");
-    return buildAssetConfigTxn({
-      sender: from,
-      assetId: fresh.assetId,
-      roles: next,
-      suggestedParams,
-    });
-  });
+const submitModify = () => {
+  const next: AssetRoles = {
+    manager: modifyRoles.manager.trim(),
+    reserve: modifyRoles.reserve.trim(),
+    freeze: modifyRoles.freeze.trim(),
+    clawback: modifyRoles.clawback.trim(),
+  };
+  return execute(
+    () => ({ roles: next }),
+    async (from, fresh, suggestedParams) => {
+      // The form started from the addresses shown when the page loaded. A role that changed on
+      // the chain since then would be sent back with its old address, so start over instead.
+      const loaded = asset.value?.roles;
+      if (
+        !loaded ||
+        ASSET_ROLES.some((role) => loaded[role] !== fresh.roles[role])
+      ) {
+        asset.value = fresh;
+        throw new Error(t("asset_manage.role_changed"));
+      }
+      // Compared with the node's current addresses.
+      const check = checkConfigChange(fresh.roles, next, isValidAddress);
+      if (!isConfigChangeAllowed(check)) {
+        ensure(
+          check.invalid.length
+            ? "invalid_address"
+            : check.restored.length
+              ? "role_restore"
+              : check.allCleared
+                ? "all_cleared"
+                : "no_change",
+        );
+      }
+      if (check.cleared.length && !modifyConfirmClear.value)
+        ensure("confirm_clear");
+      return buildAssetConfigTxn({
+        sender: from,
+        assetId: fresh.assetId,
+        roles: next,
+        suggestedParams,
+      });
+    },
+  );
+};
 
 const submitDestroy = () =>
-  execute(async (from, fresh, suggestedParams) => {
-    const current = await strictHolding(fresh.creator);
-    creatorHolding.value = current;
-    ensure(checkDestroy({ total: fresh.total, creatorHolding: current }));
-    if (!destroyConfirm.value) ensure("confirm_destroy");
-    return buildAssetDestroyTxn({
-      sender: from,
-      assetId: fresh.assetId,
-      suggestedParams,
-    });
-  });
+  execute(
+    () => ({}),
+    async (from, fresh, suggestedParams) => {
+      const current = await strictHolding(fresh.creator);
+      creatorHolding.value = current;
+      ensure(checkDestroy({ total: fresh.total, creatorHolding: current }));
+      if (!destroyConfirm.value) ensure("confirm_destroy");
+      return buildAssetDestroyTxn({
+        sender: from,
+        assetId: fresh.assetId,
+        suggestedParams,
+      });
+    },
+  );
 </script>

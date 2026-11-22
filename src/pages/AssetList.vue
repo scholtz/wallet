@@ -12,7 +12,7 @@
         <RouterLink to="/asset/create">
           <Button severity="secondary">
             <i class="pi pi-plus mr-2" />
-            {{ t("navbar.asset_create") }}
+            {{ t("asset_manage.create_asset") }}
           </Button>
         </RouterLink>
       </div>
@@ -137,7 +137,10 @@ const rows = computed((): Row[] => {
   const accounts = store.state.wallet.privateAccounts;
   const nameOf = (addr: string) =>
     accounts.find((a) => a.addr === addr)?.name || addr;
-  const own = new Set(accounts.map((a) => a.addr));
+  // Only accounts the wallet can sign for count as holding a role (not watch-only ones).
+  const own = new Set(
+    accounts.filter((a) => a.sk || a.params || a.type).map((a) => a.addr),
+  );
   return created.value.map((asset) => ({
     key: asset.assetId.toString(),
     asset,

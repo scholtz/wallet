@@ -732,6 +732,7 @@
     "hub_title": "Asset manager",
     "hub_help": "Manage the Algorand Standard Assets (ASA) your accounts created: freeze and clawback, change the addresses or destroy the asset. To manage an asset created elsewhere for which one of your accounts holds a role, open it by its ID.",
     "manage_by_id": "Manage an asset by its ID",
+    "create_asset": "Create asset (ASA / NFT)",
     "open": "Open",
     "created_assets": "Assets created by your accounts",
     "created_assets_failed": "Some of your accounts could not be checked for created assets. You can still open an asset by its ID.",

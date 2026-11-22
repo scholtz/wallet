@@ -732,6 +732,7 @@
     "hub_title": "Gestor de activos",
     "hub_help": "Gestione los Algorand Standard Assets (ASA) que crearon sus cuentas: congelar y recuperar (clawback), cambiar las direcciones o destruir el activo. Para gestionar un activo creado en otro lugar en el que una de sus cuentas tiene un rol, ábralo por su ID.",
     "manage_by_id": "Gestionar un activo por su ID",
+    "create_asset": "Crear activo (ASA / NFT)",
     "open": "Abrir",
     "created_assets": "Activos creados por sus cuentas",
     "created_assets_failed": "No se pudieron comprobar los activos creados de algunas de sus cuentas. Aún puede abrir un activo por su ID.",

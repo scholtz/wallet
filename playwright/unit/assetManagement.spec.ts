@@ -466,4 +466,75 @@ test.describe("transactions", () => {
       }),
     ).toThrow(/fee/);
   });
+
+  test("the transaction must carry what the user chose", () => {
+    const freezeTxn = buildAssetFreezeTxn({
+      sender: freeze,
+      assetId,
+      target: holder,
+      frozen: true,
+      suggestedParams,
+    });
+    const base = { sender: freeze, assetId, action: "freeze" as const };
+    expect(() =>
+      assertAssetManagementTxnSafe(freezeTxn, {
+        ...base,
+        freeze: { target: holder, frozen: true },
+      }),
+    ).not.toThrow();
+    expect(() =>
+      assertAssetManagementTxnSafe(freezeTxn, {
+        ...base,
+        freeze: { target: addr(), frozen: true },
+      }),
+    ).toThrow(/requested/);
+    expect(() =>
+      assertAssetManagementTxnSafe(freezeTxn, {
+        ...base,
+        freeze: { target: holder, frozen: false },
+      }),
+    ).toThrow(/requested/);
+
+    const clawTxn = buildAssetClawbackTxn({
+      sender: clawback,
+      assetId,
+      target: holder,
+      receiver: reserve,
+      amount: 5n,
+      suggestedParams,
+    });
+    const claw = { sender: clawback, assetId, action: "clawback" as const };
+    expect(() =>
+      assertAssetManagementTxnSafe(clawTxn, {
+        ...claw,
+        clawback: { target: holder, receiver: reserve, amount: 5n },
+      }),
+    ).not.toThrow();
+    for (const wrong of [
+      { target: addr(), receiver: reserve, amount: 5n },
+      { target: holder, receiver: addr(), amount: 5n },
+      { target: holder, receiver: reserve, amount: 6n },
+    ]) {
+      expect(() =>
+        assertAssetManagementTxnSafe(clawTxn, { ...claw, clawback: wrong }),
+      ).toThrow(/requested/);
+    }
+
+    const cfg = buildAssetConfigTxn({
+      sender: manager,
+      assetId,
+      roles,
+      suggestedParams,
+    });
+    const modify = { sender: manager, assetId, action: "modify" as const };
+    expect(() =>
+      assertAssetManagementTxnSafe(cfg, { ...modify, roles }),
+    ).not.toThrow();
+    expect(() =>
+      assertAssetManagementTxnSafe(cfg, {
+        ...modify,
+        roles: { ...roles, freeze: addr() },
+      }),
+    ).toThrow(/requested/);
+  });
 });

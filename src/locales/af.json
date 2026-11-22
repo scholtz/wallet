@@ -732,6 +732,7 @@
     "hub_title": "Batebestuurder",
     "hub_help": "Bestuur die Algorand Standard Assets (ASA) wat jou rekeninge geskep het: vries en terugeis, verander die adresse of vernietig die bate. Om 'n bate te bestuur wat elders geskep is en waarvoor een van jou rekeninge 'n rol het, maak dit oop met sy ID.",
     "manage_by_id": "Bestuur 'n bate volgens sy ID",
+    "create_asset": "Skep bate (ASA / NFT)",
     "open": "Maak oop",
     "created_assets": "Bates geskep deur jou rekeninge",
     "created_assets_failed": "Sommige van jou rekeninge kon nie vir geskepte bates nagegaan word nie. Jy kan steeds 'n bate volgens sy ID oopmaak.",

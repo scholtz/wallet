@@ -732,6 +732,7 @@
     "hub_title": "Eszközkezelő",
     "hub_help": "Kezelje a fiókjai által létrehozott Algorand Standard Asseteket (ASA): befagyasztás és visszavonás (clawback), a címek módosítása vagy az eszköz megsemmisítése. Máshol létrehozott eszközt, amelyben valamelyik fiókja szerepet tölt be, az azonosítójával nyithat meg.",
     "manage_by_id": "Eszköz kezelése azonosító alapján",
+    "create_asset": "Eszköz létrehozása (ASA / NFT)",
     "open": "Megnyitás",
     "created_assets": "A fiókjai által létrehozott eszközök",
     "created_assets_failed": "Néhány fiókjánál nem sikerült ellenőrizni a létrehozott eszközöket. Az eszközt az azonosítója alapján így is megnyithatja.",

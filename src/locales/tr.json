@@ -732,6 +732,7 @@
     "hub_title": "Varlık yöneticisi",
     "hub_help": "Hesaplarınızın oluşturduğu Algorand Standard Asset'leri (ASA) yönetin: dondurma ve geri alma (clawback), adresleri değiştirme veya varlığı yok etme. Başka bir yerde oluşturulmuş ve hesaplarınızdan birinin rol sahibi olduğu bir varlığı yönetmek için onu kimliğiyle (ID) açın.",
     "manage_by_id": "Bir varlığı kimliğiyle yönet",
+    "create_asset": "Varlık oluştur (ASA / NFT)",
     "open": "Aç",
     "created_assets": "Hesaplarınızın oluşturduğu varlıklar",
     "created_assets_failed": "Bazı hesaplarınızın oluşturduğu varlıklar kontrol edilemedi. Yine de bir varlığı kimliğiyle açabilirsiniz.",

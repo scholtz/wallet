@@ -413,7 +413,17 @@ const addr = (value: algosdk.Address | undefined): string =>
  */
 export const assertAssetManagementTxnSafe = (
   txn: algosdk.Transaction,
-  expected: { sender: string; assetId: bigint; action: AssetAction },
+  expected: {
+    sender: string;
+    assetId: bigint;
+    action: AssetAction;
+    /** Freeze: the holder and the state the user chose. */
+    freeze?: { target: string; frozen: boolean };
+    /** Clawback: the holder, the receiver and the amount the user chose. */
+    clawback?: { target: string; receiver: string; amount: bigint };
+    /** Modify: the addresses the user chose. */
+    roles?: AssetRoles;
+  },
 ): void => {
   if (txn.sender.toString() !== expected.sender) {
     throw new Error(
@@ -434,6 +444,13 @@ export const assertAssetManagementTxnSafe = (
       ) {
         throw new Error("The transaction is not a freeze of this asset.");
       }
+      if (
+        expected.freeze &&
+        (txn.assetFreeze.freezeAccount.toString() !== expected.freeze.target ||
+          txn.assetFreeze.frozen !== expected.freeze.frozen)
+      ) {
+        throw new Error("The transaction does not freeze what was requested.");
+      }
       return;
     case "clawback":
       if (
@@ -443,6 +460,18 @@ export const assertAssetManagementTxnSafe = (
         txn.assetTransfer.closeRemainderTo
       ) {
         throw new Error("The transaction is not a clawback of this asset.");
+      }
+      if (
+        expected.clawback &&
+        (txn.assetTransfer.assetSender.toString() !==
+          expected.clawback.target ||
+          txn.assetTransfer.receiver.toString() !==
+            expected.clawback.receiver ||
+          txn.assetTransfer.amount !== expected.clawback.amount)
+      ) {
+        throw new Error(
+          "The transaction does not claw back what was requested.",
+        );
       }
       return;
     case "modify":
@@ -467,6 +496,16 @@ export const assertAssetManagementTxnSafe = (
             ? "The transaction is not a destroy of this asset."
             : "Clearing every address of an asset destroys it; use Destroy instead.",
         );
+      }
+      if (expected.roles) {
+        const actual = configTxnRoles(txn);
+        if (
+          ASSET_ROLES.some((role) => actual[role] !== expected.roles![role])
+        ) {
+          throw new Error(
+            "The transaction does not set the requested addresses.",
+          );
+        }
       }
       return;
     }

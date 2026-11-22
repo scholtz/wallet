@@ -392,7 +392,9 @@ const actions: ActionTree<AlgodState, RootState> = {
         "signer/signTransaction",
         { from: payFrom, tx: txn },
         { root: true },
-      )) as Uint8Array | Buffer;
+      )) as Uint8Array | Buffer | undefined;
+      // A cancelled or failed signature was already reported by the signer: nothing to send.
+      if (!signedTxn) return undefined;
 
       const algodClient = createAlgodClient(rootState);
       try {

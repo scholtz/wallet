@@ -732,6 +732,7 @@
     "hub_title": "Activabeheer",
     "hub_help": "Beheer de Algorand Standard Assets (ASA) die je accounts hebben aangemaakt: bevriezen en terugvorderen (clawback), de adressen wijzigen of het asset vernietigen. Om een elders aangemaakt asset te beheren waarvoor een van je accounts een rol heeft, open je het via zijn ID.",
     "manage_by_id": "Een activum beheren op basis van zijn ID",
+    "create_asset": "Asset aanmaken (ASA / NFT)",
     "open": "Openen",
     "created_assets": "Activa aangemaakt door uw accounts",
     "created_assets_failed": "Sommige van uw accounts konden niet worden gecontroleerd op aangemaakte activa. U kunt een activum nog steeds openen op basis van zijn ID.",

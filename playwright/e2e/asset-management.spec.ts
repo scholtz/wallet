@@ -605,3 +605,30 @@ test("a multisig freeze address signs on the Sign-all page and returns to asset 
     timeout: 15000,
   });
 });
+
+test("a role that changed on the chain is not overwritten by an older form", async ({
+  page,
+}) => {
+  test.setTimeout(120000);
+  const { chain, owner } = await walletOwningAsset(page);
+  const newReserve = other();
+
+  await spaNavigate(page, `/asset/modify/${ASSET_ID}`);
+  await expect(page.getByTestId("modify-reserve")).toHaveValue(owner, {
+    timeout: 15000,
+  });
+  // Another session changes the freeze address while this form is open; only the reserve is edited.
+  chain.asset.freeze = other();
+  await page.getByTestId("modify-reserve").fill(newReserve);
+  await page.getByTestId("modify-submit").click();
+
+  await expect(page.locator(".p-toast-message-error")).toContainText(
+    "addresses changed",
+  );
+  expect(chain.submitted).toBeNull();
+  // The form starts over from the chain's current addresses.
+  await expect(page.getByTestId("modify-freeze")).toHaveValue(
+    chain.asset.freeze!,
+  );
+  await expect(page.getByTestId("modify-reserve")).toHaveValue(owner);
+});
