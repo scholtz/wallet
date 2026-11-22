@@ -102,11 +102,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import MainLayout from "../layouts/Main.vue";
 import { useStore } from "@/store";
+import { useSignAllHandoff } from "@/composables/useSignAllHandoff";
 import {
   ASSET_ROLES,
   assetActionPath,
@@ -126,6 +127,7 @@ interface Row {
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
+const { signingRouteFor } = useSignAllHandoff();
 // The page the destroy action came from names the asset that is gone; the indexer may still list it.
 const destroyedId = (() => {
   const raw = route.query.destroyed;
@@ -144,28 +146,44 @@ const loading = ref(false);
 /** Names (or addresses) of the accounts whose created assets could not be listed. */
 const failedAccounts = ref<string[]>([]);
 
+/** Wallet accounts that sign for a role - decided like the manage page does. */
+const signable = ref<Set<string>>(new Set());
+
 const rows = computed((): Row[] => {
   const accounts = store.state.wallet.privateAccounts;
   const nameOf = (addr: string) =>
     accounts.find((a) => a.addr === addr)?.name || addr;
-  // Only accounts the wallet can sign for count as holding a role (not watch-only ones).
-  const own = new Set(
-    accounts
-      .filter((a) => (a.sk || a.params || a.type) && a.type !== "wc")
-      .map((a) => a.addr),
-  );
   return created.value.map((asset) => ({
     key: asset.assetId.toString(),
     asset,
     creatorName: nameOf(asset.creator),
-    roles: ASSET_ROLES.filter((role) => own.has(asset.roles[role])),
+    roles: ASSET_ROLES.filter((role) => signable.value.has(asset.roles[role])),
   }));
 });
+
+const resolveSignable = async (assets: ManagedAsset[]) => {
+  const accounts = new Set(
+    store.state.wallet.privateAccounts.map((a) => a.addr),
+  );
+  const candidates = new Set<string>();
+  for (const asset of assets) {
+    for (const role of ASSET_ROLES) {
+      if (accounts.has(asset.roles[role])) candidates.add(asset.roles[role]);
+    }
+  }
+  const found = new Set<string>();
+  await Promise.all(
+    [...candidates].map(async (addr) => {
+      if ((await signingRouteFor(addr)) !== "none") found.add(addr);
+    }),
+  );
+  signable.value = found;
+};
 
 /** Accounts asked at the same time: a public indexer rate-limits a burst of requests. */
 const CONCURRENCY = 4;
 
-onMounted(async () => {
+const loadCreated = async () => {
   loading.value = true;
   try {
     const accounts = store.state.wallet.privateAccounts;
@@ -200,8 +218,16 @@ onMounted(async () => {
     created.value = [...byId.values()].sort((a, b) =>
       a.assetId < b.assetId ? -1 : a.assetId > b.assetId ? 1 : 0,
     );
+    await resolveSignable(created.value);
   } finally {
     loading.value = false;
   }
-});
+};
+
+onMounted(loadCreated);
+// The wallet may be opened (or accounts change) while this page is shown.
+watch(
+  () => store.state.wallet.privateAccounts.map((a) => a.addr).join(","),
+  loadCreated,
+);
 </script>

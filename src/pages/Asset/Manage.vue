@@ -434,7 +434,7 @@
           </Message>
           <Message
             v-if="lastTxId"
-            severity="success"
+            :severity="lastConfirmed ? 'success' : 'warn'"
             data-testid="asset-manage-sent"
           >
             {{
@@ -564,6 +564,8 @@ const loadAsset = async (refresh = false) => {
   const request = ++loadCounter;
   const id = assetId.value;
   if (!refresh) {
+    busy.value = false;
+    lastConfirmed.value = false;
     lastTxId.value = "";
     asset.value = undefined;
     loadError.value = "";
@@ -660,6 +662,18 @@ watch(action, () => {
   lastTxId.value = "";
 });
 watch(sender, resolveSigningRoute, { immediate: true });
+// A wallet that is opened on this page, or an account that was rekeyed meanwhile, changes how
+// the role address signs.
+watch(
+  () =>
+    store.state.wallet.privateAccounts
+      .map(
+        (a) =>
+          `${a.addr}:${a.type ?? ""}:${a.data?.[store.state.config.env]?.rekeyedTo ?? ""}`,
+      )
+      .join(","),
+  resolveSigningRoute,
+);
 
 // --- freeze ------------------------------------------------------------------------------
 
@@ -920,12 +934,26 @@ const execute = async (
     });
     // A cancelled or refused signature was already reported by the signer.
     if (!txId) return;
-    lastTxId.value = txId;
-    lastConfirmed.value = false;
+    // The user may have opened another asset or action while the transaction was signed and sent.
+    const stillHere = () => assetId.value === id && action.value === act;
+    if (stillHere()) {
+      lastTxId.value = txId;
+      lastConfirmed.value = false;
+    }
     const confirmation = await store.dispatch("algod/waitForConfirmation", {
       txId,
       timeout: 4,
     });
+    if (!stillHere()) {
+      // Not this page's business any more: a toast is the only place the result can go.
+      await store.dispatch(
+        confirmation ? "toast/openSuccess" : "toast/openError",
+        confirmation
+          ? t("asset_manage.confirmed", { txId })
+          : t("asset_manage.sent", { txId }),
+      );
+      return;
+    }
     lastConfirmed.value = !!confirmation;
     // Not confirmed (timeout, or rejected after submission): nothing can have changed yet, so the
     // page neither re-reads the state nor leaves; the result says only that it was sent.
@@ -944,6 +972,7 @@ const execute = async (
       return;
     }
     await loadAsset(true);
+    await resolveSigningRoute();
     // The holder's frozen state and balances changed with the transaction.
     await refreshHoldings();
   } catch (error) {
