@@ -735,7 +735,7 @@
     "create_asset": "Eszköz létrehozása (ASA / NFT)",
     "open": "Megnyitás",
     "created_assets": "A fiókjai által létrehozott eszközök",
-    "created_assets_failed": "Néhány fiókjánál nem sikerült ellenőrizni a létrehozott eszközöket. Az eszközt az azonosítója alapján így is megnyithatja.",
+    "created_assets_failed": "Ezeknél a fiókoknál nem sikerült ellenőrizni a létrehozott eszközöket: {accounts}. Az eszközt továbbra is megnyithatja az azonosítójával.",
     "created_assets_empty": "Egyik fiókja sem hozott még létre eszközt.",
     "wallet_roles": "Ebben a tárcában birtokolt szerepkörök",
     "manage": "Kezelés",
@@ -807,7 +807,12 @@
     "problem_creator_unknown": "A létrehozó egyenlegét nem sikerült betölteni.",
     "problem_supply_outstanding": "Nem minden egység van a létrehozó fiókjában. Előbb vonja vissza vagy gyűjtse össze őket.",
     "problem_confirm_destroy": "Erősítse meg, hogy az eszköz véglegesen eltávolításra kerül.",
-    "problem_holding_failed": "A fiók egyenlegét nem sikerült betölteni a csomópontról. Próbálja újra."
+    "problem_holding_failed": "A fiók egyenlegét nem sikerült betölteni a csomópontról. Próbálja újra.",
+    "unsafe_sender": "A tranzakciót nem az eszköz ezen szerepét betöltő cím írta alá. Semmi nem lett elküldve.",
+    "unsafe_rekey": "A tranzakció átkulcsolná a fiókot (rekey). Semmi nem lett elküldve.",
+    "unsafe_fee": "A tranzakció díja szokatlanul magas. Semmi nem lett elküldve.",
+    "unsafe_type": "A tranzakció nem a kért művelet ezen az eszközön. Semmi nem lett elküldve.",
+    "unsafe_details": "A tranzakció nem azt tartalmazza, amit megadott. Semmi nem lett elküldve."
   },
   "new_account_ledger": {
     "header": "Ledger számla létrehozása",

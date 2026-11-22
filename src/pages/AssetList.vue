@@ -43,11 +43,15 @@
 
       <h2>{{ t("asset_manage.created_assets") }}</h2>
       <Message
-        v-if="loadFailed"
+        v-if="failedAccounts.length"
         severity="warn"
         data-testid="asset-hub-load-failed"
       >
-        {{ t("asset_manage.created_assets_failed") }}
+        {{
+          t("asset_manage.created_assets_failed", {
+            accounts: failedAccounts.join(", "),
+          })
+        }}
       </Message>
       <DataTable
         :value="rows"
@@ -131,7 +135,8 @@ const openById = () => {
 
 const created = ref<ManagedAsset[]>([]);
 const loading = ref(false);
-const loadFailed = ref(false);
+/** Names (or addresses) of the accounts whose created assets could not be listed. */
+const failedAccounts = ref<string[]>([]);
 
 const rows = computed((): Row[] => {
   const accounts = store.state.wallet.privateAccounts;
@@ -149,30 +154,38 @@ const rows = computed((): Row[] => {
   }));
 });
 
+/** Accounts asked at the same time: a public indexer rate-limits a burst of requests. */
+const CONCURRENCY = 4;
+
 onMounted(async () => {
   loading.value = true;
   try {
-    const addresses = [
-      ...new Set(store.state.wallet.privateAccounts.map((a) => a.addr)),
-    ];
-    const results = await Promise.allSettled(
-      addresses.map(
-        (addr) =>
-          store.dispatch("indexer/getCreatedAssets", { addr }) as Promise<
-            ManagedAsset[]
-          >,
-      ),
-    );
+    const accounts = store.state.wallet.privateAccounts;
+    const addresses = [...new Set(accounts.map((a) => a.addr))];
     const byId = new Map<string, ManagedAsset>();
-    for (const result of results) {
-      if (result.status === "rejected") {
-        console.error("Unable to list created assets", result.reason);
-        loadFailed.value = true;
-        continue;
-      }
-      for (const asset of result.value)
-        byId.set(asset.assetId.toString(), asset);
+    const failed: string[] = [];
+    for (let i = 0; i < addresses.length; i += CONCURRENCY) {
+      const batch = addresses.slice(i, i + CONCURRENCY);
+      const results = await Promise.allSettled(
+        batch.map(
+          (addr) =>
+            store.dispatch("indexer/getCreatedAssets", { addr }) as Promise<
+              ManagedAsset[]
+            >,
+        ),
+      );
+      results.forEach((result, index) => {
+        if (result.status === "rejected") {
+          console.error("Unable to list created assets", result.reason);
+          const addr = batch[index];
+          failed.push(accounts.find((a) => a.addr === addr)?.name || addr);
+          return;
+        }
+        for (const asset of result.value)
+          byId.set(asset.assetId.toString(), asset);
+      });
     }
+    failedAccounts.value = failed;
     created.value = [...byId.values()].sort((a, b) =>
       a.assetId < b.assetId ? -1 : a.assetId > b.assetId ? 1 : 0,
     );

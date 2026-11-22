@@ -735,7 +735,7 @@
     "create_asset": "Vytvořit aktivum (ASA / NFT)",
     "open": "Otevřít",
     "created_assets": "Aktiva vytvořená vašimi účty",
-    "created_assets_failed": "U některých vašich účtů nebylo možné zkontrolovat vytvořená aktiva. Aktivum můžete stále otevřít podle jeho ID.",
+    "created_assets_failed": "U těchto účtů se nepodařilo zjistit vytvořená aktiva: {accounts}. Aktivum můžete stále otevřít podle jeho ID.",
     "created_assets_empty": "Žádný z vašich účtů zatím nevytvořil aktivum.",
     "wallet_roles": "Role držené v této peněžence",
     "manage": "Spravovat",
@@ -807,7 +807,12 @@
     "problem_creator_unknown": "Zůstatek tvůrce se nepodařilo načíst.",
     "problem_supply_outstanding": "Ne všechny jednotky jsou na účtu tvůrce. Nejprve je odeberte (clawback) nebo shromážděte.",
     "problem_confirm_destroy": "Potvrďte, že aktivum bude trvale odstraněno.",
-    "problem_holding_failed": "Zůstatek účtu se nepodařilo načíst z uzlu. Zkuste to znovu."
+    "problem_holding_failed": "Zůstatek účtu se nepodařilo načíst z uzlu. Zkuste to znovu.",
+    "unsafe_sender": "Transakci nepodepsala adresa, která má tuto roli aktiva. Nic nebylo odesláno.",
+    "unsafe_rekey": "Transakce by změnila klíč účtu (rekey). Nic nebylo odesláno.",
+    "unsafe_fee": "Poplatek za transakci je neobvykle vysoký. Nic nebylo odesláno.",
+    "unsafe_type": "Transakce není požadovanou akcí s tímto aktivem. Nic nebylo odesláno.",
+    "unsafe_details": "Transakce neobsahuje to, co jste zadali. Nic nebylo odesláno."
   },
   "new_account_ledger": {
     "header": "Přidat HW ledger účet",

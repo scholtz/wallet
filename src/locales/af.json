@@ -735,7 +735,7 @@
     "create_asset": "Skep bate (ASA / NFT)",
     "open": "Maak oop",
     "created_assets": "Bates geskep deur jou rekeninge",
-    "created_assets_failed": "Sommige van jou rekeninge kon nie vir geskepte bates nagegaan word nie. Jy kan steeds 'n bate volgens sy ID oopmaak.",
+    "created_assets_failed": "Hierdie rekeninge kon nie vir geskepte bates nagegaan word nie: {accounts}. Jy kan steeds 'n bate met sy ID oopmaak.",
     "created_assets_empty": "Geen van jou rekeninge het nog 'n bate geskep nie.",
     "wallet_roles": "Rolle in hierdie beursie",
     "manage": "Bestuur",
@@ -807,7 +807,12 @@
     "problem_creator_unknown": "Die skepper se saldo kon nie gelaai word nie.",
     "problem_supply_outstanding": "Nie alle eenhede is in die skepper se rekening nie. Eis hulle eers terug of versamel hulle.",
     "problem_confirm_destroy": "Bevestig dat die bate permanent verwyder word.",
-    "problem_holding_failed": "Die rekening se besit kon nie van die nodus gelaai word nie. Probeer weer."
+    "problem_holding_failed": "Die rekening se besit kon nie van die nodus gelaai word nie. Probeer weer.",
+    "unsafe_sender": "Die transaksie is nie geteken deur die adres wat hierdie rol van die bate hou nie. Niks is gestuur nie.",
+    "unsafe_rekey": "Die transaksie sou die rekening herkey. Niks is gestuur nie.",
+    "unsafe_fee": "Die transaksiefooi is abnormaal hoog. Niks is gestuur nie.",
+    "unsafe_type": "Die transaksie is nie die gevraagde aksie op hierdie bate nie. Niks is gestuur nie.",
+    "unsafe_details": "Die transaksie bevat nie wat jy ingevoer het nie. Niks is gestuur nie."
   },
   "new_account_ledger": {
     "header": "Add Ledger account",

@@ -735,7 +735,7 @@
     "create_asset": "Vytvoriť aktívum (ASA / NFT)",
     "open": "Otvoriť",
     "created_assets": "Aktíva vytvorené vašimi účtami",
-    "created_assets_failed": "Pri niektorých vašich účtoch nebolo možné skontrolovať vytvorené aktíva. Aktívum môžete stále otvoriť podľa jeho ID.",
+    "created_assets_failed": "Pri týchto účtoch sa nepodarilo zistiť vytvorené aktíva: {accounts}. Aktívum môžete stále otvoriť podľa jeho ID.",
     "created_assets_empty": "Žiadny z vašich účtov zatiaľ nevytvoril aktívum.",
     "wallet_roles": "Roly držané v tejto peňaženke",
     "manage": "Spravovať",
@@ -807,7 +807,12 @@
     "problem_creator_unknown": "Zostatok tvorcu sa nepodarilo načítať.",
     "problem_supply_outstanding": "Nie všetky jednotky sú na účte tvorcu. Najprv ich odoberte (clawback) alebo zhromaždite.",
     "problem_confirm_destroy": "Potvrďte, že aktívum bude natrvalo odstránené.",
-    "problem_holding_failed": "Zostatok účtu sa nepodarilo načítať z uzla. Skúste to znova."
+    "problem_holding_failed": "Zostatok účtu sa nepodarilo načítať z uzla. Skúste to znova.",
+    "unsafe_sender": "Transakciu nepodpísala adresa, ktorá má túto rolu aktíva. Nič sa neodoslalo.",
+    "unsafe_rekey": "Transakcia by zmenila kľúč účtu (rekey). Nič sa neodoslalo.",
+    "unsafe_fee": "Poplatok za transakciu je nezvyčajne vysoký. Nič sa neodoslalo.",
+    "unsafe_type": "Transakcia nie je požadovanou akciou s týmto aktívom. Nič sa neodoslalo.",
+    "unsafe_details": "Transakcia neobsahuje to, čo ste zadali. Nič sa neodoslalo."
   },
   "new_account_ledger": {
     "header": "Pridať HW ledger účet",

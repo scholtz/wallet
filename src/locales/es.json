@@ -735,7 +735,7 @@
     "create_asset": "Crear activo (ASA / NFT)",
     "open": "Abrir",
     "created_assets": "Activos creados por sus cuentas",
-    "created_assets_failed": "No se pudieron comprobar los activos creados de algunas de sus cuentas. Aún puede abrir un activo por su ID.",
+    "created_assets_failed": "No se pudieron comprobar los activos creados de estas cuentas: {accounts}. Aún puede abrir un activo por su ID.",
     "created_assets_empty": "Ninguna de sus cuentas ha creado todavía un activo.",
     "wallet_roles": "Roles en este monedero",
     "manage": "Gestionar",
@@ -807,7 +807,12 @@
     "problem_creator_unknown": "No se pudo cargar el saldo del creador.",
     "problem_supply_outstanding": "No todas las unidades están en la cuenta del creador. Revóquelas o recójalas primero.",
     "problem_confirm_destroy": "Confirme que el activo se elimina permanentemente.",
-    "problem_holding_failed": "No se pudo cargar el saldo de la cuenta desde el nodo. Inténtelo de nuevo."
+    "problem_holding_failed": "No se pudo cargar el saldo de la cuenta desde el nodo. Inténtelo de nuevo.",
+    "unsafe_sender": "La transacción no está firmada por la dirección que tiene este rol del activo. No se envió nada.",
+    "unsafe_rekey": "La transacción cambiaría la clave de la cuenta (rekey). No se envió nada.",
+    "unsafe_fee": "La comisión de la transacción es anormalmente alta. No se envió nada.",
+    "unsafe_type": "La transacción no es la acción solicitada sobre este activo. No se envió nada.",
+    "unsafe_details": "La transacción no contiene lo que introdujo. No se envió nada."
   },
   "new_account_ledger": {
     "header": "Agregar cuenta Ledger",

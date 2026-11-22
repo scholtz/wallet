@@ -437,7 +437,14 @@
             severity="success"
             data-testid="asset-manage-sent"
           >
-            {{ t("asset_manage.sent", { txId: lastTxId }) }}
+            {{
+              t(
+                lastConfirmed ? "asset_manage.confirmed" : "asset_manage.sent",
+                {
+                  txId: lastTxId,
+                },
+              )
+            }}
           </Message>
         </template>
       </Card>
@@ -479,6 +486,7 @@ import {
   type AssetHolding,
   type AssetRoles,
   type ManagedAsset,
+  UnsafeTransactionError,
 } from "@/scripts/assets/management";
 
 const props = defineProps<{ action?: string; assetId?: string }>();
@@ -496,6 +504,7 @@ const loading = ref(false);
 const loadError = ref("");
 const busy = ref(false);
 const lastTxId = ref("");
+const lastConfirmed = ref(false);
 const signingRoute = ref<SigningRoute>();
 
 const sender = computed(() =>
@@ -534,36 +543,63 @@ const actionIcon = (item: AssetAction): string => {
 
 // A catch clause only ever yields an untyped value, so it has to be narrowed here.
 const errorMessage = (error: unknown): string =>
-  error instanceof Error ? error.message : String(error);
+  error instanceof UnsafeTransactionError
+    ? t(`asset_manage.unsafe_${error.code}`)
+    : error instanceof Error
+      ? error.message
+      : String(error);
 
 const isValidAddress = (addr: string): boolean => algosdk.isValidAddress(addr);
 
 // --- loading -----------------------------------------------------------------------------
 
-const loadAsset = async () => {
-  lastTxId.value = "";
-  asset.value = undefined;
-  loadError.value = "";
-  signingRoute.value = undefined;
-  if (!assetId.value) return;
-  loading.value = true;
+let loadCounter = 0;
+
+/**
+ * Loads the asset of the route. A reload after a sent transaction ("refresh") keeps the page,
+ * the form and the result in place; a load for another asset starts from a clean page. An answer
+ * for an asset the user already left is dropped.
+ */
+const loadAsset = async (refresh = false) => {
+  const request = ++loadCounter;
+  const id = assetId.value;
+  if (!refresh) {
+    lastTxId.value = "";
+    asset.value = undefined;
+    loadError.value = "";
+    signingRoute.value = undefined;
+    freezeTarget.value = "";
+    freezeHolding.value = undefined;
+    clawbackTarget.value = "";
+    clawbackReceiver.value = "";
+    clawbackAmount.value = "";
+    clawbackTargetHolding.value = undefined;
+    clawbackReceiverHolding.value = undefined;
+  }
+  if (!id) {
+    loading.value = false;
+    return;
+  }
+  if (!refresh) loading.value = true;
   try {
     const found: ManagedAsset | undefined = await store.dispatch(
       "algod/getAssetForManagement",
-      { assetId: assetId.value },
+      { assetId: id },
     );
+    if (request !== loadCounter) return;
     if (!found) {
       loadError.value = t("asset_manage.not_found");
       return;
     }
     asset.value = found;
   } catch (error) {
+    if (request !== loadCounter) return;
     console.error("Unable to load the asset", error);
     loadError.value = t("asset_manage.load_failed", {
       error: errorMessage(error),
     });
   } finally {
-    loading.value = false;
+    if (request === loadCounter) loading.value = false;
   }
 };
 
@@ -615,7 +651,6 @@ const holding = async (addr: string): Promise<LoadedHolding> => {
   }
 };
 
-watch(assetId, loadAsset, { immediate: true });
 // One instance serves every action route: a result shown for one action does not belong to the next.
 watch(action, () => {
   lastTxId.value = "";
@@ -754,17 +789,29 @@ const destroyProblem = computed(() =>
 
 // --- per-action reset when the asset or the action changes -------------------------------
 
+watch(assetId, () => loadAsset(), { immediate: true });
+
+// The address form follows the chain's addresses whenever the asset is (re)loaded, but keeps what
+// the user typed when only the action tab changes.
+watch(
+  asset,
+  (current) => {
+    if (!current) return;
+    Object.assign(modifyRoles, current.roles);
+    modifyConfirmClear.value = false;
+    if (!clawbackReceiver.value && current.roles.clawback) {
+      clawbackReceiver.value = current.roles.clawback;
+    }
+  },
+  { immediate: true },
+);
+
 watch(
   [asset, action],
   async () => {
     const current = asset.value;
     if (!current) return;
-    Object.assign(modifyRoles, current.roles);
-    modifyConfirmClear.value = false;
     destroyConfirm.value = false;
-    if (!clawbackReceiver.value && current.roles.clawback) {
-      clawbackReceiver.value = current.roles.clawback;
-    }
     creatorHolding.value = undefined;
     if (action.value === "destroy") {
       const found = await holding(current.creator);
@@ -857,28 +904,31 @@ const execute = async (
     const txId: string | undefined = await store.dispatch("algod/signAndSend", {
       txn,
       payFrom: from,
+      reportSendErrors: true,
     });
     // A cancelled or refused signature was already reported by the signer.
     if (!txId) return;
     lastTxId.value = txId;
+    lastConfirmed.value = false;
     const confirmation = await store.dispatch("algod/waitForConfirmation", {
       txId,
       timeout: 4,
     });
-    await store.dispatch(
-      "toast/openSuccess",
-      confirmation
-        ? t("asset_manage.confirmed", { txId })
-        : t("asset_manage.sent", { txId }),
-    );
+    lastConfirmed.value = !!confirmation;
     if (act === "destroy") {
+      // The page is left, so the result is told by a toast.
+      await store.dispatch(
+        "toast/openSuccess",
+        confirmation
+          ? t("asset_manage.confirmed", { txId })
+          : t("asset_manage.sent", { txId }),
+      );
       await router.push("/asset");
       return;
     }
-    await loadAsset();
+    await loadAsset(true);
     // The holder's frozen state and balances changed with the transaction.
     await refreshHoldings();
-    lastTxId.value = txId;
   } catch (error) {
     console.error("Asset management failed", error);
     await store.dispatch("toast/openError", errorMessage(error));

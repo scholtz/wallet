@@ -402,6 +402,17 @@ export const buildAssetDestroyTxn = ({
     suggestedParams,
   });
 
+/** Why the final check refused a transaction; the page maps it to a translated message. */
+export type UnsafeTransactionCode =
+  "sender" | "rekey" | "fee" | "type" | "details";
+
+export class UnsafeTransactionError extends Error {
+  constructor(public readonly code: UnsafeTransactionCode) {
+    super(`Unsafe asset management transaction: ${code}`);
+    this.name = "UnsafeTransactionError";
+  }
+}
+
 const addr = (value: algosdk.Address | undefined): string =>
   value ? value.toString() : "";
 
@@ -426,15 +437,13 @@ export const assertAssetManagementTxnSafe = (
   },
 ): void => {
   if (txn.sender.toString() !== expected.sender) {
-    throw new Error(
-      "The transaction is not signed by the asset's role address.",
-    );
+    throw new UnsafeTransactionError("sender");
   }
   if (txn.rekeyTo) {
-    throw new Error("The transaction would rekey the account.");
+    throw new UnsafeTransactionError("rekey");
   }
   if (txn.fee > MAX_AUTO_FEE_MICROALGOS) {
-    throw new Error("The transaction fee is abnormally high.");
+    throw new UnsafeTransactionError("fee");
   }
   switch (expected.action) {
     case "freeze":
@@ -442,14 +451,14 @@ export const assertAssetManagementTxnSafe = (
         txn.type !== algosdk.TransactionType.afrz ||
         txn.assetFreeze?.assetIndex !== expected.assetId
       ) {
-        throw new Error("The transaction is not a freeze of this asset.");
+        throw new UnsafeTransactionError("type");
       }
       if (
         expected.freeze &&
         (txn.assetFreeze.freezeAccount.toString() !== expected.freeze.target ||
           txn.assetFreeze.frozen !== expected.freeze.frozen)
       ) {
-        throw new Error("The transaction does not freeze what was requested.");
+        throw new UnsafeTransactionError("details");
       }
       return;
     case "clawback":
@@ -459,7 +468,7 @@ export const assertAssetManagementTxnSafe = (
         !txn.assetTransfer.assetSender ||
         txn.assetTransfer.closeRemainderTo
       ) {
-        throw new Error("The transaction is not a clawback of this asset.");
+        throw new UnsafeTransactionError("type");
       }
       if (
         expected.clawback &&
@@ -469,9 +478,7 @@ export const assertAssetManagementTxnSafe = (
             expected.clawback.receiver ||
           txn.assetTransfer.amount !== expected.clawback.amount)
       ) {
-        throw new Error(
-          "The transaction does not claw back what was requested.",
-        );
+        throw new UnsafeTransactionError("details");
       }
       return;
     case "modify":
@@ -481,9 +488,7 @@ export const assertAssetManagementTxnSafe = (
         txn.type !== algosdk.TransactionType.acfg ||
         config?.assetIndex !== expected.assetId
       ) {
-        throw new Error(
-          "The transaction is not a configuration of this asset.",
-        );
+        throw new UnsafeTransactionError("type");
       }
       const isDestroy =
         !addr(config.manager) &&
@@ -491,20 +496,14 @@ export const assertAssetManagementTxnSafe = (
         !addr(config.freeze) &&
         !addr(config.clawback);
       if ((expected.action === "destroy") !== isDestroy) {
-        throw new Error(
-          expected.action === "destroy"
-            ? "The transaction is not a destroy of this asset."
-            : "Clearing every address of an asset destroys it; use Destroy instead.",
-        );
+        throw new UnsafeTransactionError("type");
       }
       if (expected.roles) {
         const actual = configTxnRoles(txn);
         if (
           ASSET_ROLES.some((role) => actual[role] !== expected.roles![role])
         ) {
-          throw new Error(
-            "The transaction does not set the requested addresses.",
-          );
+          throw new UnsafeTransactionError("details");
         }
       }
       return;

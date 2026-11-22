@@ -362,7 +362,16 @@ const actions: ActionTree<AlgodState, RootState> = {
   },
   async signAndSend(
     { dispatch, rootState },
-    { txn, payFrom }: { txn: algosdk.Transaction; payFrom: PaymentAccount },
+    {
+      txn,
+      payFrom,
+      reportSendErrors = false,
+    }: {
+      txn: algosdk.Transaction;
+      payFrom: PaymentAccount;
+      /** Also toast a failed broadcast that has no message from the node (network error, timeout). */
+      reportSendErrors?: boolean;
+    },
   ) {
     try {
 
@@ -406,14 +415,16 @@ const actions: ActionTree<AlgodState, RootState> = {
             response?: { body?: { message?: string } };
           }
         )?.response?.body?.message;
-        // The node's own reason when it gave one; otherwise (network error, timeout, CORS) still
-        // tell the user that nothing was sent - callers rely on this action to report it.
-        dispatch(
-          "toast/openError",
-          responseMessage ??
-            `The transaction could not be sent to the network: ${error instanceof Error ? error.message : String(error)}`,
-          { root: true },
-        );
+        if (responseMessage) {
+          dispatch("toast/openError", responseMessage, { root: true });
+        } else if (reportSendErrors) {
+          // Callers that report nothing themselves (single actions) opt in; bulk tools list per row.
+          dispatch(
+            "toast/openError",
+            error instanceof Error ? error.message : String(error),
+            { root: true },
+          );
+        }
         console.error("Failed to submit transaction", error);
         return undefined;
       }

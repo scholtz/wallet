@@ -735,7 +735,7 @@
     "create_asset": "Create asset (ASA / NFT)",
     "open": "Open",
     "created_assets": "Assets created by your accounts",
-    "created_assets_failed": "Some of your accounts could not be checked for created assets. You can still open an asset by its ID.",
+    "created_assets_failed": "These accounts could not be checked for created assets: {accounts}. You can still open an asset by its ID.",
     "created_assets_empty": "None of your accounts created an asset yet.",
     "wallet_roles": "Roles held in this wallet",
     "manage": "Manage",
@@ -807,7 +807,12 @@
     "problem_creator_unknown": "The creator's balance could not be loaded.",
     "problem_supply_outstanding": "Not all units are in the creator's account. Claw back or collect them first.",
     "problem_confirm_destroy": "Confirm that the asset is removed permanently.",
-    "problem_holding_failed": "The account's holding could not be loaded from the node. Try again."
+    "problem_holding_failed": "The account's holding could not be loaded from the node. Try again.",
+    "unsafe_sender": "The transaction is not signed by the address that holds this role of the asset. Nothing was sent.",
+    "unsafe_rekey": "The transaction would rekey the account. Nothing was sent.",
+    "unsafe_fee": "The transaction fee is abnormally high. Nothing was sent.",
+    "unsafe_type": "The transaction is not the requested action on this asset. Nothing was sent.",
+    "unsafe_details": "The transaction does not contain what you entered. Nothing was sent."
   },
   "new_account_ledger": {
     "header": "Add Ledger account",

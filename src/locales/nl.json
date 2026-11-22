@@ -735,7 +735,7 @@
     "create_asset": "Asset aanmaken (ASA / NFT)",
     "open": "Openen",
     "created_assets": "Activa aangemaakt door uw accounts",
-    "created_assets_failed": "Sommige van uw accounts konden niet worden gecontroleerd op aangemaakte activa. U kunt een activum nog steeds openen op basis van zijn ID.",
+    "created_assets_failed": "Voor deze accounts konden de aangemaakte assets niet worden gecontroleerd: {accounts}. Je kunt een asset nog steeds openen via zijn ID.",
     "created_assets_empty": "Geen van uw accounts heeft nog een activum aangemaakt.",
     "wallet_roles": "Rollen in deze wallet",
     "manage": "Beheren",
@@ -807,7 +807,12 @@
     "problem_creator_unknown": "Het saldo van de maker kon niet worden geladen.",
     "problem_supply_outstanding": "Niet alle eenheden staan in het account van de maker. Vorder ze eerst terug of verzamel ze.",
     "problem_confirm_destroy": "Bevestig dat het activum permanent wordt verwijderd.",
-    "problem_holding_failed": "Het tegoed van het account kon niet van de node worden geladen. Probeer het opnieuw."
+    "problem_holding_failed": "Het tegoed van het account kon niet van de node worden geladen. Probeer het opnieuw.",
+    "unsafe_sender": "De transactie is niet ondertekend door het adres dat deze rol van het asset heeft. Er is niets verzonden.",
+    "unsafe_rekey": "De transactie zou de sleutel van het account wijzigen (rekey). Er is niets verzonden.",
+    "unsafe_fee": "De transactiekosten zijn abnormaal hoog. Er is niets verzonden.",
+    "unsafe_type": "De transactie is niet de gevraagde actie op dit asset. Er is niets verzonden.",
+    "unsafe_details": "De transactie bevat niet wat je hebt ingevoerd. Er is niets verzonden."
   },
   "new_account_ledger": {
     "header": "Add Ledger account",

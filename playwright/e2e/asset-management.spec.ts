@@ -313,6 +313,12 @@ test("freezes a holder in place, refusing an account that is not opted in", asyn
   expect(stxn.txn.assetFreeze?.frozen).toBe(true);
   expect(stxn.sig).toBeDefined();
 
+  // One signal for the result, and it says the transaction was confirmed.
+  await expect(page.getByTestId("asset-manage-sent")).toContainText(
+    "confirmed",
+  );
+  await expect(page.locator(".p-toast-message-success")).toHaveCount(0);
+
   // The page shows the holder's new state: unfreezing is offered right away.
   await expect(page.getByTestId("freeze-holder-state")).toContainText(
     "2.5 - frozen",
@@ -631,4 +637,22 @@ test("a role that changed on the chain is not overwritten by an older form", asy
     chain.asset.freeze!,
   );
   await expect(page.getByTestId("modify-reserve")).toHaveValue(owner);
+});
+
+test("what was typed in the address form survives a switch of the action tab", async ({
+  page,
+}) => {
+  test.setTimeout(120000);
+  const { owner } = await walletOwningAsset(page);
+  const newReserve = other();
+
+  await spaNavigate(page, `/asset/modify/${ASSET_ID}`);
+  await expect(page.getByTestId("modify-reserve")).toHaveValue(owner, {
+    timeout: 15000,
+  });
+  await page.getByTestId("modify-reserve").fill(newReserve);
+  await page.getByTestId("asset-manage-action-freeze").click();
+  await expect(page.getByTestId("freeze-target")).toBeVisible();
+  await page.getByTestId("asset-manage-action-modify").click();
+  await expect(page.getByTestId("modify-reserve")).toHaveValue(newReserve);
 });

@@ -21,6 +21,7 @@ import {
   parseAssetId,
   rolesHeldBy,
   toManagedAsset,
+  UnsafeTransactionError,
   type AssetRoles,
 } from "../../src/scripts/assets/management";
 
@@ -450,7 +451,7 @@ test.describe("transactions", () => {
         assetId,
         action: "freeze",
       }),
-    ).toThrow(/rekey/);
+    ).toThrow(UnsafeTransactionError);
     const expensive = buildAssetFreezeTxn({
       sender: freeze,
       assetId,
@@ -464,7 +465,7 @@ test.describe("transactions", () => {
         assetId,
         action: "freeze",
       }),
-    ).toThrow(/fee/);
+    ).toThrow(UnsafeTransactionError);
   });
 
   test("the transaction must carry what the user chose", () => {
@@ -487,13 +488,13 @@ test.describe("transactions", () => {
         ...base,
         freeze: { target: addr(), frozen: true },
       }),
-    ).toThrow(/requested/);
+    ).toThrow(UnsafeTransactionError);
     expect(() =>
       assertAssetManagementTxnSafe(freezeTxn, {
         ...base,
         freeze: { target: holder, frozen: false },
       }),
-    ).toThrow(/requested/);
+    ).toThrow(UnsafeTransactionError);
 
     const clawTxn = buildAssetClawbackTxn({
       sender: clawback,
@@ -517,7 +518,7 @@ test.describe("transactions", () => {
     ]) {
       expect(() =>
         assertAssetManagementTxnSafe(clawTxn, { ...claw, clawback: wrong }),
-      ).toThrow(/requested/);
+      ).toThrow(UnsafeTransactionError);
     }
 
     const cfg = buildAssetConfigTxn({
@@ -535,6 +536,6 @@ test.describe("transactions", () => {
         ...modify,
         roles: { ...roles, freeze: addr() },
       }),
-    ).toThrow(/requested/);
+    ).toThrow(UnsafeTransactionError);
   });
 });
