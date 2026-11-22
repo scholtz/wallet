@@ -129,15 +129,16 @@ export const assetActionPath = (
 };
 
 /** Reads the route's action parameter; anything unknown means the overview. */
-export const parseAssetAction = (value: unknown): AssetAction | undefined =>
-  typeof value === "string" &&
-  (ASSET_ACTIONS as readonly string[]).includes(value)
+export const parseAssetAction = (
+  value: string | undefined,
+): AssetAction | undefined =>
+  value !== undefined && (ASSET_ACTIONS as readonly string[]).includes(value)
     ? (value as AssetAction)
     : undefined;
 
 /** Reads a route's asset id; only positive integers are asset ids. */
-export const parseAssetId = (value: unknown): bigint | undefined => {
-  if (typeof value !== "string" || !/^[0-9]{1,20}$/.test(value)) {
+export const parseAssetId = (value: string | undefined): bigint | undefined => {
+  if (value === undefined || !/^[0-9]{1,20}$/.test(value)) {
     return undefined;
   }
   const id = BigInt(value);
@@ -415,7 +416,9 @@ export const assertAssetManagementTxnSafe = (
   expected: { sender: string; assetId: bigint; action: AssetAction },
 ): void => {
   if (txn.sender.toString() !== expected.sender) {
-    throw new Error("The transaction is not signed by the asset's role address.");
+    throw new Error(
+      "The transaction is not signed by the asset's role address.",
+    );
   }
   if (txn.rekeyTo) {
     throw new Error("The transaction would rekey the account.");
@@ -449,7 +452,9 @@ export const assertAssetManagementTxnSafe = (
         txn.type !== algosdk.TransactionType.acfg ||
         config?.assetIndex !== expected.assetId
       ) {
-        throw new Error("The transaction is not a configuration of this asset.");
+        throw new Error(
+          "The transaction is not a configuration of this asset.",
+        );
       }
       const isDestroy =
         !addr(config.manager) &&

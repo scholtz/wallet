@@ -730,7 +730,7 @@
   "asset_manage": {
     "title": "Spravovat aktivum",
     "hub_title": "Správce aktiv",
-    "hub_help": "Spravujte Algorand Standard Assets (ASA), která vaše účty vytvořily nebo pro která mají roli: zmrazení a clawback, změna adres nebo zrušení aktiva.",
+    "hub_help": "Spravujte Algorand Standard Assets (ASA), které vytvořily vaše účty: zmrazení a clawback, změna adres nebo zničení aktiva. Aktivum vytvořené jinde, pro které má některý z vašich účtů roli, otevřete podle jeho ID.",
     "manage_by_id": "Spravovat aktivum podle ID",
     "open": "Otevřít",
     "created_assets": "Aktiva vytvořená vašimi účty",
@@ -805,7 +805,8 @@
     "problem_confirm_clear": "Potvrďte, že vymazané adresy již nikdy nelze znovu nastavit.",
     "problem_creator_unknown": "Zůstatek tvůrce se nepodařilo načíst.",
     "problem_supply_outstanding": "Ne všechny jednotky jsou na účtu tvůrce. Nejprve je odeberte (clawback) nebo shromážděte.",
-    "problem_confirm_destroy": "Potvrďte, že aktivum bude trvale odstraněno."
+    "problem_confirm_destroy": "Potvrďte, že aktivum bude trvale odstraněno.",
+    "problem_holding_failed": "Zůstatek účtu se nepodařilo načíst z uzlu. Zkuste to znovu."
   },
   "new_account_ledger": {
     "header": "Přidat HW ledger účet",

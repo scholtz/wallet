@@ -730,7 +730,7 @@
   "asset_manage": {
     "title": "Manage asset",
     "hub_title": "Asset manager",
-    "hub_help": "Manage the Algorand Standard Assets (ASA) your accounts created or hold a role for: freeze and clawback, change the addresses or destroy the asset.",
+    "hub_help": "Manage the Algorand Standard Assets (ASA) your accounts created: freeze and clawback, change the addresses or destroy the asset. To manage an asset created elsewhere for which one of your accounts holds a role, open it by its ID.",
     "manage_by_id": "Manage an asset by its ID",
     "open": "Open",
     "created_assets": "Assets created by your accounts",
@@ -805,7 +805,8 @@
     "problem_confirm_clear": "Confirm that the cleared addresses can never be set again.",
     "problem_creator_unknown": "The creator's balance could not be loaded.",
     "problem_supply_outstanding": "Not all units are in the creator's account. Claw back or collect them first.",
-    "problem_confirm_destroy": "Confirm that the asset is removed permanently."
+    "problem_confirm_destroy": "Confirm that the asset is removed permanently.",
+    "problem_holding_failed": "The account's holding could not be loaded from the node. Try again."
   },
   "new_account_ledger": {
     "header": "Add Ledger account",

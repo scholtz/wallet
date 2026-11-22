@@ -730,7 +730,7 @@
   "asset_manage": {
     "title": "Bestuur bate",
     "hub_title": "Batebestuurder",
-    "hub_help": "Bestuur die Algorand Standard Assets (ASA) wat jou rekeninge geskep het of waarvoor hulle 'n rol hou: vries en terugeis, verander die adresse of vernietig die bate.",
+    "hub_help": "Bestuur die Algorand Standard Assets (ASA) wat jou rekeninge geskep het: vries en terugeis, verander die adresse of vernietig die bate. Om 'n bate te bestuur wat elders geskep is en waarvoor een van jou rekeninge 'n rol het, maak dit oop met sy ID.",
     "manage_by_id": "Bestuur 'n bate volgens sy ID",
     "open": "Maak oop",
     "created_assets": "Bates geskep deur jou rekeninge",
@@ -805,7 +805,8 @@
     "problem_confirm_clear": "Bevestig dat skoongemaakte adresse nooit weer gestel kan word nie.",
     "problem_creator_unknown": "Die skepper se saldo kon nie gelaai word nie.",
     "problem_supply_outstanding": "Nie alle eenhede is in die skepper se rekening nie. Eis hulle eers terug of versamel hulle.",
-    "problem_confirm_destroy": "Bevestig dat die bate permanent verwyder word."
+    "problem_confirm_destroy": "Bevestig dat die bate permanent verwyder word.",
+    "problem_holding_failed": "Die rekening se besit kon nie van die nodus gelaai word nie. Probeer weer."
   },
   "new_account_ledger": {
     "header": "Add Ledger account",

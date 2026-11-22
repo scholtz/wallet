@@ -730,7 +730,7 @@
   "asset_manage": {
     "title": "Varlığı yönet",
     "hub_title": "Varlık yöneticisi",
-    "hub_help": "Hesaplarınızın oluşturduğu veya bir role sahip olduğu Algorand Standart Varlıklarını (ASA) yönetin: dondurma ve clawback, adresleri değiştirme veya varlığı yok etme.",
+    "hub_help": "Hesaplarınızın oluşturduğu Algorand Standard Asset'leri (ASA) yönetin: dondurma ve geri alma (clawback), adresleri değiştirme veya varlığı yok etme. Başka bir yerde oluşturulmuş ve hesaplarınızdan birinin rol sahibi olduğu bir varlığı yönetmek için onu kimliğiyle (ID) açın.",
     "manage_by_id": "Bir varlığı kimliğiyle yönet",
     "open": "Aç",
     "created_assets": "Hesaplarınızın oluşturduğu varlıklar",
@@ -805,7 +805,8 @@
     "problem_confirm_clear": "Temizlenen adreslerin bir daha asla ayarlanamayacağını onaylayın.",
     "problem_creator_unknown": "Yaratıcının bakiyesi yüklenemedi.",
     "problem_supply_outstanding": "Tüm birimler yaratıcının hesabında değil. Önce bunları geri alın veya toplayın.",
-    "problem_confirm_destroy": "Varlığın kalıcı olarak kaldırılacağını onaylayın."
+    "problem_confirm_destroy": "Varlığın kalıcı olarak kaldırılacağını onaylayın.",
+    "problem_holding_failed": "Hesabın bakiyesi düğümden yüklenemedi. Tekrar deneyin."
   },
   "new_account_ledger": {
     "header": "Ledger hesabı ekle",

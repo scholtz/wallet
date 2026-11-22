@@ -55,7 +55,11 @@
               {{ t("asset_manage.default_frozen") }}
             </label>
             <div class="col-12 md:col-9">
-              {{ asset.defaultFrozen ? t("asset_manage.yes") : t("asset_manage.no") }}
+              {{
+                asset.defaultFrozen
+                  ? t("asset_manage.yes")
+                  : t("asset_manage.no")
+              }}
             </div>
           </div>
           <div class="field grid">
@@ -64,7 +68,10 @@
             </label>
             <div class="col-12 md:col-9">
               <AlgorandAddress :address="asset.creator" />
-              <span v-if="walletName(asset.creator)" class="ml-2 text-color-secondary">
+              <span
+                v-if="walletName(asset.creator)"
+                class="ml-2 text-color-secondary"
+              >
                 ({{ walletName(asset.creator) }})
               </span>
             </div>
@@ -73,7 +80,10 @@
             <label class="col-12 mb-2 md:col-3 md:mb-0 font-bold">
               {{ t(`asset_manage.role_${role}`) }}
             </label>
-            <div class="col-12 md:col-9" :data-testid="`asset-manage-role-${role}`">
+            <div
+              class="col-12 md:col-9"
+              :data-testid="`asset-manage-role-${role}`"
+            >
               <template v-if="asset.roles[role]">
                 <AlgorandAddress :address="asset.roles[role]" />
                 <span
@@ -127,7 +137,10 @@
               </label>
               <div class="col-12 md:col-9">
                 <AlgorandAddress :address="sender" />
-                <span v-if="walletName(sender)" class="ml-2 text-color-secondary">
+                <span
+                  v-if="walletName(sender)"
+                  class="ml-2 text-color-secondary"
+                >
                   ({{ walletName(sender) }})
                 </span>
               </div>
@@ -177,7 +190,9 @@
                       : t("asset_manage.state_not_frozen")
                   }}
                 </template>
-                <template v-else>{{ t("asset_manage.problem_not_opted_in") }}</template>
+                <template v-else>{{
+                  t("asset_manage.problem_not_opted_in")
+                }}</template>
               </div>
             </div>
             <div class="field grid">
@@ -217,17 +232,26 @@
                   class="w-full"
                   data-testid="clawback-target"
                 />
-                <small v-if="clawbackTargetHolding?.optedIn" data-testid="clawback-target-balance">
+                <small
+                  v-if="clawbackTargetHolding?.optedIn"
+                  data-testid="clawback-target-balance"
+                >
                   {{
                     t("asset_manage.balance", {
-                      amount: formatAssetAmount(clawbackTargetHolding.amount, asset.decimals),
+                      amount: formatAssetAmount(
+                        clawbackTargetHolding.amount,
+                        asset.decimals,
+                      ),
                     })
                   }}
                 </small>
               </div>
             </div>
             <div class="field grid">
-              <label for="clawbackReceiver" class="col-12 mb-2 md:col-3 md:mb-0">
+              <label
+                for="clawbackReceiver"
+                class="col-12 mb-2 md:col-3 md:mb-0"
+              >
                 {{ t("asset_manage.clawback_to") }}
               </label>
               <div class="col-12 md:col-9">
@@ -281,7 +305,10 @@
           <!-- Change addresses -->
           <template v-if="action === 'modify' && canAct">
             <div v-for="role in ASSET_ROLES" :key="role" class="field grid">
-              <label :for="`modify-${role}`" class="col-12 mb-2 md:col-3 md:mb-0">
+              <label
+                :for="`modify-${role}`"
+                class="col-12 mb-2 md:col-3 md:mb-0"
+              >
                 {{ t(`asset_manage.role_${role}`) }}
               </label>
               <div class="col-12 md:col-9">
@@ -305,14 +332,19 @@
             >
               {{
                 t("asset_manage.clear_warning", {
-                  roles: configCheck.cleared.map((r) => t(`asset_manage.role_${r}`)).join(", "),
+                  roles: configCheck.cleared
+                    .map((r) => t(`asset_manage.role_${r}`))
+                    .join(", "),
                 })
               }}
               <template v-if="configCheck.managerCleared">
                 {{ t("asset_manage.clear_manager_warning") }}
               </template>
             </Message>
-            <div v-if="configCheck.cleared.length && !configCheck.allCleared" class="field grid">
+            <div
+              v-if="configCheck.cleared.length && !configCheck.allCleared"
+              class="field grid"
+            >
               <label class="col-12 mb-2 md:col-3 md:mb-0"></label>
               <div class="col-12 md:col-9">
                 <Checkbox
@@ -347,7 +379,10 @@
               <label class="col-12 mb-2 md:col-3 md:mb-0">
                 {{ t("asset_manage.creator_holds") }}
               </label>
-              <div class="col-12 md:col-9" data-testid="destroy-creator-holding">
+              <div
+                class="col-12 md:col-9"
+                data-testid="destroy-creator-holding"
+              >
                 <template v-if="creatorHolding">
                   {{ formatAssetAmount(creatorHolding.amount, asset.decimals) }}
                   /
@@ -464,7 +499,9 @@ const lastTxId = ref("");
 const signingRoute = ref<SigningRoute>();
 
 const sender = computed(() =>
-  asset.value && action.value ? actionSender(asset.value, action.value) : undefined,
+  asset.value && action.value
+    ? actionSender(asset.value, action.value)
+    : undefined,
 );
 const roleLabel = computed(() =>
   action.value ? t(`asset_manage.role_${actionRole(action.value)}`) : "",
@@ -476,8 +513,10 @@ const canAct = computed(
 
 const walletName = (addr: string | undefined): string | undefined => {
   if (!addr) return undefined;
-  const account = store.state.wallet.privateAccounts.find((a) => a.addr === addr);
-  return account ? account.name || addr : undefined;
+  const account = store.state.wallet.privateAccounts.find(
+    (a) => a.addr === addr,
+  );
+  return account?.name || undefined;
 };
 
 const actionIcon = (item: AssetAction): string => {
@@ -493,6 +532,7 @@ const actionIcon = (item: AssetAction): string => {
   }
 };
 
+// A catch clause only ever yields an untyped value, so it has to be narrowed here.
 const errorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
@@ -519,7 +559,9 @@ const loadAsset = async () => {
     asset.value = found;
   } catch (error) {
     console.error("Unable to load the asset", error);
-    loadError.value = t("asset_manage.load_failed", { error: errorMessage(error) });
+    loadError.value = t("asset_manage.load_failed", {
+      error: errorMessage(error),
+    });
   } finally {
     loading.value = false;
   }
@@ -541,26 +583,43 @@ const resolveSigningRoute = async () => {
   if (sender.value === from) signingRoute.value = route;
 };
 
-const holding = async (addr: string): Promise<AssetHolding | undefined> => {
+/**
+ * A holding shown on the page: undefined = no valid address (or not loaded yet), null = the
+ * node could not be asked. A failed lookup must never read as "not opted in".
+ */
+type LoadedHolding = AssetHolding | null | undefined;
+
+/** The holding for a check that is about to be signed: errors are thrown, not hidden. */
+const strictHolding = async (
+  addr: string,
+): Promise<AssetHolding | undefined> => {
   if (!assetId.value || !isValidAddress(addr)) return undefined;
+  return store.dispatch("algod/getAssetHolding", {
+    addr,
+    assetId: assetId.value,
+  });
+};
+
+const holding = async (addr: string): Promise<LoadedHolding> => {
   try {
-    return await store.dispatch("algod/getAssetHolding", {
-      addr,
-      assetId: assetId.value,
-    });
+    return await strictHolding(addr);
   } catch (error) {
     console.error("Unable to load the holding", error);
-    return undefined;
+    return null;
   }
 };
 
 watch(assetId, loadAsset, { immediate: true });
+// One instance serves every action route: a result shown for one action does not belong to the next.
+watch(action, () => {
+  lastTxId.value = "";
+});
 watch(sender, resolveSigningRoute, { immediate: true });
 
 // --- freeze ------------------------------------------------------------------------------
 
 const freezeTarget = ref("");
-const freezeHolding = ref<AssetHolding>();
+const freezeHolding = ref<LoadedHolding>();
 const reloadFreezeHolding = async () => {
   const target = freezeTarget.value.trim();
   freezeHolding.value = undefined;
@@ -570,19 +629,21 @@ const reloadFreezeHolding = async () => {
 watch(freezeTarget, reloadFreezeHolding);
 
 const freezeProblem = (frozen: boolean) =>
-  checkFreeze({
-    targetValid: isValidAddress(freezeTarget.value.trim()),
-    holding: freezeHolding.value,
-    frozen,
-  });
+  freezeHolding.value === null
+    ? "holding_failed"
+    : checkFreeze({
+        targetValid: isValidAddress(freezeTarget.value.trim()),
+        holding: freezeHolding.value,
+        frozen,
+      });
 
 // --- clawback ----------------------------------------------------------------------------
 
 const clawbackTarget = ref("");
 const clawbackReceiver = ref("");
 const clawbackAmount = ref("");
-const clawbackTargetHolding = ref<AssetHolding>();
-const clawbackReceiverHolding = ref<AssetHolding>();
+const clawbackTargetHolding = ref<LoadedHolding>();
+const clawbackReceiverHolding = ref<LoadedHolding>();
 
 const reloadClawbackHolding = async (
   source: typeof clawbackTarget,
@@ -593,23 +654,27 @@ const reloadClawbackHolding = async (
   const found = await holding(addr);
   if (source.value.trim() === addr) into.value = found;
 };
-watch(clawbackTarget, () => reloadClawbackHolding(clawbackTarget, clawbackTargetHolding));
+watch(clawbackTarget, () =>
+  reloadClawbackHolding(clawbackTarget, clawbackTargetHolding),
+);
 watch(clawbackReceiver, () =>
   reloadClawbackHolding(clawbackReceiver, clawbackReceiverHolding),
 );
 
 const clawbackProblem = computed(() =>
-  asset.value
-    ? checkClawback({
-        target: clawbackTarget.value.trim(),
-        receiver: clawbackReceiver.value.trim(),
-        targetValid: isValidAddress(clawbackTarget.value.trim()),
-        receiverValid: isValidAddress(clawbackReceiver.value.trim()),
-        targetHolding: clawbackTargetHolding.value,
-        receiverHolding: clawbackReceiverHolding.value,
-        amount: parseAssetAmount(clawbackAmount.value, asset.value.decimals),
-      })
-    : undefined,
+  clawbackTargetHolding.value === null || clawbackReceiverHolding.value === null
+    ? "holding_failed"
+    : asset.value
+      ? checkClawback({
+          target: clawbackTarget.value.trim(),
+          receiver: clawbackReceiver.value.trim(),
+          targetValid: isValidAddress(clawbackTarget.value.trim()),
+          receiverValid: isValidAddress(clawbackReceiver.value.trim()),
+          targetHolding: clawbackTargetHolding.value,
+          receiverHolding: clawbackReceiverHolding.value,
+          amount: parseAssetAmount(clawbackAmount.value, asset.value.decimals),
+        })
+      : undefined,
 );
 
 const setClawbackMax = () => {
@@ -620,6 +685,13 @@ const setClawbackMax = () => {
     );
   }
 };
+
+const refreshHoldings = () =>
+  Promise.all([
+    reloadFreezeHolding(),
+    reloadClawbackHolding(clawbackTarget, clawbackTargetHolding),
+    reloadClawbackHolding(clawbackReceiver, clawbackReceiverHolding),
+  ]);
 
 // --- modify ------------------------------------------------------------------------------
 
@@ -651,12 +723,17 @@ const modifyProblem = computed(() => {
 
 // --- destroy -----------------------------------------------------------------------------
 
-const creatorHolding = ref<AssetHolding>();
+const creatorHolding = ref<LoadedHolding>();
 const destroyConfirm = ref(false);
 const destroyProblem = computed(() =>
-  asset.value
-    ? checkDestroy({ total: asset.value.total, creatorHolding: creatorHolding.value })
-    : "creator_unknown",
+  creatorHolding.value === null
+    ? "holding_failed"
+    : asset.value
+      ? checkDestroy({
+          total: asset.value.total,
+          creatorHolding: creatorHolding.value,
+        })
+      : "creator_unknown",
 );
 
 // --- per-action reset when the asset or the action changes -------------------------------
@@ -683,11 +760,15 @@ const currentProblem = computed((): string | undefined => {
   switch (action.value) {
     case "freeze":
       // Both buttons share the problems except "no_change", which only disables one of them.
-      return freezeTarget.value.trim() ? freezeProblem(!freezeHolding.value?.frozen) : undefined;
+      return freezeTarget.value.trim()
+        ? freezeProblem(!freezeHolding.value?.frozen)
+        : undefined;
     case "clawback":
       return clawbackTarget.value.trim() ? clawbackProblem.value : undefined;
     case "modify":
-      return modifyProblem.value === "no_change" ? undefined : modifyProblem.value;
+      return modifyProblem.value === "no_change"
+        ? undefined
+        : modifyProblem.value;
     case "destroy":
       return destroyProblem.value;
     default:
@@ -733,7 +814,11 @@ const execute = async (
       "algod/getCheckedTransactionParams",
     );
     const txn = await build(from, fresh, suggestedParams);
-    assertAssetManagementTxnSafe(txn, { sender: from, assetId: id, action: act });
+    assertAssetManagementTxnSafe(txn, {
+      sender: from,
+      assetId: id,
+      action: act,
+    });
 
     if (route === "signAll") {
       await handOffToSignAll([txn], "AssetManagement");
@@ -761,6 +846,8 @@ const execute = async (
       return;
     }
     await loadAsset();
+    // The holder's frozen state and balances changed with the transaction.
+    await refreshHoldings();
     lastTxId.value = txId;
   } catch (error) {
     console.error("Asset management failed", error);
@@ -778,9 +865,15 @@ const ensure = (problem: string | undefined) => {
 const submitFreeze = (frozen: boolean) =>
   execute(async (from, fresh, suggestedParams) => {
     const target = freezeTarget.value.trim();
-    const current = await holding(target);
+    const current = await strictHolding(target);
     freezeHolding.value = current;
-    ensure(checkFreeze({ targetValid: isValidAddress(target), holding: current, frozen }));
+    ensure(
+      checkFreeze({
+        targetValid: isValidAddress(target),
+        holding: current,
+        frozen,
+      }),
+    );
     return buildAssetFreezeTxn({
       sender: from,
       assetId: fresh.assetId,
@@ -796,8 +889,8 @@ const submitClawback = () =>
     const receiver = clawbackReceiver.value.trim();
     const amount = parseAssetAmount(clawbackAmount.value, fresh.decimals);
     const [targetHolding, receiverHolding] = await Promise.all([
-      holding(target),
-      holding(receiver),
+      strictHolding(target),
+      strictHolding(receiver),
     ]);
     clawbackTargetHolding.value = targetHolding;
     clawbackReceiverHolding.value = receiverHolding;
@@ -843,7 +936,8 @@ const submitModify = () =>
               : "no_change",
       );
     }
-    if (check.cleared.length && !modifyConfirmClear.value) ensure("confirm_clear");
+    if (check.cleared.length && !modifyConfirmClear.value)
+      ensure("confirm_clear");
     return buildAssetConfigTxn({
       sender: from,
       assetId: fresh.assetId,
@@ -854,7 +948,7 @@ const submitModify = () =>
 
 const submitDestroy = () =>
   execute(async (from, fresh, suggestedParams) => {
-    const current = await holding(fresh.creator);
+    const current = await strictHolding(fresh.creator);
     creatorHolding.value = current;
     ensure(checkDestroy({ total: fresh.total, creatorHolding: current }));
     if (!destroyConfirm.value) ensure("confirm_destroy");

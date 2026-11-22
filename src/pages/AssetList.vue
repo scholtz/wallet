@@ -42,7 +42,11 @@
       </div>
 
       <h2>{{ t("asset_manage.created_assets") }}</h2>
-      <Message v-if="loadFailed" severity="warn" data-testid="asset-hub-load-failed">
+      <Message
+        v-if="loadFailed"
+        severity="warn"
+        data-testid="asset-hub-load-failed"
+      >
         {{ t("asset_manage.created_assets_failed") }}
       </Message>
       <DataTable
@@ -54,7 +58,9 @@
       >
         <template #empty>{{ t("asset_manage.created_assets_empty") }}</template>
         <Column :header="t('asset_manage.asset_id')">
-          <template #body="{ data }">{{ data.asset.assetId.toString() }}</template>
+          <template #body="{ data }">{{
+            data.asset.assetId.toString()
+          }}</template>
         </Column>
         <Column :header="t('asset_manage.name')">
           <template #body="{ data }">
@@ -67,13 +73,20 @@
         </Column>
         <Column :header="t('asset_manage.wallet_roles')">
           <template #body="{ data }">
-            {{ data.roles.map((r: AssetRole) => t(`asset_manage.role_${r}`)).join(", ") || "-" }}
+            {{
+              data.roles
+                .map((r: AssetRole) => t(`asset_manage.role_${r}`))
+                .join(", ") || "-"
+            }}
           </template>
         </Column>
         <Column>
           <template #body="{ data }">
             <RouterLink :to="assetActionPath(data.asset.assetId)">
-              <Button size="small" :data-testid="`asset-hub-manage-${data.asset.assetId}`">
+              <Button
+                size="small"
+                :data-testid="`asset-hub-manage-${data.asset.assetId}`"
+              >
                 {{ t("asset_manage.manage") }}
               </Button>
             </RouterLink>
@@ -154,7 +167,8 @@ onMounted(async () => {
         loadFailed.value = true;
         continue;
       }
-      for (const asset of result.value) byId.set(asset.assetId.toString(), asset);
+      for (const asset of result.value)
+        byId.set(asset.assetId.toString(), asset);
     }
     created.value = [...byId.values()].sort((a, b) =>
       a.assetId < b.assetId ? -1 : a.assetId > b.assetId ? 1 : 0,

@@ -404,9 +404,14 @@ const actions: ActionTree<AlgodState, RootState> = {
             response?: { body?: { message?: string } };
           }
         )?.response?.body?.message;
-        if (responseMessage) {
-          dispatch("toast/openError", responseMessage, { root: true });
-        }
+        // The node's own reason when it gave one; otherwise (network error, timeout, CORS) still
+        // tell the user that nothing was sent - callers rely on this action to report it.
+        dispatch(
+          "toast/openError",
+          responseMessage ??
+            `The transaction could not be sent to the network: ${error instanceof Error ? error.message : String(error)}`,
+          { root: true },
+        );
         console.error("Failed to submit transaction", error);
         return undefined;
       }

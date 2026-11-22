@@ -730,7 +730,7 @@
   "asset_manage": {
     "title": "Eszköz kezelése",
     "hub_title": "Eszközkezelő",
-    "hub_help": "A fiókjai által létrehozott vagy szerepkörrel rendelkező Algorand Standard Assets (ASA) eszközök kezelése: befagyasztás és visszavonás, a címek módosítása vagy az eszköz megsemmisítése.",
+    "hub_help": "Kezelje a fiókjai által létrehozott Algorand Standard Asseteket (ASA): befagyasztás és visszavonás (clawback), a címek módosítása vagy az eszköz megsemmisítése. Máshol létrehozott eszközt, amelyben valamelyik fiókja szerepet tölt be, az azonosítójával nyithat meg.",
     "manage_by_id": "Eszköz kezelése azonosító alapján",
     "open": "Megnyitás",
     "created_assets": "A fiókjai által létrehozott eszközök",
@@ -805,7 +805,8 @@
     "problem_confirm_clear": "Erősítse meg, hogy a törölt címek soha többé nem állíthatók be.",
     "problem_creator_unknown": "A létrehozó egyenlegét nem sikerült betölteni.",
     "problem_supply_outstanding": "Nem minden egység van a létrehozó fiókjában. Előbb vonja vissza vagy gyűjtse össze őket.",
-    "problem_confirm_destroy": "Erősítse meg, hogy az eszköz véglegesen eltávolításra kerül."
+    "problem_confirm_destroy": "Erősítse meg, hogy az eszköz véglegesen eltávolításra kerül.",
+    "problem_holding_failed": "A fiók egyenlegét nem sikerült betölteni a csomópontról. Próbálja újra."
   },
   "new_account_ledger": {
     "header": "Ledger számla létrehozása",

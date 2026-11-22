@@ -730,7 +730,7 @@
   "asset_manage": {
     "title": "Activum beheren",
     "hub_title": "Activabeheer",
-    "hub_help": "Beheer de Algorand Standard Assets (ASA) die uw accounts hebben aangemaakt of waarvoor ze een rol hebben: bevriezen en terugvorderen, de adressen wijzigen of het activum vernietigen.",
+    "hub_help": "Beheer de Algorand Standard Assets (ASA) die je accounts hebben aangemaakt: bevriezen en terugvorderen (clawback), de adressen wijzigen of het asset vernietigen. Om een elders aangemaakt asset te beheren waarvoor een van je accounts een rol heeft, open je het via zijn ID.",
     "manage_by_id": "Een activum beheren op basis van zijn ID",
     "open": "Openen",
     "created_assets": "Activa aangemaakt door uw accounts",
@@ -805,7 +805,8 @@
     "problem_confirm_clear": "Bevestig dat gewiste adressen nooit meer kunnen worden ingesteld.",
     "problem_creator_unknown": "Het saldo van de maker kon niet worden geladen.",
     "problem_supply_outstanding": "Niet alle eenheden staan in het account van de maker. Vorder ze eerst terug of verzamel ze.",
-    "problem_confirm_destroy": "Bevestig dat het activum permanent wordt verwijderd."
+    "problem_confirm_destroy": "Bevestig dat het activum permanent wordt verwijderd.",
+    "problem_holding_failed": "Het tegoed van het account kon niet van de node worden geladen. Probeer het opnieuw."
   },
   "new_account_ledger": {
     "header": "Add Ledger account",

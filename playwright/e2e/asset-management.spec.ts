@@ -27,6 +27,8 @@ interface ChainState {
   asset: MockAsset;
   /** addr -> holding of ASSET_ID; absent = not opted in. */
   holdings: Record<string, { amount: number; frozen: boolean }>;
+  /** Accounts whose holding lookup fails with a node error. */
+  failingHoldings: Set<string>;
   submitted: Buffer | null;
 }
 
@@ -59,7 +61,12 @@ function submittedTxn(chain: ChainState): algosdk.SignedTransaction {
 }
 
 async function mockChain(page: Page, asset: MockAsset): Promise<ChainState> {
-  const state: ChainState = { asset, holdings: {}, submitted: null };
+  const state: ChainState = {
+    asset,
+    holdings: {},
+    failingHoldings: new Set(),
+    submitted: null,
+  };
   const assetJson = () => ({
     index: ASSET_ID,
     params: {
@@ -76,7 +83,9 @@ async function mockChain(page: Page, asset: MockAsset): Promise<ChainState> {
     },
   });
   await page.route(/\/v2\/accounts\/[A-Z2-7]{58}/, (route) => {
-    const addr = new URL(route.request().url()).pathname.split("/v2/accounts/")[1];
+    const addr = new URL(route.request().url()).pathname.split(
+      "/v2/accounts/",
+    )[1];
     return route.fulfill({
       json: {
         "current-round": 100,
@@ -102,6 +111,9 @@ async function mockChain(page: Page, asset: MockAsset): Promise<ChainState> {
     new RegExp(`/v2/accounts/([A-Z2-7]{58})/assets/${ASSET_ID}`),
     (route) => {
       const addr = new URL(route.request().url()).pathname.split("/")[3];
+      if (state.failingHoldings.has(addr)) {
+        return route.fulfill({ status: 500, json: { message: "node error" } });
+      }
       const holding = state.holdings[addr];
       if (!holding) {
         return route.fulfill({
@@ -121,15 +133,21 @@ async function mockChain(page: Page, asset: MockAsset): Promise<ChainState> {
       });
     },
   );
-  await page.route(/\/v2\/accounts\/([A-Z2-7]{58})\/created-assets/, (route) => {
-    const addr = new URL(route.request().url()).pathname.split("/")[3];
-    return route.fulfill({
-      json: {
-        "current-round": 100,
-        assets: addr === state.asset.creator ? [{ ...assetJson(), deleted: false }] : [],
-      },
-    });
-  });
+  await page.route(
+    /\/v2\/accounts\/([A-Z2-7]{58})\/created-assets/,
+    (route) => {
+      const addr = new URL(route.request().url()).pathname.split("/")[3];
+      return route.fulfill({
+        json: {
+          "current-round": 100,
+          assets:
+            addr === state.asset.creator
+              ? [{ ...assetJson(), deleted: false }]
+              : [],
+        },
+      });
+    },
+  );
   await page.route(/\/v2\/assets\/[0-9]+($|\?)/, (route) =>
     route.fulfill({ status: 404, json: { message: "asset does not exist" } }),
   );
@@ -149,10 +167,28 @@ async function mockChain(page: Page, asset: MockAsset): Promise<ChainState> {
     }),
   );
   await page.route(/\/v2\/transactions\/simulate/, (route) =>
-    route.fulfill({ status: 400, json: { message: "simulation not available" } }),
+    route.fulfill({
+      status: 400,
+      json: { message: "simulation not available" },
+    }),
   );
   await page.route(/\/v2\/transactions$/, (route) => {
     state.submitted = route.request().postDataBuffer();
+    // The ledger applies a freeze / clawback, so a page that reloads holdings sees the effect.
+    for (const raw of splitSigned(state.submitted ?? Buffer.alloc(0))) {
+      const { txn } = algosdk.decodeSignedTransaction(new Uint8Array(raw));
+      if (txn.assetFreeze) {
+        const held = state.holdings[txn.assetFreeze.freezeAccount.toString()];
+        if (held) held.frozen = txn.assetFreeze.frozen;
+      }
+      const from = txn.assetTransfer?.assetSender?.toString();
+      if (txn.assetTransfer && from) {
+        const amount = Number(txn.assetTransfer.amount);
+        const to = txn.assetTransfer.receiver.toString();
+        if (state.holdings[from]) state.holdings[from].amount -= amount;
+        if (state.holdings[to]) state.holdings[to].amount += amount;
+      }
+    }
     return route.fulfill({ json: { txId: "ASSETMGMTTXID" } });
   });
   await page.route(/\/v2\/status$/, (route) =>
@@ -177,7 +213,8 @@ async function mockChain(page: Page, asset: MockAsset): Promise<ChainState> {
           "confirmed-round": 101,
           "pool-error": "",
           txn: algosdk.msgpackRawDecode(
-            splitSigned(state.submitted ?? Buffer.alloc(0))[0] ?? Buffer.alloc(0),
+            splitSigned(state.submitted ?? Buffer.alloc(0))[0] ??
+              Buffer.alloc(0),
           ),
         }),
       ),
@@ -213,7 +250,9 @@ async function walletOwningAsset(page: Page, roles: Partial<MockAsset> = {}) {
 
 test.describe.configure({ mode: "parallel" });
 
-test("the asset manager lists the wallet's assets and opens one", async ({ page }) => {
+test("the asset manager lists the wallet's assets and opens one", async ({
+  page,
+}) => {
   test.setTimeout(120000);
   const { owner } = await walletOwningAsset(page);
   await spaNavigate(page, "/account/actions/" + owner);
@@ -221,15 +260,23 @@ test("the asset manager lists the wallet's assets and opens one", async ({ page 
   await expect(page).toHaveURL(/\/asset$/);
   await page.getByTestId(`asset-hub-manage-${ASSET_ID}`).click();
   await expect(page).toHaveURL(new RegExp(`/asset/manage/${ASSET_ID}$`));
-  await expect(page.getByTestId("asset-manage-id")).toHaveText(String(ASSET_ID));
-  await expect(page.getByTestId("asset-manage-role-freeze")).toContainText(owner.slice(0, 4));
+  await expect(page.getByTestId("asset-manage-id")).toHaveText(
+    String(ASSET_ID),
+  );
+  await expect(page.getByTestId("asset-manage-role-freeze")).toContainText(
+    owner.slice(0, 4),
+  );
 
   // An unknown asset id is reported, not shown as an empty asset.
   await spaNavigate(page, "/asset/manage/999999999");
-  await expect(page.getByTestId("asset-manage-error")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("asset-manage-error")).toBeVisible({
+    timeout: 15000,
+  });
 });
 
-test("freezes a holder in place, refusing an account that is not opted in", async ({ page }) => {
+test("freezes a holder in place, refusing an account that is not opted in", async ({
+  page,
+}) => {
   test.setTimeout(120000);
   const { chain, owner } = await walletOwningAsset(page);
   const holder = other();
@@ -237,18 +284,26 @@ test("freezes a holder in place, refusing an account that is not opted in", asyn
   chain.holdings[holder] = { amount: 250, frozen: false };
 
   await spaNavigate(page, `/asset/freeze/${ASSET_ID}`);
-  await expect(page.getByTestId("freeze-target")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("freeze-target")).toBeVisible({
+    timeout: 15000,
+  });
   await expect(page.getByTestId("asset-manage-sign-all-info")).toHaveCount(0);
 
   await page.getByTestId("freeze-target").fill(stranger);
-  await expect(page.getByTestId("asset-manage-problem")).toContainText("not opted in");
+  await expect(page.getByTestId("asset-manage-problem")).toContainText(
+    "not opted in",
+  );
   await expect(page.getByTestId("freeze-submit")).toBeDisabled();
 
   await page.getByTestId("freeze-target").fill(holder);
-  await expect(page.getByTestId("freeze-holder-state")).toContainText("2.5 - not frozen");
+  await expect(page.getByTestId("freeze-holder-state")).toContainText(
+    "2.5 - not frozen",
+  );
   await expect(page.getByTestId("unfreeze-submit")).toBeDisabled();
   await page.getByTestId("freeze-submit").click();
-  await expect(page.getByTestId("asset-manage-sent")).toBeVisible({ timeout: 30000 });
+  await expect(page.getByTestId("asset-manage-sent")).toBeVisible({
+    timeout: 30000,
+  });
 
   const stxn = submittedTxn(chain);
   expect(stxn.txn.type).toBe(algosdk.TransactionType.afrz);
@@ -257,9 +312,47 @@ test("freezes a holder in place, refusing an account that is not opted in", asyn
   expect(stxn.txn.assetFreeze?.freezeAccount.toString()).toBe(holder);
   expect(stxn.txn.assetFreeze?.frozen).toBe(true);
   expect(stxn.sig).toBeDefined();
+
+  // The page shows the holder's new state: unfreezing is offered right away.
+  await expect(page.getByTestId("freeze-holder-state")).toContainText(
+    "2.5 - frozen",
+  );
+  await expect(page.getByTestId("unfreeze-submit")).toBeEnabled();
+  await expect(page.getByTestId("freeze-submit")).toBeDisabled();
+
+  // The result belongs to this action, not to the next one opened on the same page.
+  await page.getByTestId("asset-manage-action-modify").click();
+  await expect(page.getByTestId("modify-reserve")).toBeVisible();
+  await expect(page.getByTestId("asset-manage-sent")).toHaveCount(0);
 });
 
-test("claws back units of a holder, refusing more than the holder has", async ({ page }) => {
+test("a holding the node cannot load is reported as such, not as not opted in", async ({
+  page,
+}) => {
+  test.setTimeout(120000);
+  const { chain } = await walletOwningAsset(page);
+  const holder = other();
+  chain.failingHoldings.add(holder);
+
+  await spaNavigate(page, `/asset/freeze/${ASSET_ID}`);
+  await expect(page.getByTestId("freeze-target")).toBeVisible({
+    timeout: 15000,
+  });
+  await page.getByTestId("freeze-target").fill(holder);
+  await expect(page.getByTestId("asset-manage-problem")).toContainText(
+    "could not be loaded",
+  );
+  await expect(page.getByTestId("asset-manage-problem")).not.toContainText(
+    "not opted in",
+  );
+  await expect(page.getByTestId("freeze-submit")).toBeDisabled();
+  await expect(page.getByTestId("unfreeze-submit")).toBeDisabled();
+  expect(chain.submitted).toBeNull();
+});
+
+test("claws back units of a holder, refusing more than the holder has", async ({
+  page,
+}) => {
   test.setTimeout(120000);
   const { chain, owner } = await walletOwningAsset(page);
   const holder = other();
@@ -267,11 +360,17 @@ test("claws back units of a holder, refusing more than the holder has", async ({
   chain.holdings[owner] = { amount: 750, frozen: false };
 
   await spaNavigate(page, `/asset/revoke/${ASSET_ID}`);
-  await expect(page.getByTestId("clawback-receiver")).toHaveValue(owner, { timeout: 15000 });
+  await expect(page.getByTestId("clawback-receiver")).toHaveValue(owner, {
+    timeout: 15000,
+  });
   await page.getByTestId("clawback-target").fill(holder);
-  await expect(page.getByTestId("clawback-target-balance")).toContainText("2.5");
+  await expect(page.getByTestId("clawback-target-balance")).toContainText(
+    "2.5",
+  );
   await page.getByTestId("clawback-amount").fill("3");
-  await expect(page.getByTestId("asset-manage-problem")).toContainText("does not have");
+  await expect(page.getByTestId("asset-manage-problem")).toContainText(
+    "does not have",
+  );
   await expect(page.getByTestId("clawback-submit")).toBeDisabled();
   await page.getByTestId("clawback-amount").fill("1.255");
   await expect(page.getByTestId("clawback-submit")).toBeDisabled();
@@ -279,7 +378,9 @@ test("claws back units of a holder, refusing more than the holder has", async ({
   await page.getByTestId("clawback-max").click();
   await expect(page.getByTestId("clawback-amount")).toHaveValue("2.5");
   await page.getByTestId("clawback-submit").click();
-  await expect(page.getByTestId("asset-manage-sent")).toBeVisible({ timeout: 30000 });
+  await expect(page.getByTestId("asset-manage-sent")).toBeVisible({
+    timeout: 30000,
+  });
 
   const { txn } = submittedTxn(chain);
   expect(txn.type).toBe(algosdk.TransactionType.axfer);
@@ -287,27 +388,42 @@ test("claws back units of a holder, refusing more than the holder has", async ({
   expect(txn.assetTransfer?.assetSender?.toString()).toBe(holder);
   expect(txn.assetTransfer?.receiver.toString()).toBe(owner);
   expect(txn.assetTransfer?.amount).toBe(250n);
+
+  // The holder's balance is read again: nothing is left to claw back.
+  await expect(page.getByTestId("clawback-target-balance")).toContainText(
+    "Balance: 0",
+  );
 });
 
-test("changes the addresses, asking to confirm a cleared role", async ({ page }) => {
+test("changes the addresses, asking to confirm a cleared role", async ({
+  page,
+}) => {
   test.setTimeout(120000);
   const { chain, owner } = await walletOwningAsset(page);
   const newReserve = other();
 
   await spaNavigate(page, `/asset/modify/${ASSET_ID}`);
-  await expect(page.getByTestId("modify-reserve")).toHaveValue(owner, { timeout: 15000 });
+  await expect(page.getByTestId("modify-reserve")).toHaveValue(owner, {
+    timeout: 15000,
+  });
   await expect(page.getByTestId("modify-submit")).toBeDisabled();
 
   await page.getByTestId("modify-reserve").fill("NOT-AN-ADDRESS");
-  await expect(page.getByTestId("asset-manage-problem")).toContainText("not a valid");
+  await expect(page.getByTestId("asset-manage-problem")).toContainText(
+    "not a valid",
+  );
   await page.getByTestId("modify-reserve").fill(newReserve);
   await page.getByTestId("modify-clawback").fill("");
-  await expect(page.getByTestId("modify-cleared-warning")).toContainText("Clawback address");
+  await expect(page.getByTestId("modify-cleared-warning")).toContainText(
+    "Clawback address",
+  );
   await expect(page.getByTestId("modify-submit")).toBeDisabled();
   await page.locator('label[for="modifyConfirmClear"]').click();
   await expect(page.getByTestId("modify-submit")).toBeEnabled();
   await page.getByTestId("modify-submit").click();
-  await expect(page.getByTestId("asset-manage-sent")).toBeVisible({ timeout: 30000 });
+  await expect(page.getByTestId("asset-manage-sent")).toBeVisible({
+    timeout: 30000,
+  });
 
   const { txn } = submittedTxn(chain);
   expect(txn.type).toBe(algosdk.TransactionType.acfg);
@@ -319,23 +435,32 @@ test("changes the addresses, asking to confirm a cleared role", async ({ page })
   expect(txn.assetConfig?.clawback).toBeUndefined();
 });
 
-test("destroys the asset only once the creator holds the whole supply", async ({ page }) => {
+test("destroys the asset only once the creator holds the whole supply", async ({
+  page,
+}) => {
   test.setTimeout(120000);
   const { chain, owner } = await walletOwningAsset(page);
   chain.holdings[owner] = { amount: 900, frozen: false };
 
   await spaNavigate(page, `/asset/destroy/${ASSET_ID}`);
-  await expect(page.getByTestId("destroy-creator-holding")).toContainText("9 / 10", {
-    timeout: 15000,
-  });
-  await expect(page.getByTestId("asset-manage-problem")).toContainText("Not all units");
+  await expect(page.getByTestId("destroy-creator-holding")).toContainText(
+    "9 / 10",
+    {
+      timeout: 15000,
+    },
+  );
+  await expect(page.getByTestId("asset-manage-problem")).toContainText(
+    "Not all units",
+  );
   await expect(page.getByTestId("destroy-submit")).toBeDisabled();
 
   // All units are back: reopen the page (in-app) so it reads the creator's balance again.
   chain.holdings[owner] = { amount: 1000, frozen: false };
   await spaNavigate(page, `/asset/manage/${ASSET_ID}`);
   await page.getByTestId("asset-manage-action-destroy").click();
-  await expect(page.getByTestId("destroy-creator-holding")).toContainText("10 / 10");
+  await expect(page.getByTestId("destroy-creator-holding")).toContainText(
+    "10 / 10",
+  );
   await expect(page.getByTestId("destroy-submit")).toBeDisabled();
   await page.locator('label[for="destroyConfirm"]').click();
   await page.getByTestId("destroy-submit").click();
@@ -355,11 +480,15 @@ test("a role held by an address outside the wallet cannot be used, a disabled on
   await walletOwningAsset(page, { freeze: other(), clawback: undefined });
 
   await spaNavigate(page, `/asset/freeze/${ASSET_ID}`);
-  await expect(page.getByTestId("asset-manage-no-signer")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("asset-manage-no-signer")).toBeVisible({
+    timeout: 15000,
+  });
   await expect(page.getByTestId("freeze-target")).toHaveCount(0);
 
   await spaNavigate(page, `/asset/revoke/${ASSET_ID}`);
-  await expect(page.getByTestId("asset-manage-role-missing")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("asset-manage-role-missing")).toBeVisible({
+    timeout: 15000,
+  });
   await expect(page.getByTestId("clawback-target")).toHaveCount(0);
   await expect(page.getByTestId("asset-manage-action-clawback")).toBeDisabled();
 });
@@ -369,7 +498,9 @@ interface StoreHost {
     config: {
       globalProperties: {
         $store: {
-          state: { wallet: { privateAccounts: { addr: string; params?: unknown }[] } };
+          state: {
+            wallet: { privateAccounts: { addr: string; params?: object }[] };
+          };
         };
       };
     };
@@ -397,13 +528,16 @@ async function createMultisig(page: Page): Promise<string> {
   await page.locator("#threshold").fill("2");
   await page.locator("#threshold").blur();
   await page.locator("#name").fill("Multisig manager");
-  await page.getByRole("button", { name: "Create account", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Create account", exact: true })
+    .click();
   await page.waitForURL(/\/accounts/, { timeout: 15000 });
 
   const msig = await page.evaluate(() => {
     const host = document.querySelector("#app") as StoreHost | null;
     const accounts =
-      host?.__vue_app__?.config.globalProperties.$store.state.wallet.privateAccounts ?? [];
+      host?.__vue_app__?.config.globalProperties.$store.state.wallet
+        .privateAccounts ?? [];
     return String(accounts.find((a) => a.params)?.addr ?? "");
   });
   expect(msig).toMatch(/^[A-Z2-7]{58}$/);
@@ -421,7 +555,9 @@ test("a multisig freeze address signs on the Sign-all page and returns to asset 
   chain.holdings[holder] = { amount: 10, frozen: true };
 
   await spaNavigate(page, `/asset/freeze/${ASSET_ID}`);
-  await expect(page.getByTestId("asset-manage-sign-all-info")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("asset-manage-sign-all-info")).toBeVisible({
+    timeout: 15000,
+  });
   await page.getByTestId("freeze-target").fill(holder);
   await expect(page.getByTestId("freeze-holder-state")).toContainText("frozen");
   await page.getByTestId("unfreeze-submit").click();
@@ -439,7 +575,9 @@ test("a multisig freeze address signs on the Sign-all page and returns to asset 
   await signers.nth(1).click();
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Sign", exact: true }).click();
-  const back = page.getByRole("button", { name: "Return to multi tx signature" });
+  const back = page.getByRole("button", {
+    name: "Return to multi tx signature",
+  });
   await expect(back).toBeEnabled({ timeout: 15000 });
   await back.click();
   await expect(page).toHaveURL(/\/signAll/);
@@ -447,7 +585,9 @@ test("a multisig freeze address signs on the Sign-all page and returns to asset 
   const send = page.getByRole("button", { name: /Send tx to the network/ });
   await expect(send).toBeEnabled();
   await send.click();
-  await expect(page.getByText(/Transaction confirmed in round/).first()).toBeVisible({
+  await expect(
+    page.getByText(/Transaction confirmed in round/).first(),
+  ).toBeVisible({
     timeout: 30000,
   });
   const stxn = submittedTxn(chain);
@@ -461,5 +601,7 @@ test("a multisig freeze address signs on the Sign-all page and returns to asset 
   await expect(ret).toHaveText(/Return to asset management/);
   await ret.click();
   await expect(page).toHaveURL(new RegExp(`/asset/freeze/${ASSET_ID}$`));
-  await expect(page.getByTestId("freeze-target")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("freeze-target")).toBeVisible({
+    timeout: 15000,
+  });
 });

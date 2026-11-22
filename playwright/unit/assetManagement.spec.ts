@@ -62,12 +62,17 @@ test.describe("roles and routes", () => {
     expect(actionSender({ roles }, "destroy")).toBe(manager);
   });
   test("a disabled role has no sender", () => {
-    expect(actionSender({ roles: { ...roles, clawback: "" } }, "clawback")).toBeUndefined();
+    expect(
+      actionSender({ roles: { ...roles, clawback: "" } }, "clawback"),
+    ).toBeUndefined();
   });
   test("roles held by an address", () => {
     const same = addr();
     expect(
-      rolesHeldBy({ roles: { manager: same, reserve: "", freeze: same, clawback } }, same),
+      rolesHeldBy(
+        { roles: { manager: same, reserve: "", freeze: same, clawback } },
+        same,
+      ),
     ).toEqual(["manager", "freeze"]);
     expect(rolesHeldBy({ roles }, holder)).toEqual([]);
   });
@@ -76,7 +81,15 @@ test.describe("roles and routes", () => {
     expect(parseAssetAction("revoke")).toBeUndefined();
     expect(parseAssetAction(undefined)).toBeUndefined();
     expect(parseAssetId("31566704")).toBe(31566704n);
-    for (const bad of ["0", "-1", "1.5", "abc", "", "18446744073709551616", undefined]) {
+    for (const bad of [
+      "0",
+      "-1",
+      "1.5",
+      "abc",
+      "",
+      "18446744073709551616",
+      undefined,
+    ]) {
       expect(parseAssetId(bad)).toBeUndefined();
     }
     expect(assetActionPath(5n)).toBe("/asset/manage/5");
@@ -114,7 +127,18 @@ test.describe("amounts", () => {
     expect(parseAssetAmount("1.500", 1)).toBe(15n);
   });
   test("refuses what is not an exact positive amount", () => {
-    for (const bad of ["", ".", "0", "0.00", "-1", "1e3", "1,000", "1.234", "abc", "18446744073709551616"]) {
+    for (const bad of [
+      "",
+      ".",
+      "0",
+      "0.00",
+      "-1",
+      "1e3",
+      "1,000",
+      "1.234",
+      "abc",
+      "18446744073709551616",
+    ]) {
       expect(parseAssetAmount(bad, 2)).toBeUndefined();
     }
   });
@@ -128,13 +152,33 @@ test.describe("amounts", () => {
 
 test.describe("checks", () => {
   test("freeze needs a valid, opted-in holder whose state changes", () => {
-    expect(checkFreeze({ targetValid: false, holding: undefined, frozen: true })).toBe("invalid_target");
     expect(
-      checkFreeze({ targetValid: true, holding: { optedIn: false, amount: 0n, frozen: false }, frozen: true }),
+      checkFreeze({ targetValid: false, holding: undefined, frozen: true }),
+    ).toBe("invalid_target");
+    expect(
+      checkFreeze({
+        targetValid: true,
+        holding: { optedIn: false, amount: 0n, frozen: false },
+        frozen: true,
+      }),
     ).toBe("not_opted_in");
-    expect(checkFreeze({ targetValid: true, holding: optedIn(1n, true), frozen: true })).toBe("no_change");
-    expect(checkFreeze({ targetValid: true, holding: optedIn(1n, true), frozen: false })).toBeUndefined();
-    expect(checkFreeze({ targetValid: true, holding: optedIn(0n), frozen: true })).toBeUndefined();
+    expect(
+      checkFreeze({
+        targetValid: true,
+        holding: optedIn(1n, true),
+        frozen: true,
+      }),
+    ).toBe("no_change");
+    expect(
+      checkFreeze({
+        targetValid: true,
+        holding: optedIn(1n, true),
+        frozen: false,
+      }),
+    ).toBeUndefined();
+    expect(
+      checkFreeze({ targetValid: true, holding: optedIn(0n), frozen: true }),
+    ).toBeUndefined();
   });
 
   test("clawback", () => {
@@ -149,15 +193,28 @@ test.describe("checks", () => {
     };
     // A frozen holder can still be clawed back.
     expect(checkClawback(base)).toBeUndefined();
-    expect(checkClawback({ ...base, targetValid: false })).toBe("invalid_target");
-    expect(checkClawback({ ...base, receiverValid: false })).toBe("invalid_receiver");
+    expect(checkClawback({ ...base, targetValid: false })).toBe(
+      "invalid_target",
+    );
+    expect(checkClawback({ ...base, receiverValid: false })).toBe(
+      "invalid_receiver",
+    );
     expect(checkClawback({ ...base, receiver: holder })).toBe("same_account");
-    expect(checkClawback({ ...base, targetHolding: undefined })).toBe("target_not_opted_in");
+    expect(checkClawback({ ...base, targetHolding: undefined })).toBe(
+      "target_not_opted_in",
+    );
     expect(
-      checkClawback({ ...base, receiverHolding: { optedIn: false, amount: 0n, frozen: false } }),
+      checkClawback({
+        ...base,
+        receiverHolding: { optedIn: false, amount: 0n, frozen: false },
+      }),
     ).toBe("receiver_not_opted_in");
-    expect(checkClawback({ ...base, amount: undefined })).toBe("invalid_amount");
-    expect(checkClawback({ ...base, amount: 101n })).toBe("insufficient_balance");
+    expect(checkClawback({ ...base, amount: undefined })).toBe(
+      "invalid_amount",
+    );
+    expect(checkClawback({ ...base, amount: 101n })).toBe(
+      "insufficient_balance",
+    );
   });
 
   test("config change: clearing is reported, restoring and invalid addresses are refused", () => {
@@ -167,47 +224,108 @@ test.describe("checks", () => {
     expect(unchanged.changed).toBe(false);
     expect(isConfigChangeAllowed(unchanged)).toBe(false);
 
-    const moved = checkConfigChange(roles, { ...roles, manager: ` ${newManager} ` }, valid);
-    expect(moved).toMatchObject({ changed: true, cleared: [], restored: [], invalid: [] });
+    const moved = checkConfigChange(
+      roles,
+      { ...roles, manager: ` ${newManager} ` },
+      valid,
+    );
+    expect(moved).toMatchObject({
+      changed: true,
+      cleared: [],
+      restored: [],
+      invalid: [],
+    });
     expect(isConfigChangeAllowed(moved)).toBe(true);
 
-    const cleared = checkConfigChange(roles, { ...roles, clawback: "", manager: "" }, valid);
+    const cleared = checkConfigChange(
+      roles,
+      { ...roles, clawback: "", manager: "" },
+      valid,
+    );
     expect(cleared.cleared).toEqual(["manager", "clawback"]);
     expect(cleared.managerCleared).toBe(true);
     expect(isConfigChangeAllowed(cleared)).toBe(true);
 
-    const restored = checkConfigChange({ ...roles, freeze: "" }, { ...roles, freeze: holder }, valid);
+    const restored = checkConfigChange(
+      { ...roles, freeze: "" },
+      { ...roles, freeze: holder },
+      valid,
+    );
     expect(restored.restored).toEqual(["freeze"]);
     expect(isConfigChangeAllowed(restored)).toBe(false);
 
-    const invalid = checkConfigChange(roles, { ...roles, reserve: "NOT-AN-ADDRESS" }, valid);
+    const invalid = checkConfigChange(
+      roles,
+      { ...roles, reserve: "NOT-AN-ADDRESS" },
+      valid,
+    );
     expect(invalid.invalid).toEqual(["reserve"]);
     expect(isConfigChangeAllowed(invalid)).toBe(false);
 
     // An asset config without any address is a destroy.
-    const all = checkConfigChange(roles, { manager: "", reserve: "", freeze: "", clawback: "" }, valid);
+    const all = checkConfigChange(
+      roles,
+      { manager: "", reserve: "", freeze: "", clawback: "" },
+      valid,
+    );
     expect(all.allCleared).toBe(true);
     expect(isConfigChangeAllowed(all)).toBe(false);
   });
 
   test("destroy needs the whole supply in the creator's account", () => {
-    expect(checkDestroy({ total: 10n, creatorHolding: optedIn(10n) })).toBeUndefined();
-    expect(checkDestroy({ total: 10n, creatorHolding: optedIn(9n) })).toBe("supply_outstanding");
-    expect(checkDestroy({ total: 10n, creatorHolding: undefined })).toBe("creator_unknown");
+    expect(
+      checkDestroy({ total: 10n, creatorHolding: optedIn(10n) }),
+    ).toBeUndefined();
+    expect(checkDestroy({ total: 10n, creatorHolding: optedIn(9n) })).toBe(
+      "supply_outstanding",
+    );
+    expect(checkDestroy({ total: 10n, creatorHolding: undefined })).toBe(
+      "creator_unknown",
+    );
   });
 });
 
 test.describe("transactions", () => {
   test("freeze", () => {
-    const txn = buildAssetFreezeTxn({ sender: freeze, assetId, target: holder, frozen: true, suggestedParams });
+    const txn = buildAssetFreezeTxn({
+      sender: freeze,
+      assetId,
+      target: holder,
+      frozen: true,
+      suggestedParams,
+    });
     expect(txn.type).toBe(algosdk.TransactionType.afrz);
     expect(txn.sender.toString()).toBe(freeze);
     expect(txn.assetFreeze?.freezeAccount.toString()).toBe(holder);
     expect(txn.assetFreeze?.frozen).toBe(true);
-    expect(() => assertAssetManagementTxnSafe(txn, { sender: freeze, assetId, action: "freeze" })).not.toThrow();
-    expect(() => assertAssetManagementTxnSafe(txn, { sender: manager, assetId, action: "freeze" })).toThrow();
-    expect(() => assertAssetManagementTxnSafe(txn, { sender: freeze, assetId: 1n, action: "freeze" })).toThrow();
-    expect(() => assertAssetManagementTxnSafe(txn, { sender: freeze, assetId, action: "clawback" })).toThrow();
+    expect(() =>
+      assertAssetManagementTxnSafe(txn, {
+        sender: freeze,
+        assetId,
+        action: "freeze",
+      }),
+    ).not.toThrow();
+    expect(() =>
+      assertAssetManagementTxnSafe(txn, {
+        sender: manager,
+        assetId,
+        action: "freeze",
+      }),
+    ).toThrow();
+    expect(() =>
+      assertAssetManagementTxnSafe(txn, {
+        sender: freeze,
+        assetId: 1n,
+        action: "freeze",
+      }),
+    ).toThrow();
+    expect(() =>
+      assertAssetManagementTxnSafe(txn, {
+        sender: freeze,
+        assetId,
+        action: "clawback",
+      }),
+    ).toThrow();
   });
 
   test("clawback sets the revocation target", () => {
@@ -223,7 +341,13 @@ test.describe("transactions", () => {
     expect(txn.assetTransfer?.assetSender?.toString()).toBe(holder);
     expect(txn.assetTransfer?.receiver.toString()).toBe(reserve);
     expect(txn.assetTransfer?.amount).toBe(5n);
-    expect(() => assertAssetManagementTxnSafe(txn, { sender: clawback, assetId, action: "clawback" })).not.toThrow();
+    expect(() =>
+      assertAssetManagementTxnSafe(txn, {
+        sender: clawback,
+        assetId,
+        action: "clawback",
+      }),
+    ).not.toThrow();
     // A plain transfer of the clawback account's own units is no clawback.
     const plain = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
       sender: clawback,
@@ -232,7 +356,13 @@ test.describe("transactions", () => {
       amount: 5n,
       suggestedParams,
     });
-    expect(() => assertAssetManagementTxnSafe(plain, { sender: clawback, assetId, action: "clawback" })).toThrow();
+    expect(() =>
+      assertAssetManagementTxnSafe(plain, {
+        sender: clawback,
+        assetId,
+        action: "clawback",
+      }),
+    ).toThrow();
   });
 
   test("config always carries every address and can clear some of them", () => {
@@ -244,20 +374,65 @@ test.describe("transactions", () => {
       suggestedParams,
     });
     expect(txn.type).toBe(algosdk.TransactionType.acfg);
-    expect(configTxnRoles(txn)).toEqual({ manager: newManager, reserve, freeze: "", clawback });
-    expect(() => assertAssetManagementTxnSafe(txn, { sender: manager, assetId, action: "modify" })).not.toThrow();
-    expect(() => assertAssetManagementTxnSafe(txn, { sender: manager, assetId, action: "destroy" })).toThrow();
+    expect(configTxnRoles(txn)).toEqual({
+      manager: newManager,
+      reserve,
+      freeze: "",
+      clawback,
+    });
+    expect(() =>
+      assertAssetManagementTxnSafe(txn, {
+        sender: manager,
+        assetId,
+        action: "modify",
+      }),
+    ).not.toThrow();
+    expect(() =>
+      assertAssetManagementTxnSafe(txn, {
+        sender: manager,
+        assetId,
+        action: "destroy",
+      }),
+    ).toThrow();
     // The cleared address survives encoding as "absent", not as some other address.
-    const decoded = algosdk.decodeUnsignedTransaction(algosdk.encodeUnsignedTransaction(txn));
-    expect(configTxnRoles(decoded)).toEqual({ manager: newManager, reserve, freeze: "", clawback });
+    const decoded = algosdk.decodeUnsignedTransaction(
+      algosdk.encodeUnsignedTransaction(txn),
+    );
+    expect(configTxnRoles(decoded)).toEqual({
+      manager: newManager,
+      reserve,
+      freeze: "",
+      clawback,
+    });
   });
 
   test("destroy", () => {
-    const txn = buildAssetDestroyTxn({ sender: manager, assetId, suggestedParams });
+    const txn = buildAssetDestroyTxn({
+      sender: manager,
+      assetId,
+      suggestedParams,
+    });
     expect(txn.type).toBe(algosdk.TransactionType.acfg);
-    expect(configTxnRoles(txn)).toEqual({ manager: "", reserve: "", freeze: "", clawback: "" });
-    expect(() => assertAssetManagementTxnSafe(txn, { sender: manager, assetId, action: "destroy" })).not.toThrow();
-    expect(() => assertAssetManagementTxnSafe(txn, { sender: manager, assetId, action: "modify" })).toThrow();
+    expect(configTxnRoles(txn)).toEqual({
+      manager: "",
+      reserve: "",
+      freeze: "",
+      clawback: "",
+    });
+    expect(() =>
+      assertAssetManagementTxnSafe(txn, {
+        sender: manager,
+        assetId,
+        action: "destroy",
+      }),
+    ).not.toThrow();
+    expect(() =>
+      assertAssetManagementTxnSafe(txn, {
+        sender: manager,
+        assetId,
+        action: "modify",
+      }),
+    ).toThrow();
   });
 
   test("rekeys and abnormal fees are refused", () => {
@@ -269,7 +444,13 @@ test.describe("transactions", () => {
       rekeyTo: addr(),
       suggestedParams,
     });
-    expect(() => assertAssetManagementTxnSafe(rekey, { sender: freeze, assetId, action: "freeze" })).toThrow(/rekey/);
+    expect(() =>
+      assertAssetManagementTxnSafe(rekey, {
+        sender: freeze,
+        assetId,
+        action: "freeze",
+      }),
+    ).toThrow(/rekey/);
     const expensive = buildAssetFreezeTxn({
       sender: freeze,
       assetId,
@@ -277,6 +458,12 @@ test.describe("transactions", () => {
       frozen: true,
       suggestedParams: { ...suggestedParams, fee: 1_000_000n },
     });
-    expect(() => assertAssetManagementTxnSafe(expensive, { sender: freeze, assetId, action: "freeze" })).toThrow(/fee/);
+    expect(() =>
+      assertAssetManagementTxnSafe(expensive, {
+        sender: freeze,
+        assetId,
+        action: "freeze",
+      }),
+    ).toThrow(/fee/);
   });
 });

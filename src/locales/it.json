@@ -730,7 +730,7 @@
   "asset_manage": {
     "title": "Gestisci asset",
     "hub_title": "Gestore asset",
-    "hub_help": "Gestisci gli Algorand Standard Asset (ASA) che i tuoi account hanno creato o per cui detengono un ruolo: congelamento e revoca, modifica degli indirizzi o distruzione dell'asset.",
+    "hub_help": "Gestisci gli Algorand Standard Asset (ASA) creati dai tuoi account: congela e recupera (clawback), cambia gli indirizzi o distruggi l'asset. Per gestire un asset creato altrove per cui uno dei tuoi account ha un ruolo, aprilo tramite il suo ID.",
     "manage_by_id": "Gestisci un asset tramite il suo ID",
     "open": "Apri",
     "created_assets": "Asset creati dai tuoi account",
@@ -805,7 +805,8 @@
     "problem_confirm_clear": "Conferma che gli indirizzi cancellati non potranno mai più essere impostati.",
     "problem_creator_unknown": "Impossibile caricare il saldo dell'autore.",
     "problem_supply_outstanding": "Non tutte le unità sono nell'account dell'autore. Revocale o raccoglile prima.",
-    "problem_confirm_destroy": "Conferma che l'asset viene rimosso in modo permanente."
+    "problem_confirm_destroy": "Conferma che l'asset viene rimosso in modo permanente.",
+    "problem_holding_failed": "Non è stato possibile caricare il saldo dell'account dal nodo. Riprova."
   },
   "new_account_ledger": {
     "header": "Add Ledger account",

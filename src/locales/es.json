@@ -730,7 +730,7 @@
   "asset_manage": {
     "title": "Gestionar activo",
     "hub_title": "Gestor de activos",
-    "hub_help": "Gestione los Algorand Standard Assets (ASA) que sus cuentas crearon o para los que tienen un rol: congelación y revocación, cambio de direcciones o destrucción del activo.",
+    "hub_help": "Gestione los Algorand Standard Assets (ASA) que crearon sus cuentas: congelar y recuperar (clawback), cambiar las direcciones o destruir el activo. Para gestionar un activo creado en otro lugar en el que una de sus cuentas tiene un rol, ábralo por su ID.",
     "manage_by_id": "Gestionar un activo por su ID",
     "open": "Abrir",
     "created_assets": "Activos creados por sus cuentas",
@@ -805,7 +805,8 @@
     "problem_confirm_clear": "Confirme que las direcciones borradas nunca se podrán volver a establecer.",
     "problem_creator_unknown": "No se pudo cargar el saldo del creador.",
     "problem_supply_outstanding": "No todas las unidades están en la cuenta del creador. Revóquelas o recójalas primero.",
-    "problem_confirm_destroy": "Confirme que el activo se elimina permanentemente."
+    "problem_confirm_destroy": "Confirme que el activo se elimina permanentemente.",
+    "problem_holding_failed": "No se pudo cargar el saldo de la cuenta desde el nodo. Inténtelo de nuevo."
   },
   "new_account_ledger": {
     "header": "Agregar cuenta Ledger",
