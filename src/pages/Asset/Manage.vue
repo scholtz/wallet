@@ -591,13 +591,17 @@ const loadAsset = async (refresh = false) => {
       loadError.value = t("asset_manage.not_found");
       return;
     }
+    loadError.value = "";
     asset.value = found;
   } catch (error) {
     if (request !== loadCounter) return;
     console.error("Unable to load the asset", error);
-    loadError.value = t("asset_manage.load_failed", {
+    const message = t("asset_manage.load_failed", {
       error: errorMessage(error),
     });
+    // A failed refresh keeps the page (and the result of the transaction) in place.
+    if (refresh) await store.dispatch("toast/openError", message);
+    else loadError.value = message;
   } finally {
     if (request === loadCounter) loading.value = false;
   }
@@ -760,6 +764,14 @@ const configCheck = computed(() =>
   ),
 );
 
+// One confirmation covers the roles that were cleared when it was given, not roles cleared later.
+watch(
+  () => configCheck.value.cleared.join(","),
+  () => {
+    modifyConfirmClear.value = false;
+  },
+);
+
 const modifyProblem = computed(() => {
   const check = configCheck.value;
   if (check.invalid.length) return "invalid_address";
@@ -915,15 +927,20 @@ const execute = async (
       timeout: 4,
     });
     lastConfirmed.value = !!confirmation;
+    // Not confirmed (timeout, or rejected after submission): nothing can have changed yet, so the
+    // page neither re-reads the state nor leaves; the result says only that it was sent.
+    if (!confirmation) return;
     if (act === "destroy") {
       // The page is left, so the result is told by a toast.
       await store.dispatch(
         "toast/openSuccess",
-        confirmation
-          ? t("asset_manage.confirmed", { txId })
-          : t("asset_manage.sent", { txId }),
+        t("asset_manage.confirmed", { txId }),
       );
-      await router.push("/asset");
+      // The indexer lags the node: the hub is told which asset is gone.
+      await router.push({
+        path: "/asset",
+        query: { destroyed: id.toString() },
+      });
       return;
     }
     await loadAsset(true);

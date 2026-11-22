@@ -470,7 +470,12 @@ test("destroys the asset only once the creator holds the whole supply", async ({
   await expect(page.getByTestId("destroy-submit")).toBeDisabled();
   await page.locator('label[for="destroyConfirm"]').click();
   await page.getByTestId("destroy-submit").click();
-  await expect(page).toHaveURL(/\/asset$/, { timeout: 30000 });
+  await expect(page).toHaveURL(new RegExp(`/asset\\?destroyed=${ASSET_ID}$`), {
+    timeout: 30000,
+  });
+  // The mocked indexer still lists the asset (it lags the node); the hub leaves it out.
+  await expect(page.getByTestId("asset-hub-table")).toBeVisible();
+  await expect(page.getByTestId(`asset-hub-manage-${ASSET_ID}`)).toHaveCount(0);
 
   const { txn } = submittedTxn(chain);
   expect(txn.type).toBe(algosdk.TransactionType.acfg);
@@ -655,4 +660,26 @@ test("what was typed in the address form survives a switch of the action tab", a
   await expect(page.getByTestId("freeze-target")).toBeVisible();
   await page.getByTestId("asset-manage-action-modify").click();
   await expect(page.getByTestId("modify-reserve")).toHaveValue(newReserve);
+});
+
+test("clearing one more role needs its own confirmation", async ({ page }) => {
+  test.setTimeout(120000);
+  await walletOwningAsset(page);
+
+  await spaNavigate(page, `/asset/modify/${ASSET_ID}`);
+  await expect(page.getByTestId("modify-reserve")).not.toHaveValue("", {
+    timeout: 15000,
+  });
+  await page.getByTestId("modify-reserve").fill("");
+  await page.locator('label[for="modifyConfirmClear"]').click();
+  await expect(page.getByTestId("modify-submit")).toBeEnabled();
+
+  // The tick was given for the reserve only: clearing the manager asks again.
+  await page.getByTestId("modify-manager").fill("");
+  await expect(page.getByTestId("modify-submit")).toBeDisabled();
+  await expect(page.getByTestId("modify-cleared-warning")).toContainText(
+    "never be changed or destroyed",
+  );
+  await page.locator('label[for="modifyConfirmClear"]').click();
+  await expect(page.getByTestId("modify-submit")).toBeEnabled();
 });

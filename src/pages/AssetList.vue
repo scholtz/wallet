@@ -103,7 +103,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import MainLayout from "../layouts/Main.vue";
 import { useStore } from "@/store";
@@ -125,6 +125,12 @@ interface Row {
 
 const store = useStore();
 const router = useRouter();
+const route = useRoute();
+// The page the destroy action came from names the asset that is gone; the indexer may still list it.
+const destroyedId = (() => {
+  const raw = route.query.destroyed;
+  return typeof raw === "string" ? parseAssetId(raw)?.toString() : undefined;
+})();
 const { t } = useI18n();
 
 const assetIdInput = ref("");
@@ -144,7 +150,9 @@ const rows = computed((): Row[] => {
     accounts.find((a) => a.addr === addr)?.name || addr;
   // Only accounts the wallet can sign for count as holding a role (not watch-only ones).
   const own = new Set(
-    accounts.filter((a) => a.sk || a.params || a.type).map((a) => a.addr),
+    accounts
+      .filter((a) => (a.sk || a.params || a.type) && a.type !== "wc")
+      .map((a) => a.addr),
   );
   return created.value.map((asset) => ({
     key: asset.assetId.toString(),
@@ -181,8 +189,11 @@ onMounted(async () => {
           failed.push(accounts.find((a) => a.addr === addr)?.name || addr);
           return;
         }
-        for (const asset of result.value)
-          byId.set(asset.assetId.toString(), asset);
+        for (const asset of result.value) {
+          if (asset.assetId.toString() !== destroyedId) {
+            byId.set(asset.assetId.toString(), asset);
+          }
+        }
       });
     }
     failedAccounts.value = failed;
