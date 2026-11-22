@@ -235,6 +235,18 @@ const loadCreated = async () => {
 };
 
 onMounted(loadCreated);
+// A rekey or another signer of a wallet account changes which roles it can hold; the assets
+// need not be listed again.
+watch(
+  () =>
+    store.state.wallet.privateAccounts
+      .map(
+        (a) =>
+          `${a.addr}:${a.type ?? ""}:${a.data?.[store.state.config.env]?.rekeyedTo ?? ""}`,
+      )
+      .join(","),
+  () => resolveSignable(created.value, loadCounter),
+);
 watch(destroyedId, loadCreated);
 // The wallet may be opened (or accounts change) while this page is shown.
 watch(

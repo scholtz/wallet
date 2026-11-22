@@ -923,7 +923,9 @@ const destroyProblem = computed(() =>
 
 watch(assetId, () => loadAsset(), { immediate: true });
 
-watch([assetId, action], restorePending, { immediate: true });
+watch([assetId, action, () => store.state.config.env], restorePending, {
+  immediate: true,
+});
 
 // The address form follows the chain's addresses whenever the asset is (re)loaded, but keeps what
 // the user typed when only the action tab changes.
@@ -1018,6 +1020,9 @@ const execute = async (
   const id = assetId.value;
   const act = action.value;
   if (!id || !act || locked.value) return;
+  // The user may open another asset or action while this runs; this page's data and the
+  // signature the user asked for belong to the asset and action of the click.
+  const stillHere = () => assetId.value === id && action.value === act;
   const token = ++busyToken;
   busy.value = true;
   lastTxId.value = "";
@@ -1026,6 +1031,7 @@ const execute = async (
       "algod/getAssetForManagement",
       { assetId: id },
     );
+    if (!stillHere()) return;
     if (!fresh) throw new Error(t("asset_manage.not_found"));
     const from = actionSender(fresh, act);
     if (!from || from !== sender.value) {
@@ -1053,6 +1059,8 @@ const execute = async (
       suggestedParams.lastValid = BigInt(suggestedParams.firstValid) + 50n;
     }
     const txn = await build(from, fresh, suggestedParams);
+    // Nothing was signed yet: a page the user left must not ask for a signature.
+    if (!stillHere()) return;
     assertAssetManagementTxnSafe(txn, {
       sender: from,
       assetId: id,
@@ -1076,7 +1084,6 @@ const execute = async (
     // A cancelled or refused signature was already reported by the signer.
     if (!txId) return;
     // The user may have opened another asset or action while the transaction was signed and sent.
-    const stillHere = () => assetId.value === id && action.value === act;
     if (stillHere()) {
       lastTxId.value = txId;
       lastConfirmed.value = false;
@@ -1210,6 +1217,20 @@ const checkAgain = async () => {
     // The lock of the page that was checked ends in any case; another page's lock is not touched.
     writePending(undefined, key);
     if (!here()) return;
+    if (confirmation && act === "destroy") {
+      // The asset is gone: no page to refresh. Told by a toast, and the hub is told which asset.
+      unconfirmedTxId.value = "";
+      stillPending.value = false;
+      await store.dispatch(
+        "toast/openSuccess",
+        t("asset_manage.confirmed", { txId }),
+      );
+      await router.push({
+        path: "/asset",
+        query: { destroyed: id?.toString() ?? "" },
+      });
+      return;
+    }
     // The result is shown also when the lock was restored after the page was left.
     lastTxId.value = confirmation ? txId : "";
     unconfirmedTxId.value = "";
@@ -1307,7 +1328,7 @@ const submitModify = () => {
         !loaded ||
         ASSET_ROLES.some((role) => loaded[role] !== fresh.roles[role])
       ) {
-        asset.value = fresh;
+        if (assetId.value === fresh.assetId) asset.value = fresh;
         throw new Error(t("asset_manage.role_changed"));
       }
       // Compared with the node's current addresses.

@@ -883,3 +883,32 @@ test("a transaction this node does not know keeps the lock until it expired", as
   );
   await expect(page.getByTestId("asset-manage-unconfirmed")).toHaveCount(0);
 });
+
+test("a destroy confirmed through Check again leaves for the hub, not an error page", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  const { chain, owner } = await walletOwningAsset(page);
+  chain.holdings[owner] = { amount: 1000, frozen: false };
+  chain.neverConfirm = true;
+
+  await spaNavigate(page, `/asset/destroy/${ASSET_ID}`);
+  await expect(page.getByTestId("destroy-creator-holding")).toContainText(
+    "10 / 10",
+    { timeout: 15000 },
+  );
+  await page.locator('label[for="destroyConfirm"]').click();
+  await page.getByTestId("destroy-submit").click();
+  await expect(page.getByTestId("asset-manage-unconfirmed")).toBeVisible({
+    timeout: 90000,
+  });
+
+  // It confirms meanwhile: the asset no longer exists, so the page leaves and tells the hub.
+  chain.neverConfirm = false;
+  await page.getByTestId("asset-manage-check-again").click();
+  await expect(page).toHaveURL(new RegExp(`/asset\\?destroyed=${ASSET_ID}$`), {
+    timeout: 60000,
+  });
+  await expect(page.getByTestId("asset-manage-error")).toHaveCount(0);
+  await expect(page.getByTestId(`asset-hub-manage-${ASSET_ID}`)).toHaveCount(0);
+});
