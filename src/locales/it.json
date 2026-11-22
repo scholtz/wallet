@@ -789,6 +789,8 @@
     "destroy_confirm": "Capisco che l'asset viene rimosso in modo permanente",
     "destroy_button": "Distruggi asset",
     "sent": "Transazione inviata alla rete: {txId}",
+    "unconfirmed_hint": "La transazione non è ancora confermata. Le azioni restano bloccate per non inviarla due volte; controlla di nuovo prima di continuare.",
+    "check_again": "Controlla di nuovo",
     "confirmed": "Transazione confermata: {txId}",
     "role_changed": "Gli indirizzi dell'asset sono cambiati da quando la pagina è stata caricata. Controllali e riprova.",
     "problem_invalid_target": "Inserisci un indirizzo del detentore valido.",

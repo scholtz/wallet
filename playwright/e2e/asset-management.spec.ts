@@ -29,6 +29,8 @@ interface ChainState {
   holdings: Record<string, { amount: number; frozen: boolean }>;
   /** Accounts whose holding lookup fails with a node error. */
   failingHoldings: Set<string>;
+  /** The node accepted the transaction but never confirms it. */
+  neverConfirm: boolean;
   submitted: Buffer | null;
 }
 
@@ -65,6 +67,7 @@ async function mockChain(page: Page, asset: MockAsset): Promise<ChainState> {
     asset,
     holdings: {},
     failingHoldings: new Set(),
+    neverConfirm: false,
     submitted: null,
   };
   const assetJson = () => ({
@@ -205,12 +208,28 @@ async function mockChain(page: Page, asset: MockAsset): Promise<ChainState> {
       },
     }),
   );
+  // algosdk waits for the next block between two looks at the pending transaction.
+  await page.route(/\/v2\/status\/wait-for-block-after\/(\d+)/, (route) => {
+    const after = Number(route.request().url().split("/").pop());
+    return route.fulfill({
+      json: {
+        "catchup-time": 0,
+        "last-round": after + 1,
+        "last-version": "future",
+        "next-version": "future",
+        "next-version-round": after + 2,
+        "next-version-supported": true,
+        "stopped-at-unsupported-round": false,
+        "time-since-last-round": 0,
+      },
+    });
+  });
   await page.route(/\/v2\/transactions\/pending\//, (route) =>
     route.fulfill({
       contentType: "application/msgpack",
       body: Buffer.from(
         algosdk.msgpackRawEncode({
-          "confirmed-round": 101,
+          ...(state.neverConfirm ? {} : { "confirmed-round": 101 }),
           "pool-error": "",
           txn: algosdk.msgpackRawDecode(
             splitSigned(state.submitted ?? Buffer.alloc(0))[0] ??
@@ -682,4 +701,40 @@ test("clearing one more role needs its own confirmation", async ({ page }) => {
   );
   await page.locator('label[for="modifyConfirmClear"]').click();
   await expect(page.getByTestId("modify-submit")).toBeEnabled();
+});
+
+test("an unconfirmed send locks the actions until it was checked again", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  const { chain } = await walletOwningAsset(page);
+  const holder = other();
+  chain.holdings[holder] = { amount: 250, frozen: false };
+  chain.neverConfirm = true;
+
+  await spaNavigate(page, `/asset/freeze/${ASSET_ID}`);
+  await page.getByTestId("freeze-target").fill(holder);
+  await expect(page.getByTestId("freeze-holder-state")).toContainText(
+    "not frozen",
+  );
+  await page.getByTestId("freeze-submit").click();
+
+  // Sent, not confirmed: a warning, and the same action cannot be sent a second time.
+  await expect(page.getByTestId("asset-manage-unconfirmed")).toBeVisible({
+    timeout: 90000,
+  });
+  await expect(page.getByTestId("asset-manage-sent")).toBeVisible();
+  await expect(page.getByTestId("freeze-submit")).toBeDisabled();
+  await expect(page.getByTestId("unfreeze-submit")).toBeDisabled();
+
+  // It confirms meanwhile: checking again shows the new state and unlocks the page.
+  chain.neverConfirm = false;
+  await page.getByTestId("asset-manage-check-again").click();
+  await expect(page.getByTestId("asset-manage-unconfirmed")).toHaveCount(0, {
+    timeout: 30000,
+  });
+  await expect(page.getByTestId("freeze-holder-state")).toContainText(
+    "2.5 - frozen",
+  );
+  await expect(page.getByTestId("unfreeze-submit")).toBeEnabled();
 });

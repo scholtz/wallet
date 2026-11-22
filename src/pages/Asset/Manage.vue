@@ -100,20 +100,30 @@
           </div>
 
           <div class="flex flex-wrap gap-2 mt-3">
-            <RouterLink
-              v-for="item in ASSET_ACTIONS"
-              :key="item"
-              :to="assetActionPath(asset.assetId, item)"
-            >
+            <template v-for="item in ASSET_ACTIONS" :key="item">
+              <RouterLink
+                v-if="actionSender(asset, item)"
+                :to="assetActionPath(asset.assetId, item)"
+              >
+                <Button
+                  :severity="item === action ? undefined : 'secondary'"
+                  :data-testid="`asset-manage-action-${item}`"
+                >
+                  <i :class="actionIcon(item)" class="mr-2" />
+                  {{ t(`asset_manage.action_${item}`) }}
+                </Button>
+              </RouterLink>
+              <!-- A disabled action is no link either: it must not be reachable with the keyboard. -->
               <Button
-                :severity="item === action ? undefined : 'secondary'"
-                :disabled="!actionSender(asset, item)"
+                v-else
+                severity="secondary"
+                disabled
                 :data-testid="`asset-manage-action-${item}`"
               >
                 <i :class="actionIcon(item)" class="mr-2" />
                 {{ t(`asset_manage.action_${item}`) }}
               </Button>
-            </RouterLink>
+            </template>
           </div>
         </template>
       </Card>
@@ -200,7 +210,7 @@
               <div class="col-12 md:col-9 flex flex-wrap gap-2">
                 <Button
                   severity="warn"
-                  :disabled="busy || !!freezeProblem(true)"
+                  :disabled="locked || !!freezeProblem(true)"
                   data-testid="freeze-submit"
                   @click="submitFreeze(true)"
                 >
@@ -208,7 +218,7 @@
                   {{ t("asset_manage.freeze_button") }}
                 </Button>
                 <Button
-                  :disabled="busy || !!freezeProblem(false)"
+                  :disabled="locked || !!freezeProblem(false)"
                   data-testid="unfreeze-submit"
                   @click="submitFreeze(false)"
                 >
@@ -291,7 +301,7 @@
               <div class="col-12 md:col-9">
                 <Button
                   severity="danger"
-                  :disabled="busy || !!clawbackProblem"
+                  :disabled="locked || !!clawbackProblem"
                   data-testid="clawback-submit"
                   @click="submitClawback"
                 >
@@ -362,7 +372,7 @@
               <label class="col-12 mb-2 md:col-3 md:mb-0"></label>
               <div class="col-12 md:col-9">
                 <Button
-                  :disabled="busy || !!modifyProblem"
+                  :disabled="locked || !!modifyProblem"
                   data-testid="modify-submit"
                   @click="submitModify"
                 >
@@ -414,7 +424,7 @@
               <div class="col-12 md:col-9">
                 <Button
                   severity="danger"
-                  :disabled="busy || !!destroyProblem || !destroyConfirm"
+                  :disabled="locked || !!destroyProblem || !destroyConfirm"
                   data-testid="destroy-submit"
                   @click="submitDestroy"
                 >
@@ -445,6 +455,22 @@
                 },
               )
             }}
+          </Message>
+          <Message
+            v-if="unconfirmedTxId"
+            severity="warn"
+            data-testid="asset-manage-unconfirmed"
+          >
+            {{ t("asset_manage.unconfirmed_hint") }}
+            <Button
+              class="ml-2"
+              size="small"
+              :disabled="busy"
+              data-testid="asset-manage-check-again"
+              @click="checkAgain"
+            >
+              {{ t("asset_manage.check_again") }}
+            </Button>
           </Message>
         </template>
       </Card>
@@ -503,6 +529,12 @@ const asset = ref<ManagedAsset>();
 const loading = ref(false);
 const loadError = ref("");
 const busy = ref(false);
+/**
+ * Set after a send that was not confirmed: it may still confirm, so the actions stay locked
+ * until the user checked again (a second, distinct transaction could otherwise repeat it).
+ */
+const unconfirmedTxId = ref("");
+const locked = computed(() => busy.value || !!unconfirmedTxId.value);
 const lastTxId = ref("");
 const lastConfirmed = ref(false);
 const signingRoute = ref<SigningRoute>();
@@ -565,6 +597,7 @@ const loadAsset = async (refresh = false) => {
   const id = assetId.value;
   if (!refresh) {
     busy.value = false;
+    unconfirmedTxId.value = "";
     lastConfirmed.value = false;
     lastTxId.value = "";
     asset.value = undefined;
@@ -900,7 +933,7 @@ const execute = async (
 ) => {
   const id = assetId.value;
   const act = action.value;
-  if (!id || !act || busy.value) return;
+  if (!id || !act || locked.value) return;
   busy.value = true;
   lastTxId.value = "";
   try {
@@ -914,7 +947,10 @@ const execute = async (
       asset.value = fresh;
       throw new Error(t("asset_manage.role_changed"));
     }
-    const route = await signingRouteFor(from);
+    const inWallet = store.state.wallet.privateAccounts.some(
+      (a) => a.addr === from,
+    );
+    const route = inWallet ? await signingRouteFor(from) : "none";
     if (route === "none") {
       throw new Error(t("asset_manage.no_signer", { role: roleLabel.value }));
     }
@@ -972,7 +1008,10 @@ const execute = async (
     lastConfirmed.value = !!confirmation;
     // Not confirmed (timeout, or rejected after submission): nothing can have changed yet, so the
     // page neither re-reads the state nor leaves; the result says only that it was sent.
-    if (!confirmation) return;
+    if (!confirmation) {
+      unconfirmedTxId.value = txId;
+      return;
+    }
     if (act === "destroy") {
       // The page is left, so the result is told by a toast.
       await store.dispatch(
@@ -993,6 +1032,29 @@ const execute = async (
   } catch (error) {
     console.error("Asset management failed", error);
     await store.dispatch("toast/openError", errorMessage(error));
+  } finally {
+    busy.value = false;
+  }
+};
+
+/**
+ * After an unconfirmed send: asks the node once more. When the transaction confirmed, the page
+ * shows the new state; otherwise the user is given the current state of the chain back, and the
+ * strict re-reads before signing prevent a repeated action from using a stale balance.
+ */
+const checkAgain = async () => {
+  const txId = unconfirmedTxId.value;
+  if (!txId || busy.value) return;
+  busy.value = true;
+  try {
+    const confirmation = await store.dispatch("algod/waitForConfirmation", {
+      txId,
+      timeout: 4,
+    });
+    unconfirmedTxId.value = "";
+    lastConfirmed.value = !!confirmation;
+    await loadAsset(true);
+    await refreshHoldings();
   } finally {
     busy.value = false;
   }

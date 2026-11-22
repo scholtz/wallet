@@ -789,6 +789,8 @@
     "destroy_confirm": "Rozumiem, že aktívum bude natrvalo odstránené",
     "destroy_button": "Zrušiť aktívum",
     "sent": "Transakcia odoslaná do siete: {txId}",
+    "unconfirmed_hint": "Transakcia ešte nie je potvrdená. Akcie zostávajú zamknuté, aby sa neodoslala dvakrát; pred pokračovaním ju znova skontrolujte.",
+    "check_again": "Skontrolovať znova",
     "confirmed": "Transakcia potvrdená: {txId}",
     "role_changed": "Adresy aktíva sa od načítania stránky zmenili. Skontrolujte ich a skúste to znova.",
     "problem_invalid_target": "Zadajte platnú adresu držiteľa.",

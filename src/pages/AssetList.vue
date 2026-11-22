@@ -174,7 +174,12 @@ const resolveSignable = async (assets: ManagedAsset[], request: number) => {
   const found = new Set<string>();
   await Promise.all(
     [...candidates].map(async (addr) => {
-      if ((await signingRouteFor(addr)) !== "none") found.add(addr);
+      try {
+        if ((await signingRouteFor(addr)) !== "none") found.add(addr);
+      } catch (error) {
+        // An account whose signer cannot be determined does not count as holding a role.
+        console.error("Unable to resolve the signer of", addr, error);
+      }
     }),
   );
   if (request === loadCounter) signable.value = found;

@@ -789,6 +789,8 @@
     "destroy_confirm": "Ik begrijp dat het activum permanent wordt verwijderd",
     "destroy_button": "Activum vernietigen",
     "sent": "Transactie naar het netwerk verzonden: {txId}",
+    "unconfirmed_hint": "De transactie is nog niet bevestigd. De acties blijven vergrendeld zodat ze niet twee keer wordt verzonden; controleer opnieuw voordat je verdergaat.",
+    "check_again": "Opnieuw controleren",
     "confirmed": "Transactie bevestigd: {txId}",
     "role_changed": "De adressen van het activum zijn gewijzigd sinds de pagina werd geladen. Controleer ze en probeer het opnieuw.",
     "problem_invalid_target": "Voer een geldig adres van de houder in.",

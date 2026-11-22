@@ -789,6 +789,8 @@
     "destroy_confirm": "Varlığın kalıcı olarak kaldırılacağını anlıyorum",
     "destroy_button": "Varlığı yok et",
     "sent": "İşlem ağa gönderildi: {txId}",
+    "unconfirmed_hint": "İşlem henüz onaylanmadı. İşlemin iki kez gönderilmemesi için eylemler kilitli kalır; devam etmeden önce yeniden kontrol edin.",
+    "check_again": "Yeniden kontrol et",
     "confirmed": "İşlem onaylandı: {txId}",
     "role_changed": "Sayfa yüklendiğinden beri varlığın adresleri değişti. Kontrol edip tekrar deneyin.",
     "problem_invalid_target": "Geçerli bir sahip adresi girin.",
