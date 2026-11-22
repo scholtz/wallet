@@ -553,7 +553,11 @@ const pendingKey = () => pendingKeyFor(assetId.value, action.value);
 const readPending = (): Record<string, PendingSend> => {
   try {
     const raw = sessionStorage.getItem(PENDING_KEY);
-    return raw ? (JSON.parse(raw) as Record<string, PendingSend>) : {};
+    const parsed: unknown = raw ? JSON.parse(raw) : undefined;
+    // Stored text: anything but an object is dropped.
+    return typeof parsed === "object" && parsed !== null
+      ? (parsed as Record<string, PendingSend>)
+      : {};
   } catch {
     return {};
   }
@@ -640,6 +644,8 @@ const isValidAddress = (addr: string): boolean => algosdk.isValidAddress(addr);
 // --- loading -----------------------------------------------------------------------------
 
 let loadCounter = 0;
+/** The clawback receiver was prefilled once for the asset shown (never again behind the user). */
+let clawbackReceiverPrefilled = false;
 
 /**
  * Loads the asset of the route. A reload after a sent transaction ("refresh") keeps the page,
@@ -650,6 +656,7 @@ const loadAsset = async (refresh = false) => {
   const request = ++loadCounter;
   const id = assetId.value;
   if (!refresh) {
+    clawbackReceiverPrefilled = false;
     busyToken++;
     busy.value = false;
     lastConfirmed.value = false;
@@ -933,14 +940,6 @@ watch(
       Object.assign(modifyRoles, current.roles);
       modifyConfirmClear.value = false;
     }
-    // Prefilled only when this asset is shown first, never again behind the user's back.
-    if (
-      previous?.assetId !== current.assetId &&
-      !clawbackReceiver.value &&
-      current.roles.clawback
-    ) {
-      clawbackReceiver.value = current.roles.clawback;
-    }
   },
   { immediate: true },
 );
@@ -951,6 +950,17 @@ watch(
     const current = asset.value;
     if (!current) return;
     destroyConfirm.value = false;
+    // The clawback receiver starts as the clawback address, on the clawback page only (the other
+    // actions need no lookup of it) and only while the field is empty.
+    if (
+      action.value === "clawback" &&
+      !clawbackReceiver.value &&
+      current.roles.clawback &&
+      !clawbackReceiverPrefilled
+    ) {
+      clawbackReceiverPrefilled = true;
+      clawbackReceiver.value = current.roles.clawback;
+    }
     creatorHolding.value = undefined;
     if (action.value === "destroy") {
       const found = await holding(current.creator);
@@ -1035,6 +1045,12 @@ const execute = async (
     // The checked params of the configured network; a node that leaves them out is refused.
     if (!suggestedParams.genesisHash || !suggestedParams.genesisID) {
       throw new UnsafeTransactionError("details");
+    }
+    // A transaction signed in place is valid for a short window only (about two minutes): one
+    // that is not confirmed by then can never confirm, which is what ends the lock after an
+    // unconfirmed send. A group handed to Sign-all keeps the node's window (signatures take time).
+    if (route === "direct") {
+      suggestedParams.lastValid = BigInt(suggestedParams.firstValid) + 50n;
     }
     const txn = await build(from, fresh, suggestedParams);
     assertAssetManagementTxnSafe(txn, {
@@ -1155,17 +1171,19 @@ const rejectedByPool = async (txId: string): Promise<boolean> => {
     await store.dispatch("toast/openError", poolError);
     return true;
   }
-  if (poolError === null) {
-    // The node does not know it (never received, or dropped): nothing is pending any more.
-    await store.dispatch("toast/openError", t("asset_manage.expired"));
-    return true;
-  }
+  // null: this node does not know the transaction, which is also what another node of a
+  // gateway answers while it is still queued elsewhere. Only the validity window ends the wait.
   return false;
 };
 
 const checkAgain = async () => {
   const txId = unconfirmedTxId.value;
   if (!txId || busy.value) return;
+  // Where the check started: the user may move on while the node is asked.
+  const key = pendingKey();
+  const id = assetId.value;
+  const act = action.value;
+  const here = () => assetId.value === id && action.value === act;
   const token = ++busyToken;
   busy.value = true;
   try {
@@ -1180,7 +1198,7 @@ const checkAgain = async () => {
       const lastRound: bigint | undefined =
         await store.dispatch("algod/getLastRound");
       if (lastRound === undefined || lastRound <= unconfirmedLastValid.value) {
-        stillPending.value = true;
+        if (here()) stillPending.value = true;
         return;
       }
       expired = true;
@@ -1189,11 +1207,13 @@ const checkAgain = async () => {
       await store.dispatch("toast/openError", t("asset_manage.expired"));
     }
     // Unlocked without a confirmation: it was rejected or can no longer confirm.
+    // The lock of the page that was checked ends in any case; another page's lock is not touched.
+    writePending(undefined, key);
+    if (!here()) return;
     // The result is shown also when the lock was restored after the page was left.
     lastTxId.value = confirmation ? txId : "";
     unconfirmedTxId.value = "";
     stillPending.value = false;
-    writePending(undefined);
     lastConfirmed.value = !!confirmation;
     await loadAsset(true);
     await refreshHoldings();

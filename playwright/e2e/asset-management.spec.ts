@@ -349,6 +349,8 @@ test("freezes a holder in place, refusing an account that is not opted in", asyn
   expect(stxn.txn.assetFreeze?.freezeAccount.toString()).toBe(holder);
   expect(stxn.txn.assetFreeze?.frozen).toBe(true);
   expect(stxn.sig).toBeDefined();
+  // Signed in place: valid for a short window only, so an unconfirmed send expires within minutes.
+  expect(stxn.txn.lastValid - stxn.txn.firstValid).toBe(50n);
 
   // One signal for the result, and it says the transaction was confirmed.
   await expect(page.getByTestId("asset-manage-sent")).toContainText(
@@ -843,10 +845,10 @@ test("a transaction that expired without confirming is reported and unlocks the 
   await expect(page.getByTestId("unfreeze-submit")).toBeEnabled();
 });
 
-test("a transaction the node never received does not lock the page", async ({
+test("a transaction this node does not know keeps the lock until it expired", async ({
   page,
 }) => {
-  test.setTimeout(120000);
+  test.setTimeout(180000);
   const { chain } = await walletOwningAsset(page);
   const holder = other();
   chain.holdings[holder] = { amount: 250, frozen: false };
@@ -860,10 +862,23 @@ test("a transaction the node never received does not lock the page", async ({
   );
   await page.getByTestId("freeze-submit").click();
 
-  // Nothing is pending on the node: the user is told, and is not locked out for the whole
-  // validity window.
+  // Another node of a pool answers 404 for a transaction that is queued elsewhere: not proof of
+  // anything, so the page stays locked while the validity window is open.
+  await expect(page.getByTestId("asset-manage-unconfirmed")).toBeVisible({
+    timeout: 90000,
+  });
+  await page.getByTestId("asset-manage-check-again").click();
+  await expect(page.getByTestId("asset-manage-unconfirmed")).toContainText(
+    "Still pending",
+    { timeout: 60000 },
+  );
+  await expect(page.getByTestId("unfreeze-submit")).toBeDisabled();
+
+  // Past the last valid round it can never confirm: the lock ends.
+  chain.lastRound = 5000;
+  await page.getByTestId("asset-manage-check-again").click();
   await expect(page.locator(".p-toast-message-error")).toContainText(
-    "no longer pending",
+    "safe to try again",
     { timeout: 60000 },
   );
   await expect(page.getByTestId("asset-manage-unconfirmed")).toHaveCount(0);
