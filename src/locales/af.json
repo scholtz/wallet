@@ -766,7 +766,7 @@
     "role_missing": "Hierdie bate het geen {role} nie, dus is hierdie aksie permanent gedeaktiveer.",
     "signed_by": "Onderteken deur",
     "no_signer": "Die {role} van hierdie bate is nie 'n rekening waarvoor hierdie beursie kan onderteken nie.",
-    "sign_all_info": "Hierdie rekening onderteken op die bladsy Teken meervoudige transaksies (multisig, Ledger of Falcon-1024). Die transaksie word hier voorberei en daarheen oorgedra.",
+    "sign_all_info": "Hierdie rekening onderteken op die bladsy Teken meervoudige transaksies (multisig, 2FA, Ledger of Falcon-1024). Die transaksie word hier voorberei en daarheen oorgedra.",
     "holder": "Houerrekening",
     "holder_state": "Huidige toestand",
     "state_frozen": "gevries",

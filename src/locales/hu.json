@@ -766,7 +766,7 @@
     "role_missing": "Ennek az eszköznek nincs ilyen szerepköre: {role}, ezért ez a művelet véglegesen le van tiltva.",
     "signed_by": "Aláíró",
     "no_signer": "Az eszköz {role} szerepköre nem olyan fiók, amelyhez ez a tárca alá tud írni.",
-    "sign_all_info": "Ez a fiók a Több tranzakció aláírása oldalon ír alá (multisig, Ledger vagy Falcon-1024). A tranzakció itt készül el, és oda kerül átadásra.",
+    "sign_all_info": "Ez a fiók a Több tranzakció aláírása oldalon ír alá (multisig, 2FA, Ledger vagy Falcon-1024). A tranzakció itt készül el, és oda kerül átadásra.",
     "holder": "Tulajdonos fiók",
     "holder_state": "Jelenlegi állapot",
     "state_frozen": "befagyasztva",

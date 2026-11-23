@@ -766,7 +766,7 @@
     "role_missing": "Este activo no tiene {role}, por lo que esta acción está desactivada permanentemente.",
     "signed_by": "Firmado por",
     "no_signer": "El {role} de este activo no es una cuenta para la que este monedero pueda firmar.",
-    "sign_all_info": "Esta cuenta firma en la página Firmar múltiples transacciones (multisig, Ledger o Falcon-1024). La transacción se prepara aquí y se le entrega.",
+    "sign_all_info": "Esta cuenta firma en la página Firmar múltiples transacciones (multisig, 2FA, Ledger o Falcon-1024). La transacción se prepara aquí y se le entrega.",
     "holder": "Cuenta del titular",
     "holder_state": "Estado actual",
     "state_frozen": "congelada",

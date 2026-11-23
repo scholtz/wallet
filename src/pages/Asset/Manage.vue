@@ -553,9 +553,12 @@ const pendingKey = () => pendingKeyFor(assetId.value, action.value);
 const readPending = (): Record<string, PendingSend> => {
   try {
     const raw = sessionStorage.getItem(PENDING_KEY);
+    // JSON.parse yields an untyped value and the text comes from storage, so it is narrowed here:
+    // anything but a plain object (null, an array, a number) is dropped.
     const parsed: unknown = raw ? JSON.parse(raw) : undefined;
-    // Stored text: anything but an object is dropped.
-    return typeof parsed === "object" && parsed !== null
+    return typeof parsed === "object" &&
+      parsed !== null &&
+      !Array.isArray(parsed)
       ? (parsed as Record<string, PendingSend>)
       : {};
   } catch {

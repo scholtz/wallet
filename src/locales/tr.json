@@ -766,7 +766,7 @@
     "role_missing": "Bu varlığın {role} rolü yok, bu nedenle bu işlem kalıcı olarak devre dışı.",
     "signed_by": "İmzalayan",
     "no_signer": "Bu varlığın {role} rolü, bu cüzdanın imzalayabileceği bir hesap değil.",
-    "sign_all_info": "Bu hesap Sign-all sayfasında imzalar (multisig, Ledger veya Falcon-1024). İşlem burada hazırlanır ve o sayfaya devredilir.",
+    "sign_all_info": "Bu hesap Sign-all sayfasında imzalar (multisig, 2FA, Ledger veya Falcon-1024). İşlem burada hazırlanır ve o sayfaya devredilir.",
     "holder": "Sahip hesabı",
     "holder_state": "Mevcut durum",
     "state_frozen": "dondurulmuş",

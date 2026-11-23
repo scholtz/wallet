@@ -766,7 +766,7 @@
     "role_missing": "Questo asset non ha {role}, quindi questa azione è disattivata in modo permanente.",
     "signed_by": "Firmato da",
     "no_signer": "Il ruolo {role} di questo asset non è un account per cui questo portafoglio può firmare.",
-    "sign_all_info": "Questo account firma nella pagina Sign-all (multisig, Ledger o Falcon-1024). La transazione viene preparata qui e passata a quella pagina.",
+    "sign_all_info": "Questo account firma nella pagina Sign-all (multisig, 2FA, Ledger o Falcon-1024). La transazione viene preparata qui e passata a quella pagina.",
     "holder": "Account del detentore",
     "holder_state": "Stato attuale",
     "state_frozen": "congelato",

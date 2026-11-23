@@ -766,7 +766,7 @@
     "role_missing": "Toto aktivum nemá roli {role}, proto je tato akce trvale nedostupná.",
     "signed_by": "Podepisuje",
     "no_signer": "Role {role} tohoto aktiva není účet, za který může tato peněženka podepisovat.",
-    "sign_all_info": "Tento účet podepisuje na stránce Podepsat vše (multisig, Ledger nebo Falcon-1024). Transakce se připraví zde a předá se tam.",
+    "sign_all_info": "Tento účet podepisuje na stránce Podepsat vše (multisig, 2FA, Ledger nebo Falcon-1024). Transakce se připraví zde a předá se tam.",
     "holder": "Účet držitele",
     "holder_state": "Aktuální stav",
     "state_frozen": "zmrazeno",

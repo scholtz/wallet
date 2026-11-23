@@ -766,7 +766,7 @@
     "role_missing": "Dit activum heeft geen {role}, dus deze actie is permanent uitgeschakeld.",
     "signed_by": "Ondertekend door",
     "no_signer": "De {role} van dit activum is geen account waarvoor deze wallet kan ondertekenen.",
-    "sign_all_info": "Dit account ondertekent op de Sign-all-pagina (multisig, Ledger of Falcon-1024). De transactie wordt hier voorbereid en daaraan overgedragen.",
+    "sign_all_info": "Dit account ondertekent op de Sign-all-pagina (multisig, 2FA, Ledger of Falcon-1024). De transactie wordt hier voorbereid en daaraan overgedragen.",
     "holder": "Account van de houder",
     "holder_state": "Huidige status",
     "state_frozen": "bevroren",

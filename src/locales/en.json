@@ -766,7 +766,7 @@
     "role_missing": "This asset has no {role}, so this action is permanently disabled.",
     "signed_by": "Signed by",
     "no_signer": "The {role} of this asset is not an account this wallet can sign for.",
-    "sign_all_info": "This account signs on the Sign-all page (multisig, Ledger or Falcon-1024). The transaction is prepared here and handed over to it.",
+    "sign_all_info": "This account signs on the Sign-all page (multisig, 2FA, Ledger or Falcon-1024). The transaction is prepared here and handed over to it.",
     "holder": "Holder account",
     "holder_state": "Current state",
     "state_frozen": "frozen",
