@@ -73,6 +73,8 @@ export const signAllReturnLabelKey = (key: string): string => {
       return "return_to_scheduled_payments";
     case "Arc14":
       return "return_to_arc14";
+    case "AssetManagement":
+      return "return_to_asset_management";
     default:
       return "return_to_previous";
   }

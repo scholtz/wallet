@@ -237,9 +237,14 @@ const items = computed<MenuItem[]>(() => {
             separator: true,
           },
           {
-            label: "Asset manager",
+            label: t("navbar.asset_manager"),
             icon: "pi pi-box",
             items: [
+              {
+                label: t("navbar.asset_manage"),
+                icon: "pi pi-sliders-h",
+                route: "/asset",
+              },
               {
                 label: t("navbar.asset_create"),
                 icon: "pi pi-plus",

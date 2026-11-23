@@ -14,8 +14,25 @@ import {
   confirmAssetCreator,
   resolveOptOutCloseTo,
 } from "../scripts/assets/optOut";
+import {
+  toManagedAsset,
+  type AssetHolding,
+  type ManagedAsset,
+} from "../scripts/assets/management";
 
 export interface AlgodState {}
+
+/**
+ * A failed broadcast whose outcome is unknown: no HTTP answer at all (timeout, dropped
+ * connection) or a gateway error (5xx) that can come after the node queued the transaction.
+ * Every other answer (4xx, e.g. 429 rate limited) means the node did not take it.
+ */
+// A catch clause only ever yields an untyped value, so it has to be narrowed here.
+const isUncertainSendError = (error: unknown): boolean => {
+  const status = (error as { response?: { status?: number } })?.response
+    ?.status;
+  return status === undefined || status >= 500;
+};
 
 interface AlgodConfig {
   algod: string;
@@ -357,7 +374,16 @@ const actions: ActionTree<AlgodState, RootState> = {
   },
   async signAndSend(
     { dispatch, rootState },
-    { txn, payFrom }: { txn: algosdk.Transaction; payFrom: PaymentAccount },
+    {
+      txn,
+      payFrom,
+      reportSendErrors = false,
+    }: {
+      txn: algosdk.Transaction;
+      payFrom: PaymentAccount;
+      /** Also toast a failed broadcast that has no message from the node (network error, timeout). */
+      reportSendErrors?: boolean;
+    },
   ) {
     try {
 
@@ -387,7 +413,9 @@ const actions: ActionTree<AlgodState, RootState> = {
         "signer/signTransaction",
         { from: payFrom, tx: txn },
         { root: true },
-      )) as Uint8Array | Buffer;
+      )) as Uint8Array | Buffer | undefined;
+      // A cancelled or failed signature was already reported by the signer: nothing to send.
+      if (!signedTxn) return undefined;
 
       const algodClient = createAlgodClient(rootState);
       try {
@@ -399,8 +427,23 @@ const actions: ActionTree<AlgodState, RootState> = {
             response?: { body?: { message?: string } };
           }
         )?.response?.body?.message;
+        if (reportSendErrors && isUncertainSendError(error)) {
+          // No answer from the node, or a gateway error with or without a message: the node may
+          // have queued the transaction, so the id is returned and the caller waits for it
+          // instead of assuming that nothing was sent. No error toast: the caller says "sent,
+          // not confirmed".
+          console.error("Failed to submit transaction", error);
+          return txn.txID();
+        }
         if (responseMessage) {
           dispatch("toast/openError", responseMessage, { root: true });
+        } else if (reportSendErrors) {
+          // An HTTP answer without a message (401/403, other 4xx): the node did not take it.
+          dispatch(
+            "toast/openError",
+            error instanceof Error ? error.message : String(error),
+            { root: true },
+          );
         }
         console.error("Failed to submit transaction", error);
         return undefined;
@@ -492,6 +535,83 @@ const actions: ActionTree<AlgodState, RootState> = {
       const message = error instanceof Error ? error.message : String(error);
       dispatch("toast/openError", message, { root: true });
       return { status: "failed" };
+    }
+  },
+  /**
+   * The asset with its current addresses, read from the node (not a cache): management
+   * actions are signed by these addresses, so they must be current. Undefined when the asset
+   * does not exist (never created or destroyed); other failures are thrown.
+   */
+  async getAssetForManagement(
+    { rootState },
+    { assetId }: { assetId: bigint },
+  ): Promise<ManagedAsset | undefined> {
+    const algodClient = createAlgodClient(rootState);
+    let info: algosdk.modelsv2.Asset;
+    try {
+      info = await algodClient.getAssetByID(assetId).do();
+    } catch (error) {
+      if (isAssetNotFoundError(error)) return undefined;
+      throw error;
+    }
+    if (!info.params) return undefined;
+    return toManagedAsset(info.index, info.params);
+  },
+  /** The holding of `assetId` by `addr` from the node; `optedIn: false` when there is none. */
+  async getAssetHolding(
+    { rootState },
+    { addr, assetId }: { addr: string; assetId: bigint },
+  ): Promise<AssetHolding> {
+    const algodClient = createAlgodClient(rootState);
+    try {
+      const info = await algodClient
+        .accountAssetInformation(addr, assetId)
+        .do();
+      if (!info.assetHolding) {
+        return { optedIn: false, amount: 0n, frozen: false };
+      }
+      return {
+        optedIn: true,
+        amount: BigInt(info.assetHolding.amount),
+        frozen: !!info.assetHolding.isFrozen,
+      };
+    } catch (error) {
+      // algod answers 404 for an account that is not opted in to the asset
+      if (isAssetNotFoundError(error)) {
+        return { optedIn: false, amount: 0n, frozen: false };
+      }
+      throw error;
+    }
+  },
+  /**
+   * The pool's rejection reason of a transaction the node still reports, "" when it has none,
+   * null when the node does not know the transaction at all (never received, or dropped), and
+   * undefined when the node cannot be asked. A non-empty answer means it will never confirm.
+   */
+  async getPoolError(
+    { rootState },
+    { txId }: { txId: string },
+  ): Promise<string | null | undefined> {
+    try {
+      const info = await createAlgodClient(rootState)
+        .pendingTransactionInformation(txId)
+        .do();
+      return info.poolError ?? "";
+    } catch (error) {
+      // algod answers 404 for a transaction it has never seen or no longer holds.
+      if (isAssetNotFoundError(error)) return null;
+      console.error("Failed to read the pending transaction", error);
+      return undefined;
+    }
+  },
+  /** The node's last round, or undefined when it cannot be asked. */
+  async getLastRound({ rootState }): Promise<bigint | undefined> {
+    try {
+      const status = await createAlgodClient(rootState).status().do();
+      return BigInt(status.lastRound);
+    } catch (error) {
+      console.error("Failed to read the last round", error);
+      return undefined;
     }
   },
   async sendRawTransaction(

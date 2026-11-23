@@ -1038,7 +1038,7 @@ const maxAmount = computed(() => {
 });
 const isAuth = computed(() => store.state.wallet.isOpen);
 const malformedAddress = computed(() => {
-  const exemptTypes = ["appl", "keyreg", "acfg"];
+  const exemptTypes = ["appl", "keyreg", "acfg", "afrz"];
   if (
     multisigDecoded.value?.txn?.type &&
     exemptTypes.includes(multisigDecoded.value.txn.type)

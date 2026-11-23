@@ -2,6 +2,10 @@ import algosdk from "algosdk";
 import type { ActionTree, MutationTree } from "vuex";
 import type { RootState } from "./index";
 import type { ConfigState } from "./config";
+import {
+  toManagedAsset,
+  type ManagedAsset,
+} from "../scripts/assets/management";
 
 export type ExtendedStoredAsset = StoredAsset & {
   amount?: bigint;
@@ -460,6 +464,32 @@ const actions: ActionTree<IndexerState, RootState> = {
       console.error("getAccountBalanceAtRound", error);
     }
     return undefined;
+  },
+  /**
+   * Assets created by `addr` that still exist, for the asset manager's list. Only a listing:
+   * the management page reads the asset again from the node before anything is signed.
+   */
+  async getCreatedAssets(
+    { rootState },
+    { addr }: { addr: string },
+  ): Promise<ManagedAsset[]> {
+    const indexerClient = getIndexerClient(rootState.config);
+    const result: ManagedAsset[] = [];
+    let next: string | undefined;
+    // A creator may have more assets than one page holds; the bound only stops a node that
+    // never ends the paging (200 pages are 200,000 assets).
+    for (let page = 0; page < 200; page++) {
+      let request = indexerClient.lookupAccountCreatedAssets(addr).limit(1000);
+      if (next) request = request.nextToken(next);
+      const response = await request.do();
+      for (const asset of response.assets ?? []) {
+        if (asset.deleted) continue;
+        result.push(toManagedAsset(asset.index, asset.params));
+      }
+      next = response.nextToken;
+      if (!next || !response.assets?.length) break;
+    }
+    return result;
   },
   async getAssetsByName({ rootState }, { name }: AssetsByNamePayload) {
     try {
